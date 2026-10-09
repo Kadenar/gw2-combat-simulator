@@ -1,9 +1,10 @@
+import { kineticBattery } from '#gw2/professions/engineer/core/traits/tools/index.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
-import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
+import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
@@ -27,18 +28,19 @@ test('Kinetic Battery resets before its reward and admits only qualifying toolbe
       }
     }).effects
   };
+  kineticBattery.hooks.initialize(context);
   const skill = { id: 'test.toolbelt', name: 'Toolbelt', countsAsToolbeltSkill: true };
-  applyEngineerToolbeltTraits(context, { ...skill, countsAsToolbeltSkill: false }, 1);
+  notifyToolbeltActivation(context, { ...skill, countsAsToolbeltSkill: false }, 1);
   assert.equal(core.kineticCharges, 2);
   assert.deepEqual(observations, []);
-  applyEngineerToolbeltTraits(context, skill, 1);
+  notifyToolbeltActivation(context, skill, 1);
   assert.equal(core.kineticCharges, 0);
   assert.ok(observations.some(([kind]) => kind === 'quickness'));
   assert.ok(observations.every(([, count]) => count === 0));
-  applyEngineerToolbeltTraits(context, skill, 2);
+  notifyToolbeltActivation(context, skill, 2);
   assert.equal(core.kineticCharges, 1);
   context.traits.clear();
-  applyEngineerToolbeltTraits(context, skill, 3);
+  notifyToolbeltActivation(context, skill, 3);
   assert.equal(core.kineticCharges, 1);
 });
 

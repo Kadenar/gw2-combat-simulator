@@ -1,5 +1,4 @@
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -20,24 +19,16 @@ import {
 } from '#gw2/professions/engineer/core/mechanics/turrets.js';
 import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import {
-  applyEngineerCastTraits,
-  reactToEngineerCondition,
-  reactToEngineerDamage
-} from '#gw2/professions/engineer/core/traits/dispatch.js';
-import {
   emitAimAssistedRocket,
   emitExplosiveEntrance
 } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
 import { emitLesserGrenadeBarrage } from '#gw2/professions/engineer/core/skills/trait-skills.js';
-import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/firearms/critical-procs.js';
 import {
-  applyEngineerDodgeTraits,
-  applyEngineerToolbeltTraits
-} from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
+  notifyToolbeltActivation,
+  notifyDodgeActivation
+} from '#gw2/professions/engineer/core/mechanics/activations.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
-
-const critical = engineerCoreCriticalHitDefinitions.map(criticalProcHandler);
 
 /** Precast mines retain activation ownership until the actual combat boundary permits detonation. */
 function detonatePrecastMines(runtime: EngineerRuntime): void {
@@ -56,7 +47,7 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
         skillName: skill.name
       }
     });
-    applyEngineerToolbeltTraits(runtime, detonation, runtime.time);
+    notifyToolbeltActivation(runtime, detonation, runtime.time);
   }
 }
 
@@ -133,7 +124,7 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
     'engineer.mine-field'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
       if (runtime.combatStartPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
-      else applyEngineerToolbeltTraits(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);
+      else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);
     },
     // Both sword finishers declare the reward while live cooldown selection and proc reporting share one owner.
     'engineer.sword-recharge'(runtime, context, action) {
@@ -155,26 +146,20 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   onCombatStart: detonatePrecastMines,
   modifyEffects: engineerSpearEffects,
   onCastStart(runtime, cast) {
-    if (cast.skill.independentCast) applyEngineerToolbeltTraits(runtime, cast.skill, runtime.time);
+    if (cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, runtime.time);
     if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
     buildEngineerPackets('engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill).forEach((packet) =>
       runtime.effects.emit({ kind: 'packet', event: packet })
     );
-    applyEngineerDodgeTraits(runtime, cast);
+    notifyDodgeActivation(runtime, cast);
   },
   onCastCommit(runtime, cast) {
-    applyEngineerCastTraits(runtime, cast);
+    // Independent commands notify at acceptance; ordinary toolbelt casts notify only on completion.
+    if (!cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, runtime.time);
   },
   tasks: { ...engineerSpearTasks, ...engineerTurretTasks },
   eventHandlers: {
     'engineer.air-blast': handleAirBlast,
     ...engineerSpearEventHandlers
-  },
-  reactions: {
-    'damage.resolved'(runtime, event, details) {
-      for (const reaction of critical) reaction(runtime, event, details);
-      reactToEngineerDamage(runtime, event);
-    },
-    'condition.applied': reactToEngineerCondition
   }
 };

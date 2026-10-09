@@ -46,10 +46,13 @@ import {
   takedownRound
 } from '#gw2/professions/engineer/core/traits/tools/index.js';
 
-/** Collects Core trait declarations; the trait dispatcher preserves runtime order. */
+/** Declaration order is causal: critical procs precede explosion reactions, and Power Wrench precedes Adrenal Implant. */
 export const engineerCoreTraits = [
   grenadier,
   streamlinedKits,
+  serratedSteel,
+  noScope,
+  incendiaryPowder,
   optimizedActivation,
   staticDischarge,
   kineticBattery,
@@ -57,10 +60,8 @@ export const engineerCoreTraits = [
   steelPackedPowder,
   shortFuse,
   explosiveTemper,
+  grandEntrance,
   shrapnel,
-  serratedSteel,
-  noScope,
-  incendiaryPowder,
   aimAssistedRocket,
   thermalVision,
   sanguineArray,
@@ -68,11 +69,10 @@ export const engineerCoreTraits = [
   chemicalRounds,
   energyAmplifier,
   highCaliber,
-  grandEntrance,
   heavyMetal,
   hgh,
-  adrenalImplant,
   powerWrench,
+  adrenalImplant,
   mechanizedDeployment,
   gadgeteer,
   compoundingChemicals,

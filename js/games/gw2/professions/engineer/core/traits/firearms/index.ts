@@ -1,19 +1,45 @@
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  procChanceFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { heavyMetalBonus } from '#gw2/professions/engineer/core/traits/firearms/modifiers.js';
 import { activeBoonStacks, targetConditionCount } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerBuild } from '#gw2/professions/engineer/types.js';
-
+import {
+  type EngineerBuild,
+  type EngineerResolverContext,
+  type EngineerResolverEvent
+} from '#gw2/professions/engineer/types.js';
+import { emitIncendiaryPowder, emitSerratedSteel } from '#gw2/professions/engineer/core/traits/firearms/emissions.js';
 /** Owns Serrated Steel tuning and behavior at its established runtime and build boundaries. */
 export const serratedSteel = defineTrait({
+  // Register this trait's reaction at its causal gameplay boundary.
+  hooks: {
+    reactions: {
+      'damage.resolved': criticalProcHandler({
+        id: 'engineer.core.serrated-steel',
+        actorTypes: ['player', 'effect', 'unknown'],
+        when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.SERRATED_STEEL),
+        chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.SERRATED_STEEL),
+        randomStream: 'engineer.serrated-steel',
+        handler(context, event, _details, application) {
+          emitSerratedSteel(context, event, application.quantity, { actorType: 'effect', ownerActorType: 'player' });
+        }
+      })
+    }
+  },
   id: TRAIT.SERRATED_STEEL,
   name: 'Serrated Steel',
   balance: {
@@ -54,6 +80,25 @@ export const serratedSteel = defineTrait({
 
 /** Owns No Scope tuning and behavior at its established runtime and build boundaries. */
 export const noScope = defineTrait({
+  // Register this trait's reaction at its causal gameplay boundary.
+  hooks: {
+    reactions: {
+      'damage.resolved': criticalProcHandler({
+        id: 'engineer.core.no-scope',
+        actorTypes: ['player'],
+        when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.NO_SCOPE),
+        internalCooldown: {
+          duration: (context) =>
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NO_SCOPE), 'internalCooldown'),
+          readyAt: (context) => context.procs.deadline('noScope') || 0,
+          setReadyAt: (context, readyAt) => {
+            context.procs.setDeadline('noScope', readyAt);
+          }
+        },
+        handler: grantNoScope
+      })
+    }
+  },
   id: TRAIT.NO_SCOPE,
   name: 'No Scope',
   balance: {
@@ -80,6 +125,30 @@ export const noScope = defineTrait({
 
 /** Owns Incendiary Powder tuning and behavior at its established runtime and build boundaries. */
 export const incendiaryPowder = defineTrait({
+  // Register this trait's reaction at its causal gameplay boundary.
+  hooks: {
+    reactions: {
+      'damage.resolved': criticalProcHandler({
+        id: 'engineer.core.incendiary-powder-player',
+        actorTypes: ['player'],
+        when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.INCENDIARY_POWDER),
+        internalCooldown: {
+          duration: (context) =>
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.INCENDIARY_POWDER),
+              'internalCooldown'
+            ),
+          readyAt: (context) => context.procs.deadline('incendiaryPowder.player') || 0,
+          setReadyAt: (context, readyAt) => {
+            context.procs.setDeadline('incendiaryPowder.player', readyAt);
+          }
+        },
+        handler(context, event) {
+          emitIncendiaryPowder(context, event, { actorType: 'effect', ownerActorType: 'player' });
+        }
+      })
+    }
+  },
   id: TRAIT.INCENDIARY_POWDER,
   name: 'Incendiary Powder',
   balance: {
@@ -113,6 +182,8 @@ export const incendiaryPowder = defineTrait({
 
 /** Owns Thermal Vision tuning and behavior at its established runtime and build boundaries. */
 export const thermalVision = defineTrait({
+  // Register this trait's reaction at its causal gameplay boundary.
+  hooks: { reactions: { 'condition.applied': applyThermalVision } },
   id: TRAIT.THERMAL_VISION,
   name: 'Thermal Vision',
   balance: {
@@ -138,6 +209,8 @@ export const thermalVision = defineTrait({
 
 /** Owns Sanguine Array tuning and behavior at its established runtime and build boundaries. */
 export const sanguineArray = defineTrait({
+  // Register this trait's reaction at its causal gameplay boundary.
+  hooks: { reactions: { 'condition.applied': applySanguineArray } },
   id: TRAIT.SANGUINE_ARRAY,
   name: 'Sanguine Array',
   balance: {
@@ -147,6 +220,8 @@ export const sanguineArray = defineTrait({
 
 /** Owns Hematic Focus tuning and behavior at its established runtime and build boundaries. */
 export const hematicFocus = defineTrait({
+  // Register this trait's reaction at its causal gameplay boundary.
+  hooks: { reactions: { 'condition.applied': applyHematicFocus } },
   id: TRAIT.HEMATIC_FOCUS,
   name: 'Hematic Focus',
   balance: {
@@ -278,4 +353,124 @@ export function selectedFirearmsDurationBonuses(context: Gw2ModifierContext): Re
   }
 
   return bonuses;
+}
+
+/** React to accepted conditions with Firearms trait rewards, retaining their eligibility and cooldown rules. */
+
+/** Opens or extends Thermal Vision's condition-damage window from player-owned Burning. */
+function applyThermalVision(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  if (event.condition !== 'Burning' || event.actorType === 'summon' || !hasTrait(context, TRAIT.THERMAL_VISION)) {
+    return;
+  }
+
+  const thermalVisionProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_VISION);
+  // Independent accepted grants retain the longest window when Burning applications overlap.
+  const thermalVisionBuff = requireEffect(thermalVisionProfile, 'buff', 'thermal-vision');
+  if (thermalVisionBuff) {
+    context.effects.emit({
+      kind: 'packet',
+      cause: event,
+      settlement: 'reaction',
+      event: buildEngineerBuff(event, {
+        name: 'Thermal Vision',
+        kind: 'thermal-vision',
+        duration: thermalVisionBuff.duration,
+        stacks: 1,
+        sourceId: TRAIT.THERMAL_VISION,
+        actorType: 'effect'
+      })
+    });
+  }
+}
+
+/** Converts player-owned Bleeding applications into Sanguine Array might. */
+function applySanguineArray(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  if (event.condition !== 'Bleeding' || event.actorType === 'summon' || !hasTrait(context, TRAIT.SANGUINE_ARRAY)) {
+    return;
+  }
+
+  const sanguineArrayProfile = requireBalanceProfileFromContext(context, TRAIT.SANGUINE_ARRAY);
+  const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', 'might');
+  if (sanguineArrayMight) {
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerBuff(event, {
+        name: 'Sanguine Array',
+        kind: String(sanguineArrayMight.boon).toLowerCase(),
+        stacks: Math.max(1, event.stacks || 1),
+        duration: sanguineArrayMight.duration,
+        sourceId: TRAIT.SANGUINE_ARRAY,
+        actorType: 'effect'
+      }),
+      durationContext: event
+    });
+
+    context.effects.emit({
+      attribution: { source: 'Trait', sourceId: TRAIT.SANGUINE_ARRAY, actorType: 'effect' },
+      kind: 'announcement',
+      cause: event,
+      announcement: { type: 'trait', name: 'Sanguine Array', at: event.at, sourceSkill: event.skillName, icon: '' }
+    });
+  }
+}
+
+/** Grants Hematic Focus fury from player-owned Bleeding when its cooldown is ready. */
+function applyHematicFocus(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  if (event.condition !== 'Bleeding' || event.actorType === 'summon' || !hasTrait(context, TRAIT.HEMATIC_FOCUS)) {
+    return;
+  }
+
+  const state = context.procs;
+  if (!isInternalCooldownReady(event.at, state.deadline('hematicFocus') || 0)) return;
+  const hematicFocusProfile = requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS);
+  const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
+  if (hematicFocusFury) {
+    state.setDeadline('hematicFocus', event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown'));
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerBuff(event, {
+        name: 'Hematic Focus',
+        kind: String(hematicFocusFury.boon).toLowerCase(),
+        stacks: Number(hematicFocusFury.stacks),
+        duration: hematicFocusFury.duration,
+        sourceId: TRAIT.HEMATIC_FOCUS,
+        actorType: 'effect'
+      }),
+      durationContext: event
+    });
+
+    context.effects.emit({
+      attribution: { source: 'Trait', sourceId: TRAIT.HEMATIC_FOCUS, actorType: 'effect' },
+      kind: 'announcement',
+      cause: event,
+      announcement: { type: 'trait', name: 'Hematic Focus', at: event.at, sourceSkill: event.skillName, icon: '' }
+    });
+  }
+}
+
+/** Grant and report No Scope Fury only after the shared critical handler accepts the proc. */
+function grantNoScope(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  const noScopeProfile = requireBalanceProfileFromContext(context, TRAIT.NO_SCOPE);
+  const noScopeFury = requireEffect(noScopeProfile, 'boon', 'fury');
+  if (noScopeFury) {
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerBuff(event, {
+        name: 'No Scope',
+        kind: String(noScopeFury.boon).toLowerCase(),
+        stacks: Number(noScopeFury.stacks),
+        duration: noScopeFury.duration,
+        sourceId: TRAIT.NO_SCOPE,
+        actorType: 'effect'
+      }),
+      durationContext: event
+    });
+
+    context.effects.emit({
+      attribution: { source: 'Trait', sourceId: TRAIT.NO_SCOPE, actorType: 'effect' },
+      kind: 'announcement',
+      cause: event,
+      announcement: { type: 'trait', name: 'No Scope', at: event.at, sourceSkill: event.skillName, icon: '' }
+    });
+  }
 }

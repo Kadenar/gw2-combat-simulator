@@ -1,10 +1,18 @@
-import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { isElixirSkill, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/alchemy/elixirs.js';
-import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { type EngineerRuntime, type EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { type SimulationEventBase } from '#gw2/platform/events/events.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
 const DISABLE_CONTROL_KINDS = new Set([
   'stun',
@@ -45,7 +53,7 @@ export const hgh = defineTrait({
     effects: (effect) => effect.type === 'boon' && effect.name === boon,
     attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: 'player', name: `HGH — ${boon}` }
   })),
-  hooks: { prepareEvent: prepareEngineerHghEvent }
+  hooks: { prepareEvent: prepareEngineerHghEvent, onCastCommit: applyHghAcidBomb }
 });
 
 /** Owns Compounding Chemicals tuning and behavior at its established runtime and build boundaries. */
@@ -141,3 +149,51 @@ export const equalAndOppositeReaction = defineTrait({
     }
   ]
 });
+
+/** Owns HGH's elixir cast effects and scheduled-event duration extension. */
+
+function isElixirSkill(skill: EngineerSkill | undefined): boolean {
+  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'elixir'));
+}
+
+/** Schedules Acid Bomb's extended final pulse while HGH is selected. */
+function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
+  const skill = cast.skill;
+  if (!hasTrait(context.traits, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
+
+  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
+  const strike = requireEffect(hghProfile, 'strike', 'HGH');
+  if (strike) {
+    buildEngineerPackets(
+      'damage',
+      {
+        at: cast.fullEnd + 6,
+        activationId: cast.id,
+        weaponStrengthProfileId: strike.weaponStrengthProfileId,
+        coefficient: Number(strike.coefficient),
+        hits: Number(strike.hits),
+        name: 'Acid Bomb',
+        actorType: 'player'
+      },
+      skill
+    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
+  }
+}
+
+/** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
+function prepareEngineerHghEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
+  if (!hasTrait(context.traits, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
+  const skill = skillForEvent(context.helpers, event);
+  if (!isElixirSkill(skill)) return event;
+  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
+  const durationMultiplier = balanceProfileNumber(hghProfile, 'durationMultiplier');
+
+  if (event.type === 'combo_field') {
+    const duration = Number(event.expiresAt) - event.at;
+    if (duration > 0) return { ...event, expiresAt: event.at + duration * durationMultiplier };
+  } else if ((event.type === 'buff' || event.type === 'condition') && Number(event.duration) > 0) {
+    return { ...event, duration: Number(event.duration) * durationMultiplier };
+  }
+
+  return event;
+}

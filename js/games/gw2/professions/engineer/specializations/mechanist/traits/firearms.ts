@@ -4,13 +4,22 @@ import {
   procChanceFromContext,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { EngineerCriticalHitDefinition } from '#gw2/professions/engineer/core/traits/firearms/critical-procs.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 import { emitIncendiaryPowder, emitSerratedSteel } from '#gw2/professions/engineer/core/traits/firearms/emissions.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 
+/** The mech owns this option type because player traits now declare their critical reactions directly. */
+type MechCriticalHitDefinition = ResolvedCriticalHitOptions<
+  EngineerResolverContext,
+  EngineerResolverEvent,
+  NativeResolvedDamageDetails
+>;
+
 // The mech owns independent Firearms proc trackers so its critical hits cannot consume the player's progress.
-export const engineerMechCriticalDefinitions: readonly EngineerCriticalHitDefinition[] = Object.freeze([
+export const engineerMechCriticalDefinitions: readonly MechCriticalHitDefinition[] = Object.freeze([
   {
     id: 'engineer.mechanist.serrated-steel-mech',
     actorTypes: ['summon'],
@@ -46,4 +55,4 @@ export const engineerMechCriticalDefinitions: readonly EngineerCriticalHitDefini
       emitIncendiaryPowder(context, event, { actorType: 'summon', metadata: { engineerMech: true } });
     }
   }
-] satisfies readonly EngineerCriticalHitDefinition[]);
+] satisfies readonly MechCriticalHitDefinition[]);

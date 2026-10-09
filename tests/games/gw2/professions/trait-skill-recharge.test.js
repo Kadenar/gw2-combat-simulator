@@ -18,10 +18,7 @@ import { RANGER_TRAIT_IDS as R } from '#gw2/professions/ranger/data/ids.js';
 import { THIEF_TRAIT_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { WARRIOR_TRAIT_IDS as W } from '#gw2/professions/warrior/data/ids.js';
 import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
-import {
-  applyExplosiveEntrance,
-  resetExplosiveEntrance
-} from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import { explosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/index.js';
 import { triggerMechFighter } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { completeProtectorsRestoration } from '#gw2/professions/guardian/core/traits/honor/index.js';
@@ -186,20 +183,20 @@ test('Evasive Arcana keeps independent attunement cooldowns', () => {
 test('Explosive Entrance dodge rearming preserves recharge and a blocked hit does not consume the charge', () => {
   const runtime = fixture(engineerProfession, N.EXPLOSIVE_ENTRANCE);
   runtime.time = 1;
-  applyExplosiveEntrance(runtime, hit(runtime));
+  explosiveEntrance.hooks.reactions['damage.resolved'](runtime, hit(runtime));
   assert.equal(runtime.profession.core.explosiveEntranceFired, true);
   assert.equal(runtime.procs.deadline(N.EXPLOSIVE_ENTRANCE), 1.2);
   // Lingering player damage can trigger shortly before an already-running dodge finishes.
-  resetExplosiveEntrance(runtime);
+  explosiveEntrance.hooks.eventHandlers['engineer.dodge'](runtime);
   for (const at of [1.1, 1.2]) {
     runtime.time = at;
-    applyExplosiveEntrance(runtime, hit(runtime));
+    explosiveEntrance.hooks.reactions['damage.resolved'](runtime, hit(runtime));
     assert.equal(runtime.profession.core.explosiveEntranceFired, false);
     assert.equal(runtime.procs.deadline(N.EXPLOSIVE_ENTRANCE), 1.2);
   }
 
   runtime.time = 1.201;
-  applyExplosiveEntrance(runtime, hit(runtime));
+  explosiveEntrance.hooks.reactions['damage.resolved'](runtime, hit(runtime));
   assert.equal(runtime.profession.core.explosiveEntranceFired, true);
   assert.equal(runtime.procs.deadline(N.EXPLOSIVE_ENTRANCE), 1.401);
 });

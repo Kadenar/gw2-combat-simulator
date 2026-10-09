@@ -22,7 +22,7 @@ const baseConfig = Object.freeze({
   target: { armor: 2597, conditions: {} }
 });
 
-// Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.
+// Run the smallest Core rotation that reaches a migrated trait through its registered trait hooks.
 function simulate(rotation, config = {}) {
   return createObservedProfessionSimulator(engineerProfession, baseConfig)('Core', rotation, config);
 }
@@ -245,7 +245,7 @@ const traitCases = [
 ];
 
 for (const { name, trait, extraTraits = [], rotation, config, verify } of traitCases) {
-  test(`${name} remains behaviorally reachable through the Core trait dispatcher`, () => {
+  test(`${name} remains behaviorally reachable through its Core trait hooks`, () => {
     verify(simulate(rotation, { ...config, selectedTraitIds: [trait, ...extraTraits] }));
   });
 }

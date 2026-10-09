@@ -1,51 +1,19 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { type EngineerResolverContext, type EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { buildEngineerStrike, resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import {
   balanceProfileNumber,
   effectNumber,
-  procChanceFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import {
-  buildEngineerBuff,
-  buildEngineerCondition,
-  buildEngineerStrike,
-  resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-
-/** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
-
-/** Rearms Explosive Entrance after a resolved Engineer dodge. */
-export function resetExplosiveEntrance(context: EngineerResolverContext): void {
-  professionCoreState(context).explosiveEntranceFired = false;
-}
-
-/** Queues Explosive Entrance once for the next eligible player strike. */
-export function applyExplosiveEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (
-    event.actorType !== 'player' ||
-    !hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) ||
-    professionCoreState(context).explosiveEntranceFired
-  ) {
-    return;
-  }
-
-  const explosiveEntranceProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_ENTRANCE);
-  const explosiveEntranceStrike = requireEffect(explosiveEntranceProfile, 'strike', 'Explosive Entrance');
-  if (explosiveEntranceStrike && context.procs.claim(TRAIT.EXPLOSIVE_ENTRANCE, TRAIT.EXPLOSIVE_ENTRANCE, event.at)) {
-    // A hit during skill recharge leaves the dodge-armed attack available for the next eligible hit.
-    professionCoreState(context).explosiveEntranceFired = true;
-    emitExplosiveEntrance(context, event);
-  }
-}
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { type Gw2MutableStats } from '#gw2/platform/combat/stats.js';
+import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 
 /** Emit one entrance strike without consuming dodge or attack history. */
 export function emitExplosiveEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
@@ -71,197 +39,6 @@ export function emitExplosiveEntrance(context: EngineerResolverContext, event: E
     cause: event,
     announcement: { type: 'trait', name: 'Explosive Entrance', at: event.at, sourceSkill: event.skillName, icon: '' }
   });
-}
-
-/** Applies Steel-Packed Powder to a hit already classified as an explosion. */
-export function applySteelPackedPowder(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  explosion: boolean
-): void {
-  if (!explosion || !hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) return;
-  const steelPackedPowderProfile = requireBalanceProfileFromContext(context, TRAIT.STEEL_PACKED_POWDER);
-  const steelPackedPowderVulnerability = requireEffect(steelPackedPowderProfile, 'condition', 'Vulnerability');
-  if (steelPackedPowderVulnerability) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerCondition(event, {
-        name: 'Steel-Packed Powder',
-        condition: String(steelPackedPowderVulnerability.condition),
-        stacks: Number(steelPackedPowderVulnerability.stacks),
-        duration: Number(steelPackedPowderVulnerability.duration),
-        sourceId: TRAIT.STEEL_PACKED_POWDER,
-        actorType: 'effect'
-      }),
-      settlement: 'reaction'
-    });
-  }
-}
-
-/** Grants Short Fuse fury from an explosion when its internal cooldown is ready. */
-export function applyShortFuse(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  explosion: boolean
-): void {
-  const state = context.procs;
-  if (
-    !explosion ||
-    !hasTrait(context, TRAIT.SHORT_FUSE) ||
-    !isInternalCooldownReady(event.at, state.deadline('shortFuse') || 0)
-  ) {
-    return;
-  }
-
-  const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
-  state.setDeadline('shortFuse', event.at + balanceProfileNumber(shortFuseProfile, 'internalCooldown'));
-  const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
-  if (shortFuseFury) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerBuff(event, {
-        name: 'Short Fuse',
-        kind: String(shortFuseFury.boon).toLowerCase(),
-        stacks: Number(shortFuseFury.stacks),
-        duration: shortFuseFury.duration,
-        sourceId: TRAIT.SHORT_FUSE,
-        actorType: 'effect'
-      }),
-      durationContext: event
-    });
-
-    context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.SHORT_FUSE, actorType: 'effect' },
-      kind: 'announcement',
-      cause: event,
-      announcement: { type: 'trait', name: 'Short Fuse', at: event.at, sourceSkill: event.skillName, icon: '' }
-    });
-  }
-}
-
-/** Adds an Explosive Temper stack for each explosion hit. */
-export function applyExplosiveTemper(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  explosion: boolean
-): void {
-  if (!explosion || !hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) return;
-  const explosiveTemperProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_TEMPER);
-  const explosiveTemperBuff = requireEffect(explosiveTemperProfile, 'buff', 'explosive-temper');
-  if (explosiveTemperBuff) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerBuff(event, {
-        name: 'Explosive Temper',
-        kind: 'explosive-temper',
-        stacks: Number(explosiveTemperBuff.stacks),
-        duration: explosiveTemperBuff.duration,
-        sourceId: TRAIT.EXPLOSIVE_TEMPER,
-        actorType: 'effect'
-      }),
-      durationContext: event
-    });
-
-    context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.EXPLOSIVE_TEMPER, actorType: 'effect' },
-      kind: 'announcement',
-      cause: event,
-      announcement: { type: 'trait', name: 'Explosive Temper', at: event.at, sourceSkill: event.skillName, icon: '' }
-    });
-  }
-}
-
-/** Grants Grand Entrance's resistance and critical-chance window from its trait strike. */
-export function applyGrandEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (Number(event.sourceId) !== TRAIT.EXPLOSIVE_ENTRANCE || !hasTrait(context, TRAIT.GRAND_ENTRANCE)) return;
-  context.effects.emit({
-    kind: 'packet',
-    event: buildEngineerBuff(event, {
-      name: 'Grand Entrance — resistance',
-      kind: 'resistance',
-      stacks: 1,
-      duration: 3,
-      sourceId: TRAIT.GRAND_ENTRANCE,
-      actorType: 'effect'
-    }),
-    durationContext: event
-  });
-  context.effects.emit({
-    kind: 'packet',
-    event: buildEngineerBuff(event, {
-      name: 'Grand Entrance',
-      kind: 'grand-entrance',
-      stacks: 1,
-      duration: 3,
-      sourceId: TRAIT.GRAND_ENTRANCE,
-      actorType: 'effect'
-    }),
-    durationContext: event
-  });
-  context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.GRAND_ENTRANCE, actorType: 'effect' },
-    kind: 'announcement',
-    cause: event,
-    announcement: { type: 'trait', name: 'Grand Entrance', at: event.at, sourceSkill: event.skillName, icon: '' }
-  });
-}
-
-/** Rolls Shrapnel against the simulation seed in both modes for each eligible explosion. */
-export function applyShrapnel(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  explosion: boolean
-): void {
-  // Generated rocket explosions also roll Shrapnel; effect ownership must not discard their opportunity.
-  if (!explosion || !hasTrait(context, TRAIT.SHRAPNEL)) return;
-  const chance = procChanceFromContext(context, TRAIT.SHRAPNEL);
-  if (!context.random.roll(chance, 'engineer.shrapnel')) return;
-
-  const shrapnelProfile = requireBalanceProfileFromContext(context, TRAIT.SHRAPNEL);
-  const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', 'Bleeding');
-  if (shrapnelBleeding) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerCondition(event, {
-        name: 'Shrapnel',
-        condition: String(shrapnelBleeding.condition),
-        // Count the activation on its primary effect only; the Crippled effect is part of the same proc.
-        procCount: 1,
-        stacks: Number(shrapnelBleeding.stacks),
-        duration: Number(shrapnelBleeding.duration),
-        sourceId: TRAIT.SHRAPNEL,
-        actorType: 'effect',
-        ownerActorType: 'player'
-      }),
-      settlement: 'reaction'
-    });
-  }
-
-  const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', 'Crippled');
-  if (shrapnelCrippled) {
-    // Resolve Crippled as a target condition so duration bonuses and condition queries include it.
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerCondition(event, {
-        name: 'Shrapnel',
-        condition: String(shrapnelCrippled.condition),
-        stacks: Number(shrapnelCrippled.stacks),
-        duration: Number(shrapnelCrippled.duration),
-        sourceId: TRAIT.SHRAPNEL,
-        actorType: 'effect',
-        ownerActorType: 'player'
-      }),
-      settlement: 'reaction'
-    });
-  }
-
-  if (shrapnelBleeding || shrapnelCrippled)
-    context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.SHRAPNEL, actorType: 'effect' },
-      kind: 'announcement',
-      cause: event,
-      announcement: { type: 'trait', name: 'Shrapnel', at: event.at, sourceSkill: event.skillName, icon: '' }
-    });
 }
 
 // Only player packets with authored projectile identity can trigger Aim-Assisted Rocket.

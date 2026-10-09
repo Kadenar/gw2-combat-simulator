@@ -2,7 +2,7 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/firearms/critical-procs.js';
+import { serratedSteel, noScope, incendiaryPowder } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { emitSerratedSteel } from '#gw2/professions/engineer/core/traits/firearms/emissions.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
@@ -13,7 +13,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const critical = { hitContext: { critical: { chance: 1, didCrit: true } } };
-const reactions = [...engineerCoreCriticalHitDefinitions, ...engineerMechCriticalDefinitions].map(criticalProcHandler);
+const reactions = [serratedSteel, noScope, incendiaryPowder]
+  .map((trait) => trait.hooks.reactions['damage.resolved'])
+  .concat(engineerMechCriticalDefinitions.map(criticalProcHandler));
 
 /** Exercise the real proc gates with selected profiles and isolated emission observation. */
 function fixture(traits, catalog = engineerCatalog, mode = 'stochastic') {
