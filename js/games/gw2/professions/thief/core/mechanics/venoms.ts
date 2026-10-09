@@ -1,4 +1,3 @@
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
 import {
@@ -132,30 +131,28 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
   addVenomCharges(core, cast.skill.id, at, maximumStacks, duration);
   // Each cast adds an expiring batch; shared grouping spends older grants before newer ones.
-  for (let allyIndex = 1; allyIndex <= gw2AlliedPlayerAssumptions(runtime.config).count; allyIndex++)
-    runtime.alliedStrikes.register({
-      id: `venom:${cast.id}:${allyIndex}`,
-      allyIndex,
-      expiresAt: at + duration,
-      inclusiveExpiry: true,
-      charges: maximumStacks,
-      consumptionGroup: `venom:${venom.skillId}`,
-      trigger(proc) {
-        for (const [effectIndex, effect] of conditionEffects(profile).entries())
-          runtime.effects.emit({
-            kind: 'packet',
-            event: buildThiefCondition(null, {
-              at: proc.at,
-              skillId: venom.skillId,
-              skillName: venom.skillName,
-              name: `${venom.skillName} \u2014 Ally ${proc.allyIndex} ${effect.condition}`,
-              condition: String(effect.condition),
-              stacks: effectNumber(profile, effect, 'stacks'),
-              duration: effectNumber(profile, effect, 'duration'),
-              activationId: `${cast.id}:${proc.activationId}`,
-              metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
-            })
-          });
-      }
-    });
+  runtime.alliedStrikes.registerRecipients((allyIndex) => ({
+    id: `venom:${cast.id}:${allyIndex}`,
+    expiresAt: at + duration,
+    inclusiveExpiry: true,
+    charges: maximumStacks,
+    consumptionGroup: `venom:${venom.skillId}`,
+    trigger(proc) {
+      for (const [effectIndex, effect] of conditionEffects(profile).entries())
+        runtime.effects.emit({
+          kind: 'packet',
+          event: buildThiefCondition(null, {
+            at: proc.at,
+            skillId: venom.skillId,
+            skillName: venom.skillName,
+            name: `${venom.skillName} \u2014 Ally ${proc.allyIndex} ${effect.condition}`,
+            condition: String(effect.condition),
+            stacks: effectNumber(profile, effect, 'stacks'),
+            duration: effectNumber(profile, effect, 'duration'),
+            activationId: `${cast.id}:${proc.activationId}`,
+            metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
+          })
+        });
+    }
+  }));
 }

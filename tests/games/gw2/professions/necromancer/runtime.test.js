@@ -914,10 +914,18 @@ test('consumption cancels only the removed creature and starts summon recharge a
   ]);
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(result.planningState.profession.activeMinions, {});
-  assert.equal(
-    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.SUMMON_BONE_MINIONS),
-    false
+  // An opening attack may land while a minion is alive; consumption cancels only that creature's future work.
+  const explosions = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.PUTRID_EXPLOSION
   );
+  for (const event of result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.SUMMON_BONE_MINIONS
+  )) {
+    const consumed = explosions.find((explosion) => explosion.summonOwner === event.summonOwner);
+    assert.ok(consumed);
+    assert.ok(event.at < consumed.at);
+  }
+
   const native = necromancerProfession.runtimeFor(base);
   const recharge = native.catalog.skillsById.get(ID.SUMMON_BONE_MINIONS).cooldown;
   const deathAt = result.steps.findLast((step) => step.skillId != null).end / 1000;
@@ -1343,15 +1351,16 @@ test('Vampirism passive impacts obey the observation window and share score exec
 
 test('allied siphon cadence starts once at an explicit combat marker', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE], allies: { count: 2, strikesPerSecond: 2 } };
-  const rotation = [wait(2000), { type: 'combat-start' }, wait(500)];
+  // Strikes start on the marker's grid; the first Vampiric Aura pulse lands 1.5 s after the marker.
+  const rotation = [wait(2000), { type: 'combat-start' }, wait(1500)];
   const result = simulate(rotation, config);
   const siphons = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC_PRESENCE
   );
   assert.equal(siphons.length, 2);
-  assert.ok(siphons.every((event) => event.at === 2.5));
+  assert.ok(siphons.every((event) => event.at === 3.5));
   assert.equal(simulate(rotation, config, { output: 'score' }).totalDamage, result.totalDamage);
-  const inherited = simulate([wait(2500)], config, { combatStartTime: 2 });
+  const inherited = simulate([wait(3500)], config, { combatStartTime: 2 });
   assert.equal(inherited.totalDamage, result.totalDamage);
 });
 

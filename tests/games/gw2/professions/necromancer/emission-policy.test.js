@@ -85,7 +85,14 @@ test('Ritualist party policy uses live companion eligibility and preserves the t
   const before = emit();
   assert.deepEqual(before.audience.eligibleCompanionIds, []);
   runtime.profession.core.activeMinions['bone-minion'] = 2;
-  runtime.profession.specialization.state.activeSpirits.preservation = true;
+  runtime.profession.specialization.state.activeSpirits.preservation = {
+    skillId: skill.id,
+    activationId: 'preservation',
+    generation: 1,
+    started: false,
+    initialUntil: 0,
+    busyUntil: 0
+  };
   const summoned = emit();
   assert.deepEqual(summoned.audience.eligibleCompanionIds, [
     'minion:bone-minion:0',
@@ -99,7 +106,7 @@ test('Ritualist party policy uses live companion eligibility and preserves the t
   assert.deepEqual(recipients.companionIds, []);
 
   runtime.profession.core.activeMinions['bone-minion'] = 0;
-  runtime.profession.specialization.state.activeSpirits.preservation = false;
+  delete runtime.profession.specialization.state.activeSpirits.preservation;
   assert.deepEqual(emit().audience.eligibleCompanionIds, []);
   // Already emitted packets retain the eligibility snapshot they were given.
   assert.equal(summoned.audience.eligibleCompanionIds.length, 3);

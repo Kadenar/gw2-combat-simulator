@@ -215,12 +215,6 @@ export function completeEngineerMechCast(context: EngineerRuntime, skill: Engine
   triggerMechFighter(context, skill);
 }
 
-/** The persistent mech owns its autonomous work separately from player-command effects. */
-export function scheduleMechAttack(context: EngineerRuntime, at: number, phase: MechAttackPayload): void {
-  if (!autonomousActionsAllowed(context)) return;
-  context.schedule('engineer.mech-attack', at, phase, { id: 'engineer.mech-attacks', generation: 0 });
-}
-
 /** Starts the autonomous mech attack loop when the specialization begins with an active mech. */
 export function initializeEngineerMech(context: EngineerRuntime): void {
   const state = mechanistState.from(context);
@@ -228,7 +222,7 @@ export function initializeEngineerMech(context: EngineerRuntime): void {
     return;
   state.mech.attackLoopStarted = true;
   const firstAttackAt = Math.max(context.time + MECHANIST_ATTACK_TIMING.initialDelay, state.mech.busyUntil);
-  scheduleMechAttack(context, firstAttackAt, { phase: 0, previousCommandEnd: 0 });
+  context.schedule('engineer.mech-attack', firstAttackAt, { phase: 0, previousCommandEnd: 0 });
 }
 
 /** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
@@ -236,9 +230,8 @@ export function stepMechAttack(
   context: EngineerRuntime,
   at: number,
   payload: MechAttackPayload
-): { at: number; state: MechAttackPayload } | null {
+): { at: number; state: MechAttackPayload } {
   const state = mechanistState.from(context);
-  if (!autonomousActionsAllowed(context) || !state.mech.enabled || !state.mech.active) return null;
   const rate = mechAttackRate(context, at);
   // Jade Cannons replaces the melee chain with alternating arm shots and
   // distinct within-pair and between-pair delays.

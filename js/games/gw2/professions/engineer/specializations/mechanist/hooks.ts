@@ -19,7 +19,6 @@ import {
   isEngineerMechCommand,
   prepareEngineerMechEvent,
   stepMechAttack,
-  scheduleMechAttack,
   type MechAttackPayload
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
@@ -74,12 +73,12 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
       const phase = data as MechAttackPayload;
       // The autonomous attack waits until the same canonical instant as lane release.
       if (runtime.time < canonicalTime(mech.busyUntil)) {
-        scheduleMechAttack(runtime, mech.busyUntil, phase);
+        runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);
         return;
       }
 
       const next = stepMechAttack(runtime, runtime.time, phase);
-      if (next) scheduleMechAttack(runtime, next.at, next.state);
+      runtime.schedule('engineer.mech-attack', next.at, next.state);
     }
   },
   reactions: {

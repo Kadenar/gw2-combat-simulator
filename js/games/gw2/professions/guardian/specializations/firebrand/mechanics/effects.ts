@@ -1,6 +1,5 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -47,11 +46,9 @@ export function alliedAshes(
   const burn = requireEffect(profile, 'condition', 'Burning');
   if (!burn) return;
   // Recipient grants survive preparation; one shared strike spends at most one Ashes charge per ally.
-  const allies = Math.min(source.maximumAllies, gw2AlliedPlayerAssumptions(runtime.config).count);
-  for (let allyIndex = 1; allyIndex <= allies; allyIndex++)
-    runtime.alliedStrikes.register({
+  runtime.alliedStrikes.registerRecipients(
+    (allyIndex) => ({
       id: `ashes:${event.activationId}:${event.sourceId}:${runtime.time}:${allyIndex}`,
-      allyIndex,
       expiresAt: canonicalTime(runtime.time + duration),
       inclusiveExpiry: true,
       charges: count,
@@ -61,7 +58,9 @@ export function alliedAshes(
         runtime.effects.emit({
           kind: 'packet',
           event: buildResolverCondition({
-            ...attribution(event),
+            source: 'guardian',
+            actorType: 'player',
+            triggeredBy: event.skillName,
             at: proc.at,
             priority: source.priority,
             sourceId: 'guardian.ashes-of-the-just',
@@ -76,7 +75,9 @@ export function alliedAshes(
           })
         });
       }
-    });
+    }),
+    { maximumAllies: source.maximumAllies }
+  );
 }
 
 /** Accepted Ashes casts grant after 560 ms, without exposing charges at acceptance or waiting for animation end. */

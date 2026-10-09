@@ -139,6 +139,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       parentId: ID.SUMMON_BLOOD_FIEND,
       minionKey: 'blood-fiend',
       minionCount: 1,
+      // The idle-attack log (20261009-122024) measures animation start to impact, excluding approach time.
+      openingAttackWindupMs: 880,
       // Measured animation plus fixed idle time; only the animation benefits from received Quickness.
       pulseInterval: 3.16,
       basePower: 2400,
@@ -165,6 +167,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       parentId: ID.SUMMON_BONE_FIEND,
       minionKey: 'bone-fiend',
       minionCount: 1,
+      // Retain the existing startup estimate until this minion has observed windup evidence.
+      openingAttackWindupMs: 3080,
       pulseInterval: 3.08,
       commandRecoveryDelayMs: 2120,
       basePower: 1500,
@@ -251,6 +255,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       parentId: ID.SUMMON_BONE_MINIONS,
       minionKey: 'bone-minion',
       minionCount: 2,
+      // Both minions share the measured windup even when they reach the target at different times.
+      openingAttackWindupMs: 720,
       pulseInterval: 3.56,
       basePower: 2250,
       damagePerCoefficient: 4750,
@@ -276,6 +282,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       parentId: ID.SUMMON_SHADOW_FIEND,
       minionKey: 'shadow-fiend',
       minionCount: 1,
+      // Retain the existing startup estimate independently of its repeat cadence.
+      openingAttackWindupMs: 1760,
       pulseInterval: 1.76,
       commandRecoveryDelayMs: 3580,
       basePower: 1700,
@@ -302,7 +310,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       parentId: ID.SUMMON_FLESH_GOLEM,
       minionKey: 'flesh-golem',
       minionCount: 1,
-      initialDelay: 2.2,
+      // Only the first Slash's windup gates engagement; the existing three-hit chain remains unchanged.
+      openingAttackWindupMs: 320,
       pulseInterval: 4,
       basePower: 2500,
       damagePerCoefficient: 3744,

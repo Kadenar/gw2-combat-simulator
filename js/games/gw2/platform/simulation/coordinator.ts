@@ -85,11 +85,18 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   }
 
   /** Internal packets share queue ordering but cannot become public history or report rows. */
-  function enqueueWork(work: RuntimeWork): void {
+  function enqueueWork(work: RuntimeWork, independent = false): void {
     if (work.at < getRuntime().time) throw new RangeError('Internal work cannot backdate the live clock.');
-    const queued = queue.enqueue({ ...work, source: 'Runtime', sourceId: work.type, actorType: 'effect' });
-    // Delayed work acts for whatever scheduled it, so its unattributed effects stay that event's reactions.
-    if (currentCause) workCauses.set(queued, currentCause);
+    const previousOrder = queue.currentCausalOrder;
+    // Shared clocks have neither a scheduling parent nor inherited ordering from their starter or prior tick.
+    if (independent) queue.currentCausalOrder = null;
+    try {
+      const queued = queue.enqueue({ ...work, source: 'Runtime', sourceId: work.type, actorType: 'effect' });
+      // Delayed work acts for whatever scheduled it, so its unattributed effects stay that event's reactions.
+      if (!independent && currentCause) workCauses.set(queued, currentCause);
+    } finally {
+      queue.currentCausalOrder = previousOrder;
+    }
   }
 
   /** Project pending deadlines with their actual cause, excluding already identified physical summon loops. */
@@ -190,6 +197,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     identify,
     reactionParent,
     withCause,
+    currentCause: () => currentCause,
     enqueueWork,
     pendingEffects,
     run,

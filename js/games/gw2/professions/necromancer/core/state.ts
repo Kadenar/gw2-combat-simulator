@@ -21,7 +21,7 @@ export interface NecromancerSelfCondition {
   readonly expiresAt: number;
 }
 
-interface TasteForBloodGrant extends ChargeGrant {
+export interface TasteForBloodGrant extends ChargeGrant {
   readonly at: number;
 }
 

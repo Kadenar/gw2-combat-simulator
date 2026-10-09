@@ -133,7 +133,7 @@ test('spirit replacement changes generation and busy state only at completion', 
   const completed = [];
   const observe = (runtime) => {
     const state = runtime.profession.specialization.state;
-    return [state.spiritGenerations.wanderlust || 0, state.spiritBusyUntil.wanderlust];
+    return [state.activeSpirits.wanderlust?.generation || 0, state.activeSpirits.wanderlust?.busyUntil];
   };
 
   const result = observeGw2Runtime({

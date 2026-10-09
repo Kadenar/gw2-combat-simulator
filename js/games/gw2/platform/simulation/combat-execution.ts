@@ -21,9 +21,8 @@ export function createCombatExecution<T extends object>(
     acceptsEffect: () => true,
     professionReactions: profession.reactions,
     spendCost: (runtime, skill) => spendSkillCost(runtime.mechanics, skill),
-    initialize: (runtime) => runtime.alliedStrikes.start(),
     combatStart(runtime) {
-      runtime.alliedStrikes.start();
+      runtime.alliedStrikeController.start();
       profession.onCombatStart?.(runtime.mechanics);
     },
     bindProducers(getRuntime) {

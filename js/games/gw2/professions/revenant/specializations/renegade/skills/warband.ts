@@ -1,6 +1,5 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -75,34 +74,32 @@ export function razorclawsRage(
     readyAt: runtime.time
   };
   // Reapplication replaces recipient charges without resetting the ally's strike cadence.
-  for (let allyIndex = 1; allyIndex <= gw2AlliedPlayerAssumptions(runtime.config).count; allyIndex++)
-    runtime.alliedStrikes.register({
-      id: `razorclaw:${allyIndex}`,
-      allyIndex,
-      expiresAt: runtime.time + duration,
-      inclusiveExpiry: true,
-      charges,
-      internalCooldown: Math.max(0, proc.cooldown || 0),
-      trigger(allied) {
-        runtime.effects.emit({
-          kind: 'packet',
-          event: buildResolverCondition({
-            at: allied.at,
-            source: 'revenant',
-            sourceId: cast.skill.id,
-            actorType: bleed.actorType || 'player',
-            skillId: cast.skill.id,
-            skillName: cast.skill.name,
-            activationId: cast.id,
-            name: `${cast.skill.name} — Ally ${allied.allyIndex} Bleeding`,
-            condition: String(bleed.condition),
-            stacks: effectNumber(proc, bleed, 'stacks'),
-            duration: effectNumber(proc, bleed, 'duration'),
-            metadata: { triggeredByAlly: allied.allyIndex }
-          })
-        });
-      }
-    });
+  runtime.alliedStrikes.registerRecipients((allyIndex) => ({
+    id: `razorclaw:${allyIndex}`,
+    expiresAt: runtime.time + duration,
+    inclusiveExpiry: true,
+    charges,
+    internalCooldown: Math.max(0, proc.cooldown || 0),
+    trigger(allied) {
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({
+          at: allied.at,
+          source: 'revenant',
+          sourceId: cast.skill.id,
+          actorType: bleed.actorType || 'player',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: `${cast.id}:${allied.activationId}`,
+          name: `${cast.skill.name} — Ally ${allied.allyIndex} Bleeding`,
+          condition: String(bleed.condition),
+          stacks: effectNumber(proc, bleed, 'stacks'),
+          duration: effectNumber(proc, bleed, 'duration'),
+          metadata: { triggeredByAlly: allied.allyIndex }
+        })
+      });
+    }
+  }));
 }
 
 /** Completion arms Razorclaw's charges and, for an ordinary summon, the next Band Together enhancement. */

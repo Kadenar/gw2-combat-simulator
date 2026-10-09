@@ -1,5 +1,6 @@
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -18,10 +19,7 @@ import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/tra
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
-import {
-  applyVampiricPresence,
-  reactToVampiricPresenceAlliedHit
-} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
+import { applyVampiricPresence } from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import {
   reactToNecromancerCoreCondition,
   reactToNecromancerCoreDamage
@@ -627,7 +625,7 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
 });
 
 // Summons and allies have independent live claims; spirit hits share the player's interval.
-test('Vampiric Presence preserves recipient scopes and gates actual allied strikes', () => {
+test('Vampiric Presence preserves player and companion cooldown scopes', () => {
   const core = createNecromancerCoreState();
   core.activeMinions.fixture = 2;
   const catalog = withProfile(necromancerCatalog, NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE, {
@@ -640,7 +638,8 @@ test('Vampiric Presence preserves recipient scopes and gates actual allied strik
     traits: [NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE],
     config: { allies: { count: 0 } }
   });
-  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: 1 };
+  // Hit after the first Vampiric Aura pulse so only cooldown scoping decides the claims.
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: 5 };
   applyVampiricPresence(context, event);
   applyVampiricPresence(context, { ...event, actorType: 'summon', summonKind: 'spirit' });
   assert.equal(context.queue.length, 1);
@@ -652,17 +651,82 @@ test('Vampiric Presence preserves recipient scopes and gates actual allied strik
   assert.deepEqual(
     { ...context.procs.snapshot() },
     {
-      'necromancer.core.vampiricPresence': 3,
-      'vampiricPresence:minion:fixture:0': 3,
-      'vampiricPresence:minion:fixture:1': 3
+      'necromancer.core.vampiricPresence': 7,
+      'vampiricPresence:minion:fixture:0': 7,
+      'vampiricPresence:minion:fixture:1': 7
     }
   );
-  context.procs.setDeadline('vampiricPresence:ally:1', 10);
-  reactToVampiricPresenceAlliedHit(context, { ...event, allyIndex: 1 });
-  assert.equal(context.queue.length, 3);
-  reactToVampiricPresenceAlliedHit(context, { ...event, at: 10.000001, allyIndex: 1 });
-  assert.equal(context.queue.length, 4);
-  assert.equal(context.procs.snapshot()['vampiricPresence:ally:1'], 12.000001);
+});
+
+// In-game logs: no siphon before the first Vampiric Aura pulse, and the ICD bracket (498, 500] ms admits a
+// hit exactly on the deadline.
+test('Vampiric Presence waits for its first aura pulse and accepts a hit on its cooldown deadline', () => {
+  const { context } = professionContext({
+    id: 'necromancer',
+    catalog: necromancerCatalog,
+    core: createNecromancerCoreState(),
+    traits: [NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE],
+    config: { allies: { count: 0 } }
+  });
+  const profile = necromancerCatalog.balanceProfilesById.get(NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE);
+  const cooldown = balanceProfileNumber(profile, 'cooldown');
+  const firstPulse = balanceProfileNumber(profile, 'auraPulseInterval') / 2;
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse - 0.001 };
+  applyVampiricPresence(context, event);
+  assert.equal(context.queue.length, 0, 'no siphon before the first aura pulse');
+  assert.deepEqual({ ...context.procs.snapshot() }, {}, 'a gated hit spends no cooldown');
+  applyVampiricPresence(context, { ...event, at: firstPulse });
+  applyVampiricPresence(context, { ...event, at: firstPulse + cooldown - 0.001 });
+  assert.equal(context.queue.length, 1, 'a hit before the deadline stays on cooldown');
+  applyVampiricPresence(context, { ...event, at: firstPulse + cooldown });
+  assert.equal(context.queue.length, 2, 'a hit on the deadline procs');
+});
+
+// In-game chat shows the in-shroud siphon at about twice the base (221 vs 112) for every aura recipient.
+test('Vampiric Presence uses the shroud packet for player and minion hits while in shroud', () => {
+  const core = createNecromancerCoreState();
+  core.activeMinions.fixture = 1;
+  core.activeShroud = 'death';
+  const { context } = professionContext({
+    id: 'necromancer',
+    catalog: necromancerCatalog,
+    core,
+    traits: [NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE],
+    config: { allies: { count: 0 } }
+  });
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: 5 };
+  applyVampiricPresence(context, event);
+  applyVampiricPresence(context, { ...event, actorType: 'summon', summonOwner: 'minion:fixture:0' });
+  core.activeShroud = 'lich';
+  applyVampiricPresence(context, { ...event, at: 6 });
+  assert.deepEqual(
+    context.events.map((siphon) => siphon.flatStrikeBase),
+    [129, 129, 65],
+    'Lich Form is a transform, not shroud'
+  );
+});
+
+// An explicit combat start anchors the aura pulse; pending setup never has the aura.
+test('Vampiric Aura pulses relative to an explicit combat start', () => {
+  const { context } = professionContext({
+    id: 'necromancer',
+    catalog: necromancerCatalog,
+    core: createNecromancerCoreState(),
+    traits: [NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE],
+    config: { allies: { count: 0 } }
+  });
+  const profile = necromancerCatalog.balanceProfilesById.get(NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE);
+  const firstPulse = 10 + balanceProfileNumber(profile, 'auraPulseInterval') / 2;
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse };
+  context.combatStartPending = true;
+  applyVampiricPresence(context, event);
+  assert.equal(context.queue.length, 0, 'pending setup has no aura');
+  context.combatStartPending = false;
+  context.combatStartTime = 10;
+  applyVampiricPresence(context, { ...event, at: firstPulse - 0.001 });
+  assert.equal(context.queue.length, 0, 'the first pulse follows the explicit start');
+  applyVampiricPresence(context, event);
+  assert.equal(context.queue.length, 1);
 });
 
 // Repeated and invalid recipient IDs cannot consume another ally's independent interval.

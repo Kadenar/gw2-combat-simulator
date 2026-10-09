@@ -122,12 +122,14 @@ test('the Ritualist palette reads detached live spirit availability without expo
     const projection = result.planningState.profession;
     const skill = necromancerProfession.catalog.skillsById.get(ID.INNERVATE_ANGUISH);
     assert.equal(result.planningState.availability[skill.id].ready, available);
-    for (const key of ['core', 'specialization', 'spiritGenerations', 'weaponSpells', 'lifeForceWakeGeneration'])
+    for (const key of ['core', 'specialization', 'spiritGeneration', 'weaponSpells', 'lifeForceWakeGeneration'])
       assert.equal(key in projection, false);
   }
 
   // Public collections are detached from the live owner.
-  summoned.planningState.profession.activeSpirits.anguish = 0;
+  assert.deepEqual(summoned.planningState.profession.activeSpirits, { anguish: true });
+  assert.deepEqual(exited.planningState.profession.activeSpirits, {});
+  delete summoned.planningState.profession.activeSpirits.anguish;
   assert.ok(state(summoned).activeSpirits.anguish);
 });
 
@@ -202,12 +204,11 @@ test('allied opportunities consume independent finite grants on the actual strik
   assert.equal(grants.player.charges, 5);
   assert.equal(grants['ally:1'].charges, 0);
   assert.equal(grants['ally:2'].charges, 0);
-  assert.deepEqual(
-    spellDamage(result, ID.SPLINTER_WEAPON)
-      .filter((event) => event.metadata.triggeredByAlly === 1)
-      .map((event) => event.at),
-    [0.3, 0.7, 1.1]
-  );
+  const allied = spellDamage(result, ID.SPLINTER_WEAPON).filter((event) => event.metadata.triggeredByAlly === 1);
+  const cooldown = necromancerProfession
+    .runtimeFor(config)
+    .catalog.balanceProfilesById.get(PROFILE.splinterWeaponProc).internalCooldown;
+  assert.ok(allied.every((event, index) => index === 0 || event.at - allied[index - 1].at > cooldown));
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 6);
   assert.equal(
     run([cast(ID.SPLINTER_WEAPON), wait(1200)], { config, output: 'score', combatStartTime: 0 }).totalDamage,
@@ -289,8 +290,8 @@ test('weapon spell allied opportunities follow engagement independently of DPS r
 
 test('weapon spell recipients are selected at grant time and Wielders Boon changes their charge count', () => {
   const rotation = [cast(ID.SUMMON_BONE_MINIONS), cast(ID.NIGHTMARE_WEAPON)];
-  const config = { ...base, allies: { count: 3, strikesPerSecond: 0 }, selectedTraitIds: [TRAIT.WIELDERS_BOON] };
-  const result = run(rotation, { config });
+  const config = { ...base, allies: { count: 3, strikesPerSecond: 1 }, selectedTraitIds: [TRAIT.WIELDERS_BOON] };
+  const result = run(rotation, { config, combatStartTime: 10 });
   const grants = state(result).weaponSpells.nightmare.recipients;
   assert.deepEqual(Object.keys(grants).sort(), ['ally:1', 'ally:2', 'ally:3', 'minion:bone-minion:0', 'player']);
   assert.ok(Object.values(grants).every((grant) => grant.charges === 5));
@@ -358,8 +359,8 @@ test('Painful Bond honors a zero initial delay, removed output, target gates, an
 test('spirit creation commits once and Soul Twisting refunds only the first completed summon', () => {
   const config = { ...base, initialResource: 40, selectedTraitIds: [TRAIT.SOUL_TWISTING, TRAIT.BOON_OF_CREATION] };
   const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), cast(ID.ANGUISH)], { config });
-  assert.deepEqual(state(result).activeSpirits, { anguish: true });
-  assert.equal(state(result).spiritGenerations.anguish, 2);
+  assert.deepEqual(Object.keys(state(result).activeSpirits), ['anguish']);
+  assert.equal(state(result).activeSpirits.anguish.generation, 2);
   assert.equal(state(result).soulTwistingAvailable, false);
   assert.ok(observedRuntime(result).cooldownController.readyAt(ID.ANGUISH) > result.planningState.atSeconds);
   assert.equal(result.planningState.profession.lifeForce.value, 56.64);
@@ -381,7 +382,7 @@ test('exit preserves committed attacks while autonomous spirit work ends on exit
   );
   const config = { ...base, initialResource: 12, selectedTraitIds: [TRAIT.LINGERING_SPIRITS] };
   const living = run(rotation.slice(0, 3), { config });
-  assert.deepEqual(state(living).activeSpirits, { anguish: true });
+  assert.deepEqual(Object.keys(state(living).activeSpirits), ['anguish']);
   assert.equal(living.planningState.profession.lifeForce.rate, -3);
   const depleted = run([...rotation, cast(ID.INNERVATE_ANGUISH)], { config });
   assert.deepEqual(state(depleted).activeSpirits, {});
@@ -483,7 +484,7 @@ test('removed initial spirit attacks preserve the creature and independent effec
   const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), cast(ID.WANDERLUST), wait(5000)], {
     balanceProfiles
   });
-  assert.deepEqual(state(result).activeSpirits, { anguish: true, wanderlust: true });
+  assert.deepEqual(Object.keys(state(result).activeSpirits), ['anguish', 'wanderlust']);
   assert.equal(
     result.resolvedEvents.some((event) => event.sourceId === 'ritualist.painful-bond'),
     false
@@ -505,3 +506,49 @@ test('Essence Blast snapshots the activation-time spirit count and uses the equi
   assert.equal(blast.skillWeapon, 'Staff');
   assert.deepEqual(result.warnings, []);
 });
+
+// An unusable allied cadence must not allocate native charges; player and companion grants still exist.
+for (const skillId of [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]) {
+  test(`weapon spell ${skillId} rejects allied charge creation at zero strike rate`, () => {
+    const result = run([cast(ID.SUMMON_BONE_MINIONS), cast(skillId)], {
+      config: { ...base, allies: { count: 3, strikesPerSecond: 0 } }
+    });
+    const spell = skillId === ID.NIGHTMARE_WEAPON ? 'nightmare' : 'splinter';
+    const recipients = state(result).weaponSpells[spell].recipients;
+    assert.deepEqual(Object.keys(recipients).sort(), ['minion:bone-minion:0', 'player']);
+    assert.ok(Object.values(recipients).every(({ charges }) => charges > 0));
+    assert.deepEqual(observedRuntime(result).alliedStrikeController.pendingEffects(), []);
+  });
+}
+
+// Resilient Weapon is defensive: allied state and chart windows exist even when no allied strikes can occur.
+for (const strikesPerSecond of [0, 2]) {
+  test(`Resilient Weapon retains allied effect windows at ${strikesPerSecond} strikes per second`, () => {
+    const result = run([cast(ID.RESILIENT_WEAPON), wait(1000)], {
+      config: { ...base, allies: { count: 4, strikesPerSecond }, selectedTraitIds: [TRAIT.WIELDERS_BOON] }
+    });
+    const recipients = state(result).weaponSpells.resilient.recipients;
+    assert.deepEqual(Object.keys(recipients).sort(), ['ally:1', 'ally:2', 'ally:3', 'ally:4', 'player']);
+    for (const recipient of ['ally:1', 'ally:2', 'ally:3', 'ally:4']) {
+      const grant = recipients[recipient];
+      assert.equal(grant.charges, recipients.player.charges);
+      const effect = result.planningState.effects.find(
+        (entry) => entry.kind === 'resilient-weapon' && entry.recipient === recipient
+      );
+      assert.deepEqual(effect.windows, [{ stacks: grant.charges, expiresAt: grant.expiresAt }]);
+      const track = result.effectReport.tracks.find(
+        (entry) => entry.kind === 'resilient-weapon' && entry.recipient === recipient
+      );
+      assert.ok(track.segments.some((segment) => segment.count > 0));
+      assert.equal(track.terminal.count, grant.charges);
+    }
+
+    assert.deepEqual(
+      observedRuntime(result)
+        .queue.pending()
+        .filter((event) => event.type === 'runtime.allied-strike'),
+      []
+    );
+    assert.deepEqual(result.warnings, []);
+  });
+}

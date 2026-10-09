@@ -127,8 +127,17 @@ function queueVultureStanceEffects(
   poison: ConditionEffect | undefined,
   might: StatusEffect | undefined
 ): void {
-  if (poison) context.effects.emit(rangerConditionRequest(event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance'));
-  if (might) context.effects.emit(rangerBuffRequest(event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE));
+  // Only shared stance output changes source; personal procs retain their trait presentation.
+  for (const request of [
+    poison && rangerConditionRequest(event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance'),
+    might && rangerBuffRequest(event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE)
+  ]) {
+    if (request)
+      context.effects.emit({
+        ...request,
+        attribution: { ...request.attribution, source: event.metadata?.triggeredByAlly ? 'ranger' : 'Trait' }
+      });
+  }
 }
 
 /**
@@ -220,10 +229,9 @@ export function scheduleSharedStance(context: RangerResolverContext, event: Gw2R
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   if (!maximumAllies) return;
   // Live windows share the global strike cadence; the existing recipient ICD handles overlapping grants.
-  for (let allyIndex = 1; allyIndex <= maximumAllies; allyIndex++)
-    context.alliedStrikes.register({
+  context.alliedStrikes.registerRecipients(
+    (allyIndex) => ({
       id: `stance:${event.kind}:${event.activationId}:${event.at}:${allyIndex}`,
-      allyIndex,
       expiresAt: event.at + (event.duration || 0),
       inclusiveExpiry: true,
       trigger(proc) {
@@ -239,7 +247,9 @@ export function scheduleSharedStance(context: RangerResolverContext, event: Gw2R
           metadata: { triggeredByAlly: proc.allyIndex }
         });
       }
-    });
+    }),
+    { maximumAllies, alliedPlayerIndex: event.resolvedAudience?.alliedPlayerIndex }
+  );
 }
 
 // Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here

@@ -157,8 +157,6 @@ function beginSummonAction(
   const element = elemental.element as ElementalKind;
   interruptCurrentAction(context, at);
   elemental.actionGeneration += 1;
-  // Command activity owns its impacts without claiming autonomous-loop startup.
-
   const activationId = `elementalist:${elemental.summonGeneration}:${elemental.actionGeneration}`;
   elemental.currentActivationId = activationId;
   context.effects.emit({
@@ -721,7 +719,6 @@ function startElemental(context: ElementalistRuntime, at: number): void {
 
   const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
   const delay = balanceProfileNumber(summonedElementalProfile, 'initialDelay');
-  elemental.started = true;
   scheduleElementalDecision(context, Math.max(at + delay, elemental.busyUntil));
 }
 

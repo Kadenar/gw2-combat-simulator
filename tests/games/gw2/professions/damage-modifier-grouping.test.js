@@ -218,7 +218,16 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
       'Ritualist',
       {},
       {
-        activeSpirits: { anguish: true }
+        activeSpirits: {
+          anguish: {
+            skillId: 'anguish',
+            activationId: 'anguish',
+            generation: 1,
+            started: false,
+            initialUntil: 0,
+            busyUntil: 0
+          }
+        }
       }
     )
   });

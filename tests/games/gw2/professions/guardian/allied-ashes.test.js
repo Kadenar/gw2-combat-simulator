@@ -5,7 +5,7 @@ import { alliedAshes } from '#gw2/professions/guardian/specializations/firebrand
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // A Quickfire-sized grant isolates allied charge retention from the player's tome and strike activity.
-function run({ duration = 5, combatStartTime = 3, output, secondGrantAt } = {}) {
+function run({ duration = 5, combatStartTime = 3, output, secondGrantAt, end = 6 } = {}) {
   const config = { specialization: 'Firebrand', allies: { count: 2, strikesPerSecond: 2 } };
   const native = guardianProfession.runtimeFor(config);
   const grant = (runtime) =>
@@ -28,7 +28,7 @@ function run({ duration = 5, combatStartTime = 3, output, secondGrantAt } = {}) 
     config,
     combatStartTime,
     output,
-    rotation: [{ type: 'wait', durationMs: 6000 }],
+    rotation: [{ type: 'wait', durationMs: end * 1000 }],
     profession: {
       ...native,
       initialize(runtime) {
@@ -58,10 +58,12 @@ test('precast Ashes retains its charge for the first eligible allied strike and 
 });
 
 test('later Ashes grants share the existing cadence and recipient cooldown', () => {
-  const result = run({ combatStartTime: 0, secondGrantAt: 0.8 });
-  // The second grant must wait for the recipient ICD while retaining the original half-second strike grid.
-  assert.deepEqual(
-    burns(result).map(({ at }) => at),
-    [0.5, 1.5]
-  );
+  const options = { combatStartTime: 0, secondGrantAt: 0.8 };
+  const first = burns(run({ ...options, end: 1 })).at(-1);
+  const deadline = first.at + 1;
+  // A replacement batch waits out the recipient ICD, fires on the strike at its deadline, and keeps the grid.
+  assert.ok(burns(run({ ...options, end: deadline - 0.001 })).every(({ at }) => at <= first.at));
+  const resumed = burns(run({ ...options, end: deadline })).at(-1);
+  assert.equal(resumed.at, deadline);
+  assert.notEqual(resumed.activationId, first.activationId);
 });

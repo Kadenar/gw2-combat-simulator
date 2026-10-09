@@ -7,7 +7,8 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cases = [
@@ -31,7 +32,10 @@ const cases = [
 ];
 
 // Observe producer decisions directly: discarded hostile packets must not conceal precombat AI activity.
-function run(entry, { boundary = 6, marker = false, commands = [], output, repeatedStart = false } = {}) {
+function run(
+  entry,
+  { boundary = 6, marker = false, commands = [], output, repeatedStart = false, profileChanges = [] } = {}
+) {
   const names = [...(entry.casts ?? []), ...commands];
   const config = {
     specialization: 'Core',
@@ -57,6 +61,7 @@ function run(entry, { boundary = 6, marker = false, commands = [], output, repea
     ],
     profession: {
       ...native,
+      catalog: profileChanges.reduce((catalog, [id, change]) => withProfile(catalog, id, change), native.catalog),
       onCombatStart(runtime) {
         beforeStart = structuredClone(runtime.profession);
         native.onCombatStart?.(runtime);
@@ -101,6 +106,41 @@ for (const entry of cases) {
     }
   });
 }
+
+// Synthetic profile values protect engagement scheduling without pinning any minion's calibrated hit timestamps.
+test('minion engagement uses its opening windup independently of preparation and repeat cadence', () => {
+  const entry = {
+    name: 'opening minion',
+    family: necromancerProfession,
+    casts: ['Summon Blood Fiend'],
+    task: 'necromancer.minion-attack'
+  };
+  const opening = (boundary, windup, interval, repeatedStart = false) =>
+    run(entry, {
+      boundary,
+      repeatedStart,
+      profileChanges: [[CORE.bloodFiendAttack, { openingAttackWindupMs: windup, pulseInterval: interval }]]
+    });
+  const first = opening(6, 400, 7);
+  const longerPreparation = opening(8, 400, 7);
+  const slowerRepeat = opening(6, 400, 9);
+  const slowerOpening = opening(6, 800, 7);
+  for (const result of [first, longerPreparation, slowerRepeat, slowerOpening]) {
+    const cursor = Object.values(result.beforeStart.core.minionAttackCursors)[0];
+    assert.equal(cursor.started, false);
+    assert.equal(cursor.cycleIndex, 1);
+    assert.equal(cursor.attackIndex, 0);
+  }
+
+  assert.equal(first.decisions[0].at, 6.4);
+  assert.equal(longerPreparation.decisions[0].at, 8.4);
+  assert.equal(slowerRepeat.decisions[0].at, first.decisions[0].at);
+  assert.equal(slowerOpening.decisions[0].at, 6.8);
+  assert.equal(first.decisions[1].at, 13.4);
+  assert.equal(slowerRepeat.decisions[1].at, 15.4);
+  assert.equal(slowerOpening.decisions[1].at, 13.8);
+  assert.deepEqual(opening(6, 400, 7, true).decisions, first.decisions);
+});
 
 for (const [name, command] of [
   ['pet', 'Furious Pounce'],

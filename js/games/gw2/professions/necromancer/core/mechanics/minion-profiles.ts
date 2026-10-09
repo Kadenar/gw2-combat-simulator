@@ -31,7 +31,8 @@ export interface MinionDefinition {
   readonly key: string;
   readonly count: number;
   readonly interval: number;
-  readonly initialDelay?: number;
+  /** Time from engaging an in-range target to the first impact, independent of repeat cadence. */
+  readonly openingAttackWindupMs: number;
   readonly commandId?: SkillId;
   readonly weaponStrength?: number;
   readonly basePower?: number;
@@ -99,7 +100,7 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
     key: String(profile.minionKey || ''),
     count: balanceProfileNumber(profile, 'minionCount'),
     interval: balanceProfileNumber(profile, 'pulseInterval'),
-    initialDelay: profile.initialDelay == null ? undefined : balanceProfileNumber(profile, 'initialDelay'),
+    openingAttackWindupMs: balanceProfileNumber(profile, 'openingAttackWindupMs'),
     commandId: profile.commandId as SkillId | undefined,
     weaponStrength: profile.weaponStrength == null ? undefined : balanceProfileNumber(profile, 'weaponStrength'),
     basePower: balanceProfileNumber(profile, 'basePower'),

@@ -15,7 +15,7 @@ import {
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { heroicCommand } from '#gw2/professions/revenant/specializations/renegade/skills/heroic-command.js';
 import {
-  initializeSoulcleaveAllies,
+  grantSoulcleaveAllies,
   soulcleavePlayer
 } from '#gw2/professions/revenant/specializations/renegade/skills/soulcleave.js';
 import {
@@ -40,7 +40,6 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   buffPolicies: renegadeBuffPolicies,
   observeEffects: renegadeEffectStates,
   initialize(runtime) {
-    initializeSoulcleaveAllies(runtime);
     renegadeState.from(runtime).kallasFervorMaximumStacks = Math.max(
       1,
       balanceProfileNumber(fervorProfile(runtime), 'maximumStacks')
@@ -82,6 +81,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       if (context.kind !== 'cast') return;
       // Keep Core rewards ahead of elite completion state and packets.
       completeRevenantCastTraits(runtime, context.cast);
+      grantSoulcleaveAllies(runtime);
     }
   },
   onCastCommit(runtime, cast) {

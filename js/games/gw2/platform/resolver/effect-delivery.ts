@@ -143,6 +143,7 @@ export function createEffectDelivery<T extends object>(
           event.type === 'damage' && (event.sourceId !== cause.sourceId || event.actorType !== cause.actorType)
             ? `effect:derived:${++derivedActivationOrder}`
             : cause.activationId,
+        // Authored fields, including explicit undefined, retain precedence over inherited identity.
         causalOrder: cause.causalOrder ?? cause.eventOrder,
         parentEventOrder: cause.eventOrder,
         ...event
@@ -362,8 +363,11 @@ export function createEffectDelivery<T extends object>(
     if (!runtime.combatActive && !precombat && isCombatEntryEvent(event)) {
       runtime.combatActive = true;
       // Timed profession producers anchor once to the accepted combat-start boundary.
-      execution.combatStart?.(runtime);
+      if (!runtime.hasExplicitCombatStart) execution.combatStart?.(runtime);
     }
+
+    // Same-time opening hits may mark combat active, but only the consumed marker releases explicit setup producers.
+    if (event.type === 'combat_start' && runtime.hasExplicitCombatStart) execution.combatStart?.(runtime);
 
     event = bindRuntimeCombo(runtime, event);
     // A grant precedes its synchronous buff reactions in gameplay; record that order before nested delivery runs.

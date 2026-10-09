@@ -616,9 +616,7 @@ const inactiveStateKeys = Object.freeze({
   Harbinger: ['blight', 'blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks', 'meltdownUntil'],
   Ritualist: [
     'activeSpirits',
-    'spiritGenerations',
-    'spiritInitialUntil',
-    'spiritBusyUntil',
+    'spiritGeneration',
     'spiritAutoAnchorAt',
     'resummonedSpiritAutoCycle',
     'weaponSpells',

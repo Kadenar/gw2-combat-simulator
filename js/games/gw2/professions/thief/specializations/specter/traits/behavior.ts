@@ -69,10 +69,9 @@ export function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
   });
   if (!torment) return;
   // Barrier grants stack per recipient; one shared strike consumes only one surviving batch.
-  for (const allyIndex of allies)
-    runtime.alliedStrikes.register({
+  runtime.alliedStrikes.registerRecipients(
+    (allyIndex) => ({
       id: `rot-wallow:${runtime.time}:${allyIndex}`,
-      allyIndex,
       expiresAt: runtime.time + venomDuration,
       inclusiveExpiry: true,
       charges: effectNumber(profile, venom, 'stacks'),
@@ -95,7 +94,9 @@ export function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
           })
         });
       }
-    });
+    }),
+    { allyIndices: allies }
+  );
 }
 
 /**

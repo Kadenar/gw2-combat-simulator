@@ -1,6 +1,6 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -106,11 +106,11 @@ function grantWeaponSpell(
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
   });
   const recipients: Record<string, ChargeGrant> = { player: grantCharges(Number(effect.stacks ?? 0), expiresAt) };
-  for (const key of [
-    ...audience.companionIds,
-    ...Array.from({ length: audience.alliedPlayerCount }, (_, index) => `ally:${index + 1}`)
-  ])
-    recipients[key] = grantCharges(allyStacks, expiresAt);
+  for (const key of audience.companionIds) recipients[key] = grantCharges(allyStacks, expiresAt);
+  // Defensive grants retain allied effect windows independently of the party's offensive strike cadence.
+  if (spell === 'resilient')
+    for (let index = 1; index <= audience.alliedPlayerCount; index++)
+      recipients[`ally:${audience.alliedPlayerIndex ?? index}`] = grantCharges(allyStacks, expiresAt);
   state.weaponSpells[spell] = {
     generation,
     skillId: cast.skill.id,
@@ -135,18 +135,29 @@ function grantWeaponSpell(
     }
   });
   runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
+  if (spell !== 'resilient') grantAlliedWeaponSpell(runtime, spell, audience.alliedPlayerCount, allyStacks, expiresAt);
 }
 
 /** Existing per-recipient spell grants inspect one common strike; replacing a grant never moves its cadence. */
-function initializeAlliedWeaponSpells(runtime: NecromancerRuntime): void {
-  for (let allyIndex = 1; allyIndex <= gw2AlliedPlayerAssumptions(runtime.config).count; allyIndex++)
-    runtime.alliedStrikes.register({
-      id: `ritualist.weapon-spells:${allyIndex}`,
-      allyIndex,
-      trigger(opportunity) {
-        for (const spell of ['nightmare', 'splinter'] as const) {
-          const active = ritualistState.from(runtime).weaponSpells[spell];
-          if (!active) continue;
+function grantAlliedWeaponSpell(
+  runtime: NecromancerRuntime,
+  spell: 'nightmare' | 'splinter',
+  maximumAllies: number,
+  charges: number,
+  expiresAt: number
+): void {
+  const active = ritualistState.from(runtime).weaponSpells[spell];
+  runtime.alliedStrikes.registerRecipients(
+    (allyIndex) => {
+      // Create native charges only after the controller accepts a recipient with a live strike cadence.
+      active.recipients![`ally:${allyIndex}`] = grantCharges(charges, expiresAt);
+      return {
+        id: `ritualist.weapon-spell:${spell}:${allyIndex}`,
+        expiresAt: active.recipients![`ally:${allyIndex}`].expiresAt,
+        isActive: () =>
+          ritualistState.from(runtime).weaponSpells[spell] === active &&
+          active.recipients![`ally:${allyIndex}`].charges > 0,
+        trigger(opportunity) {
           triggerRitualistWeaponSpell(
             runtime,
             {
@@ -164,13 +175,14 @@ function initializeAlliedWeaponSpells(runtime: NecromancerRuntime): void {
             [`ally:${allyIndex}`]
           );
         }
-      }
-    });
+      };
+    },
+    { maximumAllies }
+  );
 }
 
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
 export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
-  initialize: initializeAlliedWeaponSpells,
   sideEffectHandlers: {
     'ritualist.nightmare-weapon'(runtime, context) {
       if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'nightmare');

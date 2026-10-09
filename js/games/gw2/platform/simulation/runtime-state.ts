@@ -21,7 +21,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   time: number;
   inputReadyAt: number;
   combatActive: boolean;
-  readonly alliedStrikes: ReturnType<typeof createAlliedStrikeController>;
+  readonly alliedStrikeController: ReturnType<typeof createAlliedStrikeController>;
   rotationEndTime: number | null;
   readonly cursor: RotationCursor;
   readonly castController: CastControl;

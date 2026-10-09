@@ -1,4 +1,5 @@
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
+import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -89,7 +90,7 @@ export function rangerConditionRequest(
   effect: ConditionEffect,
   sourceId: number,
   name: string
-): ProfileEmission {
+): ProfileEmission & { attribution: EffectEventBase } {
   // Trait source and ally targeting are mechanic data; the service owns materialization and live duration.
   return {
     kind: 'profile',
@@ -123,7 +124,7 @@ export function rangerBuffRequest(
   effect: StatusEffect,
   name: string,
   sourceId: number
-): ProfileEmission {
+): ProfileEmission & { attribution: EffectEventBase } {
   // Trait source and ally targeting are mechanic data; the service owns materialization and live duration.
   return {
     kind: 'profile',

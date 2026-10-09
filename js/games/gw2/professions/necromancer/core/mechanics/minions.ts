@@ -387,7 +387,8 @@ export function startNecromancerMinions(runtime: NecromancerRuntime, recoveringK
         emitHorrorEffects(runtime, key, false);
       } else if (definition) {
         cursor.started = true;
-        const delay = key === recoveringKey ? 0 : (definition.initialDelay ?? definition.interval);
+        // Engagement pays only the opening windup; subsequent impacts use the existing repeat cadence.
+        const delay = key === recoveringKey ? 0 : definition.openingAttackWindupMs / 1000;
         scheduleAttack(runtime, Math.max(runtime.time + delay, cursor.busyUntil), {
           skillId: cursor.skillId,
           key,

@@ -1,4 +1,3 @@
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -34,38 +33,37 @@ export function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEve
 }
 
 /** Soulcleave reads live upkeep on shared strikes; upkeep and energy continue independently during preparation. */
-export function initializeSoulcleaveAllies(runtime: RevenantRuntime): void {
+export function grantSoulcleaveAllies(runtime: RevenantRuntime): void {
   const skill = runtime.helpers.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = runtime.helpers.skillsById.get(PROFILE.soulcleavesSummitProc);
   if (!skill || !proc) return;
-  for (let allyIndex = 1; allyIndex <= gw2AlliedPlayerAssumptions(runtime.config).count; allyIndex++)
-    runtime.alliedStrikes.register({
-      id: `soulcleave:${allyIndex}`,
-      allyIndex,
-      internalCooldown: Math.max(0, proc.cooldown || 0),
-      trigger(opportunity) {
-        if (!activeRevenantUpkeep(runtime, ID.SOULCLEAVES_SUMMIT)) return false;
-        runtime.effects.emit({
-          kind: 'profile',
-          profile: proc,
-          attribution: (effect) => ({
-            source: 'revenant',
-            sourceId: skill.id,
-            actorType: effect.actorType || 'effect',
-            skillId: skill.id,
-            skillName: skill.name,
-            activationId: opportunity.activationId
-          }),
-          skillWeaponFallback: 'Unequipped',
-          transform: (event) => ({
-            ...event,
-            metadata: { triggeredByAlly: allyIndex },
-            name: (event.name || proc.name).replace(
-              "Soulcleave's Summit \u2014 ",
-              `Soulcleave's Summit \u2014 Ally ${allyIndex} `
-            )
-          })
-        });
-      }
-    });
+  const startsAt = runtime.time;
+  runtime.alliedStrikes.registerRecipients((allyIndex) => ({
+    id: `soulcleave:${allyIndex}`,
+    isActive: () => Boolean(activeRevenantUpkeep(runtime, ID.SOULCLEAVES_SUMMIT, startsAt)),
+    internalCooldown: Math.max(0, proc.cooldown || 0),
+    trigger(opportunity) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: proc,
+        attribution: (effect) => ({
+          source: 'revenant',
+          sourceId: skill.id,
+          actorType: effect.actorType || 'effect',
+          skillId: skill.id,
+          skillName: skill.name,
+          activationId: opportunity.activationId
+        }),
+        skillWeaponFallback: 'Unequipped',
+        transform: (event) => ({
+          ...event,
+          metadata: { triggeredByAlly: allyIndex },
+          name: (event.name || proc.name).replace(
+            "Soulcleave's Summit \u2014 ",
+            `Soulcleave's Summit \u2014 Ally ${allyIndex} `
+          )
+        })
+      });
+    }
+  }));
 }

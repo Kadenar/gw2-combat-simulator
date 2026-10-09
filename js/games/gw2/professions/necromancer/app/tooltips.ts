@@ -752,8 +752,11 @@ export const necromancerTooltips: ProfessionTooltips = {
       [['durationMultiplier', 'Effectiveness', tooltipFactorChange]]
     ),
     [TRAIT.VAMPIRIC_PRESENCE]: traitTooltip(
-      'Eligible player, creature, and configured allied hits trigger life-steal damage. The stronger payload applies in shroud.',
-      [['cooldown', 'Internal cooldown per recipient', tooltipSeconds]]
+      'Eligible player, creature, and configured allied hits trigger life-steal damage once Vampiric Aura is up; the first aura pulse is assumed half an interval after combat starts. The stronger payload applies to every recipient while you are in shroud.',
+      [
+        ['cooldown', 'Internal cooldown per recipient', tooltipSeconds],
+        ['auraPulseInterval', 'Vampiric Aura pulse interval', tooltipSeconds]
+      ]
     ),
     [TRAIT.BLOOD_BANK]: outsideScopeTooltip,
     [TRAIT.UNHOLY_MARTYR]: outsideScopeTooltip,

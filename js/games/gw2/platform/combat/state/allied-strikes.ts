@@ -1,5 +1,6 @@
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -16,6 +17,8 @@ export interface AlliedStrikeGrant {
   readonly inclusiveExpiry?: boolean;
   readonly charges?: number;
   readonly internalCooldown?: number;
+  /** Existing profession state can retire a grant when its charges or upkeep end. */
+  readonly isActive?: () => boolean;
   /** Stacked batches in one group consume at most one charge per allied strike. */
   readonly consumptionGroup?: string;
   /** Returning false leaves the grant available when its effect-specific eligibility fails. */
@@ -23,13 +26,18 @@ export interface AlliedStrikeGrant {
 }
 
 export interface AlliedStrikeGrants {
-  register(grant: AlliedStrikeGrant): void;
+  /** Select configured recipients once; targeted audiences retain their original ally index. */
+  registerRecipients(
+    create: (allyIndex: number) => Omit<AlliedStrikeGrant, 'allyIndex'>,
+    recipients?: { maximumAllies?: number; alliedPlayerIndex?: number; allyIndices?: readonly number[] }
+  ): void;
 }
 
 interface LiveGrant {
   readonly grant: AlliedStrikeGrant;
   charges: number;
   readyAt: number;
+  readonly cause: Gw2ResolverEvent | null;
 }
 
 /** One engagement-anchored cadence feeds live recipient grants without inventing allied base damage. */
@@ -38,78 +46,137 @@ export function createAlliedStrikeController(
     readonly config: Gw2Config;
     readonly time: number;
     readonly deathTime: number | null;
+    combatStartedAt(): boolean;
     readonly hasExplicitCombatStart: boolean;
-    readonly combatActive: boolean;
+    readonly combatStartTime?: number | null;
   },
-  schedule: (at: number, sequence: number) => void
+  services: {
+    schedule(at: number, sequence: number): void;
+    captureCause(): Gw2ResolverEvent | null;
+    withCause<R>(cause: Gw2ResolverEvent | null, run: () => R): R;
+  }
 ) {
   const grants = new Map<string, LiveGrant>();
   const groupReadyAt = new Map<string, number>();
   let anchor: number | null = null;
+  let nextAt: number | null = null;
   let sequence = 0;
-  const register = (grant: AlliedStrikeGrant): void => {
-    const party = gw2AlliedPlayerAssumptions(runtime().config);
-    if (grant.allyIndex < 1 || grant.allyIndex > party.count || !party.strikesPerSecond) return;
+  let dispatching = false;
+  const liveAt = (live: LiveGrant, at: number): boolean => {
+    const end = live.grant.expiresAt ?? Infinity;
+    return live.charges > 0 && (live.grant.inclusiveExpiry ? at <= end : at < end) && (live.grant.isActive?.() ?? true);
+  };
+
+  // Exhausted windows leave no heartbeat; re-registration rejoins the original engagement grid.
+  function start(): void {
+    const context = runtime();
+    if (!autonomousActionsAllowed(context)) return;
+    anchor ??= context.hasExplicitCombatStart ? context.combatStartTime! : 0;
+    if (nextAt != null || dispatching) return;
+    const party = gw2AlliedPlayerAssumptions(context.config);
+    if (!party.count || !party.strikesPerSecond) return;
+    for (const [id, live] of grants) if (!liveAt(live, context.time)) grants.delete(id);
+    if (!grants.size) return;
+    let nextSequence = Math.max(sequence + 1, Math.floor((context.time - anchor) * party.strikesPerSecond) + 1);
+    let at = canonicalTime(anchor + nextSequence / party.strikesPerSecond);
+    // A grant accepted after the same-time opportunity cannot replay that opportunity.
+    if (at <= context.time) at = canonicalTime(anchor + ++nextSequence / party.strikesPerSecond);
+    if (![...grants.values()].some((live) => liveAt(live, at))) return;
+    sequence = nextSequence;
+    nextAt = at;
+    services.schedule(at, sequence);
+  }
+
+  function register(grant: AlliedStrikeGrant): void {
     grants.set(grant.id, {
       grant: {
         ...grant,
         expiresAt: Number.isFinite(grant.expiresAt) ? canonicalTime(grant.expiresAt!) : grant.expiresAt
       },
       charges: grant.charges ?? Infinity,
-      readyAt: -Infinity
+      readyAt: -Infinity,
+      cause: services.captureCause()
     });
-  };
+  }
 
-  const next = (): void => {
-    const rate = gw2AlliedPlayerAssumptions(runtime().config).strikesPerSecond;
-    schedule(canonicalTime(anchor! + ++sequence / rate), sequence);
+  const capability: AlliedStrikeGrants = {
+    registerRecipients(create, recipients = {}) {
+      const { count, strikesPerSecond } = gw2AlliedPlayerAssumptions(runtime().config);
+      // A rejected opportunity cannot create profession-owned recipient charges as a callback side effect.
+      if (!strikesPerSecond) return;
+      const indices =
+        recipients.allyIndices ??
+        (recipients.alliedPlayerIndex == null
+          ? Array.from({ length: count }, (_, i) => i + 1)
+          : [recipients.alliedPlayerIndex]);
+      const selected = [...new Set(indices)]
+        .filter((i) => Number.isInteger(i) && i > 0 && i <= count)
+        .slice(0, Math.max(0, Math.trunc(recipients.maximumAllies ?? count)));
+      for (const allyIndex of selected) register({ ...create(allyIndex), allyIndex });
+      // Publish the whole party before scanning eligibility and scheduling its shared opportunity.
+      start();
+    }
   };
-
   return {
-    grants: Object.freeze({ register }),
-    start(): void {
-      const context = runtime();
-      const party = gw2AlliedPlayerAssumptions(context.config);
-      if (anchor != null || !autonomousActionsAllowed(context) || !party.count || !party.strikesPerSecond) return;
-      anchor = context.time;
-      next();
+    grants: Object.freeze(capability),
+    start,
+    // Expose pending grant ownership; the observation policy decides which deadlines to follow.
+    pendingEffects(): { at: number; cause: Gw2ResolverEvent; grant: AlliedStrikeGrant }[] {
+      if (nextAt == null) return [];
+      return [...grants.values()].flatMap((live) =>
+        live.cause && liveAt(live, nextAt!) ? [{ at: nextAt!, cause: live.cause, grant: live.grant }] : []
+      );
     },
     strike(expectedSequence: number): void {
       const context = runtime();
-      if (expectedSequence !== sequence || !autonomousActionsAllowed(context)) return;
+      if (expectedSequence !== sequence || nextAt !== context.time) return;
+      nextAt = null;
+      if (!autonomousActionsAllowed(context)) return;
       const consumed = new Set<string>();
-      // Snapshot membership: a proc cannot recursively consume a grant created by that same opportunity.
-      for (const [id, live] of [...grants]) {
-        const { grant } = live;
-        const expiresAt = grant.expiresAt ?? Infinity;
-        if (live.charges <= 0 || (grant.inclusiveExpiry ? context.time > expiresAt : context.time >= expiresAt)) {
-          grants.delete(id);
-          continue;
-        }
+      dispatching = true;
+      try {
+        // Freeze membership before callbacks: new grants wait for the next causal strike.
+        for (const [id, live] of [...grants]) {
+          if (grants.get(id) !== live) continue;
+          if (!liveAt(live, context.time)) {
+            grants.delete(id);
+            continue;
+          }
 
-        const group = grant.consumptionGroup && `${grant.allyIndex}:${grant.consumptionGroup}`;
-        if (
-          context.time < live.readyAt ||
-          (group && (consumed.has(group) || context.time < (groupReadyAt.get(group) ?? -Infinity)))
-        )
-          continue;
-        if (
-          grant.trigger({
-            allyIndex: grant.allyIndex,
-            at: context.time,
-            activationId: `allied-strike:${grant.allyIndex}:${sequence}`
-          }) === false
-        )
-          continue;
-        live.charges--;
-        live.readyAt = canonicalTime(context.time + (grant.internalCooldown ?? 0));
-        if (group) {
-          consumed.add(group);
-          groupReadyAt.set(group, live.readyAt);
+          const { grant } = live;
+          const group = grant.consumptionGroup && `${grant.allyIndex}:${grant.consumptionGroup}`;
+          // Recipient ICDs admit the strike landing exactly on the deadline; in-game logs show
+          // Vampiric Presence procs at +0.5 s and Soulcleave grants one proc per 1 s window.
+          if (
+            context.time < live.readyAt ||
+            (group && (consumed.has(group) || context.time < (groupReadyAt.get(group) ?? -Infinity)))
+          )
+            continue;
+          if (
+            // Parentage belongs to the grant; ordering belongs to this live opportunity.
+            services.withCause(live.cause, () =>
+              grant.trigger({
+                allyIndex: grant.allyIndex,
+                at: context.time,
+                activationId: `allied-strike:${grant.allyIndex}:${sequence}`
+              })
+            ) === false
+          )
+            continue;
+          live.charges--;
+          live.readyAt = canonicalTime(context.time + (grant.internalCooldown ?? 0));
+          if (group) {
+            consumed.add(group);
+            groupReadyAt.set(group, live.readyAt);
+          }
+
+          if (!liveAt(live, context.time) && grants.get(id) === live) grants.delete(id);
         }
+      } finally {
+        dispatching = false;
       }
 
-      next();
+      start();
     }
   };
 }

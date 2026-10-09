@@ -7,6 +7,33 @@ import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 const attribution = { source: 'Trait', sourceId: 42, actorType: 'player', skillId: 42, skillName: 'Fixture trait' };
 const strike = { ...attribution, type: 'damage', at: 1, coefficient: 1, skillWeapon: 'Sword' };
 
+// An explicit undefined activation opts out of inheritance; an omitted activation still derives from its cause.
+test('authored activation fields retain precedence over effect delivery causes', () => {
+  const receipts = [];
+  resolveTestGw2Events({
+    events: [{ ...strike, activationId: 'trigger-activation' }],
+    endTime: 1,
+    professionReactions: {
+      'damage.resolved'(runtime, event) {
+        if (event.sourceId !== 42) return;
+        for (const identity of [{}, { activationId: undefined }, { activationId: 'authored-activation' }])
+          receipts.push(
+            runtime.effects.emit({
+              kind: 'packet',
+              receipt: true,
+              cause: event,
+              event: { ...strike, sourceId: 'derived', actorType: 'effect', ...identity }
+            })
+          );
+      }
+    }
+  });
+  assert.match(receipts[0].activationId, /^effect:derived:/);
+  assert.equal(receipts[1].activationId, undefined);
+  assert.equal(receipts[2].activationId, 'authored-activation');
+  assert.ok(receipts.every((event) => event.parentEventOrder != null));
+});
+
 // Reporting consumes no combat identity, including announcements scheduled before later combat packets.
 test('announcements preserve combat order and sampled damage in detailed and score output', () => {
   const run = (announcements, output = 'detailed') => {
