@@ -139,12 +139,7 @@
             "60-40": { "cumulative": 41773, "phase": 41617 },
             "40-20": { "cumulative": 42590, "phase": 45244 },
             "20-0": { "cumulative": 42324, "phase": 42324 }
-          },
-          "newWarnings": [
-            "Tactical Strike at 15.480s: Tactical Strike is unavailable — requires stealth.",
-            "Tactical Strike at 28.360s: Tactical Strike is unavailable — requires stealth.",
-            "Tactical Strike at 50.760s: Tactical Strike is unavailable — requires stealth."
-          ]
+          }
         }
       },
       {
@@ -198,8 +193,7 @@
             "60-40": { "cumulative": 41129, "phase": 39738 },
             "40-20": { "cumulative": 41309, "phase": 41899 },
             "20-0": { "cumulative": 40844, "phase": 40844 }
-          },
-          "newWarnings": ["Backstab at 111.560s: Backstab is unavailable — requires stealth."]
+          }
         }
       },
       {
@@ -226,13 +220,7 @@
             "60-40": { "cumulative": 34136, "phase": 35796 },
             "40-20": { "cumulative": 33598, "phase": 32093 },
             "20-0": { "cumulative": 33278, "phase": 33278 }
-          },
-          "newWarnings": [
-            "Summon Kryptis Turret at 25.000s: Summon Kryptis Turret is unavailable — this artifact is not in an available artifact slot.",
-            "Double Bolt at 97.160s: Double Bolt is unavailable — cast Shadow Bolt first.",
-            "Double Bolt at 98.080s: Double Bolt is unavailable — cast Shadow Bolt first.",
-            "Triple Bolt at 98.080s: Triple Bolt is unavailable — cast Shadow Bolt first."
-          ]
+          }
         }
       },
       {
@@ -259,13 +247,7 @@
             "60-40": { "cumulative": 23248, "phase": 34783 },
             "40-20": { "cumulative": 23916, "phase": 26211 },
             "20-0": { "cumulative": 24027, "phase": 24027 }
-          },
-          "newWarnings": [
-            "Chak Shield at 26.760s: Chak Shield is unavailable — this artifact is not in an available artifact slot.",
-            "Triple Bolt at 130.320s: Triple Bolt is unavailable — cast Shadow Bolt first.",
-            "Zephyrite Sun Crystal at 148.840s: Zephyrite Sun Crystal is unavailable — this artifact is not in an available artifact slot.",
-            "Mistburn Mortar at 153.120s: Mistburn Mortar is unavailable — this artifact is not in an available artifact slot."
-          ]
+          }
         }
       }
     ]

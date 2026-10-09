@@ -70,7 +70,8 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
   under that patch and stores `patchPreview` with its `patchId`, `benchmarkDps`, and `benchmarkDpsByHealth`. APM remains
   shared with live. Rerun with `--commit` after editing the preview. When the active preview is null, committing removes
   `patchPreview` from every manifest entry, including entries without rotations. Dry runs report pending preview
-  updates/removals without writing files. Simulation warnings identify their emitting preset and patch.
+  updates/removals without writing files. Simulation warnings identify their emitting preset and patch in console
+  output; they are not saved in manifests. The active preview's `pendingBenchmarks` declares builds awaiting reworks.
 - `npm run build:modules && node scripts/analysis/capture-supported-build-metrics.mjs [profession...]` prints current
   deterministic preset metrics as JSON.
 - `npm run build:modules && node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>` inspects a

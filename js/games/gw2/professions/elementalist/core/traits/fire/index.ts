@@ -1,6 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
-import { MODIFIER_TARGET, powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { powerScaledConditionAttributes } from '#gw2/platform/combat-calculation/condition-attributes.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';

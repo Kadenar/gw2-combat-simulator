@@ -89,7 +89,8 @@ export function mountBenchmarks(root: HTMLElement): void {
       selected.clear();
       professionRegistry.filter((entry) => id === 'all' || entry.id === id).forEach((entry) => selected.add(entry.id));
       render();
-    }
+    },
+    benchmarkWorkspaceHref
   );
   const status = root.querySelector<HTMLElement>('[data-benchmark-status]')!;
   const cards = root.querySelector<HTMLElement>('[data-benchmark-cards]')!;
@@ -320,7 +321,7 @@ export function mountBenchmarks(root: HTMLElement): void {
 
     status.textContent = failures.length ? `Could not load ${failures.join(', ')}.` : '';
     const patchButton = root.querySelector<HTMLButtonElement>('[data-benchmark-panel="patch"]')!;
-    const hasPreview = patchBenchmarks(benchmarks, activePatchPreview?.id).length > 0;
+    const hasPreview = patchBenchmarks(benchmarks, activePatchPreview).length > 0;
     // Gate on loaded data before filtering, and recover navigation if a reload removes the preview.
     if (!hasPreview && root.dataset.benchmarkActivePanel === 'patch') {
       const restoreFocus =

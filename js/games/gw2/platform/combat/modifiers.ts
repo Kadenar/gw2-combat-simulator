@@ -7,35 +7,10 @@ import type {
   Gw2CriticalChanceContributor,
   Gw2QueryRuntime
 } from '#gw2/platform/combat-calculation/combat-query.js';
-import type { Gw2ResolvedStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-
-/** Replace the selected condition's scaling attribute with final Power, preserving its canonical base damage. */
-export function powerScaledConditionAttributes(
-  context: Gw2ModifierContext,
-  attributes: Gw2Stats,
-  condition: string,
-  traitId: number
-): Gw2Stats {
-  if (
-    context.event?.condition !== condition ||
-    !hasTrait(context, traitId) ||
-    !isGw2PlayerModifierOwnedEvent(context.event)
-  ) {
-    return attributes;
-  }
-
-  const profile = requireBalanceProfileFromContext(context, traitId);
-  return {
-    ...attributes,
-    conditionDamage: (attributes.power || 0) * balanceProfileNumber(profile, 'coefficientMultiplier')
-  };
-}
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;

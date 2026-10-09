@@ -84,6 +84,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // These temporary Ranger buffs use their granting traits' icons.
   'Quick Draw': 'https://render.guildwars2.com/file/CBCB2EC86BC85CC02DA7AAB25CBFB226B8956D1E/1012648.png',
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
+  // Natural Balance's temporary buff uses its granting trait's icon in tooltip facts.
+  'Natural Balance': 'https://render.guildwars2.com/file/5F953BAC2C7EB3340B4EAA9A7D9633320BAB29A6/1128535.png',
   // Named Elementalist effects use their own icons in both buff rows and qualified facts.
   'Fresh Air': 'https://render.guildwars2.com/file/FA64C9F2750F986E52E8376F22EDBA3844A8C603/1012277.png',
   'Flame Expulsion': 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png',

@@ -335,26 +335,26 @@
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
-        "benchmarkDps": 41563,
+        "benchmarkDps": 41336,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-pistol-warhorn",
-        "benchmarkApm": 79.9,
+        "benchmarkApm": 78.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37060, "phase": 37060 },
-          "80-60": { "cumulative": 40867, "phase": 45516 },
-          "60-40": { "cumulative": 40665, "phase": 40271 },
-          "40-20": { "cumulative": 40873, "phase": 41519 },
-          "20-0": { "cumulative": 41563, "phase": 41563 }
+          "100-80": { "cumulative": 36206, "phase": 36206 },
+          "80-60": { "cumulative": 40548, "phase": 45855 },
+          "60-40": { "cumulative": 39996, "phase": 38872 },
+          "40-20": { "cumulative": 40484, "phase": 42030 },
+          "20-0": { "cumulative": 41336, "phase": 41336 }
         },
         "patchPreview": {
           "patchId": "conduit-balance-preview",
-          "benchmarkDps": 42960,
+          "benchmarkDps": 42673,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38672, "phase": 38672 },
-            "80-60": { "cumulative": 40895, "phase": 43506 },
-            "60-40": { "cumulative": 41513, "phase": 42770 },
-            "40-20": { "cumulative": 42073, "phase": 43877 },
-            "20-0": { "cumulative": 42960, "phase": 46923 }
+            "100-80": { "cumulative": 37078, "phase": 37078 },
+            "80-60": { "cumulative": 41271, "phase": 46698 },
+            "60-40": { "cumulative": 41157, "phase": 40921 },
+            "40-20": { "cumulative": 41898, "phase": 44287 },
+            "20-0": { "cumulative": 42673, "phase": 46115 }
           }
         }
       },
@@ -362,26 +362,26 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 40533,
+        "benchmarkDps": 39740,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn",
-        "benchmarkApm": 63.7,
+        "benchmarkApm": 63.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38765, "phase": 38765 },
-          "80-60": { "cumulative": 40629, "phase": 42804 },
-          "60-40": { "cumulative": 40698, "phase": 40833 },
-          "40-20": { "cumulative": 40745, "phase": 40892 },
-          "20-0": { "cumulative": 40533, "phase": 40533 }
+          "100-80": { "cumulative": 39558, "phase": 39558 },
+          "80-60": { "cumulative": 41309, "phase": 43160 },
+          "60-40": { "cumulative": 40570, "phase": 39130 },
+          "40-20": { "cumulative": 40229, "phase": 39223 },
+          "20-0": { "cumulative": 39740, "phase": 39740 }
         },
         "patchPreview": {
           "patchId": "conduit-balance-preview",
-          "benchmarkDps": 41287,
+          "benchmarkDps": 41013,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 40238, "phase": 40238 },
-            "80-60": { "cumulative": 41799, "phase": 43533 },
-            "60-40": { "cumulative": 41591, "phase": 41195 },
-            "40-20": { "cumulative": 41567, "phase": 41495 },
-            "20-0": { "cumulative": 41287, "phase": 40151 }
+            "100-80": { "cumulative": 40483, "phase": 40483 },
+            "80-60": { "cumulative": 42525, "phase": 44793 },
+            "60-40": { "cumulative": 41401, "phase": 39266 },
+            "40-20": { "cumulative": 41045, "phase": 40011 },
+            "20-0": { "cumulative": 41013, "phase": 40881 }
           }
         }
       },

@@ -34,15 +34,15 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-hammer.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-hammer-sword-sword",
-        "benchmarkDps": 48767,
+        "benchmarkDps": 40674,
         "upToDate": true,
         "benchmarkApm": 48.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 59014, "phase": 59014 },
-          "80-60": { "cumulative": 49888, "phase": 43258 },
-          "60-40": { "cumulative": 48285, "phase": 45309 },
-          "40-20": { "cumulative": 48424, "phase": 48850 },
-          "20-0": { "cumulative": 48767, "phase": 50201 }
+          "100-80": { "cumulative": 48319, "phase": 48319 },
+          "80-60": { "cumulative": 38499, "phase": 32076 },
+          "60-40": { "cumulative": 40339, "phase": 44779 },
+          "40-20": { "cumulative": 40608, "phase": 41417 },
+          "20-0": { "cumulative": 40674, "phase": 40674 }
         },
         "patchPreview": {
           "patchId": "conduit-balance-preview",

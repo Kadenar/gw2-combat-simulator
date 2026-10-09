@@ -22,8 +22,6 @@ export interface BuildTemplatePreset {
     readonly patchId: string;
     readonly benchmarkDps: number;
     readonly benchmarkDpsByHealth: TargetHealthBandDps;
-    /** Unique simulation warnings introduced by this preview compared with the same live rotation. */
-    readonly newWarnings?: readonly string[];
   };
   readonly upToDate?: boolean;
   readonly section?: string;

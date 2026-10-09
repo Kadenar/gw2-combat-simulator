@@ -1328,7 +1328,16 @@ test('standalone build previews load without profession modules or rotations and
 
 // Small captured fixtures keep UI contracts independent of whichever real preview is authored next.
 async function previewFixtures(page, state = { active: true, removePreview: false, failWarrior: false }) {
-  const preview = state.active ? { id: 'ui-preview', label: 'UI placeholder preview', professions: {} } : null;
+  const preview = state.active
+    ? {
+        id: 'ui-preview',
+        label: 'UI placeholder preview',
+        professions: {},
+        pendingBenchmarks: state.summaryVariants
+          ? [{ profession: 'guardian', specialization: 'Pending rework', reason: 'Fixture rework pending.' }]
+          : []
+      }
+    : null;
   await page.route('**/integrations/patches/active-preview.ts*', (route) =>
     route.fulfill({
       contentType: 'text/javascript',
@@ -1351,6 +1360,19 @@ async function previewFixtures(page, state = { active: true, removePreview: fals
         benchmarkDpsByHealth: preset.benchmarkDpsByHealth
       };
     const fixtures = [{ section: section.section, presets: [preset] }];
+    // Mixed summary fixtures exercise wrapping and the pending disclosure in one row.
+    if (state.summaryVariants && profession === 'guardian') {
+      fixtures[0].presets.push({
+        ...preset,
+        label: 'Condition loss with a long weapon and variant description',
+        patchPreview: { ...preset.patchPreview, benchmarkDps: preset.benchmarkDps - 100 }
+      });
+      fixtures.push({
+        section: 'Pending rework',
+        presets: [{ ...preset, label: 'Pending build', patchPreview: undefined }]
+      });
+    }
+
     if (state.extraSpecialization && profession === 'guardian')
       fixtures.push({
         section: 'Second specialization',
@@ -1401,7 +1423,7 @@ for (const destination of ['/benchmarks.html', '/mesmer.html#benchmarks']) {
     await expect(profession).toHaveValue('guardian');
     await expect(panel.locator('[data-patch-outcome]')).toHaveValue('up');
     await page.setViewportSize({ width: 390, height: 844 });
-    const scroll = panel.getByRole('region', { name: 'Patch DPS changes' });
+    const scroll = panel.getByRole('region', { name: 'Guardian patch DPS changes' });
     await expect(scroll).toBeVisible();
     expect(await scroll.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
     expect(await panel.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
@@ -1409,6 +1431,59 @@ for (const destination of ['/benchmarks.html', '/mesmer.html#benchmarks']) {
     await expect(profession).toHaveValue('all');
     await expect(panel.locator('[data-patch-outcome]')).toHaveValue('all');
   });
+}
+
+// Patch rows use native links to preserve keyboard/new-tab navigation and load the selected saved build and rotation.
+for (const destination of ['/benchmarks.html', '/mesmer.html']) {
+  test(
+    'patch preview opens measured and pending builds in their profession workspace from ' + destination,
+    async ({ page }) => {
+      await previewFixtures(page, { active: true, summaryVariants: true });
+      await page.goto(`${destination}?embed=1&standalone=1#benchmarks`);
+      if (destination !== '/benchmarks.html') await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+      await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+      await page.getByRole('button', { name: 'Patch preview', exact: true }).click();
+      const group = page.locator('[data-chart-panel="patch"] [data-patch-group="guardian"]');
+      await group.getByRole('button', { name: 'Guardian', exact: true }).click();
+      const pending = group
+        .locator('[data-patch-row]')
+        .filter({ hasText: 'Pending build' })
+        .getByRole('link', { name: /^Open in workspace:/ });
+      const measured = group
+        .locator('[data-patch-row]')
+        .filter({ hasNotText: 'Pending build' })
+        .first()
+        .getByRole('link', { name: /^Open in workspace:/ });
+      await expect(pending).toBeVisible();
+      await expect(measured).toBeVisible();
+      const url = new URL(await pending.getAttribute('href'), page.url());
+      expect(url.pathname).toBe('/guardian.html');
+      expect(url.hash).toBe('#workspace');
+      expect(url.searchParams.get('embed')).toBe('1');
+      expect(url.searchParams.get('standalone')).toBe('1');
+      expect(url.searchParams.get('rotation')).toMatch(/^data\/gw2\/rotations\/guardian\//);
+      const build = await (await page.request.get('/' + url.searchParams.get('benchmark'))).json();
+      // A modified click must leave the preview mounted and create a normal browser tab.
+      const popupPromise = page.context().waitForEvent('page');
+      await pending.click({ modifiers: ['ControlOrMeta'] });
+      const popup = await popupPromise;
+      await expect(popup).toHaveURL(/guardian\.html\?embed=1&standalone=1#workspace$/);
+      await expect.poll(() => popup.evaluate(() => window.professionApp?.workspace.tabs.length)).toBe(2);
+      await expect(group).toBeVisible();
+      await popup.close();
+      await measured.focus();
+      await measured.press('Enter');
+      await expect(page).toHaveURL(/guardian\.html\?embed=1&standalone=1#workspace$/);
+      await expect.poll(() => page.evaluate(() => window.professionApp?.workspace.tabs.length)).toBe(3);
+      expect(
+        await page.evaluate(() => ({
+          profession: window.professionApp.build.profession,
+          weapons: window.professionApp.build.weapons,
+          hasRotation: window.professionApp.build.rotation.length > 0
+        }))
+      ).toEqual({ profession: build.profession, weapons: build.weapons, hasRotation: true });
+    }
+  );
 }
 
 // Eligibility is decided before filters; a reload that removes results must also recover keyboard focus.
@@ -1458,8 +1533,8 @@ test('patch preview headers collapse independently and retain state through filt
   await expect(blurb).toBeVisible();
   await expect(blurb).toContainText('1 higher');
   await expect(blurb).toContainText('1 unchanged');
-  await expect(blurb).toContainText('Largest gain:');
-  await expect(blurb).toContainText('DPS)');
+  await expect(blurb).toContainText('Largest gain');
+  await expect(blurb).toContainText('DPS');
   await parent.click();
   await expect(blurb).toBeHidden();
   await expect(child).toHaveAttribute('aria-expanded', 'true');
@@ -1492,14 +1567,58 @@ test('patch preview headers collapse independently and retain state through filt
   await expect(parent).toHaveAttribute('aria-expanded', 'false');
   await expect(blurb).toBeVisible();
   await panel.locator('[data-patch-outcome]').selectOption('same');
-  await expect(blurb).toContainText('No DPS changes in 1 matching build.');
+  await expect(blurb).toContainText('No DPS changes');
+  await expect(group.locator('.benchmark-patch-profession-meta')).toContainText('1 matching build');
   await page.getByRole('button', { name: 'Reset', exact: true }).click();
   await expect(parent).toHaveAttribute('aria-expanded', 'false');
   await expect(firstBuild).toBeHidden();
-  await expect(blurb).toContainText('Largest gain:');
+  await expect(blurb).toContainText('Largest gain');
   await parent.click();
   await expect(parent).toHaveAttribute('aria-expanded', 'true');
   await expect(child).toHaveAttribute('aria-expanded', 'true');
   await expect(firstBuild).toBeVisible();
   await expect(secondBuild).toBeVisible();
+});
+
+// Desktop summaries use the row width; mobile summaries wrap independently of their scrollable detail tables.
+test('patch summary columns adapt to narrow panels and expose pending reworks', async ({ page }) => {
+  await previewFixtures(page, { active: true, extraSpecialization: true, summaryVariants: true });
+  await page.setViewportSize({ width: 1680, height: 1000 });
+  await page.goto('/benchmarks.html');
+  await page.getByRole('button', { name: 'Patch preview', exact: true }).click();
+  const panel = page.locator('[data-chart-panel="patch"]');
+  const group = panel.locator('[data-patch-group="guardian"]');
+  const toggle = group.getByRole('button', { name: 'Guardian', exact: true });
+  const outcomes = group.locator('.benchmark-patch-outcomes');
+  const highlights = group.locator('.benchmark-patch-highlight');
+  await expect(group.locator('.benchmark-patch-badge')).toHaveText('1 TBD');
+  await expect(group.getByRole('columnheader', { name: 'Live DPS', exact: true })).toBeHidden();
+  const headingBox = await group.locator('.benchmark-patch-profession-heading').boundingBox();
+  const outcomesBox = await outcomes.boundingBox();
+  const gainBox = await highlights.first().boundingBox();
+  const lossBox = await highlights.last().boundingBox();
+  expect(outcomesBox.x).toBeGreaterThan(headingBox.x + headingBox.width);
+  expect(gainBox.x).toBeGreaterThan(outcomesBox.x + outcomesBox.width);
+  expect(lossBox.x).toBeGreaterThan(gainBox.x + gainBox.width);
+  expect(Math.abs(lossBox.y - outcomesBox.y)).toBeLessThan(2);
+  for (const width of [820, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await toggle.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+    expect(await panel.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  }
+
+  const mobileOutcomes = await outcomes.boundingBox();
+  const mobileGain = await highlights.first().boundingBox();
+  expect(mobileGain.y).toBeGreaterThan(mobileOutcomes.y + mobileOutcomes.height);
+  await toggle.press('Enter');
+  await expect(toggle).toBeFocused();
+  await expect(group.getByRole('columnheader', { name: 'Live DPS', exact: true })).toBeVisible();
+  const pendingRow = group.locator('[data-patch-row]').filter({ hasText: 'Pending build' });
+  await expect(pendingRow).toContainText('Fixture rework pending.');
+  await expect(pendingRow.locator('td').nth(1)).toHaveText('TBD');
+  await panel.locator('[data-patch-outcome]').selectOption('tbd');
+  await expect(panel.locator('[data-patch-row]')).toHaveCount(1);
+  await expect(pendingRow).toBeVisible();
+  await panel.locator('[data-patch-outcome]').selectOption('up');
+  await expect(panel.locator('[data-patch-row]').filter({ hasText: 'Pending build' })).toHaveCount(0);
 });

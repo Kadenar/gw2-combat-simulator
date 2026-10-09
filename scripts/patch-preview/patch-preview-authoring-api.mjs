@@ -13,7 +13,7 @@ import { generatePatchOverview } from '#gw2/integrations/patches/app/model.js';
 
 const API_PATH = '/api/patch-preview';
 const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
-const TOP_LEVEL_FIELDS = new Set(['id', 'label', 'publishedAt', 'sourceUrl', 'professions']);
+const TOP_LEVEL_FIELDS = new Set(['id', 'label', 'publishedAt', 'sourceUrl', 'pendingBenchmarks', 'professions']);
 
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);

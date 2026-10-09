@@ -26,7 +26,7 @@
     ["Malice", "Earth"]
   ],
   "relic": "Fractal",
-  "food": "Rare Veggie Pizza",
+  "food": "Salsa-Topped Veggie Flatbread",
   "utility": "Tuning Icicle",
   "jadeBotCore": true,
   "infusions": [
@@ -63,7 +63,7 @@
   ],
   "selectedSkillIds": {
     "Heal": 5503,
-    "Utility1": 34637,
+    "Utility1": 5736,
     "Utility2": 5542,
     "Utility3": 5571,
     "Elite": 25488

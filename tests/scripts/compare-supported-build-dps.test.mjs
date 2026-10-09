@@ -339,7 +339,8 @@ test('preview commits, dry runs, validation failures, and removal reconcile ever
   );
   const before = await Promise.all([readFile(mesmerPath, 'utf8'), readFile(guardianPath, 'utf8')]);
   const preview = { id: 'preview' };
-  const previewMetric = { ...metric, patchId: preview.id, dps: 0 };
+  // Simulator diagnostics remain available to the CLI without becoming saved preview metadata.
+  const previewMetric = { ...metric, patchId: preview.id, dps: 0, warnings: ['Fixture rotation needs updating.'] };
   delete previewMetric.apm;
   const options = { preview, previewMetrics: [previewMetric] };
   const dry = await updateManifestBenchmarks([metric], root, 'gw2', { ...options, commit: false });

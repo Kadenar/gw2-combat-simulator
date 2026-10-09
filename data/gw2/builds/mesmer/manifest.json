@@ -19,13 +19,13 @@
         },
         "patchPreview": {
           "patchId": "conduit-balance-preview",
-          "benchmarkDps": 43809,
+          "benchmarkDps": 43415,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 52535, "phase": 52535 },
-            "80-60": { "cumulative": 45685, "phase": 40279 },
-            "60-40": { "cumulative": 43201, "phase": 38913 },
-            "40-20": { "cumulative": 43242, "phase": 43367 },
-            "20-0": { "cumulative": 43809, "phase": 43809 }
+            "100-80": { "cumulative": 52082, "phase": 52082 },
+            "80-60": { "cumulative": 45293, "phase": 39967 },
+            "60-40": { "cumulative": 42766, "phase": 38474 },
+            "40-20": { "cumulative": 42801, "phase": 42906 },
+            "20-0": { "cumulative": 43415, "phase": 43415 }
           }
         }
       },
@@ -46,13 +46,13 @@
         },
         "patchPreview": {
           "patchId": "conduit-balance-preview",
-          "benchmarkDps": 44061,
+          "benchmarkDps": 43685,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 50553, "phase": 50553 },
-            "80-60": { "cumulative": 42694, "phase": 36769 },
-            "60-40": { "cumulative": 42461, "phase": 42014 },
-            "40-20": { "cumulative": 43670, "phase": 47850 },
-            "20-0": { "cumulative": 44061, "phase": 44061 }
+            "100-80": { "cumulative": 50179, "phase": 50179 },
+            "80-60": { "cumulative": 42458, "phase": 36697 },
+            "60-40": { "cumulative": 42118, "phase": 41460 },
+            "40-20": { "cumulative": 42630, "phase": 44264 },
+            "20-0": { "cumulative": 43685, "phase": 43685 }
           }
         }
       },
@@ -73,13 +73,13 @@
         },
         "patchPreview": {
           "patchId": "conduit-balance-preview",
-          "benchmarkDps": 45754,
+          "benchmarkDps": 45694,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 46593, "phase": 46593 },
-            "80-60": { "cumulative": 42583, "phase": 38847 },
-            "60-40": { "cumulative": 43481, "phase": 45376 },
-            "40-20": { "cumulative": 42768, "phase": 40739 },
-            "20-0": { "cumulative": 45754, "phase": 63252 }
+            "100-80": { "cumulative": 46511, "phase": 46511 },
+            "80-60": { "cumulative": 42405, "phase": 38612 },
+            "60-40": { "cumulative": 43424, "phase": 45604 },
+            "40-20": { "cumulative": 42868, "phase": 41337 },
+            "20-0": { "cumulative": 45694, "phase": 63361 }
           }
         }
       }

@@ -206,14 +206,10 @@ export async function updateManifestBenchmarks(
           const previewMetric = previewResults.get(key);
           if (!previewMetric || previewMetric.patchId !== preview.id)
             throw new Error(metric.id + ' has no matching preview result.');
-          // Keep only warnings introduced by the preview so existing live issues do not imply a patch regression.
-          const liveWarnings = new Set(metric.warnings);
-          const newWarnings = [...new Set(previewMetric.warnings)].filter((warning) => !liveWarnings.has(warning));
-          // Replace the whole object so a repaired rotation also clears its previous disclaimer.
+          // Persist only preview measurements; pending reworks are declared by the active patch.
           const nextPreview = {
             patchId: preview.id,
-            ...benchmarkDamage(previewMetric, true),
-            ...(newWarnings.length ? { newWarnings } : {})
+            ...benchmarkDamage(previewMetric, true)
           };
           if (JSON.stringify(preset.patchPreview) !== JSON.stringify(nextPreview)) previewUpdatedEntries += 1;
           preset.patchPreview = nextPreview;

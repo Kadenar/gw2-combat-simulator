@@ -8,7 +8,54 @@ import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.j
 export const activePatchPreview: PatchPreview = {
   id: 'conduit-balance-preview',
   label: 'Balance Preview',
+  // These reworks need updated implementations and rotations before their preview DPS can be compared.
+  pendingBenchmarks: [
+    { profession: 'revenant', specialization: 'Vindicator', reason: 'Vindicator rework pending.' },
+    { profession: 'guardian', specialization: 'Firebrand', reason: 'Firebrand rework pending.' },
+    {
+      profession: 'warrior',
+      specialization: 'Berserker',
+      build: 'data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json',
+      reason: 'Longbow weapon rework pending.'
+    },
+    {
+      profession: 'mesmer',
+      specialization: 'Chronomancer',
+      damage: 'condi',
+      reason: 'Chronophantasma resummoned-phantasm condition-duration reduction pending.'
+    },
+    {
+      profession: 'engineer',
+      specialization: 'Amalgam',
+      build: 'data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json',
+      reason: 'Rifle weapon rework pending.'
+    },
+    {
+      profession: 'ranger',
+      specialization: 'Soulbeast',
+      reason: 'Oppressive Superiority rework pending.'
+    },
+    {
+      // Artifact reworks invalidate saved Antiquary rotations, so their captured losses are not useful comparisons.
+      profession: 'thief',
+      specialization: 'Antiquary',
+      reason: 'Artifact reworks break the current rotation; updated rotations pending.'
+    }
+  ],
   professions: {
+    mesmer: {
+      // Apply the confirmed strike reduction independently of the still-pending condition-duration change.
+      balanceProfiles: {
+        '1890': { fields: { damageMultiplier: { from: 1.05, to: 1 } } }
+      },
+      overview: [
+        {
+          subject: 'Chronophantasma',
+          text: 'Resummoned phantasm strike damage reduced from 105% to 100%.',
+          source: 'profile-diff'
+        }
+      ]
+    },
     revenant: {
       skills: {
         '28253': {
@@ -1025,7 +1072,7 @@ export const activePatchPreview: PatchPreview = {
         },
         {
           subject: 'engineer.grenadier-explosion-damage',
-          text: 'Factor 1 → 1.1.',
+          text: 'Factor 1 → 1.1. TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
           source: 'modifier-diff'
         },
         {
@@ -1036,6 +1083,8 @@ export const activePatchPreview: PatchPreview = {
       ],
       modifierRules: {
         'engineer.grenadier-explosion-damage': {
+          // The unpublished percentage is provisionally assumed to be 10%; live tuning stays neutral.
+          assumption: 'TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
           factor: {
             from: 1,
             to: 1.1
