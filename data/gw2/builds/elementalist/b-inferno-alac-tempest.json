@@ -25,8 +25,8 @@
     ["Smoldering", "Bursting"],
     ["Smoldering", "Bursting"]
   ],
-  "relic": "Nourys",
-  "food": "Dragon's Revelry Starcake",
+  "relic": "Last Tyrant",
+  "food": "Spherified Cilantro Oyster Soup",
   "utility": "Superior Sharpening Stone",
   "jadeBotCore": true,
   "infusions": [
@@ -36,10 +36,6 @@
     },
     {
       "stat": "Precision",
-      "count": 0
-    },
-    {
-      "stat": "Condition Damage",
       "count": 0
     }
   ],
@@ -66,7 +62,9 @@
   },
   "assumptions": {
     "simulationMode": "deterministic",
-    "hitboxSize": "small",
+    "simulationSeed": 1,
+    "criticalDamageMode": "averaged",
+    "permanentComboField": "none",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -89,13 +87,14 @@
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25
-    }
+    },
+    "hitboxSize": "small"
   },
   "startingWeaponSet": 1,
   "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
   "targetArmor": 2597,
-  "rotation": [],
-  "startAttunement": "Earth",
+  "startAttunement": "Air",
   "secondaryAttunement": "Air",
   "initialCatalystEnergy": 30,
   "evokerElement": "Fire",
@@ -106,5 +105,6 @@
     "Water": false,
     "Air": false,
     "Earth": false
-  }
+  },
+  "precastRelics": []
 }
