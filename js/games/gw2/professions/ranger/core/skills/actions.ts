@@ -16,6 +16,9 @@ import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   createDodgeSkill({
+    // A late-cancelled dodge commits while keeping the rest of its animation reserved.
+    interruptCommitMs: 760,
+    retainsCastLockoutAfterInterrupt: true,
     rechargeAnchor: 'castStart',
     cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } }
   }),

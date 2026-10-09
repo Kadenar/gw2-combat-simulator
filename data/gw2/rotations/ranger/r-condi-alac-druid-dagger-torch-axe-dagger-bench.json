@@ -5,12 +5,15 @@
     "benchmarkDamage": 4007796,
     "benchmarkDps": 39385.94887820985,
     "timingSource": "Elite Insights EVTC casts; dagger timings rounded to 40 ms action ticks",
-    "note": "Poisonous Cloud starts 640 ms before Combat Start, matching the log's reconstructed 644 ms lead; keep Combat Start 440 ms into Natural Convergence."
+    "note": "Precast Sharpening Stone, reset cooldowns, then use the first logged Sharpening Stone immediately after the first Celestial Avatar release; retain the later logged uses. Poisonous Cloud starts 640 ms before Combat Start, matching the log's reconstructed 644 ms lead; keep Combat Start 440 ms into Natural Convergence."
   },
   "rotation": [
     {
       "type": "cast",
       "skillId": 12537
+    },
+    {
+      "type": "cooldown-reset"
     },
     {
       "type": "cast",
@@ -64,6 +67,10 @@
     {
       "type": "cast",
       "skillId": 31411
+    },
+    {
+      "type": "cast",
+      "skillId": 12537
     },
     {
       "type": "cast",

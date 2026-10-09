@@ -75,6 +75,9 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.REJUVENATING_TIDES]: {
+    // A committed cast keeps its delayed pulses and remaining animation lockout after interruption.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'boon',
@@ -86,6 +89,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         intervalMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ],
