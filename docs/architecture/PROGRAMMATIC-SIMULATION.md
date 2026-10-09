@@ -171,8 +171,8 @@ deleting every other base stat.
 The current profession tests reuse `createProfessionSimulator()` from `tests/helpers/profession-simulation.js`, which
 calls this same config helper and forwards an optional observation policy.
 
-Use an explicit merge for other nested profession-specific values, such as Thief `deterministicChoices`, when individual
-keys should inherit from the base config.
+Use an explicit merge for other nested profession-specific values, such as `professionAssumptions`, when individual keys
+should inherit from the base config.
 
 ## Rotation format
 
@@ -273,7 +273,7 @@ Professions also accept their own resource and loadout fields. Existing tests ar
 - Mesmer: `initialResource`
 - Necromancer: initial Life Force and specialization resources
 - Revenant: `selectedLegends`, `startingLegend`, and `initialEnergy`
-- Thief: `initialInitiative`, `initialShadowForce`, and `deterministicChoices`
+- Thief: `initialInitiative` and `initialShadowForce`
 
 Start with the base config near the top of the relevant profession test, then remove fields your scenario does not use.
 
