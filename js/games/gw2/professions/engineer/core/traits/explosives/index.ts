@@ -1,4 +1,5 @@
 import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, skillForEvent, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -7,12 +8,22 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
 import { playerHealthFraction, targetHealthFraction } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/trait-skills.js';
+import {
+  ENGINEER_TRAIT_SKILL_MECHANICS,
+  triggerLesserGrenadeBarrage
+} from '#gw2/professions/engineer/core/skills/trait-skills.js';
 
-/** Owns Grenadier tuning and behavior at its established runtime and build boundaries. */
+/** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
   name: 'Grenadier',
+  hooks: {
+    // Only completed heals with Grenadier selected request the skill-owned barrage and recharge.
+    onCastCommit(context, cast) {
+      if (!hasTrait(context, TRAIT.GRENADIER) || (cast.skill.type !== 'Heal' && cast.skill.slot !== 'Heal')) return;
+      triggerLesserGrenadeBarrage(context, cast.skill, context.time);
+    }
+  },
   modifierRules: [
     {
       id: 'engineer.grenadier-explosion-damage',
@@ -28,14 +39,7 @@ export const grenadier = defineTrait({
           skillForEvent(context.profession?.catalog, context.event, context.event?.sourceId ?? context.skillId)
         )
     }
-  ],
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: ENGINEER_TRAIT_SKILL_MECHANICS[ID.LESSER_GRENADE_BARRAGE]!.cooldown,
-    // The canonical coefficient is the total across all six half-coefficient grenades.
-    effects: [{ name: 'Grenadier', type: 'strike', coefficient: 3, hits: 6, atMs: 0 }]
-  }
+  ]
 });
 
 /** Owns Explosive Entrance tuning and behavior at its established runtime and build boundaries. */

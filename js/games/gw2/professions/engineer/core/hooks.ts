@@ -26,9 +26,9 @@ import {
 } from '#gw2/professions/engineer/core/traits/dispatch.js';
 import {
   emitAimAssistedRocket,
-  emitExplosiveEntrance,
-  emitGrenadier
+  emitExplosiveEntrance
 } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import { emitLesserGrenadeBarrage } from '#gw2/professions/engineer/core/skills/trait-skills.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/firearms/critical-procs.js';
 import {
   applyEngineerDodgeTraits,
@@ -63,14 +63,14 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
 export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   damageEffects: [
     {
-      id: 'engineer.grenadier',
+      id: 'engineer.lesser-grenade-barrage',
       name: 'Lesser Grenade Barrage',
       source: 'Trait',
       ownerId: TRAIT.GRENADIER,
       unit: 'occurrence',
-      sourceIds: [TRAIT.GRENADIER],
+      sourceIds: [ID.LESSER_GRENADE_BARRAGE],
       emit(runtime) {
-        emitGrenadier(runtime, { id: TRAIT.GRENADIER, name: 'Grenadier' }, runtime.time);
+        emitLesserGrenadeBarrage(runtime, { id: TRAIT.GRENADIER, name: 'Grenadier' }, runtime.time);
       }
     },
     {

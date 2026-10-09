@@ -1,9 +1,38 @@
 /**
  * Owns Core Engineer fragments created by trait procs and trait-triggered actions.
- * Trait reaction logic remains in `core/traits/`; this file owns only their skill data.
+ * Trait selection gates remain in `core/traits/`; triggered skills own their payload and delivery.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+
+/** Triggered and directly cast barrages share the skill's recharge, including Alacrity and cooldown resets. */
+export function triggerLesserGrenadeBarrage(context: EngineerRuntime, trigger: EngineerSkill, at: number): void {
+  const skill = context.helpers.skillsById.get(ID.LESSER_GRENADE_BARRAGE)!;
+  if (!skill.effects?.length || context.cooldownController.isOnCooldown(skill.id, at)) return;
+  context.cooldownController.startRecharge(skill, at);
+  emitLesserGrenadeBarrage(context, trigger, at);
+}
+
+/** Emit the selected skill's effects with its own identity and icon, retaining the heal only as trigger context. */
+export function emitLesserGrenadeBarrage(context: EngineerRuntime, trigger: EngineerSkill, at: number): void {
+  const skill = context.helpers.skillsById.get(ID.LESSER_GRENADE_BARRAGE)!;
+  context.effects.emit({
+    kind: 'profile',
+    profile: skill,
+    at,
+    attribution: {
+      source: 'Trait',
+      sourceId: skill.id,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      triggeredBy: trigger.name
+    },
+    transform: (event) => ({ ...event, parentSkillName: trigger.name, icon: skill.icon })
+  });
+}
 
 /** Defines the catalog fragments used by Core Engineer trait effects. */
 export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -13,11 +42,17 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 6,
-        atMs: 0,
+        // Approximate scatter as three landed half-coefficient grenades at the average impact delay.
+        coefficient: 1.5,
+        hits: 3,
+        atMs: 730,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         name: 'Lesser Grenade Barrage',
-        actorType: 'player'
+        actorType: 'effect',
+        ownerActorType: 'player',
+        weapon: 'Unequipped',
+        damageKind: 'explosion'
       }
     ]
   },

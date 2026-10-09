@@ -6,7 +6,6 @@ import {
   applyExplosiveEntrance,
   applyExplosiveTemper,
   applyGrandEntrance,
-  applyGrenadier,
   applyShortFuse,
   applyShrapnel,
   applySteelPackedPowder
@@ -32,7 +31,6 @@ import type {
 export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   const skill = cast.skill;
   const at = context.time;
-  applyGrenadier(context, skill, at);
   applyStreamlinedKits(context, skill, at);
   // Issuing a mech command uses the tool-belt slot immediately while its animation runs independently.
   if (!skill.independentCast) applyEngineerToolbeltTraits(context, skill, at);

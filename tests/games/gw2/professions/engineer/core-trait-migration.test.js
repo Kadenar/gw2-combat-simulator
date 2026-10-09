@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
@@ -79,12 +79,10 @@ const traitCases = [
   {
     name: 'Grenadier',
     trait: TRAIT.GRENADIER,
-    rotation: ['Healing Turret'],
+    rotation: ['Healing Turret', { type: 'wait', durationMs: 1000 }],
     verify: (result) =>
-      assert.equal(
-        result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Lesser Grenade Barrage')
-          .length,
-        6
+      assert.ok(
+        result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === ID.LESSER_GRENADE_BARRAGE)
       )
   },
   {

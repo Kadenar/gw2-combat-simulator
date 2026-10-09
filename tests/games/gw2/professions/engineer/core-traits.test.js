@@ -69,16 +69,24 @@ test('Explosives and Firearms traits materialize offensive effects', () => {
 });
 
 test('Explosives traits use the requested packets, gates, and health modifiers', () => {
-  const grenadier = simulate('Core', ['Healing Turret'], {
-    selectedTraitIds: [TRAIT.GRENADIER]
+  // Landed grenade strikes retain their individual scaling and each grants an explosion-trait stack.
+  const grenadier = simulate('Core', ['Healing Turret', { type: 'wait', durationMs: 1000 }], {
+    selectedTraitIds: [TRAIT.GRENADIER, TRAIT.EXPLOSIVE_TEMPER]
   });
   const lesserBarrage = grenadier.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Lesser Grenade Barrage'
   );
 
-  assert.equal(lesserBarrage.length, 6);
-  assert.ok(
-    lesserBarrage.every((event) => event.coefficient === 0.5 && event.totalHits === 6 && event.explosion === true)
+  assert.equal(
+    lesserBarrage.reduce((total, event) => total + event.coefficient, 0),
+    1.5
+  );
+  assert.ok(lesserBarrage.every((event) => event.coefficient === 0.5 && event.damageKind === 'explosion'));
+  assert.equal(
+    grenadier.events
+      .filter((event) => event.type === 'buff' && event.kind === 'explosive-temper')
+      .reduce((total, event) => total + event.stacks, 0),
+    3
   );
 
   const entrance = simulate('Core', ['Grenade Kit', 'Grenade', 'Dodge', 'Grenade'], {

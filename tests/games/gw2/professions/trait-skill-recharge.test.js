@@ -19,7 +19,6 @@ import { THIEF_TRAIT_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { WARRIOR_TRAIT_IDS as W } from '#gw2/professions/warrior/data/ids.js';
 import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import {
-  applyGrenadier,
   applyExplosiveEntrance,
   resetExplosiveEntrance
 } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
@@ -78,7 +77,6 @@ const cases = [
     20,
     (r) => completeProtectorsRestoration(r, cast(r))
   ],
-  [engineerProfession, N.GRENADIER, 'grenadier', 20, (r) => applyGrenadier(r, heal, r.time)],
   [necromancerProfession, D.CHILL_OF_DEATH, 'chillOfDeath', 16, (r) => applyChillOfDeath(r, hit(r))],
   [
     necromancerProfession,

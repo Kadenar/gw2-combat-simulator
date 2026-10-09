@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_IDS as ENGINEER, ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
@@ -58,17 +58,17 @@ test('Kinetic Battery expands the surviving fifth-charge package', () => {
 });
 
 // Profile strikes must preserve individual coefficients, timing, and reaction identities rather than aggregate hits.
-test('Grenadier expands authored ticks and registers their effect reactions', () => {
+test('Grenadier triggers the barrage skill effects and registers their effect reactions', () => {
   const result = runEngineer(
     ['Healing Turret', wait],
     { selectedTraitIds: [ENGINEER.GRENADIER] },
     {
       extend: (native) => ({
-        catalog: withProfile(native.catalog, ENGINEER.GRENADIER, {
+        catalog: withSkill(native.catalog, ENGINEER_SKILL_IDS.LESSER_GRENADE_BARRAGE, {
           effects: [
             {
               type: 'strike',
-              name: 'Grenadier',
+              name: 'Lesser Grenade Barrage',
               ticks: [
                 { atMs: 100, coefficient: 0.2 },
                 { atMs: 600, coefficient: 0.8 }
@@ -88,7 +88,9 @@ test('Grenadier expands authored ticks and registers their effect reactions', ()
     }
   );
   assert.deepEqual(result.warnings, []);
-  const hits = result.events.filter((event) => event.sourceId === ENGINEER.GRENADIER && event.type === 'damage');
+  const hits = result.events.filter(
+    (event) => event.sourceId === ENGINEER_SKILL_IDS.LESSER_GRENADE_BARRAGE && event.type === 'damage'
+  );
   assert.deepEqual(
     hits.map((event) => event.coefficient),
     [0.2, 0.8]

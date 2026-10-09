@@ -19,53 +19,9 @@ import {
   resolverSkill
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type {
-  EngineerResolverContext,
-  EngineerResolverEvent,
-  EngineerRuntime,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
-
-/** Schedules Grenadier's lesser barrage from an eligible healing cast after its profile-owned skill recharge. */
-export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if ((skill.type !== 'Heal' && skill.slot !== 'Heal') || !hasTrait(context.traits, TRAIT.GRENADIER)) return;
-  const profile = requireBalanceProfileFromContext(context, TRAIT.GRENADIER);
-  const effect = requireEffect(profile, 'strike', 'Grenadier');
-  // A removed barrage leaves the trait ready; claim before emitting any surviving strikes.
-  if (!effect || !context.procs.claim(TRAIT.GRENADIER, 'grenadier', at)) return;
-  emitGrenadier(context, skill, at);
-}
-
-/** Build one lesser barrage independently of its triggering heal and cooldown. */
-export function emitGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.GRENADIER);
-  const effect = requireEffect(profile, 'strike', 'Grenadier');
-  if (!effect) return;
-  context.effects.emit({
-    kind: 'profile',
-    profile: profile,
-    effects: [effect],
-    at,
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.GRENADIER,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: skill.id,
-      skillName: 'Lesser Grenade Barrage',
-      triggeredBy: skill.name
-    },
-    transform: (event) => ({
-      ...event,
-      parentSkillName: skill.name,
-      name: 'Lesser Grenade Barrage',
-      skillWeapon: 'Unequipped',
-      explosion: true
-    })
-  });
-}
 
 /** Rearms Explosive Entrance after a resolved Engineer dodge. */
 export function resetExplosiveEntrance(context: EngineerResolverContext): void {

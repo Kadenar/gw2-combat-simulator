@@ -504,15 +504,15 @@ export const engineerTooltips: ProfessionTooltips = {
         fromModifier('engineer.shaped-charge', 'maximumStacks', 'Maximum stacks counted', tooltipDecimal)
       ]
     ),
-    [TRAIT.GRENADIER]: (balanceContext, entity) => {
-      const profile = tooltipProfile(balanceContext, entity.id);
-      // Grenadier uses the same total-coefficient contract as every materialized strike.
-      const effects = profile.effects || [];
+    [TRAIT.GRENADIER]: (balanceContext) => {
+      // The trait describes its triggered skill using that skill's selected patch data.
+      const skill = balanceContext.catalog.skillsById.get(ID.LESSER_GRENADE_BARRAGE)!;
+      const effects = skill.effects || [];
       return {
         ...simulationEffectFacts(effects),
         description: 'Using a healing skill triggers Lesser Grenade Barrage.',
         facts: [
-          profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
+          { name: 'Base skill recharge', detail: tooltipSeconds(tooltipNumber(skill, 'cooldown')) },
           // Show the selected preview's explosion bonus alongside Grenadier's existing proc.
           modifierFact(
             balanceContext,
