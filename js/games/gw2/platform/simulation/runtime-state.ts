@@ -1,3 +1,4 @@
+import type { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
@@ -20,6 +21,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   time: number;
   inputReadyAt: number;
   combatActive: boolean;
+  readonly alliedStrikes: ReturnType<typeof createAlliedStrikeController>;
   rotationEndTime: number | null;
   readonly cursor: RotationCursor;
   readonly castController: CastControl;

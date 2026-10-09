@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import {
   gw2AlliedEffectRecipients,
-  gw2AlliedPlayerProcTimeline,
   gw2BoonApplicationRecipients,
   gw2BuffApplicationRecipients,
   prepareGw2BuffCompanionCandidates
@@ -221,39 +220,4 @@ test('a summon self-buff includes its caster without affecting the simulated pla
       recipientCount: 1
     }
   );
-});
-
-test("allied proc timelines respect the effect's selected player count", () => {
-  const procs = gw2AlliedPlayerProcTimeline(
-    { allies: { count: 4, strikesPerSecond: 2 } },
-    {
-      start: 1,
-      duration: 10,
-      maximumAllies: 2,
-      maximumPerAlly: 3,
-      internalCooldown: 1
-    }
-  );
-
-  assert.equal(procs.length, 6);
-  assert.deepEqual([...new Set(procs.map((proc) => proc.allyIndex))], [1, 2]);
-  assert.deepEqual(
-    procs.filter((proc) => proc.allyIndex === 1).map((proc) => proc.at),
-    [2, 3, 4]
-  );
-});
-
-// Allied strikes at expiry can consume the effect before cleanup, without floating-point drift.
-test('allied proc windows include expiry at canonical microsecond precision', () => {
-  for (const [duration, expected] of [
-    [0.299999, [0.1, 0.2]],
-    [0.3, [0.1, 0.2, 0.3]],
-    [0.300001, [0.1, 0.2, 0.3]]
-  ]) {
-    const procs = gw2AlliedPlayerProcTimeline({ allies: { count: 1, strikesPerSecond: 10 } }, { start: 0, duration });
-    assert.deepEqual(
-      procs.map((proc) => proc.at),
-      expected
-    );
-  }
 });

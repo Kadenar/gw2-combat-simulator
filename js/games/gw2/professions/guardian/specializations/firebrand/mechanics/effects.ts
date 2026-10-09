@@ -1,6 +1,6 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -35,7 +35,7 @@ export function attribution(event: Gw2ResolverEvent) {
   };
 }
 
-/** Finite allied opportunities enter ordinary hostile resolution, which rejects precombat and post-death outcomes. */
+/** Live Ashes charges retain their source and original deadline until an eligible allied strike. */
 export function alliedAshes(
   runtime: Runtime,
   event: Gw2ResolverEvent,
@@ -46,30 +46,36 @@ export function alliedAshes(
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const burn = requireEffect(profile, 'condition', 'Burning');
   if (!burn) return;
-  const procs = gw2AlliedPlayerProcTimeline(runtime.config, {
-    start: runtime.time,
-    duration,
-    maximumAllies: source.maximumAllies,
-    maximumPerAlly: count,
-    internalCooldown: balanceProfileNumber(profile, 'internalCooldown')
-  });
-  for (const proc of procs)
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildResolverCondition({
-        ...attribution(event),
-        at: proc.at,
-        priority: source.priority,
-        sourceId: 'guardian.ashes-of-the-just',
-        skillId: ID.ASHES_OF_THE_JUST,
-        skillName: source.skillName,
-        activationId: `${event.activationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
-        name: `${source.name} — Ally ${proc.allyIndex} Burning`,
-        condition: String(burn.condition),
-        stacks: effectNumber(profile, burn, 'stacks'),
-        duration: effectNumber(profile, burn, 'duration'),
-        metadata: { triggeredByAlly: proc.allyIndex }
-      })
+  // Recipient grants survive preparation; one shared strike spends at most one Ashes charge per ally.
+  const allies = Math.min(source.maximumAllies, gw2AlliedPlayerAssumptions(runtime.config).count);
+  for (let allyIndex = 1; allyIndex <= allies; allyIndex++)
+    runtime.alliedStrikes.register({
+      id: `ashes:${event.activationId}:${event.sourceId}:${runtime.time}:${allyIndex}`,
+      allyIndex,
+      expiresAt: canonicalTime(runtime.time + duration),
+      inclusiveExpiry: true,
+      charges: count,
+      consumptionGroup: 'ashes',
+      internalCooldown: balanceProfileNumber(profile, 'internalCooldown'),
+      trigger(proc) {
+        runtime.effects.emit({
+          kind: 'packet',
+          event: buildResolverCondition({
+            ...attribution(event),
+            at: proc.at,
+            priority: source.priority,
+            sourceId: 'guardian.ashes-of-the-just',
+            skillId: ID.ASHES_OF_THE_JUST,
+            skillName: source.skillName,
+            activationId: `${event.activationId}:ally:${proc.allyIndex}:${proc.activationId}`,
+            name: `${source.name} — Ally ${proc.allyIndex} Burning`,
+            condition: String(burn.condition),
+            stacks: effectNumber(profile, burn, 'stacks'),
+            duration: effectNumber(profile, burn, 'duration'),
+            metadata: { triggeredByAlly: proc.allyIndex }
+          })
+        });
+      }
     });
 }
 

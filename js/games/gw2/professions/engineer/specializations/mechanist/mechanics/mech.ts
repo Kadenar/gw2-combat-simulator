@@ -1,3 +1,4 @@
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -214,12 +215,20 @@ export function completeEngineerMechCast(context: EngineerRuntime, skill: Engine
   triggerMechFighter(context, skill);
 }
 
+/** The persistent mech owns its autonomous work separately from player-command effects. */
+export function scheduleMechAttack(context: EngineerRuntime, at: number, phase: MechAttackPayload): void {
+  if (!autonomousActionsAllowed(context)) return;
+  context.schedule('engineer.mech-attack', at, phase, { id: 'engineer.mech-attacks', generation: 0 });
+}
+
 /** Starts the autonomous mech attack loop when the specialization begins with an active mech. */
 export function initializeEngineerMech(context: EngineerRuntime): void {
   const state = mechanistState.from(context);
-  if (!state.mech.enabled || !state.mech.active) return;
-  const firstAttackAt = context.time + MECHANIST_ATTACK_TIMING.initialDelay;
-  context.schedule('engineer.mech-attack', firstAttackAt, { phase: 0, previousCommandEnd: 0 });
+  if (!autonomousActionsAllowed(context) || !state.mech.enabled || !state.mech.active || state.mech.attackLoopStarted)
+    return;
+  state.mech.attackLoopStarted = true;
+  const firstAttackAt = Math.max(context.time + MECHANIST_ATTACK_TIMING.initialDelay, state.mech.busyUntil);
+  scheduleMechAttack(context, firstAttackAt, { phase: 0, previousCommandEnd: 0 });
 }
 
 /** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
@@ -229,7 +238,7 @@ export function stepMechAttack(
   payload: MechAttackPayload
 ): { at: number; state: MechAttackPayload } | null {
   const state = mechanistState.from(context);
-  if (!state.mech.enabled) return null;
+  if (!autonomousActionsAllowed(context) || !state.mech.enabled || !state.mech.active) return null;
   const rate = mechAttackRate(context, at);
   // Jade Cannons replaces the melee chain with alternating arm shots and
   // distinct within-pair and between-pair delays.

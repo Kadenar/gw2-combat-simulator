@@ -20,7 +20,6 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns imperative Core Necromancer Blood Magic trait behavior for ordered dispatcher calls. */
 
@@ -114,8 +113,7 @@ function vampiricPresenceActorKey(context: NecromancerResolverContext, event: Ne
 function queueVampiricPresence(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  actorKey: string,
-  intervalAlreadyApplied = false
+  actorKey: string
 ): void {
   // Select the live shroud packet and recipient-owned cooldown before materializing the life steal.
   const profile = requireBalanceProfileFromContext(context, TRAIT.VAMPIRIC_PRESENCE);
@@ -125,12 +123,8 @@ function queueVampiricPresence(
   // The recipient interval gates only the selected siphon, so a removed packet leaves it ready.
   if (!effect) return;
   const cooldownKey = actorKey === 'self' ? 'necromancer.core.vampiricPresence' : `vampiricPresence:${actorKey}`;
-  // Pre-materialized allied procs already paid their interval; other recipients claim independently.
-  if (
-    !intervalAlreadyApplied &&
-    !context.procs.claimCooldown(cooldownKey, event.at, balanceProfileNumber(profile, 'cooldown'))
-  )
-    return;
+  // Every recipient checks the same live cooldown against its actual strike opportunity.
+  if (!context.procs.claimCooldown(cooldownKey, event.at, balanceProfileNumber(profile, 'cooldown'))) return;
 
   // Both player and allied-recipient paths converge on the same attributed packet.
   queueBloodMagicLifeSteal(context, event, {
@@ -147,13 +141,13 @@ export function applyVampiricPresence(context: NecromancerResolverContext, event
   if (actorKey) queueVampiricPresence(context, event, actorKey);
 }
 
-/** Applies an allied player's pre-materialized Vampiric Presence proc. */
+/** An actual allied opportunity claims that recipient's Vampiric Presence cooldown. */
 export function reactToVampiricPresenceAlliedHit(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
   if (!hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)) return;
-  queueVampiricPresence(context, event, `ally:${Number(event.allyIndex || 0)}`, true);
+  queueVampiricPresence(context, event, `ally:${Number(event.allyIndex || 0)}`);
 }
 
 function alliedTasteForBloodRecipient(allyIndex: number): string {
@@ -282,45 +276,26 @@ export function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: Ru
   });
 }
 
-/** Trait-specific intervals share transport while empty charge pools retain their existing allied cadence. */
-function alliedPulse(runtime: NecromancerRuntime, data: unknown): void {
-  if (runtime.deathTime != null) return;
-  const pulse = data as AlliedPulse;
-  const allies = gw2AlliedPlayerAssumptions(runtime.config);
-  const reaction =
-    pulse.trait === TRAIT.VAMPIRIC_PRESENCE ? reactToVampiricPresenceAlliedHit : reactToTasteForBloodAlliedHit;
-  for (let allyIndex = 1; allyIndex <= allies.count; allyIndex++)
-    reaction(runtime, {
-      type: 'necromancer.allied-hit',
-      at: runtime.time,
-      source: 'Trait',
-      sourceId: pulse.trait,
-      actorType: 'effect',
-      skillName: `Allied Player ${allyIndex} Attack`,
-      allyIndex
-    });
-  runtime.schedule(ALLIED, canonicalTime(runtime.time + pulse.interval), pulse, undefined, -200);
-}
-
+/** Persistent trait listeners consume the common ally strike without maintaining independent clocks. */
 export function startNecromancerAlliedOpportunities(runtime: NecromancerRuntime): void {
   const allies = gw2AlliedPlayerAssumptions(runtime.config);
-  if (!allies.count || !allies.strikesPerSecond) return;
-  for (const trait of [TRAIT.VAMPIRIC_PRESENCE, TRAIT.OVERFLOWING_THIRST]) {
-    if (!hasTrait(runtime, trait)) continue;
-    const minimum =
-      trait === TRAIT.VAMPIRIC_PRESENCE
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.VAMPIRIC_PRESENCE), 'cooldown')
-        : 0;
-    const interval = Math.max(minimum, 1 / allies.strikesPerSecond);
-    runtime.schedule(ALLIED, canonicalTime(runtime.time + interval), { trait, interval }, undefined, -200);
-  }
+  for (let allyIndex = 1; allyIndex <= allies.count; allyIndex++)
+    runtime.alliedStrikes.register({
+      id: `necromancer.blood-magic:${allyIndex}`,
+      allyIndex,
+      trigger(opportunity) {
+        const event: NecromancerResolverEvent = {
+          type: 'proc',
+          at: opportunity.at,
+          source: 'Trait',
+          sourceId: 'necromancer.blood-magic',
+          actorType: 'effect' as const,
+          skillName: `Allied Player ${allyIndex} Attack`,
+          allyIndex,
+          activationId: opportunity.activationId
+        };
+        reactToVampiricPresenceAlliedHit(runtime, event);
+        reactToTasteForBloodAlliedHit(runtime, event);
+      }
+    });
 }
-
-const ALLIED = 'necromancer.allied-opportunity';
-
-interface AlliedPulse {
-  trait: number;
-  interval: number;
-}
-
-export const necromancerAlliedTasks = { [ALLIED]: alliedPulse };

@@ -1068,7 +1068,6 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
     const native = revenantProfession.runtimeFor(config);
     for (const [owner, task] of [
       ['Herald', 'revenant.herald-facet-pulse'],
-      ['Renegade', 'revenant.soulcleave-allied-proc'],
       ['Vindicator', 'revenant.vindicator-landing'],
       ['Conduit', 'revenant.conduit-upkeep-affinity']
     ])

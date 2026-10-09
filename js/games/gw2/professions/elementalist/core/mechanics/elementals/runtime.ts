@@ -1,3 +1,4 @@
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import {
   beforeElementalStrike,
   retireElemental
@@ -156,8 +157,8 @@ function beginSummonAction(
   const element = elemental.element as ElementalKind;
   interruptCurrentAction(context, at);
   elemental.actionGeneration += 1;
-  // A commanded opener already owns the AI loop; combat start must not replace its pending impacts.
-  elemental.started = true;
+  // Command activity owns its impacts without claiming autonomous-loop startup.
+
   const activationId = `elementalist:${elemental.summonGeneration}:${elemental.actionGeneration}`;
   elemental.currentActivationId = activationId;
   context.effects.emit({
@@ -660,6 +661,9 @@ function stepElemental(
 
 /** A command replaces only the next decision; impact tasks keep their action-generation checks. */
 function scheduleElementalDecision(context: ElementalistRuntime, at: number): void {
+  // Commands retain their recovery during preparation without waking autonomous decisions.
+  if (!autonomousActionsAllowed(context)) return;
+  context.profession.core.summonedElemental.started = true;
   const generation = context.profession.core.summonedElemental.summonGeneration;
   const owner = { id: 'elementalist.elemental-decision', generation };
   context.cancelOwner(owner);
@@ -708,27 +712,23 @@ function startElemental(context: ElementalistRuntime, at: number): void {
   const elemental = professionCoreState(context).summonedElemental;
   if (
     (elemental.element !== 'Fire' && elemental.element !== 'Earth') ||
+    !autonomousActionsAllowed(context) ||
     elemental.started ||
     elemental.activeUntil <= at
   ) {
     return;
   }
 
-  elemental.started = true;
   const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
   const delay = balanceProfileNumber(summonedElementalProfile, 'initialDelay');
-  scheduleElementalDecision(context, at + delay);
+  elemental.started = true;
+  scheduleElementalDecision(context, Math.max(at + delay, elemental.busyUntil));
 }
 
 // Core spawn: cancels the previous elemental's tasks, resets summonedElemental state
 // with a fresh summonGeneration, emits the expiry marker, arms its lifetime, and enables
 // the command flip. Optionally starts the attack loop immediately.
-function summonElemental(
-  context: ElementalistRuntime,
-  at: number,
-  startImmediately: boolean,
-  element: ElementalKind
-): void {
+function summonElemental(context: ElementalistRuntime, at: number, element: ElementalKind): void {
   const state = professionCoreState(context);
   // Replacement ends the old action and flip together with its queued work.
   interruptCurrentAction(context, at);
@@ -768,7 +768,7 @@ function summonElemental(
     at,
     expiresAt
   );
-  if (startImmediately) startElemental(context, at);
+  startElemental(context, at);
 }
 
 /**
@@ -782,7 +782,7 @@ export function completeElementalistGlyphCast(
 ): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
-  summonElemental(context, cast.effectiveEnd, context.combatActive, element);
+  summonElemental(context, cast.effectiveEnd, element);
 }
 
 /**
@@ -816,10 +816,10 @@ export function ensureElementalistElemental(context: ElementalistRuntime, skill?
     (!skill || !elementalForGlyph(skill))
   ) {
     const glyph = glyphSkillForElement(context, selected);
-    if (glyph) summonElemental(context, context.time, context.combatActive, selected);
+    if (glyph) summonElemental(context, context.time, selected);
   }
 
-  if (context.combatActive) startElemental(context, context.time);
+  startElemental(context, context.time);
 }
 
 /**
@@ -869,7 +869,7 @@ export const elementalistElementalTasks = {
   'elementalist.elemental-decision'(context: ElementalistRuntime, data: unknown): void {
     const generation = Number(data);
     const elemental = context.profession.core.summonedElemental;
-    if (!activeElemental(context, generation, context.time)) return;
+    if (!autonomousActionsAllowed(context) || !activeElemental(context, generation, context.time)) return;
     if (canonicalTime(elemental.busyUntil) > context.time) {
       scheduleElementalDecision(context, elemental.busyUntil);
       return;

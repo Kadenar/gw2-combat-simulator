@@ -10,9 +10,7 @@ import {
   reactToRangerWinterBite,
   reactToSoulbeastBuff,
   reactToSoulbeastDamage,
-  scheduleSharedStance,
-  soulbeastCastAvailability,
-  soulbeastEventHandlers
+  soulbeastCastAvailability
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
@@ -30,10 +28,6 @@ export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
 
   initialize(runtime) {
     setRangerPetActive(runtime, !soulbeastState.from(runtime).beastmodeActive);
-  },
-  onCombatStart(runtime) {
-    for (const event of soulbeastState.from(runtime).pendingSharedStances.splice(0))
-      scheduleSharedStance(runtime, event);
   },
   availability: soulbeastCastAvailability,
   sideEffectHandlers: {
@@ -60,7 +54,6 @@ export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
       applyRangerBeastSkillTraits(runtime, skill, false);
   },
-  eventHandlers: soulbeastEventHandlers,
   reactions: {
     // Core retains trait ownership; this elite registers its merged-pet control reaction.
     'control.resolved': bestialRageControl,

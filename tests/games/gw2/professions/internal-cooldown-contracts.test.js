@@ -35,7 +35,7 @@ import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import {
   reactToSoulbeastBuff,
   reactToSoulbeastDamage,
-  soulbeastEventHandlers
+  handleSharedStanceHit
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { REVENANT_LEGEND_IDS, REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
@@ -320,9 +320,9 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
       context.procs.setDeadline(field, READY_AT);
       context.procs.setDeadline(`ranger.soulbeast.alliedStance:${kind}:1`, READY_AT);
       context.buffs.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
-      const react = ally ? soulbeastEventHandlers['ranger.shared-stance-hit'] : reactToSoulbeastDamage;
+      const react = ally ? handleSharedStanceHit : reactToSoulbeastDamage;
       const event = {
-        type: ally ? 'ranger.shared-stance-hit' : 'damage',
+        type: ally ? 'proc' : 'damage',
         actorType: 'player',
         source: 'ranger',
         coefficient: 1,
@@ -626,8 +626,8 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
   assert.equal(conditions.length, 2);
 });
 
-// Summons have independent claims; spirit hits share the player's interval and pre-timed allied hits bypass it.
-test('Vampiric Presence preserves recipient scopes and the pre-applied interval bypass', () => {
+// Summons and allies have independent live claims; spirit hits share the player's interval.
+test('Vampiric Presence preserves recipient scopes and gates actual allied strikes', () => {
   const core = createNecromancerCoreState();
   core.activeMinions.fixture = 2;
   const catalog = withProfile(necromancerCatalog, NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE, {
@@ -659,8 +659,10 @@ test('Vampiric Presence preserves recipient scopes and the pre-applied interval 
   );
   context.procs.setDeadline('vampiricPresence:ally:1', 10);
   reactToVampiricPresenceAlliedHit(context, { ...event, allyIndex: 1 });
+  assert.equal(context.queue.length, 3);
+  reactToVampiricPresenceAlliedHit(context, { ...event, at: 10.000001, allyIndex: 1 });
   assert.equal(context.queue.length, 4);
-  assert.equal(context.procs.snapshot()['vampiricPresence:ally:1'], 10);
+  assert.equal(context.procs.snapshot()['vampiricPresence:ally:1'], 12.000001);
 });
 
 // Repeated and invalid recipient IDs cannot consume another ally's independent interval.
@@ -671,7 +673,7 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
   const invoke = specterModule.hooks.tasks['thief.specter-dark-sentry'];
   runtime.time = 1;
   runtime.procs.setDeadline('thief.specter.darkSentry:1', 1);
-  invoke(runtime, { allyIndices: [0, 1, 2, 2, 3, 1.5] });
+  invoke(runtime.mechanics, { allyIndices: [0, 1, 2, 2, 3, 1.5] });
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:1'), 1);
   const secondDeadline = runtime.procs.deadline('thief.specter.darkSentry:2');
   assert.ok(secondDeadline > 1);
@@ -680,7 +682,7 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
     'thief.specter.darkSentry:2'
   ]);
   runtime.time = 1.000001;
-  invoke(runtime, { allyIndices: [1, 2] });
+  invoke(runtime.mechanics, { allyIndices: [1, 2] });
   assert.ok(runtime.procs.deadline('thief.specter.darkSentry:1') > 1.000001);
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:2'), secondDeadline);
 });

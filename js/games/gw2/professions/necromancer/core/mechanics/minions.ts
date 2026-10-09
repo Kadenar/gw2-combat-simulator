@@ -1,3 +1,4 @@
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -59,16 +60,34 @@ function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
   runtime.profession.core.activeMinions[key] = 1;
   runCreatureSummonReactions(runtime, skill, runtime.time, 1, `${work.activationId}:horror:${work.index}`);
   runtime.schedule(HORROR_EXPIRE, expiresAt, key, undefined, -20);
+  runtime.profession.core.minionAttackCursors[companion(key, 0)] = {
+    cycleIndex: 1,
+    attackIndex: 0,
+    skillId: skill.id,
+    activationId: `${work.activationId}:horror:${work.index}`,
+    started: false,
+    busyUntil: runtime.time,
+    expiresAt
+  };
+  emitHorrorEffects(runtime, key, true);
+  startNecromancerMinions(runtime);
+}
+
+/** Lifetime explosions stay summon-anchored; ordinary attacks start only after engagement. */
+function emitHorrorEffects(runtime: NecromancerRuntime, key: string, terminal: boolean): void {
+  const cursor = runtime.profession.core.minionAttackCursors[companion(key, 0)];
+  const skill = runtime.helpers.skillsById.get(cursor.skillId)!;
+  const expiresAt = cursor.expiresAt!;
   for (const effect of skill.effects ?? []) {
-    if (effect.type !== 'strike') continue;
+    if (effect.type !== 'strike' || (effect.packetLabel === 'explosion') !== terminal) continue;
     const attribution = {
       source: 'Minion',
-      sourceId: `unstable-horror.${work.index}`,
+      sourceId: `unstable-horror.${key.slice(key.lastIndexOf(':') + 1)}`,
       actorType: 'summon' as const,
       skillId: skill.id,
       skillName: effect.name ?? `Unstable Horror - ${effect.packetLabel}`,
       parentSkillName: skill.name,
-      activationId: `${work.activationId}:horror:${work.index}`,
+      activationId: cursor.activationId,
       summonKind: 'minion',
       summonCount: 1,
       summonOwner: companion(key, 0),
@@ -183,7 +202,7 @@ function scheduleAttack(runtime: NecromancerRuntime, at: number, work: MinionWor
 /** Each creature advances only its executed cursor, so command pauses preserve the actual attack chain. */
 function attack(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as MinionWork;
-  if (!active(runtime, work) || runtime.deathTime != null) return;
+  if (!autonomousActionsAllowed(runtime) || !active(runtime, work)) return;
   const skill = runtime.helpers.skillsById.get(work.skillId);
   const definition = skill && minionDefinitionForSkill(runtime, skill.id);
   if (!skill || !definition) return;
@@ -289,16 +308,17 @@ export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: Runti
   if (definition.commandId != null) armSkillFlip(state.availableFlips, definition.commandId, runtime.time);
   if (skill.rechargeOnMinionDeath) runtime.cooldownController.clear(skill.id);
   for (let index = 0; index < definition.count; index++) {
-    state.minionAttackCursors[companion(key, index)] = { cycleIndex: 1, attackIndex: 0 };
-    scheduleAttack(runtime, runtime.time + (definition.initialDelay ?? definition.interval), {
+    state.minionAttackCursors[companion(key, index)] = {
+      cycleIndex: 1,
+      attackIndex: 0,
       skillId: skill.id,
-      key,
-      index,
-      generation: state.minionGenerations[key],
-      attackGeneration: state.minionAttackGenerations[key],
-      activationId: `${cast.id}:${index}`
-    });
+      activationId: `${cast.id}:${index}`,
+      started: false,
+      busyUntil: runtime.time
+    };
   }
+
+  startNecromancerMinions(runtime);
 }
 
 /** Commands pause the live attack cursor; consuming the last creature retains its committed explosion. */
@@ -313,15 +333,13 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
   const summon = skill.flipParentId == null ? undefined : runtime.helpers.skillsById.get(skill.flipParentId);
   if (definition.commandRecoveryDelay != null && summon) {
     replaceAttacks(runtime, key);
-    for (let index = 0; index < state.activeMinions[key]; index++)
-      scheduleAttack(runtime, runtime.time + definition.commandRecoveryDelay, {
-        skillId: summon.id,
-        key,
-        index,
-        generation: state.minionGenerations[key],
-        attackGeneration: state.minionAttackGenerations[key],
-        activationId: `${cast.id}:resume:${index}`
-      });
+    for (let index = 0; index < state.activeMinions[key]; index++) {
+      const cursor = state.minionAttackCursors[companion(key, index)];
+      cursor.started = false;
+      cursor.busyUntil = runtime.time + definition.commandRecoveryDelay;
+    }
+
+    startNecromancerMinions(runtime, key);
   }
 
   const work: MinionWork = {
@@ -354,11 +372,41 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
   }
 }
 
+/** Existing creature cursors own startup, so combat entry neither replays preparation nor duplicates loops. */
+export function startNecromancerMinions(runtime: NecromancerRuntime, recoveringKey?: string): void {
+  if (!autonomousActionsAllowed(runtime)) return;
+  const state = runtime.profession.core;
+  for (const [key, count] of Object.entries(state.activeMinions)) {
+    const definition = minionDefinitionFor(runtime, key);
+    for (let index = 0; index < count; index++) {
+      const cursor = state.minionAttackCursors[companion(key, index)];
+      if (!cursor || cursor.started) continue;
+      if (cursor.expiresAt != null) {
+        if (runtime.time >= cursor.expiresAt) continue;
+        cursor.started = true;
+        emitHorrorEffects(runtime, key, false);
+      } else if (definition) {
+        cursor.started = true;
+        const delay = key === recoveringKey ? 0 : (definition.initialDelay ?? definition.interval);
+        scheduleAttack(runtime, Math.max(runtime.time + delay, cursor.busyUntil), {
+          skillId: cursor.skillId,
+          key,
+          index,
+          generation: state.minionGenerations[key],
+          attackGeneration: state.minionAttackGenerations[key],
+          activationId: cursor.activationId
+        });
+      }
+    }
+  }
+}
+
 export const necromancerMinionTasks = {
   [ATTACK]: attack,
   [COMMAND]: commandImpact,
   [HORROR_SPAWN]: spawnHorror,
   [HORROR_EXPIRE](runtime: NecromancerRuntime, key: unknown) {
     delete runtime.profession.core.activeMinions[String(key)];
+    delete runtime.profession.core.minionAttackCursors[companion(String(key), 0)];
   }
 };

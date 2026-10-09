@@ -27,7 +27,6 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const EXPIRE = 'ritualist.weapon-spell-expiry';
-const ALLY = 'ritualist.weapon-spell-opportunity';
 const BOND = 'ritualist.painful-bond-pulse';
 // Bond stacks duration while the native owner retains pulse cadence and cancellation generations.
 function bondExpiresAt(runtime: NecromancerRuntime): number {
@@ -41,24 +40,6 @@ function bondExpiresAt(runtime: NecromancerRuntime): number {
 }
 
 const owner = (spell: string, generation: number) => ({ id: `ritualist.weapon-spell:${spell}`, generation });
-
-interface AllyOpportunity {
-  spell: 'nightmare' | 'splinter';
-  generation: number;
-  allyIndex: number;
-  anchor: number;
-  pulse: number;
-  interval: number;
-}
-
-/** Replacements cancel all old opportunities; each ally retains only one next wake while its current grant is spendable. */
-function scheduleAlly(runtime: NecromancerRuntime, work: AllyOpportunity): void {
-  const active = ritualistState.from(runtime).weaponSpells[work.spell];
-  const grant = active?.recipients?.[`ally:${work.allyIndex}`];
-  const at = canonicalTime(work.anchor + work.pulse * work.interval);
-  if (active?.generation === work.generation && grant && grant.charges > 0 && at < grant.expiresAt)
-    runtime.schedule(ALLY, at, work, owner(work.spell, work.generation));
-}
 
 /** Duration stacking retains the first cadence without queuing idle pulses between disjoint Bond windows. */
 function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
@@ -154,43 +135,42 @@ function grantWeaponSpell(
     }
   });
   runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
-  if (spell !== 'resilient') startAlliedWeaponSpell(runtime, spell);
 }
 
-/** Precombat grants wait for combat entry before starting their attack countdown, without extending their expiry. */
-function startAlliedWeaponSpell(runtime: NecromancerRuntime, spell: 'nightmare' | 'splinter'): void {
-  const active = ritualistState.from(runtime).weaponSpells[spell];
-  const rate = gw2AlliedPlayerAssumptions(runtime.config).strikesPerSecond;
-  if (!runtime.combatActive || !active || !rate || runtime.deathTime != null) return;
-  const profile = requireBalanceProfileFromContext(
-    runtime,
-    spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
-  );
-  if (
-    !requireEffect(profile, 'strike', 'Strike') &&
-    !(spell === 'nightmare' && requireEffect(profile, 'condition', 'Vulnerability'))
-  )
-    return;
-  // Model actual strikes on the allied cadence; the shared charge owner alone decides whether its ICD allows a proc.
-  const interval = 1 / rate;
-  for (const recipient of Object.keys(active.recipients ?? {})) {
-    if (!recipient.startsWith('ally:')) continue;
-    scheduleAlly(runtime, {
-      spell,
-      generation: active.generation,
-      allyIndex: Number(recipient.slice(5)),
-      anchor: runtime.time,
-      pulse: 1,
-      interval
+/** Existing per-recipient spell grants inspect one common strike; replacing a grant never moves its cadence. */
+function initializeAlliedWeaponSpells(runtime: NecromancerRuntime): void {
+  for (let allyIndex = 1; allyIndex <= gw2AlliedPlayerAssumptions(runtime.config).count; allyIndex++)
+    runtime.alliedStrikes.register({
+      id: `ritualist.weapon-spells:${allyIndex}`,
+      allyIndex,
+      trigger(opportunity) {
+        for (const spell of ['nightmare', 'splinter'] as const) {
+          const active = ritualistState.from(runtime).weaponSpells[spell];
+          if (!active) continue;
+          triggerRitualistWeaponSpell(
+            runtime,
+            {
+              type: 'proc',
+              at: opportunity.at,
+              source: 'Weapon Spell',
+              sourceId: active.skillId!,
+              actorType: 'effect',
+              skillId: active.skillId,
+              skillName: active.skillName,
+              activationId: opportunity.activationId,
+              metadata: { triggeredByAlly: allyIndex }
+            },
+            spell,
+            [`ally:${allyIndex}`]
+          );
+        }
+      }
     });
-  }
 }
 
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
 export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
-  onCombatStart(runtime) {
-    for (const spell of ['nightmare', 'splinter'] as const) startAlliedWeaponSpell(runtime, spell);
-  },
+  initialize: initializeAlliedWeaponSpells,
   sideEffectHandlers: {
     'ritualist.nightmare-weapon'(runtime, context) {
       if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'nightmare');
@@ -209,29 +189,6 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
       const { spell, generation } = data as { spell: string; generation: number };
       const state = ritualistState.from(runtime);
       if (state.weaponSpells[spell]?.generation === generation) delete state.weaponSpells[spell];
-    },
-    [ALLY](runtime, data) {
-      const work = data as AllyOpportunity;
-      const active = ritualistState.from(runtime).weaponSpells[work.spell];
-      if (active?.generation !== work.generation) return;
-      // Opportunities are not damage events: only the resulting spell packets enter target resolution.
-      if (runtime.combatActive && runtime.deathTime == null)
-        triggerRitualistWeaponSpell(
-          runtime,
-          {
-            type: 'proc',
-            at: runtime.time,
-            source: 'Weapon Spell',
-            sourceId: active.skillId!,
-            actorType: 'effect',
-            skillId: active.skillId,
-            skillName: active.skillName,
-            metadata: { triggeredByAlly: work.allyIndex }
-          },
-          work.spell,
-          [`ally:${work.allyIndex}`]
-        );
-      scheduleAlly(runtime, { ...work, pulse: work.pulse + 1 });
     },
     [BOND](runtime, data) {
       const state = ritualistState.from(runtime);

@@ -135,6 +135,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       prepareGw2BuffCompanionCandidates(event, state.petActive ? [rangerPetCompanionId(runtime)] : [])
     );
   },
+  initialize: startRangerPet,
   onCombatStart(runtime) {
     startRangerPet(runtime);
     releaseFrostTrap(runtime);

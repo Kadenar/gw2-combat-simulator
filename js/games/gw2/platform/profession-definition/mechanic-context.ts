@@ -1,3 +1,4 @@
+import type { AlliedStrikeGrants } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -68,6 +69,7 @@ export interface MechanicCombatContext<T extends object = object, TSkill extends
   readonly helpers: CanonicalCatalog<TSkill>;
   readonly combat: MechanicCombatServices;
   readonly effects: EffectEmissionService;
+  readonly alliedStrikes: AlliedStrikeGrants;
   readonly procs: ProcRegistry;
   readonly random: Readonly<SimulationRandom>;
   readonly activeWeaponSet: number;

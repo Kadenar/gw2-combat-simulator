@@ -1,8 +1,6 @@
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { grantRenegadeInvocationFervor } from '#gw2/professions/revenant/core/traits/invocation/behavior.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
@@ -17,8 +15,7 @@ import {
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { heroicCommand } from '#gw2/professions/revenant/specializations/renegade/skills/heroic-command.js';
 import {
-  SOULCLEAVE_ALLIES,
-  soulcleaveAllies,
+  initializeSoulcleaveAllies,
   soulcleavePlayer
 } from '#gw2/professions/revenant/specializations/renegade/skills/soulcleave.js';
 import {
@@ -37,13 +34,13 @@ import {
   grantKallasFervor
 } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
 export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   buffPolicies: renegadeBuffPolicies,
   observeEffects: renegadeEffectStates,
   initialize(runtime) {
+    initializeSoulcleaveAllies(runtime);
     renegadeState.from(runtime).kallasFervorMaximumStacks = Math.max(
       1,
       balanceProfileNumber(fervorProfile(runtime), 'maximumStacks')
@@ -85,16 +82,6 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       if (context.kind !== 'cast') return;
       // Keep Core rewards ahead of elite completion state and packets.
       completeRevenantCastTraits(runtime, context.cast);
-      const allies = gw2AlliedPlayerAssumptions(runtime.config);
-      if (!activeRevenantUpkeep(runtime, context.skill.id) || !allies.count || !allies.strikesPerSecond) return;
-      // The declaration activates upkeep first; allied work retains its activation identity.
-      runtime.schedule(
-        SOULCLEAVE_ALLIES,
-        canonicalTime(runtime.time + Math.max(1, 1 / allies.strikesPerSecond)),
-        { startsAt: runtime.time },
-        undefined,
-        -200
-      );
     }
   },
   onCastCommit(runtime, cast) {
@@ -122,6 +109,5 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       soulcleavePlayer(runtime, event);
     },
     'buff.applied': furyTraits
-  },
-  tasks: { [SOULCLEAVE_ALLIES]: soulcleaveAllies }
+  }
 };

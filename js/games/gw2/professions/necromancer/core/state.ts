@@ -42,7 +42,19 @@ export interface NecromancerCoreState {
   minionGenerations: Record<string, number>;
   minionAttackGenerations: Record<string, number>;
   /** Actual next attacks survive command pauses without reconstructing progress from elapsed time. */
-  minionAttackCursors: Record<string, { cycleIndex: number; attackIndex: number }>;
+  minionAttackCursors: Record<
+    string,
+    {
+      cycleIndex: number;
+      attackIndex: number;
+      skillId: SkillId;
+      activationId: string;
+      started: boolean;
+      busyUntil: number;
+      /** Finite horrors retain summon-based expiry while their attack waits for engagement. */
+      expiresAt?: number;
+    }
+  >;
   /** Expiry timestamps for armed flip skills; persistent exits and minion commands use Infinity. */
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;

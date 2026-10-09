@@ -206,7 +206,7 @@ test('allied opportunities consume independent finite grants on the actual strik
     spellDamage(result, ID.SPLINTER_WEAPON)
       .filter((event) => event.metadata.triggeredByAlly === 1)
       .map((event) => event.at),
-    [0.34, 0.74, 1.14]
+    [0.3, 0.7, 1.1]
   );
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 6);
   assert.equal(
@@ -215,7 +215,7 @@ test('allied opportunities consume independent finite grants on the actual strik
   );
 });
 
-test('weapon spell replacement cancels old opportunities and the old expiry cannot clear the new grant', () => {
+test('weapon spell replacement retains allied cadence and the old expiry cannot clear the new grant', () => {
   const config = { ...base, allies: { count: 1, strikesPerSecond: 0.2 } };
   const rotation = [
     cast(ID.NIGHTMARE_WEAPON),
@@ -227,13 +227,13 @@ test('weapon spell replacement cancels old opportunities and the old expiry cann
   const result = run(rotation, { config, combatStartTime: 0 });
   assert.deepEqual(
     spellDamage(result, ID.NIGHTMARE_WEAPON).map((event) => event.at),
-    [5.96]
+    [5, 10]
   );
-  assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].charges, 2);
+  assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].charges, 1);
   assert.equal(state(result).weaponSpells.nightmare.generation, 2);
   const expired = run([...rotation, wait(700)], { config, combatStartTime: 0 });
   assert.deepEqual(state(expired).weaponSpells, {});
-  assert.equal(spellDamage(expired, ID.NIGHTMARE_WEAPON).length, 1);
+  assert.equal(spellDamage(expired, ID.NIGHTMARE_WEAPON).length, 2);
 });
 
 test('explicit precombat and target death cannot spend allied weapon spell charges', () => {
@@ -272,17 +272,19 @@ test('precombat weapon spells start allied countdowns at combat entry and retain
   }
 });
 
-// Both rotation markers and an implicit hostile opener must start the countdown once, after setup has finished.
-test('weapon spell allied countdowns follow marker and implicit combat entry', () => {
+// Explicit markers anchor engagement, while implicit allied strikes can initiate combat themselves.
+test('weapon spell allied opportunities follow engagement independently of DPS reporting', () => {
   const config = { ...base, allies: { count: 1, strikesPerSecond: 1 / 0.52 } };
   const marker = run([cast(ID.NIGHTMARE_WEAPON), wait(2000), { type: 'combat-start' }, wait(1200)], { config });
   const implicit = run([cast(ID.NIGHTMARE_WEAPON), wait(3000)], { config, events: [hit(2)] });
-  for (const result of [marker, implicit]) {
-    const allied = spellDamage(result, ID.NIGHTMARE_WEAPON).filter((event) => event.metadata?.triggeredByAlly);
-    assert.ok(Math.abs(allied[0].at - result.combatStartTime - 0.52) < 1e-6);
-    assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].charges, 1);
-    assert.deepEqual(result.warnings, []);
-  }
+  const firstAlly = (result) =>
+    spellDamage(result, ID.NIGHTMARE_WEAPON).find((event) => event.metadata?.triggeredByAlly);
+  assert.ok(Math.abs(firstAlly(marker).at - marker.combatStartTime - 0.52) < 1e-6);
+  assert.equal(firstAlly(implicit).at, 0.52);
+  assert.equal(implicit.combatStartTime, firstAlly(implicit).at);
+  assert.equal(state(marker).weaponSpells.nightmare.recipients['ally:1'].charges, 1);
+  assert.equal(state(implicit).weaponSpells.nightmare.recipients['ally:1'].charges, 0);
+  for (const result of [marker, implicit]) assert.deepEqual(result.warnings, []);
 });
 
 test('weapon spell recipients are selected at grant time and Wielders Boon changes their charge count', () => {

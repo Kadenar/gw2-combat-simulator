@@ -12,63 +12,43 @@ import {
 } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
-// Partitioning waits must not restart independent allied cadences or duplicate boundary work.
-test('allied attack clocks preserve independent intervals across partitioned and repeated advances', () => {
-  const run = (targets, selectedTraitIds, combatStartTime = 1) => {
-    const config = { specialization: 'Core', selectedTraitIds, allies: { count: 2, strikesPerSecond: 4 } };
+// Partitioning waits must not reset the common allied cadence or duplicate opportunities.
+test('allied strikes retain their cadence across partitioned and repeated advances', () => {
+  const run = (targets, combatStartTime = 1) => {
+    const config = { specialization: 'Core', allies: { count: 2, strikesPerSecond: 4 } };
     const native = necromancerProfession.runtimeFor(config);
-    const pulses = [];
+    const opportunities = [];
     let previous = 0;
-    const rotation = targets.map((at) => {
-      const wait = { type: 'wait', durationMs: (at - previous) * 1000 };
-      previous = at;
-      return wait;
-    });
     observeGw2Runtime({
       config,
-      rotation,
       combatStartTime,
+      rotation: targets.map((at) => {
+        const wait = { type: 'wait', durationMs: (at - previous) * 1000 };
+        previous = at;
+        return wait;
+      }),
+      observation: { kind: 'absolute', endTimeMs: 3000 },
       profession: {
         ...native,
-        tasks: {
-          ...native.tasks,
-          'necromancer.allied-opportunity'(runtime, pulse) {
-            pulses.push([pulse.trait, runtime.time]);
-            native.tasks['necromancer.allied-opportunity'](runtime, pulse);
-          }
+        initialize(runtime) {
+          native.initialize(runtime);
+          runtime.alliedStrikes.register({
+            id: 'test.observer',
+            allyIndex: 1,
+            trigger: ({ at }) => {
+              opportunities.push(at);
+            }
+          });
         }
       }
     });
-    return pulses;
+    return opportunities;
   };
 
-  for (const traits of [
-    [TRAIT.VAMPIRIC_PRESENCE],
-    [TRAIT.OVERFLOWING_THIRST],
-    [TRAIT.VAMPIRIC_PRESENCE, TRAIT.OVERFLOWING_THIRST],
-    []
-  ]) {
-    const whole = run([3], traits);
-    const partitioned = run([0, 0.75, 1, 1.125, 1.25, 1.25, 1.5, 2.125, 3, 3], traits);
-    for (const [trait, interval] of [
-      [TRAIT.VAMPIRIC_PRESENCE, 0.5],
-      [TRAIT.OVERFLOWING_THIRST, 0.25]
-    ]) {
-      const expected = [];
-      if (traits.includes(trait)) {
-        for (let at = 1 + interval; at <= 3; at += interval) expected.push(at);
-      }
-
-      for (const pulses of [whole, partitioned]) {
-        assert.deepEqual(
-          pulses.filter(([id]) => id === trait).map(([, at]) => at),
-          expected
-        );
-      }
-    }
-
-    assert.deepEqual(run([3], traits, 3), []);
-  }
+  const whole = run([3]);
+  assert.ok(whole.length > 0);
+  assert.deepEqual(run([0, 0.75, 1, 1.125, 1.25, 1.25, 1.5, 2.125, 3, 3]), whole);
+  assert.deepEqual(run([3], 3), []);
 });
 
 const baseConfig = Object.freeze({

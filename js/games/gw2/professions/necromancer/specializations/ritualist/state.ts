@@ -19,6 +19,8 @@ export interface RitualistState {
   painfulBondGeneration: number;
   activeSpirits: Record<string, boolean>;
   spiritGenerations: Record<string, number>;
+  /** Live spirit identity owns autonomous startup independently of its commanded actions. */
+  spiritAttacks: Record<string, { skillId: SkillId; activationId: string; started: boolean }>;
   spiritInitialUntil: Record<string, number>;
   spiritBusyUntil: Record<string, number>;
   spiritAutoAnchorAt: number;
@@ -41,6 +43,7 @@ function createRitualistState(): RitualistState {
     painfulBondGeneration: 0,
     activeSpirits: {},
     spiritGenerations: {},
+    spiritAttacks: {},
     spiritInitialUntil: {},
     spiritBusyUntil: {},
     // NaN signals "no anchor established yet"; the first summon uses the resource profile's initialDelay

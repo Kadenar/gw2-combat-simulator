@@ -112,13 +112,8 @@ test('ambient Taste for Blood wakes retain rounding and cannot extend the observ
   const result = run({ grants: [{ at: 0, stacks: 5 }], rate: 3, end: 1 });
   assert.deepEqual(
     siphons(result).map((event) => event.at),
-    [0.333333, 0.333333, 0.666666, 0.666666, 0.999999, 0.999999]
+    [0.333333, 0.333333, 0.666667, 0.666667, 1, 1]
   );
   assert.equal(observedRuntime(result).time, 1);
   assert.equal(grantsOf(result)['ally:1'][0].charges, 2);
-  assert.ok(
-    necromancerProfession
-      .runtimeFor({ specialization: 'Core' })
-      .backgroundTasks.includes('necromancer.allied-opportunity')
-  );
 });

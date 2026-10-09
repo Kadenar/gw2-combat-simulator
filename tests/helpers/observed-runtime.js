@@ -38,6 +38,7 @@ export function observeGw2Runtime(options) {
       ...execution,
       initialize(context) {
         runtime = context;
+        execution.initialize?.(context);
         // Fixture setup observes the engine owner explicitly; native hooks still receive author capabilities.
         options.engineInitialize?.(context);
         if (options.config?.initialEndurance != null && options.profession.endurance) {

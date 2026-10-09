@@ -10,6 +10,7 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { format, resolveConfig } from 'prettier';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { findPendingPatchBenchmark } from '#gw2/app/page/benchmark-patch-preview.js';
 
 import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
@@ -64,6 +65,35 @@ function formatSignedPercent(value) {
   return `${sign}${(value * 100).toFixed(2)}%`;
 }
 
+/** Align numeric columns and group build labels so repeated identities do not crowd the comparison. */
+function printComparisonTable(rows, baselineLabel, resultLabel) {
+  const headers = ['Build', baselineLabel, resultLabel, 'Change DPS', 'Change %'];
+  const cells = rows.map((row) => [
+    row.label,
+    formatDps(row.baseline),
+    formatDps(row.dps),
+    formatSignedDps(row.difference),
+    formatSignedPercent(row.relativeDifference)
+  ]);
+  const widths = headers.map((header, index) => Math.max(header.length, ...cells.map((row) => row[index].length)));
+  const line = (values) =>
+    '  ' +
+    values
+      .map((value, index) => (index === 0 ? value.padEnd(widths[index]) : value.padStart(widths[index])))
+      .join('  ');
+  const groups = Map.groupBy(
+    rows.map((row, index) => ({ ...row, cells: cells[index] })),
+    (row) => `${row.profession} / ${row.section}`
+  );
+  for (const [group, entries] of groups) {
+    console.log(`\n  ${group}`);
+    console.log(line(headers));
+    console.log(line(widths.map((width) => '-'.repeat(width))));
+    for (const entry of entries) console.log(line(entry.cells));
+  }
+}
+
+/** Keep saved-benchmark drift separate from balance changes, using the selected regression tolerance. */
 export function printDpsComparison(
   metrics,
   maximumRelativeError = MAXIMUM_RELATIVE_ERROR,
@@ -74,6 +104,7 @@ export function printDpsComparison(
   const tolerance =
     maximumAbsoluteDpsError == null ? `${(maximumRelativeError * 100).toFixed(2)}%` : `${maximumAbsoluteDpsError} DPS`;
 
+  console.log('\nLIVE BENCHMARK CHECK');
   if (mismatches.length === 0) {
     console.log(
       `All ${metrics.length} rotation-backed builds across ${professionCount} manifests are within ${tolerance} of benchmark DPS.`
@@ -84,20 +115,62 @@ export function printDpsComparison(
 
   console.log(`Found ${mismatches.length} DPS mismatch(es) outside the ${tolerance} tolerance:`);
 
-  for (const mismatch of mismatches) {
-    console.log(
-      `- ${mismatch.profession} / ${mismatch.section} / ${mismatch.label}: ` +
-        `benchmark ${formatDps(mismatch.benchmarkDps)}, current ${formatDps(mismatch.dps)}, ` +
-        `difference ${formatSignedDps(mismatch.difference)} (${formatSignedPercent(mismatch.relativeDifference)})`
-    );
-  }
+  printComparisonTable(
+    mismatches.map((metric) => ({ ...metric, baseline: metric.benchmarkDps })),
+    'Saved DPS',
+    'Live DPS'
+  );
 
   console.log(
-    `Compared ${metrics.length} rotation-backed builds across ${professionCount} manifests; ` +
+    `\nCompared ${metrics.length} rotation-backed builds across ${professionCount} manifests; ` +
       `${metrics.length - mismatches.length} are within tolerance.`
   );
 
   return mismatches;
+}
+
+/** Compare paired simulations, omit unchanged rows, and label pending reworks instead of reporting misleading deltas. */
+export function printPatchPreviewComparison(metrics, previewMetrics, preview) {
+  const liveByKey = indexMetrics(metrics);
+  const changes = [];
+  const pending = [];
+  let unchanged = 0;
+  for (const metric of previewMetrics) {
+    const live = liveByKey.get([metric.profession, presetKey(metric.section, metric)].join('\0'));
+    if (!live) throw new Error(metric.id + ' has no matching live result.');
+    const rework = findPendingPatchBenchmark({ ...metric, specialization: metric.section }, preview);
+    if (rework) {
+      pending.push({ ...metric, reason: rework.reason });
+      continue;
+    }
+
+    // Use displayed precision to avoid filling the report with invisible floating-point differences.
+    if (formatDps(metric.dps) === formatDps(live.dps)) {
+      unchanged += 1;
+      continue;
+    }
+
+    const difference = metric.dps - live.dps;
+    changes.push({ ...metric, baseline: live.dps, difference, relativeDifference: difference / live.dps });
+  }
+
+  console.log(`\nBALANCE PREVIEW: ${preview.label} (${preview.id})`);
+  console.log(
+    'Preview vs live simulation using the same saved rotations; changes do not affect the live benchmark check.'
+  );
+  const increased = changes.filter((metric) => metric.difference > 0).length;
+  console.log(
+    `${increased} increased | ${changes.length - increased} decreased | ${unchanged} unchanged | ${pending.length} pending`
+  );
+  if (unchanged) console.log('Unchanged builds omitted (DPS rounded to 2 decimals).');
+  if (changes.length) printComparisonTable(changes, 'Live DPS', 'Preview DPS');
+  if (pending.length) {
+    console.log('\n  Pending reworks (preview DPS not comparable)');
+    for (const metric of pending) {
+      console.log(`  - ${metric.profession} / ${metric.section} / ${metric.label}`);
+      console.log(`    ${metric.reason}`);
+    }
+  }
 }
 
 function presetKey(section, preset) {
@@ -280,22 +353,36 @@ if (import.meta.main) {
       : 'Dry mode: manifest files will not be changed.'
   );
 
+  // Announce each simulation pass so an active preview explains the additional capture time.
+  console.log('Simulating live builds...');
   const metrics = await captureSupportedBuildMetrics(undefined, { gameId });
-  const previewMetrics = activePatchPreview
-    ? await captureSupportedBuildMetrics(undefined, { gameId, patchId: activePatchPreview.id })
-    : [];
-  // Keep each preset's simulation warnings visible when regenerating reference metrics.
-  for (const metric of [...metrics, ...previewMetrics]) {
-    for (const warning of metric.warnings) console.warn(`${metric.id} [${metric.patchId}]: ${warning}`);
+  let previewMetrics = [];
+  if (activePatchPreview) {
+    console.log(`Simulating balance preview: ${activePatchPreview.label} (${activePatchPreview.id})...`);
+    previewMetrics = await captureSupportedBuildMetrics(undefined, { gameId, patchId: activePatchPreview.id });
   }
 
   const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
+  if (activePatchPreview) printPatchPreviewComparison(metrics, previewMetrics, activePatchPreview);
+
+  // Group diagnostics by patch and preset while retaining every warning beside the completed comparisons.
+  const warnedMetrics = [...metrics, ...previewMetrics].filter((metric) => metric.warnings.length > 0);
+  if (warnedMetrics.length) {
+    console.warn('\nSIMULATION WARNINGS');
+    for (const metric of warnedMetrics) {
+      console.warn(
+        `  ${metric.patchId === 'current' ? 'Live' : 'Preview'} / ${metric.profession} / ${metric.section} / ${metric.label}`
+      );
+      for (const warning of metric.warnings) console.warn(`    - ${warning}`);
+    }
+  }
 
   const update = await updateManifestBenchmarks(metrics, repoRoot, gameId, {
     preview: activePatchPreview,
     previewMetrics,
     commit: mode === 'commit'
   });
+  console.log('\nMANIFEST UPDATES');
   console.log(
     (mode === 'commit' ? 'Saved' : 'Would save') +
       ' preview updates: ' +
@@ -304,24 +391,6 @@ if (import.meta.main) {
       update.previewRemovedEntries +
       '.'
   );
-  if (activePatchPreview) {
-    const liveByKey = indexMetrics(metrics);
-    console.log('Patch preview: ' + activePatchPreview.label);
-    for (const metric of previewMetrics) {
-      const live = liveByKey.get([metric.profession, presetKey(metric.section, metric)].join('\0'));
-      console.log(
-        metric.id +
-          ': ' +
-          formatDps(live.dps) +
-          ' -> ' +
-          formatDps(metric.dps) +
-          ' (' +
-          formatSignedPercent((metric.dps - live.dps) / live.dps) +
-          ')'
-      );
-    }
-  }
-
   if (mode === 'commit') {
     console.log(
       `Updated ${update.updatedEntries} DPS/APM/health-band benchmark entries (${update.changedEntries} changed) ` +

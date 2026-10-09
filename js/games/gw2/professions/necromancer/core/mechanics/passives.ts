@@ -5,10 +5,7 @@ import {
   NECROMANCER_SIGNET_PASSIVES,
   applyNecromancerSignetPassive
 } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
-import {
-  necromancerAlliedTasks,
-  startNecromancerAlliedOpportunities
-} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
+import { startNecromancerAlliedOpportunities } from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import {
   applyEternalLifePulse,
   eternalLifePassive,
@@ -69,7 +66,7 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
     if (interval > 0) schedulePassive(runtime, { passive, interval, deadline: interval });
   }
 
-  if (!runtime.hasExplicitCombatStart) startNecromancerAlliedOpportunities(runtime);
+  startNecromancerAlliedOpportunities(runtime);
 }
 
-export const necromancerPassiveTasks = { [PASSIVE]: passivePulse, ...necromancerAlliedTasks };
+export const necromancerPassiveTasks = { [PASSIVE]: passivePulse };

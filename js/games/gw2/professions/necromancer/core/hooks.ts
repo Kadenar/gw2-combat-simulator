@@ -28,6 +28,7 @@ import {
   commandNecromancerMinion,
   necromancerMinionAvailability,
   necromancerMinionTasks,
+  startNecromancerMinions,
   summonNecromancerHorrors,
   summonNecromancerMinion
 } from '#gw2/professions/necromancer/core/mechanics/minions.js';
@@ -54,10 +55,7 @@ import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
 } from '#gw2/professions/necromancer/core/state.js';
-import {
-  reactToTasteForBloodGrant,
-  startNecromancerAlliedOpportunities
-} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
+import { reactToTasteForBloodGrant } from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import { lingeringCurseAvailability } from '#gw2/professions/necromancer/core/traits/curses/skill-variants.js';
 import { reactToNecromancerConditions } from '#gw2/professions/necromancer/core/traits/curses/procs.js';
 import {
@@ -199,7 +197,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     initializeNecromancerPassives(runtime);
   },
   onCombatStart(runtime) {
-    if (runtime.hasExplicitCombatStart) startNecromancerAlliedOpportunities(runtime);
+    startNecromancerMinions(runtime);
   },
   availability(runtime, skill) {
     const state = runtime.profession.core;

@@ -1,4 +1,3 @@
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type {
@@ -13,7 +12,6 @@ import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professio
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const BEASTMODE_TOGGLE_IDS = new Set<SkillId>([ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
-const SOULBEAST_HIDDEN_EVENT_TYPES = new Set(['ranger.shared-stance-hit']);
 
 function beastmodeActive(context: RangerUiContext): boolean {
   // Treat missing state as active: initial state starts in Beastmode, so undefined means merged.
@@ -91,9 +89,6 @@ export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>
         return { tileActive: (skill.id === ID.LEAVE_BEASTMODE) === beastmodeActive(context) };
     },
     paletteGroups: (context: RangerUiContext) => paletteGroups(catalog, context),
-    rotationStateSnapshot: soulbeastStateSnapshot,
-    // Return null (suppress) for internal bookkeeping events that have no meaningful display to the user.
-    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-      SOULBEAST_HIDDEN_EVENT_TYPES.has(event.type) ? null : undefined
+    rotationStateSnapshot: soulbeastStateSnapshot
   });
 }

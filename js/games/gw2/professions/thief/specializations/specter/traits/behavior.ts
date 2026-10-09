@@ -1,6 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -68,46 +68,34 @@ export function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
     })
   });
   if (!torment) return;
-  const grant = { allies, expiresAt: runtime.time + venomDuration };
-  if (runtime.combatActive) scheduleRotWallowVenom(runtime, grant);
-  else specterState.from(runtime).pendingRotWallowVenoms.push(grant);
-}
-
-/** Combat starts the first allied attack interval without renewing precombat barrier venom. */
-export function startPendingRotWallowVenoms(runtime: ThiefRuntime): void {
-  const state = specterState.from(runtime);
-  for (const grant of state.pendingRotWallowVenoms) scheduleRotWallowVenom(runtime, grant);
-  state.pendingRotWallowVenoms = [];
-}
-
-/** Each barrier grant retains its eligible allies and original deadline until its single charge can trigger. */
-function scheduleRotWallowVenom(runtime: ThiefRuntime, grant: { allies: number[]; expiresAt: number }): void {
-  if (grant.expiresAt <= runtime.time) return;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_SENTRY);
-  const torment = requireEffect(profile, 'condition', 'Torment');
-  if (!torment) return;
-  // The next allied strike must fit the grant, including the shared allied expiry boundary.
-  for (const proc of gw2AlliedPlayerProcTimeline(runtime.config, {
-    start: runtime.time,
-    duration: grant.expiresAt - runtime.time,
-    maximumPerAlly: 1
-  }))
-    if (grant.allies.includes(proc.allyIndex))
-      runtime.effects.emit({
-        kind: 'packet',
-        event: buildThiefCondition(null, {
-          at: proc.at,
-          source: 'Trait',
-          skillId: TRAIT.DARK_SENTRY,
-          skillName: 'Rot Wallow Venom',
-          name: `Rot Wallow Venom - Ally ${proc.allyIndex} Torment`,
-          icon: ROT_WALLOW_VENOM_ICON,
-          condition: String(torment.condition),
-          stacks: effectNumber(profile, torment, 'stacks'),
-          duration: effectNumber(profile, torment, 'duration'),
-          metadata: { triggeredByAlly: proc.allyIndex }
-        })
-      });
+  // Barrier grants stack per recipient; one shared strike consumes only one surviving batch.
+  for (const allyIndex of allies)
+    runtime.alliedStrikes.register({
+      id: `rot-wallow:${runtime.time}:${allyIndex}`,
+      allyIndex,
+      expiresAt: runtime.time + venomDuration,
+      inclusiveExpiry: true,
+      charges: effectNumber(profile, venom, 'stacks'),
+      consumptionGroup: 'rot-wallow',
+      trigger(proc) {
+        runtime.effects.emit({
+          kind: 'packet',
+          event: buildThiefCondition(null, {
+            at: proc.at,
+            source: 'Trait',
+            skillId: TRAIT.DARK_SENTRY,
+            skillName: 'Rot Wallow Venom',
+            name: `Rot Wallow Venom - Ally ${proc.allyIndex} Torment`,
+            icon: ROT_WALLOW_VENOM_ICON,
+            condition: String(torment.condition),
+            stacks: effectNumber(profile, torment, 'stacks'),
+            duration: effectNumber(profile, torment, 'duration'),
+            activationId: proc.activationId,
+            metadata: { triggeredByAlly: proc.allyIndex }
+          })
+        });
+      }
+    });
 }
 
 /**

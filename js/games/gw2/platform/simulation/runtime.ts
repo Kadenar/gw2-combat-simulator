@@ -1,3 +1,4 @@
+import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
@@ -237,6 +238,11 @@ export function runRuntime<T extends object>(
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {
+    alliedStrikes: createAlliedStrikeController(
+      () => runtime,
+      (at, sequence) =>
+        enqueueWork(makeWork({ type: 'runtime.allied-strike', at, priority: -200, payload: { sequence } }))
+    ),
     precastRelics,
     equipmentBuffPolicies: [
       ...sigilBuffPolicies(config),
@@ -328,6 +334,9 @@ export function runRuntime<T extends object>(
   }) as unknown as Gw2Runtime<T>;
   Object.defineProperty(runtime, 'mechanics', { value: createMechanicContext(runtime), enumerable: true });
   Object.defineProperty(runtime, 'mechanicQueries', { value: createMechanicQueryContext(runtime), enumerable: true });
+  internal.register('runtime.allied-strike', (_context, work) => {
+    if (work.type === 'runtime.allied-strike') runtime.alliedStrikes.strike(work.payload.sequence);
+  });
   internal.register('runtime.announcement', (_context, work) => {
     if (work.type === 'runtime.announcement')
       deliveryOwner.publishAnnouncement(work.payload.request, assertSimulationEvent(work.payload.event));

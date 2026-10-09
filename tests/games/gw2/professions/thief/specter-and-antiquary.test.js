@@ -1153,15 +1153,15 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   );
 });
 
-test('Thieves Guild waits for the player to enter combat before attacking', () => {
+test('Thieves Guild can initiate implicit combat and waits during explicit preparation', () => {
   const idle = simulate('Core', ['Thieves Guild', { type: 'wait', durationMs: 4000 }]);
 
-  assert.equal(idle.combatStartTime, null);
+  assert.ok(idle.combatStartTime > 0);
   assert.equal(
     idle.events.some(
       (event) => event.actorType === 'summon' && ['damage', 'condition', 'control'].includes(event.type)
     ),
-    false
+    true
   );
 
   const delayed = simulate('Core', [

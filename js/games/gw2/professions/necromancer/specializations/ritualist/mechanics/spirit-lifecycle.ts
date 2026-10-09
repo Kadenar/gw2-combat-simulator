@@ -1,3 +1,4 @@
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -46,6 +47,7 @@ function clearSpirits(runtime: NecromancerRuntime): void {
   const state = ritualistState.from(runtime);
   for (const key of Object.keys(state.activeSpirits)) runtime.cancelOwner(owner(key, state.spiritGenerations[key]));
   state.activeSpirits = {};
+  state.spiritAttacks = {};
   runtime.resourceController.refresh('lifeForce');
 }
 
@@ -62,7 +64,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
   if (
     !state.activeSpirits[work.key] ||
     state.spiritGenerations[work.key] !== work.generation ||
-    runtime.deathTime != null
+    !autonomousActionsAllowed(runtime)
   )
     return;
   const spirit = spiritDefinition(runtime, work.skillId);
@@ -114,33 +116,47 @@ export function summonRitualistSpirit(
   runCreatureSummonReactions(runtime, cast.skill, runtime.time, 1, cast.id);
   applyEmpoweringSpirits(runtime, cast, key);
 
-  const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-  const interval = balanceProfileNumber(resources, 'pulseInterval');
-  if (!(interval > 0) || !(spirit.attackCoefficient > 0)) return;
-  if (!Number.isFinite(state.spiritAutoAnchorAt)) {
-    state.spiritAutoAnchorAt = canonicalTime(
-      runtime.time +
-        (state.resummonedSpiritAutoCycle
-          ? balanceProfileNumber(resources, 'resummonedSpiritAttackDelayMs') / 1000
-          : balanceProfileNumber(resources, 'initialDelay'))
-    );
-    state.resummonedSpiritAutoCycle = false;
-  }
+  state.spiritAttacks[key] = { skillId: cast.skill.id, activationId: cast.id, started: false };
+  startRitualistSpirits(runtime);
+}
 
-  const pulse = Math.max(0, Math.floor(canonicalTime(runtime.time - state.spiritAutoAnchorAt) / interval) + 1);
-  runtime.schedule(
-    AUTO,
-    canonicalTime(state.spiritAutoAnchorAt + pulse * interval),
-    {
-      key,
-      generation: state.spiritGenerations[key],
-      skillId: cast.skill.id,
-      anchor: state.spiritAutoAnchorAt,
-      pulse,
-      activationId: cast.id
-    },
-    owner(key, state.spiritGenerations[key])
-  );
+/** Engagement establishes the first shared cadence from live spirits; subsequent summons join that cadence. */
+export function startRitualistSpirits(runtime: NecromancerRuntime): void {
+  if (!autonomousActionsAllowed(runtime)) return;
+  const state = ritualistState.from(runtime);
+  for (const [key, actor] of Object.entries(state.spiritAttacks)) {
+    if (!state.activeSpirits[key] || actor.started) continue;
+    const spirit = spiritDefinition(runtime, actor.skillId);
+    if (!spirit) continue;
+    const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+    const interval = balanceProfileNumber(resources, 'pulseInterval');
+    if (!(interval > 0) || !(spirit.attackCoefficient > 0)) continue;
+    actor.started = true;
+    if (!Number.isFinite(state.spiritAutoAnchorAt)) {
+      state.spiritAutoAnchorAt = canonicalTime(
+        runtime.time +
+          (state.resummonedSpiritAutoCycle
+            ? balanceProfileNumber(resources, 'resummonedSpiritAttackDelayMs') / 1000
+            : balanceProfileNumber(resources, 'initialDelay'))
+      );
+      state.resummonedSpiritAutoCycle = false;
+    }
+
+    const pulse = Math.max(0, Math.floor(canonicalTime(runtime.time - state.spiritAutoAnchorAt) / interval) + 1);
+    runtime.schedule(
+      AUTO,
+      canonicalTime(state.spiritAutoAnchorAt + pulse * interval),
+      {
+        key,
+        generation: state.spiritGenerations[key],
+        skillId: actor.skillId,
+        anchor: state.spiritAutoAnchorAt,
+        pulse,
+        activationId: actor.activationId
+      },
+      owner(key, state.spiritGenerations[key])
+    );
+  }
 }
 
 /** Entry preserves the resummon cadence choice; only depletion overrides Lingering Spirits on exit. */
