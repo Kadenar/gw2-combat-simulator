@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -14,7 +13,7 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
-import { emitTraitSymbol, symbols } from '#gw2/professions/guardian/core/traits/symbols.js';
+import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -25,18 +24,14 @@ export function triggerGuardianFuriousFocus(
   cast: { id: string; skill: Pick<RuntimeCast<GuardianSkill>['skill'], 'id' | 'name'> }
 ): void {
   if (!hasTrait(runtime, TRAIT.FURIOUS_FOCUS)) return;
-  const state = runtime.profession.core;
-  const symbol = symbols[ID.LESSER_SYMBOL_OF_BLADES];
-  if (state.furiousFocusRecharge)
-    state.furiousFocusReadyAt = runtime.cooldownController.project(symbol, state.furiousFocusRecharge);
-  if (!isInternalCooldownReady(runtime.time, state.furiousFocusReadyAt)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS_FOCUS);
   if (!requireEffect(profile, 'strike', 'Strike')) return;
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
-  if (!emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause, { fieldDuration: () => 4 }))
-    return;
-  state.furiousFocusRecharge = { startedAt: runtime.time, work: balanceProfileNumber(profile, 'cooldown') };
-  state.furiousFocusReadyAt = runtime.cooldownController.project(symbol, state.furiousFocusRecharge);
+  // The symbol reserves shared player recharge before its effects can trigger another activation.
+  emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause, {
+    cooldownKey: 'guardian.core.furiousFocus',
+    fieldDuration: () => 4
+  });
 }
 
 /** Only accepted positive player impacts grant symbol traits; the threshold-crossing hit cannot trigger its own reward. */

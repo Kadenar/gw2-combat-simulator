@@ -456,7 +456,7 @@ const records: EngineerSupplementalSkill[] = [
   },
   {
     id: 13552,
-    name: 'Static Discharge (trait skill)',
+    name: 'Static Discharge',
     description:
       'Hit multiple foes with arcs of chain lightning. Critical hits with this ability deal increased damage.',
     // Use the canonical skill render so proc and damage-breakdown images resolve to the same asset.
@@ -679,7 +679,7 @@ const records: EngineerSupplementalSkill[] = [
   },
   {
     id: 29889,
-    name: 'Aim-Assisted Rocket (trait skill)',
+    name: 'Aim-Assisted Rocket',
     description: 'Fire a seeking rocket at your foe.',
     icon: 'https://render.guildwars2.com/file/C61F211044C97242B6324B6F092802706A5FC101/103936.png',
     type: 'Action',
@@ -1157,7 +1157,7 @@ const records: EngineerSupplementalSkill[] = [
   },
   {
     id: 59562,
-    name: 'Explosive Entrance (trait skill)',
+    name: 'Explosive Entrance',
     description: 'Your first attack explodes, dealing extra damage to nearby enemies.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Explosive_Entrance_(trait_skill).png',
     type: 'Action',

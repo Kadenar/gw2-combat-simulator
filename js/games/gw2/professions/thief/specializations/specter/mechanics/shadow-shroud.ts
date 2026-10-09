@@ -66,8 +66,7 @@ export function setShadowShroud(
       actorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
-      weaponSet: runtime.activeWeaponSet,
-      shroudSwap: true
+      weaponSet: runtime.activeWeaponSet
     }
   });
 }

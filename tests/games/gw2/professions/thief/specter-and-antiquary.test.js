@@ -105,7 +105,6 @@ const baseConfig = Object.freeze({
   secondaryWeapon: 'Dagger',
   weaponSet2Primary: 'Pistol',
   weaponSet2Secondary: 'Pistol',
-  deterministicChoices: {},
   stats: {
     power: 2000,
     precision: 1500,
@@ -197,7 +196,10 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   assert.equal(result.planningState.profession.storedStolenSkillId, null);
   assert.ok(result.planningState.profession.shadowClock.value > 0);
   assert.equal(result.events.filter((event) => event.type === 'sigil_swap').length, 0);
-  assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
+  assert.deepEqual(
+    result.events.filter((event) => event.type === 'weapon_set').map((event) => event.skillId),
+    [ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD]
+  );
 });
 
 // Shroud replaces the kneeling rifle stance and its initiative bonus; leaving shroud restores the standing bar.
@@ -238,7 +240,10 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
 
   assert.equal(result.planningState.profession.shadowShroudActive, false);
   assert.equal(result.planningState.profession.shadowClock.value, 0);
-  assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
+  assert.deepEqual(
+    result.events.filter((event) => event.type === 'weapon_set').map((event) => event.skillId),
+    [ID.ENTER_SHADOW_SHROUD, DEPLETED]
+  );
   assert.deepEqual(result.warnings, []);
   const depleted = result.events.filter((event) => event.sourceId === DEPLETED);
   assert.equal(depleted.length, 1);

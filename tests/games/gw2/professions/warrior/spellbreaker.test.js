@@ -98,7 +98,7 @@ test('Magebane starts at impact after its triggering damage and expires without 
   assert.equal(result.procSteps.find((proc) => proc.skill === 'Magebane Tether').start, Math.round(hit.at * 1000));
   assert.equal(result.planningState.profession.magebaneTetherUntil, 0);
   const missed = run([{ name: 'Breaching Strike', offTarget: true }], { selectedTraitIds: [TRAIT.MAGEBANE_TETHER] });
-  assert.equal(state(missed).magebaneTetherRecharge, null);
+  assert.equal(observedRuntime(missed).procs.deadline('warrior.spellbreaker.magebaneTether'), 0);
 });
 
 test('Magebane recharge ignores temporary Alacrity and admits the next action tick', () => {
@@ -176,7 +176,7 @@ test('removed Insight and Tether packets cannot create their state or proc windo
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(result.planningState.profession.attackerInsightExpiries, []);
   assert.equal(result.planningState.profession.magebaneTetherUntil, 0);
-  assert.equal(state(result).magebaneTetherRecharge, null);
+  assert.equal(observedRuntime(result).procs.deadline('warrior.spellbreaker.magebaneTether'), 0);
 });
 
 test('Insight and Tether use the same live owner in detailed and score execution', () => {

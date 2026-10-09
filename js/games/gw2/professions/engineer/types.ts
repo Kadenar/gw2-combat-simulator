@@ -81,7 +81,6 @@ export type EngineerSimulationEvent = SimulationEvent & {
   readonly fieldType?: string;
   readonly mechBasicAttack?: boolean;
   readonly skillWeapon?: string;
-  readonly staticDischarge?: boolean;
 };
 
 export type EngineerResolverEvent = Gw2ResolverEvent & {

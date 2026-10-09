@@ -5,10 +5,7 @@ import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { createAttributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
-import {
-  isSimulationRandomnessControl,
-  simulationRandomnessFromAssumptions
-} from '#gw2/platform/builds/randomness-assumptions.js';
+import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
@@ -143,14 +140,6 @@ export function createGw2SimulationConfig({
       calculatedPrimaryWeapon
     }),
     initialResource,
-    deterministicChoices: Object.fromEntries(
-      professionAssumptionControls
-        .filter(
-          (control) =>
-            control.type === 'select' && !isSimulationRandomnessControl(control) && control.key !== 'criticalDamageMode'
-        )
-        .map((control) => [control.key, assumptions[control.key]])
-    ),
     randomness: simulationRandomnessFromAssumptions(assumptions),
     criticalDamageMode: normalizeCriticalDamageMode(assumptions.criticalDamageMode),
     professionAssumptions: Object.fromEntries(

@@ -41,8 +41,6 @@ export interface Gw2Config {
   readonly randomness?: SimulationRandomnessConfig;
   /** Deterministic strike damage policy; stochastic trials always use rolled critical damage. */
   readonly criticalDamageMode?: Gw2CriticalDamageMode;
-  /** Selected value of each profession select-control assumption, keyed by control key. */
-  readonly deterministicChoices?: Readonly<Record<string, unknown>>;
   /** Allied players sharing the encounter, for boon sharing and allied proc rules. */
   readonly allies?: {
     readonly count?: number;

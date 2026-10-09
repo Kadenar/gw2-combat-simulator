@@ -1,6 +1,5 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
@@ -11,7 +10,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
@@ -48,20 +46,16 @@ function attackerInsightApplications(context: Runtime, event: Gw2ResolverEvent):
   return ID.KICK == Number(event.skillId) && context.config.target?.defiant === true ? 2 : 1;
 }
 
-function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, skill: WarriorSkill, at: number): boolean {
-  // The live recharge controller uses the permanent Alacrity rate.
-  const project = (progress: RechargeProgress): number => context.cooldownController.project(skill, progress);
-  if (state.magebaneTetherRecharge) state.magebaneTetherReadyAt = project(state.magebaneTetherRecharge);
-  if (at < gw2CooldownReadyAt(state.magebaneTetherReadyAt) || !isInternalCooldownReady(at, state.magebaneTetherReadyAt))
-    return false;
+function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, at: number): boolean {
+  const key = 'warrior.spellbreaker.magebaneTether';
+  // Shared player recharge owns readiness; the tether still waits for its GW2 action tick.
+  if (at < gw2CooldownReadyAt(context.procs.deadline(key))) return false;
 
   const magebaneTetherProfile = requireBalanceProfileFromContext(context, TRAIT.MAGEBANE_TETHER);
   const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether');
   // A removed tether must not activate its damage window.
-  if (!effect) return false;
+  if (!effect || !context.procs.claim(TRAIT.MAGEBANE_TETHER, key, at)) return false;
   state.magebaneTetherUntil = canonicalTime(at + effectNumber(magebaneTetherProfile, effect, 'duration'));
-  state.magebaneTetherRecharge = { startedAt: at, work: balanceProfileNumber(magebaneTetherProfile, 'cooldown') };
-  state.magebaneTetherReadyAt = project(state.magebaneTetherRecharge);
   return true;
 }
 
@@ -84,7 +78,7 @@ export function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEv
   }
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
-  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), skill, event.at)) {
+  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event.at)) {
     context.effects.emit({
       kind: 'announcement',
       announcement: {

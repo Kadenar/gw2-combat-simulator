@@ -1299,7 +1299,7 @@ test('Furious Focus claims symbol recharge once for a ready Justice activation',
   );
   assert.ok(pulses.length > 1);
   assert.equal(new Set(pulses.map((event) => event.activationId)).size, 1);
-  assert.equal(core(result).furiousFocusRecharge.startedAt, 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.furiousFocus'), 8);
   assert.notEqual(pulses[0].activationId, result.steps[0].activationId);
 });
 
@@ -1389,7 +1389,7 @@ test('Furious Focus ignores transient Alacrity and keeps its exclusive deadline 
     starts.map((event) => event.at),
     [0, 8.04]
   );
-  assert.equal(core(result).furiousFocusRecharge.startedAt, 8.04);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.furiousFocus'), 16.04);
 });
 
 test('removed trait components neither claim heal cooldowns nor start recurring Might work', () => {

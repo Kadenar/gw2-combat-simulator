@@ -1,7 +1,7 @@
-import { emitExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
-  ENGINEER_TRAIT_SKILL_MECHANICS,
+  emitExplosiveEntrance,
+  reserveExplosiveEntrance,
   triggerLesserGrenadeBarrage
 } from '#gw2/professions/engineer/core/skills/trait-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -24,8 +24,11 @@ import {
   buildEngineerCondition,
   resolverSkill
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { type EngineerResolverContext, type EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import {
+  type EngineerResolverContext,
+  type EngineerResolverEvent,
+  type EngineerRuntime
+} from '#gw2/professions/engineer/types.js';
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
@@ -55,16 +58,10 @@ export const grenadier = defineTrait({
   ]
 });
 
-/** Owns Explosive Entrance tuning and behavior at its established runtime and build boundaries. */
+/** Arms the next player strike after a dodge; the triggered skill owns its damage and recharge. */
 export const explosiveEntrance = defineTrait({
   id: TRAIT.EXPLOSIVE_ENTRANCE,
   name: 'Explosive Entrance',
-  balance: {
-    // Dodging rearms the attack, independently of the produced skill's short recharge.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: ENGINEER_TRAIT_SKILL_MECHANICS[ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL]!.cooldown,
-    effects: [{ name: 'Explosive Entrance', type: 'strike', coefficient: 1.25, hits: 1 }]
-  },
   hooks: {
     eventHandlers: { 'engineer.dodge': resetExplosiveEntrance },
     reactions: { 'damage.resolved': applyExplosiveEntrance }
@@ -143,27 +140,7 @@ export const aimAssistedRocket = defineTrait({
   name: 'Aim-Assisted Rocket',
   balance: {
     internalCooldown: 3,
-    maximumStacks: 5,
-    effects: [
-      {
-        name: 'Rocket',
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 40,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        name: 'Orbital Strike',
-        type: 'strike',
-        coefficient: 1.92,
-        hits: 1,
-        atMs: 2000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
+    maximumStacks: 5
   }
 });
 
@@ -291,17 +268,16 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
   // Only positive strike packets create explosion proc opportunities.
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
-  const state = context.procs;
+  // Eligible explosions consume the interval even when the Fury packet is removed.
   if (
     !explosion ||
     !hasTrait(context, TRAIT.SHORT_FUSE) ||
-    !isInternalCooldownReady(event.at, state.deadline('shortFuse') || 0)
+    !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)
   ) {
     return;
   }
 
   const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
-  state.setDeadline('shortFuse', event.at + balanceProfileNumber(shortFuseProfile, 'internalCooldown'));
   const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
   if (shortFuseFury) {
     context.effects.emit({
@@ -361,7 +337,7 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
 function applyGrandEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Non-strike notifications must not consume this trait's proc opportunity.
   if (!(Number(event.coefficient) > 0)) return;
-  if (Number(event.sourceId) !== TRAIT.EXPLOSIVE_ENTRANCE || !hasTrait(context, TRAIT.GRAND_ENTRANCE)) return;
+  if (event.skillId !== ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL || !hasTrait(context, TRAIT.GRAND_ENTRANCE)) return;
   context.effects.emit({
     kind: 'packet',
     event: buildEngineerBuff(event, {
@@ -459,7 +435,7 @@ function resetExplosiveEntrance(context: EngineerResolverContext): void {
 }
 
 /** Queues Explosive Entrance once for the next eligible player strike. */
-function applyExplosiveEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+function applyExplosiveEntrance(context: EngineerRuntime, event: EngineerResolverEvent): void {
   // Non-strike notifications must not consume this trait's proc opportunity.
   if (!(Number(event.coefficient) > 0)) return;
   if (
@@ -470,9 +446,7 @@ function applyExplosiveEntrance(context: EngineerResolverContext, event: Enginee
     return;
   }
 
-  const explosiveEntranceProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_ENTRANCE);
-  const explosiveEntranceStrike = requireEffect(explosiveEntranceProfile, 'strike', 'Explosive Entrance');
-  if (explosiveEntranceStrike && context.procs.claim(TRAIT.EXPLOSIVE_ENTRANCE, TRAIT.EXPLOSIVE_ENTRANCE, event.at)) {
+  if (reserveExplosiveEntrance(context, event.at)) {
     // A hit during skill recharge leaves the dodge-armed attack available for the next eligible hit.
     professionCoreState(context).explosiveEntranceFired = true;
     emitExplosiveEntrance(context, event);

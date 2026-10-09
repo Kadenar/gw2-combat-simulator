@@ -8,7 +8,7 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 // These child effects have packet identities but no player-selectable catalog entry.
-export const symbols: Readonly<Record<SkillId, Skill>> = {
+const symbols: Readonly<Record<SkillId, Skill>> = {
   [ID.LESSER_SYMBOL_OF_BLADES]: {
     id: ID.LESSER_SYMBOL_OF_BLADES,
     name: 'Lesser Symbol of Blades',

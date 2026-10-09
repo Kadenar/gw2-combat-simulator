@@ -25,8 +25,6 @@ interface ExpectedStrikePacket {
   readonly interruptCommitMs: number | null;
 }
 
-export { normalized };
-
 function skillForAction(
   context: EvtcProfessionReconstructionContext,
   action: EvtcRecordedRotationAction
@@ -34,7 +32,7 @@ function skillForAction(
   return recordedActionSkill(action, context);
 }
 
-export { referenceCastTimeMs, strikePacketOffsets };
+export { referenceCastTimeMs };
 
 /** Match observed strikes against catalog timing using the shared EVTC tolerance. */
 export function createStrikePacketMatcher(

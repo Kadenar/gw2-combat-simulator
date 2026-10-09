@@ -126,10 +126,8 @@ function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
       reason: DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
       amount: -cost,
       value: state.flow.value,
-      maximumFlow: state.flow.maximum,
       maximumCharges: maximumDragonCharges(runtime),
       chargesPerInterval: state.dragonChargesPerInterval,
-      nextChargeAt: state.nextDragonChargeAt,
       deadline: state.dragonTriggerChargeDeadline
     }
   });

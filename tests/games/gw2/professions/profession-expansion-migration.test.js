@@ -311,7 +311,7 @@ test('ready native professions expose deliberate public end-state keys', async (
   const internalKeys = {
     elementalist: ['enduranceUpdatedAt', 'procReadyAt'],
     engineer: ['heatUpdatedAt', 'passiveHeatAt', 'traitProcReadyAt'],
-    guardian: ['ashesBurnDuration', 'furiousFocusReadyAt', 'radiantForgeEnteredAt'],
+    guardian: ['ashesBurnDuration', 'radiantForgeEnteredAt'],
     mesmer: ['bloodsongProgress', 'pendingResources', 'traitReadyAt'],
     necromancer: [
       'nextBlightAt',

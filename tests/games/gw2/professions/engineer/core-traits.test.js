@@ -317,7 +317,7 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
     rockets.every(
       (event) =>
         event.coefficient === 1 &&
-        event.explosion === true &&
+        event.damageKind === 'explosion' &&
         event.actorType === 'effect' &&
         event.sourceId === ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL &&
         event.weaponStrengthProfileId === 'nonweapon.unequipped' &&
@@ -328,7 +328,7 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
   assert.equal(orbital.comboFinishers[0].ownerId, 'engineer');
   assert.equal(orbital.comboFinishers[0].finisherType, 'Blast');
   assert.equal(orbital.comboFinishers[0].chance, 1);
-  assert.equal(orbital.explosion, false);
+  assert.notEqual(orbital.damageKind, 'explosion');
   assert.equal(orbital.actorType, 'effect');
   assert.equal(orbital.sourceId, ID.ORBITAL_COMMAND_STRIKE);
   assert.equal(orbital.weaponStrengthProfileId, 'nonweapon.unequipped');

@@ -222,7 +222,6 @@ test('Dragon Trigger spends its profile Flow cost on entry and expires after its
   assert.equal(entry.amount, -DRAGON_TRIGGER_ENTRY_FLOW);
   assert.equal(entry.value, 0);
   assert.equal(active.planningState.profession.flow.value, 0);
-  assert.equal(entry.maximumFlow, 100);
   assert.equal(entry.deadline - entry.at, DRAGON_TRIGGER_DURATION_SECONDS);
 
   const expired = simulate(

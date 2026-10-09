@@ -143,7 +143,6 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
   const transition = (at, entering) => ({
     type: 'weapon_set',
     at,
-    shroudSwap: true,
     sourceId: entering ? 'necromancer.shroud-enter' : 'necromancer.shroud-exit'
   });
   const events = [

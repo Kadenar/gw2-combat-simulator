@@ -166,8 +166,6 @@ test('shared UI assumptions map to the resolver randomness config', () => {
     mode: 'stochastic',
     seed: 1
   });
-  assert.equal(Object.hasOwn(config.deterministicChoices, 'simulationMode'), false);
-  assert.equal(Object.hasOwn(config.deterministicChoices, 'criticalDamageMode'), false);
   assert.equal(config.criticalDamageMode, 'averaged');
 });
 

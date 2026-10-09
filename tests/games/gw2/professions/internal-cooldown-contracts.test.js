@@ -9,7 +9,7 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyViciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { reactToEngineerCondition } from '#gw2/professions/engineer/core/traits/dispatch.js';
+import { hematicFocus } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
@@ -295,11 +295,11 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   context.procs.setDeadline('hematicFocus', READY_AT);
   const event = { type: 'condition', condition: 'Bleeding', actorType: 'player', at: READY_AT };
 
-  reactToEngineerCondition(context, event);
+  hematicFocus.hooks.reactions['condition.applied'](context, event);
   assert.equal(context.procs.snapshot()['hematicFocus'], READY_AT);
   assert.equal(context.queue.length, 0);
 
-  reactToEngineerCondition(context, { ...event, at: AFTER_READY_AT });
+  hematicFocus.hooks.reactions['condition.applied'](context, { ...event, at: AFTER_READY_AT });
   assert.ok(context.procs.snapshot()['hematicFocus'] > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
@@ -457,7 +457,7 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
         ...native,
         initialize(runtime) {
           native.initialize(runtime);
-          runtime.profession.specialization.state.magebaneTetherReadyAt = READY_AT;
+          runtime.procs.setDeadline('warrior.spellbreaker.magebaneTether', READY_AT);
           runtime.effects.emit({
             kind: 'packet',
             event: {
@@ -477,7 +477,7 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
     assert.deepEqual(result.warnings, []);
     assert.equal(result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').length, at === READY_AT ? 0 : 1);
     assert.equal(
-      observedRuntime(result).profession.specialization.state.magebaneTetherReadyAt > READY_AT,
+      observedRuntime(result).procs.deadline('warrior.spellbreaker.magebaneTether') > READY_AT,
       at > READY_AT
     );
   }

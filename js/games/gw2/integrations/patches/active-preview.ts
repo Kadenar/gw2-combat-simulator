@@ -1,4 +1,12 @@
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import { impactEffects, strikeTimeline, conditionTimeline } from '#gw2/platform/effects/authoring.js';
+
+// A target receives one Dust Storm pulse per two-second interval across both storms;
+// the fourth pulse overlaps only large hitboxes, with every offensive payload sharing that restriction.
+const DUST_STORM_PREVIEW_TICKS = [1560, 3560, 5560, 7560].map((atMs, index) => ({
+  atMs,
+  metadata: { hitboxIndex: index + 1, smallHitboxCap: 3 }
+}));
 
 /**
  * Apply requested balance changes while preserving live data. Phoenix boon
@@ -825,6 +833,28 @@ export const activePatchPreview: PatchPreview = {
     },
     elementalist: {
       skills: {
+        '30336': {
+          // Replace the overlapping offensive pulses while retaining the independent Resistance grant.
+          removeEffects: [
+            { type: 'strike' },
+            { type: 'condition', condition: 'Bleeding' },
+            { type: 'condition', condition: 'Blindness', all: true }
+          ],
+          addEffects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+            strikeTimeline(DUST_STORM_PREVIEW_TICKS.map((tick) => ({ ...tick, coefficient: 0.3 }))),
+            conditionTimeline(
+              DUST_STORM_PREVIEW_TICKS.map((tick) => ({ ...tick, condition: 'Bleeding', stacks: 2, duration: 10 }))
+            ),
+            ...DUST_STORM_PREVIEW_TICKS.map((tick) => ({
+              ...tick,
+              type: 'condition' as const,
+              condition: 'Blindness',
+              stacks: 1,
+              duration: 2,
+              applications: 1
+            }))
+          ])
+        },
         '29533': {
           effects: [
             {
@@ -888,6 +918,11 @@ export const activePatchPreview: PatchPreview = {
         {
           subject: 'Wildfire',
           text: 'Burning tick all duration 3 → 2.5.',
+          source: 'skill-diff'
+        },
+        {
+          subject: 'Dust Storm',
+          text: 'Hits once per 2-second interval across both storms: small hitboxes 6 → 3 hits; large hitboxes 8 → 4 hits. Bleeding and Blindness follow the same limit.',
           source: 'skill-diff'
         },
         {

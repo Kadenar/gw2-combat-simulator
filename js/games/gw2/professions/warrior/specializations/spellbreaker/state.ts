@@ -6,20 +6,16 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
-import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];
   magebaneTetherUntil: number;
-  magebaneTetherReadyAt: number;
-  magebaneTetherRecharge: RechargeProgress | null;
 }
 
 /** Declares Spellbreaker's public fields and inactive values. */
 export const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   attackerInsightExpiries: [],
-  magebaneTetherUntil: 0,
-  magebaneTetherReadyAt: 0
+  magebaneTetherUntil: 0
 } satisfies Partial<SpellbreakerState>);
 
 function createSpellbreakerState(): SpellbreakerState {
@@ -27,9 +23,7 @@ function createSpellbreakerState(): SpellbreakerState {
     // Array of individual expiry timestamps rather than a stack count so each
     // stack can expire independently at the time it was gained.
     attackerInsightExpiries: [],
-    magebaneTetherUntil: 0,
-    magebaneTetherReadyAt: 0,
-    magebaneTetherRecharge: null
+    magebaneTetherUntil: 0
   };
 }
 

@@ -13,7 +13,6 @@ import {
   type EngineerRuntime,
   type EngineerResolverContext
 } from '#gw2/professions/engineer/types.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { type Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
@@ -80,10 +79,9 @@ export function reactToAppliedForceBuff(context: EngineerRuntime, event: Enginee
       event.at
     ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE), 'threshold')
   ) {
-    const state = context.procs;
-    if (isInternalCooldownReady(event.at, state.deadline('appliedForce') || 0)) {
+    // Reaching the threshold consumes the interval even if Stability is removed.
+    if (context.procs.claim(TRAIT.APPLIED_FORCE, 'appliedForce', event.at)) {
       const appliedForceProfile = requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE);
-      state.setDeadline('appliedForce', event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown'));
       const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
       if (appliedForceStability) {
         context.effects.emit({

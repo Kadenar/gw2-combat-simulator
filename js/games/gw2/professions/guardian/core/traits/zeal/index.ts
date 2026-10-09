@@ -13,6 +13,7 @@ export const furiousFocus = defineTrait({
   id: TRAIT.FURIOUS_FOCUS,
   name: 'Furious Focus',
   balance: {
+    cooldownPolicy: 'playerRecharge',
     cooldown: 10,
     effects: [
       {

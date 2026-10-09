@@ -30,6 +30,7 @@ import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { emitEngineerTriggeredSkill } from '#gw2/professions/engineer/core/skills/trait-skills.js';
 /** Owns Streamlined Kits tuning and behavior at its established runtime and build boundaries. */
 export const streamlinedKits = defineTrait({
   // Register this trait's reaction at its causal gameplay boundary.
@@ -76,8 +77,7 @@ export const staticDischarge = defineTrait({
   id: TRAIT.STATIC_DISCHARGE,
   name: 'Static Discharge',
   balance: {
-    criticalDamage: 2,
-    effects: [{ name: 'Static Discharge', type: 'strike', coefficient: 0.33, hits: 1 }]
+    criticalDamage: 2
   },
   modifierRules: [
     {
@@ -89,7 +89,7 @@ export const staticDischarge = defineTrait({
       operation: 'multiply',
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STATIC_DISCHARGE), 'criticalDamage'),
-      when: (context) => context.event?.staticDischarge === true
+      when: (context) => context.event?.skillId === ID.STATIC_DISCHARGE_TRAIT_SKILL
     }
   ]
 });
@@ -286,28 +286,15 @@ function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill
 /** Queues Static Discharge from a completed toolbelt cast. */
 function applyStaticDischarge(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.traits, TRAIT.STATIC_DISCHARGE)) return;
-  const profile = requireBalanceProfileFromContext(context, TRAIT.STATIC_DISCHARGE);
-  context.effects.emit({
-    kind: 'profile',
-    profile: profile,
+  // The skill owns damage; the toolbelt action is retained only as its causal trigger.
+  emitEngineerTriggeredSkill(context, ID.STATIC_DISCHARGE_TRAIT_SKILL, {
+    type: 'action',
     at,
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.STATIC_DISCHARGE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: ID.STATIC_DISCHARGE_TRAIT_SKILL,
-      skillName: 'Static Discharge',
-      triggeredBy: skill.name
-    },
-    transform: (event) => ({
-      ...event,
-      parentSkillName: skill.name,
-      icon: context.helpers.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
-      name: 'Static Discharge',
-      skillWeapon: 'Unequipped',
-      staticDischarge: true
-    })
+    source: 'engineer',
+    sourceId: skill.id,
+    actorType: 'player',
+    skillId: skill.id,
+    skillName: skill.name
   });
 }
 
@@ -346,7 +333,7 @@ function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at:
 
 /** Records Static Discharge when its scheduled trait strike resolves. */
 function recordStaticDischargeProc(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (!(Number(event.coefficient) > 0) || event.staticDischarge !== true) return;
+  if (!(Number(event.coefficient) > 0) || event.skillId !== ID.STATIC_DISCHARGE_TRAIT_SKILL) return;
   // Scheduled trait damage is not a rotation step, so expose it with its toolbelt trigger in Procs.
   context.effects.emit({
     attribution: { source: 'Trait', sourceId: TRAIT.STATIC_DISCHARGE, actorType: 'effect' },

@@ -43,8 +43,7 @@ function transition(runtime: NecromancerRuntime, entering: boolean, skill?: Necr
       source: 'necromancer',
       sourceId: entering ? 'necromancer.shroud-enter' : 'necromancer.shroud-exit',
       actorType: 'player',
-      weaponSet: runtime.activeWeaponSet,
-      shroudSwap: true
+      weaponSet: runtime.activeWeaponSet
     }
   });
 }

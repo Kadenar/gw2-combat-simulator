@@ -21,6 +21,7 @@ export const magebaneTether = defineTrait({
   id: TRAIT.MAGEBANE_TETHER,
   name: 'Magebane Tether',
   balance: {
+    cooldownPolicy: 'playerRecharge',
     cooldown: 12,
     effects: [{ name: 'magebane-tether', type: 'buff', kind: 'magebane-tether', stacks: 1, duration: 8 }]
   },

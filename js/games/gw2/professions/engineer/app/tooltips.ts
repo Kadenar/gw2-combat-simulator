@@ -492,10 +492,19 @@ export const engineerTooltips: ProfessionTooltips = {
     )
   },
   traits: {
-    [TRAIT.EXPLOSIVE_ENTRANCE]: traitTooltip(
-      'Your first qualifying player strike triggers an additional explosion. Dodging rearms it without resetting the skill recharge.',
-      [['cooldown', 'Base skill recharge', tooltipSeconds]]
-    ),
+    [TRAIT.EXPLOSIVE_ENTRANCE]: (balanceContext) => {
+      // Triggered skill facts always follow the selected skill patch, including recharge and removed effects.
+      const skill = balanceContext.catalog.skillsById.get(ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL)!;
+      return {
+        ...simulationEffectFacts(skill.effects || []),
+        description:
+          'Your first qualifying player strike triggers an additional explosion. Dodging rearms it without resetting the skill recharge.',
+        facts: [
+          { name: 'Base skill recharge', detail: tooltipSeconds(tooltipNumber(skill, 'cooldown')) },
+          ...simulationEffectFacts(skill.effects || []).facts
+        ]
+      };
+    },
     [TRAIT.STEEL_PACKED_POWDER]: traitTooltip('Explosions inflict vulnerability.'),
     [TRAIT.SHAPED_CHARGE]: traitTooltip(
       'Player-owned strikes deal increased damage for each vulnerability stack on the target.',
@@ -538,9 +547,12 @@ export const engineerTooltips: ProfessionTooltips = {
       facts: [
         profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
         profileFact(balanceContext, entity.id, 'maximumStacks', 'Procs per orbital strike'),
-        ...(tooltipProfile(balanceContext, entity.id).effects || []).flatMap(
-          (effect, index) =>
-            simulationEffectFacts([effect], index === 0 ? 'ordinary rocket' : 'orbital strike instead').facts
+        ...[ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL, ID.ORBITAL_COMMAND_STRIKE].flatMap(
+          (id, index) =>
+            simulationEffectFacts(
+              balanceContext.catalog.skillsById.get(id)!.effects || [],
+              index === 0 ? 'ordinary rocket' : 'orbital strike instead'
+            ).facts
         )
       ]
     }),
@@ -570,10 +582,21 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.EXCESSIVE_ENERGY]: traitTooltip('Player-owned strikes deal increased damage while you have vigor.', [
       fromModifier('engineer.excessive-energy', 'amount', 'Strike damage with vigor')
     ]),
-    [TRAIT.STATIC_DISCHARGE]: traitTooltip(
-      'Completing a toolbelt skill fires an additional strike. Static Discharge has its own critical-damage multiplier.',
-      [['criticalDamage', 'Static Discharge critical damage', tooltipFactorChange]]
-    ),
+    [TRAIT.STATIC_DISCHARGE]: (balanceContext, entity) => ({
+      description:
+        'Completing a toolbelt skill fires an additional strike. Static Discharge has its own critical-damage multiplier.',
+      facts: [
+        profileFact(
+          balanceContext,
+          entity.id,
+          'criticalDamage',
+          'Static Discharge critical damage',
+          tooltipFactorChange
+        ),
+        ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)!.effects || [])
+          .facts
+      ]
+    }),
     [TRAIT.REACTIVE_LENSES]: outsideScopeTooltip,
     [TRAIT.POWER_WRENCH]: traitTooltip('Dodging reduces active elite-skill cooldowns.', [
       ['rechargeReduction', 'Elite recharge reduction per dodge', tooltipSeconds]

@@ -16,10 +16,8 @@ import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadat
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianBuild, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
@@ -164,7 +162,7 @@ export const imbuedHaste = defineTrait({
   })
 });
 
-/** Accepted heals grant surviving party Quickness before claiming the interval. */
+/** Accepted heals reserve the interval before delivering surviving party Quickness. */
 export const liberatorsVow = defineTrait({
   id: TRAIT.LIBERATORS_VOW,
   name: "Liberator's Vow",
@@ -175,52 +173,31 @@ export const liberatorsVow = defineTrait({
   hooks: {
     onCastCommit(runtime, cast) {
       const skill = cast.skill;
-      if (
-        skill.type === 'Heal' &&
-        hasTrait(runtime, TRAIT.LIBERATORS_VOW) &&
-        isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.liberatorsVow'))
-      ) {
-        {
-          const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW);
-          const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
-          const boonCause = guardianCastCause(runtime, cast);
-          if (selectedBoon) {
-            runtime.effects.emit({
-              kind: 'profile',
-              profile: boonProfile,
-              effects: [selectedBoon],
-              attribution: boonCause,
-              cause: boonCause,
-              transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'party' } })
-            });
-            {
-              runtime.procs.setDeadline(
-                'guardian.firebrand.liberatorsVow',
-                canonicalTime(
-                  runtime.time +
-                    balanceProfileNumber(
-                      requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW),
-                      'internalCooldown'
-                    )
-                )
-              );
-              {
-                runtime.effects.emit({
-                  kind: 'announcement',
-                  announcement: {
-                    type: 'trait',
-                    name: "Liberator's Vow",
-                    at: runtime.time,
-                    sourceSkill: skill.name,
-                    detail: 'Quickness',
-                    icon: guardianTraitIcon(TRAIT.LIBERATORS_VOW)
-                  }
-                });
-              }
-            }
-          }
+      if (skill.type !== 'Heal' || !hasTrait(runtime, TRAIT.LIBERATORS_VOW)) return;
+      const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW);
+      const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
+      if (!selectedBoon || !runtime.procs.claim(TRAIT.LIBERATORS_VOW, 'guardian.firebrand.liberatorsVow', runtime.time))
+        return;
+      const boonCause = guardianCastCause(runtime, cast);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: boonProfile,
+        effects: [selectedBoon],
+        attribution: boonCause,
+        cause: boonCause,
+        transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'party' } })
+      });
+      runtime.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'trait',
+          name: "Liberator's Vow",
+          at: runtime.time,
+          sourceSkill: skill.name,
+          detail: 'Quickness',
+          icon: guardianTraitIcon(TRAIT.LIBERATORS_VOW)
         }
-      }
+      });
     }
   }
 });

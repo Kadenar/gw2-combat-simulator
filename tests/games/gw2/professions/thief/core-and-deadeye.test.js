@@ -42,7 +42,6 @@ const baseConfig = Object.freeze({
   secondaryWeapon: 'Dagger',
   weaponSet2Primary: 'Pistol',
   weaponSet2Secondary: 'Pistol',
-  deterministicChoices: {},
   stats: {
     power: 2000,
     precision: 1500,

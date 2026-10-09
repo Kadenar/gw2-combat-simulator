@@ -23,7 +23,6 @@ import {
   buildEngineerCondition,
   buildEngineerBuff
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { overclockSignetApplies } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
@@ -42,24 +41,16 @@ export function mechArmsCommand(traits: EngineerConfig | ReadonlySet<SkillId>): 
 /** Accepted mech hits resolve arm procs in order using independent, effect-aware cooldown slots. */
 export function reactToMechArmDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
-  const state = context.procs;
   if (!engineerMechResolverEvent(context, event)) return;
 
-  if (
-    hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) &&
-    isInternalCooldownReady(event.at, state.deadline('singleEdgeCutters') || 0)
-  ) {
+  if (hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS)) {
     const mechArmsSingleEdgeCuttersProfile = requireBalanceProfileFromContext(
       context,
       TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS
     );
     const packet = requireEffect(mechArmsSingleEdgeCuttersProfile, 'condition', 'Bleeding');
-    if (packet) {
-      // A removed arm effect cannot consume its own proc cooldown.
-      state.setDeadline(
-        'singleEdgeCutters',
-        event.at + balanceProfileNumber(mechArmsSingleEdgeCuttersProfile, 'internalCooldown')
-      );
+    // A removed arm effect cannot consume its own proc cooldown.
+    if (packet && context.procs.claim(TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'singleEdgeCutters', event.at)) {
       context.effects.emit({
         kind: 'packet',
         event: buildEngineerCondition(event, {
@@ -89,20 +80,14 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
     }
   }
 
-  if (
-    hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) &&
-    isInternalCooldownReady(event.at, state.deadline('highImpactDrivers') || 0)
-  ) {
+  if (hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)) {
     const mechArmsHighImpactDriversProfile = requireBalanceProfileFromContext(
       context,
       TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS
     );
     const packet = requireEffect(mechArmsHighImpactDriversProfile, 'boon', 'might');
-    if (packet) {
-      state.setDeadline(
-        'highImpactDrivers',
-        event.at + balanceProfileNumber(mechArmsHighImpactDriversProfile, 'internalCooldown')
-      );
+    // Each surviving arm reward reserves its independent interval before delivery.
+    if (packet && context.procs.claim(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'highImpactDrivers', event.at)) {
       context.effects.emit({
         kind: 'packet',
         event: buildEngineerBuff(event, {

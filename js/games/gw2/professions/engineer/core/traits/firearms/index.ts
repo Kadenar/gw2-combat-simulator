@@ -1,4 +1,3 @@
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
@@ -420,12 +419,10 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
     return;
   }
 
-  const state = context.procs;
-  if (!isInternalCooldownReady(event.at, state.deadline('hematicFocus') || 0)) return;
   const hematicFocusProfile = requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS);
   const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
-  if (hematicFocusFury) {
-    state.setDeadline('hematicFocus', event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown'));
+  // Removed Fury cannot consume recharge; reserve it before delivering a surviving packet.
+  if (hematicFocusFury && context.procs.claim(TRAIT.HEMATIC_FOCUS, 'hematicFocus', event.at)) {
     context.effects.emit({
       kind: 'packet',
       event: buildEngineerBuff(event, {

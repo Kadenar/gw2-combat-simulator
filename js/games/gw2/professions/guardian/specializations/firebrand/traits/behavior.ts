@@ -2,7 +2,6 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
-  balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -17,7 +16,6 @@ import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/even
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   alliedAshes,
@@ -32,7 +30,6 @@ import type {
   GuardianRuntimeState,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
@@ -156,16 +153,16 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
   const self = event.resolvedAudience?.includesSelf === true;
   const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   if (!self && allies <= 0) return;
-  if (
-    (event.kind === 'aegis' || event.kind === 'stability') &&
-    hasTrait(runtime, TRAIT.STALWART_SPEED) &&
-    isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.stalwartSpeed'))
-  ) {
+  if ((event.kind === 'aegis' || event.kind === 'stability') && hasTrait(runtime, TRAIT.STALWART_SPEED)) {
     {
       const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED);
       const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
       const boonCause = event;
-      if (selectedBoons.length) {
+      // Reserve the interval before delivery, so derived boons cannot reenter the proc.
+      if (
+        selectedBoons.length &&
+        runtime.procs.claim(TRAIT.STALWART_SPEED, 'guardian.firebrand.stalwartSpeed', runtime.time)
+      ) {
         runtime.effects.emit({
           kind: 'profile',
           profile: boonProfile,
@@ -191,13 +188,6 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
             icon: guardianTraitIcon(TRAIT.STALWART_SPEED)
           }
         });
-        runtime.procs.setDeadline(
-          'guardian.firebrand.stalwartSpeed',
-          canonicalTime(
-            runtime.time +
-              balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED), 'internalCooldown')
-          )
-        );
       }
     }
   }

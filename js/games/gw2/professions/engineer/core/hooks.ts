@@ -20,9 +20,10 @@ import {
 import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import {
   emitAimAssistedRocket,
-  emitExplosiveEntrance
-} from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
-import { emitLesserGrenadeBarrage } from '#gw2/professions/engineer/core/skills/trait-skills.js';
+  emitExplosiveEntrance,
+  emitEngineerTriggeredSkill,
+  emitLesserGrenadeBarrage
+} from '#gw2/professions/engineer/core/skills/trait-skills.js';
 import {
   notifyToolbeltActivation,
   notifyDodgeActivation
@@ -70,9 +71,21 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
       source: 'Trait',
       ownerId: TRAIT.EXPLOSIVE_ENTRANCE,
       unit: 'occurrence',
-      sourceIds: [TRAIT.EXPLOSIVE_ENTRANCE],
+      sourceIds: [ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL],
       emit(runtime) {
         emitExplosiveEntrance(runtime, damageInputEvent(runtime));
+      }
+    },
+    {
+      id: 'engineer.static-discharge',
+      name: 'Static Discharge',
+      source: 'Trait',
+      ownerId: TRAIT.STATIC_DISCHARGE,
+      unit: 'occurrence',
+      sourceIds: [ID.STATIC_DISCHARGE_TRAIT_SKILL],
+      // Isolated damage uses the same skill payload and critical modifier as a toolbelt-triggered discharge.
+      emit(runtime) {
+        emitEngineerTriggeredSkill(runtime, ID.STATIC_DISCHARGE_TRAIT_SKILL, damageInputEvent(runtime));
       }
     },
     ...([false, true] as const).map((orbital) => ({
