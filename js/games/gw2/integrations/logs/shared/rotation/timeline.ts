@@ -2,7 +2,7 @@ import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/pl
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { actionKind } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { quantizeGw2ActionDurationUp, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 
 const OBSERVED_CAST_TOLERANCE_MS = 20;
@@ -169,6 +169,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let projectedBlockingEnd = origin;
   let projectedInstantReadyAt = origin;
   let projectedIndependentReadyAt = origin;
+  let projectedCompanionEnd = origin;
   let projectedPreviousCastStart: number | null = null;
 
   const appendWait = (waitMs: number): void => {
@@ -273,12 +274,24 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
     // A companion can open before the player's first cast. Anchor that overlap to rotation start;
     // a serial wait would incorrectly wait for the companion's entire animation.
-    if (alignWaitsToSimulatorTiming && previousCastStart == null && projectedIndependentReadyAt > at && at > origin) {
+    if (alignWaitsToSimulatorTiming && previousCastStart == null && projectedCompanionEnd > origin && at > origin) {
       command.concurrentOffsetMs = quantizeMs(at - origin);
     } else if (independent && previousCastStart != null && at >= previousCastStart) {
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
+    } else if (
+      alignWaitsToSimulatorTiming &&
+      projectedPreviousCastStart != null &&
+      !overlapping &&
+      at > projectedBlockingEnd &&
+      projectedCompanionEnd > projectedBlockingEnd
+    ) {
+      // A player gap inside a companion cast must not become a Wait, which joins both lanes.
+      // Anchor the next input to the player instead, preserving the gap without waiting for the companion.
+      command.concurrentOffsetMs = quantizeMs(at - projectedPreviousCastStart);
+      pendingAftercast = null;
+      activeCastEnd = at;
     } else {
       appendObservedIdle(at);
     }
@@ -297,7 +310,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       // Mechanic-owned charge intervals already define their replay occupancy.
       const runtimeMs =
         action.replayDurationMs ??
-        (action.skill && policy.hasObservedCastTime?.(action) !== false
+        (action.skill && (independent || policy.hasObservedCastTime?.(action) !== false)
           ? referenceCastTimeMs(action.skill)
           : actionReplayEnd - at);
       const interruptMs = command.interruptAfterMs ?? action.skill?.defaultInterruptMs;
@@ -307,8 +320,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
           ? runtimeMs
           : effectiveRuntimeMs;
       const projectedStart: number =
-        command.concurrentOffsetMs != null && projectedPreviousCastStart != null
-          ? Math.max(projectedTime, projectedPreviousCastStart + command.concurrentOffsetMs)
+        command.concurrentOffsetMs != null
+          ? Math.max(projectedTime, (projectedPreviousCastStart ?? origin) + command.concurrentOffsetMs)
           : independent
             ? Math.max(projectedTime, projectedIndependentReadyAt)
             : instant
@@ -317,6 +330,12 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       projectedTime = projectedStart;
       projectedReservedEnd = Math.max(projectedReservedEnd, projectedStart + retainedRuntimeMs);
       if (independent) {
+        // Companion boons can differ from the player's. Avoid joining this lane until even its unaccelerated
+        // reservation is behind the player; relative player offsets work for either companion duration.
+        projectedCompanionEnd = Math.max(
+          projectedCompanionEnd,
+          projectedStart + quantizeGw2ActionDurationUp(Math.max(retainedRuntimeMs, action.skill?.castTimeMs ?? 0))
+        );
         if (action.skill?.independentCastCanOverlap !== true) {
           projectedIndependentReadyAt = Math.max(projectedIndependentReadyAt, projectedStart + retainedRuntimeMs);
         }
