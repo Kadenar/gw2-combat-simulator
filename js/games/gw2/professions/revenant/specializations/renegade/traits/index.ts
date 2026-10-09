@@ -157,7 +157,7 @@ export const brutalMomentum = defineTrait({
     {
       emit: PROFILE.brutalMomentum,
       on: 'buff.applied',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         (event.kind || '').toLowerCase() === 'fury' &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
@@ -200,7 +200,7 @@ export const endlessEnmity = defineTrait({
     {
       emit: PROFILE.endlessEnmity,
       on: 'damage.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event, details) =>
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&

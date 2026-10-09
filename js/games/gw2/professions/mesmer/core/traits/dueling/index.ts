@@ -164,7 +164,7 @@ export const criticalInfusion = defineTrait<MesmerSkill>({
     {
       on: 'damage.resolved',
       emit: TRAIT.CRITICAL_INFUSION,
-      icd: 'profile',
+      cooldown: 'profile',
       when: (_runtime, event, details) =>
         event.actorType === 'player' &&
         (details.hitContext?.damage ?? 0) > 0 &&

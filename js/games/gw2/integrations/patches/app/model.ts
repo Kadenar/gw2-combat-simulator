@@ -288,6 +288,15 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   };
 
   describeGrants(edit.resourceGrants, '');
+  // Explain slot reworks in generated notes so saving the preview preserves their meaning.
+  if (edit.placement) {
+    changes.add(
+      edit.placement.type === 'Weapon'
+        ? `moved to ${edit.placement.weapon} ${edit.placement.slot.replace('Weapon_', '')}`
+        : 'moved to a utility slot'
+    );
+  }
+
   for (const [field, numericEdit] of Object.entries(edit.fields || {})) {
     changes.add(describeNumEdit(field, numericEdit));
   }

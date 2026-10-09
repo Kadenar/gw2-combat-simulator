@@ -32,11 +32,13 @@ export function emitTraitSymbol(
   trait: number,
   symbolId: SkillId,
   cause: Gw2ResolverEvent,
-  options: { party?: boolean; fieldDuration?: (effect: SkillEffect) => number } = {}
+  options: { party?: boolean; fieldDuration?: (effect: SkillEffect) => number; cooldownKey?: SkillId } = {}
 ): boolean {
   const profile = requireBalanceProfileFromContext(runtime, trait);
   const components = (profile.effects ?? []).filter((effect) => effect.type === 'strike' || effect.type === 'boon');
   if (!components.length) return false;
+  // A surviving symbol claims its profile's recharge before child effects can cause another activation.
+  if (options.cooldownKey && !runtime.procs.claim(trait, options.cooldownKey, runtime.time)) return false;
   const symbol = symbols[symbolId];
   const activationId = `guardian.symbol:${symbolId}:${cause.activationId ?? cause.eventOrder}:${runtime.time}`;
   for (const component of components) {

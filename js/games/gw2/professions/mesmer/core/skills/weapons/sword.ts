@@ -160,7 +160,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.BLADE_LEAP]: {
-    castTimeMs: 500,
+    // Keep the player's action lane occupied through the leap's landing.
+    castTimeMs: 1000,
     resource: {
       mode: 'add',
       count: 1

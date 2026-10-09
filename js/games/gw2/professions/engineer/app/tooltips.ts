@@ -493,7 +493,8 @@ export const engineerTooltips: ProfessionTooltips = {
   },
   traits: {
     [TRAIT.EXPLOSIVE_ENTRANCE]: traitTooltip(
-      'Your first qualifying player strike triggers an additional explosion. Dodging makes it available again.'
+      'Your first qualifying player strike triggers an additional explosion. Dodging rearms it without resetting the skill recharge.',
+      [['cooldown', 'Base skill recharge', tooltipSeconds]]
     ),
     [TRAIT.STEEL_PACKED_POWDER]: traitTooltip('Explosions inflict vulnerability.'),
     [TRAIT.SHAPED_CHARGE]: traitTooltip(
@@ -511,7 +512,7 @@ export const engineerTooltips: ProfessionTooltips = {
         ...simulationEffectFacts(effects),
         description: 'Using a healing skill triggers Lesser Grenade Barrage.',
         facts: [
-          profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
+          profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
           // Show the selected preview's explosion bonus alongside Grenadier's existing proc.
           modifierFact(
             balanceContext,
@@ -834,7 +835,7 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.MECH_FIGHTER]: traitTooltip(
       'Eligible player weapon attacks command the mech to use Rocket Punch.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Rocket Punch cooldown', tooltipSeconds),
+        profileFact(balanceContext, id, 'cooldown', 'Rocket Punch base recharge', tooltipSeconds),
         ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.ROCKET_PUNCH_MECH)!.effects, 'mech effect')
           .facts
       ],

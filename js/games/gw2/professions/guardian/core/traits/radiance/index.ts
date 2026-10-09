@@ -266,7 +266,7 @@ export const innerFire = defineTrait({
     {
       on: 'damage.resolved',
       emit: TRAIT.INNER_FIRE,
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event, details) =>
         event.actorType === 'player' &&
         (details.hitContext?.damage ?? 0) > 0 &&

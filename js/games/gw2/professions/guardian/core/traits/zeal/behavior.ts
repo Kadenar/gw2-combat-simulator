@@ -79,17 +79,11 @@ export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, dam
       : health > 0
         ? (runtime.combat.targetHealthLoss() - damage) / health
         : 0;
-  if (
-    !(lostFraction > balanceProfileNumber(profile, 'threshold')) ||
-    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.core.zealotsResolution'))
-  )
-    return;
-  // Claim before the first queued symbol impact so same-time children cannot recursively claim it.
-  if (emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event))
-    runtime.procs.setDeadline(
-      'guardian.core.zealotsResolution',
-      canonicalTime(runtime.time + balanceProfileNumber(profile, 'cooldown'))
-    );
+  if (!(lostFraction > balanceProfileNumber(profile, 'threshold'))) return;
+  // The profile owns this symbol's Alacrity-aware recharge; removed symbols do not consume it.
+  emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event, {
+    cooldownKey: 'guardian.core.zealotsResolution'
+  });
 }
 
 /** Greatsword recharge uses the selected trait profile before the later weapon and virtue adjustments. */

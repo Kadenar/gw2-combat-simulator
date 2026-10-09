@@ -30,7 +30,9 @@ export const signetMastery = defineTrait({
   id: TRAIT.SIGNET_MASTERY,
   name: 'Signet Mastery',
   balance: {
-    internalCooldown: 20,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 20,
     maximumStacks: 5,
     attributeBonus: 100,
     effects: [
@@ -168,7 +170,7 @@ export const furiousBurst = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.inputCategory === 'weapon-swap',
       emit: TRAIT.FURIOUS_BURST,
-      icd: 'profile',
+      cooldown: 'profile',
       effects: (effect) => effect.type === 'boon' && effect.name === 'fury',
       attribution: { name: 'Furious Burst' }
     }

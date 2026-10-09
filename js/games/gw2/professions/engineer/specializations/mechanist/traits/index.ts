@@ -8,6 +8,8 @@ import {
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import { overclockPassive } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-attack-skills.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import {
   BARRIER_ENGINE_TASK,
@@ -42,7 +44,9 @@ export const mechFighter = defineTrait({
   id: TRAIT.MECH_FIGHTER,
   name: 'Rocket Punch',
   balance: {
-    internalCooldown: 5,
+    // The mech uses this skill, so only Alacrity received by that companion accelerates its recharge.
+    cooldownPolicy: 'summonRecharge',
+    cooldown: MECHANIST_MECH_ATTACK_SKILL_MECHANICS[ID.ROCKET_PUNCH_MECH]!.cooldown,
     effects: []
   }
 });

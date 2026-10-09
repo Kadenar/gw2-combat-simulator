@@ -586,6 +586,24 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
   }
 
   for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
+    // Sword replacements share a tile even though the specialization gives the skill a different name.
+    const app = {
+      adapter: mesmerAppAdapter,
+      profession: mesmerProfession,
+      skills: mesmerCatalog.skills,
+      skillById: mesmerCatalog.skillsById,
+      build: {
+        ...createMesmerBuildDefaults(),
+        specializations: [{ name: specialization, traits: '1-1-1' }],
+        weapons: ['Sword', 'Sword']
+      }
+    };
+    assert.deepEqual(
+      weaponSkills(app)
+        .filter((skill) => skill.slot === 'Weapon_3' && !skill.flipParentId)
+        .map((skill) => skill.id),
+      [specialization === 'Troubadour' ? ID.BLADE_LEAP : ID.ILLUSIONARY_LEAP]
+    );
     const catalog = mesmerProfession.runtimeFor({ specialization }).catalog;
     assert.equal(catalog.skillsById.has(ID.AXES_OF_SYMMETRY), specialization === 'Mirage');
     assert.equal(catalog.skillsById.has(ID.LINGERING_THOUGHTS), specialization === 'Mirage');

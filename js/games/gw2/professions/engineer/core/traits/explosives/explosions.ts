@@ -28,7 +28,7 @@ import type {
 
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
 
-/** Schedules Grenadier's lesser barrage from an eligible healing cast after its internal cooldown. */
+/** Schedules Grenadier's lesser barrage from an eligible healing cast after its profile-owned skill recharge. */
 export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if ((skill.type !== 'Heal' && skill.slot !== 'Heal') || !hasTrait(context.traits, TRAIT.GRENADIER)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.GRENADIER);
@@ -84,8 +84,8 @@ export function applyExplosiveEntrance(context: EngineerResolverContext, event: 
 
   const explosiveEntranceProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_ENTRANCE);
   const explosiveEntranceStrike = requireEffect(explosiveEntranceProfile, 'strike', 'Explosive Entrance');
-  if (explosiveEntranceStrike) {
-    // Only a surviving packet consumes this once-per-dodge proc.
+  if (explosiveEntranceStrike && context.procs.claim(TRAIT.EXPLOSIVE_ENTRANCE, TRAIT.EXPLOSIVE_ENTRANCE, event.at)) {
+    // A hit during skill recharge leaves the dodge-armed attack available for the next eligible hit.
     professionCoreState(context).explosiveEntranceFired = true;
     emitExplosiveEntrance(context, event);
   }

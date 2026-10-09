@@ -461,7 +461,7 @@ test('recharge rules compose with hooks and trait triggers claim before emitting
           on: 'castCommit',
           when: () => true,
           emit: 'test.proc',
-          icd: 'profile',
+          cooldown: 'profile',
           attribution: { name: 'first' }
         },
         {
@@ -469,7 +469,7 @@ test('recharge rules compose with hooks and trait triggers claim before emitting
           on: 'castCommit',
           when: () => true,
           emit: 'test.proc',
-          icd: 'profile',
+          cooldown: 'profile',
           attribution: { name: 'suppressed' }
         }
       ],
@@ -611,7 +611,7 @@ test('dynamic cast attribution preserves targeting and overrides authored packet
           trait: 'test.trait',
           on: 'castCommit',
           emit: 'test.attribution',
-          icd: 'profile',
+          cooldown: 'profile',
           when: (_runtime, activation) => activation.skill.id === 991001,
           attribution(_runtime, activation) {
             calls.push([activation.id, procs.deadline('test.attribution')]);

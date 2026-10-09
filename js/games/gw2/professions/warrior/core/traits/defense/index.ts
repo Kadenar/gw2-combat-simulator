@@ -62,7 +62,7 @@ export const stalwartStrength = defineTrait({
       on: 'control.resolved',
       when: (_runtime, event) => event.actorType === 'player',
       emit: TRAIT.STALWART_STRENGTH,
-      icd: 'profile',
+      cooldown: 'profile',
       attribution: { priority: 5 }
     }
   ]

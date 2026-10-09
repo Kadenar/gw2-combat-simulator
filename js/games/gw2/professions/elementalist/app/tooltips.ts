@@ -797,7 +797,7 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.FINAL_SHIELDING]: outsideScopeTooltip,
     [TRAIT.EVASIVE_ARCANA]: traitTooltip(
       "Completing a dodge triggers your primary attunement's effect: Fire strikes and burns, Earth strikes and applies conditions with a blast finisher, and Air blinds. Water healing and cleansing are outside combat scope.",
-      [['internalCooldown', 'Cooldown per attunement', tooltipSeconds]]
+      [['cooldown', 'Cooldown per attunement', tooltipSeconds]]
     ),
     [TRAIT.ARCANE_LIGHTNING]: traitTooltip(
       'Completing an arcane skill grants temporary ferocity and its corresponding extra effect. Arcane Blast blinds the target.',

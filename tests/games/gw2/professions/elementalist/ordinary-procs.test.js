@@ -93,7 +93,11 @@ for (const [trait, traitId, key, profile, invoke] of [
       const { context, core, events } = contextFor();
       core.primaryAttunement = 'Water';
       const profiles = new Map(elementalistCatalog.balanceProfilesById);
-      profiles.set(profile, { ...profiles.get(profile), internalCooldown: duration });
+      profiles.set(profile, {
+        ...profiles.get(profile),
+        [traitId === TRAIT.EVASIVE_ARCANA ? 'cooldown' : 'internalCooldown']: duration
+      });
+      const elapsed = traitId === TRAIT.EVASIVE_ARCANA ? duration / 1.25 : duration;
       context.helpers = { ...context.helpers, balanceProfilesById: profiles };
       invoke(context);
       assert.deepEqual({ ...context.procs.snapshot() }, {});
@@ -102,7 +106,7 @@ for (const [trait, traitId, key, profile, invoke] of [
       context.effects = {
         emit(request) {
           const event = request.event ?? request.announcement ?? { at: request.at };
-          assert.equal(context.procs.snapshot()[key], event.at + duration);
+          assert.equal(context.procs.snapshot()[key], event.at + elapsed);
           return emit(request);
         }
       };
@@ -110,7 +114,7 @@ for (const [trait, traitId, key, profile, invoke] of [
       invoke(context);
       const count = events.length;
       assert.ok(count > 0);
-      context.effectiveEnd = 1 + duration;
+      context.effectiveEnd = 1 + elapsed;
       invoke(context);
       assert.equal(events.length, count);
       context.effectiveEnd += 0.000001;

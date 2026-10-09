@@ -27,7 +27,9 @@ export const goForTheThroat = defineTrait({
   id: TRAIT.GO_FOR_THE_THROAT,
   name: 'Go for the Throat',
   balance: {
-    internalCooldown: 10,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 10,
     effects: [
       {
         name: 'lesser-sic-em-pet',
@@ -208,7 +210,7 @@ export const bestialRageControl = compileProfessionRules<RangerRuntimeState>({
       trait: TRAIT.BESTIAL_RAGE,
       emit: TRAIT.BESTIAL_RAGE,
       on: 'control.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       // Only the surviving boon effects can activate this trait's control proc.
       when: (runtime) =>
         ['might', 'fury'].some((effectName) =>

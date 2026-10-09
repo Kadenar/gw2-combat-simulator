@@ -47,6 +47,7 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
   /** Omit for behavior-only traits; id overrides preserve existing non-trait profile identities. */
   readonly balance?: Readonly<Record<string, unknown>> & {
     readonly id?: SkillId;
+    readonly cooldownPolicy?: BalanceProfile['cooldownPolicy'];
     readonly effects?: BalanceProfile['effects'];
   };
   readonly profiles?: readonly BalanceProfile[];

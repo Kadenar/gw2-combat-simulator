@@ -224,7 +224,7 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
   );
   assert.equal(
     observedRuntime(zealotsResolution).procs.deadline('guardian.core.zealotsResolution'),
-    resolution[0].at + 30
+    resolution[0].at + 24
   );
 });
 
@@ -250,7 +250,7 @@ test("Zealot's Resolution requires the enemy to be below its threshold before th
     (event) => event.type === 'damage' && event.skillName === 'Pure Strike'
   );
   assert.equal(pulses(followup)[0].at, secondHit.at);
-  assert.equal(observedRuntime(followup).procs.deadline('guardian.core.zealotsResolution'), secondHit.at + 30);
+  assert.equal(observedRuntime(followup).procs.deadline('guardian.core.zealotsResolution'), secondHit.at + 24);
 });
 
 test("Spear's Furious Focus symbol precedes the tether and only later pulses gain Big Game Hunter", () => {
@@ -350,7 +350,7 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
   );
 });
 
-test("Protector's Restoration shares a fixed twenty-second ICD across committed healing skills", () => {
+test("Protector's Restoration shares an Alacrity-adjusted sixteen-second recharge across committed healing skills", () => {
   // Different heals share the same strict cooldown boundary; canceled casts and utilities cannot claim it.
   const settings = { selectedTraitIds: [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION] };
   for (const skillId of [GUARDIAN_SKILL_IDS.SHELTER, GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE]) {
@@ -367,7 +367,7 @@ test("Protector's Restoration shares a fixed twenty-second ICD across committed 
       assert.equal(boons.length > 0, offset > 0);
       assert.equal(
         observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'),
-        offset > 0 ? completion + 20 : deadline
+        offset > 0 ? completion + 16 : deadline
       );
     }
 
@@ -409,7 +409,7 @@ test("Protector's Restoration pulses Protection and symbol damage while its Ligh
     [combo.fieldSourceId, combo.fieldType, combo.finisherType],
     [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION, 'Light', 'Blast']
   );
-  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), start + 20);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), start + 16);
   const expired = run(2500);
   assert.deepEqual(expired.warnings, []);
   assert.equal(
@@ -611,6 +611,24 @@ test('Relic of Fireworks triggers on Dragonhunter virtues', () => {
 
   assert.ok(procs.length > 0);
   assert.ok(procs.every((step) => step.sourceSkill === 'Spear of Justice'));
+});
+
+// The initial strike can activate or refresh the relic, but ongoing tethers must allow its buff to expire.
+test('Binding Blade activates and refreshes Fireworks without proccing on tether damage', () => {
+  const simulate = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    primaryWeapon: 'Greatsword',
+    relic: 'Fireworks'
+  });
+  for (const opening of [[], ['Spear of Justice']]) {
+    const result = simulate('Dragonhunter', [...opening, 'Binding Blade', { type: 'wait', durationMs: 11000 }]);
+    assert.deepEqual(result.warnings, []);
+    const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
+    assert.equal(procs.length, opening.length + 1);
+    assert.equal(procs.at(-1).sourceSkill, 'Binding Blade');
+    assert.equal(procs.at(-1).detail, opening.length ? 'refreshed' : 'activated');
+    assert.ok(result.resolvedEvents.some((event) => event.name === 'Binding Blade — Tether' && event.damage > 0));
+  }
 });
 
 test('Dragonhunter traps and control traits apply their complete effects', () => {

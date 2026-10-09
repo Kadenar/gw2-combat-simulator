@@ -1,4 +1,4 @@
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function isSlotSkillSelectable(
@@ -45,6 +45,31 @@ export function availableSlotSkills(app: ProfessionAppState, type: string): Skil
   }
 
   return [...byLoadoutId.values()];
+}
+
+function samePlacement(left: Skill | undefined, right: Skill): boolean {
+  return Boolean(
+    left && left.type === right.type && left.slot === right.slot && (left.weapon || '') === (right.weapon || '')
+  );
+}
+
+/** Preserve the selected slot across reciprocal patch role swaps before ordinary loadout validation repairs it. */
+export function swapSelectedSkillsForPatch(
+  app: Pick<ProfessionAppState, 'build' | 'activeCatalog'>,
+  nextCatalog: Readonly<CanonicalCatalog>
+): void {
+  for (const [slot, id] of Object.entries(app.build.selectedSkillIds)) {
+    if (id == null) continue;
+    const previous = app.activeCatalog.skillsById.get(id);
+    const next = nextCatalog.skillsById.get(id);
+    if (!previous || !next || previous.type === next.type) continue;
+    const replacements = nextCatalog.skills.filter(
+      (candidate) =>
+        samePlacement(candidate, previous) && samePlacement(app.activeCatalog.skillsById.get(candidate.id), next)
+    );
+    // Only an unambiguous reciprocal swap identifies the intended replacement.
+    if (replacements.length === 1) app.build.selectedSkillIds[slot] = replacements[0]!.id;
+  }
 }
 
 export function normalizeSelectedSkills(app: ProfessionAppState): void {

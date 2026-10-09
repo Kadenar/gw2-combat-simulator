@@ -178,7 +178,7 @@ export const sharedEmpowerment = defineTrait({
     {
       emit: HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
       on: 'buff.applied',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         event.sourceId !== TRAIT.SHARED_EMPOWERMENT &&
         isStandardBoon(String(event.kind)) &&

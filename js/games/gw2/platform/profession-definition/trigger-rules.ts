@@ -34,7 +34,7 @@ type TriggerAttributionSource<T extends object, Trigger, TSkill extends Skill = 
 type TraitTriggerBase = {
   readonly trait: SkillId;
   readonly emit: SkillId;
-  readonly icd?: 'profile';
+  readonly cooldown?: 'profile';
   readonly order?: number;
   readonly effects?: (effect: SkillEffect) => boolean;
 };
@@ -106,8 +106,8 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
       activationId?: string,
       cause?: Gw2ResolverEvent
     ) => {
-      if (rule.icd && !runtime.procs.claim(rule.emit)) return;
-      // Resolve once, after eligibility and the ICD claim, so every sibling packet shares the same identity.
+      if (rule.cooldown && !runtime.procs.claim(rule.emit)) return;
+      // Resolve once, after eligibility and the profile cooldown claim, so every sibling packet shares the same identity.
       const attribution = resolveAttribution();
       const profile = requireBalanceProfileFromContext(runtime, rule.emit);
       runtime.effects.emit({

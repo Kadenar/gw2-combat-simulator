@@ -457,7 +457,7 @@ export const rangerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.CLARION_BOND]: traitTooltip(
       'Swapping pets triggers Lesser Call of the Wild: grant party boons, weaken the target, and perform a blast finisher.',
-      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
+      [['cooldown', 'Base skill recharge', tooltipSeconds]]
     ),
     [TRAIT.WOLFSONG]: traitTooltip(
       'Your strikes deal increased damage against vulnerable targets. Using a beast skill with a canine pet inflicts vulnerability.',
@@ -626,7 +626,7 @@ export const rangerTooltips: ProfessionTooltips = {
       description:
         "Your pet's beast-skill hit grants it Lesser Sic 'Em. The first hit of your merged Beast Ability grants the separate personal bonus instead.",
       facts: [
-        profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
+        profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
         modifierFact(balanceContext, 'ranger.lesser-sic-em-pet', 'factor', 'Pet strike damage', tooltipFactorChange),
         modifierFact(
           balanceContext,
@@ -651,7 +651,7 @@ export const rangerTooltips: ProfessionTooltips = {
         description:
           'Completing a healing skill triggers Lesser Muddy Terrain: immobilize once, then repeatedly cripple and slow the target.',
         facts: [
-          profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
+          profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
           profileFact(balanceContext, entity.id, 'pulseInterval', 'Pulse interval', tooltipSeconds),
           ...simulationEffectFacts(
             (profile.effects || []).map((effect, index) => ({

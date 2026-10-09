@@ -31,6 +31,7 @@ export const NON_MIRAGE_AXE_SKILL_IDS: ReadonlySet<SkillId> = new Set([
 
 // Explicit replacement families allow palette selection to survive label changes.
 const WEAPON_TILE_IDS = new Map<SkillId, SkillId>([
+  [ID.BLADE_LEAP, ID.ILLUSIONARY_LEAP],
   [ID.BLADECALL, ID.BLADECALL_NON_VIRTUOSO],
   [ID.AXES_OF_SYMMETRY, ID.AXES_OF_SYMMETRY_NON_MIRAGE],
   [ID.LINGERING_THOUGHTS, ID.LINGERING_THOUGHTS_NON_MIRAGE]

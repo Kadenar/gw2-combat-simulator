@@ -563,7 +563,7 @@ export const warriorTooltips: ProfessionTooltips = {
       [
         ['attributeBonus', 'Ferocity per stack'],
         ['maximumStacks', 'Maximum stacks'],
-        ['internalCooldown', 'Lesser Signet of Might cooldown', tooltipSeconds]
+        ['cooldown', 'Lesser Signet of Might cooldown', tooltipSeconds]
       ]
     ),
     [TRAIT.OPPORTUNIST]: traitTooltip('Player control or immobilize applications grant adrenaline and fury.', [

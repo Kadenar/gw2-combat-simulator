@@ -26,7 +26,7 @@ export const assassinsFury = defineTrait({
     {
       on: 'buff.applied',
       emit: TRAIT.ASSASSINS_FURY,
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         (event.kind || '').toLowerCase() === 'fury' &&
         Boolean(event.resolvedAudience?.includesSelf) &&

@@ -104,11 +104,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
   const chilled = requireEffect(profile, 'condition', 'Chilled');
   // Claim only after local eligibility, before conditions, resources or queued strikes; with both packets removed
   // there is no proc to gate.
-  if (
-    (!strike && !chilled) ||
-    !context.procs.claimCooldown('chillOfDeath', event.at, balanceProfileNumber(profile, 'cooldown'))
-  )
-    return;
+  if ((!strike && !chilled) || !context.procs.claim(TRAIT.CHILL_OF_DEATH, 'chillOfDeath', event.at)) return;
   if (strike) {
     /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
       kind: 'packet',

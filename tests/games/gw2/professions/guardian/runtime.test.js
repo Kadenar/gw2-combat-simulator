@@ -1202,7 +1202,7 @@ test("Zealot's Resolution excludes the threshold-crossing hit and gives its chil
   assert.ok(child.every((event) => event.at === 0.2));
   assert.ok(child.every((event) => event.activationId === child[0].activationId));
   assert.notEqual(child[0].activationId, 'impact-0.2');
-  assert.equal(observedRuntime(triggered).procs.deadline('guardian.core.zealotsResolution'), 30.2);
+  assert.equal(observedRuntime(triggered).procs.deadline('guardian.core.zealotsResolution'), 24.2);
 });
 
 test('Righteous Instincts extends one cadence and rejects stale ticks after a new Resolution window', () => {

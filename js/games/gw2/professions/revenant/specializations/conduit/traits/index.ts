@@ -131,7 +131,7 @@ export const mistfire = defineTrait({
     {
       emit: PROFILE.mistfire,
       on: 'control.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         !(event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) &&
         Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistfire), 'condition', 'Burning')),

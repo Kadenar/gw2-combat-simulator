@@ -6,6 +6,10 @@ import { defineRelic, timedStrikeBuff, recordTimedBuffProc } from '#gw2/platform
 export const fireworks = defineRelic({
   buffPolicies: [{ kind: 'relic-fireworks', name: 'Relic of Fireworks', maximumStacks: 1 }],
   afterHit(ctx, _state, event, skill) {
+    // Flat strikes (including Binding Blade's tether) ignore weapon strength and cannot activate Fireworks.
+    const isFlatStrike =
+      event.type === 'damage' &&
+      [event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(Number.isFinite);
     // Kit/bundle skills strike at bundle strength rather than weapon
     // strength, so they never qualify.
     const isWeaponSkill = skill?.type === 'Weapon' && !skill.kitId;
@@ -16,6 +20,7 @@ export const fireworks = defineRelic({
     const strikesAtWeaponStrength = profileId.startsWith('weapon.') || profileId === 'nonweapon.profession-mechanic';
     const isWeaponStrengthProfessionMechanic = event.skillWeapon === 'Profession mechanic' || strikesAtWeaponStrength;
     if (
+      isFlatStrike ||
       !isGw2PlayerActorEvent(event) ||
       (!isWeaponSkill && !skill?.shroud && !isWeaponStrengthProfessionMechanic) ||
       (skill?.cooldown || 0) < 20

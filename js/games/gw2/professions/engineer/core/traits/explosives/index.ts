@@ -6,7 +6,8 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
 import { playerHealthFraction, targetHealthFraction } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/trait-skills.js';
 
 /** Owns Grenadier tuning and behavior at its established runtime and build boundaries. */
 export const grenadier = defineTrait({
@@ -29,7 +30,9 @@ export const grenadier = defineTrait({
     }
   ],
   balance: {
-    internalCooldown: 20,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: ENGINEER_TRAIT_SKILL_MECHANICS[ID.LESSER_GRENADE_BARRAGE]!.cooldown,
     // The canonical coefficient is the total across all six half-coefficient grenades.
     effects: [{ name: 'Grenadier', type: 'strike', coefficient: 3, hits: 6, atMs: 0 }]
   }
@@ -40,6 +43,9 @@ export const explosiveEntrance = defineTrait({
   id: TRAIT.EXPLOSIVE_ENTRANCE,
   name: 'Explosive Entrance',
   balance: {
+    // Dodging rearms the attack, independently of the produced skill's short recharge.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: ENGINEER_TRAIT_SKILL_MECHANICS[ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL]!.cooldown,
     effects: [{ name: 'Explosive Entrance', type: 'strike', coefficient: 1.25, hits: 1 }]
   },
   hooks: { eventHandlers: { 'engineer.dodge': resetExplosiveEntrance } }

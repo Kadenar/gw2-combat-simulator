@@ -1,6 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -18,7 +17,6 @@ import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/mechanics/
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
@@ -35,7 +33,7 @@ export const empoweringMight = defineTrait({
       order: -2,
       emit: TRAIT.EMPOWERING_MIGHT,
       on: 'damage.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (_runtime, event, details) =>
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&
@@ -55,7 +53,9 @@ export const protectorsRestoration = defineTrait({
   id: TRAIT.PROTECTORS_RESTORATION,
   name: "Protector's Restoration",
   balance: {
-    internalCooldown: 20,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 20,
     effects: [
       {
         type: 'strike',
@@ -269,25 +269,11 @@ export function completeProtectorsRestoration(runtime: Runtime, cast: RuntimeCas
   if (cast.skill.type !== 'Heal') return;
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
 
-  if (
-    hasTrait(runtime, TRAIT.PROTECTORS_RESTORATION) &&
-    isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.core.protectorsRestoration'))
-  ) {
-    if (
-      emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause, {
-        party: true,
-        fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
-      })
-    )
-      runtime.procs.setDeadline(
-        'guardian.core.protectorsRestoration',
-        canonicalTime(
-          runtime.time +
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(runtime, TRAIT.PROTECTORS_RESTORATION),
-              'internalCooldown'
-            )
-        )
-      );
+  if (hasTrait(runtime, TRAIT.PROTECTORS_RESTORATION)) {
+    emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause, {
+      party: true,
+      cooldownKey: 'guardian.core.protectorsRestoration',
+      fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
+    });
   }
 }

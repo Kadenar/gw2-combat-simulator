@@ -5,7 +5,7 @@ import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { readStoredTimelineOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
 import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
-import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
+import { normalizeSelectedSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
 import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
 import {
   captureActiveBuildTab,
@@ -487,6 +487,7 @@ export class ProfessionApp implements ProfessionAppState {
         : null;
     if (!catalog) throw new TypeError(`Unknown patch ${patchId}.`);
     if (patchId === this.patchId) return;
+    swapSelectedSkillsForPatch(this, catalog);
     this.patchId = patchId;
     this.activeCatalog = catalog;
     this.skills = [...catalog.skills];

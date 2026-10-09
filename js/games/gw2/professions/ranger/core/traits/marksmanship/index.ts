@@ -57,7 +57,9 @@ export const clarionBond = defineTrait({
   id: TRAIT.CLARION_BOND,
   name: 'Clarion Bond',
   balance: {
-    internalCooldown: 15,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 15,
     effects: [
       { name: 'fury', type: 'boon', boon: 'fury', duration: 5, stacks: 1 },
       { name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 6 },

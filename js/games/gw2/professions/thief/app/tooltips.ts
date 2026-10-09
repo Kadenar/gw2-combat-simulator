@@ -881,7 +881,7 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.BURST_OF_AGILITY]: traitTooltip(
       'Landing an attack against a defiant target triggers Lesser Haste, granting quickness, fury, and swiftness to yourself.',
-      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
+      [['cooldown', 'Base skill recharge', tooltipSeconds]]
     ),
     [TRAIT.THRILL_OF_THE_CRIME]: traitTooltip('Stealing grants fury, might, and swiftness to yourself.'),
     [TRAIT.BOUNTIFUL_THEFT]: traitTooltip(

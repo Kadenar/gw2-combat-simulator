@@ -3,15 +3,15 @@ import test from 'node:test';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
-// Misses and non-player packets cannot claim the ICD; every boon shares the landed attack's proc boundary.
-test('Burst of Agility grants Lesser Haste self boons on defiant hits with a 60-second ICD', () => {
+// Misses and non-player packets cannot claim the skill recharge; every boon shares the landed attack's proc boundary.
+test('Burst of Agility grants Lesser Haste self boons on defiant hits with an Alacrity-adjusted 48-second recharge', () => {
   for (const [selected, defiant] of [
     [true, true],
     [false, true],
     [true, false]
   ]) {
     const result = runThief(
-      [{ type: 'wait', durationMs: 62000 }],
+      [{ type: 'wait', durationMs: 50000 }],
       {
         selectedTraitIds: selected ? [TRAIT.BURST_OF_AGILITY] : [],
         target: { armor: 2597, health: 1000000000, defiant, conditions: {} }
@@ -25,9 +25,9 @@ test('Burst of Agility grants Lesser Haste self boons on defiant hits with a 60-
             [0.4, { coefficient: 0, flatStrikeBase: 100, damageKind: 'life-steal' }],
             [1, {}],
             [1, {}],
-            [60.96, {}],
-            [61, {}],
-            [61.04, {}]
+            [48.96, {}],
+            [49, {}],
+            [49.04, {}]
           ])
             runtime.effects.emit({ kind: 'packet', event: thiefHit(at, fields) });
         }
@@ -40,7 +40,7 @@ test('Burst of Agility grants Lesser Haste self boons on defiant hits with a 60-
     assert.deepEqual(
       boons.map((event) => [event.at, event.kind, event.duration]),
       selected && defiant
-        ? [1, 61.04].flatMap((at) => ['quickness', 'fury', 'swiftness'].map((kind) => [at, kind, 6]))
+        ? [1, 49.04].flatMap((at) => ['quickness', 'fury', 'swiftness'].map((kind) => [at, kind, 6]))
         : []
     );
     for (const boon of boons) {

@@ -56,9 +56,20 @@ export function mesmerShatterProfile(
 }
 
 // Profiles tune trait packets and timers; damage multipliers belong to executable modifier rules.
-export function mesmerTraitDamageProfile(id: SkillId, name: string, damage: MesmerTraitDamage): BalanceProfile {
+export function mesmerTraitDamageProfile(
+  id: SkillId,
+  name: string,
+  damage: MesmerTraitDamage,
+  cooldownPolicy: BalanceProfile['cooldownPolicy'] = 'internal'
+): BalanceProfile {
   return trait(id, name, {
-    ...(damage.cooldown == null ? {} : { internalCooldown: damage.cooldown }),
+    // Skill recharges retain base work separately from genuine trait ICDs.
+    ...(damage.cooldown == null
+      ? {}
+      : {
+          cooldownPolicy,
+          [cooldownPolicy === 'internal' ? 'internalCooldown' : 'cooldown']: damage.cooldown
+        }),
     ...(damage.duration == null ? {} : { durationMultiplier: damage.duration }),
     effects: [
       damage.ticks?.length
@@ -137,6 +148,8 @@ export function mesmerProfiledTraitDamage(
 ): MesmerTraitDamage {
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
   const strike = requireEffect(profile, 'strike', 'Strike');
+  const cooldownField =
+    profile.cooldownPolicy && profile.cooldownPolicy !== 'internal' ? 'cooldown' : 'internalCooldown';
   // Runtime callers supply only mechanic metadata; all attack tuning comes from the active profile.
   return {
     balanceProfileId,
@@ -144,9 +157,9 @@ export function mesmerProfiledTraitDamage(
     ...strike,
     name: undefined,
     cooldown:
-      !metadata.requiresCooldown && profile.internalCooldown === undefined
+      !metadata.requiresCooldown && profile[cooldownField] === undefined
         ? undefined
-        : balanceProfileNumber(profile, 'internalCooldown'),
+        : balanceProfileNumber(profile, cooldownField),
     duration: profile.durationMultiplier === undefined ? undefined : balanceProfileNumber(profile, 'durationMultiplier')
   };
 }

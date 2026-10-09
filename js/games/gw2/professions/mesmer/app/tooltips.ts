@@ -515,7 +515,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.METHOD_OF_MADNESS]: traitTooltip(
       'Completing a healing skill triggers Lesser Chaos Storm, repeatedly striking the target.',
-      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
+      [['cooldown', 'Base skill recharge', tooltipSeconds]]
     ),
     [TRAIT.ILLUSIONARY_DEFENSE]: outsideScopeTooltip,
     [TRAIT.MASTER_OF_MANIPULATION]: outsideScopeTooltip,

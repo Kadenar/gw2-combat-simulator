@@ -571,7 +571,7 @@ export const guardianTooltips: ProfessionTooltips = {
         description:
           'Committing a healing skill creates Lesser Symbol of Protection. Each strike pulse also grants party protection.',
         facts: [
-          profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
+          profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
           ...simulationEffectFacts(
             profile.effects?.map((effect) =>
               effect.type === 'boon' ? { ...effect, audience: { recipients: 'party' as const } } : effect

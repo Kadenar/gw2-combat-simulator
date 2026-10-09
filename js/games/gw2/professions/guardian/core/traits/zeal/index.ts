@@ -114,6 +114,8 @@ export const zealotsResolution = defineTrait({
   id: TRAIT.ZEALOTS_RESOLUTION,
   name: "Zealot's Resolution",
   balance: {
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
     cooldown: 30,
     threshold: 0.25,
     // Share timing defaults while preserving each packet, effect order, and local schedule.

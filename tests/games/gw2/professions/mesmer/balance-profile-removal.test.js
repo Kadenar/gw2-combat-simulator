@@ -269,11 +269,8 @@ test('required profiles and scalars reject malformed input while optional trait 
   const id = TRAIT.METHOD_OF_MADNESS;
   const compile = (profile) => methodOfMadnessDamage({ balanceProfile: () => profile });
   assert.throws(() => compile(undefined), /missing required profile/);
-  for (const internalCooldown of [undefined, null, '', '10', NaN, Infinity]) {
-    assert.throws(
-      () => compile({ ...mesmerCatalog.balanceProfilesById.get(id), internalCooldown }),
-      /field=internalCooldown/
-    );
+  for (const cooldown of [undefined, null, '', '10', NaN, Infinity]) {
+    assert.throws(() => compile({ ...mesmerCatalog.balanceProfilesById.get(id), cooldown }), /field=cooldown/);
   }
 
   const compiled = compile(mesmerCatalog.balanceProfilesById.get(id));

@@ -18,7 +18,9 @@ export const childOfEarth = defineTrait({
   id: TRAIT.CHILD_OF_EARTH,
   name: 'Child of Earth',
   balance: {
-    internalCooldown: 20,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 20,
     pulseInterval: 2,
     maximumStacks: 5,
     effects: [
@@ -97,7 +99,7 @@ export const carnivore = defineTrait({
       order: 0,
       emit: TRAIT.CARNIVORE,
       on: 'control.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.CARNIVORE), 'strike', 'Strike')),
@@ -177,7 +179,7 @@ export const survivalInstincts = defineTrait({
 
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
 
-// On an eligible heal, consume Child of Earth's ICD and emit the initial
+// On an eligible heal, claim Lesser Muddy Terrain's recharge and emit the initial
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
 export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
   if (!hasTrait(context, TRAIT.CHILD_OF_EARTH)) return;

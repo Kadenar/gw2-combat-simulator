@@ -108,6 +108,10 @@ export interface EffectPatch extends EffectSelector {
 }
 
 export interface SkillPatchEdit {
+  /** Reclassify a skill in the preview while retaining its identity and mechanics. */
+  readonly placement?:
+    | { readonly type: 'Weapon'; readonly weapon: string; readonly slot: `Weapon_${1 | 2 | 3 | 4 | 5}` }
+    | { readonly type: 'Utility'; readonly weapon: ''; readonly slot: 'Utility' };
   /** Cast grants are independent of hostile effect edits. */
   readonly resourceGrants?: ResourceGrantEdits;
   /** Numeric balance fields such as cooldown or initiativeCost. */
@@ -649,6 +653,24 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   const clone = cloneCatalogData(skill);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as MutableRecord;
+  // Placement changes drive equipment eligibility, utility selection, and weapon-based trait rules together.
+  if (edit.placement != null) {
+    const placement = edit.placement;
+    if (
+      typeof placement !== 'object' ||
+      Object.keys(placement).some((field) => !['type', 'weapon', 'slot'].includes(field)) ||
+      !(
+        (placement.type === 'Weapon' &&
+          typeof placement.weapon === 'string' &&
+          placement.weapon.trim() &&
+          /^Weapon_[1-5]$/.test(placement.slot)) ||
+        (placement.type === 'Utility' && placement.weapon === '' && placement.slot === 'Utility')
+      )
+    )
+      throw new TypeError(`${ownerLabel} has invalid skill placement.`);
+    Object.assign(mutable, placement);
+  }
+
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),
     ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })
@@ -668,6 +690,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
 /** Patches only fields exposed by the canonical profile; obsolete spellings fail ordinary numeric validation. */
 function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
+  if (edit.placement != null) throw new TypeError(`${ownerLabel} cannot change skill placement.`);
   const clone = cloneCatalogData(profile);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as MutableRecord;

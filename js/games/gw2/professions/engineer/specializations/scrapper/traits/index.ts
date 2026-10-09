@@ -60,7 +60,8 @@ export const speedOfSynergy = defineTrait<EngineerSkill>({
         name: 'Healing toolbelt superspeed',
         type: 'buff',
         kind: 'superspeed',
-        duration: 7,
+        // Healing toolbelts grant five seconds; Med Kit combines this with the heal's seven below.
+        duration: 5,
         stacks: 1,
         maximumDuration: 10
       },

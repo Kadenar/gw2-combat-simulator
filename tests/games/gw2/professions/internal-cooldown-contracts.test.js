@@ -1,3 +1,4 @@
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -180,8 +181,9 @@ for (const [key, trait, invoke, literalDuration] of [
       context.catalog = { ...necromancerCatalog, balanceProfilesById: profiles };
       let effects = 0;
       const bypass = key === 'dhuumfire' && duration === 0;
+      const elapsed = key === 'chillOfDeath' ? duration / 1.25 : duration;
       const emitted = (event) => {
-        assert.equal(context.procs.snapshot()[key], bypass ? undefined : event.at + duration);
+        assert.equal(context.procs.snapshot()[key], bypass ? undefined : event.at + elapsed);
         effects += 1;
       };
 
@@ -209,9 +211,9 @@ for (const [key, trait, invoke, literalDuration] of [
       opportunity(1);
       assert.ok(effects > 0);
       const count = effects;
-      opportunity(1 + duration);
+      opportunity(1 + elapsed);
       assert.equal(effects, bypass ? count * 2 : count);
-      opportunity(1 + duration + 0.000001);
+      opportunity(1 + elapsed + 0.000001);
       assert.ok(effects > count);
       assert.equal('traitProcReadyAt' in createNecromancerCoreState(), false);
     }
@@ -244,7 +246,7 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     boons: new Map(),
     buffs: new Map(),
     events,
-    query: { statsAt: () => ({}) },
+    query: { statsAt: () => ({}), timeline: createGw2TimelineIndex() },
     effects: captureEffectEmissions({
       now: () => context.time ?? 0,
       submit(event, delivery) {

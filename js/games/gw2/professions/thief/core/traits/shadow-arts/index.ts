@@ -88,7 +88,7 @@ export const shadowSiphoning = defineTrait({
     {
       emit: TRAIT.SHADOW_SIPHONING,
       on: 'damage.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&

@@ -46,6 +46,8 @@ export const chillOfDeath = defineTrait({
   id: TRAIT.CHILL_OF_DEATH,
   name: 'Chill of Death',
   balance: {
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
     cooldown: 16,
     effects: [
       {
@@ -148,7 +150,9 @@ export const maliciousSwarm = defineTrait({
   id: TRAIT.MALICIOUS_SWARM,
   name: 'Malicious Swarm',
   balance: {
-    internalCooldown: 15,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 15,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1 }]
   },
   triggers: [
@@ -157,7 +161,7 @@ export const maliciousSwarm = defineTrait({
 
       on: 'castCommit',
       emit: TRAIT.MALICIOUS_SWARM,
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, cast) =>
         cast.skill.type === 'Heal' &&
         Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_SWARM), 'strike', 'Strike')),

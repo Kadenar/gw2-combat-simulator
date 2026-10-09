@@ -25,6 +25,19 @@ export const activePatchPreview: PatchPreview = {
       reason: 'Chronophantasma resummoned-phantasm condition-duration reduction pending.'
     },
     {
+      // The role swap invalidates these power presets until their loadouts and rotations are updated.
+      profession: 'mesmer',
+      specialization: 'Chronomancer',
+      damage: 'power',
+      reason: 'Disenchanter/Warden rework: updated builds and rotations pending.'
+    },
+    {
+      profession: 'mesmer',
+      specialization: 'Virtuoso',
+      damage: 'power',
+      reason: 'Disenchanter/Warden rework: updated builds and rotations pending.'
+    },
+    {
       profession: 'engineer',
       specialization: 'Amalgam',
       build: 'data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json',
@@ -44,11 +57,18 @@ export const activePatchPreview: PatchPreview = {
   ],
   professions: {
     mesmer: {
+      // Swap the phantasms' loadout roles only in the preview; their identities retain their summon mechanics.
+      skills: {
+        '10267': { placement: { type: 'Weapon', weapon: 'Focus', slot: 'Weapon_5' } },
+        '10282': { placement: { type: 'Utility', weapon: '', slot: 'Utility' } }
+      },
       // Apply the confirmed strike reduction independently of the still-pending condition-duration change.
       balanceProfiles: {
         '1890': { fields: { damageMultiplier: { from: 1.05, to: 1 } } }
       },
       overview: [
+        { subject: 'Phantasmal Disenchanter', text: 'Moved to Focus 5.', source: 'skill-diff' },
+        { subject: 'Phantasmal Warden', text: 'Moved to a utility slot.', source: 'skill-diff' },
         {
           subject: 'Chronophantasma',
           text: 'Resummoned phantasm strike damage reduced from 105% to 100%.',

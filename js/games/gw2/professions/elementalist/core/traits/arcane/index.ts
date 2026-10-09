@@ -114,7 +114,9 @@ export const evasiveArcana = defineTrait({
   name: 'Evasive Arcana',
   hooks: { eventHandlers: { 'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER } },
   balance: {
-    internalCooldown: 10,
+    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 10,
     effects: [
       {
         type: 'strike',
@@ -192,7 +194,7 @@ export function triggerEvasiveArcana(
   const key = `evasiveArcana${attunement}`;
   const evasiveArcanaProfile = requireBalanceProfileFromContext(context, TRAIT.EVASIVE_ARCANA);
   // Claim the existing owner-local timer before any derived effect.
-  if (!context.procs.claimCooldown(key, at, balanceProfileNumber(evasiveArcanaProfile, 'internalCooldown'))) return;
+  if (!context.procs.claim(TRAIT.EVASIVE_ARCANA, key, at)) return;
   const source =
     attunement === 'Fire'
       ? 'Flame Burst (trait)'

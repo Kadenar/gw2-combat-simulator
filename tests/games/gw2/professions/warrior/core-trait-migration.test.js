@@ -40,7 +40,11 @@ for (const [key, trait, trigger, literalDuration] of [
         };
         const native = warriorProfession.runtimeFor(config);
         const profiles = new Map(native.catalog.balanceProfilesById);
-        profiles.set(trait, { ...profiles.get(trait), internalCooldown: duration });
+        profiles.set(trait, {
+          ...profiles.get(trait),
+          [trait === TRAIT.SIGNET_MASTERY ? 'cooldown' : 'internalCooldown']: duration
+        });
+        const elapsed = trait === TRAIT.SIGNET_MASTERY ? duration / 1.25 : duration;
         let emitted = 0;
         const result = observeGw2Runtime({
           config,
@@ -55,7 +59,7 @@ for (const [key, trait, trigger, literalDuration] of [
             const enqueue = runtime.queue.enqueue.bind(runtime.queue);
             runtime.queue.enqueue = (event) => {
               if (event.sourceId === trait) {
-                assert.equal(runtime.procs.snapshot()[trait], canonicalTime(event.at + duration));
+                assert.equal(runtime.procs.snapshot()[trait], canonicalTime(event.at + elapsed));
                 emitted += 1;
               }
 
@@ -89,9 +93,7 @@ for (const [key, trait, trigger, literalDuration] of [
         assert.equal(emitted > 0, expected);
         assert.equal(
           runtime.procs.snapshot()[trait],
-          expected
-            ? canonicalTime((trigger === 'swap' ? Math.ceil(canonicalTime(at) / 0.04) * 0.04 : at) + duration)
-            : 1
+          expected ? canonicalTime((trigger === 'swap' ? Math.ceil(canonicalTime(at) / 0.04) * 0.04 : at) + elapsed) : 1
         );
         assert.equal(runtime.procs.snapshot()['unrelated'], 99);
       }

@@ -603,7 +603,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       fromModifier('necromancer.spiteful-talisman', 'factor', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.MALICIOUS_SWARM]: traitTooltip('Using a healing skill triggers a Lesser Signet of the Locust strike.', [
-      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+      ['cooldown', 'Base skill recharge', tooltipSeconds]
     ]),
     [TRAIT.BITTER_CHILL]: traitTooltip('Applying chill also applies vulnerability.'),
     [TRAIT.CHILL_OF_DEATH]: traitTooltip(

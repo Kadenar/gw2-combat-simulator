@@ -2,7 +2,6 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -93,7 +92,8 @@ const lesserChaosStorm: MesmerTraitDamage = {
 export const methodOfMadness = defineTrait<MesmerSkill>({
   id: TRAIT.METHOD_OF_MADNESS,
   name: 'Method of Madness',
-  profiles: [mesmerTraitDamageProfile(TRAIT.METHOD_OF_MADNESS, 'Method of Madness', lesserChaosStorm)]
+  // The lesser storm owns a skill recharge, including Chronomancer's stronger Alacrity.
+  profiles: [mesmerTraitDamageProfile(TRAIT.METHOD_OF_MADNESS, 'Method of Madness', lesserChaosStorm, 'playerRecharge')]
 });
 
 interface MethodOfMadnessContext {
@@ -217,10 +217,9 @@ export function triggerMethodOfMadness(
   delivery: EffectDelivery = {}
 ): void {
   if (skill.type !== 'Heal' || !hasTrait(context.state, TRAIT.METHOD_OF_MADNESS)) return;
-  const readyAt = context.state.procs.deadline(TRAIT.METHOD_OF_MADNESS) || 0;
-  if (!isInternalCooldownReady(at, readyAt)) return;
   // A removed storm has no attack, proc, or attack-owned cooldown.
-  if (storm.type !== 'strike') return;
+  if (storm.type !== 'strike' || !context.state.procs.claim(TRAIT.METHOD_OF_MADNESS, TRAIT.METHOD_OF_MADNESS, at))
+    return;
   buildMesmerStrikes(
     context.state,
     {
@@ -257,7 +256,6 @@ export function triggerMethodOfMadness(
   // Elite consequences follow the accepted mechanic, independently of its diagnostic marker.
   // Only Troubadour owns the delayed Syncopate consequence of this accepted heal.
   if (context.state.profession.specialization.kind === 'Troubadour') context.state.schedule('mesmer.syncopate', at);
-  context.state.procs.setDeadline(TRAIT.METHOD_OF_MADNESS, at + (storm.cooldown || 0));
 }
 
 /** Compile the selected storm before the shared runtime begins processing casts. */

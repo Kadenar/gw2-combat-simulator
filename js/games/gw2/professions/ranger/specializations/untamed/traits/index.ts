@@ -149,7 +149,7 @@ export const debilitatingBlows = defineTrait({
     {
       emit: TRAIT.DEBILITATING_BLOWS,
       on: 'control.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         untamedState.from(runtime).rangerUnleashed &&
@@ -168,7 +168,7 @@ export const debilitatingBlows = defineTrait({
     {
       emit: TRAIT.DEBILITATING_BLOWS,
       on: 'control.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         !untamedState.from(runtime).rangerUnleashed &&
@@ -202,7 +202,7 @@ export const enhancingImpact = defineTrait({
     {
       emit: TRAIT.ENHANCING_IMPACT,
       on: 'control.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         untamedState.from(runtime).rangerUnleashed &&
@@ -219,7 +219,7 @@ export const enhancingImpact = defineTrait({
     {
       emit: TRAIT.ENHANCING_IMPACT,
       on: 'control.resolved',
-      icd: 'profile',
+      cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         !untamedState.from(runtime).rangerUnleashed &&

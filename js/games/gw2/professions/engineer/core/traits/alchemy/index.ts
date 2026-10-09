@@ -71,7 +71,7 @@ export const boilingPoint = defineTrait({
     {
       on: 'buff.applied',
       emit: TRAIT.BOILING_POINT,
-      icd: 'profile',
+      cooldown: 'profile',
       // The resolver records the application before reactions, so the threshold counts the Might just gained.
       when: (runtime, event) =>
         (event.kind || '').toLowerCase() === 'might' &&
@@ -132,7 +132,7 @@ export const equalAndOppositeReaction = defineTrait({
     {
       on: 'control.resolved',
       emit: TRAIT.EQUAL_AND_OPPOSITE_REACTION,
-      icd: 'profile',
+      cooldown: 'profile',
       // Only the player's own on-target disables count; turret and mech control belong to those summons.
       when: (_runtime, event) =>
         event.actorType === 'player' &&

@@ -32,6 +32,28 @@ const baseConfig = Object.freeze({
 
 const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
+// Keep the heal, its toolbelt, and Med Kit's combined capped grant distinct.
+test('Speed of Synergy distinguishes healing skills from healing toolbelts', () => {
+  for (const [heal, skill, duration] of [
+    ['Healing Turret', 'Healing Turret', 7],
+    ['Medic Gyro', 'Reconstruction Field', 5],
+    ['Med Kit', 'Med Kit', null],
+    ['Med Kit', 'Bandage Self', 10]
+  ]) {
+    const result = simulate('Scrapper', [skill], {
+      selectedSkillIds: [engineerCatalog.skillsByName.get(heal).id],
+      selectedTraitIds: [TRAIT.SPEED_OF_SYNERGY]
+    });
+    assert.deepEqual(result.warnings, [], skill);
+    const grants = result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.SPEED_OF_SYNERGY);
+    assert.deepEqual(
+      grants.map((event) => event.duration),
+      duration == null ? [] : [duration],
+      skill
+    );
+  }
+});
+
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }
@@ -100,9 +122,9 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
     selectedTraitIds: [TRAIT.SPEED_OF_SYNERGY]
   });
 
-  // Current F1 evidence retains seven seconds of Speed of Synergy superspeed after Reconstruction Field completes.
+  // Ordinary healing toolbelts grant five seconds; only Med Kit also receives the healing-skill grant.
   assert.ok(
-    reconstructionField.events.some((event) => event.name === 'Speed of Synergy — superspeed' && event.duration === 7)
+    reconstructionField.events.some((event) => event.name === 'Speed of Synergy — superspeed' && event.duration === 5)
   );
 
   const base = simulate('Scrapper', ['Puncturing Jab'], {

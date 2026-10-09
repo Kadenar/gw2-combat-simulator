@@ -45,6 +45,6 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Parti
         weapon: 'phantasm medium'
       }
     ],
-    castTimeMs: 460
+    castTimeMs: 440
   }
 });

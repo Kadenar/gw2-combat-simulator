@@ -176,7 +176,7 @@ export const aggressiveOnslaught = defineTrait({
       on: 'control.resolved',
       when: (_runtime, event) => event.actorType === 'player',
       emit: TRAIT.AGGRESSIVE_ONSLAUGHT,
-      icd: 'profile',
+      cooldown: 'profile',
       attribution: { priority: 5 }
     }
   ]

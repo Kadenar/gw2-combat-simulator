@@ -86,7 +86,7 @@ test('pending builds remain visible without captured results and never count as 
 });
 
 // Pending trait and weapon changes should not hide unaffected specializations, damage types, or weapons.
-test('new reworks flag condition Chronomancer, rifle Amalgam, and Soulbeast without widening their scope', () => {
+test('rework warnings cover affected Mesmer presets, rifle Amalgam, and Soulbeast without widening their scope', () => {
   const rifle = {
     ...build('engineer', 'Amalgam', 'Power (Rifle)'),
     build: 'data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json'
@@ -94,6 +94,8 @@ test('new reworks flag condition Chronomancer, rifle Amalgam, and Soulbeast with
   const rows = [
     build('mesmer', 'Chronomancer'),
     build('mesmer', 'Chronomancer', 'Power'),
+    build('mesmer', 'Virtuoso', 'Power'),
+    build('mesmer', 'Virtuoso'),
     build('mesmer', 'Mirage'),
     rifle,
     { ...rifle, build: 'data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json' },
@@ -101,10 +103,17 @@ test('new reworks flag condition Chronomancer, rifle Amalgam, and Soulbeast with
     build('ranger', 'Soulbeast'),
     build('ranger', 'Druid')
   ];
+  const results = patchBenchmarks(rows, activePatchPreview);
   assert.deepEqual(
-    patchBenchmarks(rows, activePatchPreview).map(({ outcome }) => outcome),
-    ['tbd', 'up', 'up', 'tbd', 'up', 'tbd', 'tbd', 'up']
+    results.map(({ outcome }) => outcome),
+    ['tbd', 'tbd', 'tbd', 'up', 'up', 'tbd', 'up', 'tbd', 'tbd', 'up']
   );
+  // Preserve the separate condition-Chrono warning while identifying the power builds' role-swap rework.
+  assert.match(results[0].reason, /Chronophantasma/);
+  for (const row of results.filter(({ build }) => build.profession === 'mesmer' && build.label === 'Power')) {
+    assert.match(row.reason, /Disenchanter\/Warden rework/);
+    assert.equal('previewDps' in row, false);
+  }
 });
 
 test('authoring validates and preserves patch-scoped pending selectors when saving', () => {

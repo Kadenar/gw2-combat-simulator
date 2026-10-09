@@ -100,6 +100,44 @@ test('disabled matching sigils do not show a false empty search message', async 
   await expect(picker.getByRole('status')).toBeVisible();
 });
 
+// Switching patches must refresh both equipment tiles and the native utility picker from the active catalog.
+test('Mesmer preview refreshes weapon tiles and utility choices when switching patches', async ({ page }) => {
+  await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.weapons = ['Sword', 'Focus'];
+    app.build.alternateWeapons = ['', ''];
+    app.build.specializations = [{ name: 'Troubadour', traits: '1-1-1' }];
+    app.build.rotation = [];
+    app.build.selectedSkillIds.Utility1 = 10267;
+    app.changed();
+  });
+  const palette = page.locator('#rotation-palette');
+  await expect(palette.locator('[data-skill-id="62568"]')).toHaveCount(1);
+  await expect(palette.locator('[data-skill-id="10173"]')).toHaveCount(0);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.selectPatch(app.profession.preview.id);
+  });
+  await expect(palette.locator('[data-skill-id="10267"]')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility1)).toBe(10282);
+  await expect(palette.locator('[data-skill-id="10282"]')).toHaveCount(1);
+  const trigger = page.getByRole('button', { name: 'Change utility 1 skill', exact: true });
+  await trigger.click();
+  const menu = page.locator('.sbar-dropdown.open');
+  await expect(menu.getByRole('button', { name: 'Phantasmal Warden', exact: true })).toBeVisible();
+  await expect(menu.getByRole('button', { name: 'Phantasmal Disenchanter', exact: true })).toHaveCount(0);
+  await menu.getByRole('searchbox').press('Escape');
+  await page.evaluate(() => window.professionApp.selectPatch('current'));
+  await expect(palette.locator('[data-skill-id="10282"]')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility1)).toBe(10267);
+  await expect(palette.locator('[data-skill-id="10267"]')).toHaveCount(1);
+  await trigger.click();
+  await expect(menu.getByRole('button', { name: 'Phantasmal Disenchanter', exact: true })).toBeVisible();
+  await expect(menu.getByRole('button', { name: 'Phantasmal Warden', exact: true })).toHaveCount(0);
+});
+
 // Standard skills and profession-specific selectors use the same input, filtering, and keyboard selection.
 test('skill choices support word search and keyboard selection', async ({ page }) => {
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });

@@ -39,6 +39,8 @@ test('minion profile compilation normalizes profile and command packets', () => 
             minionKey: 'test',
             minionCount: 2,
             pulseInterval: 3,
+            // Supply the required profile field so this fixture reaches its packet-normalization assertions.
+            openingAttackWindupMs: 0,
             basePower: 1000,
             damagePerCoefficient: 1000,
             criticalChance: 0.05,
