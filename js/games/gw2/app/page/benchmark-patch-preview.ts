@@ -165,7 +165,14 @@ export function mountBenchmarkPatchPreview(
       summary.winners || summary.losers
         ? `<span>Matching builds: <span class="patch-up">${summary.winners} higher</span> · <span class="patch-down">${summary.losers} lower</span> · ${summary.unchanged} unchanged</span>`
         : `<span>No DPS changes in ${summary.unchanged} matching build${summary.unchanged === 1 ? '' : 's'}.</span>`;
-    return `<span class="benchmark-patch-profession-summary" id="patch-summary-${html(id)}" data-patch-profession-summary>${counts}${summary.largestGain ? highlight(summary.largestGain, 'Largest gain') : ''}${summary.largestLoss ? highlight(summary.largestLoss, 'Largest loss') : ''}</span>`;
+    return `<span class="benchmark-patch-profession-summary" id="patch-summary-${html(id)}" data-patch-profession-summary>${counts}${builds.some((row) => row.build.patchPreview?.newWarnings?.length) ? '<span class="benchmark-patch-warning-label">Includes rotation warnings</span>' : ''}${summary.largestGain ? highlight(summary.largestGain, 'Largest gain') : ''}${summary.largestLoss ? highlight(summary.largestLoss, 'Largest loss') : ''}</span>`;
+  }
+
+  /** Keep the warning attached to its build, with keyboard-accessible details and escaped simulator messages. */
+  function rotationWarningMarkup(row: PatchBenchmark): string {
+    const warnings = row.build.patchPreview?.newWarnings;
+    if (!warnings?.length) return '';
+    return `<details class="benchmark-patch-warning"><summary>Rotation warning</summary><p>This saved rotation produces new simulation warnings in the preview. Its DPS comparison may be unreliable until the rotation is updated.</p><ul>${warnings.map((warning) => `<li>${html(warning)}</li>`).join('')}</ul></details>`;
   }
 
   function render(): void {
@@ -175,8 +182,13 @@ export function mountBenchmarkPatchPreview(
       sort.value
     );
     const groups = groupRows(rows, (row) => row.build.profession);
+    // Explain flagged comparisons even while their profession groups are collapsed.
+    const warningCount = rows.filter((row) => row.build.patchPreview?.newWarnings?.length).length;
+    const disclaimer = warningCount
+      ? `<p class="benchmark-patch-disclaimer" role="note">${warningCount} saved rotation${warningCount === 1 ? '' : 's'} produced new simulation warnings under the patch preview. Flagged DPS comparisons may be unreliable until those rotations are updated. Expand a profession to see affected builds and warning details.</p>`
+      : '';
     panel.querySelector('[data-patch-table]')!.innerHTML = rows.length
-      ? `<div class="benchmark-patch-scroll" role="region" aria-label="Patch DPS changes" tabindex="0"><table class="benchmark-patch-table"><thead><tr><th scope="col">Build</th><th scope="col">Live DPS</th><th scope="col">Preview DPS</th><th scope="col">DPS change</th><th scope="col">Change %</th><th scope="col">Outcome</th></tr></thead>${[
+      ? `${disclaimer}<div class="benchmark-patch-scroll" role="region" aria-label="Patch DPS changes" tabindex="0"><table class="benchmark-patch-table"><thead><tr><th scope="col">Build</th><th scope="col">Live DPS</th><th scope="col">Preview DPS</th><th scope="col">DPS change</th><th scope="col">Change %</th><th scope="col">Outcome</th></tr></thead>${[
           ...groups
         ]
           .map(([id, builds]) => {
@@ -188,7 +200,7 @@ export function mountBenchmarkPatchPreview(
               .map(([specialization, entries], index) => {
                 const headingId = `patch-${id}-${index}`;
                 const sectionKey = html(JSON.stringify(['specialization', id, specialization]));
-                return `<tr class="benchmark-patch-specialization" data-patch-section-key="${sectionKey}"><th colspan="6" id="${headingId}"><button type="button" class="benchmark-patch-toggle" data-patch-toggle="${sectionKey}" aria-expanded="true">${disclosureIcon}<span>${html(specialization)}</span></button></th></tr>${entries.map((row) => `<tr data-patch-row data-patch-section-key="${sectionKey}"><th scope="row" headers="${headingId}">${html(row.build.label)}</th><td>${number.format(row.build.benchmarkDps)}</td><td>${number.format(row.previewDps)}</td><td class="patch-${row.outcome}">${row.difference > 0 ? '+' : row.difference < 0 ? '−' : ''}${number.format(Math.abs(row.difference))}</td><td class="patch-${row.outcome}">${html(patchPercent(row.percent))}</td><td class="patch-${row.outcome}">${row.outcome === 'up' ? 'Winner' : row.outcome === 'down' ? 'Loser' : 'Unchanged'}</td></tr>`).join('')}`;
+                return `<tr class="benchmark-patch-specialization" data-patch-section-key="${sectionKey}"><th colspan="6" id="${headingId}"><button type="button" class="benchmark-patch-toggle" data-patch-toggle="${sectionKey}" aria-expanded="true">${disclosureIcon}<span>${html(specialization)}</span></button></th></tr>${entries.map((row) => `<tr data-patch-row data-patch-section-key="${sectionKey}"><th scope="row" headers="${headingId}">${html(row.build.label)}${rotationWarningMarkup(row)}</th><td>${number.format(row.build.benchmarkDps)}</td><td>${number.format(row.previewDps)}</td><td class="patch-${row.outcome}">${row.difference > 0 ? '+' : row.difference < 0 ? '−' : ''}${number.format(Math.abs(row.difference))}</td><td class="patch-${row.outcome}">${html(patchPercent(row.percent))}</td><td class="patch-${row.outcome}">${row.outcome === 'up' ? 'Winner' : row.outcome === 'down' ? 'Loser' : 'Unchanged'}</td></tr>`).join('')}`;
               })
               .join('')}</tbody>`;
           })

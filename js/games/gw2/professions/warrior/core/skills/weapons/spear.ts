@@ -20,12 +20,17 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'strike',
-        // Base aftershock coefficient is 0.75; the aftershock deals 50% more to
-        // the foe closest to the epicenter (per the skill fact). On a single
-        // target that foe is always the golem, so the effective coefficient is
-        // 0.75 * 1.5 = 1.125. The epicenter bonus is folded in here because the
-        // simulator has no target-position model to gate it on.
-        ticks: [{ atMs: 1520, coefficient: 1.125 }],
+        // The single target receives the epicenter bonus on the aftershock only.
+        modifiers: [
+          {
+            id: 'warrior.maiming-spear-epicenter',
+            label: 'Maiming Spear - epicenter',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor: 1.5
+          }
+        ],
+        ticks: [{ atMs: 1520, coefficient: 0.75 }],
         name: 'Maiming Spear — Aftershock Damage',
         // Only the delayed aftershock counts as an explosion for explosion-triggered effects.
         damageKind: 'explosion',

@@ -3,6 +3,7 @@ import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
   fromModifier,
+  modifierFact,
   tooltipFactorChange,
   tooltipSeconds,
   outsideScopeTooltip,
@@ -511,6 +512,14 @@ export const engineerTooltips: ProfessionTooltips = {
         description: 'Using a healing skill triggers Lesser Grenade Barrage.',
         facts: [
           profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
+          // Show the selected preview's explosion bonus alongside Grenadier's existing proc.
+          modifierFact(
+            balanceContext,
+            'engineer.grenadier-explosion-damage',
+            'factor',
+            'Explosion strike damage',
+            tooltipFactorChange
+          ),
           ...simulationEffectFacts(effects).facts
         ]
       };
@@ -643,7 +652,10 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.MODIFIED_AMMUNITION]: traitTooltip(
       'Player-owned strikes deal increased damage for each different condition on the target.',
-      [fromModifier('engineer.modified-ammunition', 'damagePerCondition', 'Strike damage per target condition')]
+      [
+        fromModifier('engineer.modified-ammunition', 'damagePerCondition', 'Strike damage per target condition'),
+        fromModifier('engineer.modified-ammunition', 'maximumConditions', 'Maximum conditions counted', tooltipDecimal)
+      ]
     ),
     [TRAIT.CHEMICAL_ROUNDS]: traitTooltip('Gain condition damage. Conditions inflicted by pistol skills last longer.', [
       ['attributeBonus', 'Condition damage'],

@@ -51,6 +51,7 @@ import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
+import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
@@ -186,6 +187,8 @@ export function defineNativeModule<
         ]
       }
     : definition.hooks;
+  // Skill rules are registered once alongside traits; runtime and authoring consume the same scoped declarations.
+  const ownedRules = [...traitRules, ...nativeSkillModifierRules(definition.data)];
   return Object.freeze({
     ...definition,
     kind: 'native-profession-module' as const,
@@ -204,8 +207,8 @@ export function defineNativeModule<
           }
         : {})
     }),
-    modifiers: traitRules.length
-      ? { ...sourceModifiers, modifierRules: [...(sourceModifiers.modifierRules ?? []), ...traitRules] }
+    modifiers: ownedRules.length
+      ? { ...sourceModifiers, modifierRules: [...(sourceModifiers.modifierRules ?? []), ...ownedRules] }
       : sourceModifiers,
     state: Object.freeze({ ...definition.state }),
     hooks: hooks ? Object.freeze({ ...hooks }) : undefined,

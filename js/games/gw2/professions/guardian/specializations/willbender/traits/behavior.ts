@@ -182,7 +182,9 @@ export function triggerPhoenixProtocol(runtime: Runtime, event: Gw2ResolverEvent
           duration: packet.duration,
           name: profile.name + ' — ' + 'alacrity (triggered)',
           causalOrder: event.causalOrder ?? event.eventOrder,
-          audience: { recipients: battlePresenceSharesBoons(runtime) ? 'party' : 'self' }
+          // TODO - NOTE - After patch, this logic  should be cleaned up
+          // Authored sharing survives without Battle Presence; the trait can still share self-only live effects.
+          audience: battlePresenceSharesBoons(runtime) ? { ...packet.audience, recipients: 'party' } : packet.audience
         })
       });
     }
@@ -275,7 +277,8 @@ export function applyWillbenderActivationTraits(
             duration: packet.duration,
             name: profile.name + ' — ' + 'alacrity',
             causalOrder: cause.causalOrder ?? cause.eventOrder,
-            audience: { recipients: battlePresenceSharesBoons(runtime) ? 'party' : 'self' }
+            // Activation and completed cycles honor the same authored sharing policy.
+            audience: battlePresenceSharesBoons(runtime) ? { ...packet.audience, recipients: 'party' } : packet.audience
           })
         });
       }

@@ -1,4 +1,5 @@
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -32,10 +33,14 @@ export const inspiredVirtue = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // Boon bonuses sum within this trait, then multiply the outgoing additive bucket.
       operation: 'multiply',
-      parameters: { damagePerBoon: 0.005 },
+      // Live counts every standard boon; previews can lower the cap independently of the per-boon bonus.
+      parameters: { damagePerBoon: 0.005, maximumBoons: GW2_STANDARD_BOONS.length },
       factor: (context, _target, parameters) =>
         1 +
-        countActiveBoons(context, { actor: 'player' }, (boon) => guardianBoonActive(context, boon)) *
+        Math.min(
+          parameters.maximumBoons,
+          countActiveBoons(context, { actor: 'player' }, (boon) => guardianBoonActive(context, boon))
+        ) *
           parameters.damagePerBoon
     }
   ]

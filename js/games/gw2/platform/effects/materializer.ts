@@ -148,6 +148,8 @@ export function materializeSkillEffectApplications({
           weaponStrengthSource: effect.weaponStrengthSource,
           canCrit: effect.canCrit !== false,
           ...(effect.coefficientModifiers ? { coefficientModifiers: effect.coefficientModifiers } : {}),
+          // Preserve effect ownership across ticks without granting these bonuses to sibling packets.
+          effectModifierIds: effect.modifiers?.length ? effect.modifiers.map((rule) => rule.id) : undefined,
           ...strikeEventFields(effect),
           ...(tick ? strikeEventFields(tick) : {}),
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata, tick?.metadata),

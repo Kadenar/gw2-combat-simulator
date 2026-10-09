@@ -320,7 +320,7 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
     selectedSkillIds: [77259]
   });
   const nightmare = weaponSpells.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Nightmare Weapon'
+    (event) => event.type === 'damage' && event.skillName === 'Nightmare Weapon'
   );
   const splinter = weaponSpells.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Splinter Weapon'
@@ -384,7 +384,17 @@ test('Ritualist weapon spells scale with allied players', () => {
 
   assert.equal(solo.totalDamage, 0);
   assert.ok(party.totalDamage > solo.totalDamage);
-  assert.equal(allyProcs.filter((event) => event.name === 'Nightmare Weapon').length, 12);
+  // Allies spend their own grants directly; their Splinter hits also exhaust the caster's five Nightmare charges.
+  assert.equal(
+    allyProcs.filter((event) => event.skillName === 'Nightmare Weapon' && event.triggeredBy !== 'Splinter Weapon')
+      .length,
+    12
+  );
+  assert.equal(
+    allyProcs.filter((event) => event.skillName === 'Nightmare Weapon' && event.triggeredBy === 'Splinter Weapon')
+      .length,
+    5
+  );
   assert.equal(allyProcs.filter((event) => event.name === 'Splinter Weapon').length, 12);
   assert.deepEqual([...new Set(allyProcs.map((event) => event.metadata?.triggeredByAlly))], [1, 2, 3, 4]);
   assert.equal(
@@ -410,7 +420,8 @@ test('Ritualist weapon spells scale with allied players', () => {
 
   assert.equal(
     wieldersBoon.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.metadata?.triggeredByAlly === 1
+      (event) =>
+        event.type === 'damage' && event.skillName === 'Nightmare Weapon' && event.metadata?.triggeredByAlly === 1
     ).length,
     5
   );
@@ -457,7 +468,11 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
   );
   assert.equal(
     result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.metadata?.triggeredByAlly
+      (event) =>
+        event.type === 'damage' &&
+        event.skillName === 'Nightmare Weapon' &&
+        event.metadata?.triggeredByAlly &&
+        event.triggeredBy !== 'Splinter Weapon'
     ).length,
     6
   );

@@ -35,6 +35,8 @@ export interface EiInstantRule {
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
   readonly gainedBuff?: number;
+  /** Require a nearby remove-all event for this buff, without restricting its actor, as EI's checker does. */
+  readonly relatedBuffRemoval?: number;
   /** Buff-give checkers may distinguish self trait grants by duration while accepting grants to other agents. */
   readonly selfAppliedDuration?: number;
 }
@@ -1724,6 +1726,15 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: 6002,
     kind: 'minion-command',
     rule: 'NecromancerHelper.MinionCommandCastFinder(NecroticTraversal)'
+  },
+  {
+    profession: 'necromancer',
+    skillId: 73116,
+    signal: '239BF9EA9B747B44ACC63B86DC49B0D0',
+    kind: 'effect',
+    rule: 'NecromancerHelper.EffectCastFinder(DistressSkill)',
+    // EI corroborates the spear teleport visual with removal of the Distress follow-up buff.
+    relatedBuffRemoval: 72976
   },
   {
     profession: 'necromancer',

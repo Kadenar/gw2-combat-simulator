@@ -148,6 +148,37 @@ body[data-simulator-view='benchmarks'] :is(.patch-preview-picker, #build-workspa
 }
 
 /* Preview results retain the shared selectors; profession tints distinguish groups without decorating DPS changes. */
+/* Warnings stay readable inside narrow build cells and remain distinct from DPS gain/loss colors. */
+.benchmark-patch-disclaimer,
+.benchmark-patch-warning-label,
+.benchmark-patch-warning summary {
+  color: var(--warning, #d99b42);
+}
+.benchmark-patch-disclaimer {
+  padding: 12px 16px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.benchmark-patch-warning {
+  margin-top: 6px;
+  max-width: 36rem;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.benchmark-patch-warning summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.benchmark-patch-warning p,
+.benchmark-patch-warning ul {
+  margin: 8px 0;
+}
+.benchmark-patch-warning ul {
+  padding-left: 18px;
+}
 .benchmark-patch-scroll {
   overflow-x: auto;
   max-width: 100%;

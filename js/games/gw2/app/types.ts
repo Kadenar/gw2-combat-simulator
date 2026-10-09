@@ -1,3 +1,4 @@
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/patches.js';
 import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
 import type { RotationEditingState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
@@ -62,6 +63,7 @@ import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.j
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
+  readonly patchOverviewFor: (config: Gw2Config, observedIds: readonly SkillId[]) => readonly PatchOverviewEntry[];
   readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
 };

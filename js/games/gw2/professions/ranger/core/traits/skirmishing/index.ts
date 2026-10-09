@@ -15,7 +15,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerBleeding } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { activeBuff, positional } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { activeBuff, qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -233,7 +233,7 @@ export const huntersTactics = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && positional(context)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && qualifiesForFlankingBonuses(context)
     },
     {
       order: 2,
@@ -242,7 +242,7 @@ export const huntersTactics = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HUNTERS_TACTICS), 'criticalChance'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && positional(context)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && qualifiesForFlankingBonuses(context)
     }
   ]
 });

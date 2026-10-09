@@ -1,3 +1,4 @@
+import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -113,6 +114,7 @@ export const targetTheWeak = defineTrait({
   name: 'Target the Weak',
   balance: {
     criticalChancePerCondition: 0.02,
+    maximumConditions: CANONICAL_TARGET_CONDITIONS.length,
     attributeConversion: 0.13
   },
   modifierRules: [
@@ -122,12 +124,14 @@ export const targetTheWeak = defineTrait({
       label: 'Target the Weak',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        targetConditionCount(context) *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.TARGET_THE_WEAK),
-          'criticalChancePerCondition'
-        )
+      amount: (context) => {
+        // Critical chance counts distinct conditions only up to the selected trait profile's cap.
+        const profile = requireBalanceProfileFromContext(context, TRAIT.TARGET_THE_WEAK);
+        return (
+          Math.min(targetConditionCount(context), balanceProfileNumber(profile, 'maximumConditions')) *
+          balanceProfileNumber(profile, 'criticalChancePerCondition')
+        );
+      }
     }
   ],
   buildAttributes: traitAttributeEffects(TRAIT.TARGET_THE_WEAK, [

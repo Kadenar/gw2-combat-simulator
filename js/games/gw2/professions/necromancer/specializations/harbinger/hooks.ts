@@ -116,6 +116,10 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
 export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   buffPolicies: harbingerBuffPolicies,
+  // Devouring Cut recharges during its final 80 ms, including casts shortened by interruption.
+  rechargeStart(_context, cast, at) {
+    return cast.skill.id === ID.DEVOURING_CUT ? Math.max(cast.start, cast.effectiveEnd - 0.08) : at;
+  },
   // Observe the same retained pools and mode flags that Harbinger combat mutates.
   observeEffects(runtime) {
     const state = harbingerState.from(runtime);
@@ -173,7 +177,8 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
       const at = canonicalTime(
         cast.start + quantizeGw2ActionTimingMs((cast.fullEnd - cast.start) * progress * 1000) / 1000
       );
-      if (at <= cast.effectiveEnd) runtime.scheduleForCast(MOVEMENT, at, cast);
+      // A committed movement cast keeps its delayed payload and Blight spend after interruption.
+      if (!cast.cancelled || at <= cast.effectiveEnd) runtime.scheduleForCast(MOVEMENT, at, cast);
     }
   },
 

@@ -174,7 +174,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Different live hand elements make the current primary immediately re-attunable on commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.55 },
+      { type: 'strike', coefficient: 1.5 },
       { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3 },
       { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
     ]),

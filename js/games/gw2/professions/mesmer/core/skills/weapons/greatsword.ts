@@ -4,6 +4,20 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.MIND_STAB]: {
+    // Mind Stab gains its own vulnerability bonus in addition to ordinary target vulnerability.
+    modifiers: [
+      {
+        id: 'mesmer.mind-stab-vulnerability',
+        label: 'Mind Stab - vulnerability',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        parameters: { baseFactor: 1, damagePerStack: 0.01 },
+        factor: (context, _target, parameters) =>
+          parameters.baseFactor +
+          (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+        order: 94
+      }
+    ],
     effects: [
       {
         type: 'strike',

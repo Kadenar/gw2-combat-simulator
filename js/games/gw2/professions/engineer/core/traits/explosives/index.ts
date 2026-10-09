@@ -1,5 +1,6 @@
+import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBuffStacks, skillForEvent, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -11,6 +12,22 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
   name: 'Grenadier',
+  modifierRules: [
+    {
+      id: 'engineer.grenadier-explosion-damage',
+      order: -17,
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      // Live remains neutral; preview tuning increases only player-owned explosion strikes with Grenadier selected.
+      factor: 1,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        isExplosion(
+          context.event,
+          skillForEvent(context.profession?.catalog, context.event, context.event?.sourceId ?? context.skillId)
+        )
+    }
+  ],
   balance: {
     internalCooldown: 20,
     // The canonical coefficient is the total across all six half-coefficient grenades.

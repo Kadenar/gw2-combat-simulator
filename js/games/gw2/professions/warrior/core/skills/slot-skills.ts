@@ -48,6 +48,15 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SIGNET_OF_RAGE]: {
+    // The selected active reward enables adrenaline and weapon-burst recovery on successful activation.
+    resourceGain: 0,
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => Number(cast.skill.resourceGain) > 0,
+        do: { type: 'warrior.signet-of-rage-active' }
+      }
+    ],
     castTimeMs: 200,
     dualWieldCastTimeMs: 160,
     effects: [
@@ -314,6 +323,16 @@ function signetPulse(runtime: WarriorRuntime): void {
 export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   // Passive resource pulses are ambient work, not delayed damage from the signet's active cast.
   backgroundTasks: [SIGNET_PULSE],
+  sideEffectHandlers: {
+    'warrior.signet-of-rage-active'(runtime, context) {
+      // Reset catalog weapon bursts only: Full Counter and Dragon Trigger retain their recharges.
+      grantWarriorResource(runtime, Number(context.skill.resourceGain));
+      for (const skill of runtime.helpers.skills) {
+        if (skill.burst && !skill.dragonSlash && skill.id !== ID.FULL_COUNTER && !skill.categories?.includes('Chant'))
+          runtime.cooldownController.clear(skill.id);
+      }
+    }
+  },
   onCombatStart(runtime) {
     if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_RAGE)) return;
     runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);

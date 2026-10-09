@@ -2,6 +2,7 @@ import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
@@ -26,6 +27,8 @@ export interface TooltipFact {
 }
 
 export interface Skill extends CatalogEntity {
+  /** Intrinsic strike modifiers apply only to damage attributed to this skill. */
+  readonly modifiers?: readonly SkillDamageModifier[];
   /** Identity-only tombstones scoped to this skill in its selected catalog. */
   readonly removedEffectKeys?: readonly string[];
   /** Explicit classification when absent from the chain index, or when a manual follow-up reuses that index. */

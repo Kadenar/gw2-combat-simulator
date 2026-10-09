@@ -5,6 +5,7 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 const base = {
   specialization: 'Ritualist',
@@ -130,7 +131,7 @@ test('the Ritualist palette reads detached live spirit availability without expo
   assert.ok(state(summoned).activeSpirits.anguish);
 });
 
-test('weapon spells consume only accepted recipient hits and their derived damage cannot recurse', () => {
+test('Nightmare consumes only accepted recipient hits and cannot trigger itself', () => {
   const result = run([cast(ID.NIGHTMARE_WEAPON), wait(1000)], {
     events: [hit(0.25, { offTarget: true }), hit(0.5), hit(0.75)]
   });
@@ -142,6 +143,55 @@ test('weapon spells consume only accepted recipient hits and their derived damag
   );
   const cancelled = run([{ ...cast(ID.NIGHTMARE_WEAPON), interruptAfterMs: 100 }]);
   assert.deepEqual(state(cancelled).weaponSpells, {});
+  assert.deepEqual(result.warnings, []);
+});
+
+// One accepted strike can spend Nightmare directly and through Splinter, but the chain must stop there.
+test('Splinter triggers Nightmare in one direction and rejected effects spend no charges', () => {
+  const result = run([cast(ID.NIGHTMARE_WEAPON), cast(ID.SPLINTER_WEAPON), wait(1000)], {
+    events: [
+      hit(0.75),
+      hit(1, { actorType: 'effect' }),
+      hit(1.1, { actorType: 'effect', sourceId: ID.SPLINTER_WEAPON, offTarget: true })
+    ]
+  });
+  assert.equal(state(result).weaponSpells.nightmare.recipients.player.charges, 3);
+  assert.equal(state(result).weaponSpells.splinter.recipients.player.charges, 4);
+  assert.deepEqual(
+    spellDamage(result, ID.NIGHTMARE_WEAPON).map((event) => event.triggeredBy),
+    ['Necrotic Grasp', 'Splinter Weapon']
+  );
+  assert.equal(spellDamage(result, ID.SPLINTER_WEAPON).length, 1);
+  assert.deepEqual(result.warnings, []);
+});
+
+// Allied Splinter retains its trigger attribution while consuming the caster's separate Nightmare grant.
+test('ally-triggered Splinter consumes caster Nightmare charges without reusing allied charges', () => {
+  const config = { ...base, allies: { count: 1, strikesPerSecond: 1 } };
+  const result = run([cast(ID.NIGHTMARE_WEAPON), cast(ID.SPLINTER_WEAPON), wait(1200)], {
+    config,
+    combatStartTime: 0
+  });
+  const grants = state(result).weaponSpells;
+  assert.equal(grants.nightmare.recipients.player.charges, 4);
+  assert.equal(grants.nightmare.recipients['ally:1'].charges, 2);
+  assert.equal(grants.splinter.recipients.player.charges, 5);
+  assert.equal(grants.splinter.recipients['ally:1'].charges, 2);
+  // The two charge owners remain separate rows even though both damage packets were triggered by the ally.
+  const nightmareRows = skillBreakdownRows(result).filter((row) => row.sourceId === ID.NIGHTMARE_WEAPON);
+  assert.deepEqual(nightmareRows.map((row) => [row.name, row.hits]).sort(), [
+    ['Nightmare Weapon (Personal)', 1],
+    ['Nightmare Weapon (Shared)', 1]
+  ]);
+  assert.equal(
+    nightmareRows.reduce((sum, row) => sum + row.total, 0),
+    spellDamage(result, ID.NIGHTMARE_WEAPON).reduce((sum, event) => sum + event.damage, 0)
+  );
+  assert.equal(
+    spellDamage(result, ID.NIGHTMARE_WEAPON).find((event) => event.triggeredBy === 'Splinter Weapon').metadata
+      .triggeredByAlly,
+    1
+  );
   assert.deepEqual(result.warnings, []);
 });
 
@@ -200,6 +250,39 @@ test('explicit precombat and target death cannot spend allied weapon spell charg
   });
   assert.equal(dead.deathTime, 0.5);
   assert.equal(state(dead).weaponSpells.nightmare.recipients['ally:1'].charges, 3);
+});
+
+// Preparing a weapon spell cannot advance its allied attack countdown or extend the finite grant's lifetime.
+test('precombat weapon spells start allied countdowns at combat entry and retain their expiry', () => {
+  for (const skillId of [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]) {
+    for (const interval of [1, 0.52]) {
+      const config = { ...base, allies: { count: 1, strikesPerSecond: 1 / interval } };
+      const result = run([cast(skillId), wait(4000)], { config, combatStartTime: 2 });
+      const allied = spellDamage(result, skillId).filter((event) => event.metadata?.triggeredByAlly);
+      assert.equal(allied[0].at, 2 + interval);
+      assert.deepEqual(result.warnings, []);
+    }
+
+    const expired = run([cast(skillId), wait(12000)], {
+      config: { ...base, allies: { count: 1, strikesPerSecond: 1 } },
+      combatStartTime: 10
+    });
+    assert.equal(spellDamage(expired, skillId).length, 0);
+    assert.deepEqual(state(expired).weaponSpells, {});
+  }
+});
+
+// Both rotation markers and an implicit hostile opener must start the countdown once, after setup has finished.
+test('weapon spell allied countdowns follow marker and implicit combat entry', () => {
+  const config = { ...base, allies: { count: 1, strikesPerSecond: 1 / 0.52 } };
+  const marker = run([cast(ID.NIGHTMARE_WEAPON), wait(2000), { type: 'combat-start' }, wait(1200)], { config });
+  const implicit = run([cast(ID.NIGHTMARE_WEAPON), wait(3000)], { config, events: [hit(2)] });
+  for (const result of [marker, implicit]) {
+    const allied = spellDamage(result, ID.NIGHTMARE_WEAPON).filter((event) => event.metadata?.triggeredByAlly);
+    assert.ok(Math.abs(allied[0].at - result.combatStartTime - 0.52) < 1e-6);
+    assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].charges, 1);
+    assert.deepEqual(result.warnings, []);
+  }
 });
 
 test('weapon spell recipients are selected at grant time and Wielders Boon changes their charge count', () => {

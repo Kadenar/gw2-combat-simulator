@@ -38,8 +38,11 @@ function spellIcon(context: NecromancerResolverContext, skillId: SkillId): strin
 export function queueNightmareWeapon(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  definition: BalanceProfile
+  definition: BalanceProfile,
+  recipient: 'personal' | 'shared'
 ): void {
+  // Attribute damage to the consumed grant: ally-triggered Splinter can still spend a personal Nightmare charge.
+  const breakdownName = `Nightmare Weapon (${recipient === 'personal' ? 'Personal' : 'Shared'})`;
   const strike = requireEffect(definition, 'strike', 'Strike');
   const vulnerability = requireEffect(definition, 'condition', 'Vulnerability');
   // Materialize both components at the triggering strike's timestamp before recording the combined proc; each
@@ -51,6 +54,8 @@ export function queueNightmareWeapon(
         at: event.at,
 
         skillName: 'Nightmare Weapon',
+        name: breakdownName,
+        damageBreakdownName: breakdownName,
         // Weapon spells own the damage of their consumed charges, including allied opportunities.
         procType: 'profession',
         icon: spellIcon(context, ID.NIGHTMARE_WEAPON),
@@ -155,8 +160,14 @@ export function queueSplinterWeapon(
 
 // Spend eligible recipients' weapon-spell charges when their damaging strikes resolve.
 function reactToDamage(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  // Effect-sourced damage (e.g. prior spell proc) must not chain into another proc; coefficient > 0 guards against flat-damage-only strikes
-  if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
+  if (!(Number(event.coefficient) > 0)) return;
+  // Splinter damage belongs to the caster even when an ally triggers it, so it spends the caster's Nightmare charges.
+  // Other derived damage cannot chain weapon spells, and Nightmare's life steal never triggers Splinter.
+  if (event.actorType === 'effect') {
+    if (event.sourceId === ID.SPLINTER_WEAPON) triggerRitualistWeaponSpell(context, event, 'nightmare', ['player']);
+    return;
+  }
+
   const keys = recipientKeys(event);
   if (!keys.length) return;
   for (const spell of ['nightmare', 'splinter'] as const) triggerRitualistWeaponSpell(context, event, spell, keys);
@@ -183,7 +194,8 @@ export function triggerRitualistWeaponSpell(
   const internalCooldown = balanceProfileNumber(definition, 'internalCooldown');
   for (const key of keys) {
     if (!consumeCharge(active.recipients?.[key], event.at, internalCooldown)) continue;
-    if (spell === 'nightmare') queueNightmareWeapon(context, event, definition);
+    if (spell === 'nightmare')
+      queueNightmareWeapon(context, event, definition, key === 'player' ? 'personal' : 'shared');
     else queueSplinterWeapon(context, event, definition);
   }
 }

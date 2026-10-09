@@ -68,17 +68,6 @@ const modifierParameters = (values: Record<string, number>): Readonly<Record<str
 // Explicit Core orders keep moved trait multipliers between skill rules and elite multipliers.
 export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
-    id: 'mesmer.mind-stab-vulnerability',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.01 }),
-    factor: (context, _target, parameters) =>
-      parameters.baseFactor +
-      (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
-    order: 94,
-    when: (context) => context.event?.skillId === ID.MIND_STAB
-  },
-  {
     id: 'mesmer.event-final-multiplier',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',

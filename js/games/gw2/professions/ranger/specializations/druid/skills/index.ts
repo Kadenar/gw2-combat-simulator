@@ -29,7 +29,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.COSMIC_RAY]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     effects: [],
-    castTimeMs: 333
+    castTimeMs: 520
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.SEED_OF_LIFE]: {

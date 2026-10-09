@@ -375,7 +375,7 @@ test('THF-006: Rot Wallow Venom uses the bounded allied strike window, including
     [0.1, 10],
     [0.05, null]
   ]) {
-    const result = simulate('Specter', ['Enter Shadow Shroud', wait(21000)], {
+    const result = simulate('Specter', [{ type: 'combat-start' }, 'Enter Shadow Shroud', wait(21000)], {
       initialShadowForce: 100,
       allies: { count: 1, strikesPerSecond }
     });
@@ -385,6 +385,26 @@ test('THF-006: Rot Wallow Venom uses the bounded allied strike window, including
       procs.map((event) => event.at),
       expectedAt == null ? [] : [expectedAt]
     );
+  }
+});
+
+// Barrier venoms must survive preparation, but combat entry cannot revive a grant that has already expired.
+test('Rot Wallow Venom waits a full allied interval after combat entry and preserves precombat expiry', () => {
+  for (const interval of [1, 0.52]) {
+    for (const delay of [2000, 11000]) {
+      const result = simulate('Specter', ['Enter Shadow Shroud', wait(delay), { type: 'combat-start' }, wait(2000)], {
+        initialShadowForce: 100,
+        allies: { count: 1, strikesPerSecond: 1 / interval }
+      });
+      const procs = result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.sourceId === TRAIT.DARK_SENTRY
+      );
+      assert.deepEqual(
+        procs.map((event) => event.at),
+        delay === 2000 ? [2 + interval] : []
+      );
+      assert.deepEqual(result.warnings, []);
+    }
   }
 });
 

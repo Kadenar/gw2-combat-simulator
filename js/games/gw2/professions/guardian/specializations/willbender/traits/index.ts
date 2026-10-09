@@ -107,20 +107,21 @@ export const holyReckoning = defineTrait({
   }
 });
 
-/** Resolve activation and completed cycles grant distinct Alacrity packets with selected Battle Presence sharing. */
+/** Resolve grants distinct Alacrity packets whose authored recipients can be widened by Battle Presence. */
 export const phoenixProtocol = defineTrait({
   id: TRAIT.PHOENIX_PROTOCOL,
   name: 'Phoenix Protocol',
   balance: {
     effects: [
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 },
+      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5, audience: { recipients: 'self' } },
       {
         type: 'boon',
         name: 'alacrity (triggered)',
         boon: 'alacrity',
         stacks: 1,
         duration: 1,
-        packetLabel: 'triggered'
+        packetLabel: 'triggered',
+        audience: { recipients: 'self' }
       }
     ]
   }

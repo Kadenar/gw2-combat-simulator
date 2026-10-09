@@ -120,8 +120,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-anguish' } }],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 560,
-    // Benchmark logs spawn the spirit ~480 ms into every cast, including casts whose aftercast is cancelled.
-    interruptCommitMs: 480,
+    interruptCommitMs: 400,
+    interruptMode: 'commit',
+    retainsCastLockoutAfterInterrupt: true,
     effects: [],
     type: 'Profession',
     slot: 'Weapon_2',

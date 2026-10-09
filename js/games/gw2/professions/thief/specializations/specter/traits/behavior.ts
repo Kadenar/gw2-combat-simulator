@@ -68,13 +68,31 @@ export function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
     })
   });
   if (!torment) return;
+  const grant = { allies, expiresAt: runtime.time + venomDuration };
+  if (runtime.combatActive) scheduleRotWallowVenom(runtime, grant);
+  else specterState.from(runtime).pendingRotWallowVenoms.push(grant);
+}
+
+/** Combat starts the first allied attack interval without renewing precombat barrier venom. */
+export function startPendingRotWallowVenoms(runtime: ThiefRuntime): void {
+  const state = specterState.from(runtime);
+  for (const grant of state.pendingRotWallowVenoms) scheduleRotWallowVenom(runtime, grant);
+  state.pendingRotWallowVenoms = [];
+}
+
+/** Each barrier grant retains its eligible allies and original deadline until its single charge can trigger. */
+function scheduleRotWallowVenom(runtime: ThiefRuntime, grant: { allies: number[]; expiresAt: number }): void {
+  if (grant.expiresAt <= runtime.time) return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_SENTRY);
+  const torment = requireEffect(profile, 'condition', 'Torment');
+  if (!torment) return;
   // The next allied strike must fit the grant, including the shared allied expiry boundary.
   for (const proc of gw2AlliedPlayerProcTimeline(runtime.config, {
     start: runtime.time,
-    duration: venomDuration,
+    duration: grant.expiresAt - runtime.time,
     maximumPerAlly: 1
   }))
-    if (allies.includes(proc.allyIndex))
+    if (grant.allies.includes(proc.allyIndex))
       runtime.effects.emit({
         kind: 'packet',
         event: buildThiefCondition(null, {

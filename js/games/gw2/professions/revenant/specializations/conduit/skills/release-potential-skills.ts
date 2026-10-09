@@ -8,7 +8,10 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
+import {
+  affinity,
+  effectiveConduitAffinity
+} from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
 const releaseLegend = (legend: string) => (runtime: MechanicQueriesOf<RevenantRuntime>) =>
@@ -98,6 +101,18 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
+    // Strike damage reads current affinity at impact, independently of the selected legend components.
+    modifiers: [
+      {
+        id: 'revenant.release-dervish-affinity',
+        label: 'Release Potential: Dervish - affinity',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        order: 101,
+        parameters: { damagePerAffinity: 0.1 },
+        factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity
+      }
+    ],
     effectVariants: [{ when: () => true, transform: releaseEffects }],
     // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 680,
@@ -109,7 +124,8 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        coefficient: 1.98,
+        // Use the live Dervish coefficient as the baseline for preview balance edits.
+        coefficient: 1.8,
         hits: 1,
         name: 'Release Potential: Dervish',
         weaponStrengthProfileId: 'weapon.sword',
@@ -143,6 +159,18 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
+    // Strike affinity remains live while the condition durations retain their separate cast snapshot.
+    modifiers: [
+      {
+        id: 'revenant.release-assassin-affinity',
+        label: 'Release Potential: Assassin - affinity',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        order: 101,
+        parameters: { damagePerAffinity: 0.1 },
+        factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity
+      }
+    ],
     effectVariants: [{ when: () => true, transform: releaseEffects }],
     // Conduit snapshots condition-duration scaling; the shared scheduler owns all release packets.
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
@@ -184,6 +212,18 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
+    // Warrior's release has a stronger intrinsic strike bonus per current affinity stack.
+    modifiers: [
+      {
+        id: 'revenant.release-warrior-affinity',
+        label: 'Release Potential: Warrior - affinity',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        order: 102,
+        parameters: { damagePerAffinity: 0.15 },
+        factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity
+      }
+    ],
     effectVariants: [{ when: () => true, transform: releaseEffects }],
     // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 520,

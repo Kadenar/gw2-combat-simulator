@@ -286,6 +286,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly resolvedAudience?: ResolvedEffectAudience;
   readonly metadata?: EffectMetadata;
   readonly damageCalculation?: Gw2DamageCalculation;
+  /** Authored strike-effect modifier identities; packets carry no executable rule declarations. */
+  readonly effectModifierIds?: readonly string[];
   /** A trait may add damage to a normally non-damaging condition without applying it twice. */
   readonly conditionDamageFormula?: Readonly<{ base: number; scaling: number }>;
   readonly [field: string]: unknown;

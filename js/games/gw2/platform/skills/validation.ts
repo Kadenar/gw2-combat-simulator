@@ -5,12 +5,14 @@ import {
   validateSideEffectAction
 } from '#gw2/platform/effects/action-validation.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
 import type { CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /** Validate skill declarations and cross-catalog references before runtime selection. */
 
 /** Reject retired or misspelled skill fields at the catalog boundary, including profession-owned authoring. */
 const SKILL_FIELDS = new Set([
+  'modifiers',
   'adrenalineCost',
   'affinityOnHit',
   'ambush',
@@ -374,6 +376,8 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
+  const modifiers =
+    merged.modifiers == null ? undefined : normalizeSkillDamageModifiers(merged.modifiers, `Skill ${id}`);
   // Cost declarations select one payment owner and reject fields outside the canonical shape.
   if (
     merged.cost != null &&
@@ -479,6 +483,7 @@ export function normalizeSkill<TSkill extends Skill>(
   const normalized: Partial<TSkill> = {
     ...baseSkill,
     effects,
+    ...(modifiers ? { modifiers } : {}),
     ...(merged.sideEffects
       ? { sideEffects: Object.freeze([...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) }
       : {}),

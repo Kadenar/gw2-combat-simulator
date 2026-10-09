@@ -15,6 +15,47 @@ const BARRAGE = 'necromancer.harbinger.dark-barrage-doom-approaches';
 const SHADE = 'necromancer.scourge.shade';
 const WANDERLUST = 'necromancer.ritualist.spirit.wanderlust';
 
+// Trait selection changes displayed ally grants without mutating the shared skill or ignoring patched counts.
+test('weapon-spell tooltips project Wielders Boon from the build and selected skill values', () => {
+  const profession = preview({
+    skills: Object.fromEntries(
+      [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON].map((id) => [
+        id,
+        {
+          effects: [{ type: 'buff', stacks: 7, allyStacks: 2 }]
+        }
+      ])
+    )
+  });
+  for (const [patchId, personal, allied] of [
+    ['current', 5, 3],
+    ['tooltip-projection', 7, 2]
+  ]) {
+    const context = profession.balanceContextFor(patchId);
+
+    for (const id of [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]) {
+      const skill = context.catalog.skillsById.get(id);
+      for (const enabled of [false, true, false]) {
+        const build = { specializations: [{ name: 'Ritualist', traits: enabled ? '1-1-1' : '1-1-2' }] };
+        const model = describeSimulationSkill(context, skill, necromancerTooltips, build);
+        const grant = model.facts.find(({ name }) => name === skill.name);
+        assert.ok(
+          grant.detail.includes(`${personal} charges on yourself · ${enabled ? personal : allied} charges on each ally`)
+        );
+        assert.equal(grant.stacks, personal);
+        assert.equal(grant.icon, skill.icon);
+        assert.equal(skill.effects.find(({ type }) => type === 'buff').allyStacks, allied);
+      }
+    }
+
+    const trait = context.catalog.traits.find(({ id }) => id === TRAIT.WIELDERS_BOON);
+    const model = describeSimulationTrait(context, trait, necromancerTooltips);
+    for (const name of ['Nightmare Weapon', 'Splinter Weapon']) {
+      assert.equal(model.facts.find((fact) => fact.name === name).detail, `${allied} → ${personal} charges per ally`);
+    }
+  }
+});
+
 /** One selected preview drives both tooltip construction and minimal native simulations. */
 function preview(edits) {
   return withPatchPreview(necromancerProfession, {

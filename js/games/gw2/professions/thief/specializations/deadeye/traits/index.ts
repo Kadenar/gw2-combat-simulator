@@ -1,3 +1,4 @@
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -104,8 +105,10 @@ export const premeditation = defineTrait({
       id: 'thief.premeditation',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: { damagePerBoon: 0.01 },
-      factor: (context, _target, parameters) => 1 + activeBoonCount(context) * parameters.damagePerBoon,
+      // Count unique boons only up to the selected balance cap.
+      parameters: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
+      factor: (context, _target, parameters) =>
+        1 + Math.min(parameters.maximumBoons, activeBoonCount(context)) * parameters.damagePerBoon,
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],

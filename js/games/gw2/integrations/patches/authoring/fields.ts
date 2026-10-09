@@ -6,6 +6,8 @@ type MutableRecord = Record<string, unknown>;
 
 /** Numeric balance fields accepted by both the authoring API and sparse patch validation. */
 export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
+  // Published activation changes use the canonical cast duration; internal packet timing stays private.
+  'castTimeMs',
   // Recharge and ammo.
   'cooldown',
   'rechargeMultiplier', // fraction of recharge duration retained
@@ -99,12 +101,11 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'windForceGain'
 ]);
 
-// Timing inputs belong to runtime mechanics, not balance-preview controls.
+// Packet timing and interrupt mechanics remain runtime-only authoring inputs.
 const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
   'alternateEvery',
   'ammoCastLockout',
   'atMs',
-  'castTimeMs',
   'firstPacketRatio',
   'initialDelay',
   'interruptCommitMs',
@@ -134,6 +135,8 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'precisionCap',
   'basePrecision',
   // Trait attributes and resources share patchable tuning with build calculations and combat.
+  // Natural Balance reads its damage bonus from the selected balance profile.
+  'conditionDamageIncrease',
   'conditionDurationMultiplier',
   'conditionDurationBonus',
   'phantasmCriticalChance',

@@ -818,12 +818,68 @@ body[data-profession] #app > header .community-actions {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
-.patch-comparison-header h3 {
+/* One compact disclosure replaces metric cards; its header stays outside the fixed scrolling detail area. */
+.patch-comparison-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.patch-comparison-summary::-webkit-details-marker {
+  display: none;
+}
+
+.patch-comparison-summary::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+}
+
+.patch-comparison[open] > .patch-comparison-summary::before {
+  transform: rotate(45deg);
+}
+
+.patch-comparison-summary:focus-visible,
+.patch-comparison-content:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.patch-comparison-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.patch-comparison-title > strong {
   color: var(--text-bright);
-  font-size: 16px;
+  font-size: 14px;
+}
+
+.patch-comparison-counts {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.patch-comparison-content {
+  height: 320px;
+  max-height: 50vh;
+  margin-top: 12px;
+  padding-right: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .patch-comparison-eyebrow {
@@ -832,12 +888,6 @@ body[data-profession] #app > header .community-actions {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.patch-comparison-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .patch-source-link {
@@ -869,29 +919,20 @@ body[data-profession] #app > header .community-actions {
 }
 
 .patch-comparison-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.patch-comparison-metrics > div {
   display: flex;
-  flex-direction: column;
-  padding: 9px 11px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-panel-alt);
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
 }
 
 .patch-comparison-metrics span {
   color: var(--text-dim);
-  font-size: 10px;
-  text-transform: uppercase;
 }
 
 .patch-comparison-metrics strong {
   color: var(--text-bright);
-  font-size: 17px;
 }
 
 .patch-comparison .positive,
@@ -963,13 +1004,16 @@ body[data-profession] #app > header .community-actions {
     flex-direction: column;
   }
 
-  .patch-comparison-actions {
+  .patch-comparison-summary {
     align-items: flex-start;
-    flex-direction: column;
+  }
+
+  .patch-comparison-summary::before {
+    margin-top: 5px;
   }
 
   .patch-comparison-metrics {
-    grid-template-columns: 1fr;
+    font-size: 12px;
   }
 
   .patch-delta-table > div,

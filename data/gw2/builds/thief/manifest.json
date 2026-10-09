@@ -11,25 +11,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-axe-pistol-dagger",
         "benchmarkApm": 90.5,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 42269,
-            "phase": 42269
-          },
-          "80-60": {
-            "cumulative": 42175,
-            "phase": 42078
-          },
-          "60-40": {
-            "cumulative": 41356,
-            "phase": 39803
-          },
-          "40-20": {
-            "cumulative": 43118,
-            "phase": 49354
-          },
-          "20-0": {
-            "cumulative": 44265,
-            "phase": 49411
+          "100-80": { "cumulative": 42269, "phase": 42269 },
+          "80-60": { "cumulative": 42175, "phase": 42078 },
+          "60-40": { "cumulative": 41356, "phase": 39803 },
+          "40-20": { "cumulative": 43118, "phase": 49354 },
+          "20-0": { "cumulative": 44265, "phase": 49411 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42216,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 42337, "phase": 42337 },
+            "80-60": { "cumulative": 40386, "phase": 38554 },
+            "60-40": { "cumulative": 40473, "phase": 40646 },
+            "40-20": { "cumulative": 41014, "phase": 42794 },
+            "20-0": { "cumulative": 42216, "phase": 42216 }
           }
         }
       },
@@ -42,25 +38,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-axe-pistol-dagger",
         "benchmarkApm": 88.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 40879,
-            "phase": 40879
-          },
-          "80-60": {
-            "cumulative": 40178,
-            "phase": 39492
-          },
-          "60-40": {
-            "cumulative": 39257,
-            "phase": 37521
-          },
-          "40-20": {
-            "cumulative": 40220,
-            "phase": 43367
-          },
-          "20-0": {
-            "cumulative": 40709,
-            "phase": 40709
+          "100-80": { "cumulative": 40879, "phase": 40879 },
+          "80-60": { "cumulative": 40178, "phase": 39492 },
+          "60-40": { "cumulative": 39257, "phase": 37521 },
+          "40-20": { "cumulative": 40220, "phase": 43367 },
+          "20-0": { "cumulative": 40709, "phase": 40709 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 38858,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 38464, "phase": 38464 },
+            "80-60": { "cumulative": 37381, "phase": 36340 },
+            "60-40": { "cumulative": 37926, "phase": 39073 },
+            "40-20": { "cumulative": 38394, "phase": 39838 },
+            "20-0": { "cumulative": 38858, "phase": 38858 }
           }
         }
       },
@@ -73,25 +65,21 @@
         "upToDate": true,
         "benchmarkApm": 65.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 35512,
-            "phase": 35512
-          },
-          "80-60": {
-            "cumulative": 33825,
-            "phase": 32241
-          },
-          "60-40": {
-            "cumulative": 33941,
-            "phase": 34174
-          },
-          "40-20": {
-            "cumulative": 34491,
-            "phase": 36267
-          },
-          "20-0": {
-            "cumulative": 34998,
-            "phase": 37152
+          "100-80": { "cumulative": 35512, "phase": 35512 },
+          "80-60": { "cumulative": 33825, "phase": 32241 },
+          "60-40": { "cumulative": 33941, "phase": 34174 },
+          "40-20": { "cumulative": 34491, "phase": 36267 },
+          "20-0": { "cumulative": 34998, "phase": 37152 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 33490,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 33502, "phase": 33502 },
+            "80-60": { "cumulative": 32585, "phase": 31695 },
+            "60-40": { "cumulative": 32335, "phase": 31841 },
+            "40-20": { "cumulative": 33079, "phase": 35518 },
+            "20-0": { "cumulative": 33490, "phase": 33490 }
           }
         }
       },
@@ -104,25 +92,21 @@
         "upToDate": true,
         "benchmarkApm": 77.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 38067,
-            "phase": 38067
-          },
-          "80-60": {
-            "cumulative": 35444,
-            "phase": 32973
-          },
-          "60-40": {
-            "cumulative": 35360,
-            "phase": 35190
-          },
-          "40-20": {
-            "cumulative": 36318,
-            "phase": 39564
-          },
-          "20-0": {
-            "cumulative": 36706,
-            "phase": 36706
+          "100-80": { "cumulative": 38067, "phase": 38067 },
+          "80-60": { "cumulative": 35444, "phase": 32973 },
+          "60-40": { "cumulative": 35360, "phase": 35190 },
+          "40-20": { "cumulative": 36318, "phase": 39564 },
+          "20-0": { "cumulative": 36706, "phase": 36706 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 36723,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 37674, "phase": 37674 },
+            "80-60": { "cumulative": 35495, "phase": 33564 },
+            "60-40": { "cumulative": 35373, "phase": 35123 },
+            "40-20": { "cumulative": 36355, "phase": 39639 },
+            "20-0": { "cumulative": 36723, "phase": 36723 }
           }
         }
       }
@@ -140,26 +124,27 @@
         "upToDate": true,
         "benchmarkApm": 65.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 46175,
-            "phase": 46175
+          "100-80": { "cumulative": 46175, "phase": 46175 },
+          "80-60": { "cumulative": 46284, "phase": 46394 },
+          "60-40": { "cumulative": 44067, "phase": 40230 },
+          "40-20": { "cumulative": 46245, "phase": 54574 },
+          "20-0": { "cumulative": 44647, "phase": 39210 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42324,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 44429, "phase": 44429 },
+            "80-60": { "cumulative": 41851, "phase": 39559 },
+            "60-40": { "cumulative": 41773, "phase": 41617 },
+            "40-20": { "cumulative": 42590, "phase": 45244 },
+            "20-0": { "cumulative": 42324, "phase": 42324 }
           },
-          "80-60": {
-            "cumulative": 46284,
-            "phase": 46394
-          },
-          "60-40": {
-            "cumulative": 44067,
-            "phase": 40230
-          },
-          "40-20": {
-            "cumulative": 46245,
-            "phase": 54574
-          },
-          "20-0": {
-            "cumulative": 44647,
-            "phase": 39210
-          }
+          "newWarnings": [
+            "Tactical Strike at 15.480s: Tactical Strike is unavailable — requires stealth.",
+            "Tactical Strike at 28.360s: Tactical Strike is unavailable — requires stealth.",
+            "Tactical Strike at 50.760s: Tactical Strike is unavailable — requires stealth."
+          ]
         }
       },
       {
@@ -171,25 +156,21 @@
         "upToDate": true,
         "benchmarkApm": 115.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 42094,
-            "phase": 42094
-          },
-          "80-60": {
-            "cumulative": 40311,
-            "phase": 38650
-          },
-          "60-40": {
-            "cumulative": 41720,
-            "phase": 44818
-          },
-          "40-20": {
-            "cumulative": 41557,
-            "phase": 41084
-          },
-          "20-0": {
-            "cumulative": 42005,
-            "phase": 43918
+          "100-80": { "cumulative": 42094, "phase": 42094 },
+          "80-60": { "cumulative": 40311, "phase": 38650 },
+          "60-40": { "cumulative": 41720, "phase": 44818 },
+          "40-20": { "cumulative": 41557, "phase": 41084 },
+          "20-0": { "cumulative": 42005, "phase": 43918 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 39700,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 40718, "phase": 40718 },
+            "80-60": { "cumulative": 39611, "phase": 38519 },
+            "60-40": { "cumulative": 40548, "phase": 42564 },
+            "40-20": { "cumulative": 39263, "phase": 35815 },
+            "20-0": { "cumulative": 39700, "phase": 39700 }
           }
         }
       },
@@ -202,26 +183,23 @@
         "upToDate": true,
         "benchmarkApm": 61.3,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 46107,
-            "phase": 46107
+          "100-80": { "cumulative": 46107, "phase": 46107 },
+          "80-60": { "cumulative": 44769, "phase": 43431 },
+          "60-40": { "cumulative": 42514, "phase": 38649 },
+          "40-20": { "cumulative": 44843, "phase": 54323 },
+          "20-0": { "cumulative": 43124, "phase": 37577 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 40844,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 43361, "phase": 43361 },
+            "80-60": { "cumulative": 41898, "phase": 40536 },
+            "60-40": { "cumulative": 41129, "phase": 39738 },
+            "40-20": { "cumulative": 41309, "phase": 41899 },
+            "20-0": { "cumulative": 40844, "phase": 40844 }
           },
-          "80-60": {
-            "cumulative": 44769,
-            "phase": 43431
-          },
-          "60-40": {
-            "cumulative": 42514,
-            "phase": 38649
-          },
-          "40-20": {
-            "cumulative": 44843,
-            "phase": 54323
-          },
-          "20-0": {
-            "cumulative": 43124,
-            "phase": 37577
-          }
+          "newWarnings": ["Backstab at 111.560s: Backstab is unavailable — requires stealth."]
         }
       },
       {
@@ -233,26 +211,28 @@
         "upToDate": true,
         "benchmarkApm": 68.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 41621,
-            "phase": 41621
+          "100-80": { "cumulative": 41621, "phase": 41621 },
+          "80-60": { "cumulative": 40932, "phase": 40269 },
+          "60-40": { "cumulative": 40739, "phase": 40363 },
+          "40-20": { "cumulative": 40358, "phase": 39233 },
+          "20-0": { "cumulative": 40563, "phase": 41418 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 33278,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 35899, "phase": 35899 },
+            "80-60": { "cumulative": 33375, "phase": 31219 },
+            "60-40": { "cumulative": 34136, "phase": 35796 },
+            "40-20": { "cumulative": 33598, "phase": 32093 },
+            "20-0": { "cumulative": 33278, "phase": 33278 }
           },
-          "80-60": {
-            "cumulative": 40932,
-            "phase": 40269
-          },
-          "60-40": {
-            "cumulative": 40739,
-            "phase": 40363
-          },
-          "40-20": {
-            "cumulative": 40358,
-            "phase": 39233
-          },
-          "20-0": {
-            "cumulative": 40563,
-            "phase": 41418
-          }
+          "newWarnings": [
+            "Summon Kryptis Turret at 25.000s: Summon Kryptis Turret is unavailable — this artifact is not in an available artifact slot.",
+            "Double Bolt at 97.160s: Double Bolt is unavailable — cast Shadow Bolt first.",
+            "Double Bolt at 98.080s: Double Bolt is unavailable — cast Shadow Bolt first.",
+            "Triple Bolt at 98.080s: Triple Bolt is unavailable — cast Shadow Bolt first."
+          ]
         }
       },
       {
@@ -264,26 +244,28 @@
         "upToDate": true,
         "benchmarkApm": 70.5,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 40615,
-            "phase": 40615
+          "100-80": { "cumulative": 40615, "phase": 40615 },
+          "80-60": { "cumulative": 37260, "phase": 34343 },
+          "60-40": { "cumulative": 37254, "phase": 37243 },
+          "40-20": { "cumulative": 35715, "phase": 31524 },
+          "20-0": { "cumulative": 37125, "phase": 44045 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 24027,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 33144, "phase": 33144 },
+            "80-60": { "cumulative": 19931, "phase": 14269 },
+            "60-40": { "cumulative": 23248, "phase": 34783 },
+            "40-20": { "cumulative": 23916, "phase": 26211 },
+            "20-0": { "cumulative": 24027, "phase": 24027 }
           },
-          "80-60": {
-            "cumulative": 37260,
-            "phase": 34343
-          },
-          "60-40": {
-            "cumulative": 37254,
-            "phase": 37243
-          },
-          "40-20": {
-            "cumulative": 35715,
-            "phase": 31524
-          },
-          "20-0": {
-            "cumulative": 37125,
-            "phase": 44045
-          }
+          "newWarnings": [
+            "Chak Shield at 26.760s: Chak Shield is unavailable — this artifact is not in an available artifact slot.",
+            "Triple Bolt at 130.320s: Triple Bolt is unavailable — cast Shadow Bolt first.",
+            "Zephyrite Sun Crystal at 148.840s: Zephyrite Sun Crystal is unavailable — this artifact is not in an available artifact slot.",
+            "Mistburn Mortar at 153.120s: Mistburn Mortar is unavailable — this artifact is not in an available artifact slot."
+          ]
         }
       }
     ]
@@ -300,25 +282,21 @@
         "upToDate": true,
         "benchmarkApm": 71.2,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 37476,
-            "phase": 37476
-          },
-          "80-60": {
-            "cumulative": 37048,
-            "phase": 36599
-          },
-          "60-40": {
-            "cumulative": 37397,
-            "phase": 38121
-          },
-          "40-20": {
-            "cumulative": 37072,
-            "phase": 36144
-          },
-          "20-0": {
-            "cumulative": 36839,
-            "phase": 36839
+          "100-80": { "cumulative": 37476, "phase": 37476 },
+          "80-60": { "cumulative": 37048, "phase": 36599 },
+          "60-40": { "cumulative": 37397, "phase": 38121 },
+          "40-20": { "cumulative": 37072, "phase": 36144 },
+          "20-0": { "cumulative": 36839, "phase": 36839 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 36601,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 37216, "phase": 37216 },
+            "80-60": { "cumulative": 36751, "phase": 36270 },
+            "60-40": { "cumulative": 37518, "phase": 39114 },
+            "40-20": { "cumulative": 36840, "phase": 34955 },
+            "20-0": { "cumulative": 36601, "phase": 36601 }
           }
         }
       }
@@ -336,25 +314,21 @@
         "upToDate": true,
         "benchmarkApm": 61,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 44294,
-            "phase": 44294
-          },
-          "80-60": {
-            "cumulative": 41038,
-            "phase": 38105
-          },
-          "60-40": {
-            "cumulative": 41074,
-            "phase": 41147
-          },
-          "40-20": {
-            "cumulative": 41773,
-            "phase": 44052
-          },
-          "20-0": {
-            "cumulative": 42685,
-            "phase": 42685
+          "100-80": { "cumulative": 44294, "phase": 44294 },
+          "80-60": { "cumulative": 41038, "phase": 38105 },
+          "60-40": { "cumulative": 41074, "phase": 41147 },
+          "40-20": { "cumulative": 41773, "phase": 44052 },
+          "20-0": { "cumulative": 42685, "phase": 42685 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 40691,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 42477, "phase": 42477 },
+            "80-60": { "cumulative": 38714, "phase": 35537 },
+            "60-40": { "cumulative": 39624, "phase": 41588 },
+            "40-20": { "cumulative": 39971, "phase": 41054 },
+            "20-0": { "cumulative": 40691, "phase": 40691 }
           }
         }
       },
@@ -367,25 +341,21 @@
         "upToDate": true,
         "benchmarkApm": 62.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 37912,
-            "phase": 37912
-          },
-          "80-60": {
-            "cumulative": 38377,
-            "phase": 38842
-          },
-          "60-40": {
-            "cumulative": 38165,
-            "phase": 37740
-          },
-          "40-20": {
-            "cumulative": 38009,
-            "phase": 37541
-          },
-          "20-0": {
-            "cumulative": 38319,
-            "phase": 39620
+          "100-80": { "cumulative": 37912, "phase": 37912 },
+          "80-60": { "cumulative": 38377, "phase": 38842 },
+          "60-40": { "cumulative": 38165, "phase": 37740 },
+          "40-20": { "cumulative": 38009, "phase": 37541 },
+          "20-0": { "cumulative": 38319, "phase": 39620 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 37929,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 37174, "phase": 37174 },
+            "80-60": { "cumulative": 38206, "phase": 39274 },
+            "60-40": { "cumulative": 37992, "phase": 37564 },
+            "40-20": { "cumulative": 37838, "phase": 37375 },
+            "20-0": { "cumulative": 37929, "phase": 37929 }
           }
         }
       }
@@ -402,25 +372,21 @@
         "upToDate": true,
         "benchmarkApm": 75.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 38657,
-            "phase": 38657
-          },
-          "80-60": {
-            "cumulative": 38988,
-            "phase": 39336
-          },
-          "60-40": {
-            "cumulative": 38941,
-            "phase": 38851
-          },
-          "40-20": {
-            "cumulative": 38751,
-            "phase": 38163
-          },
-          "20-0": {
-            "cumulative": 38902,
-            "phase": 38902
+          "100-80": { "cumulative": 38657, "phase": 38657 },
+          "80-60": { "cumulative": 38988, "phase": 39336 },
+          "60-40": { "cumulative": 38941, "phase": 38851 },
+          "40-20": { "cumulative": 38751, "phase": 38163 },
+          "20-0": { "cumulative": 38902, "phase": 38902 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 38519,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 38246, "phase": 38246 },
+            "80-60": { "cumulative": 38463, "phase": 38680 },
+            "60-40": { "cumulative": 38550, "phase": 38735 },
+            "40-20": { "cumulative": 38454, "phase": 38170 },
+            "20-0": { "cumulative": 38519, "phase": 38519 }
           }
         }
       }

@@ -1,3 +1,5 @@
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/patches.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -68,6 +70,8 @@ export type NativePatchAuthoringContract<
   TBuild extends Gw2Build = Gw2Build
 > = NativeProfessionContract<TModules, TPresentation, TBuild> & {
   readonly preview: PatchPreview | null;
+  /** Build-scoped notes share native ownership and equipment eligibility with simulation. */
+  readonly patchOverviewFor: (config: Gw2Config, observedIds: readonly SkillId[]) => readonly PatchOverviewEntry[];
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
   /** Serializable live metadata consumed by the local patch authoring UI. */

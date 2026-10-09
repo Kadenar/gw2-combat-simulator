@@ -6,9 +6,7 @@ import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-d
 import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
@@ -58,6 +56,24 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 360
   },
   [ID.STALKERS_STRIKE]: {
+    // Double this strike against the supported impairments, evaluated at impact.
+    modifiers: [
+      {
+        id: 'ranger.stalkers-strike-movement-impaired',
+        label: "Stalker's Strike - impaired target",
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: (context) =>
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired),
+            'damageMultiplier'
+          ),
+        when: (context) =>
+          stalkersStrikeTargetImpaired((condition) =>
+            targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
+          )
+      }
+    ],
     evades: true,
     effects: [
       {
@@ -224,21 +240,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 840
   }
 });
-
-/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
-export const rangerStalkersStrikeModifier: Gw2ModifierRule = {
-  id: 'ranger.stalkers-strike-movement-impaired',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired), 'damageMultiplier'),
-  // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
-  when: (context) =>
-    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.STALKERS_STRIKE &&
-    stalkersStrikeTargetImpaired((condition) =>
-      targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
-    )
-};
 
 /** The owning skill supplies charge limits, lifetime, and the triggered condition packet. */
 export const poisonousStrikesProfile = variant(PROFILE.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {

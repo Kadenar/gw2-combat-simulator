@@ -306,6 +306,31 @@ test('Revenant requirement tabs group effects and wrap within the tooltip', asyn
   }
 });
 
+// Rebuilding after trait selection must refresh the real skill card rather than retain a cached charge count.
+test('weapon-spell skill cards refresh ally charges when Wielders Boon changes', async ({ page }) => {
+  await page.goto('/necromancer.html#workspace');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(async () => {
+    const app = window.professionApp;
+    const build = await (await fetch('/data/gw2/builds/necromancer/b-power-ritualist.json')).json();
+    app.build = app.adapter.toApplicationBuild({ ...build, rotation: [] });
+    app.changed();
+  });
+  const palette = page.locator('#rotation-palette');
+  const tooltip = page.locator('#wiki-tooltip');
+  for (const enabled of [false, true, false]) {
+    await page.mouse.move(0, 0);
+    await page.evaluate((enabled) => {
+      const app = window.professionApp;
+      app.build.specializations.find(({ name }) => name === 'Ritualist').traits = enabled ? '1-1-1' : '1-1-2';
+      app.changed();
+    }, enabled);
+    await expect(palette).toHaveAttribute('aria-busy', 'false');
+    await palette.locator('[data-skill="Nightmare Weapon"]').hover();
+    await expect(tooltip).toContainText(`5 charges on yourself · ${enabled ? 5 : 3} charges on each ally`);
+  }
+});
+
 // Blight alternatives remain exclusive, keyboard-accessible, and reset when inspecting another skill.
 test('Harbinger effect tabs switch payloads while retaining shared costs', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
