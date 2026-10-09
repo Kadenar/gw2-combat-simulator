@@ -246,7 +246,6 @@ export async function updateManifestBenchmarks(
     const manifestPath = path.join(data.builds, profession, 'manifest.json');
     const original = await readFile(manifestPath, 'utf8');
     const manifest = JSON.parse(original);
-    const previous = JSON.stringify(manifest);
     for (const section of manifest) {
       for (const preset of section.presets) {
         const key = [profession, presetKey(section.section || '', preset)].join('\0');
@@ -294,13 +293,10 @@ export async function updateManifestBenchmarks(
       }
     }
 
-    if (previous !== JSON.stringify(manifest)) {
-      const options = await resolveConfig(manifestPath);
-      pendingWrites.push({
-        manifestPath,
-        contents: await format(JSON.stringify(manifest), { ...options, parser: 'json' })
-      });
-    }
+    // Repair formatting even when benchmarks match, using the same file-specific rules as the Prettier CLI.
+    const options = await resolveConfig(manifestPath, { editorconfig: true });
+    const contents = await format(JSON.stringify(manifest), { ...options, filepath: manifestPath });
+    if (original !== contents) pendingWrites.push({ manifestPath, contents });
   }
 
   if (liveResults.size || previewResults.size)
