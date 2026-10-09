@@ -81,7 +81,7 @@ export function beginInfiniteHorizonAmbush(
   return true;
 }
 
-/** Resolve Regeneration, cleanse reporting, Dune Cloak recharge, then Infinite Horizon at the cloak boundary. */
+/** Resolve supported Regeneration, Dune Cloak recharge, and Infinite Horizon effects at the cloak boundary. */
 export function applyMirageCloakTraits(
   state: MesmerRuntime,
   at: number,
@@ -124,23 +124,6 @@ export function applyMirageCloakTraits(
           });
       }
     }
-  }
-
-  if (hasTrait(state, TRAIT.ELUSIVE_MIND)) {
-    const elusiveMindProfile = requireBalanceProfileFromContext(state, TRAIT.ELUSIVE_MIND);
-    state.effects.emit({
-      ...delivery,
-      kind: 'announcement',
-      log: true,
-      attribution: { source: 'Trait', sourceId: TRAIT.ELUSIVE_MIND, actorType: 'effect' },
-      announcement: {
-        type: 'trait',
-        name: 'Elusive Mind',
-        at: at,
-        sourceSkill: source,
-        detail: `${balanceProfileNumber(elusiveMindProfile, 'maximumStacks')} conditions removed`
-      }
-    });
   }
 
   reduceDuneCloakShatters(state, at, source, delivery);

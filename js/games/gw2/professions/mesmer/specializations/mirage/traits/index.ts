@@ -99,15 +99,6 @@ export const phantomPain = defineTrait<MesmerSkill>({
   ]
 });
 
-/** Elusive Mind owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const elusiveMind = defineTrait<MesmerSkill>({
-  id: TRAIT.ELUSIVE_MIND,
-  name: 'Elusive Mind',
-  balance: {
-    maximumStacks: 3
-  }
-});
-
 /** Dune Cloak owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 export const duneCloak = defineTrait<MesmerSkill>({
   id: TRAIT.DUNE_CLOAK,
@@ -140,7 +131,6 @@ export const mirageTraits = [
   desertDistortion,
   mirageMantle,
   phantomPain,
-  elusiveMind,
   duneCloak,
   infiniteHorizon
 ];

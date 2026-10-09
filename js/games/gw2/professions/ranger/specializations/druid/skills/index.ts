@@ -3,6 +3,10 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
+// Native and Eclipse effects share the impact, independently of the Avatar animation ending.
+export const SEED_OF_LIFE_DETONATION_MS = 720;
+export const LUNAR_IMPACT_HIT_MS = 560;
+
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.GLYPH_OF_REJUVENATION]: {
     effects: [],
@@ -33,14 +37,15 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.SEED_OF_LIFE]: {
-    effects: [
+    // The planted seed detonates later, including after the player releases Celestial Avatar.
+    effects: impactEffects({ atMs: SEED_OF_LIFE_DETONATION_MS, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
         condition: 'Blindness',
         stacks: 1,
         duration: 4
       }
-    ],
+    ]),
 
     cooldown: 4,
     castTimeMs: 0,
@@ -48,7 +53,9 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.LUNAR_IMPACT]: {
-    effects: [
+    // The impact commits before the remaining animation, so cancelling the aftercast retains its effects.
+    interruptCommitMs: LUNAR_IMPACT_HIT_MS,
+    effects: impactEffects({ atMs: LUNAR_IMPACT_HIT_MS, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'control',
         controlKind: 'daze',
@@ -60,7 +67,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
           }
         ]
       }
-    ],
+    ]),
 
     cooldown: 8,
     // Match the measured Quickness animation from the condition Druid EVTC.
@@ -86,7 +93,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
   },
   [ID.NATURAL_CONVERGENCE]: {
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Channel impacts resolve as they occur; only the final impact releases the persistent Black Hole.
+    interruptCommitMs: 520,
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         weaponStrengthProfileId: 'transform.celestial-avatar',
@@ -114,23 +122,14 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         ])
       },
       {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2640,
-            condition: 'Immobilized',
-            stacks: 1,
-            duration: 4
-          }
-        ]
-      },
-      {
         weaponStrengthProfileId: 'transform.celestial-avatar',
         type: 'strike',
         name: 'Black Hole',
         // This child effect has no catalog entry, so carry its dedicated icon into damage breakdown rows.
         icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Black_Hole.png',
         sourceId: ID.BLACK_HOLE,
+        interruptCommitMs: 2040,
+        persistsAfterInterrupt: true,
         skillName: 'Black Hole',
         actorType: 'effect',
         ownerActorType: 'player',
@@ -143,15 +142,20 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         }))
       },
       {
-        type: 'control',
+        // Each Black Hole pulse immobilizes once; there is no additional pull to trigger Blood Moon.
+        type: 'condition',
         name: 'Black Hole',
         sourceId: ID.BLACK_HOLE,
+        interruptCommitMs: 2040,
+        persistsAfterInterrupt: true,
         actorType: 'effect',
         ownerActorType: 'player',
         applications: 4,
         atMs: 2640,
         intervalMs: 1520,
-        controlKind: 'pull',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2,
         skillName: 'Black Hole'
       },
       ...[520, 1160, 1640, 2040].map((atMs) => ({

@@ -41,7 +41,8 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.THROW_TORCH]: {
-    effects: [
+    interruptCommitMs: 400,
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.666,
@@ -59,7 +60,7 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1,
         duration: 3
       }
-    ],
+    ]),
 
     cooldown: 15,
     ammo: 2,

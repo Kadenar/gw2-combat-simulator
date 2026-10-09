@@ -10,6 +10,7 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { displayedWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 
 // Mirage tests cover endurance, cloak, ambushes, mirrors, and specialization traits.
 test('Mirage dodge spends 50 endurance and waits for continuous regeneration', () => {
@@ -482,6 +483,17 @@ test('Infinite Horizon axe clones each apply one 4-second Torment', () => {
   assert.ok(torment.every((event) => event.stacks === 1 && event.duration === 4));
 });
 
+// Defensive cleansing remains selectable for builds but has no simulated effects or balance tuning.
+test('Elusive Mind retains its out-of-scope tooltip without a balance profile', () => {
+  const trait = mesmerAppAdapter.specializations
+    .find((specialization) => specialization.name === 'Mirage')
+    .majorTraits.flat()
+    .find((entry) => entry.id === TRAIT.ELUSIVE_MIND);
+  assert.ok(trait);
+  assert.match(mesmerAppAdapter.traitTooltip(trait, 'current', 'Mirage').description, /outside the simulator's scope/);
+  assert.equal(mesmerCatalog.balanceProfilesById.has(TRAIT.ELUSIVE_MIND), false);
+});
+
 test('Mirage support and cloak traits emit their current effects', () => {
   const result = simulateMesmer(
     ['Dodge / Mirage Cloak', 'Effervescence'],
@@ -506,7 +518,10 @@ test('Mirage support and cloak traits emit their current effects', () => {
   assert.equal(alacrity.audience.recipients, 'party');
   assert.equal(alacrity.resolvedAudience.recipientCount, 5);
   assert.equal(alacrity.resolvedAudience.includesSummons, false);
-  assert.ok(result.procSteps.some((proc) => proc.skill === 'Elusive Mind'));
+  assert.equal(
+    result.procSteps.some((proc) => proc.skill === 'Elusive Mind'),
+    false
+  );
 });
 
 test("Nomad's Endurance and Phantom Pain add together while excluding phantasm strikes", () => {

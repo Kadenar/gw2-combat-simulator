@@ -700,9 +700,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.INFINITE_HORIZON]: traitTooltip(
       "Mirage Cloak also enables your clones to perform their weapon's ambush attacks. Eligible clones created during the cloak window can also ambush."
     ),
-    [TRAIT.ELUSIVE_MIND]: traitTooltip(
-      'Mirage Cloak records condition removal. Incoming conditions and their defensive effects are outside combat simulation scope.'
-    ),
+    [TRAIT.ELUSIVE_MIND]: outsideScopeTooltip,
     [TRAIT.DUNE_CLOAK]: traitTooltip(
       'Gaining Mirage Cloak reduces Mind Wrack and Cry of Frustration recharge. Shattering enough clones grants Mirage Cloak.',
       [

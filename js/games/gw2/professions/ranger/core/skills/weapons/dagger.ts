@@ -22,6 +22,7 @@ import {
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -121,7 +122,9 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 320
   },
   [ID.SERPENT_STAB]: {
-    effects: [
+    castTimeMs: 280,
+    interruptCommitMs: 200,
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
         condition: 'Poisoned',
@@ -133,8 +136,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 0.44,
         hits: 1
       }
-    ],
-    castTimeMs: 280
+    ])
   },
   [ID.DOUBLE_ARC]: {
     // Arm subsequent qualifying hits only on semantic commitment.
@@ -159,7 +161,9 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
   },
   [ID.DEADLY_DELIVERY]: {
-    effects: [
+    castTimeMs: 440,
+    interruptCommitMs: 280,
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
         condition: 'Vulnerability',
@@ -183,8 +187,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         coefficient: 0.88,
         hits: 1
       }
-    ],
-    castTimeMs: 440
+    ])
   },
   [ID.GROUNDWORK_GOUGE]: {
     effects: [

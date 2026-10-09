@@ -10,6 +10,7 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -514,17 +515,6 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       .reduce((total, event) => total + event.stacks, 0),
     6
   );
-  const seed = simulate(['Celestial Avatar', 'Seed of Life'], {
-    selectedTraitIds: [TRAIT.ECLIPSE]
-  }).resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === TRAIT.ECLIPSE && event.condition === 'Poisoned'
-  );
-
-  assert.equal(
-    seed.reduce((sum, event) => sum + event.stacks, 0),
-    3
-  );
-  assert.ok(seed.every((event) => event.duration === 8));
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.BLOOD_MOON).length >=
       3,
@@ -565,6 +555,24 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       (event) => event.sourceId === TRAIT.BLOOD_MOON && event.triggeredBy === 'Black Hole'
     )
   );
+  // The persistent child owns the immobilize and trait trigger after Avatar release, without a second disable.
+  const blackHoleImmobilize = convergence.resolvedEvents.find(
+    (event) => event.sourceId === ID.BLACK_HOLE && event.condition === 'Immobilized'
+  );
+  const release = convergence.steps.find(({ skill }) => skill === 'Release Celestial Avatar');
+  assert.ok(blackHoleImmobilize.at > release.end / 1000);
+  assert.equal(blackHoleImmobilize.ownerActorType, 'player');
+  assert.equal(blackHoleImmobilize.duration, 2);
+  assert.equal(
+    convergence.events.some((event) => event.sourceId === ID.BLACK_HOLE && event.type === 'control'),
+    false
+  );
+  assert.equal(
+    convergence.resolvedEvents.some(
+      (event) => event.sourceId === TRAIT.BLOOD_MOON && event.triggeredBy === 'Natural Convergence'
+    ),
+    false
+  );
 
   const entangle = simulate(['Entangle', { type: 'wait', durationMs: 8000 }], {
     selectedTraitIds: [TRAIT.BLOOD_MOON]
@@ -588,6 +596,78 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
         actorType === 'effect' && ownerActorType === 'player' && stacks === 1 && duration === 4
     )
   );
+});
+
+test('Seed of Life detonates with Eclipse after releasing Celestial Avatar', () => {
+  // Releasing the form before detonation must preserve the planted seed and its player-owned trait payload.
+  const result = simulate(
+    [
+      'Celestial Avatar',
+      'Seed of Life',
+      { type: 'wait', durationMs: 200 },
+      'Release Celestial Avatar',
+      { type: 'wait', durationMs: 1500 }
+    ],
+    { selectedTraitIds: [TRAIT.ECLIPSE] }
+  );
+  const release = result.steps.find(({ skill }) => skill === 'Release Celestial Avatar');
+  const blind = result.resolvedEvents.find(
+    (event) => event.sourceId === ID.SEED_OF_LIFE && event.condition === 'Blindness'
+  );
+  const poison = result.resolvedEvents.filter(
+    (event) => event.sourceId === TRAIT.ECLIPSE && event.condition === 'Poisoned'
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.celestialAvatarActive, false);
+  assert.ok(blind.at > release.end / 1000);
+  assert.equal(
+    poison.reduce((sum, event) => sum + event.stacks, 0),
+    3
+  );
+  assert.ok(
+    poison.every((event) => event.at === blind.at && event.duration === 8 && event.ownerActorType === 'player')
+  );
+});
+
+test('Blood Moon requires player ownership for both disables and immobilizes', () => {
+  // Actor display labels do not grant ownership: summoned pets are excluded, but player-owned child effects qualify.
+  for (const ownership of [
+    { actorType: 'player' },
+    { actorType: 'effect', ownerActorType: 'player' },
+    { actorType: 'summon' },
+    { actorType: 'effect', ownerActorType: 'summon' },
+    { actorType: 'unknown' }
+  ]) {
+    for (const payload of [
+      { type: 'control', controlKind: 'knockback' },
+      { type: 'condition', condition: 'Immobilized', duration: 2, stacks: 1 }
+    ]) {
+      const result = resolveTestGw2Events({
+        profession: rangerProfession,
+        config: { ...baseConfig, specialization: 'Druid', selectedTraitIds: [TRAIT.BLOOD_MOON] },
+        endTime: 1,
+        events: [
+          {
+            at: 0,
+            source: 'ranger',
+            sourceId: 'fixture.blood-moon',
+            skillName: 'Ownership fixture',
+            ...ownership,
+            ...payload
+          }
+        ]
+      });
+      const bleeds = result.resolvedEvents.filter(
+        (event) => event.sourceId === TRAIT.BLOOD_MOON && event.triggeredBy === 'Ownership fixture'
+      );
+      const playerOwned = (ownership.ownerActorType ?? ownership.actorType) === 'player';
+      assert.equal(
+        bleeds.reduce((sum, event) => sum + event.stacks, 0),
+        playerOwned ? 2 : 0
+      );
+      assert.ok(bleeds.every((event) => event.ownerActorType === 'player' && event.duration === 4));
+    }
+  }
 });
 
 test("Sun Spirit emits Solar Flare's individual burning stacks", () => {

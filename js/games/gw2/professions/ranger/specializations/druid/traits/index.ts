@@ -134,7 +134,8 @@ export const bloodMoon = defineTrait({
   triggers: [
     {
       on: 'control.resolved',
-      when: (_runtime, _event) => true,
+      // Pet disables do not activate the player's trait; player-owned child effects still do.
+      when: (_runtime, event) => isGw2PlayerModifierOwnedEvent(event),
       emit: TRAIT.BLOOD_MOON,
       effects: (effect) => effect.type === 'condition' && effect.name === 'Bleeding',
       attribution: (_runtime, event) => ({
@@ -147,7 +148,8 @@ export const bloodMoon = defineTrait({
     },
     {
       on: 'condition.applied',
-      when: (_runtime, event) => event.condition === 'Immobilized' || event.condition === 'Immobile',
+      when: (_runtime, event) =>
+        isGw2PlayerModifierOwnedEvent(event) && (event.condition === 'Immobilized' || event.condition === 'Immobile'),
       emit: TRAIT.BLOOD_MOON,
       effects: (effect) => effect.type === 'condition' && effect.name === 'Bleeding',
       attribution: (_runtime, event) => ({

@@ -10,6 +10,10 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
+import {
+  LUNAR_IMPACT_HIT_MS,
+  SEED_OF_LIFE_DETONATION_MS
+} from '#gw2/professions/ranger/specializations/druid/skills/index.js';
 import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /** Trait packets retain their cast-relative pulse times and are filtered by the shared interruption owner. */
@@ -64,8 +68,15 @@ export function avatarEffects(
         actorType: 'effect',
         ownerActorType: 'player',
         interruptCommitMs: 0,
-        timingAnchor: cast.skill.id === ID.LUNAR_IMPACT ? 'castEnd' : 'castStart',
-        atMs
+        // Eclipse belongs to the skill impact: the seed detonation or Lunar Impact's landed daze.
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        atMs:
+          cast.skill.id === ID.SEED_OF_LIFE
+            ? SEED_OF_LIFE_DETONATION_MS
+            : cast.skill.id === ID.LUNAR_IMPACT
+              ? LUNAR_IMPACT_HIT_MS
+              : atMs
       });
   }
 
