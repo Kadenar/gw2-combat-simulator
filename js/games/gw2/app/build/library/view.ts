@@ -36,6 +36,9 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
         : category === 'condi'
           ? 'Condition '
           : '';
+  // Keep support roles on the same line as weapons so the catalog reads as a compact list.
+  const name = content.weapons ? qualifier + content.weapons : content.name.replace(/\s+(Quickness|Alacrity)$/, '');
+  const rowName = boon === 'none' ? name : `${boon[0].toUpperCase()}${boon.slice(1)} · ${name}`;
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';
@@ -47,12 +50,11 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
   const searchText = [section, preset.label, content.name, content.weapons].filter(Boolean).join(' ').toLowerCase();
   return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}" data-build-search="${esc(searchText)}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false" title="${label}">
-        <span class="template-preset-name">${esc(content.weapons ? qualifier + content.weapons : content.name)}</span>
-        ${boon === 'none' ? '' : `<span class="template-preset-boon">${boon[0].toUpperCase()}${boon.slice(1)}</span>`}
-        ${content.dps ? `<span class="template-preset-dps">${esc(content.dps)}</span>` : ''}
+        <span class="template-preset-name">${esc(rowName)}</span>
+        <span class="template-preset-dps" aria-label="${content.dps ? `${esc(content.dps)} DPS` : 'DPS unavailable'}">${esc(content.dps) || '—'}</span>
         ${freshnessWarning}
       </button>
-      <details class="template-actions">
+      <details class="template-actions" name="build-template-actions">
         <summary aria-label="More options for ${label}" title="More loading options">•••</summary>
         <div class="template-actions-menu" role="menu">
           <button type="button" role="menuitem" data-template-action="new-tab" data-template-index="${index}">Open in new tab</button>
@@ -103,9 +105,15 @@ export function applyTemplateFilter(
   });
 
   container.querySelectorAll<HTMLElement>('.template-subgroup, .presets-group').forEach((group) => {
-    group.hidden = !group.querySelector('.template-preset:not([hidden])');
+    // Counts describe matching templates even when their category is collapsed.
+    const count = group.querySelectorAll('.template-preset:not([hidden])').length;
+    group.hidden = count === 0;
+    const countLabel = group.querySelector<HTMLElement>(':scope > summary .template-subgroup-count');
+    if (countLabel) countLabel.textContent = String(count);
   });
 
+  const resultCount = container.querySelector<HTMLElement>('[data-template-count]');
+  if (resultCount) resultCount.textContent = `${visibleTemplates} template${visibleTemplates === 1 ? '' : 's'}`;
   const emptyMessage = container.querySelector<HTMLElement>('.template-filter-empty');
   if (emptyMessage) emptyMessage.hidden = visibleTemplates > 0;
 }
@@ -133,7 +141,7 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: readonly BuildTem
         .filter(([, rows]) => rows.length > 0)
         .map(
           ([name, rows]) => `<details class="template-subgroup" open>
-            <summary>${name}</summary>
+            <summary><span>${name}</span> <span class="template-subgroup-count">${rows.length}</span></summary>
             <div class="template-subgroup-rows">${rows.join('')}</div>
           </details>`
         )
@@ -329,6 +337,10 @@ export function createBuildLibraryView(
                 .join('')}
             </div>
           </details>
+        </div>
+        <div class="template-list-heading">
+          <span data-template-count aria-live="polite">${app.templatePresets.length} template${app.templatePresets.length === 1 ? '' : 's'}</span>
+          <span class="template-list-dps-heading">DPS</span>
         </div>
         <div class="default-build-groups">${groups}</div>
         <p class="template-filter-empty" ${groups ? 'hidden' : ''}>${groups ? 'No matching build templates.' : 'No standard templates are available.'}</p>

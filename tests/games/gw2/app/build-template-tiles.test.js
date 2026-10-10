@@ -11,7 +11,7 @@ test('build template tiles separate canonical roles, weapons, and DPS', () => {
       build: 'b-power-quick-evoker-hare.json',
       benchmarkDps: 32493
     }),
-    { name: 'Power Quickness', weapons: 'Scepter & Dagger', dps: '32,493 DPS' }
+    { name: 'Power Quickness', weapons: 'Scepter & Dagger', dps: '32,493' }
   );
   assert.deepEqual(
     templateTileContent({
@@ -19,7 +19,7 @@ test('build template tiles separate canonical roles, weapons, and DPS', () => {
       build: 'b-condi-alac-amalgam-2kit.json',
       benchmarkDps: 35508
     }),
-    { name: 'Condition Alacrity', weapons: 'Spear', dps: '35,508 DPS' }
+    { name: 'Condition Alacrity', weapons: 'Spear', dps: '35,508' }
   );
 });
 

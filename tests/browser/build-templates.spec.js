@@ -350,28 +350,49 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
   await page.getByRole('button', { name: /Browse templates/ }).click();
   const chrono = templates.locator('.presets-group').filter({ hasText: 'Chronomancer' });
   const mirage = templates.locator('.presets-group').filter({ hasText: 'Mirage' });
-  const power = chrono.locator('.template-subgroup').filter({ has: page.locator('summary', { hasText: /^Power$/ }) });
-  const boon = chrono.locator('.template-subgroup').filter({ has: page.locator('summary', { hasText: /^Boon$/ }) });
-  await expect(chrono.locator('.template-subgroup > summary')).toHaveText(['Power', 'Condition', 'Boon']);
+  const power = chrono.locator('.template-subgroup').filter({ has: page.locator('summary', { hasText: /^Power / }) });
+  const boon = chrono.locator('.template-subgroup').filter({ has: page.locator('summary', { hasText: /^Boon / }) });
+  await expect(templates.locator('[data-template-count]')).toHaveText('5 templates');
+  await expect(chrono.locator('.template-subgroup > summary')).toHaveText(['Power 1', 'Condition 1', 'Boon 2']);
   await expect(power.locator('.template-preset-name')).toHaveText('Sword & Dagger');
-  await expect(power.locator('.template-preset-dps')).toHaveText('12,345 DPS');
-  await expect(power.locator('.template-preset-boon')).toHaveCount(0);
-  await expect(boon.locator('.template-preset-name')).toHaveText(['Power Spear', 'Condition Staff']);
-  await expect(boon.locator('.template-preset-boon')).toHaveText(['Quickness', 'Alacrity']);
-  await expect(mirage.locator('.template-subgroup > summary')).toHaveText(['Condition']);
+  await expect(power.locator('.template-preset-dps')).toHaveText('12,345');
+  await expect(boon.locator('.template-preset-name')).toHaveText([
+    'Quickness · Power Spear',
+    'Alacrity · Condition Staff'
+  ]);
+  await expect(boon.locator('.template-preset-dps')).toHaveText(['—', '—']);
+  await expect(mirage.locator('.template-subgroup > summary')).toHaveText(['Condition 1']);
   await expect(mirage.locator('.template-preset-name')).toHaveText('Axe');
   await expect(mirage.locator('.template-preset-warning')).toHaveText('⚠ Out of date');
   await expect(chrono.locator('.template-preset-warning')).toHaveCount(0);
 
+  // Benchmark values share one right edge with their heading, even when labels wrap on narrow screens.
+  for (const width of [1000, 360]) {
+    await page.setViewportSize({ width, height: 900 });
+    const heading = await templates.locator('.template-list-dps-heading').boundingBox();
+    for (const dps of await chrono.locator('.template-preset-dps').all()) {
+      const bounds = await dps.boundingBox();
+      expect(Math.abs(bounds.x + bounds.width - heading.x - heading.width)).toBeLessThan(1);
+    }
+
+    const dialog = templates.locator('dialog').first();
+    expect(await dialog.evaluate((element) => element.scrollWidth === element.clientWidth)).toBe(true);
+  }
+
   await power.locator(':scope > summary').focus();
   await page.keyboard.press('Enter');
   await expect(power.locator('.template-load-btn')).toBeHidden();
+  await expect(templates.locator('[data-template-count]')).toHaveText('5 templates');
   await expect(boon.locator('.template-load-btn').first()).toBeVisible();
   await page.keyboard.press('Enter');
   await expect(power.locator('.template-load-btn')).toBeVisible();
   await expect(power.locator('.template-load-btn')).toHaveAttribute('title', 'Power (Sword/Dagger)');
   await power.locator('.template-actions > summary').click();
   await expect(power.getByRole('menuitem', { name: 'Open in new tab' })).toBeVisible();
+  // Native menu exclusivity keeps the highlighted row and available actions unambiguous.
+  await boon.locator('.template-actions > summary').first().click();
+  await expect(power.locator('.template-actions')).not.toHaveAttribute('open');
+  await expect(boon.getByRole('menuitem', { name: 'Open in new tab' }).first()).toBeVisible();
 
   const selectFilter = async (attribute, value) => {
     const button = templates.locator(`[${attribute}="${value}"]`);
@@ -381,15 +402,22 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
 
   await selectFilter('data-template-filter', 'power');
   await expect(mirage).toBeHidden();
-  await expect(chrono.locator('.template-subgroup:not([hidden]) > summary')).toHaveText(['Power', 'Boon']);
-  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText(['Power Spear']);
+  await expect(templates.locator('[data-template-count]')).toHaveText('2 templates');
+  await expect(chrono.locator('.template-subgroup:not([hidden]) > summary')).toHaveText(['Power 1', 'Boon 1']);
+  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText([
+    'Quickness · Power Spear'
+  ]);
   await selectFilter('data-template-boon-filter', 'alacrity');
   await expect(chrono).toBeHidden();
   await expect(templates.locator('.template-filter-empty')).toBeVisible();
+  await expect(templates.locator('[data-template-count]')).toHaveText('0 templates');
   await selectFilter('data-template-filter', 'all');
   await expect(boon).toBeVisible();
   await expect(power).toBeHidden();
-  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText(['Condition Staff']);
+  await expect(templates.locator('[data-template-count]')).toHaveText('1 template');
+  await expect(boon.locator('.template-preset:not([hidden]) .template-preset-name')).toHaveText([
+    'Alacrity · Condition Staff'
+  ]);
   await selectFilter('data-template-specialization-filter', 'Mirage');
   await expect(templates.locator('.template-filter-empty')).toBeVisible();
   await selectFilter('data-template-boon-filter', 'all');

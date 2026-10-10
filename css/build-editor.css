@@ -610,7 +610,17 @@
 .default-build-groups {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 24px;
+}
+
+/* Share the rows' right inset so the benchmark heading aligns with every DPS value. */
+.template-list-heading {
+  display: flex;
+  justify-content: space-between;
+  padding-right: 44px;
+  margin: 14px 0 20px;
+  color: var(--text-dim);
+  font-size: 0.7rem;
 }
 
 .presets-group-btns.template-preset-list {
@@ -623,16 +633,31 @@
 /* Keep category headers distinct and weapon rows compact within each specialization. */
 .template-subgroup {
   min-width: 0;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
+}
+
+.template-subgroup:last-child {
+  margin-bottom: 0;
 }
 
 .template-subgroup > summary {
-  padding: 5px 8px;
-  background: var(--bg-panel-alt);
-  color: var(--text-dim);
+  padding: 6px 0;
+  color: var(--text);
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.template-subgroup > summary::marker {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+}
+
+.template-subgroup-count {
+  margin-left: 5px;
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-weight: 400;
 }
 
 .template-subgroup > summary:hover {
@@ -646,7 +671,6 @@
 
 .template-subgroup-rows {
   margin: 4px 0 0 8px;
-  border-left: 1px solid var(--border-light);
 }
 
 .template-subgroup:not([open]) > .template-subgroup-rows {
@@ -659,11 +683,13 @@
   align-items: stretch;
   width: 100%;
   min-width: 0;
+  border-radius: 5px;
 }
 
 .template-preset:hover,
-.template-preset:focus-within {
-  background: var(--bg-panel-alt);
+.template-preset:focus-within,
+.template-preset:has(.template-actions[open]) {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .btn.template-load-btn {
@@ -674,10 +700,11 @@
   align-items: center;
   gap: 1px 10px;
   min-width: 0;
-  padding: 5px 10px;
+  min-height: 42px;
+  padding: 9px 12px;
   background: transparent;
   border: 0;
-  border-radius: 0;
+  border-radius: 5px;
   color: var(--text);
   cursor: pointer;
   text-align: left;
@@ -690,6 +717,12 @@
   outline: none;
 }
 
+.btn.template-load-btn:focus-visible,
+.template-actions > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 .template-preset-name {
   grid-column: 1;
   font-size: 0.78rem;
@@ -697,21 +730,12 @@
   overflow-wrap: anywhere;
 }
 
-.template-preset-boon {
-  grid-column: 1;
-  overflow: hidden;
-  color: var(--text-dim);
-  font-size: 0.65rem;
-  font-weight: 400;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .template-preset-dps {
   grid-column: 2;
-  grid-row: 1 / span 2;
-  color: var(--text-dim);
-  font-size: 0.68rem;
+  grid-row: 1;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -728,7 +752,7 @@
   color: #a0e8be;
 }
 
-.template-load-btn--current :is(.template-preset-boon, .template-preset-dps) {
+.template-load-btn--current .template-preset-dps {
   color: #78b892;
 }
 
@@ -748,16 +772,18 @@
 
 .template-actions {
   position: relative;
+  flex: 0 0 32px;
 }
 
 .template-actions > summary {
   display: flex;
   align-items: center;
+  justify-content: center;
   height: 100%;
   padding: 0 8px;
   background: transparent;
   border: 0;
-  border-radius: 0;
+  border-radius: 5px;
   color: var(--text-dim);
   cursor: pointer;
   font-size: 0.7rem;
@@ -772,9 +798,8 @@
 .template-actions > summary:hover,
 .template-actions > summary:focus-visible,
 .template-actions[open] > summary {
-  background: transparent;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent);
-  outline: none;
 }
 
 .template-actions-menu {
@@ -784,24 +809,41 @@
   z-index: 100;
   display: flex;
   flex-direction: column;
-  min-width: 150px;
-  padding: 4px;
+  width: 205px;
+  padding: 8px;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border-light);
-  border-radius: 3px;
+  border-radius: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
 .template-actions-menu :is(button, a) {
-  padding: 6px 8px;
+  padding: 12px 7px;
   background: transparent;
   border: 0;
   border-radius: 4px;
   color: var(--text);
   cursor: pointer;
   font: inherit;
+  font-size: 0.75rem;
   text-align: left;
   text-decoration: none;
+}
+
+/* Separate full, partial, and external actions without adding more labels to the menu. */
+.template-actions-menu [data-template-action='new-tab'] {
+  margin-bottom: 5px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.template-actions-menu a {
+  margin-top: 5px;
+  padding-top: 17px;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--accent);
 }
 
 .template-actions-menu :is(button, a):hover,
@@ -904,18 +946,27 @@
 }
 
 .presets-group + .presets-group {
-  border-top: 1px solid rgba(197, 153, 50, 0.4);
-  padding-top: 4px;
+  border-top: 0;
 }
 
 .presets-group-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--accent-dim);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  /* Emphasize specialization boundaries above the smaller role headings without adding a full header bar. */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent);
   text-align: left;
   flex-shrink: 0;
+}
+
+.presets-group-label::after {
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  content: '';
 }
 
 .presets-group-btns {

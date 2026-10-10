@@ -20,7 +20,7 @@ export function templateTileContent(preset: BuildTemplatePreset): {
   weapons: string;
   dps: string;
 } {
-  // Split manifest labels into role, weapons, and benchmark text so every tile keeps the requested visual hierarchy.
+  // Split labels into role, weapons, and a numeric benchmark; the list supplies a shared DPS heading.
   const category = templateCategory(preset);
   const boon = templateBoon(preset);
   const weaponMatch = preset.label.match(/\(([^()]*)\)/);
@@ -49,8 +49,7 @@ export function templateTileContent(preset: BuildTemplatePreset): {
   return {
     name,
     weapons: [inferno ? 'Inferno' : '', weapons, variant].filter(Boolean).join(' '),
-    dps:
-      Number.isFinite(benchmarkDps) && benchmarkDps > 0 ? `${Math.round(benchmarkDps).toLocaleString('en-US')} DPS` : ''
+    dps: Number.isFinite(benchmarkDps) && benchmarkDps > 0 ? Math.round(benchmarkDps).toLocaleString('en-US') : ''
   };
 }
 
