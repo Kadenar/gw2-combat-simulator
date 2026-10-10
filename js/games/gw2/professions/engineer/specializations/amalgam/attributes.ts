@@ -1,6 +1,4 @@
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   activeBoonStacks,
@@ -8,7 +6,6 @@ import {
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
@@ -24,22 +21,6 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
   ['concentration', 'Concentration'],
   ['healingPower', 'Healing Power']
 ] as const);
-
-/** Limits Morph-only modifiers to eligible player strike packets from Morph skills. */
-
-/** Defines Amalgam's event-level strike, condition, and duration modifiers. */
-export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    order: 1,
-    id: 'engineer.plasmatic-state',
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: 'damage-additive',
-    amount: 0.07,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
-  }
-]);
 
 /** Evolve reads immutable common inputs; Titanic adds live Might outside conversion eligibility. */
 export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) => {
@@ -70,8 +51,3 @@ export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) =
     }
   ];
 };
-
-/** Exposes Amalgam's aggregate attribute transformation and packet modifier rules. */
-export const amalgamModifiers = Object.freeze({
-  modifierRules: amalgamModifierRules
-});

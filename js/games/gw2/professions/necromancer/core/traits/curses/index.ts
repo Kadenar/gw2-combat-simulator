@@ -200,6 +200,19 @@ export const lingeringCurse = defineTrait({
     attributeBonus: 200,
     durationMultiplier: 1.5
   },
+  // Scale eligible Scepter base durations before ordinary duration bonuses and their cap.
+  modifierRules: [
+    {
+      id: 'necromancer.lingering-curse-duration',
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_CURSE), 'durationMultiplier'),
+      when: (context) =>
+        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === 'Scepter' &&
+        context.event?.skillId !== ID.DEVOURING_DARKNESS
+    }
+  ],
   attributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
   ])

@@ -10,7 +10,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
-import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
+import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import { StableEventQueue } from '#kernel/events/queue.js';

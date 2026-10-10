@@ -1,8 +1,10 @@
+import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
+import { plasmaticStateModifiers } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { amalgamHooks } from '#gw2/professions/engineer/specializations/amalgam/hooks.js';
-import { amalgamAttributes, amalgamModifiers } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
+
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 import { AMALGAM_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
@@ -23,7 +25,8 @@ export const amalgamModule = defineNativeModule({
   }),
   state: { create: amalgamState.create, project: createPublicStateProjector(AMALGAM_PUBLIC_STATE_PROJECTION) },
   attributes: amalgamAttributes,
-  modifiers: amalgamModifiers,
+  // Register the skill/mechanic-owned rules alongside trait declarations.
+  modifiers: plasmaticStateModifiers,
   hooks: amalgamHooks,
   presentation: bindAmalgamUi
 });

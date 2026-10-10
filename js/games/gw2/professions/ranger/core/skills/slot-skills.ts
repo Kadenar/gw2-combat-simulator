@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { activeBuff, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import {
   activeChargeGrants,
   appendChargeGrant,
@@ -721,3 +723,26 @@ export const sharpeningStoneLifecycle = {
   },
   eventHandlers: { 'ranger.sharpening-stone': handleRangerSharpeningStone }
 } satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
+
+/** Soulbeast registers the accepted player command bonus separately from its pet recipient. */
+export const sicEmPlayerModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'ranger.sic-em-player',
+    order: 102,
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.25,
+    when: (context) => activeBuff(context, 'sic-em')
+  }
+]);
+
+/** Pet command grants affect only their eligible companion audience. */
+export const sicEmPetModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'ranger.sic-em-pet',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.4,
+    when: (context) => rangerPetEvent(context) && activeBuff(context, 'sic-em-pet')
+  }
+]);

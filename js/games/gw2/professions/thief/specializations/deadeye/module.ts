@@ -2,10 +2,12 @@ import { createPublicStateProjector } from '#gw2/platform/profession-definition/
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
-import { deadeyeModifiers } from '#gw2/professions/thief/specializations/deadeye/modifiers.js';
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
 import { DEADEYE_BALANCE_PROFILES } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
+import {
+  DEADEYE_SKILL_MECHANICS,
+  deadeyeSkillModifiers
+} from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
 import { DEADEYE_PUBLIC_STATE_PROJECTION, deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeTraits } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
 
@@ -20,7 +22,8 @@ export const deadeyeModule = defineNativeModule({
     create: () => deadeyeState.create(),
     project: createPublicStateProjector(DEADEYE_PUBLIC_STATE_PROJECTION)
   },
-  modifiers: deadeyeModifiers,
+  // Skill owners declare the rules; the module registers them alongside selected traits.
+  modifiers: deadeyeSkillModifiers,
   hooks: deadeyeHooks,
   presentation: deadeyeUi
 });

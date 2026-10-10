@@ -118,7 +118,18 @@ export const risingTide = defineTrait({
 export const roilingMists = defineTrait({
   id: TRAIT.ROILING_MISTS,
   name: 'Roiling Mists',
-  balance: { criticalChance: 0.25 }
+  balance: { criticalChance: 0.25 },
+  // Fury supplies the additional chance only while this trait is selected.
+  modifierRules: [
+    {
+      id: 'revenant.roiling-mists',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ROILING_MISTS), 'criticalChance'),
+      when: (context) => boonActive(context, 'fury')
+    }
+  ]
 });
 
 /** Owns Song of the Mists tuning and behavior at its established execution boundaries. */

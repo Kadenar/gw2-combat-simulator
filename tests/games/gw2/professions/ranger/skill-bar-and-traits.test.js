@@ -542,16 +542,17 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     'ranger.hunters-tactics-damage',
     'ranger.light-on-your-feet',
     'ranger.bountiful-hunter-player',
-    'ranger.bountiful-hunter-pet'
+    'ranger.bountiful-hunter-pet',
+    // Core owns these trait rules; their predicates restrict the merged player bonuses to Soulbeast.
+    'ranger.loud-whistle-player',
+    'ranger.lesser-sic-em-player'
   ]) {
     assert.equal(coreOperations.get(id), 'multiply', id);
   }
 
-  for (const id of ['ranger.loud-whistle-player', 'ranger.sic-em-player', 'ranger.oppressive-superiority']) {
+  for (const id of ['ranger.sic-em-player', 'ranger.oppressive-superiority']) {
     assert.equal(soulbeastOperations.get(id), 'multiply', id);
   }
-
-  assert.equal(coreOperations.has('ranger.loud-whistle-player'), false);
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
   const untamedContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };

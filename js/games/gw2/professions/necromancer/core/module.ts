@@ -1,7 +1,8 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
-import { necromancerCoreModifiers } from '#gw2/professions/necromancer/core/modifiers.js';
+import { ghastlyClawsVulnerabilityModifier } from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
+import { lifeSiphonBleedingModifier } from '#gw2/professions/necromancer/core/skills/weapons/dagger.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
 import { necromancerPassiveAttributes } from '#gw2/professions/necromancer/core/skills/attribute-passives.js';
@@ -32,6 +33,10 @@ export const necromancerCoreModule = defineNativeModule({
     project: projectNecromancerPlanningState
   },
   hooks: necromancerCoreHooks,
-  modifiers: necromancerCoreModifiers,
+  // Skill rules retain their ordering; selected traits own their damage and duration rules.
+  modifiers: [
+    { ...lifeSiphonBleedingModifier, order: -20 },
+    { ...ghastlyClawsVulnerabilityModifier, order: 108 }
+  ],
   presentation: bindNecromancerCoreUi
 });

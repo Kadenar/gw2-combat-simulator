@@ -1,7 +1,8 @@
+import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
-import { thiefCoreModifiers } from '#gw2/professions/thief/core/modifiers.js';
+
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_BALANCE_PROFILES } from '#gw2/professions/thief/core/profiles.js';
 import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
@@ -23,7 +24,8 @@ export const thiefCoreModule = defineNativeModule({
   }),
   state: { create: createThiefCoreState, project: createPublicStateProjector(THIEF_CORE_PUBLIC_STATE_PROJECTION) },
 
-  modifiers: thiefCoreModifiers,
+  // Register the skill/mechanic-owned rules alongside trait declarations.
+  modifiers: distractingThrowModifiers,
   hooks: thiefCoreHooks,
   presentation: thiefCoreUi
 });

@@ -1,14 +1,12 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -106,6 +104,23 @@ export const goForTheThroat = defineTrait({
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT), 'damageMultiplier'),
       when: (context) => rangerPetEvent(context) && activeBuff(context, 'lesser-sic-em-pet')
+    },
+    {
+      // Accepted player grants survive deselection and unmerging, within their Soulbeast owner.
+      order: 103,
+      requiresSelection: false,
+      id: 'ranger.lesser-sic-em-player',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT),
+          'playerDamageMultiplier'
+        ),
+      when: (context) =>
+        (context.runtime
+          ? readProfessionSpecializationState(context.runtime.profession, 'Soulbeast') != null
+          : context.config?.specialization === 'Soulbeast') && activeBuff(context, 'lesser-sic-em')
     }
   ]
 });
@@ -269,6 +284,16 @@ export const loudWhistle = defineTrait({
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'damageMultiplier'),
       when: (context) => rangerPetEvent(context)
+    },
+    {
+      // The selected Core trait grants its player bonus only during active Soulbeast merging.
+      order: 100,
+      id: 'ranger.loud-whistle-player',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'playerDamageMultiplier'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context)
     }
   ]
 });
@@ -309,29 +334,6 @@ export const bestialRageControl = compileProfessionRules<RangerRuntimeState>({
     }
   ]
 }).reactions!['control.resolved']!;
-
-/** Installs the Core trait at Soulbeast's existing modifier boundary. */
-export const loudWhistleMergedModifier: Gw2ModifierRule = {
-  order: 100,
-  id: 'ranger.loud-whistle-player',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'playerDamageMultiplier'),
-  when: (context) =>
-    isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context) && hasTrait(context, TRAIT.LOUD_WHISTLE)
-};
-
-/** Installs the Core trait at Soulbeast's existing modifier boundary. */
-export const goForTheThroatMergedModifier: Gw2ModifierRule = {
-  order: 103,
-  id: 'ranger.lesser-sic-em-player',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT), 'playerDamageMultiplier'),
-  when: (context) => activeBuff(context, 'lesser-sic-em')
-};
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.

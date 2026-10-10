@@ -4,7 +4,6 @@ import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarat
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
-import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -12,7 +11,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { heraldAttributes } from '#gw2/professions/revenant/specializations/herald/modifiers.js';
+import { heraldAttributes } from '#gw2/professions/revenant/specializations/herald/attributes.js';
 import { heraldModule } from '#gw2/professions/revenant/specializations/herald/module.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -122,7 +121,7 @@ test("Assassin's Presence pulses during idle combat and attacks cannot move the 
   assert.ok(pulses(idle).every((event) => event.duration === 3 && event.resolvedAudience.includesSelf));
   assert.ok(idle.events.some((event) => event.sourceId === TRAIT.INCENSED_RESPONSE));
   assert.equal(
-    revenantCoreModifiers.modifyCriticalChance(
+    revenantProfession.runtimeFor({ specialization: 'Core' }).modifyCriticalChance(
       {
         config: { ...config, selectedTraitIds: [...config.selectedTraitIds, TRAIT.ROILING_MISTS] },
         time: 1,

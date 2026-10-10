@@ -9,7 +9,7 @@ import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-de
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { applyCatalystResolvedDamage } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
+import { relentlessFireModifiers } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyCatalystEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
@@ -276,7 +276,7 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
 });
 
 test('Relentless Fire exposes separate strike and condition modifiers for its active window', () => {
-  const modifiers = createModifierHooks({ rules: catalystModifierRules });
+  const modifiers = createModifierHooks({ rules: relentlessFireModifiers });
   const context = {
     procs: createProcRegistry(() => context),
     catalog: elementalistCatalog,
@@ -290,7 +290,7 @@ test('Relentless Fire exposes separate strike and condition modifiers for its ac
   };
 
   assert.deepEqual(
-    catalystModifierRules
+    relentlessFireModifiers
       .filter(({ id }) => id.startsWith('elementalist.relentless-fire'))
       .map(({ id, target }) => ({ id, target })),
     [

@@ -11,12 +11,12 @@ import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
 const renegadeModifierRules = renegadeModule.modifiers.modifierRules;
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -41,7 +41,9 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   const reprisal = revenantCoreModifierRules.find(({ id }) => id === 'revenant.vicious-reprisal');
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
   const criticalBonus = (value) =>
-    revenantCoreModifiers.modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
+    revenantProfession
+      .runtimeFor({ specialization: 'Core' })
+      .modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
   assert.equal(countActiveBoons({ ...context, runtime: undefined }), 2);
   assert.equal(bloodFury.when({ ...context, runtime: undefined }), true);
   for (const kind of ['fury', 'resolution']) {

@@ -1,5 +1,4 @@
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
@@ -10,7 +9,7 @@ import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 
-import { reaperModifierRules } from '#gw2/professions/necromancer/specializations/reaper/modifiers.js';
+import { reaperModule } from '#gw2/professions/necromancer/specializations/reaper/module.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { galeshotModule } from '#gw2/professions/ranger/specializations/galeshot/module.js';
@@ -43,10 +42,10 @@ function modifierRule(rules, id) {
 const elementalistStormsoul = modifierRule(elementalistCoreModule.modifiers.modifierRules, 'elementalist.stormsoul');
 const weaverSuperiorElements = modifierRule(weaverModule.modifiers.modifierRules, 'elementalist.superior-elements');
 const rangerSurvivalInstincts = modifierRule(rangerCoreModule.modifiers.modifierRules, 'ranger.survival-instincts');
-const soulbeastLoudWhistle = modifierRule(soulbeastModule.modifiers.modifierRules, 'ranger.loud-whistle-player');
+const soulbeastLoudWhistle = modifierRule(rangerCoreModule.modifiers.modifierRules, 'ranger.loud-whistle-player');
 const galeshotBirdOfPrey = modifierRule(galeshotModule.modifiers.modifierRules, 'ranger.bird-of-prey');
 const amalgamWillingHost = modifierRule(amalgamModule.modifiers.modifierRules, 'engineer.willing-host');
-const reaperShout = modifierRule(reaperModifierRules, 'necromancer.reaper-shout-melee');
+const reaperShout = modifierRule(reaperModule.modifiers.modifierRules, 'necromancer.reaper-shout-melee');
 const engineerHighCaliber = modifierRule(engineerCoreModule.modifiers.modifierRules, 'engineer.high-caliber');
 const revenantFerociousAggression = modifierRule(
   revenantCoreModule.modifiers.modifierRules,

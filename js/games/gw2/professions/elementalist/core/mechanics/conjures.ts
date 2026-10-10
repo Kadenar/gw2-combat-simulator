@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -82,3 +84,12 @@ export function captureConjurePickup(runtime: ElementalistRuntime, cast: Runtime
   const weapon = CONJURE_PICKUP_WEAPONS[Number(cast.skill.id)];
   if (weapon) pickupWindows.set(cast, runtime.profession.core.conjurePickups[weapon]);
 }
+
+/** Frost Bow strengthens condition duration only while its equipped copy remains active. */
+export const frostBowDurationModifier: Gw2ModifierRule = {
+  id: 'elementalist.frost-bow-condition-duration',
+  target: MODIFIER_TARGET.CONDITION_DURATION,
+  operation: 'multiply',
+  factor: 1.2,
+  when: (context) => wieldedConjure(context) === 'Frost Bow'
+};

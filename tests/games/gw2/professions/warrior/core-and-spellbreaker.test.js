@@ -27,7 +27,6 @@ import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
 import { BERSERKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
@@ -1073,7 +1072,7 @@ test('Warrior dagger bursts always apply their boonless-target multiplier', () =
   // Both skill bonuses use the fixed target scope even when retained config says otherwise.
   // Each module composes the intrinsic rule exported beside its own burst.
   for (const [owner, id, skillId] of [
-    [warriorCoreModifiers, 'warrior.breaching-strike-boonless', ID.BREACHING_STRIKE],
+    [warriorCoreModule.modifiers, 'warrior.breaching-strike-boonless', ID.BREACHING_STRIKE],
     [berserkerModule.modifiers, 'warrior.slicing-maelstrom-boonless', ID.SLICING_MAELSTROM]
   ]) {
     const rule = owner.modifierRules.find((rule) => rule.id === id);

@@ -1,7 +1,17 @@
+import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
+import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
+import {
+  rangerHammerConditionsModifier,
+  rangerHammerDisabledModifier
+} from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
+import { rangerFalconsStoopModifier } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
+import { rangerPounceModifier } from '#gw2/professions/ranger/core/skills/weapons/sword.js';
+
+import { modifyRangerConditionBaseDuration } from '#gw2/professions/ranger/core/traits/skirmishing/attributes.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
-import { rangerCoreModifiers } from '#gw2/professions/ranger/core/modifiers.js';
+
 import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_CORE_BALANCE_PROFILES } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPassiveAttributes } from '#gw2/professions/ranger/core/skills/attribute-passives.js';
@@ -9,7 +19,7 @@ import {
   RANGER_CORE_BASE_SKILL_MECHANICS,
   RANGER_CORE_EXTRA_SKILLS
 } from '#gw2/professions/ranger/core/skills/index.js';
-import { sharpeningStoneProfile } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { sharpeningStoneProfile, sicEmPetModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { poisonousStrikesProfile } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { bloodThirstProfile } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { createRangerCoreState, RANGER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/core/state.js';
@@ -32,7 +42,21 @@ export const rangerCoreModule = defineNativeModule({
     extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
   state: { create: createRangerCoreState, project: createPublicStateProjector(RANGER_CORE_PUBLIC_STATE_PROJECTION) },
-  modifiers: rangerCoreModifiers,
+  // Keep player/shared rules before the pet audience and retain the established duration stage.
+  modifiers: {
+    modifyConditionBaseDuration: modifyRangerConditionBaseDuration,
+    modifierRules: [
+      rangerAttackOfOpportunityModifier,
+      ...[
+        rangerHammerDisabledModifier,
+        rangerPounceModifier,
+        rangerFalconsStoopModifier,
+        rangerHammerConditionsModifier,
+        rangerConsumingBiteModifier
+      ].map((rule, index) => ({ ...rule, order: 15 + index })),
+      ...sicEmPetModifiers.map((rule, index) => ({ ...rule, order: 30 + index }))
+    ]
+  },
   hooks: rangerCoreHooks,
   presentation: bindRangerCoreUi
 });

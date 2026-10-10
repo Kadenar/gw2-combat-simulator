@@ -3,7 +3,6 @@ import { createPublicStateProjector } from '#gw2/platform/profession-definition/
 import { REVENANT_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/core/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { revenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
 import {
@@ -26,7 +25,6 @@ export const revenantCoreModule = defineNativeModule({
     create: createRevenantCoreState,
     project: createPublicStateProjector(REVENANT_CORE_PUBLIC_STATE_PROJECTION)
   },
-  modifiers: revenantCoreModifiers,
   hooks: revenantCoreHooks,
   presentation: revenantCoreUi
 });

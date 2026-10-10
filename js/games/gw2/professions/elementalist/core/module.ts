@@ -1,7 +1,8 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
-import { elementalistCoreModifiers } from '#gw2/professions/elementalist/core/modifiers.js';
+import { hammerOrbModifiers } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { frostBowDurationModifier } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
 import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
@@ -35,7 +36,8 @@ export const elementalistCoreModule = defineNativeModule({
     project: createPublicStateProjector(ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION)
   },
   traitDefinitions: elementalistCoreTraits,
-  modifiers: elementalistCoreModifiers,
+  // Preserve resource-rule ordering while each mechanic owns its declarations.
+  modifiers: [...hammerOrbModifiers, frostBowDurationModifier],
   hooks: elementalistCoreHooks,
   presentation: bindElementalistCoreUi
 });

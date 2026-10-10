@@ -2,7 +2,8 @@ import { createPublicStateProjector } from '#gw2/platform/profession-definition/
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { luminaryHooks } from '#gw2/professions/guardian/specializations/luminary/hooks.js';
-import { luminaryModifiers } from '#gw2/professions/guardian/specializations/luminary/modifiers.js';
+import { luminaryStanceModifiers } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import {
@@ -24,7 +25,8 @@ export const luminaryModule = defineNativeModule({
     balanceProfiles: LUMINARY_BALANCE_PROFILES
   }),
   state: { create: luminaryState.create, project: createPublicStateProjector(LUMINARY_PUBLIC_STATE_PROJECTION) },
-  modifiers: luminaryModifiers,
+  // Stance rules precede weapon rules when their authored order ties.
+  modifiers: [...luminaryStanceModifiers, ...luminaryWeaponModifiers],
   traitDefinitions: luminaryTraits,
   hooks: luminaryHooks,
   presentation: bindLuminaryUi
