@@ -1,4 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
@@ -12,6 +11,7 @@ import { readProfessionSpecializationState } from '#gw2/platform/profession-defi
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -70,7 +70,7 @@ export const naturalFortitude = defineTrait({
       }
     }
   },
-  buildAttributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
+  attributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
   ])
 });

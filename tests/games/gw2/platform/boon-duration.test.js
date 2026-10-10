@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -34,7 +35,7 @@ test('boon grants round durations to milliseconds and expirations up to action t
   const result = simulateGw2({
     profession,
     rotation: [{ type: 'wait', durationMs: 375 }, 'Grant'],
-    config: { stats: { concentration: 1500 } }
+    config: { attributeInputs: baseAttributeInputs({ concentration: 1500 }) }
   });
   assert.deepEqual(
     result.events.filter((event) => event.type === 'buff').map((event) => [event.kind, event.at, event.duration]),
@@ -151,11 +152,11 @@ test('the shared boon multiplier combines concentration, global, named, and sigi
 
 test('static attribute snapshots preserve global and named boon-duration bonuses', () => {
   const stats = gw2StaticAttributes({
-    stats: {
+    attributeInputs: baseAttributeInputs({
       concentration: 300,
       boonDurationBonus: 10,
       boonDurationBonuses: { Might: 15 }
-    }
+    })
   });
 
   assert.equal(stats.boonDurationBonus, 10);
@@ -303,7 +304,7 @@ test('declarative boons can gate dynamic skill availability', () => {
   const extended = simulateGw2({
     profession,
     rotation: ['Grant Aegis', { type: 'wait', durationMs: 3100 }, 'Aegis Strike'],
-    config: { stats: { concentration: 1500 } }
+    config: { attributeInputs: baseAttributeInputs({ concentration: 1500 }) }
   });
 
   assert.ok(available.totalDamage > 0);
@@ -346,7 +347,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
   const result = simulateGw2({
     profession,
     rotation: ['Grant Trait Buff', 'Inspect Trait Buff'],
-    config: { stats: { concentration: 1500 } }
+    config: { attributeInputs: baseAttributeInputs({ concentration: 1500 }) }
   });
   const application = result.events.find((event) => event.type === 'buff' && event.kind === 'trait-charge');
 

@@ -1,3 +1,5 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -64,7 +66,10 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
 
   assert.ok(conditionDamage.utility > 0);
   assert.ok(conditionDamage.traits > 0);
-  assert.equal(config.catalystEmpowermentPool.conditionDamage, conditionDamage.final);
+  assert.equal(
+    catalystAttributePool({ config, catalog: elementalistCatalog, time: 0 }).conditionDamage,
+    conditionDamage.final
+  );
 });
 
 // The field and enhanced burst share the projectile release clock.
@@ -233,14 +238,14 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
       catalog: elementalistCatalog,
       traits: new Set([TRAIT.ELEMENTAL_EMPOWERMENT, TRAIT.EMPOWERED_EMPOWERMENT]),
       config: {
-        catalystEmpowermentPool: {
+        attributeInputs: baseAttributeInputs({
           power: 1000,
           precision: 1000,
           ferocity: 1000,
           conditionDamage: 1000,
           expertise: 1000,
           concentration: 1000
-        }
+        })
       },
       runtime: {
         combatStartTime: 0,

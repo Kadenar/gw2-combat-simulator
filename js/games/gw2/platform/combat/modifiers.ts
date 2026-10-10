@@ -1,16 +1,16 @@
-import type { SkillId, CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
   Gw2CombatQuery,
   Gw2ConditionSample,
   Gw2CriticalChanceContributor,
   Gw2QueryRuntime
 } from '#gw2/platform/combat-calculation/combat-query.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;
@@ -627,6 +627,8 @@ type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
 
 /** Modifier queries retain scheduler state and source identity when no event is available. */
 export interface Gw2ModifierContext {
+  /** Explicit selected catalog for detached queries and profile overrides. */
+  readonly catalog?: Readonly<CanonicalCatalog>;
   /** Supplied only by the isolated attribute preview, outside persisted builds and simulation configuration. */
   readonly attributePreviewPlayerHealthFraction?: number;
   readonly skillId?: SkillId | null;

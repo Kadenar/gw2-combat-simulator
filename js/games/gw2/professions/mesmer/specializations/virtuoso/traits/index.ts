@@ -1,9 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  mesmerPhantasmPreparing,
-  type MesmerPhantasmAdmission
-} from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
-import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -15,14 +9,20 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  mesmerPhantasmPreparing,
+  type MesmerPhantasmAdmission
+} from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -174,18 +174,8 @@ export const quietIntensity = defineTrait<MesmerSkill>({
   id: TRAIT.QUIET_INTENSITY,
   name: 'Quiet Intensity',
   balance: { phantasmCriticalChance: 0.15, criticalChance: 0.15, vitalityConversion: 0.1 },
-  modifierRules: [
-    {
-      id: 'mesmer.quiet-intensity-critical-chance',
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.QUIET_INTENSITY), 'criticalChance'),
-      when: (context) =>
-        !illusionSource(context) && Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
-    }
-  ],
-  buildAttributes: (_common, { balanceContext, build }) => {
+  attributes: (context) => {
+    const { balanceContext, loadout } = context;
     const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.QUIET_INTENSITY);
     return {
       attributeEffects: [
@@ -198,7 +188,10 @@ export const quietIntensity = defineTrait<MesmerSkill>({
           input: 'common'
         }
       ],
-      traitCriticalChance: build.assumptions?.fury !== false ? 100 * balanceProfileNumber(profile, 'criticalChance') : 0
+      traitCriticalChance:
+        !illusionSource(context) && loadout.assumptions.fury !== false
+          ? 100 * balanceProfileNumber(profile, 'criticalChance')
+          : 0
     };
   }
 });
@@ -230,7 +223,7 @@ export const sharpeningSorrow = defineTrait<MesmerSkill>({
   balance: {
     expertiseBonus: 150
   },
-  buildAttributes: (_common, { balanceContext, build }) => ({
+  attributes: ({ balanceContext, loadout }) => ({
     attributeEffects: [
       {
         kind: 'flat',
@@ -240,7 +233,7 @@ export const sharpeningSorrow = defineTrait<MesmerSkill>({
           'expertiseBonus'
         ),
         feedsConversions: false,
-        enabled: build.assumptions?.fury !== false
+        enabled: loadout.assumptions.fury !== false
       }
     ]
   })

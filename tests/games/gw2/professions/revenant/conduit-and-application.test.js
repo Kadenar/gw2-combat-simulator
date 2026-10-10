@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -45,14 +46,14 @@ const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 
@@ -385,7 +386,7 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
     selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
     startingLegend: LEGEND.DEMON,
     initialEnergy: 30,
-    stats: { concentration: 0 }
+    attributeInputs: baseAttributeInputs({ concentration: 0 })
   };
   for (const skillId of [SKILL.PAIN_ABSORPTION, SKILL.PAIN_ABSORPTION_ID_78505]) {
     const base = simulate('Conduit', [skillId], config);
@@ -800,7 +801,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     6
   );
   assert.ok(
-    vortex.events.some((event) => event.type === 'buff' && event.kind === 'resolution' && event.duration === 3.15)
+    vortex.events.some((event) => event.type === 'buff' && event.kind === 'resolution' && event.duration === 3)
   );
 });
 
@@ -1041,7 +1042,7 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
         event.skillName === 'Release Potential: Dervish' &&
         event.kind === 'might' &&
         event.stacks === 10 &&
-        Math.abs(event.duration - 8 * (1 + 75 / 1500)) < 1e-9
+        Math.abs(event.duration - 8) < 1e-9
     )
   );
 
@@ -1057,15 +1058,13 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
         event.skillName === 'Release Potential: Dervish' &&
         event.kind === 'might' &&
         event.stacks === 10 &&
-        Math.abs(event.duration - 8 * (1 + 225 / 1500)) < 1e-9
+        Math.abs(event.duration - 8) < 1e-9
     )
   );
   assert.ok(
     dervishCentaur.events.some(
       (event) =>
-        event.skillName === 'Release Potential: Dervish' &&
-        event.kind === 'fury' &&
-        Math.abs(event.duration - 8 * (1 + 225 / 1500)) < 1e-9
+        event.skillName === 'Release Potential: Dervish' && event.kind === 'fury' && Math.abs(event.duration - 8) < 1e-9
     )
   );
 });
@@ -1162,7 +1161,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   const kinetic = simulate('Conduit', ['Release Potential: Warrior'], {
     selectedLegends: [LEGEND.DWARF, LEGEND.ENTITY],
     startingLegend: LEGEND.DWARF,
-    selectedTraitIds: [TRAIT.KINETIC_INSIGHT]
+    selectedTraitIds: [TRAIT.KINETIC_INSIGHT, TRAIT.BOLSTERED_BONDS]
   });
 
   assert.equal(
@@ -1228,7 +1227,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
   const context = {
     config: {
       specialization: 'Conduit',
-      selectedTraitIds: [TRAIT.KINETIC_INSIGHT]
+      selectedTraitIds: [TRAIT.KINETIC_INSIGHT, TRAIT.BOLSTERED_BONDS]
     },
     time: 1,
     // The modifier follows mechanic identity even when the display name changes.
@@ -1265,9 +1264,6 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
     ...context,
     config: {
       specialization: 'Conduit',
-      attributeProvenance: {
-        professionStaticRulesApplied: true
-      },
       selectedTraitIds: [TRAIT.YEARNING_EMPOWERMENT, TRAIT.NUMINOUS_GIFT]
     }
   };
@@ -1279,8 +1275,11 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
   });
 
   assert.deepEqual(numinousAttributes.conditionDurationBonuses, {
-    Poisoned: 10,
-    Torment: 10
+    Bleeding: 15,
+    Burning: 15,
+    Confusion: 15,
+    Poisoned: 25,
+    Torment: 25
   });
   assert.equal(
     revenantModifiers.modifyConditionDuration(

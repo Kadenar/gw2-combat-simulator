@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
@@ -133,7 +134,7 @@ test('consolidation preserves proc details, other effects, and zero-recipient gr
 test('Master Fencer records its trait ID and owns both Fury grants while Critical Infusion names Vigor', () => {
   const result = simulateMesmer(['Flying Cutter', { type: 'wait', durationMs: 1 }], {
     selectedTraitIds: [TRAIT.MASTER_FENCER, TRAIT.CRITICAL_INFUSION],
-    stats: { precision: 3000, concentration: 750 },
+    attributeInputs: baseAttributeInputs({ precision: 3000, concentration: 750 }),
     allies: { count: 2, strikesPerSecond: 0 }
   });
   assert.deepEqual(result.warnings, []);

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -14,14 +15,14 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: { Vulnerability: 25 }
@@ -613,7 +614,7 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
     ['Conduit Surge', 'Lightning Rod', 'Electric Artillery', { type: 'wait', durationMs: 4000 }],
     {
       selectedMorphSkillIds: [77103, 77104, 76705],
-      stats: { expertise: 600 },
+      attributeInputs: baseAttributeInputs({ expertise: 600 }),
       target: { conditions: { Vulnerability: 0 } }
     }
   );

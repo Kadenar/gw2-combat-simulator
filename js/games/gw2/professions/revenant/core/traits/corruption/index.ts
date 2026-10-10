@@ -125,7 +125,7 @@ export const invokingTorment = defineTrait({
 
 /** Owns Pact of Pain tuning and behavior at its established execution boundaries. */
 export const pactOfPain = defineTrait({
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Condition Duration':
         100 *
@@ -142,7 +142,7 @@ export const pactOfPain = defineTrait({
 
 /** Owns Seething Malice tuning and behavior at its established execution boundaries. */
 export const seethingMalice = defineTrait({
-  buildAttributes: traitAttributeEffects(TRAIT.SEETHING_MALICE, [
+  attributes: traitAttributeEffects(TRAIT.SEETHING_MALICE, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
   ]),
   id: TRAIT.SEETHING_MALICE,
@@ -152,7 +152,7 @@ export const seethingMalice = defineTrait({
 
 /** Owns Yearning Empowerment tuning and behavior at its established execution boundaries. */
 export const yearningEmpowerment = defineTrait({
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: Object.fromEntries(
       ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((condition) => [
         condition + ' Duration',

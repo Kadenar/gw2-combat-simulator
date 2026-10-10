@@ -1,15 +1,18 @@
-import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
   type ParsedEvtc,
   type ParsedEvtcEvent
 } from '#gw2/integrations/logs/evtc/types.js';
+import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
+import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 export const EVTC_BLEEDING_SKILL_ID = 736;
 export const EVTC_CRIPPLED_SKILL_ID = 721;
@@ -99,20 +102,18 @@ function conditionDurationMs(
 export function expectedConditionDurationsMs(
   baseDurationSeconds: number,
   condition: string,
-  config: Gw2Config
+  config: Gw2Config,
+  attributes: readonly Gw2Stats[]
 ): readonly number[] {
   if (!(baseDurationSeconds > 0)) return [];
-  const setCount = Math.max(config.weaponSetStats?.length || 0, config.sigilSets?.length || 0, 1);
+  const setCount = attributes.length;
   return [
     ...new Set(
       Array.from({ length: setCount }, (_, index) =>
         conditionDurationMs(
           baseDurationSeconds,
           condition,
-          {
-            ...(config.stats || {}),
-            ...(config.weaponSetStats?.[index] || {})
-          },
+          attributes[index],
           config.sigilSets?.[index] || config.sigilSets?.[0] || {}
         )
       )
@@ -156,7 +157,7 @@ export function analyzeCriticalBleedingProcObservation(
   config: Gw2Config,
   traitId: string | number,
   traitName: string,
-  additionalDurationConfigs: readonly Gw2Config[] = []
+  attributes: readonly Gw2Stats[]
 ): CriticalBleedingProcObservation | null {
   if (!hasSelectedTrait(config, traitId)) return null;
   const profile = traitBalanceProfile(catalog, traitId, traitName);
@@ -170,11 +171,7 @@ export function analyzeCriticalBleedingProcObservation(
   const baseDurationSeconds = bleedingDuration(profile);
   // Temporary profession bonuses can produce multiple valid durations alongside the static build stats.
   const matchedDurationsMs = [
-    ...new Set(
-      [config, ...additionalDurationConfigs].flatMap((durationConfig) =>
-        expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', durationConfig)
-      )
-    )
+    ...new Set(expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config, attributes))
   ].sort((left, right) => left - right);
   if (!(expectedProcChance > 0) || !matchedDurationsMs.length) return null;
 
@@ -222,4 +219,22 @@ export function countPairedApplications(
   }
 
   return matches;
+}
+
+/** Log inference shares ordinary declaration ownership and each equipment set's immutable seed. */
+export function observationAttributeSets(
+  config: Gw2Config,
+  catalog: Readonly<CanonicalCatalog>,
+  calculate: Gw2AttributeContributionCalculator
+): readonly Gw2Stats[] {
+  return [1, 2].map((weaponSet) =>
+    applyAttributeContributions(
+      attributeContext(
+        { config: { ...config, startingWeaponSet: weaponSet }, time: 0 },
+        { catalog, modifierRulesById: new Map() }
+      ),
+      attributeSeed(config, weaponSet).commonTotals,
+      calculate
+    )
+  );
 }

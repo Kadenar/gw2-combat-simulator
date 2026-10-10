@@ -1,10 +1,10 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -110,7 +110,7 @@ export const arachnophobia = defineTrait({
     weaponAttributeBonus: 225,
     effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]
   },
-  buildAttributes: traitAttributeEffects(TRAIT.ARACHNOPHOBIA, [
+  attributes: traitAttributeEffects(TRAIT.ARACHNOPHOBIA, [
     { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: false }
   ])
 });
@@ -182,9 +182,9 @@ export const ambidexterity = defineTrait({
       multiplier: { profile: TRAIT.AMBIDEXTERITY, field: 'rechargeMultiplier' }
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+  attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const profile = requireBalanceProfileFromContext(profileContext, TRAIT.AMBIDEXTERITY);
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
       attributeEffects: [
         {
@@ -192,7 +192,7 @@ export const ambidexterity = defineTrait({
           to: 'Condition Damage',
           amount: balanceProfileNumber(
             profile,
-            weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon))
+            weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon ?? ''))
               ? 'weaponAttributeBonus'
               : 'attributeBonus'
           ),

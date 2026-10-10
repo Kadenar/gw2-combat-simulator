@@ -1,23 +1,23 @@
-import type {
-  ProfessionAttributePreviewPreparation,
-  PreviewControl
-} from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
-import { queryDamagePreview } from '#gw2/platform/skill-damage/query-preview.js';
-import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
-import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
-import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
+import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
+import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
+import type {
+  PreviewControl,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { queryDamagePreview } from '#gw2/platform/skill-damage/query-preview.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */
@@ -93,14 +93,6 @@ function calculatePreview(
   const weaponSet = app.attributeWeaponSet === 2 ? 2 : 1;
   const { preview, context, config } = createIsolatedPreview(app, controls, values, boons, weaponSet);
   const data = structuredClone(preview.attributeData!);
-  // Supply defensive primaries omitted by the damage configuration so all-attribute effects preserve them.
-  const primaries = Object.fromEntries(
-    PRIMARY_ATTRIBUTES.map((name) => [
-      name[0].toLowerCase() + name.slice(1).replaceAll(' ', ''),
-      data.attributes[name].final
-    ])
-  );
-  const activeStats = { ...config.weaponSetStats?.[weaponSet - 1], ...primaries };
   const disabledTraits = new Set(
     controls
       .filter((control) => control.kind === 'queryTrait' && !values[control.key])
@@ -111,8 +103,6 @@ function calculatePreview(
   const queryConfig: Gw2Config = {
     ...config,
     startingWeaponSet: weaponSet,
-    stats: { ...config.stats, ...activeStats },
-    weaponSetStats: [activeStats, activeStats],
     boons,
     selectedTraitIds: config.selectedTraitIds?.filter((id) => !disabledTraits.has(id)),
     target: {
@@ -219,10 +209,14 @@ function calculatePreview(
   set(
     'Condition Duration',
     data.attributes['Condition Duration'].final +
-      (stats.expertise - primaries.expertise) / 15 +
+      (stats.expertise - preview.attributeData!.attributes.Expertise.final) / 15 +
       relicConditionDurationBonus(runtime, 1) * 100
   );
-  set('Boon Duration', data.attributes['Boon Duration'].final + (stats.concentration - primaries.concentration) / 15);
+  set(
+    'Boon Duration',
+    data.attributes['Boon Duration'].final +
+      (stats.concentration - preview.attributeData!.attributes.Concentration.final) / 15
+  );
   if (queryOptions.conditionDurations) {
     const duration = (query.conditionDurationMultiplier('', 1, stats, event, runtime) - 1) * 100;
     set('Condition Duration', duration);

@@ -1,6 +1,7 @@
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Saved-build schemas, assumption controls, and attribute-calculation contracts shared by the app and runtime. */
 
@@ -78,11 +79,30 @@ export type ProfessionAssumptionControl =
       readonly options: readonly ProfessionAssumptionOption[];
     });
 
-/** Records which build-time attribute decisions are already reflected in a simulation config. */
-export interface Gw2AttributeProvenance {
-  readonly professionStaticRulesApplied: boolean;
-  readonly calculatedWeaponSet: number;
-  readonly calculatedPrimaryWeapon: string;
+/** Unprocessed, serializable equipment sources; profession effects never enter these immutable seeds. */
+export interface Gw2AttributeSeed {
+  readonly commonTotals: Readonly<Gw2Stats>;
+  readonly conversionPool: Readonly<Gw2NumericAttributes>;
+  readonly sources: Readonly<Gw2AttributeMap>;
+}
+
+export interface Gw2AttributeInputs {
+  readonly weaponSets: readonly [Gw2AttributeSeed, Gw2AttributeSeed];
+}
+
+/** Attribute declarations read normalized loadout facts, never a browser build or a partially modified stat record. */
+export interface Gw2AttributeLoadout {
+  readonly weapons: readonly (string | undefined)[];
+  readonly alternateWeapons: readonly (string | undefined)[];
+  readonly assumptions: Readonly<ProfessionBuildAssumptions>;
+  readonly selectedLegends: readonly string[];
+  readonly merged: boolean;
+}
+
+export interface Gw2AttributeContext extends Gw2ModifierContext {
+  readonly loadout: Gw2AttributeLoadout;
+  readonly weaponSet: number;
+  readonly balanceContext: ProfessionBalanceContext;
 }
 
 /** Controls whether an effect contributes to build totals and eligible conversion inputs. */
@@ -323,6 +343,7 @@ export interface Gw2CommonAttributeResult {
 }
 
 export interface Gw2FinalizedAttributeResult {
+  readonly attributeSeed: Gw2AttributeSeed;
   attributes: Gw2AttributeMap;
   gear: Record<string, string>;
   alternateWeaponPrefixes: string[];
@@ -340,7 +361,7 @@ export interface Gw2FinalizedAttributeResult {
 
 export interface Gw2BuildAttributeRuleContext {
   /** Native trait contributions join profession effects before conversions and finalization. */
-  readonly traitBuildAttributes?: Gw2TraitBuildAttributeCalculator;
+  readonly attributeContributions?: Gw2AttributeContributionCalculator;
   /** The selected patch's declarations; omitted only for a base-data attribute calculation. */
   readonly balanceContext?: ProfessionBalanceContext;
   readonly build: Gw2Build;
@@ -349,21 +370,14 @@ export interface Gw2BuildAttributeRuleContext {
   readonly disabledTrait: string | null;
 }
 
-export interface Gw2BuildAttributeContributions {
+export interface Gw2AttributeContributions {
   readonly attributeEffects?: readonly Gw2AttributeEffect[];
   readonly traitDurations?: Readonly<Gw2NumericAttributes>;
   readonly traitCriticalChance?: number;
 }
 
 /** Active traits come from the profession's existing major/minor selection resolver. */
-export type Gw2TraitBuildAttributeCalculator = (
-  common: Gw2CommonAttributeResult,
-  context: Gw2BuildAttributeRuleContext,
-  activeTraits: readonly {
-    readonly id: import('#gw2/platform/skills/types.js').SkillId;
-    readonly name: string;
-  }[]
-) => readonly Gw2BuildAttributeContributions[];
+export type Gw2AttributeContributionCalculator = (context: Gw2AttributeContext) => readonly Gw2AttributeContributions[];
 
 export type Gw2ApplyBuildAttributeRules = (
   common: Gw2CommonAttributeResult,

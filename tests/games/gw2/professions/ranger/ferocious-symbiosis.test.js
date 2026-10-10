@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -20,7 +21,7 @@ const config = {
     { name: 'Skirmishing', traits: '1-2-3' },
     { name: 'Untamed', traits: '3-1-3' }
   ]).map((trait) => trait.id),
-  stats: { power: 2000, precision: 1000, ferocity: 0 }
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 })
 };
 
 test('Ferocious Symbiosis buffs the tiger only when the ranger attacks', () => {

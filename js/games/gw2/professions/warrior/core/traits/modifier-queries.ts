@@ -33,7 +33,7 @@ export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
 // Test both weapon hands at query time, including projected modifier-evaluation swaps.
 export function warriorWieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
   if (skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === weapon) return true;
-  const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
+  const weaponSet = Number(context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet) === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
   return (primary || '') === weapon || (secondary || '') === weapon;
 }

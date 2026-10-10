@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession } from '#gw2/profession-registry.js';
@@ -24,7 +25,11 @@ for (const [id, name, primaryWeapon, specialization = 'Core'] of [
     const options = {
       profession,
       rotation: [{ type: 'cast', skillId: profession.catalog.skillsByName.get(name).id }],
-      config: { specialization, primaryWeapon, stats: { power: 2000, precision: 2000, conditionDamage: 1000 } }
+      config: {
+        specialization,
+        primaryWeapon,
+        attributeInputs: baseAttributeInputs({ power: 2000, precision: 2000, conditionDamage: 1000 })
+      }
     };
     const complete = simulateGw2(options);
     // Any live or projected recording would defeat the editor's collection contract.

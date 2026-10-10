@@ -1,13 +1,22 @@
-import { buildRelevantPatch } from '#gw2/integrations/patches/authoring/build-overview.js';
 import { generatePatchOverview } from '#gw2/integrations/patches/app/model.js';
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
-import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+import { buildRelevantPatch } from '#gw2/integrations/patches/authoring/build-overview.js';
+import {
+  balanceProfileAuthoringReference,
+  balanceProfileHasAuthorableControls,
+  balanceProfilePatchableNumericFields,
+  skillAuthoringReference,
+  skillPatchableNumericFields
+} from '#gw2/integrations/patches/authoring/fields.js';
+import type {
+  NativePatchAuthoringContract,
+  NativePatchAuthoringMetadata,
+  NativePreviewModifierRuleTarget
+} from '#gw2/integrations/patches/authoring/module-types.js';
+import type {
+  ModifierRulePatchEdit,
+  PatchPreview,
+  ProfessionPatchPreview
+} from '#gw2/integrations/patches/authoring/patches.js';
 import {
   CURRENT_PATCH_ID,
   applyBalanceProfilePatch,
@@ -17,24 +26,15 @@ import {
   validatePatchOverview,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
-import {
-  balanceProfileAuthoringReference,
-  balanceProfileHasAuthorableControls,
-  balanceProfilePatchableNumericFields,
-  skillAuthoringReference,
-  skillPatchableNumericFields
-} from '#gw2/integrations/patches/authoring/fields.js';
-import type {
-  NativePatchAuthoringMetadata,
-  NativePatchAuthoringContract,
-  NativePreviewModifierRuleTarget
-} from '#gw2/integrations/patches/authoring/module-types.js';
-import type {
-  ModifierRulePatchEdit,
-  PatchPreview,
-  ProfessionPatchPreview
-} from '#gw2/integrations/patches/authoring/patches.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -298,7 +298,14 @@ export function withPatchPreview<
   };
 
   // Both runtime compilers use the same validated catalog overlay and selected modifier declarations.
-  const overlayRuntime = <T extends { readonly catalog: Readonly<CanonicalCatalog> }>(runtime: T): T => {
+  const overlayRuntime = <
+    T extends {
+      readonly catalog: Readonly<CanonicalCatalog>;
+      readonly createState: (config: Gw2Config, balanceContext?: ProfessionBalanceContext) => object;
+    }
+  >(
+    runtime: T
+  ): T => {
     validatedPreviewCatalog();
     const cachedRuntime = runtimeOverlays.get(runtime);
     if (cachedRuntime) return cachedRuntime as typeof runtime;
@@ -314,7 +321,12 @@ export function withPatchPreview<
       );
     if (!cached) runtimeCatalogs.set(runtime.catalog, catalog);
     if (catalog === runtime.catalog) return runtime;
-    const overlay = Object.freeze({ ...runtime, catalog });
+    // Attribute-derived resources must use the same patched profiles as later combat queries.
+    const overlay = Object.freeze({
+      ...runtime,
+      catalog,
+      createState: (config: Gw2Config) => runtime.createState(config, balanceContextFor(preview!.id))
+    });
     runtimeOverlays.set(runtime, overlay);
     return overlay;
   };

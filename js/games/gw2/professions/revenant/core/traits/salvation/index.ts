@@ -1,6 +1,6 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
@@ -12,7 +12,7 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 
 /** Owns Life Attunement tuning and behavior at its established execution boundaries. */
 export const lifeAttunement = defineTrait({
-  buildAttributes: traitAttributeEffects(TRAIT.LIFE_ATTUNEMENT, [
+  attributes: traitAttributeEffects(TRAIT.LIFE_ATTUNEMENT, [
     { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: true },
     {
       kind: 'conversion',

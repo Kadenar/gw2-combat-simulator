@@ -1,47 +1,11 @@
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import { activePetFamily, weaponSetIncludes } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { activePetFamily } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerModifierContext, RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
-
-/** Reconciles the live weapon bonus against the calculated weapon baseline. */
-export function ambidexterityAttributeDelta(context: Gw2ModifierContext): number {
-  if (!hasTrait(context, TRAIT.AMBIDEXTERITY)) return 0;
-  const activeSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  const calculatedWeaponSet = Number(context.config?.attributeProvenance?.calculatedWeaponSet) === 2 ? 2 : 1;
-  const profile = requireBalanceProfileFromContext(context, TRAIT.AMBIDEXTERITY);
-  return (
-    balanceProfileNumber(
-      profile,
-      weaponSetIncludes(context, activeSet, ['Dagger', 'Mace', 'Torch']) ? 'weaponAttributeBonus' : 'attributeBonus'
-    ) -
-    (professionStaticRulesApplied(context.config)
-      ? balanceProfileNumber(
-          profile,
-          weaponSetIncludes(context, calculatedWeaponSet, ['Dagger', 'Mace', 'Torch'])
-            ? 'weaponAttributeBonus'
-            : 'attributeBonus'
-        )
-      : 0)
-  );
-}
-
-/** Applies the trait contribution at the shared attribute reconciliation boundary. */
-export function applyArachnophobiaAttributes(
-  context: Gw2ModifierContext,
-  adjust: (attribute: Gw2NumericStatKey, amount: number) => void
-): void {
-  if (hasTrait(context, TRAIT.ARACHNOPHOBIA))
-    adjust(
-      'expertise',
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARACHNOPHOBIA), 'attributeBonus')
-    );
-}
 
 /** Adds Arachnophobia's family bonus to independent pet queries. */
 export function applyArachnophobiaPetAttributes(

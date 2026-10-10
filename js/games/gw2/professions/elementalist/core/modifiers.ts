@@ -5,13 +5,8 @@ import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { applyAirTraitAttributes } from '#gw2/professions/elementalist/core/traits/air/index.js';
-import { applyArcaneTraitAttributes } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
-import { reconcileSignetPassive } from '#gw2/professions/elementalist/core/traits/earth/index.js';
-import {
-  applyFireTraitAttributes,
-  applyInfernoAttributes
-} from '#gw2/professions/elementalist/core/traits/fire/index.js';
+
+import { applyInfernoAttributes } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 
 /**
@@ -41,14 +36,9 @@ export const elementalistCoreModifierRules = Object.freeze<readonly Gw2ModifierR
   }
 ]);
 
-// Apply live attunement, timed-buff, conjure, and signet attribute changes at
-// event time; build-time bonuses are intentionally handled upstream.
+// Conjured weapon attributes remain skill-owned after trait contributions.
 export function modifyElementalistAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified: Gw2MutableStats = { ...attributes };
-
-  applyFireTraitAttributes(context, modified);
-  applyAirTraitAttributes(context, modified);
-  applyArcaneTraitAttributes(context, modified);
 
   // Read equipped state at damage resolution so dropping or expiry also removes the bonuses from lingering hits.
   const weapon = wieldedConjure(context);
@@ -63,9 +53,6 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
       (modified.precision || 0) + balanceProfileNumber(lightningHammerProfile, 'weaponAttributeBonus');
     modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(lightningHammerProfile, 'attributeBonus');
   }
-
-  // Remove baseline passive precision during live recharge, including resets, unless Written in Stone preserves it.
-  reconcileSignetPassive(context, modified);
 
   return modified;
 }

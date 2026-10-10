@@ -1,3 +1,4 @@
+import { deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -53,6 +54,18 @@ export const fleshOfTheMaster = defineTrait({
 
 /** Owns Deadly Strength tuning and behavior at its existing execution boundaries. */
 export const deadlyStrength = defineTrait({
+  // Carapace contributes temporary flat attributes while ordinary conversion pools remain unchanged.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.DEADLY_STRENGTH);
+    const bonus = deathCarapaceStacks(context) * balanceProfileNumber(profile, 'attributePerStack');
+    return {
+      attributeEffects: [
+        { kind: 'flat', to: 'Power', amount: bonus, feedsConversions: false, enabled: true },
+        { kind: 'flat', to: 'Condition Damage', amount: bonus, feedsConversions: false, enabled: true }
+      ]
+    };
+  },
+
   id: TRAIT.DEADLY_STRENGTH,
   name: 'Deadly Strength',
   balance: { attributePerStack: 10 }

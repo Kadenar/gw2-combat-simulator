@@ -1,4 +1,5 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
+import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
+import { finalizeBuildAttributes } from '#gw2/platform/builds/attributes.js';
 import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
@@ -6,8 +7,7 @@ import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-dat
 import type {
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
-  Gw2FinalizedAttributeResult,
-  Gw2NumericAttributes
+  Gw2FinalizedAttributeResult
 } from '#gw2/platform/builds/types.js';
 
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
@@ -27,7 +27,7 @@ export interface BuildAttributeTrait {
  */
 export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
   readonly activeTraits: readonly TTrait[];
-  readonly profileContext: Pick<ProfessionBalanceContext, 'catalog'>;
+  readonly profileContext: ProfessionBalanceContext;
   hasSelectedSkillId(id: SkillId): boolean;
 }
 
@@ -47,7 +47,7 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
     (trait) => trait.name !== disabledTrait
   );
   // Share the active patch context across profession attribute rules.
-  const profileContext = balanceContext ?? { catalog };
+  const profileContext = balanceContext ?? { catalog, modifierRulesById: new Map() };
 
   // Stable skill IDs keep renamed display names from disabling passives.
   function hasSelectedSkillId(id: SkillId): boolean {
@@ -67,6 +67,7 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
  */
 export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
   readonly activeTraits: readonly TTrait[];
+  readonly profileContext: ProfessionBalanceContext;
   readonly attributeEffects?: readonly Gw2AttributeEffect[];
 }
 
@@ -79,25 +80,40 @@ export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
  */
 export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeTrait>(
   common: Gw2CommonAttributeResult,
-  { activeTraits, attributeEffects = [] }: FinalizeProfessionBuildAttributesOptions<TTrait>,
+  { activeTraits, profileContext, attributeEffects = [] }: FinalizeProfessionBuildAttributesOptions<TTrait>,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  // Resolve all authored flats and conversions together so eligible inputs and rounding keep their existing phases.
-  const contributions = context.traitBuildAttributes?.(common, context, activeTraits) ?? [];
-  const traitStats = resolveAttributeEffects(common.commonContext.conversionPool, [
-    ...attributeEffects,
-    ...contributions.flatMap((entry) => entry.attributeEffects ?? [])
+  // The panel supplies explicit preview facts to the same selected-owner evaluator used by live queries.
+  const build = context.build;
+  const config = {
+    ...build,
+    specialization: (build.specializations?.at(-1) as { name?: string } | undefined)?.name ?? 'Core',
+    selectedTraitIds: activeTraits.map((trait) => trait.id),
+    selectedSkillIds: context.selectedSkills.map((skill) => skill.id),
+    boons: build.assumptions as Readonly<Record<string, number | boolean>>,
+    startingWeaponSet: context.weaponSet,
+    primaryWeapon: build.weapons?.[0],
+    secondaryWeapon: build.weapons?.[1],
+    weaponSet2Primary: build.alternateWeapons?.[0],
+    weaponSet2Secondary: build.alternateWeapons?.[1]
+  };
+  const balanceContext = profileContext;
+  const facts = attributeContext({ config, time: 0 }, balanceContext, {
+    weapons: build.weapons ?? [],
+    alternateWeapons: build.alternateWeapons ?? [],
+    assumptions: build.assumptions ?? {},
+    selectedLegends: (build as { selectedLegends?: string[] }).selectedLegends ?? [],
+    merged: build.specializations?.some((s) => (s as { name?: string }).name === 'Soulbeast') ?? false
+  });
+  const contributions = context.attributeContributions?.(facts) ?? [];
+  const resolved = resolveAttributeContributions(common.commonContext.conversionPool, [
+    ...contributions,
+    { attributeEffects }
   ]);
-  // Registered trait owners supply duration and critical-chance bonuses once.
-  const durations: Gw2NumericAttributes = {};
-  for (const contribution of contributions)
-    for (const [name, amount] of Object.entries(contribution.traitDurations ?? {}))
-      durations[name] = (durations[name] ?? 0) + amount;
-
   return finalizeBuildAttributes(common, {
     activeTraits,
-    traitStats,
-    traitDurations: durations,
+    traitStats: resolved.attributes,
+    traitDurations: resolved.durations,
     traitCriticalChance: contributions.reduce((sum, entry) => sum + (entry.traitCriticalChance ?? 0), 0)
   });
 }

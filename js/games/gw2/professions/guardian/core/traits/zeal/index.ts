@@ -1,5 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -7,6 +5,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -15,7 +14,7 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianStruck, type GuardianStrike } from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { activeWeapon, guardianRuntimeState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { guardianRuntimeState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { justiceActivated, type JusticeActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
@@ -203,31 +202,9 @@ export const zealousBlade = defineTrait({
     attributeBonus: 120,
     rechargeMultiplier: 0.8
   },
-  modifierRules: [
-    {
-      order: -20,
-      id: 'guardian.zealous-blade-power',
-      label: 'Zealous Blade',
-      target: MODIFIER_TARGET.ATTRIBUTE_POWER,
-      operation: 'add',
-      amount: (context) => {
-        const provenance = attributeProvenance(context.config);
-        const currentWeapon = activeWeapon(context);
-        const zealousBladeProfile = requireBalanceProfileFromContext(context, TRAIT.ZEALOUS_BLADE);
-        return provenance.professionStaticRulesApplied
-          ? (Number(currentWeapon === 'Greatsword') - Number(provenance.calculatedPrimaryWeapon === 'Greatsword')) *
-              (balanceProfileNumber(zealousBladeProfile, 'weaponAttributeBonus') -
-                balanceProfileNumber(zealousBladeProfile, 'attributeBonus'))
-          : balanceProfileNumber(zealousBladeProfile, 'attributeBonus') +
-              Number(currentWeapon === 'Greatsword') *
-                (balanceProfileNumber(zealousBladeProfile, 'weaponAttributeBonus') -
-                  balanceProfileNumber(zealousBladeProfile, 'attributeBonus'));
-      }
-    }
-  ],
-  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+  attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const zealousBladeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.ZEALOUS_BLADE);
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const mainHand = weapons[0] || '';
     return {
       attributeEffects: [
@@ -250,7 +227,7 @@ export const kindledZeal = defineTrait({
   id: TRAIT.KINDLED_ZEAL,
   name: 'Kindled Zeal',
   balance: { attributeConversion: 0.1 },
-  buildAttributes: traitAttributeEffects(TRAIT.KINDLED_ZEAL, [
+  attributes: traitAttributeEffects(TRAIT.KINDLED_ZEAL, [
     {
       kind: 'conversion',
       from: 'Power',

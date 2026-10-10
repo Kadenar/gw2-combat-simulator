@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -277,7 +278,10 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
     });
     const combat = createGw2CombatQuery({
       profession,
-      config: { target: { conditions: {} }, stats: { power: 1000, conditionDamage: 0, expertise: 1500 } }
+      config: {
+        target: { conditions: {} },
+        attributeInputs: baseAttributeInputs({ power: 1000, conditionDamage: 0, expertise: 1500 })
+      }
     });
     const result = resolve(
       [

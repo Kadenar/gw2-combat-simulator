@@ -4,6 +4,7 @@ import { mesmerCoreModifiers } from '#gw2/professions/mesmer/core/modifiers.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_CORE_BALANCE_PROFILES } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
+import { mesmerPassiveAttributes } from '#gw2/professions/mesmer/core/skills/attribute-passives.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';
 import { createMesmerCoreState, projectMesmerCorePlanningState } from '#gw2/professions/mesmer/core/state.js';
@@ -11,6 +12,7 @@ import { mesmerCoreTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 
 export const mesmerCoreModule = defineNativeModule({
+  attributes: mesmerPassiveAttributes,
   id: 'Core',
   data: createMesmerModuleData('Core', {
     skillMechanics: MESMER_CORE_SKILL_MECHANICS,

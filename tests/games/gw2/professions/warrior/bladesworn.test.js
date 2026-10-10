@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -15,7 +16,7 @@ function run(rotation, overrides = {}, source = warriorProfession, output = 'det
     primaryWeapon: 'Axe',
     initialResource: 0,
     selectedTraitIds: [],
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 },
     ...overrides
   };
@@ -86,8 +87,11 @@ test('Positive Flow works before combat and grants its final tick before its win
 
 test('Bladesworn redirects trait and signet grants while ordinary hits produce no Flow', () => {
   const bare = run(['Chop']);
-  const trained = run(['Chop'], { selectedTraitIds: [TRAIT.AXE_MASTERY], stats: { power: 2000, precision: 4000 } });
-  const critical = run(['Chop'], { stats: { power: 2000, precision: 4000 } });
+  const trained = run(['Chop'], {
+    selectedTraitIds: [TRAIT.AXE_MASTERY],
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000 })
+  });
+  const critical = run(['Chop'], { attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000 }) });
   assert.deepEqual(bare.warnings, []);
   const owner = observedRuntime(bare);
   close(state(bare).flow.value, (Math.floor(owner.time * 25) - Math.floor(owner.firstHitTime * 25)) * 0.08);

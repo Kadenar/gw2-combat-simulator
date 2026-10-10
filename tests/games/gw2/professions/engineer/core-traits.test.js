@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -14,14 +15,14 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: { Vulnerability: 25 }
@@ -33,10 +34,10 @@ const simulate = createObservedProfessionSimulator(engineerProfession, baseConfi
 test('Explosives and Firearms traits materialize offensive effects', () => {
   const result = simulate('Amalgam', ['Grenade Kit', 'Shrapnel Grenade'], {
     selectedMorphSkillIds: [77103, 77104, 76705],
-    stats: {
+    attributeInputs: baseAttributeInputs({
       precision: 2500,
       expertise: 0
-    },
+    }),
     boons: { fury: true },
     selectedTraitIds: [
       TRAIT.EXPLOSIVE_ENTRANCE,
@@ -104,7 +105,7 @@ test('Explosives traits use the requested packets, gates, and health modifiers',
     ['Grenade Kit', 'Grenade', 'Shrapnel Grenade', { type: 'wait', durationMs: 100 }],
     {
       selectedTraitIds: [TRAIT.SHORT_FUSE, TRAIT.STEEL_PACKED_POWDER, TRAIT.EXPLOSIVE_TEMPER, TRAIT.SHRAPNEL],
-      stats: { precision: 1000, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
       target: { conditions: {} }
     }
   );
@@ -124,12 +125,12 @@ test('Explosives traits use the requested packets, gates, and health modifiers',
   assert.equal(grenadePackets[1].criticalDamage, 1.5 + 20 / 1500);
 
   const noModifiers = simulate('Core', ['Puncturing Jab'], {
-    stats: { precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
     target: { health: 1_000_000, startingHealthFraction: 0.5, conditions: { Vulnerability: 10 } }
   });
   const modifiers = simulate('Core', ['Puncturing Jab'], {
     selectedTraitIds: [TRAIT.GLASS_CANNON, TRAIT.SHAPED_CHARGE, TRAIT.BIG_BOOMER],
-    stats: { precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
     target: { health: 1_000_000, startingHealthFraction: 0.5, conditions: { Vulnerability: 10 } }
   });
   const firstStrike = (result) => result.resolvedEvents.find((event) => event.type === 'damage');
@@ -172,7 +173,7 @@ test('generated rocket explosions can trigger Shrapnel', () => {
     ],
     {
       selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET, TRAIT.SHRAPNEL],
-      stats: { expertise: 750, concentration: 1500 },
+      attributeInputs: baseAttributeInputs({ expertise: 750, concentration: 1500 }),
       procRateOverrides: { 'engineer.shrapnel': 1 }
     }
   );
@@ -245,7 +246,10 @@ test('Shrapnel uses reproducible seeded rolls in both modes and honors chance ov
 });
 
 test('Serrated Steel counts critical projectile and effect hits without an explosion requirement', () => {
-  const config = { stats: { precision: 3100 }, selectedTraitIds: [TRAIT.SERRATED_STEEL] };
+  const config = {
+    attributeInputs: baseAttributeInputs({ precision: 3100 }),
+    selectedTraitIds: [TRAIT.SERRATED_STEEL]
+  };
   const rotation = [{ name: 'Offensive Protocol: Shred', skillId: 77103 }];
   const withoutRocket = simulate('Amalgam', rotation, config);
   const withRocket = simulate('Amalgam', rotation, {
@@ -410,7 +414,7 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const heavy = [0.8, 0.7, 0.4, 0.2].map((startingHealthFraction) => {
     const result = simulate('Core', ['Puncturing Jab'], {
       selectedTraitIds: [TRAIT.HIGH_CALIBER, TRAIT.HEAVY_METAL],
-      stats: { precision: 1000, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
       target: { health: 1_000_000, startingHealthFraction, conditions: {} }
     });
     const hit = result.resolvedEvents.find((event) => event.type === 'damage');
@@ -428,13 +432,13 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const bleed = (selectedTraitIds) =>
     simulate('Core', ['Puncturing Jab', { type: 'wait', durationMs: 2000 }], {
       selectedTraitIds,
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 2000,
         precision: 1000,
         ferocity: 0,
         conditionDamage: 1000,
         expertise: 0
-      },
+      }),
       target: { conditions: {} }
     }).resolvedEvents.find(
       (event) => event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Puncturing Jab'
@@ -451,7 +455,7 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
 
   const noScope = simulate('Core', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 100 }], {
     selectedTraitIds: [TRAIT.NO_SCOPE],
-    stats: { precision: 4000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 4000, ferocity: 0 }),
     target: { conditions: {} }
   });
   const noScopeHits = noScope.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Grenade');
@@ -470,11 +474,11 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const pistolBurn = (selectedTraitIds) =>
     simulate('Core', ['Blowtorch', { type: 'wait', durationMs: 1500 }], {
       selectedTraitIds,
-      stats: {
+      attributeInputs: baseAttributeInputs({
         precision: 1000,
         conditionDamage: 1000,
         expertise: 0
-      },
+      }),
       target: { conditions: {} }
     }).resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Burning');
   const baseBurn = pistolBurn([]);
@@ -508,7 +512,7 @@ test('Chemical Rounds extends every pistol condition beyond the condition-durati
   const conditionDuration = (skillName, condition, selectedTraitIds) => {
     const result = simulate('Core', [skillName], {
       selectedTraitIds,
-      stats: { expertise: 1500 },
+      attributeInputs: baseAttributeInputs({ expertise: 1500 }),
       target: { conditions: {} }
     });
     const application = result.resolvedEvents.find(
@@ -544,7 +548,7 @@ test('Incendiary Powder tracks player and mech cooldowns independently', () => {
       TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
       TRAIT.MECH_CORE_JADE_DYNAMO
     ],
-    stats: { precision: 4000, expertise: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 4000, expertise: 0 }),
     target: { conditions: {} }
   });
   const burning = result.resolvedEvents.filter(
@@ -571,7 +575,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop'],
     {
       selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION, TRAIT.STATIC_DISCHARGE, TRAIT.KINETIC_BATTERY],
-      stats: { precision: 4000, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 4000, ferocity: 0 }),
       target: { conditions: {} }
     }
   );

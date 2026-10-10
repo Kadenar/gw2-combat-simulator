@@ -59,7 +59,7 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
 const calculateAttributes = createCalculateAttributes(
   applyElementalistBuildAttributeRules,
-  elementalistProfession.traitBuildAttributes
+  elementalistProfession.attributeContributions
 );
 
 test('Persisting Flames grants stacks from Fire Sphere without extending profession fields', () => {
@@ -235,7 +235,11 @@ test('core damage traits expose balances consumed by their resolver modifiers', 
   assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.FLOW_LIKE_WATER).damageMultiplier, 1.1);
   assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.BOLT_TO_THE_HEART).damageMultiplier, 1.2);
   assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.BOUNTIFUL_POWER).damageIncrease, 0.2);
-  assert.equal(rules.get('elementalist.zephyrs-speed-critical-chance').amount({ catalog: elementalistCatalog }), 0.05);
+  assert.equal(
+    elementalistProfession.runtimeFor({}).modifyAttributes({ config: { selectedTraitIds: [TRAIT.ZEPHYRS_SPEED] } }, {})
+      .professionCriticalChanceBonus,
+    5
+  );
   assert.equal(rules.get('elementalist.superior-elements').amount({ catalog: elementalistCatalog }), 0.2);
   assert.equal(rules.get('elementalist.weave-self-fire').amount, 0.2);
   assert.equal(rules.get('elementalist.weave-self-fire').operation, 'damage-additive');

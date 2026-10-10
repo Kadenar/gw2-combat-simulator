@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -18,14 +19,14 @@ import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: { Vulnerability: 25 }
@@ -150,12 +151,12 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
   const appliedForce = simulate('Scrapper', ['Puncturing Jab'], {
     selectedTraitIds: [TRAIT.APPLIED_FORCE],
     boons: { might: 25 },
-    stats: { power: 2000 },
+    attributeInputs: baseAttributeInputs({ power: 2000 }),
     target: { conditions: {} }
   });
   const withoutAppliedForce = simulate('Scrapper', ['Puncturing Jab'], {
     boons: { might: 25 },
-    stats: { power: 2000 },
+    attributeInputs: baseAttributeInputs({ power: 2000 }),
     target: { conditions: {} }
   });
 
@@ -178,7 +179,7 @@ test('Sharpshooter derives bleeding damage from Power including Applied Force', 
       const bleed = result.resolvedEvents.find(
         (event) => event.type === 'condition' && event.skillName === 'Puncturing Jab' && event.condition === 'Bleeding'
       );
-      const power = baseConfig.stats.power + might * (appliedForce ? 60 : 30);
+      const power = baseConfig.attributeInputs.weaponSets[0].commonTotals.power + might * (appliedForce ? 60 : 30);
 
       assert.deepEqual(result.warnings, []);
       assert.ok(bleed);
@@ -193,7 +194,7 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
     selectedSkillIds: [30357, 5805, 6161, 5933, 5868],
     selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
     boons: { quickness: false },
-    stats: { power: 2000, concentration: 260 }
+    attributeInputs: baseAttributeInputs({ power: 2000, concentration: 0 })
   };
   const result = simulate(
     'Scrapper',
@@ -302,7 +303,7 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
     catalog: engineerCatalog,
     config: {
       selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
-      stats: { concentration: 0 }
+      attributeInputs: baseAttributeInputs({ concentration: 0 })
     },
     profession: { core: {}, specialization: { kind: 'Scrapper', state: createScrapperState() } },
     emitDerived(_event, boon) {

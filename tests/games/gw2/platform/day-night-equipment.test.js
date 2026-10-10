@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -79,8 +80,8 @@ function pepperSimulation(timeOfDay) {
     defaultSimulationConfig({
       food: 'Ghost Pepper Popper',
       timeOfDay,
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 4000,
         concentration: 0,
         boonDurationBonus: 0,
@@ -88,7 +89,7 @@ function pepperSimulation(timeOfDay) {
         expertise: 0,
         conditionDurationBonus: 0,
         conditionDurationBonuses: {}
-      },
+      }),
       boons: {
         ...defaults.boons,
         might: 0,

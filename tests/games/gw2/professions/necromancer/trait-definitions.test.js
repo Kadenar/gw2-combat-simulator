@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
@@ -35,7 +36,7 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
     label: 'Necromancer trait owners',
     professions: { necromancer: { balanceProfiles: { [TRAIT.FURIOUS_DEMISE]: { fields: { attributeBonus: 250 } } } } }
   });
-  const calculate = createCalculateAttributes(applyNecromancerBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyNecromancerBuildAttributeRules, family.attributeContributions);
   const build = { specializations: [{ name: 'Curses', traits: '1-1-1' }] };
   const balance = family.balanceContextFor('necromancer-trait-owners');
   const preview = calculate(build, [], 1, null, null, balance).attributes;
@@ -56,14 +57,20 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
   };
   const context = {
     catalog: runtime.catalog,
-    config: { stats: seed, selectedTraitIds: [TRAIT.FURIOUS_DEMISE, TRAIT.TARGET_THE_WEAK] },
+    config: {
+      attributeInputs: baseAttributeInputs(seed),
+      selectedTraitIds: [TRAIT.FURIOUS_DEMISE, TRAIT.TARGET_THE_WEAK]
+    },
     time: 0
   };
   const direct = runtime.modifyAttributes(context, seed);
   assert.equal(direct.precision, 1250);
   assert.equal(direct.conditionDamage, 162);
   assert.equal(
-    runtime.modifyAttributes({ ...context, config: { stats: seed, selectedTraitIds: [] } }, seed).precision,
+    runtime.modifyAttributes(
+      { ...context, config: { attributeInputs: baseAttributeInputs(seed), selectedTraitIds: [] } },
+      seed
+    ).precision,
     1000
   );
   assert.equal(necromancerProfession.catalog.balanceProfilesById.get(TRAIT.FURIOUS_DEMISE).attributeBonus, 180);

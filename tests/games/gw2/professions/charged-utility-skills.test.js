@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -13,7 +14,7 @@ const config = {
   primaryWeapon: 'Dagger',
   secondaryWeapon: 'Dagger',
   offHandWeapon: 'Torch',
-  stats: { power: 2000, conditionDamage: 1000, precision: 1000, expertise: 0 },
+  attributeInputs: baseAttributeInputs({ power: 2000, conditionDamage: 1000, precision: 1000, expertise: 0 }),
   target: { armor: 2597, defiant: true, conditions: {} }
 };
 const ranger = createObservedProfessionSimulator(rangerProfession, config);

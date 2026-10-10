@@ -3,7 +3,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
-import { modifyAttributes } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
+
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
 import { BLADESWORN_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import {
@@ -35,8 +35,8 @@ export const bladeswornModule = defineNativeModule({
     create: bladeswornState.create,
     project: projectBladeswornPlanningState
   },
-  // Preserve live trait attributes alongside granted cartridge damage.
-  modifiers: { modifyAttributes, modifierRules: cartridgeModifiers },
+  // Granted cartridges retain skill-owned damage rules; traits own their attribute contributions.
+  modifiers: { modifierRules: cartridgeModifiers },
   hooks: bladeswornHooks,
   presentation: bladeswornUi
 });

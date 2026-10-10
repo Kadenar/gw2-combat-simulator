@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -30,7 +31,7 @@ export function createDefaultConfig() {
       }
     ],
     initialResource: 5,
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2500,
       precision: 2250,
       ferocity: 1500,
@@ -39,7 +40,7 @@ export function createDefaultConfig() {
       vitality: 1000,
       conditionDurationBonus: 0,
       conditionDurationBonuses: {}
-    },
+    }),
     boons: {
       might: 25,
       fury: true,

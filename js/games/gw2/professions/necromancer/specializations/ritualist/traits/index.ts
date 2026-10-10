@@ -68,7 +68,7 @@ export const boonOfCreation = defineTrait({
   id: TRAIT.BOON_OF_CREATION,
   name: 'Boon of Creation',
   balance: { categories: ['Trait'], attributeBonus: 180, lifeForceGain: 10, effects: [] },
-  buildAttributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
+  attributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ])
 });

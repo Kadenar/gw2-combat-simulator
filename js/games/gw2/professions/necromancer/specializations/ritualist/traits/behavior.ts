@@ -1,23 +1,9 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
-
-/** Applies Boon of Creation at the original attribute-conversion position. */
-export function modifyBoonOfCreationAttributes(
-  context: Gw2ModifierContext,
-  result: ReturnType<typeof cloneNecromancerAttributes>
-): void {
-  if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.BOON_OF_CREATION)) {
-    const boonOfCreationProfile = requireBalanceProfileFromContext(context, TRAIT.BOON_OF_CREATION);
-    result.concentration += balanceProfileNumber(boonOfCreationProfile, 'attributeBonus');
-  }
-}
 
 /** Spirits Strength owns the selected creature multiplier; the mechanic samples this pure query. */
 export function spiritsStrengthCreatureMultiplier(runtime: MechanicQueriesOf<NecromancerRuntime>): number {

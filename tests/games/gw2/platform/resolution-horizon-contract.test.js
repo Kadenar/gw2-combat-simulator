@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -10,13 +11,13 @@ const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 function fixtureConfig(overrides = {}) {
   return {
     weaponStrength: 1000,
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 1000,
       precision: 1000,
       ferocity: 0,
       conditionDamage: 1000,
       expertise: 0
-    },
+    }),
     target: { armor: 2597, ...(overrides.target || {}) },
     ...overrides
   };

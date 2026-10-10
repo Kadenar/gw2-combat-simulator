@@ -1,12 +1,11 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
@@ -22,11 +21,7 @@ import {
   type GuardianCastCompletion
 } from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  activeWeapon,
-  guardianBoonActive,
-  isOneHandedWeapon
-} from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { justiceBlinding, type JusticeBlinding } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -91,38 +86,9 @@ export const rightHandStrength = defineTrait({
   id: TRAIT.RIGHT_HAND_STRENGTH,
   name: 'Right-Hand Strength',
   balance: { attributeBonus: 80 },
-  modifierRules: [
-    {
-      order: -19,
-      id: 'guardian.right-hand-strength-precision',
-      label: 'Right-Hand Strength',
-      target: MODIFIER_TARGET.ATTRIBUTE_PRECISION,
-      operation: 'add',
-      amount: (context) =>
-        attributeProvenance(context.config).professionStaticRulesApplied
-          ? 0
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RIGHT_HAND_STRENGTH), 'attributeBonus')
-    },
-    {
-      order: -18,
-      id: 'guardian.right-hand-strength-power',
-      label: 'Right-Hand Strength',
-      target: MODIFIER_TARGET.ATTRIBUTE_POWER,
-      operation: 'add',
-      amount: (context) => {
-        const provenance = attributeProvenance(context.config);
-        const currentWeapon = activeWeapon(context);
-        const rightHandStrengthProfile = requireBalanceProfileFromContext(context, TRAIT.RIGHT_HAND_STRENGTH);
-        return provenance.professionStaticRulesApplied
-          ? (Number(isOneHandedWeapon(currentWeapon)) - Number(isOneHandedWeapon(provenance.calculatedPrimaryWeapon))) *
-              balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus')
-          : Number(isOneHandedWeapon(currentWeapon)) * balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus');
-      }
-    }
-  ],
-  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+  attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const rightHandStrengthProfile = requireBalanceProfileFromContext(profileContext, TRAIT.RIGHT_HAND_STRENGTH);
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const mainHand = weapons[0] || '';
     const oneHandedMainHand =
       mainHand !== '' && !['Greatsword', 'Hammer', 'Longbow', 'Spear', 'Staff'].includes(mainHand);
@@ -156,17 +122,6 @@ export const radiantPower = defineTrait({
   },
   modifierRules: [
     {
-      order: -17,
-      id: 'guardian.radiant-power-ferocity',
-      label: 'Radiant Power',
-      target: MODIFIER_TARGET.ATTRIBUTE_FEROCITY,
-      operation: 'add',
-      amount: (context) =>
-        attributeProvenance(context.config).professionStaticRulesApplied
-          ? 0
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_POWER), 'attributeBonus')
-    },
-    {
       order: -9,
       id: 'guardian.radiant-power-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
@@ -176,7 +131,7 @@ export const radiantPower = defineTrait({
       when: (context) => targetConditionActive(context, 'Burning')
     }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
+  attributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
     { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: false }
   ])
 });
@@ -200,20 +155,7 @@ export const radiantFire = defineTrait({
     durationMultiplier: 1.5,
     maximumStacks: 2
   },
-  modifierRules: [
-    {
-      order: -1,
-      id: 'guardian.radiant-fire-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_FIRE), 'conditionDurationBonus'),
-      // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
-      when: (context) =>
-        context.condition === 'Burning' && !attributeProvenance(context.config).professionStaticRulesApplied
-    }
-  ],
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Burning Duration':
         100 *

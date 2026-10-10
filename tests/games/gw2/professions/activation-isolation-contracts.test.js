@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -47,7 +48,7 @@ function run(
       selectedTraitIds: [],
       initialResource: 0,
       boons: {},
-      stats: { power: 2000, precision: 4000, conditionDamage: 1000 },
+      attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000, conditionDamage: 1000 }),
       target: { armor: 2597 },
       ...config
     },

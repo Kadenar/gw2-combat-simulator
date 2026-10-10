@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -32,14 +33,14 @@ const DRAGON_TRIGGER_TICK_FLOW = DRAGON_TRIGGER_PROFILE.resourceCost;
 const DRAGON_TRIGGER_DURATION_SECONDS = DRAGON_TRIGGER_PROFILE.cooldown;
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     health: 3_970_000,
@@ -894,12 +895,12 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
       .reduce((sum, event) => sum + event.damage, 0);
   const base = simulate('Bladesworn', [ID.UNSHEATHE_GUNSABER, ID.BLOOMING_FIRE], {
     initialResource: 100,
-    stats: { precision: 0, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 0, ferocity: 0 }),
     target: { conditions: {} }
   });
   const overcharged = simulate('Bladesworn', [ID.OVERCHARGED_CARTRIDGES, ID.UNSHEATHE_GUNSABER, ID.BLOOMING_FIRE], {
     initialResource: 100,
-    stats: { precision: 0, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 0, ferocity: 0 }),
     target: { conditions: {} }
   });
   const supercharged = simulate(
@@ -907,7 +908,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
     [ID.OVERCHARGED_CARTRIDGES, ID.OVERCHARGED_CARTRIDGES, ID.UNSHEATHE_GUNSABER, ID.BLOOMING_FIRE],
     {
       initialResource: 100,
-      stats: { precision: 0, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0, ferocity: 0 }),
       target: { conditions: {} }
     }
   );
@@ -928,7 +929,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
 
   const roarBase = simulate('Bladesworn', [ID.DRAGONS_ROAR], {
     selectedTraitIds: [TRAIT.PEAK_PERFORMANCE],
-    stats: { precision: 0, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 0, ferocity: 0 }),
     target: { conditions: {} }
   });
   const roarSupercharged = simulate(
@@ -936,7 +937,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
     [ID.OVERCHARGED_CARTRIDGES, ID.OVERCHARGED_CARTRIDGES, ID.DRAGONS_ROAR],
     {
       selectedTraitIds: [TRAIT.PEAK_PERFORMANCE],
-      stats: { precision: 0, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0, ferocity: 0 }),
       target: { conditions: {} }
     }
   );
@@ -1146,7 +1147,7 @@ test('Burst Precision duration follows the adrenaline stage', () => {
   const result = simulate('Core', ['Eviscerate', 'Throw Bolas'], {
     initialResource: 30,
     selectedTraitIds: [TRAIT.BURST_PRECISION],
-    stats: { precision: 0, ferocity: 1000 }
+    attributeInputs: baseAttributeInputs({ precision: 0, ferocity: 1000 })
   });
   const eviscerate = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.EVISCERATE);
   const followUp = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.THROW_BOLAS);

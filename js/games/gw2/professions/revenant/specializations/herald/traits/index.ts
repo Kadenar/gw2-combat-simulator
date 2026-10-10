@@ -1,12 +1,12 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
@@ -108,7 +108,7 @@ export const draconicEcho = defineTrait({
 /** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
 export const elevatedCompassion = defineTrait({
   triggers: [onTriggerPoint(heraldUpkeepSettled, { run: syncCompassion })],
-  buildAttributes: traitAttributeEffects(HERALD_ELEVATED_COMPASSION_PROFILE_ID, [
+  attributes: traitAttributeEffects(HERALD_ELEVATED_COMPASSION_PROFILE_ID, [
     {
       kind: 'conversion',
       from: 'Power',
@@ -172,7 +172,7 @@ export const forcefulPersistence = defineTrait({
 
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 export const reinforcedPotency = defineTrait({
-  buildAttributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
+  attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ]),
   id: TRAIT.REINFORCED_POTENCY,

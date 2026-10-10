@@ -5,7 +5,6 @@ import { bindUntamedUi } from '#gw2/professions/ranger/specializations/untamed/p
 import { UNTAMED_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { UNTAMED_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/index.js';
 import { projectUntamedPlanningState, untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { modifyNaturalFortitudeAttributes } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
 import { untamedTraits } from '#gw2/professions/ranger/specializations/untamed/traits/index.js';
 
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
@@ -17,8 +16,6 @@ export const untamedModule = defineNativeModule({
     balanceProfiles: UNTAMED_BALANCE_PROFILES
   }),
   state: { create: untamedState.create, project: projectUntamedPlanningState },
-  // Apply Natural Fortitude's missing static bonus only within its owning specialization.
-  modifiers: { modifyAttributes: modifyNaturalFortitudeAttributes },
   hooks: untamedHooks,
   presentation: bindUntamedUi
 });

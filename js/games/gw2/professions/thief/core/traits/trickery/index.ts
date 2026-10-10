@@ -149,7 +149,7 @@ export const preparedness = defineTrait({
   id: TRAIT.PREPAREDNESS,
   name: 'Preparedness',
   balance: { attributeBonus: 150 },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const preparednessProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.PREPAREDNESS);
     return {
       attributeEffects: [

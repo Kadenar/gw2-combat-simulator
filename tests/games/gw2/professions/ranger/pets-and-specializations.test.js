@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import {
   currentAutoattackSkill,
@@ -62,14 +63,14 @@ const baseConfig = Object.freeze({
   professionAssumptions: {
     targetDefiant: true
   },
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     defiant: true,
@@ -398,7 +399,7 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
     secondaryWeapon: 'Axe',
     selectedPet: 'Pig',
     professionAssumptions: { targetDefiant: true },
-    stats: { conditionDamage: 1000, expertise: 0 },
+    attributeInputs: baseAttributeInputs({ conditionDamage: 1000, expertise: 0 }),
     target: { health: 10000000 }
   };
   const baseline = simulate('Soulbeast', rotation, config);
@@ -413,7 +414,7 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
   const oppressiveWithExpertise = simulate('Soulbeast', rotation, {
     ...config,
     selectedTraitIds: [TRAIT.OPPRESSIVE_SUPERIORITY],
-    stats: { ...config.stats, expertise: 150 }
+    attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, expertise: 150 })
   });
   const bleeding = (result) =>
     result.breakdown.filter((row) => row.name.includes('Bleeding')).reduce((total, row) => total + row.damage, 0);
@@ -729,7 +730,7 @@ test('Storm Spirit owns its summon rewards while Call Lightning owns the damagin
   const result = simulate('Core', ['Storm Spirit', { type: 'wait', durationMs: 6000 }], {
     selectedSkillIds: [12493],
     selectedTraitIds: [],
-    stats: { concentration: 0 }
+    attributeInputs: baseAttributeInputs({ concentration: 0 })
   });
   assert.deepEqual(result.warnings, []);
   const events = result.events.filter((event) => event.skillId === ID.STORM_SPIRIT);
@@ -1668,7 +1669,7 @@ test('Natural Fortitude uses base plus Power damage and a separate breakdown lab
     const skill = rangerCatalog.skillsById.get(id);
     const result = simulate('Untamed', ['Unleash Ranger', skill.name], {
       primaryWeapon: skill.weapon,
-      stats: { power, precision: 4000, ferocity: 1000 },
+      attributeInputs: baseAttributeInputs({ power, precision: 4000, ferocity: 1000 }),
       target: { armor }
     });
     assert.deepEqual(result.warnings, []);
@@ -1883,7 +1884,7 @@ test('Unleashed pet strikes retain their own weapon profile, attributes, and fam
 
     const baseline = strike();
     const geared = strike({
-      stats: { power: 5000, precision: 3000, ferocity: 2000 },
+      attributeInputs: baseAttributeInputs({ power: 5000, precision: 3000, ferocity: 2000 }),
       weapons: ['Hammer', '']
     });
     const criticalMultiplier = 1 + ((2211 - 1000) / 2100) * 0.5;

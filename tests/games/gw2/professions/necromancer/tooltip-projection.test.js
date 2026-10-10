@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
@@ -74,7 +75,7 @@ function skillFacts(context, id) {
 
 function simulate(profession, patchId, specialization, rotation, selectedTraitIds = []) {
   const result = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 1000, conditionDamage: 1000, expertise: 0 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, conditionDamage: 1000, expertise: 0 }),
     target: { armor: 2597, health: 1_000_000 }
   })(specialization, rotation, { patchId, initialResource: 100, selectedTraitIds });
   assert.deepEqual(result.warnings, []);

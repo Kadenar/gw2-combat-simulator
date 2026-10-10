@@ -1,11 +1,10 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -43,21 +42,7 @@ export const carbolicComposition = defineTrait({
       run: applyCarbolicPoison
     })
   ],
-  modifierRules: [
-    {
-      id: 'engineer.carbolic-composition-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.CARBOLIC_COMPOSITION),
-          'conditionDurationBonus'
-        ),
-      // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
-      when: (context) => context.condition === 'Poisoned' && !professionStaticRulesApplied(context.config)
-    }
-  ],
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Poison Duration':
         100 *
@@ -96,7 +81,7 @@ export const hybridVigor = defineTrait({
   id: TRAIT.HYBRID_VIGOR,
   name: 'Hybrid Vigor',
   balance: { attributeBonus: 240 },
-  buildAttributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [
+  attributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
   ])
 });

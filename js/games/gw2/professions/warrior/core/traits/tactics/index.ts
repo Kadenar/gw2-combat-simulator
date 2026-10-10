@@ -1,14 +1,12 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -22,7 +20,6 @@ import {
   soldierFocusApplied,
   weaponSwapped
 } from '#gw2/professions/warrior/core/mechanics/combat.js';
-import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { warriorActiveBoonCount } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -35,7 +32,7 @@ export const vigorousShouts = defineTrait({
   id: TRAIT.VIGOROUS_SHOUTS,
   name: 'Vigorous Shouts',
   balance: { attributeConversion: 0.13 },
-  buildAttributes: traitAttributeEffects(TRAIT.VIGOROUS_SHOUTS, [
+  attributes: traitAttributeEffects(TRAIT.VIGOROUS_SHOUTS, [
     {
       kind: 'conversion',
       from: 'Power',
@@ -44,18 +41,7 @@ export const vigorousShouts = defineTrait({
       rounding: 'none',
       input: 'eligible'
     }
-  ]),
-  modifierRules: [
-    {
-      id: 'warrior.vigorous-shouts-healing-power',
-      target: MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER,
-      operation: 'add',
-      amount: (context) =>
-        (context.config?.stats?.power || 0) *
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VIGOROUS_SHOUTS), 'attributeConversion'),
-      when: (context) => !professionStaticRulesApplied(context.config)
-    }
-  ]
+  ])
 });
 
 /** Owns this trait's tuning and selected contributions. */
@@ -154,7 +140,7 @@ export const roaringReveille = defineTrait({
   balance: {
     attributeBonus: 120
   },
-  buildAttributes(_common, context) {
+  attributes(context) {
     return {
       attributeEffects: [
         {
@@ -219,18 +205,6 @@ export const warriorsCunning = defineTrait({
 });
 
 type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
-
-// Resolve Tactics-owned attributes without hiding their formulas in the cross-line composer.
-export function modifyWarriorTacticsAttributes(
-  context: Gw2ModifierContext,
-  result: WarriorModifierAttributes,
-  staticRulesApplied: boolean
-): void {
-  if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
-    const roaringReveilleProfile = requireBalanceProfileFromContext(context, TRAIT.ROARING_REVEILLE);
-    result.concentration += balanceProfileNumber(roaringReveilleProfile, 'attributeBonus');
-  }
-}
 
 export function empowerPulse(runtime: WarriorRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);

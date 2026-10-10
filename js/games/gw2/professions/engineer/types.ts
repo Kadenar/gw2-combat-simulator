@@ -1,24 +1,19 @@
-import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type {
-  Gw2CanonicalBuild,
-  Gw2Build,
-  Gw2FinalizedAttributeResult,
-  Gw2NumericAttributes
-} from '#gw2/platform/builds/types.js';
+import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import type { MechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { ScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface EngineerBuild extends Gw2Build {
@@ -32,7 +27,6 @@ export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 export interface EngineerConfig extends Gw2Config {
-  readonly amalgamEvolveAttributePool?: Readonly<Gw2NumericAttributes>;
   readonly initialHeat?: number;
   readonly selectedMorphSkillIds?: readonly number[];
 }
@@ -100,11 +94,6 @@ export type EngineerResolverContext = MechanicCombatContext & {
   config: EngineerConfig;
   profession: EngineerRuntimeState;
 };
-
-/** Engineer's finalized attributes also carry the pre-profession conversion pool Amalgam evolves from. */
-export interface EngineerFinalizedAttributeResult extends Gw2FinalizedAttributeResult {
-  readonly amalgamEvolveAttributePool?: Readonly<Gw2NumericAttributes>;
-}
 
 /** Modifier context whose config is the Engineer's, so rules can read its build selections. */
 export interface EngineerModifierContext extends Gw2ModifierContext {

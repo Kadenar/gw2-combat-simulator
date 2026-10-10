@@ -2,7 +2,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
@@ -32,6 +31,7 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Dhuumfire tuning and behavior at its existing execution boundaries. */
 export const dhuumfire = defineTrait({
@@ -90,7 +90,7 @@ export const vitalPersistence = defineTrait({
   id: TRAIT.VITAL_PERSISTENCE,
   name: 'Vital Persistence',
   balance: { attributeBonus: 180 },
-  buildAttributes: traitAttributeEffects(TRAIT.VITAL_PERSISTENCE, [
+  attributes: traitAttributeEffects(TRAIT.VITAL_PERSISTENCE, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -126,15 +126,6 @@ export const deathPerception = defineTrait({
   },
   modifierRules: [
     {
-      order: -18,
-      id: 'necromancer.death-perception-critical-chance',
-      label: 'Death Perception',
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalChance')
-    },
-    {
       order: 105,
       id: 'necromancer.death-perception-critical-hit-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
@@ -144,7 +135,7 @@ export const deathPerception = defineTrait({
       when: (context) => Boolean(necromancerActiveShroud(context))
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+  attributes: ({ balanceContext: profileContext }) => ({
     traitCriticalChance:
       balanceProfileNumber(requireBalanceProfileFromContext(profileContext, TRAIT.DEATH_PERCEPTION), 'criticalChance') *
       100

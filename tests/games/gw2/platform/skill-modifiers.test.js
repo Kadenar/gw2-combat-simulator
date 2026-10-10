@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
@@ -153,7 +154,7 @@ test('effect ownership reaches damage resolution without multiplying a sibling s
     modules: [moduleFor([owner])]
   });
   const result = createProfessionSimulator(profession)([{ type: 'cast', skillId: 1 }], {
-    stats: { power: 1000, precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0 }),
     target: { armor: 1000, conditions: {} }
   });
   assert.deepEqual(result.warnings, []);

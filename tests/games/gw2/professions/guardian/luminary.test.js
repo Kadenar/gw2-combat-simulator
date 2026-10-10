@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -12,13 +13,13 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardia
 import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 
 const config = {
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1000,
     ferocity: 0,
     conditionDamage: 1000,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597 }
 };
 
@@ -54,7 +55,10 @@ test('Shimmering Stances grants party Protection and blinds only with the trait 
         {
           specialization: 'Luminary',
           selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.SHIMMERING_STANCES] : [],
-          stats: { ...config.stats, concentration },
+          attributeInputs: baseAttributeInputs({
+            ...config.attributeInputs?.weaponSets[0].commonTotals,
+            concentration
+          }),
           allies: { count: 4 }
         }
       );
@@ -183,7 +187,7 @@ test('Luminary skill boons reach the effects chart with boon-duration scaling', 
     const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
-      stats: { ...config.stats, concentration: 750 }
+      attributeInputs: baseAttributeInputs({ ...config.attributeInputs.weaponSets[0].commonTotals, concentration: 750 })
     })(undefined, [...rotation, { type: 'wait', durationMs: 1000 }]);
     const baseline = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
       undefined,
@@ -268,7 +272,10 @@ test('Resplendent Weaponry grants scaled party boons only on traited, completed 
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         specialization: 'Luminary',
-        stats: { ...config.stats, concentration: 750 },
+        attributeInputs: baseAttributeInputs({
+          ...config.attributeInputs.weaponSets[0].commonTotals,
+          concentration: 750
+        }),
         allies: { count: 4 },
         selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY] : []
       })(undefined, ['Enter Radiant Forge', weapon, { type: 'wait', durationMs: 1000 }]);
@@ -1008,7 +1015,8 @@ test('Piercing Stance applies its bonus to its first strike without stacking dam
   assert.equal(hits.length, 2);
   for (const hit of hits) {
     const unmodified =
-      ((hit.coefficient * config.stats.power * hit.resolvedWeaponStrength) / config.target.armor) *
+      ((hit.coefficient * config.attributeInputs.weaponSets[0].commonTotals.power * hit.resolvedWeaponStrength) /
+        config.target.armor) *
       (1 + hit.criticalChance * (hit.criticalDamage - 1));
     assertFlooredDamageMultiplier(hit.damage, unmodified, 1.1);
   }
@@ -1061,7 +1069,10 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
   const daringImpact = daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance');
   const daringBuff = daring.events.find((event) => event.kind === 'guardian-daring-advance');
   const unmodifiedDaringDamage =
-    ((daringImpact.coefficient * config.stats.power * daringImpact.resolvedWeaponStrength) / config.target.armor) *
+    ((daringImpact.coefficient *
+      config.attributeInputs.weaponSets[0].commonTotals.power *
+      daringImpact.resolvedWeaponStrength) /
+      config.target.armor) *
     (1 + daringImpact.criticalChance * (daringImpact.criticalDamage - 1));
 
   assert.equal(
@@ -1347,7 +1358,9 @@ test('Sovereign of Light receives fresh Piercing Stance but not fresh Daring Adv
   const freshDaring = simulate(['Enter Radiant Forge', 'Exit Radiant Forge', 'Daring Advance']);
   const freshPiercing = simulate(['Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']);
   const activePiercing = simulate(['Piercing Stance', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']);
-  const unmodifiedDamage = ((1.5 * config.stats.power * 690.5) / config.target.armor) * (1 + 0.05 * (1.5 - 1));
+  const unmodifiedDamage =
+    ((1.5 * config.attributeInputs.weaponSets[0].commonTotals.power * 690.5) / config.target.armor) *
+    (1 + 0.05 * (1.5 - 1));
 
   assert.equal(sovereignDamage(freshDaring), Math.floor(unmodifiedDamage));
   // Piercing's buff precedes its aura detonation; refreshing the stance must not multiply its bonus again.

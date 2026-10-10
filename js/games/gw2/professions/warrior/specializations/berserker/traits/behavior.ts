@@ -1,8 +1,12 @@
+import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
+import { warriorPassiveAttributes } from '#gw2/professions/warrior/core/skills/attribute-passives.js';
+import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -28,8 +32,26 @@ export function active(context: Gw2ModifierContext): boolean {
 }
 
 export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-  const conversionPower = context.config?.stats?.power ?? attributes.power ?? 0;
-  const conversionPrecision = context.config?.stats?.precision ?? attributes.precision ?? 0;
+  // Blood Reaction reads ordinary equipment and owner bonuses, excluding Might and later Berserk bonuses.
+  const facts = attributeContext(context, {
+    catalog: (context.catalog ?? context.profession?.catalog)!,
+    modifierRulesById: new Map()
+  });
+  const source = applyAttributeContributions(
+    facts,
+    attributeSeed(context.config ?? {}, facts.weaponSet).commonTotals,
+    (input) => [
+      ...warriorPassiveAttributes(input),
+      ...warriorCoreTraits.flatMap((trait) =>
+        // Pinnacle's Might amplification is a live grant, excluded from Blood Reaction's owner source.
+        trait.id !== TRAIT.PINNACLE_OF_STRENGTH && hasTrait(input, trait.id) && trait.attributes
+          ? [trait.attributes(input)]
+          : []
+      )
+    ]
+  );
+  const conversionPower = source.power ?? 0;
+  const conversionPrecision = source.precision ?? 0;
   const result = { ...attributes } as Gw2MutableStats & {
     power: number;
     precision: number;

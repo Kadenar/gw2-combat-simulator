@@ -6,7 +6,7 @@ import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -66,6 +66,23 @@ import type {
 
 /** Fire definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const empoweringFlame = defineTrait({
+  // Evaluate the current attunement without feeding its temporary Power into conversions.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPOWERING_FLAME);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: primaryAttunement(context) === 'Fire'
+        }
+      ]
+    };
+  },
+
   id: TRAIT.EMPOWERING_FLAME,
   name: 'Empowering Flame',
   balance: { attributeBonus: 150 }
@@ -99,7 +116,7 @@ export const burningPrecision = defineTrait({
     durationMultiplier: 20,
     effects: [{ type: 'condition', name: 'Burning Precision', condition: 'Burning', stacks: 1, duration: 3 }]
   },
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Burning Duration': balanceProfileNumber(
         requireBalanceProfileFromContext(balanceContext, TRAIT.BURNING_PRECISION),
@@ -149,7 +166,7 @@ export const burningRage = defineTrait({
     durationMultiplier: 20,
     effects: [{ type: 'condition', name: 'Sunspot Burning', condition: 'Burning', stacks: 2, duration: 4 }]
   },
-  buildAttributes: traitAttributeEffects(TRAIT.BURNING_RAGE, [
+  attributes: traitAttributeEffects(TRAIT.BURNING_RAGE, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
   ])
 });
@@ -161,6 +178,26 @@ export const smotheringAuras = defineTrait({
 });
 
 export const powerOverwhelming = defineTrait({
+  // Might and the active attunement select one live Power bonus.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.POWER_OVERWHELMING);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: balanceProfileNumber(
+            profile,
+            primaryAttunement(context) === 'Fire' ? 'weaponAttributeBonus' : 'attributeBonus'
+          ),
+          feedsConversions: false,
+          enabled: elementalistMightStacks(context) >= balanceProfileNumber(profile, 'minimumStacks')
+        }
+      ]
+    };
+  },
+
   id: TRAIT.POWER_OVERWHELMING,
   name: 'Power Overwhelming',
   balance: {
@@ -309,28 +346,6 @@ function applyConjurerAura(context: ElementalistRuntime, { cast }: ElementalistC
         sourceId: skill.id
       });
     }
-  }
-}
-
-/** Preserve the live fire attribute pass at its original position in the Core modifier pipeline. */
-export function applyFireTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
-  const primary = primaryAttunement(context);
-  if (hasTrait(context, TRAIT.EMPOWERING_FLAME) && primary === 'Fire') {
-    const empoweringFlameProfile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_FLAME);
-    modified.power = (modified.power || 0) + balanceProfileNumber(empoweringFlameProfile, 'attributeBonus');
-  }
-
-  if (
-    hasTrait(context, TRAIT.POWER_OVERWHELMING) &&
-    elementalistMightStacks(context) >=
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POWER_OVERWHELMING), 'minimumStacks')
-  ) {
-    const powerOverwhelmingProfile = requireBalanceProfileFromContext(context, TRAIT.POWER_OVERWHELMING);
-    modified.power =
-      (modified.power || 0) +
-      (primary === 'Fire'
-        ? balanceProfileNumber(powerOverwhelmingProfile, 'weaponAttributeBonus')
-        : balanceProfileNumber(powerOverwhelmingProfile, 'attributeBonus'));
   }
 }
 

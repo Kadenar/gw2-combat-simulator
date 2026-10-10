@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -11,7 +12,7 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 const config = {
   specialization: 'Core',
-  stats: { power: 2000, precision: 1000, vitality: 1000, conditionDamage: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, vitality: 1000, conditionDamage: 1000 }),
   target: { armor: 2597 }
 };
 

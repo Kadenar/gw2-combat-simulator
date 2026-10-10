@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
@@ -76,7 +77,7 @@ test('shared lockout deadlines retry at the next absolute action tick', () => {
   assert.equal(result.steps.findLast((step) => step.skillId === skill.id).start, 1440);
 });
 const config = {
-  stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 }),
   target: { armor: 1000, health: 0, conditions: {} },
   randomness: { mode: 'expected', seed: 123 }
 };

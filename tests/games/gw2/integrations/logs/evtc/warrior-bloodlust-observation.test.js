@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -61,6 +62,7 @@ const catalog = {
       {
         id: TRAIT.BLOODLUST,
         name: 'Bloodlust',
+        conditionDurationBonus: 0,
         profileKind: 'trait',
         procChance: 0.33,
         effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
@@ -72,7 +74,7 @@ const catalog = {
 
 const config = {
   selectedTraitIds: [TRAIT.BLOODLUST],
-  stats: { expertise: 1_500 },
+  attributeInputs: baseAttributeInputs({ expertise: 1_500 }),
   sigilSets: [{}, {}]
 };
 

@@ -1,3 +1,5 @@
+import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -21,14 +23,14 @@ import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: { Vulnerability: 25 }
@@ -161,12 +163,12 @@ test('Evolve raises attributes by ten percent for eight seconds', () => {
   const neutralMorphs = [76815, 77285, 77358];
   const config = {
     selectedMorphSkillIds: neutralMorphs,
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2000,
       precision: 0,
       ferocity: 0,
       conditionDamage: 1000
-    }
+    })
   };
   const baseline = simulate('Amalgam', [{ type: 'wait', durationMs: 750 }, 'Puncturing Jab'], config);
   const evolved = simulate('Amalgam', ['Evolve', 'Puncturing Jab'], config);
@@ -184,15 +186,11 @@ test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {
   const config = {
     selectedMorphSkillIds: [76815, 77285, 77358],
     selectedTraitIds: [TRAIT.SHARPSHOOTER, TRAIT.DOUBLE_HELIX],
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2000,
       conditionDamage: 1000,
       expertise: 0
-    },
-    amalgamEvolveAttributePool: {
-      Power: 2000,
-      'Condition Damage': 1000
-    },
+    }),
     target: { conditions: {} }
   };
   const result = simulate(
@@ -219,7 +217,7 @@ test('Evolve cannot raise condition duration above the global cap', () => {
       selectedSkillIds: [5857, 5805, 5927, 5812, 76993],
       selectedMorphSkillIds: [77103, 77104, 76705],
       selectedTraitIds: [TRAIT.SERRATED_STEEL],
-      stats: { expertise: 1500 },
+      attributeInputs: baseAttributeInputs({ expertise: 1500 }),
       target: { conditions: {} }
     }
   );
@@ -323,7 +321,7 @@ test('Carbolic Composition poisons only Amalgam skill hits', () => {
   const strain = simulate('Amalgam', ['Evolve', 'Puncturing Jab'], {
     selectedMorphSkillIds: [77103, 77104, 76705],
     selectedTraitIds: [TRAIT.CARBOLIC_COMPOSITION],
-    stats: { precision: 4000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 4000, ferocity: 0 }),
     target: { conditions: {} }
   });
   const rapacious = strain.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Rapacious Strain');
@@ -531,12 +529,12 @@ test('Double Helix gives Evolve two charges and doubles its attribute bonus', ()
   const config = {
     selectedMorphSkillIds: [76815, 77285, 77358],
     selectedTraitIds: [TRAIT.DOUBLE_HELIX],
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2000,
       precision: 0,
       ferocity: 0,
       conditionDamage: 1000
-    },
+    }),
     target: { conditions: {} }
   };
   const charges = simulate('Amalgam', ['Evolve', 'Evolve'], config);
@@ -620,7 +618,15 @@ test('Evolve scales only its eligible static attribute pool', () => {
   const context = (traits) => ({
     catalog: engineerCatalog,
     traits: new Set(traits),
-    config: { amalgamEvolveAttributePool: pool },
+    config: {
+      attributeInputs: {
+        weaponSets: [0, 1].map(() => ({
+          commonTotals: baseAttributeInputs().weaponSets[0].commonTotals,
+          conversionPool: pool,
+          sources: {}
+        }))
+      }
+    },
     runtime: {
       profession: {
         specialization: {
@@ -659,8 +665,8 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
   engineerAppAdapter.recalculate(app);
   const config = engineerAppAdapter.simulationConfig(app);
 
-  assert.deepEqual(config.amalgamEvolveAttributePool, app.attributeData.amalgamEvolveAttributePool);
-  assert.equal(config.stats.ferocity - config.amalgamEvolveAttributePool.Ferocity, 150);
+  assert.deepEqual(attributeSourcePool(config, 'common'), app.attributeData.attributeSeed.conversionPool);
+  assert.equal(app.attributeData.attributes.Ferocity.final - attributeSourcePool(config, 'common').Ferocity, 150);
 });
 
 test('Amalgam food comparisons use the recalculated Evolve attribute pool', () => {
@@ -683,11 +689,12 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${canonical.food}`);
 
   assert.equal(
-    request.baseConfig.amalgamEvolveAttributePool.Power - comparison.config.amalgamEvolveAttributePool.Power,
+    attributeSourcePool(request.baseConfig, 'common').Power - attributeSourcePool(comparison.config, 'common').Power,
     100
   );
   assert.equal(
-    request.baseConfig.amalgamEvolveAttributePool.Precision - comparison.config.amalgamEvolveAttributePool.Precision,
+    attributeSourcePool(request.baseConfig, 'common').Precision -
+      attributeSourcePool(comparison.config, 'common').Precision,
     70
   );
 });

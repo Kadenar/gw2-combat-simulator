@@ -35,7 +35,14 @@ export function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance
   const full = resourceAtLeast(state.endurance?.value ?? 0, maximum);
   const brutalMomentumProfile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
   // At full endurance: +33% crit; below full: +10% crit
-  return chance + balanceProfileNumber(brutalMomentumProfile, full ? 'fullEnduranceCriticalChance' : 'criticalChance');
+  // The ordinary declaration owns baseline chance; endurance contributes only the increase.
+  return (
+    chance +
+    (full
+      ? balanceProfileNumber(brutalMomentumProfile, 'fullEnduranceCriticalChance') -
+        balanceProfileNumber(brutalMomentumProfile, 'criticalChance')
+      : 0)
+  );
 }
 
 export function kallasFervorStacks(context: Gw2ModifierContext): number {

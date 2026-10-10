@@ -1,3 +1,4 @@
+import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -47,9 +48,9 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
   const modified = { ...attributes };
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
     const evolveFactor = evolveAttributeFactor(context);
-    const pool = context.config?.amalgamEvolveAttributePool;
+    const pool = attributeSourcePool(context.config ?? {}, 'common', context.runtime?.activeWeaponSet);
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
-      const eligible = pool?.[poolAttribute] ?? modified[attribute];
+      const eligible = pool[poolAttribute] ?? 0;
       const bonus = eligible * (evolveFactor - 1);
       modified[attribute] =
         (modified[attribute] || 0) + (['power', 'conditionDamage'].includes(attribute) ? Math.round(bonus) : bonus);

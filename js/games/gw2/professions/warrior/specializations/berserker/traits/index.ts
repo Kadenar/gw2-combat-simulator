@@ -211,7 +211,7 @@ export const kingOfFires = defineTrait({
       { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 3, duration: 3 }
     ]
   },
-  buildAttributes(_common, context) {
+  attributes(context) {
     return {
       traitDurations: {
         'Burning Duration':

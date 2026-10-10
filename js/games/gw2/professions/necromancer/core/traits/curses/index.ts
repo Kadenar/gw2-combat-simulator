@@ -1,6 +1,5 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -66,21 +65,7 @@ export const barbedPrecision = defineTrait({
       }
     ]
   },
-  modifierRules: [
-    {
-      order: -9,
-      id: 'necromancer.barbed-precision-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION),
-          'conditionDurationMultiplier'
-        ),
-      when: (context) => context.condition === 'Bleeding' && !professionStaticRulesApplied(context.config)
-    }
-  ],
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+  attributes: ({ balanceContext: profileContext }) => ({
     traitDurations: {
       'Bleeding Duration':
         balanceProfileNumber(
@@ -164,7 +149,7 @@ export const furiousDemise = defineTrait({
     effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8, packetLabel: 'on shroud entry' }],
     attributeBonus: 180
   },
-  buildAttributes: traitAttributeEffects(TRAIT.FURIOUS_DEMISE, [
+  attributes: traitAttributeEffects(TRAIT.FURIOUS_DEMISE, [
     { kind: 'flat', to: 'Precision', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -195,7 +180,7 @@ export const targetTheWeak = defineTrait({
       }
     }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.TARGET_THE_WEAK, [
+  attributes: traitAttributeEffects(TRAIT.TARGET_THE_WEAK, [
     {
       kind: 'conversion',
       from: 'Precision',
@@ -215,7 +200,7 @@ export const lingeringCurse = defineTrait({
     attributeBonus: 200,
     durationMultiplier: 1.5
   },
-  buildAttributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
+  attributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
   ])
 });

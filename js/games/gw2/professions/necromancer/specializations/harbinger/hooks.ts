@@ -26,7 +26,6 @@ import {
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import {
-  alchemicVigorLifeForceCostMultiplier,
   doomApproachesBlightProfile,
   doomApproachesControl,
   twistedMedicineAudience
@@ -142,8 +141,6 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
     ];
   },
   initialize(runtime) {
-    runtime.profession.core.lifeForceCostMultiplier = alchemicVigorLifeForceCostMultiplier(runtime);
-
     registerNecromancerShroudLifecycle(runtime, 'harbinger.shroud', {
       onEnter(skill) {
         if (skill.shroudEntry !== 'harbinger') return;

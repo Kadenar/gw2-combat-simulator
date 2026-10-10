@@ -26,7 +26,6 @@ import { reactToAshesHit } from '#gw2/professions/guardian/specializations/fireb
 import { mesmerControlAccepted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
@@ -169,7 +168,7 @@ for (const [key, trait, invoke, literalDuration] of [
 ]) {
   test(`Necromancer ${key} preserves scoped claims and exact boundaries`, () => {
     for (const duration of literalDuration == null ? [2, 0] : [literalDuration]) {
-      const core = createNecromancerCoreState();
+      const core = necromancerProfession.resolveProfession({}).createState({}).core;
       const { context } = professionContext({
         id: 'necromancer',
         catalog: necromancerCatalog,
@@ -216,7 +215,7 @@ for (const [key, trait, invoke, literalDuration] of [
       assert.equal(effects, bypass ? count * 2 : count);
       opportunity(1 + elapsed + 0.000001);
       assert.ok(effects > count);
-      assert.equal('traitProcReadyAt' in createNecromancerCoreState(), false);
+      assert.equal('traitProcReadyAt' in necromancerProfession.resolveProfession({}).createState({}).core, false);
     }
   });
 }
@@ -605,7 +604,7 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
   const { context, conditions } = professionContext({
     id: 'necromancer',
     catalog,
-    core: createNecromancerCoreState(),
+    core: necromancerProfession.resolveProfession({}).createState({}).core,
     traits: [NECROMANCER_TRAIT_IDS.DEMONIC_LORE]
   });
   const key = 'necromancer.scourge.demonicLore';
@@ -636,7 +635,7 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
 
 // Summons and allies have independent live claims; spirit hits share the player's interval.
 test('Vampiric Presence preserves player and companion cooldown scopes', () => {
-  const core = createNecromancerCoreState();
+  const core = necromancerProfession.resolveProfession({}).createState({}).core;
   core.activeMinions.fixture = 2;
   const catalog = withProfile(necromancerCatalog, NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE, {
     cooldown: 2
@@ -674,7 +673,7 @@ test('Vampiric Presence waits for its first aura pulse and accepts a hit on its 
   const { context } = professionContext({
     id: 'necromancer',
     catalog: necromancerCatalog,
-    core: createNecromancerCoreState(),
+    core: necromancerProfession.resolveProfession({}).createState({}).core,
     traits: [NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE],
     config: { allies: { count: 0 } }
   });
@@ -694,7 +693,7 @@ test('Vampiric Presence waits for its first aura pulse and accepts a hit on its 
 
 // In-game chat shows the in-shroud siphon at about twice the base (221 vs 112) for every aura recipient.
 test('Vampiric Presence uses the shroud packet for player and minion hits while in shroud', () => {
-  const core = createNecromancerCoreState();
+  const core = necromancerProfession.resolveProfession({}).createState({}).core;
   core.activeMinions.fixture = 1;
   core.activeShroud = 'death';
   const { context } = professionContext({
@@ -721,7 +720,7 @@ test('Vampiric Aura pulses relative to an explicit combat start', () => {
   const { context } = professionContext({
     id: 'necromancer',
     catalog: necromancerCatalog,
-    core: createNecromancerCoreState(),
+    core: necromancerProfession.resolveProfession({}).createState({}).core,
     traits: [NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE],
     config: { allies: { count: 0 } }
   });

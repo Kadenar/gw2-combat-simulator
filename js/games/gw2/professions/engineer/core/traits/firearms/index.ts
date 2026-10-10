@@ -1,5 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -8,6 +6,7 @@ import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   procChanceFromContext,
@@ -18,7 +17,6 @@ import { heavyMetalBonus } from '#gw2/professions/engineer/core/traits/firearms/
 import { activeBoonStacks, targetConditionCount } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-import { type EngineerBuild } from '#gw2/professions/engineer/types.js';
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { mechStruck, type MechStrike } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
@@ -56,20 +54,7 @@ export const serratedSteel = defineTrait({
     durationMultiplier: 0.33,
     effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
   },
-  modifierRules: [
-    {
-      order: -7,
-      id: 'engineer.serrated-steel-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SERRATED_STEEL), 'durationMultiplier'),
-      // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
-      when: (context) => context.condition === 'Bleeding' && !professionStaticRulesApplied(context.config)
-    }
-  ],
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Bleeding Duration':
         100 *
@@ -110,8 +95,8 @@ export const noScope = defineTrait({
     attributeBonus: 150,
     effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 }]
   },
-  buildAttributes: (_common, { balanceContext: profileContext, build }) => {
-    const engineerBuild = build as EngineerBuild;
+  attributes: ({ balanceContext: profileContext, loadout }) => {
+    const engineerBuild = loadout;
     const noScopeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.NO_SCOPE);
     return {
       attributeEffects: [
@@ -120,7 +105,7 @@ export const noScope = defineTrait({
           to: 'Ferocity',
           amount: balanceProfileNumber(noScopeProfile, 'attributeBonus'),
           feedsConversions: false,
-          enabled: engineerBuild.assumptions?.fury !== false
+          enabled: engineerBuild.assumptions.fury !== false
         }
       ]
     };
@@ -164,19 +149,7 @@ export const incendiaryPowder = defineTrait({
     durationMultiplier: 0.33,
     effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 8 }]
   },
-  modifierRules: [
-    {
-      order: -6,
-      id: 'engineer.incendiary-powder-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INCENDIARY_POWDER), 'durationMultiplier'),
-      when: (context) => context.condition === 'Burning' && !professionStaticRulesApplied(context.config)
-    }
-  ],
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Burning Duration':
         100 *
@@ -215,7 +188,7 @@ export const thermalVision = defineTrait({
       when: (context) => buffActive(context, 'thermal-vision')
     }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [
+  attributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [
     { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -263,7 +236,7 @@ export const chemicalRounds = defineTrait({
     conditionDurationMultiplier: 4 / 3,
     attributeBonus: 120
   },
-  buildAttributes: traitAttributeEffects(TRAIT.CHEMICAL_ROUNDS, [
+  attributes: traitAttributeEffects(TRAIT.CHEMICAL_ROUNDS, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -363,7 +336,7 @@ export const modifiedAmmunition = defineTrait({
   ]
 });
 
-/** Reapply selected Firearms duration contributions when a companion replaces baked player attributes. */
+/** Resolve the selected Firearms durations for an independent companion. */
 export function selectedFirearmsDurationBonuses(context: Gw2ModifierContext): Record<string, number> {
   const bonuses: Record<string, number> = {};
   for (const [condition, trait] of [

@@ -26,7 +26,10 @@ import { ammunitionCommitted, explosionAccepted } from '#gw2/professions/warrior
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { gunsaberEntered } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { resolveSharpAsTheWindSkillId } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
+import {
+  resolveSharpAsTheWindSkillId,
+  runtimeBuffActive
+} from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -192,6 +195,23 @@ export const daringDragon = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const gunsAndGlory = defineTrait({
+  // Only live self applications enable Guns and Glory.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: runtimeBuffActive(context, 'guns-and-glory')
+        }
+      ]
+    };
+  },
+
   triggers: [
     onTriggerPoint(explosionAccepted, {
       run: (runtime, input: TriggerPointInput<typeof explosionAccepted>) => gunsAndGloryExplosion(runtime, input.event)

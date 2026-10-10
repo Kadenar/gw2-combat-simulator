@@ -1,23 +1,25 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
-import type { Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
-import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2AutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type {
   ProfessionRuntimeOptions,
   RuntimeProfession
 } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
-import type { Gw2AutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
+import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
+import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   readonly generatedSkills?: readonly TSkill[];
@@ -44,7 +46,10 @@ export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
 }
 
 interface NativeStateDefinition<TState extends object, TProjectOptions extends object, TProjectedState extends object> {
-  readonly create: (config: Readonly<ProfessionConfig>) => TState;
+  readonly create: (
+    config: Readonly<ProfessionConfig>,
+    preparation: { attributes: Gw2Stats; balanceContext: ProfessionBalanceContext }
+  ) => TState;
   readonly project?: (options: TProjectOptions) => TProjectedState;
 }
 
@@ -71,6 +76,8 @@ export interface NativeModuleDefinition<
   readonly data: NativeModuleCatalogData<TSkill>;
   readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;
   readonly traitDefinitions?: readonly TraitDefinition<TSkill>[];
+  /** Skill passives and intrinsic mechanics share the trait attribute evaluator without pretending to be traits. */
+  readonly attributes?: Gw2AttributeContributionCalculator;
   /** Declarative modifier rules, or rules plus imperative `modify*` callbacks for ordered or stateful math. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifiers;
   /** Runtime hooks execute against the single chronological owner. */
@@ -114,7 +121,7 @@ export type AnyNativeModule<TId extends string = string, TSkill extends Skill = 
 
 type NativeModuleState<TModule> = TModule extends {
   readonly state: {
-    readonly create: (config: Readonly<ProfessionConfig>) => infer TState;
+    readonly create: (...args: never[]) => infer TState;
   };
 }
   ? TState
@@ -183,5 +190,5 @@ export type NativeProfessionContract<
     config: Gw2Config,
     options?: ProfessionRuntimeOptions
   ): RuntimeProfession<NativeProfessionRuntimeState<TModules>, TSkill>;
-  readonly traitBuildAttributes: Gw2TraitBuildAttributeCalculator;
+  readonly attributeContributions: Gw2AttributeContributionCalculator;
 };

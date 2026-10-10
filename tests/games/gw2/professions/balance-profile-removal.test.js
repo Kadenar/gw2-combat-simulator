@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -27,7 +28,7 @@ function run(profession, balanceProfiles, specialization, rotation, config = {},
       patchId: 'removal-contract',
       specialization,
       selectedTraitIds: [],
-      stats: { power: 2000, precision: 1000, conditionDamage: 1000, expertise: 0 },
+      attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, conditionDamage: 1000, expertise: 0 }),
       target: { armor: 2597, defiant: true, conditions: {} },
       ...config
     }

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -5,7 +6,13 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 const config = {
-  stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1000,
+    ferocity: 0,
+    conditionDamage: 1000,
+    vitality: 1000
+  }),
   target: { armor: 2597 },
   specialization: 'Willbender',
   boons: { quickness: true, alacrity: true },

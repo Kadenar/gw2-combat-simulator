@@ -5,8 +5,7 @@ import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
-// Reconcile build-time Revenant attributes with live legend, upkeep, and trait
-// state without double-applying static bonuses.
+// Notoriety changes live Might grants after ordinary attribute evaluation.
 export function modifyCoreAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes } as Record<string, number>;
   if (hasTrait(context, TRAIT.NOTORIETY)) {

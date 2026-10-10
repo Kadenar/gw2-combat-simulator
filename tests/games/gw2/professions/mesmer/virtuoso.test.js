@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
@@ -210,10 +211,10 @@ test('Mesmer critical traits consume the same seeded hit outcomes in both modes'
   const config = defaultSimulationConfig({
     specialization: 'Virtuoso',
     selectedTraitIds: [TRAIT.JAGGED_MIND, TRAIT.DEADLY_BLADES],
-    stats: {
-      ...defaults.stats,
+    attributeInputs: baseAttributeInputs({
+      ...defaults.attributeInputs.weaponSets[0].commonTotals,
       precision: 1945
-    },
+    }),
     boons: {
       ...defaults.boons,
       fury: false
@@ -278,10 +279,10 @@ test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
       defaultSimulationConfig({
         initialResource: 0,
         selectedTraitIds,
-        stats: {
-          ...defaults.stats,
+        attributeInputs: baseAttributeInputs({
+          ...defaults.attributeInputs.weaponSets[0].commonTotals,
           precision: 4000
-        },
+        }),
         sigilSets: [
           { names: ['Earth'], strike: 1, condition: 1 },
           { names: [], strike: 1, condition: 1 }
@@ -322,10 +323,10 @@ test('Geomancy crosses Bloodsong after four canonical trait bleeds', () => {
     defaultSimulationConfig({
       initialResource: 0,
       selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND],
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 4000
-      },
+      }),
       sigilSets: [
         { names: [], strike: 1, condition: 1 },
         { names: ['Geomancy'], strike: 1, condition: 1 }

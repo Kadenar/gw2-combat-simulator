@@ -1,5 +1,6 @@
-import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {
@@ -13,8 +14,7 @@ import type {
   Gw2ModifierContribution,
   Gw2ModifierHook
 } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
 import {
@@ -22,8 +22,8 @@ import {
   targetConditionStacks,
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { NormalizedProfessionContract } from '#gw2/platform/profession-definition/types.js';
+import { gw2StaticAttributes, type Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
+import { roundEffectDuration } from '#gw2/platform/effects/timing.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   relicConditionDamageBonus,
@@ -35,10 +35,9 @@ import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runti
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
-import { gw2StaticAttributes, gw2StatsForWeaponSet, type Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { NormalizedProfessionContract } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { roundEffectDuration } from '#gw2/platform/effects/timing.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 /** Queries need immutable catalog and formula hooks, not either execution engine's state factories. */
@@ -165,27 +164,7 @@ export function createGw2CombatQuery({
   // Live relic state owns earned activations; detached queries retain only the selected relic's base context.
   const equipmentConditionDurationBonus = (runtime: Gw2QueryRuntime | null | undefined, at: number): number =>
     relicConditionDurationBonus(runtime?.relic ? runtime : historicalRelicContext, at);
-  const configWithBaselineStats = (weaponSet: number): Gw2Config => {
-    const stats = gw2StatsForWeaponSet(config, weaponSet);
-    return {
-      ...config,
-      stats: {
-        ...stats,
-        power: stats.power ?? 1000,
-        precision: stats.precision ?? 1000,
-        toughness: stats.toughness ?? 1000,
-        vitality: stats.vitality ?? 1000,
-        ferocity: stats.ferocity ?? 0,
-        conditionDamage: stats.conditionDamage ?? 0,
-        expertise: stats.expertise ?? 0,
-        concentration: stats.concentration ?? 0,
-        healingPower: stats.healingPower ?? 0
-      }
-    };
-  };
 
-  const startingWeaponSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
-  const staticConfig = configWithBaselineStats(startingWeaponSet);
   const activeConfigsByWeaponSet = new Map<number, Gw2Config>();
   const staticAttributesByWeaponSet = new Map<number, Gw2ResolvedStats>();
   /** Reuses immutable weapon-set inputs while returning fresh mutable attribute results to profession hooks. */
@@ -208,20 +187,10 @@ export function createGw2CombatQuery({
 
   /** Builds each weapon-set-specific hook configuration once per combat query. */
   function activeConfigForWeaponSet(weaponSet: number): Gw2Config {
-    if (!config.weaponSetStats?.length) return staticConfig;
     const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
     const cached = activeConfigsByWeaponSet.get(normalizedWeaponSet);
     if (cached) return cached;
-    const activeConfig = configWithBaselineStats(normalizedWeaponSet);
-    const calculatedPrimaryWeapon = gw2PrimaryWeapon(config, normalizedWeaponSet) || '';
-    const resolved = {
-      ...activeConfig,
-      attributeProvenance: {
-        ...(config.attributeProvenance || {}),
-        calculatedWeaponSet: normalizedWeaponSet,
-        calculatedPrimaryWeapon
-      }
-    };
+    const resolved = { ...config, startingWeaponSet: normalizedWeaponSet };
     activeConfigsByWeaponSet.set(normalizedWeaponSet, resolved);
     return resolved;
   }
@@ -431,7 +400,11 @@ export function createGw2CombatQuery({
         event.summonInheritsCriticalAttributes !== true
       ) {
         const summonFuryBonus = furyActive ? 0.25 : 0;
-        const baseChance = Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus;
+        const professionBonus =
+          event.summonUsesProfessionModifiers === true
+            ? (statsAt(time, event, runtime).professionCriticalChanceBonus ?? 0) / 100
+            : 0;
+        const baseChance = Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus + professionBonus;
         const chance =
           event.summonUsesProfessionModifiers === true
             ? activeProfession.modifyCriticalChance(hookContext(time, { event, runtime }), baseChance)
@@ -451,13 +424,14 @@ export function createGw2CombatQuery({
       };
 
       let chance = criticalChance(stats.precision);
+      const professionAttributeBonus = (stats.professionCriticalChanceBonus ?? 0) / 100;
       addContributor('precision', 'Precision', chance);
       // Illusions inherit only the summoner's base (precision-derived) crit
       // chance. Player-only gear bonuses — configured crit-chance and weapon
       // sigils — do not carry over to them.
       const illusionEvent = event.source === 'Clone' || event.source === 'Phantasm';
       if (!illusionEvent) {
-        const configuredBonus = (activeConfigAt(time, runtime).stats?.criticalChanceBonus || 0) / 100;
+        const configuredBonus = (stats.criticalChanceBonus || 0) / 100;
         chance += configuredBonus;
         addContributor('configured-bonus', 'Configured bonus', configuredBonus);
         const sigilBonus = (activeSigilSetAt(time, runtime).criticalChanceBonus || 0) / 100;
@@ -465,6 +439,8 @@ export function createGw2CombatQuery({
         addContributor('active-sigils', 'Active weapon sigils', sigilBonus);
       }
 
+      chance += professionAttributeBonus;
+      addContributor('profession-attributes', 'Profession attributes', professionAttributeBonus);
       if (furyActive) {
         chance += 0.25;
         addContributor('fury', 'Fury', 0.25);

@@ -1,14 +1,17 @@
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
+import { attributeSeed, attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { strengthOfStone } from '#gw2/professions/elementalist/core/traits/earth/index.js';
+import { burningRage } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import type { CatalystEmpowermentPool } from '#gw2/professions/elementalist/build/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
@@ -107,10 +110,10 @@ export function applyElementalEmpowermentAttributes(
   const multiplier = empowermentAttributeMultiplier(context, elementalEmpowermentProfile, stacks, maximumStacks);
   // The build may pin the attribute pool the bonus is computed from; otherwise the
   // incoming resolved attributes are used.
-  const pool = context.config?.catalystEmpowermentPool as Partial<CatalystEmpowermentPool> | undefined;
+  const pool = catalystAttributePool(context);
   const modified = { ...attributes };
   for (const stat of ['power', 'precision', 'ferocity', 'conditionDamage', 'expertise', 'concentration'] as const) {
-    const eligible = pool?.[stat] ?? modified[stat] ?? 0;
+    const eligible = pool[stat] ?? 0;
     const bonus = eligible * multiplier;
     modified[stat] = (modified[stat] || 0) + (['power', 'conditionDamage'].includes(stat) ? Math.round(bonus) : bonus);
   }
@@ -130,4 +133,20 @@ function empowermentAttributeMultiplier(
       ? balanceProfileNumber(profile, 'attributeConversion')
       : stacks * balanceProfileNumber(profile, 'coefficientMultiplier')
     : stacks * balanceProfileNumber(profile, 'attributePerStack');
+}
+
+/** Empowerment reads common sources plus declared trait Condition Damage, excluding temporary buffs and passives. */
+export function catalystAttributePool(context: ElementalistModifierContext) {
+  const pool = attributeSourcePool(context.config ?? {}, 'catalyst', context.runtime?.activeWeaponSet);
+  const facts = attributeContext(context, {
+    catalog: (context.catalog ?? context.profession?.catalog)!,
+    modifierRulesById: new Map()
+  });
+  const traits = [burningRage, strengthOfStone].filter((trait) => hasTrait(context, trait.id));
+  pool.conditionDamage +=
+    resolveAttributeContributions(
+      attributeSeed(context.config ?? {}, facts.weaponSet).conversionPool,
+      traits.map((trait) => trait.attributes!(facts))
+    ).attributes['Condition Damage'] ?? 0;
+  return pool;
 }

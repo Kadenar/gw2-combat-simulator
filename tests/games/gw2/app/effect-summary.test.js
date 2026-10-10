@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -544,7 +545,11 @@ test('allied-only intensity grants extend each reached recipient once and exclud
 test('Firebrand tome Quickness remains self-only without configuring allies', async () => {
   const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');
   const { runGw2Runtime } = await import('#gw2/platform/simulation/runtime.js');
-  const config = { specialization: 'Firebrand', allies: { count: 0 }, stats: { vitality: 1000 } };
+  const config = {
+    specialization: 'Firebrand',
+    allies: { count: 0 },
+    attributeInputs: baseAttributeInputs({ vitality: 1000 })
+  };
   const result = runGw2Runtime({
     profession: guardianProfession.runtimeFor(config),
     rotation: ['Tome of Justice', { type: 'wait', durationMs: 4000 }],
@@ -582,7 +587,7 @@ test('shared Firebrand generation uses metadata independently of the configured 
       config: {
         specialization: 'Firebrand',
         allies: { count },
-        stats: { vitality: 1000 },
+        attributeInputs: baseAttributeInputs({ vitality: 1000 }),
         selectedSkillIds: [29965]
       }
     });

@@ -1,5 +1,5 @@
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { furiousBurst, modifyWarriorArmsAttributes } from '#gw2/professions/warrior/core/traits/arms/index.js';
+import { furiousBurst } from '#gw2/professions/warrior/core/traits/arms/index.js';
 import {
   warriorActiveBoonCount,
   warriorActiveBuffStacks,
@@ -38,8 +38,10 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
   assert.equal(warriorActiveBoonCount(context), 2);
   assert.equal(rule.when(context), true);
   const attributes = { conditionDamage: 0, ferocity: 0 };
-  modifyWarriorArmsAttributes({ catalog: warriorCatalog, ...context }, attributes, false);
-  assert.equal(attributes.conditionDamage, 180);
+  const resolved = warriorProfession
+    .resolveProfession({})
+    .modifyAttributes({ catalog: warriorCatalog, ...context }, attributes);
+  assert.equal(resolved.conditionDamage, 180);
   assert.equal(warriorActiveBoonCount({ ...context, time: 10 }), 0);
   assert.equal(warriorBoonActive({ ...context, runtime: undefined }, 'fury'), false);
   assert.equal(warriorBoonActive({ ...context, runtime: undefined, config: { boons: { fury: true } } }, 'fury'), true);

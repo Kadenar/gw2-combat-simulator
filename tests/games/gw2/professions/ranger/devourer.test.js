@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -8,7 +9,7 @@ const config = {
   specialization: 'Untamed',
   selectedPet: 'Carrion Devourer',
   initialUntamedState: 'Ranger',
-  stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 }
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 })
 };
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
@@ -40,7 +41,7 @@ test('Poisonous Cloud scales with Ranger power and condition damage on Untamed',
   const simulate = (stats) =>
     runRanger(['__combat_start', ID.POISONOUS_CLOUD, wait(8000)], {
       ...config,
-      stats: { ...config.stats, ...stats }
+      attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, ...stats })
     });
   const base = simulate({});
   const boosted = simulate({ power: 4000, conditionDamage: 1000 });

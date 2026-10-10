@@ -1,9 +1,10 @@
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type {
-  ProfessionConfig,
   NormalizedProfessionContract,
+  ProfessionConfig,
   ProfessionDefinition
 } from '#gw2/platform/profession-definition/types.js';
-import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { DynamicFields } from '#kernel/core/dynamic-fields.js';
@@ -238,7 +239,8 @@ export function defineProfession<TProfessionState extends object, TSkill extends
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: definition.catalog ?? createCanonicalCatalog<TSkill>(),
-    createState: (config: Readonly<ProfessionConfig>) => resources.createState?.(config) ?? {},
+    createState: (config: Readonly<ProfessionConfig>, balanceContext?: ProfessionBalanceContext) =>
+      resources.createState?.(config, balanceContext) ?? {},
     ...composedHooks
   };
   return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState, TSkill>>;

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -23,7 +24,7 @@ const simulate = createObservedProfessionSimulator(rangerProfession, {
   selectedPet: 'Pig',
   selectedTraitIds: [],
   boons: { quickness: true, alacrity: false },
-  stats: { power: 2000, precision: 1000, ferocity: 0 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 }),
   target: { armor: 2597 }
 });
 const wait = (durationMs) => ({ type: 'wait', durationMs });

@@ -25,7 +25,7 @@ test('Ranger registers one canonical owner for cross-specialization traits', () 
 
 // Each call resolves the supplied patch and selected weapon; disabling a trait does not contaminate later calls.
 test('Ranger trait build callbacks use patched values and isolate disabled-trait previews', () => {
-  const calculate = createCalculateAttributes(applyRangerBuildAttributeRules, rangerProfession.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyRangerBuildAttributeRules, rangerProfession.attributeContributions);
   const build = createRangerBuildDefaults();
   build.specializations = [{ name: 'Wilderness Survival', traits: '3-1-1' }];
   build.weapons = ['Dagger', 'Torch'];

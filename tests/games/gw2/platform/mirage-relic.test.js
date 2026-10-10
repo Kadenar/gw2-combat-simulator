@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -109,7 +110,7 @@ test('Mirage dodge Torment uses normal duration scaling and stops when there are
     specialization: 'Mirage',
     relic: 'Mirage',
     selectedTraitIds: [],
-    stats: { expertise: 750 },
+    attributeInputs: baseAttributeInputs({ expertise: 750 }),
     target: { health: 0, conditions: {} }
   };
   const result = simulateMesmer(

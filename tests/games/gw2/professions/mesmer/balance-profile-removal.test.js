@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
@@ -298,7 +299,7 @@ test('removing the first Fury packet keeps the edited allied packet bound to all
     {
       primaryWeapon: 'Scepter',
       selectedTraitIds: [TRAIT.MASTER_FENCER],
-      stats: { ...createDefaultConfig().stats, precision: 4000 }
+      attributeInputs: baseAttributeInputs({ ...createDefaultConfig().stats, precision: 4000 })
     }
   );
   const boons = result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.MASTER_FENCER);

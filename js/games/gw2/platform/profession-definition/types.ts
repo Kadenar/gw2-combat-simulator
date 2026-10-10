@@ -1,6 +1,7 @@
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -15,7 +16,10 @@ export interface ProfessionConfig {
 
 /** State construction and projection; executable resource policies belong to runtime hooks. */
 export interface ProfessionResourceDefinition<TProfessionState extends object = object> {
-  readonly createState?: (config: Readonly<ProfessionConfig>) => TProfessionState;
+  readonly createState?: (
+    config: Readonly<ProfessionConfig>,
+    balanceContext?: ProfessionBalanceContext
+  ) => TProfessionState;
   readonly projectPlanningState?: unknown;
 }
 
@@ -83,7 +87,10 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog<TSkill>;
-  readonly createState: (config: Readonly<ProfessionConfig>) => TProfessionState;
+  readonly createState: (
+    config: Readonly<ProfessionConfig>,
+    balanceContext?: ProfessionBalanceContext
+  ) => TProfessionState;
   readonly projectPlanningState: (...args: never[]) => unknown;
   readonly modifyAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) => Gw2Stats;
   /** Condition-specific replacements run after all profession and equipment attribute bonuses. */

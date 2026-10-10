@@ -1,24 +1,24 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { activeBuffStacks, skillForEvent, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { playerHealthFraction, targetHealthFraction } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { airBlastImpacted, type AirBlastImpact } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
   procChanceFromContext,
+  requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { activeBuffStacks, skillForEvent, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isExplosion, resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { airBlastImpacted, type AirBlastImpact } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
+import { playerHealthFraction, targetHealthFraction } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   type EngineerResolverContext,
   type EngineerResolverEvent,
@@ -26,7 +26,6 @@ import {
   type EngineerRuntimeState,
   type EngineerSkill
 } from '#gw2/professions/engineer/types.js';
-import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
@@ -101,6 +100,25 @@ export const shortFuse = defineTrait({
 
 /** Owns Explosive Temper tuning and behavior at its established runtime and build boundaries. */
 export const explosiveTemper = defineTrait({
+  // Count live stacks at each query; their Ferocity does not feed ordinary conversions.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EXPLOSIVE_TEMPER);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount:
+            activeBuffStacks(context, 'explosive-temper', balanceProfileNumber(profile, 'maximumStacks')) *
+            balanceProfileNumber(profile, 'attributePerStack'),
+          feedsConversions: false,
+          enabled: true
+        }
+      ]
+    };
+  },
+
   triggers: [{ on: 'damage.resolved', run: applyExplosiveTemper }],
   id: TRAIT.EXPLOSIVE_TEMPER,
   name: 'Explosive Temper',
@@ -188,7 +206,7 @@ export const blastShield = defineTrait({
   id: TRAIT.BLAST_SHIELD,
   name: 'Blast Shield',
   balance: { attributeConversion: 0.1 },
-  buildAttributes: traitAttributeEffects(TRAIT.BLAST_SHIELD, [
+  attributes: traitAttributeEffects(TRAIT.BLAST_SHIELD, [
     {
       kind: 'conversion',
       from: 'Power',

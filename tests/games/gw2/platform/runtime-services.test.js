@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
@@ -69,7 +70,7 @@ const skills = [
   }
 ];
 const config = {
-  stats: { power: 1000, precision: 3000, ferocity: 0, conditionDamage: 0, expertise: 0 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 3000, ferocity: 0, conditionDamage: 0, expertise: 0 }),
   target: { armor: 1000, health: 0, conditions: {} },
   randomness: { mode: 'expected', seed: 919 }
 };
@@ -743,7 +744,14 @@ test('Peitha shares its activation cooldown and retains ordinary buff lifetimes 
       [cast(991004), wait(3999), cast(991004), wait(1), cast(991014), wait(1), cast(991014), wait(5039)],
       {
         output,
-        config: { ...config, relic: 'Peitha', stats: { ...config.stats, concentration: 1500 } }
+        config: {
+          ...config,
+          relic: 'Peitha',
+          attributeInputs: baseAttributeInputs({
+            ...config.attributeInputs?.weaponSets[0].commonTotals,
+            concentration: 1500
+          })
+        }
       },
       profession
     );
@@ -880,7 +888,12 @@ test('boon duration snapshots the weapon set at application, and history exclude
   });
   const result = run(
     [cast(991009)],
-    { config: { ...config, weaponSetStats: [{ concentration: 0 }, { concentration: 1500 }] } },
+    {
+      config: {
+        ...config,
+        attributeInputs: baseAttributeInputs({ ...{}, ...{ concentration: 0 } }, { ...{}, ...{ concentration: 1500 } })
+      }
+    },
     profession
   );
   assert.deepEqual(observed, [0]);

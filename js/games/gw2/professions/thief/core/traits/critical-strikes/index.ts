@@ -1,7 +1,5 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -12,8 +10,10 @@ import { playerHealthFraction, skillForEvent, targetHealthFraction } from '#gw2/
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
@@ -34,8 +34,6 @@ import {
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
-
-import type { ThiefBuild } from '#gw2/professions/thief/types.js';
 
 /** Owns Assassin's Fury tuning and behavior at the existing execution boundaries. */
 export const assassinsFury = defineTrait({
@@ -195,8 +193,8 @@ export const noQuarter = defineTrait({
     attributeBonus: 250,
     effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 2 }]
   },
-  buildAttributes(_common, { build, balanceContext }) {
-    const thiefBuild = build as ThiefBuild;
+  attributes({ loadout, balanceContext }) {
+    const thiefBuild = loadout;
     const noQuarterProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.NO_QUARTER);
     return {
       attributeEffects: [
@@ -205,7 +203,7 @@ export const noQuarter = defineTrait({
           to: 'Ferocity',
           amount: balanceProfileNumber(noQuarterProfile, 'attributeBonus'),
           feedsConversions: false,
-          enabled: Boolean(thiefBuild.assumptions?.fury)
+          enabled: Boolean(thiefBuild.assumptions.fury)
         }
       ]
     };
@@ -217,7 +215,7 @@ export const practicedTolerance = defineTrait({
   id: TRAIT.PRACTICED_TOLERANCE,
   name: 'Practiced Tolerance',
   balance: { attributeConversion: 0.1 },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const practicedToleranceProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.PRACTICED_TOLERANCE);
     return {
       attributeEffects: [

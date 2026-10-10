@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -27,10 +28,10 @@ test('Sigil of Earth procs inherit the catalog icon', () => {
   const result = simulateMesmer(
     ['Bladecall'],
     defaultSimulationConfig({
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 3100
-      },
+      }),
       boons: {
         ...defaults.boons,
         fury: true

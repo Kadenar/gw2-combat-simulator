@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
@@ -75,7 +76,7 @@ test('Luminary definitions preserve eligible build grants and applied armament w
       [GUARDIAN.RADIANT_ARMAMENTS]: { fields: { damageIncrease: 0.1 } }
     }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
   const build = {
     specializations: [
       { name: 'Luminary', traits: '1-1-1' },
@@ -126,7 +127,7 @@ test('Willbender build definitions read active tuning and honor disabled trait p
       [GUARDIAN.CONCEITED_CURATE]: { fields: { attributeBonus: 240 } }
     }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
   for (const [choices, name, attribute, baseline, preview] of [
     ['1-1-1', 'Searing Pact', 'Condition Damage', 120, 150],
     ['2-1-1', 'Power for Power', 'Power', 120, 200],
@@ -149,7 +150,7 @@ test('Imbued Haste shares patched attributes between build preview and current r
   const family = patched(guardianProfession, {
     balanceProfiles: { [GUARDIAN.IMBUED_HASTE]: { fields: { attributeBonus: 175 } } }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
   const build = { specializations: [{ name: 'Firebrand', traits: '1-1-1' }] };
   for (const [patchId, bonus] of [
     ['current', 250],
@@ -175,10 +176,7 @@ test('Imbued Haste shares patched attributes between build preview and current r
       assert.equal(withoutQuickness.attributes[label].traits, 0);
       assert.equal(runtime.modifyAttributes(context, { [key]: 100 })[key], 100 + bonus);
       assert.equal(
-        runtime.modifyAttributes(
-          { ...context, config: { ...context.config, attributeProvenance: { professionStaticRulesApplied: true } } },
-          { [key]: 100 + bonus }
-        )[key],
+        runtime.modifyAttributes({ ...context, config: { ...context.config } }, { [key]: 100 })[key],
         100 + bonus
       );
       assert.equal(
@@ -198,7 +196,7 @@ test('Guardian Virtues share patched conversion and recharge without reapplying 
       [GUARDIAN.POWER_OF_THE_VIRTUOUS]: { fields: { attributeConversion: 0.11, rechargeMultiplier: 0.5 } }
     }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
   const build = { specializations: [{ name: 'Virtues', traits: '1-1-1' }] };
   for (const [patchId, bonus, recharge] of [
     ['current', 70, 25.5],
@@ -214,13 +212,15 @@ test('Guardian Virtues share patched conversion and recharge without reapplying 
     const context = {
       catalog: runtime.catalog,
       time: 0,
-      config: { selectedTraitIds: [GUARDIAN.POWER_OF_THE_VIRTUOUS], stats: { vitality: 1000 } }
+      config: {
+        selectedTraitIds: [GUARDIAN.POWER_OF_THE_VIRTUOUS],
+        attributeInputs: baseAttributeInputs({ vitality: 1000 })
+      }
     };
     const justice = runtime.catalog.skillsById.get(GUARDIAN_SKILLS.JUSTICE);
     assert.equal(runtime.rechargeWork(context, justice, 30), recharge);
     assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
-    context.config.attributeProvenance = { professionStaticRulesApplied: true };
-    assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 + bonus }).conditionDamage, 100 + bonus);
+    assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
     context.config.selectedTraitIds = [];
     assert.equal(runtime.rechargeWork(context, justice, 30), 30);
   }
@@ -235,7 +235,7 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
     }
   });
   const balance = family.balanceContextFor('s4-preview');
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
   const build = {
     specializations: [
       { name: 'Zeal', traits: '1-2-1' },
@@ -253,15 +253,14 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
     event: { skillWeapon: 'Greatsword' },
     config: {
       primaryWeapon: 'Sword',
-      selectedTraitIds: [GUARDIAN.ZEALOUS_BLADE, GUARDIAN.RIGHT_HAND_STRENGTH],
-      attributeProvenance: { professionStaticRulesApplied: true, calculatedPrimaryWeapon: 'Greatsword' }
+      selectedTraitIds: [GUARDIAN.ZEALOUS_BLADE, GUARDIAN.RIGHT_HAND_STRENGTH]
     }
   };
-  assert.equal(runtime.modifyAttributes(context, { power: 1300 }).power, 1140);
+  assert.equal(runtime.modifyAttributes(context, { power: 1000 }).power, 1140);
   assert.equal(
     runtime.modifyAttributes(
       { ...context, config: { ...context.config, primaryWeapon: 'Greatsword' } },
-      { power: 1300 }
+      { power: 1000 }
     ).power,
     1300
   );
@@ -272,7 +271,7 @@ test('Engineer Core definitions share patched build grants and preserve static a
   const family = patched(engineerProfession, {
     balanceProfiles: { [ENGINEER.CHEMICAL_ROUNDS]: { fields: { attributeBonus: 180 } } }
   });
-  const calculate = createCalculateAttributes(applyEngineerBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyEngineerBuildAttributeRules, family.attributeContributions);
   const build = { specializations: [{ name: 'Firearms', traits: '1-2-3' }] };
   for (const [patchId, bonus] of [
     ['current', 120],
@@ -289,11 +288,10 @@ test('Engineer Core definitions share patched build grants and preserve static a
         {
           ...context,
           config: {
-            ...context.config,
-            attributeProvenance: { professionStaticRulesApplied: true }
+            ...context.config
           }
         },
-        { conditionDamage: 100 + bonus }
+        { conditionDamage: 100 }
       ).conditionDamage,
       100 + bonus
     );
@@ -335,7 +333,7 @@ test('Elementalist Core definitions preserve patched build grants and disabled-t
       [ELEMENTALIST.ZEPHYRS_SPEED]: { fields: { criticalChance: 0.1 } }
     }
   });
-  const calculate = createCalculateAttributes(applyElementalistBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyElementalistBuildAttributeRules, family.attributeContributions);
   const build = {
     specializations: [
       { name: 'Fire', traits: '1-1-1' },
@@ -429,10 +427,17 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
     time: 0,
     catalog: runtime.catalog,
     event: { actorType: 'player' },
-    config: { selectedTraitIds: [MESMER.QUIET_INTENSITY, MESMER.MENTAL_FOCUS], stats: { vitality: 1000 } },
+    config: {
+      selectedTraitIds: [MESMER.QUIET_INTENSITY, MESMER.MENTAL_FOCUS],
+      attributeInputs: baseAttributeInputs({ vitality: 1000 })
+    },
     query: { furyActiveAt: () => true }
   };
-  assert.equal(runtime.modifyCriticalChance(context, 0), 0.25);
+  assert.equal(
+    runtime.modifyAttributes({ ...context, config: { ...context.config, boons: { fury: true } } }, {})
+      .professionCriticalChanceBonus,
+    25
+  );
   assert.equal(runtime.modifyAttributes(context, { ferocity: 0 }).ferocity, 200);
   assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
   assert.equal(
@@ -453,7 +458,7 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
     0.4
   );
 
-  const calculate = createCalculateAttributes(applyMesmerBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyMesmerBuildAttributeRules, family.attributeContributions);
   const build = { specializations: [{ name: 'Virtuoso', traits: '0-0-0' }], assumptions: { fury: true } };
   const live = calculate(build, [], 1, null, null, family.balanceContextFor('current'));
   const preview = calculate(build, [], 1, null, null, family.balanceContextFor('s4-preview'));
@@ -469,15 +474,10 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
       {
         ...context,
         config: {
-          ...context.config,
-          attributeProvenance: {
-            professionStaticRulesApplied: true,
-            calculatedWeaponSet: 1,
-            calculatedPrimaryWeapon: 'Dagger'
-          }
+          ...context.config
         }
       },
-      { ferocity: preview.attributes.Ferocity.final }
+      { ferocity: 0 }
     ).ferocity,
     200
   );
@@ -617,7 +617,7 @@ test('Mesmer Core and elite build owners consume patched values with independent
       [MESMER.FLOW_OF_TIME]: { fields: { criticalChance: 0.2 } }
     }
   });
-  const calculate = createCalculateAttributes(applyMesmerBuildAttributeRules, family.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyMesmerBuildAttributeRules, family.attributeContributions);
   const build = {
     specializations: [
       { name: 'Chaos', traits: '1-1-1' },

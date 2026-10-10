@@ -1,9 +1,10 @@
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { warriorCoreHooks } from '#gw2/professions/warrior/core/hooks.js';
 import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 import { WARRIOR_CORE_BALANCE_PROFILES } from '#gw2/professions/warrior/core/profiles.js';
+import { warriorPassiveAttributes } from '#gw2/professions/warrior/core/skills/attribute-passives.js';
 import {
   WARRIOR_CORE_SKILL_MECHANICS,
   WARRIOR_DODGE,
@@ -14,6 +15,7 @@ import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 
 export const warriorCoreModule = defineNativeModule({
+  attributes: warriorPassiveAttributes,
   id: 'Core',
   data: createWarriorModuleData('Core', {
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,

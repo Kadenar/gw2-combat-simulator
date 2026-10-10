@@ -11,8 +11,7 @@ import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 /** Preserves the family bonus before Wellspring's independent-pet conversion. */
 export function modifyRangerPetAttributes(
   context: RangerModifierContext,
-  result: { -readonly [Key in keyof Gw2ResolvedStats]: Gw2ResolvedStats[Key] },
-  staticRulesApplied: boolean
+  result: { -readonly [Key in keyof Gw2ResolvedStats]: Gw2ResolvedStats[Key] }
 ): void {
   if (!rangerPetEvent(context)) return;
   const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
@@ -20,7 +19,7 @@ export function modifyRangerPetAttributes(
   };
 
   applyArachnophobiaPetAttributes(context, adjust);
-  applyWellspringPetAttributes(context, result, adjust, staticRulesApplied);
+  applyWellspringPetAttributes(context, result, adjust);
 }
 
 export const rangerPetModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

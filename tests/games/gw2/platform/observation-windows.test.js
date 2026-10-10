@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -151,7 +152,7 @@ test('actual sigil procs include the combat boundary and exclude earlier hits', 
       profession,
       rotation: ['Fixture Slash', { name: '__combat_start', offset }, { type: 'wait', durationMs: 1000 }],
       config: {
-        stats: { power: 1000, precision: 4000 },
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000 }),
         target: { armor: 2597 },
         sigilSets: [{ names: ['Air'] }]
       }
@@ -178,7 +179,7 @@ test('offset combat starts respect the clock and keep sigil procs aligned with r
         'Fixture Slash'
       ],
       config: {
-        stats: { power: 1000, precision: 4000 },
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000 }),
         target: { armor: 2597, defiant: true },
         sigilSets: [{ names: ['Ice'] }]
       }
@@ -436,12 +437,12 @@ test('generic simulation starts combat at a delayed marker within a cast', () =>
     profession: testProfession,
     rotation: ['Fixture Slash', { name: '__combat_start', offset: 100 }, { type: 'wait', durationMs: 1000 }],
     config: {
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 1000,
         precision: 1000,
         ferocity: 0,
         conditionDamage: 0
-      },
+      }),
       target: { armor: 2597 },
       weaponStrength: 1000
     }
@@ -464,12 +465,12 @@ test('generic simulation uses the first hit after a standalone combat marker', (
     profession: testProfession,
     rotation: ['__combat_start', 'Fixture Slash', { type: 'wait', durationMs: 1000 }],
     config: {
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 1000,
         precision: 1000,
         ferocity: 0,
         conditionDamage: 0
-      },
+      }),
       target: { armor: 2597 },
       weaponStrength: 1000
     }

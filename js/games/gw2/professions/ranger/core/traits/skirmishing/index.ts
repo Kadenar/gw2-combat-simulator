@@ -1,12 +1,12 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPetStrike, petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -222,9 +222,9 @@ export const stridersStrength = defineTrait({
     weaponAttributeBonus: 240,
     attributeBonus: 120
   },
-  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+  attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const profile = requireBalanceProfileFromContext(profileContext, TRAIT.STRIDERS_STRENGTH);
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
       attributeEffects: [
         {
@@ -258,7 +258,7 @@ export const viciousQuarry = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'fury')
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext, build }) => {
+  attributes: ({ balanceContext: profileContext, loadout }) => {
     const profile = requireBalanceProfileFromContext(profileContext, TRAIT.VICIOUS_QUARRY);
     return {
       attributeEffects: [
@@ -267,7 +267,7 @@ export const viciousQuarry = defineTrait({
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false,
-          enabled: build.assumptions?.fury !== false
+          enabled: loadout.assumptions.fury !== false
         }
       ]
     };

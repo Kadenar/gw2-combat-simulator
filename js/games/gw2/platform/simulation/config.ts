@@ -1,8 +1,7 @@
 import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
-import type { Gw2AttributeProvenance, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeInputs, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
@@ -17,9 +16,8 @@ export interface Gw2Config {
   readonly patchId?: string;
   readonly procRateOverrides?: Readonly<Record<string, number>>;
   readonly transitionDelays?: Partial<TransitionDelays>;
-  /** Base simulation attributes; weapon-set values override these for the active set. */
-  readonly stats?: Gw2Stats;
-  readonly weaponSetStats?: readonly Gw2Stats[];
+  /** Both weapon sets contain common sources before any profession or temporary contribution. */
+  readonly attributeInputs?: Gw2AttributeInputs;
   readonly boons?: Readonly<Record<string, boolean | number>>;
   /** Detached damage preview's total for per-boon bonuses; grants no boons and is never saved to a build. */
   readonly fixedBoonCount?: number;
@@ -49,7 +47,6 @@ export interface Gw2Config {
   /** Character hitbox size; melee reach and some area rules read it. */
   readonly hitboxSize?: string;
   readonly professionAssumptions?: Readonly<ProfessionBuildAssumptions>;
-  readonly attributeProvenance?: Partial<Gw2AttributeProvenance>;
   readonly target?: Gw2TargetConfig;
   readonly modifiers?: {
     readonly strike?: number;

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -36,7 +37,7 @@ import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpe
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(
   applyRevenantBuildAttributeRules,
-  revenantProfession.traitBuildAttributes
+  revenantProfession.attributeContributions
 );
 
 const revenantModifiers = Object.freeze({
@@ -69,14 +70,14 @@ const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 
@@ -1398,7 +1399,7 @@ test('Dragon Nature scales skill and trait boons up to 120 percent bonus duratio
       selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DRAGON,
       selectedTraitIds: [TRAIT.SHARED_EMPOWERMENT],
-      stats: { concentration },
+      attributeInputs: baseAttributeInputs({ concentration }),
       allies: { count: 4 }
     });
     assert.deepEqual(result.warnings, []);
@@ -1416,7 +1417,7 @@ test('Core Value extends allied boons by three seconds without duration scaling'
       selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DRAGON,
       selectedTraitIds: [TRAIT.CORE_VALUE],
-      stats: { concentration: 1500 },
+      attributeInputs: baseAttributeInputs({ concentration: 1500 }),
       allies: { count: 4 }
     }
   );
@@ -1449,7 +1450,7 @@ test('Dragon True Nature extends active allied boons by two seconds', () => {
       selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DRAGON,
       initialEnergy: 100,
-      stats: { concentration: 0 }
+      attributeInputs: baseAttributeInputs({ concentration: 0 })
     }
   );
   const extension = result.events.find((event) => event.type === 'proc' && event.skillId === SKILL.TRUE_NATURE_DRAGON);
@@ -1565,7 +1566,7 @@ test('Shared Empowerment grants one stack of eight-second Might on a strict one-
       startingLegend: LEGEND.DEMON,
       initialEnergy: 100,
       selectedTraitIds: [TRAIT.SHARED_EMPOWERMENT],
-      stats: { concentration: 0 },
+      attributeInputs: baseAttributeInputs({ concentration: 0 }),
       allies: { count: 4 }
     }
   );
@@ -1590,14 +1591,14 @@ test('Elevated Compassion grants 1.25 seconds of Quickness at six upkeep', () =>
     startingLegend: LEGEND.DRAGON,
     initialEnergy: 100,
     selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
-    stats: { concentration: 0 }
+    attributeInputs: baseAttributeInputs({ concentration: 0 })
   });
   const atThreshold = simulate('Herald', ['Facet of Chaos', 'Facet of Strength', { type: 'wait', durationMs: 2100 }], {
     selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
     startingLegend: LEGEND.DRAGON,
     initialEnergy: 100,
     selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
-    stats: { concentration: 0 }
+    attributeInputs: baseAttributeInputs({ concentration: 0 })
   });
   const thresholdReentry = simulate(
     'Herald',
@@ -1613,7 +1614,7 @@ test('Elevated Compassion grants 1.25 seconds of Quickness at six upkeep', () =>
       startingLegend: LEGEND.DRAGON,
       initialEnergy: 100,
       selectedTraitIds: [TRAIT.ELEVATED_COMPASSION],
-      stats: { concentration: 0 }
+      attributeInputs: baseAttributeInputs({ concentration: 0 })
     }
   );
 
@@ -1626,9 +1627,9 @@ test('Elevated Compassion grants 1.25 seconds of Quickness at six upkeep', () =>
       .filter((event) => event.type === 'buff' && event.skillName === 'Elevated Compassion')
       .map((event) => [event.at, event.kind, event.duration]),
     [
-      [0, 'quickness', 1.25],
-      [1, 'quickness', 1.25],
-      [2, 'quickness', 1.25]
+      [0, 'quickness', 1.358],
+      [1, 'quickness', 1.358],
+      [2, 'quickness', 1.358]
     ]
   );
   assert.deepEqual(

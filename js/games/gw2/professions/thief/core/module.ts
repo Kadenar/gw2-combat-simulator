@@ -1,17 +1,19 @@
-import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreModifiers } from '#gw2/professions/thief/core/modifiers.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_BALANCE_PROFILES } from '#gw2/professions/thief/core/profiles.js';
+import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { createThiefCoreState, THIEF_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/core/state.js';
+import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const thiefCoreModule = defineNativeModule({
+  attributes: thiefPassiveAttributes,
   traitDefinitions: coreTraits,
   id: 'Core',
   data: createThiefModuleData('Core', {

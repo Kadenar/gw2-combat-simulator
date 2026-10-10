@@ -1,3 +1,5 @@
+import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
@@ -62,7 +64,7 @@ test('Amalgam previews Titanic Might scaling and both Evolve variants without ch
   for (const doubleHelix of [false, true]) {
     const app = previewApp('engineer', doubleHelix ? ['Double Helix'] : [], 'Amalgam');
     const saved = structuredClone({ build: app.build, attributes: app.attributeData });
-    const pool = app.adapter.simulationConfig(app).amalgamEvolveAttributePool;
+    const pool = attributeSourcePool(app.adapter.simulationConfig(app), 'common');
     const base = stats(app);
     for (const might of [0, 10, 25]) {
       const titanic = stats(app, { might, titanic: 1 });
@@ -155,7 +157,11 @@ test('Catalyst accepts zero, partial and maximum empowerment stacks with the cor
   for (const empowered of [false, true]) {
     const app = previewApp('elementalist', empowered ? ['Empowered Empowerment'] : [], 'Catalyst');
     const base = stats(app);
-    const pool = app.adapter.simulationConfig(app).catalystEmpowermentPool;
+    const pool = catalystAttributePool({
+      config: app.adapter.simulationConfig(app),
+      catalog: app.activeCatalog,
+      time: 0
+    });
     for (const stacks of [0, 5, 10]) {
       const factor = empowered ? (stacks === 10 ? 0.2 : stacks * 0.015) : stacks * 0.01;
       const current = stats(app, { elementalEmpowerment: stacks, might: 25 });
