@@ -370,7 +370,37 @@ export interface Gw2BuildAttributeRuleContext {
   readonly disabledTrait: string | null;
 }
 
+export type Gw2PrimaryAttribute =
+  | 'power'
+  | 'precision'
+  | 'toughness'
+  | 'vitality'
+  | 'ferocity'
+  | 'conditionDamage'
+  | 'expertise'
+  | 'concentration'
+  | 'healingPower';
+
+// Ordered policies describe operands; the shared evaluator owns their application boundary.
+export type Gw2AttributeTransform =
+  | { readonly kind: 'scale'; readonly factor: number }
+  | {
+      readonly kind: 'convert-current';
+      readonly from: Gw2PrimaryAttribute;
+      readonly to: Gw2PrimaryAttribute;
+      readonly multiplier: number;
+    }
+  | { readonly kind: 'project'; readonly attributes: Gw2Stats; readonly replace: boolean };
+export interface Gw2FinalConditionAttribute {
+  readonly condition: string;
+  readonly powerMultiplier: number;
+}
 export interface Gw2AttributeContributions {
+  /** Might adjustments run with baseline Might, outside equipment and conversion pools. */
+  readonly mightPerStack?: { readonly power?: number; readonly conditionDamage?: number };
+  readonly uncappedBoonDuration?: number;
+  readonly transforms?: readonly Gw2AttributeTransform[];
+  readonly finalCondition?: Gw2FinalConditionAttribute;
   readonly attributeEffects?: readonly Gw2AttributeEffect[];
   readonly traitDurations?: Readonly<Gw2NumericAttributes>;
   readonly traitCriticalChance?: number;

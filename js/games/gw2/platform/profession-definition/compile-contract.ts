@@ -188,6 +188,8 @@ export function assertDefinition(definition: unknown): void {
 
   // Equipment eligibility is a runtime policy shared with the application, independent of UI hooks.
   assertOptionalCallback(candidate, 'weaponSkillMatchesSet', 'profession');
+  // Declaration sampling is a callable policy, shared by native and minimal query professions.
+  assertOptionalCallback(candidate, 'attributeContributions', 'profession');
 }
 
 function assertOptionalCallback(container: object, name: string, scope: string): void {
@@ -234,6 +236,7 @@ export function defineProfession<TProfessionState extends object, TSkill extends
   if (definition.canSwapWeaponSetsInCombat != null && typeof definition.canSwapWeaponSetsInCombat !== 'boolean')
     throw new TypeError('canSwapWeaponSetsInCombat must be a boolean.');
   const profession = {
+    attributeContributions: definition.attributeContributions,
     canSwapWeaponSetsInCombat: definition.canSwapWeaponSetsInCombat ?? true,
     id: definition.id,
     name: definition.name,

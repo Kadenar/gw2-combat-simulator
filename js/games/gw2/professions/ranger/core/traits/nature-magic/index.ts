@@ -1,5 +1,6 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { wellspringPetAttributes } from '#gw2/professions/ranger/core/traits/nature-magic/attributes.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -237,7 +238,7 @@ export const wellspring = defineTrait({
   ],
   attributes: (context) =>
     rangerPetEvent(context)
-      ? {}
+      ? wellspringPetAttributes(context)
       : traitAttributeEffects(TRAIT.WELLSPRING, [
           {
             kind: 'conversion',

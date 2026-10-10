@@ -1,20 +1,18 @@
+import { resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/signet-passives.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
-  applyHonedAxesPet,
-  applyPackAlphaPet,
-  applyPetsProwessPet,
-  beastlyWardenPetDamageMultiplier
+  beastlyWardenPetDamageMultiplier,
+  beastmasteryPetAttributes
 } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
-import {
-  applyFangAndClawPet,
-  applyStridersStrengthPet
-} from '#gw2/professions/ranger/core/traits/skirmishing/attributes.js';
-import { applyArachnophobiaPet } from '#gw2/professions/ranger/core/traits/wilderness-survival/attributes.js';
+import { skirmishingPetAttributes } from '#gw2/professions/ranger/core/traits/skirmishing/attributes.js';
+import { wildernessPetAttributes } from '#gw2/professions/ranger/core/traits/wilderness-survival/attributes.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -31,12 +29,18 @@ function petHasSelectedSkill(context: RangerRuntime, skillId: number): boolean {
 function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
   const petName = professionCoreState(context).activePet;
   const attributes = { ...rangerPetBaseAttributes(petName) };
-  applyPackAlphaPet(context, attributes);
-  applyStridersStrengthPet(context, attributes);
-  applyHonedAxesPet(context, attributes);
-  applyPetsProwessPet(context, attributes);
-  applyFangAndClawPet(context, attributes, petName);
-  applyArachnophobiaPet(context, attributes, petName);
+  const family = rangerPetByName(petName).family;
+  const bonuses = resolveAttributeContributions({}, [
+    {
+      attributeEffects: [
+        ...beastmasteryPetAttributes(context),
+        ...skirmishingPetAttributes(context, family),
+        ...wildernessPetAttributes(context, family)
+      ]
+    }
+  ]).attributes;
+  for (const key of Object.keys(attributes) as (keyof typeof attributes)[])
+    attributes[key] += bonuses[ATTRIBUTE_NAMES[key]] ?? 0;
   const runtime = 'cooldownController' in context ? context : null;
   if (runtime)
     attributes.ferocity += signetOfTheWildBonus(

@@ -10,12 +10,16 @@ import {
   WARRIOR_DODGE,
   WARRIOR_SWAP_WEAPONS
 } from '#gw2/professions/warrior/core/skills/index.js';
+import { signetActiveAttributeEffects } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { createWarriorCoreState, WARRIOR_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/core/state.js';
 import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 
 export const warriorCoreModule = defineNativeModule({
-  attributes: warriorPassiveAttributes,
+  attributes: (context) => [
+    ...warriorPassiveAttributes(context),
+    { attributeEffects: signetActiveAttributeEffects(context) }
+  ],
   id: 'Core',
   data: createWarriorModuleData('Core', {
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,

@@ -1,3 +1,4 @@
+import { attributeSeedFromCommon } from '#gw2/platform/builds/attribute-inputs.js';
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
 import { finalizeBuildAttributes } from '#gw2/platform/builds/attributes.js';
 import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
@@ -85,8 +86,11 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
 ): Gw2FinalizedAttributeResult {
   // The panel supplies explicit preview facts to the same selected-owner evaluator used by live queries.
   const build = context.build;
+  // Each panel calculation has one active equipment set; named sources must read that exact unprocessed seed.
+  const seed = attributeSeedFromCommon(common);
   const config = {
     ...build,
+    attributeInputs: { weaponSets: [seed, seed] as const },
     specialization: (build.specializations?.at(-1) as { name?: string } | undefined)?.name ?? 'Core',
     selectedTraitIds: activeTraits.map((trait) => trait.id),
     selectedSkillIds: context.selectedSkills.map((skill) => skill.id),

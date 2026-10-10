@@ -1,3 +1,15 @@
+// Inputs are equipment attributes; baseline Might and its trait adjustment share one stage.
+function notorietyAttributes(context, attributes) {
+  const facts = attributeContext(
+    { ...context, catalog: revenantCatalog },
+    { catalog: revenantCatalog, modifierRulesById: new Map() }
+  );
+  return applyMightAttributes(attributes, activeBoonStacks(context, 'might'), [notoriety.attributes(facts)]);
+}
+
+import { applyMightAttributes, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
+import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
@@ -709,7 +721,7 @@ test('Notoriety applies its Might conversion at runtime without negative UI attr
   assert.equal(attributes['Condition Damage'].traits, 75);
   assert.equal(attributes['Condition Damage'].final, 75);
 
-  const runtime = revenantModifiers.modifyAttributes(
+  const runtime = notorietyAttributes(
     {
       config: {
         specialization: 'Core',
@@ -720,8 +732,8 @@ test('Notoriety applies its Might conversion at runtime without negative UI attr
       runtime: { boons: new Map(), buffs: new Map(), profession: {} }
     },
     {
-      power: 1750,
-      conditionDamage: 750
+      power: 1000,
+      conditionDamage: 0
     }
   );
 
@@ -930,7 +942,7 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
         event.duration === 10
     )
   );
-  const notorietyStats = revenantModifiers.modifyAttributes(
+  const notorietyStats = notorietyAttributes(
     {
       config: { selectedTraitIds: [TRAIT.NOTORIETY], boons: { might: 0 } },
       time: 1,
@@ -940,7 +952,7 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
         buffs: new Map([])
       }
     },
-    { power: 1060, conditionDamage: 1060 }
+    { power: 1000, conditionDamage: 1000 }
   );
 
   assert.equal(notorietyStats.power, 1080);

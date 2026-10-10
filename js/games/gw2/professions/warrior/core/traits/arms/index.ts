@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -24,7 +23,6 @@ import {
   immobilized,
   strikeResourcesGranted
 } from '#gw2/professions/warrior/core/mechanics/combat.js';
-import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {
   warriorActiveBuffStacks,
   warriorBoonActive,
@@ -171,6 +169,23 @@ export const bloodlust = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const furious = defineTrait({
+  // Count only accepted self stacks; deselection stops future grants, not existing ones.
+  grantedAttributes(context) {
+    if (!context.runtime && !context.timeline) return {};
+    const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Condition Damage',
+          feedsConversions: false,
+          amount:
+            warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(profile, 'maximumStacks')) *
+            balanceProfileNumber(profile, 'attributeBonus')
+        }
+      ]
+    };
+  },
   triggers: [
     onTriggerPoint(critical, {
       run: (runtime, input: TriggerPointInput<typeof critical>) =>
@@ -440,14 +455,6 @@ function signetMasteryDamage(
       icon: context.helpers.skillsById.get(ID.SIGNET_OF_MIGHT)?.icon || ''
     }
   });
-}
-
-/** Granted Furious Surge stacks retain their bonus independently of current trait selection. */
-export function modifyWarriorArmsAttributes(context: Gw2ModifierContext, result: WarriorModifierAttributes): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS);
-  result.conditionDamage +=
-    warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(profile, 'maximumStacks')) *
-    balanceProfileNumber(profile, 'attributeBonus');
 }
 
 function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {

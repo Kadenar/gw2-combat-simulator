@@ -4,7 +4,7 @@ import { elementalistCoreModule } from '#gw2/professions/elementalist/core/modul
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerCoreModifiers } from '#gw2/professions/engineer/core/modifiers.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
@@ -76,7 +76,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   [
     'Engineer Sharpshooter',
     (event) => {
-      const attributes = engineerCoreModifiers.modifyConditionAttributes(
+      const attributes = engineerProfession.runtimeFor({}).modifyConditionAttributes(
         {
           catalog: engineerCatalog,
           time: 1,

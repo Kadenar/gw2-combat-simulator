@@ -9,10 +9,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import {
-  warriorActiveBuffStacks,
-  type WarriorModifierAttributes
-} from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -364,11 +361,12 @@ export function signetAttributeEffects(context: Gw2AttributeContext): readonly G
 }
 
 /** Intrinsic active and passive attributes use live self status and selected signet recharge. */
-export function modifySignetAttributes(context: Gw2ModifierContext, result: WarriorModifierAttributes): void {
+export function signetActiveAttributeEffects(context: Gw2ModifierContext): readonly Gw2AttributeEffect[] {
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
     const signetOfFuryActiveProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFuryActive);
     const bonus = balanceProfileNumber(signetOfFuryActiveProfile, 'attributeBonus');
-    result.precision += bonus;
-    result.ferocity += bonus;
+    return ['Precision', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount: bonus, feedsConversions: false }));
   }
+
+  return [];
 }

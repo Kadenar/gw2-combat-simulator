@@ -1,9 +1,9 @@
 import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
 import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { selectedFirearmsDurationBonuses } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
@@ -20,9 +20,8 @@ import { engineerMechAttributes } from '#gw2/professions/engineer/specialization
 const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([...signetModifierRules]);
 
 /** Replaces player attributes with the mech's inherited attribute set for mech-owned events. */
-function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-  const modified: Gw2MutableStats = { ...attributes };
-  if (!engineerMechModifierEvent(context)) return modified;
+export const mechanistAttributes: Gw2AttributeContributionCalculator = (context) => {
+  if (!engineerMechModifierEvent(context)) return [];
   const mightStacks = activeBoonStacks(context, 'might');
   // Mech inheritance evaluates ordinary owner declarations with player boons absent.
   const facts = attributeContext(
@@ -56,10 +55,9 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
   // The independent mech receives only the Firearms durations assigned to its actor.
   const conditionDurationBonuses = selectedFirearmsDurationBonuses(context);
 
-  return { ...mech, conditionDurationBonuses };
-}
+  return [{ transforms: [{ kind: 'project', replace: true, attributes: { ...mech, conditionDurationBonuses } }] }];
+};
 
 export const mechanistModifiers = Object.freeze({
-  modifyAttributes: modifyMechanistAttributes,
   modifierRules: mechanistModifierRules
 });

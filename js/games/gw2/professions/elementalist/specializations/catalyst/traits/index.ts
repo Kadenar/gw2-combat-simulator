@@ -1,26 +1,27 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import type { ElementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
@@ -140,6 +141,7 @@ export const elementalSynergy = defineTrait({
 export const empoweredEmpowerment = defineTrait({ id: TRAIT.EMPOWERED_EMPOWERMENT, name: 'Empowered Empowerment' });
 /** Owns Elemental Empowerment tuning and its existing execution behavior. */
 export const elementalEmpowerment = defineTrait({
+  attributes: elementalEmpowermentAttributes,
   id: TRAIT.ELEMENTAL_EMPOWERMENT,
   name: 'Elemental Empowerment',
   balance: {

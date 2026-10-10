@@ -4,7 +4,7 @@ import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.
 import { elementalistCoreModifiers } from '#gw2/professions/elementalist/core/modifiers.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
-import { elementalistPassiveAttributes } from '#gw2/professions/elementalist/core/skills/attribute-passives.js';
+import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
 import {
   ELEMENTALIST_CORE_EXTRA_SKILLS,
   ELEMENTALIST_CORE_SKILL_MECHANICS
@@ -22,7 +22,7 @@ import { createElementalistModuleData } from '#gw2/professions/elementalist/data
  * that every Elementalist specialization builds on.
  */
 export const elementalistCoreModule = defineNativeModule({
-  attributes: elementalistPassiveAttributes,
+  attributes: elementalistSkillAttributes,
   canSwapWeaponSetsInCombat: false,
   id: 'Core',
   data: createElementalistModuleData('Core', {

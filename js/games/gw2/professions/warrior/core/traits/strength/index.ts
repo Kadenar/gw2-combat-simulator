@@ -1,9 +1,9 @@
-import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
+import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -513,18 +513,16 @@ function forcefulGreatswordCritical(
   }
 }
 
-/** Berserk's live power pool participates in Great Fortitude's conversion. */
-export function convertBerserkPower(
+/** Only Berserk's authored Power increment joins Great Fortitude, never arbitrary live Power. */
+export function berserkFortitudeEffects(
   context: Gw2ModifierContext,
-  result: Gw2MutableStats & { ferocity: number },
   powerBonus: number
-): void {
-  if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
-    const greatFortitudeProfile = requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE);
-    const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
-    result.vitality = (result.vitality || 0) + powerBonus * conversion;
-    result.ferocity += powerBonus * conversion;
-  }
+): readonly Gw2AttributeEffect[] {
+  if (!hasTrait(context, TRAIT.GREAT_FORTITUDE)) return [];
+  const amount =
+    powerBonus *
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE), 'attributeConversion');
+  return ['Vitality', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount, feedsConversions: false }));
 }
 
 /** Dragon Slash grants the charge-converted reward at completion. */

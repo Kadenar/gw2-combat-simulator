@@ -1,11 +1,6 @@
-import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
-import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
-import { warriorPassiveAttributes } from '#gw2/professions/warrior/core/skills/attribute-passives.js';
-import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -16,9 +11,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { convertBerserkPower } from '#gw2/professions/warrior/core/traits/strength/index.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
@@ -29,53 +22,6 @@ export function active(context: Gw2ModifierContext): boolean {
     readProfessionSpecializationState<{ berserkActive?: boolean }>(context.runtime?.profession, 'Berserker')
       ?.berserkActive
   );
-}
-
-export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-  // Blood Reaction reads ordinary equipment and owner bonuses, excluding Might and later Berserk bonuses.
-  const facts = attributeContext(context, {
-    catalog: (context.catalog ?? context.profession?.catalog)!,
-    modifierRulesById: new Map()
-  });
-  const source = applyAttributeContributions(
-    facts,
-    attributeSeed(context.config ?? {}, facts.weaponSet).commonTotals,
-    (input) => [
-      ...warriorPassiveAttributes(input),
-      ...warriorCoreTraits.flatMap((trait) =>
-        // Pinnacle's Might amplification is a live grant, excluded from Blood Reaction's owner source.
-        trait.id !== TRAIT.PINNACLE_OF_STRENGTH && hasTrait(input, trait.id) && trait.attributes
-          ? [trait.attributes(input)]
-          : []
-      )
-    ]
-  );
-  const conversionPower = source.power ?? 0;
-  const conversionPrecision = source.precision ?? 0;
-  const result = { ...attributes } as Gw2MutableStats & {
-    power: number;
-    precision: number;
-    ferocity: number;
-    conditionDamage: number;
-  };
-  if (active(context)) {
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const powerBonus = balanceProfileNumber(resourcesProfile, 'attributeBonus');
-    result.power += powerBonus;
-    result.conditionDamage += balanceProfileNumber(resourcesProfile, 'attributePerStack');
-    convertBerserkPower(context, result, powerBonus);
-  }
-
-  if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
-    const bloodReactionProfile = requireBalanceProfileFromContext(context, TRAIT.BLOOD_REACTION);
-    const conversion = active(context)
-      ? balanceProfileNumber(bloodReactionProfile, 'coefficientMultiplier')
-      : balanceProfileNumber(bloodReactionProfile, 'attributeConversion');
-    result.ferocity += conversionPrecision * conversion;
-    result.conditionDamage += conversionPower * conversion;
-  }
-
-  return result;
 }
 
 export function isBerserkerSkill(skill: WarriorSkill): boolean {

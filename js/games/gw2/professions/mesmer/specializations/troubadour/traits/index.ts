@@ -1,5 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -11,6 +9,7 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -29,10 +28,14 @@ import {
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
-import { hasLute } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
+import {
+  activeInstrumentCount,
+  hasLute
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { instrumentAttack } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import {
   troubadourCrescendoResolved,
+  troubadourDodgeCompleted,
   troubadourInstrumentAnnounced,
   troubadourInstrumentCommitted,
   troubadourInstrumentConditions,
@@ -194,6 +197,18 @@ export const lifeOfTheParty = defineTrait<MesmerSkill>({
 
 /** Fortissimo owns its existing profile and ordered performance consequences. */
 export const fortissimo = defineTrait<MesmerSkill>({
+  // Scaling follows all additive grants, including boons and accepted buffs.
+  attributes: (context) => ({
+    transforms: [
+      {
+        kind: 'scale',
+        factor:
+          1 +
+          activeInstrumentCount(context) *
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FORTISSIMO), 'attributeConversion')
+      }
+    ]
+  }),
   triggers: [
     onTriggerPoint(troubadourCrescendoResolved, {
       run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>

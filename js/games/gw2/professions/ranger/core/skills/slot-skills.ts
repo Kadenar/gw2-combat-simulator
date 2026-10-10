@@ -1,11 +1,9 @@
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
   activeChargeGrants,
   appendChargeGrant,
   consumeChargeBatch,
   grantCharges
 } from '#gw2/platform/combat/resources/charges.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -36,16 +34,6 @@ import type {
 } from '#gw2/professions/ranger/types.js';
 
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
-
-/** The spirit supplies Power after player bonuses; Precision and Ferocity remain the Ranger's attributes. */
-export function modifyStormSpiritAttributes(
-  context: Gw2ModifierContext,
-  attributes: Gw2ResolvedStats
-): Gw2ResolvedStats {
-  return context.event?.type === 'damage' && context.event.skillId === ID.CALL_LIGHTNING
-    ? { ...attributes, power: 1580 }
-    : attributes;
-}
 
 /** All spirit slams and their first shakes share this delay after the summoning cast completes. */
 export const RANGER_SPIRIT_SLAM_DELAY_MS = 920;

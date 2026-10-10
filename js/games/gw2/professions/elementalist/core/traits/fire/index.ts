@@ -1,12 +1,10 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { powerScaledConditionAttributes } from '#gw2/platform/combat-calculation/condition-attributes.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -58,11 +56,7 @@ import {
   extendPersistingFlamesFields
 } from '#gw2/professions/elementalist/core/traits/fire/persisting-flames.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistModifierContext,
-  ElementalistResolverContext,
-  ElementalistRuntime
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Fire definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const empoweringFlame = defineTrait({
@@ -89,6 +83,16 @@ export const empoweringFlame = defineTrait({
 });
 
 export const inferno = defineTrait({
+  // Inferno replaces condition scaling only after final owner Power is known.
+  attributes: (context) => ({
+    finalCondition: {
+      condition: 'Burning',
+      powerMultiplier: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.INFERNO),
+        'coefficientMultiplier'
+      )
+    }
+  }),
   id: TRAIT.INFERNO,
   name: 'Inferno',
   // Convert the intended Power rate through the canonical Burning scaling used by combat.
@@ -347,11 +351,6 @@ function applyConjurerAura(context: ElementalistRuntime, { cast }: ElementalistC
       });
     }
   }
-}
-
-/** Inferno converts final Power only for its Burning packets at condition-attribute evaluation. */
-export function applyInfernoAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
-  return powerScaledConditionAttributes(context, attributes, 'Burning', TRAIT.INFERNO);
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */

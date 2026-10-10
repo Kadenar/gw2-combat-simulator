@@ -2,7 +2,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -45,6 +44,17 @@ export const coreValue = defineTrait({
 
 /** Retain consumed facets while allowing each facet's bonus to be tuned independently. */
 export const draconicEcho = defineTrait({
+  // Echo's Nature bonus uses the normal cap, including retained facet windows.
+  attributes: (context) => ({
+    traitDurations: {
+      'Boon Duration': draconicEchoActive(context, ID.FACET_OF_NATURE)
+        ? balanceProfileNumber(
+            requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+            'boonDurationBonus'
+          )
+        : 0
+    }
+  }),
   triggers: [
     onTriggerPoint(facetConsumed, {
       run: (runtime, input: TriggerPointInput<typeof facetConsumed>) =>
@@ -255,16 +265,6 @@ export const traitDefinitions = [
   reinforcedPotency,
   forcefulPersistence
 ];
-
-/** Supplies the capped Echo boon-duration contribution for active Nature. */
-export function draconicEchoBoonDuration(context: Gw2ModifierContext): number {
-  return hasTrait(context, TRAIT.DRACONIC_ECHO)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-        'boonDurationBonus'
-      )
-    : 0;
-}
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasActive: boolean): void {

@@ -1,6 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -13,8 +13,12 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { heavyMetalBonus } from '#gw2/professions/engineer/core/traits/firearms/modifiers.js';
-import { activeBoonStacks, targetConditionCount } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import {
+  activeBoonStacks,
+  engineerEvent,
+  targetConditionCount,
+  targetHealthFraction
+} from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
@@ -230,6 +234,20 @@ export const hematicFocus = defineTrait({
 
 /** Owns Chemical Rounds tuning and behavior at its established runtime and build boundaries. */
 export const chemicalRounds = defineTrait({
+  // Keep the pistol multiplier outside the capped duration stage.
+  modifierRules: [
+    {
+      id: 'engineer.chemical-rounds-base-duration',
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.CHEMICAL_ROUNDS),
+          'conditionDurationMultiplier'
+        ),
+      when: chemicalRoundsEligible
+    }
+  ],
   id: TRAIT.CHEMICAL_ROUNDS,
   name: 'Chemical Rounds',
   balance: {
@@ -297,6 +315,16 @@ export const heavyMetal = defineTrait({
 
 /** Owns Sharpshooter tuning and behavior at its established runtime and build boundaries. */
 export const sharpshooter = defineTrait({
+  // Sample final Power after specialization, relics, and actor projection.
+  attributes: (context) => ({
+    finalCondition: {
+      condition: 'Bleeding',
+      powerMultiplier: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.SHARPSHOOTER),
+        'coefficientMultiplier'
+      )
+    }
+  }),
   id: TRAIT.SHARPSHOOTER,
   name: 'Sharpshooter',
   balance: {
@@ -620,4 +648,26 @@ function emitIncendiaryPowder(
   owner: FirearmsConditionOwner
 ): void {
   emitFirearmsCondition(context, event, owner, TRAIT.INCENDIARY_POWDER, 'Incendiary Powder', 'Burning');
+}
+
+// Pistol conditions extend their base duration; trait procs keep their own authored duration.
+function chemicalRoundsEligible(context: Gw2ModifierContext): boolean {
+  const event = engineerEvent(context);
+  const application = event?.application || event;
+  if (application?.source === 'Trait') return false;
+  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+  return event?.skillWeapon === 'Pistol' || event?.application?.skillWeapon === 'Pistol' || skill?.weapon === 'Pistol';
+}
+
+/** Selects Heavy Metal's critical bonus from the target's current health tier. */
+function heavyMetalBonus(context: Gw2ModifierContext): number {
+  const fraction = targetHealthFraction(context);
+  const heavyMetalProfile = requireBalanceProfileFromContext(context, TRAIT.HEAVY_METAL);
+  if (fraction < balanceProfileNumber(heavyMetalProfile, 'lowerThreshold'))
+    return balanceProfileNumber(heavyMetalProfile, 'lowerBonus');
+  if (fraction < balanceProfileNumber(heavyMetalProfile, 'middleThreshold'))
+    return balanceProfileNumber(heavyMetalProfile, 'middleBonus');
+  if (fraction < balanceProfileNumber(heavyMetalProfile, 'upperThreshold'))
+    return balanceProfileNumber(heavyMetalProfile, 'upperBonus');
+  return 0;
 }

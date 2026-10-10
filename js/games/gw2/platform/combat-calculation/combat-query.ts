@@ -1,3 +1,4 @@
+import { applyMightAttributes, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
@@ -45,6 +46,7 @@ export type Gw2QueryProfession = Pick<
   NormalizedProfessionContract,
   | 'id'
   | 'catalog'
+  | 'attributeContributions'
   | 'modifyAttributes'
   | 'modifyConditionAttributes'
   | 'modifyCriticalChance'
@@ -168,19 +170,16 @@ export function createGw2CombatQuery({
   const activeConfigsByWeaponSet = new Map<number, Gw2Config>();
   const staticAttributesByWeaponSet = new Map<number, Gw2ResolvedStats>();
   /** Reuses immutable weapon-set inputs while returning fresh mutable attribute results to profession hooks. */
-  const staticAttributesAt = (weaponSet: number, mightStacks: number): Gw2ResolvedStats => {
+  const staticAttributesAt = (weaponSet: number): Gw2ResolvedStats => {
     const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
     let base = staticAttributesByWeaponSet.get(normalizedWeaponSet);
     if (!base) {
-      base = gw2StaticAttributes(activeConfigForWeaponSet(normalizedWeaponSet), 0, normalizedWeaponSet);
+      base = gw2StaticAttributes(activeConfigForWeaponSet(normalizedWeaponSet), normalizedWeaponSet);
       staticAttributesByWeaponSet.set(normalizedWeaponSet, base);
     }
 
-    const mightBonus = MIGHT_ATTRIBUTE_BONUS_PER_STACK * (mightStacks || 0);
     return {
       ...base,
-      power: (base.power || 0) + mightBonus,
-      conditionDamage: (base.conditionDamage || 0) + mightBonus,
       conditionDurationBonuses: { ...base.conditionDurationBonuses }
     };
   };
@@ -342,10 +341,21 @@ export function createGw2CombatQuery({
   ): Gw2ResolvedStats => {
     if (event?.type === 'condition') event = conditionOwnerEvent(event);
     const activeWeaponSet = activeWeaponSetAt(time, runtime);
-    const context = hookContext(time, { event, runtime });
+    const input = hookContext(time, { event, runtime });
+    const contributions =
+      activeProfession.attributeContributions?.(
+        attributeContext(input, {
+          catalog: activeProfession.catalog,
+          modifierRulesById: new Map()
+        })
+      ) ?? [];
+    const context = {
+      ...input,
+      attributeContributions: activeProfession.attributeContributions ? contributions : undefined
+    };
     const modifiedStats = activeProfession.modifyAttributes(
       context,
-      staticAttributesAt(activeWeaponSet, mightStacksAt(time, runtime, event))
+      applyMightAttributes(staticAttributesAt(activeWeaponSet), mightStacksAt(time, runtime, event), contributions)
     ) as unknown as Gw2ResolvedStats;
     // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
     // into the sampled attribute so every downstream condition tick scales with it.

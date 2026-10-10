@@ -1,3 +1,5 @@
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';
@@ -8,7 +10,7 @@ import { catalystCombatStarted } from '#gw2/professions/elementalist/specializat
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { empoweringAuraStacks } from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
 import {
-  applyElementalEmpowermentAttributes,
+  elementalEmpowermentAttributes,
   CATALYST_BASE_EMPOWERMENT_TASK
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -245,7 +247,9 @@ test('Explicit Catalyst stacks keep recipient rules, passive attributes and expi
             };
             assert.equal(empoweringAuraStacks(modifier), live ? 2 : 0);
             assert.equal(
-              applyElementalEmpowermentAttributes(modifier, { power: 1000 }).power,
+              evaluateAttributeDeclarations(modifier, { power: 1000 }, (context) =>
+                hasTrait(context, TRAIT.ELEMENTAL_EMPOWERMENT) ? [elementalEmpowermentAttributes(context)] : []
+              ).power,
               live && selectedTraitIds.length ? 1020 : 1000
             );
             assert.equal(

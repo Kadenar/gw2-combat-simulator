@@ -1,4 +1,4 @@
-import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -7,10 +7,8 @@ import {
   activeEngineerSpecializationState
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
-import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
 
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
@@ -43,35 +41,37 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-/** Applies Evolve and Titanic bonuses to the player's attributes. */
-function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
-  const modified = { ...attributes };
-  if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
-    const evolveFactor = evolveAttributeFactor(context);
-    const pool = attributeSourcePool(context.config ?? {}, 'common', context.runtime?.activeWeaponSet);
-    for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
-      const eligible = pool[poolAttribute] ?? 0;
-      const bonus = eligible * (evolveFactor - 1);
-      modified[attribute] =
-        (modified[attribute] || 0) + (['power', 'conditionDamage'].includes(attribute) ? Math.round(bonus) : bonus);
+/** Evolve reads immutable common inputs; Titanic adds live Might outside conversion eligibility. */
+export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) => {
+  const evolved = activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil');
+  const factor = evolved ? evolveAttributeFactor(context) - 1 : 0;
+  const titanic = activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')
+    ? activeBoonStacks(context, 'might') *
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.strains), 'attributePerStack')
+    : 0;
+  return [
+    {
+      attributeEffects: [
+        ...EVOLVE_ATTRIBUTES.map(([attribute, name]) => ({
+          kind: 'conversion' as const,
+          from: name,
+          to: name,
+          multiplier: factor,
+          input: 'common' as const,
+          rounding: ['power', 'conditionDamage'].includes(attribute) ? ('round' as const) : ('none' as const)
+        })),
+        ...['Power', 'Condition Damage'].map((to) => ({
+          kind: 'flat' as const,
+          to,
+          amount: titanic,
+          feedsConversions: false
+        }))
+      ]
     }
-  }
-
-  if (activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')) {
-    const strainsProfile = requireBalanceProfileFromContext(context, PROFILE.strains);
-    // Titanic Strain adds 5 power + 5 condition damage per might stack on top
-    // of the standard 30 power per stack that's already in the base attributes.
-    const improvedMight =
-      activeBoonStacks(context, 'might') * balanceProfileNumber(strainsProfile, 'attributePerStack');
-    modified.power += improvedMight;
-    modified.conditionDamage += improvedMight;
-  }
-
-  return modified;
-}
+  ];
+};
 
 /** Exposes Amalgam's aggregate attribute transformation and packet modifier rules. */
 export const amalgamModifiers = Object.freeze({
-  modifyAttributes: modifyAmalgamAttributes,
   modifierRules: amalgamModifierRules
 });

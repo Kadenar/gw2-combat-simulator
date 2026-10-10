@@ -93,6 +93,8 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
   readonly hooks?: TraitHooks<TSkill>;
   readonly lifetime?: TraitLifetimeHooks<TSkill>;
   readonly attributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
+  /** Accepted grants remain until expiry even after their granting trait is deselected. */
+  readonly grantedAttributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
 }
 
 type FlatAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'flat' }>;
@@ -148,7 +150,8 @@ export function defineTrait<TSkill extends Skill>(
         'rechargeRules',
         'hooks',
         'lifetime',
-        'attributes'
+        'attributes',
+        'grantedAttributes'
       ].includes(key)
     )
       throw new TypeError(`Unsupported trait definition field: ${key}.`);
@@ -199,7 +202,8 @@ export function defineTrait<TSkill extends Skill>(
     }
   }
 
-  if (definition.attributes != null && typeof definition.attributes !== 'function')
-    throw new TypeError(`Trait ${definition.id}.attributes must be a function.`);
+  for (const key of ['attributes', 'grantedAttributes'] as const)
+    if (definition[key] != null && typeof definition[key] !== 'function')
+      throw new TypeError(`Trait ${definition.id}.${key} must be a function.`);
   return Object.freeze({ ...definition });
 }

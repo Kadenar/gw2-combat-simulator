@@ -1,4 +1,8 @@
-import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import {
+  applyAttributeContributions,
+  applyFinalConditionAttributes,
+  attributeContext
+} from '#gw2/platform/builds/attribute-evaluation.js';
 import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -466,9 +470,12 @@ export function defineNativeProfession<
       ...(module.id === 'Core' || module.id === context.config?.specialization
         ? (module.attributes?.(context) ?? [])
         : []),
-      ...(module.traitDefinitions ?? []).flatMap((trait) =>
-        trait.attributes && hasTrait(context, trait.id) ? [trait.attributes(context)] : []
-      )
+      ...(module.traitDefinitions ?? []).flatMap((trait) => [
+        ...(trait.attributes && hasTrait(context, trait.id) ? [trait.attributes(context)] : []),
+        ...((module.id === 'Core' || module.id === context.config?.specialization) && trait.grantedAttributes
+          ? [trait.grantedAttributes(context)]
+          : [])
+      ])
     ]);
   };
 
@@ -502,6 +509,17 @@ export function defineNativeProfession<
         selected.flatMap((module) => module.modifiers.modifierRules ?? []).map((rule) => [rule.id, rule])
       )
     };
+    // Query sampling retains the selected patch's rule parameters as well as its catalog.
+    const selectedContributions: Gw2AttributeContributionCalculator = (input) =>
+      calculateContributions({
+        ...input,
+        balanceContext: {
+          ...balanceContext,
+          catalog: input.catalog ?? input.profession?.catalog ?? input.balanceContext.catalog
+        }
+      });
+    const queryContributions: Gw2AttributeContributionCalculator = (input) =>
+      input.attributeContributions ?? selectedContributions(input);
     const modifiers = composeModuleModifiers(selected);
     const ordinaryAttributes = {
       id: 'gw2.attribute-contributions',
@@ -516,12 +534,13 @@ export function defineNativeProfession<
             catalog: context.catalog ?? context.profession?.catalog ?? balanceContext.catalog
           }),
           attributes,
-          calculateContributions
+          queryContributions
         )
     };
     const source = defineProfession<State, TSkill>({
       id: definition.id,
       name: definition.name,
+      attributeContributions: selectedContributions,
       canSwapWeaponSetsInCombat: elite?.canSwapWeaponSetsInCombat ?? core.canSwapWeaponSetsInCombat ?? true,
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
       catalog,
@@ -544,6 +563,29 @@ export function defineNativeProfession<
       },
       modifiers: {
         ...modifiers,
+        modifyConditionAttributes: [
+          ...(Array.isArray(modifiers.modifyConditionAttributes)
+            ? modifiers.modifyConditionAttributes
+            : modifiers.modifyConditionAttributes
+              ? [modifiers.modifyConditionAttributes]
+              : []),
+          {
+            id: 'gw2.final-condition-attributes',
+            order: 10000,
+            handler: (
+              context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
+              attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
+            ) =>
+              applyFinalConditionAttributes(
+                attributeContext(context, {
+                  ...balanceContext,
+                  catalog: context.catalog ?? context.profession?.catalog ?? balanceContext.catalog
+                }),
+                attributes,
+                queryContributions
+              )
+          }
+        ],
         modifyAttributes: [
           ordinaryAttributes,
           ...(Array.isArray(modifiers.modifyAttributes)
@@ -604,6 +646,7 @@ export function defineNativeProfession<
       modifyStrikeDamage: source.modifyStrikeDamage,
       modifyConditionDamage: source.modifyConditionDamage,
       modifyConditionDuration: source.modifyConditionDuration,
+      attributeContributions: source.attributeContributions,
       modifyConditionBaseDuration: source.modifyConditionBaseDuration,
       // Preview and simulation share the same validated Core/elite state composition.
       createState: source.createState,

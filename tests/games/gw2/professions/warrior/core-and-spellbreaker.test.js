@@ -1,3 +1,8 @@
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
+import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
@@ -688,7 +693,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
 
   assert.equal(arc.criticalChance, 0.4);
 
-  const attributes = berserkerModule.modifiers.modifyAttributes(
+  const attributes = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -701,7 +706,11 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }
+    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+    (context) => [
+      ...berserkerModule.attributes(context),
+      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
+    ]
   );
 
   assert.deepEqual(attributes, {
@@ -711,7 +720,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 390
   });
 
-  const bloodReactionOutsideBerserk = berserkerModule.modifiers.modifyAttributes(
+  const bloodReactionOutsideBerserk = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -724,7 +733,11 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }
+    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+    (context) => [
+      ...berserkerModule.attributes(context),
+      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
+    ]
   );
 
   assert.deepEqual(bloodReactionOutsideBerserk, {
@@ -734,7 +747,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 120
   });
 
-  const greatFortitude = berserkerModule.modifiers.modifyAttributes(
+  const greatFortitude = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.GREAT_FORTITUDE] },
@@ -753,7 +766,11 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
       ferocity: 100,
       conditionDamage: 0,
       vitality: 1000
-    }
+    },
+    (context) => [
+      ...berserkerModule.attributes(context),
+      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
+    ]
   );
 
   assert.deepEqual(greatFortitude, {
@@ -1263,7 +1280,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     true
   );
 
-  const attributes = spellbreakerModule.modifiers.modifyAttributes(
+  const attributes = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       time: 10,
@@ -1278,7 +1295,8 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0 }
+    { power: 1000, precision: 1000, ferocity: 0 },
+    (context) => [attackersInsight.grantedAttributes(context)]
   );
 
   assert.deepEqual(attributes, {

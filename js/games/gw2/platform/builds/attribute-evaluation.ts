@@ -7,8 +7,10 @@ import type {
   Gw2AttributeLoadout,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
@@ -69,16 +71,17 @@ export function resolveAttributeContributions(
   };
 }
 
-/** Add declarations to an unprocessed seed; specialized live transforms run after this shared phase. */
+/** Add ordinary declarations, then apply accumulated scaling and actor projections without altering source pools. */
 export function applyAttributeContributions(
   context: Gw2AttributeContext,
   initial: Gw2Stats,
   calculate: Gw2AttributeContributionCalculator
 ): Gw2Stats {
   const result: Gw2MutableStats = { ...initial };
+  const contributions = calculate(context);
   const resolved = resolveAttributeContributions(
     attributeSeed(context.config ?? {}, context.weaponSet).conversionPool,
-    calculate(context)
+    contributions
   );
   for (const [key, name] of Object.entries(ATTRIBUTE_NAMES))
     if (resolved.attributes[name])
@@ -105,5 +108,62 @@ export function applyAttributeContributions(
 
   if (resolved.criticalChance)
     result.professionCriticalChanceBonus = (initial.professionCriticalChanceBonus ?? 0) + resolved.criticalChance;
+  const uncapped = contributions.reduce((sum, entry) => sum + (entry.uncappedBoonDuration ?? 0), 0);
+  if (uncapped) result.uncappedBoonDurationBonus = (initial.uncappedBoonDurationBonus ?? 0) + uncapped;
+  // Scaling consumes accumulated attributes; actor projections follow scaling regardless of declaration order.
+  for (const transform of contributions
+    .flatMap((entry) => entry.transforms ?? [])
+    .filter((entry) => entry.kind === 'scale')
+    .filter((entry) => entry.factor !== 1))
+    for (const key of Object.keys(ATTRIBUTE_NAMES) as (keyof typeof ATTRIBUTE_NAMES)[])
+      result[key] = (result[key] ?? 0) * transform.factor;
+  for (const transform of contributions
+    .flatMap((entry) => entry.transforms ?? [])
+    .filter((entry) => entry.kind === 'convert-current'))
+    result[transform.to] = (result[transform.to] ?? 0) + (result[transform.from] ?? 0) * transform.multiplier;
+  let projected: Gw2Stats = result;
+  for (const transform of contributions
+    .flatMap((entry) => entry.transforms ?? [])
+    .filter((entry) => entry.kind === 'project'))
+    projected = transform.replace ? { ...transform.attributes } : { ...projected, ...transform.attributes };
+  return projected;
+}
+
+/** Baseline and trait-adjusted Might are one phase, never ordinary conversion input. */
+export function applyMightAttributes(
+  initial: Gw2Stats,
+  stacks: number,
+  contributions: readonly Gw2AttributeContributions[]
+): Gw2Stats {
+  const might = Math.max(0, Math.min(25, stacks));
+  if (!might) return initial;
+  return {
+    ...initial,
+    power:
+      (initial.power ?? 0) +
+      might *
+        (MIGHT_ATTRIBUTE_BONUS_PER_STACK +
+          contributions.reduce((sum, entry) => sum + (entry.mightPerStack?.power ?? 0), 0)),
+    conditionDamage:
+      (initial.conditionDamage ?? 0) +
+      might *
+        (MIGHT_ATTRIBUTE_BONUS_PER_STACK +
+          contributions.reduce((sum, entry) => sum + (entry.mightPerStack?.conditionDamage ?? 0), 0))
+  };
+}
+
+/** Condition replacements sample final Power only after relic and actor projection. */
+export function applyFinalConditionAttributes(
+  context: Gw2AttributeContext,
+  initial: Gw2Stats,
+  calculate: Gw2AttributeContributionCalculator
+): Gw2Stats {
+  if (!isGw2PlayerModifierOwnedEvent(context.event)) return initial;
+  let result = initial;
+  for (const entry of calculate(context)) {
+    if (entry.finalCondition && entry.finalCondition.condition === context.event?.condition)
+      result = { ...result, conditionDamage: (result.power ?? 0) * entry.finalCondition.powerMultiplier };
+  }
+
   return result;
 }

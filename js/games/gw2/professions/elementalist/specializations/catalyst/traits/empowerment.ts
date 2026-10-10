@@ -1,8 +1,8 @@
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
-import { attributeSeed, attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
+import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -95,30 +95,28 @@ function catalystModifierState(context: ElementalistModifierContext): CatalystSt
 interface CatalystStateLike {
   readonly elementalEmpowermentExpiries?: readonly number[];
 }
-// Apply live Elemental Empowerment stacks as an all-attribute multiplier without
-// mutating the shared resolved-stat object.
-export function applyElementalEmpowermentAttributes(
-  context: ElementalistModifierContext,
-  attributes: Gw2Stats
-): Gw2Stats {
-  if (!hasTrait(context, TRAIT.ELEMENTAL_EMPOWERMENT)) return attributes;
+/** Empowerment declares bonuses from its named source, with per-stat rounding and no ordinary chaining. */
+export function elementalEmpowermentAttributes(context: ElementalistModifierContext): Gw2AttributeContributions {
   // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
   const timedStacks = activeStackCount(catalystModifierState(context).elementalEmpowermentExpiries || [], context.time);
   const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT);
   const maximumStacks = balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks');
   const stacks = Math.min(maximumStacks, timedStacks);
   const multiplier = empowermentAttributeMultiplier(context, elementalEmpowermentProfile, stacks, maximumStacks);
-  // The build may pin the attribute pool the bonus is computed from; otherwise the
-  // incoming resolved attributes are used.
   const pool = catalystAttributePool(context);
-  const modified = { ...attributes };
-  for (const stat of ['power', 'precision', 'ferocity', 'conditionDamage', 'expertise', 'concentration'] as const) {
-    const eligible = pool[stat] ?? 0;
-    const bonus = eligible * multiplier;
-    modified[stat] = (modified[stat] || 0) + (['power', 'conditionDamage'].includes(stat) ? Math.round(bonus) : bonus);
-  }
-
-  return modified;
+  return {
+    attributeEffects: (
+      ['power', 'precision', 'ferocity', 'conditionDamage', 'expertise', 'concentration'] as const
+    ).map((stat) => {
+      const bonus = (pool[stat] ?? 0) * multiplier;
+      return {
+        kind: 'flat',
+        to: ATTRIBUTE_NAMES[stat],
+        feedsConversions: false,
+        amount: ['power', 'conditionDamage'].includes(stat) ? Math.round(bonus) : bonus
+      };
+    })
+  };
 }
 
 /** Empowered Empowerment substitutes its scaling at the same live-stack attribute boundary. */

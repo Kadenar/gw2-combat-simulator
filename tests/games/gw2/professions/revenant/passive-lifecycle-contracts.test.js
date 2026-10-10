@@ -1,3 +1,6 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { draconicEcho } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
@@ -9,7 +12,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { modifyHeraldPassiveAttributes } from '#gw2/professions/revenant/specializations/herald/modifiers.js';
+import { heraldAttributes } from '#gw2/professions/revenant/specializations/herald/modifiers.js';
 import { heraldModule } from '#gw2/professions/revenant/specializations/herald/module.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -201,7 +204,13 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
   }
 
   core.activeUpkeeps = [{ skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }];
-  assert.equal(modifyHeraldPassiveAttributes(context, { boonDurationBonus: 5 }).boonDurationBonus, 25);
+  assert.equal(
+    evaluateAttributeDeclarations(context, { boonDurationBonus: 5 }, (context) => [
+      ...heraldAttributes(context),
+      ...(hasTrait(context, TRAIT.DRACONIC_ECHO) ? [draconicEcho.attributes(context)] : [])
+    ]).boonDurationBonus,
+    25
+  );
 });
 
 test('Assassin Nature procs only on eligible resolved strikes while its passive is available', () => {
@@ -257,7 +266,10 @@ test('Nature changes passive with the active legend without adding Concentration
   const attributes = { concentration: 1500, boonDurationBonus: 25 };
   for (const legend of [LEGEND.DRAGON, LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.CENTAUR, LEGEND.DWARF]) {
     core.activeLegendId = legend;
-    const stats = modifyHeraldPassiveAttributes(context, attributes);
+    const stats = evaluateAttributeDeclarations(context, attributes, (context) => [
+      ...heraldAttributes(context),
+      ...(hasTrait(context, TRAIT.DRACONIC_ECHO) ? [draconicEcho.attributes(context)] : [])
+    ]);
     assert.equal(stats.concentration, 1500);
     assert.equal(stats.boonDurationBonus, 25);
     assert.equal(
@@ -270,7 +282,16 @@ test('Nature changes passive with the active legend without adding Concentration
 
   core.activeUpkeeps = [];
   core.activeLegendId = LEGEND.DRAGON;
-  assert.equal(gw2BoonDurationMultiplier('might', modifyHeraldPassiveAttributes(context, attributes)), 2);
+  assert.equal(
+    gw2BoonDurationMultiplier(
+      'might',
+      evaluateAttributeDeclarations(context, attributes, (context) => [
+        ...heraldAttributes(context),
+        ...(hasTrait(context, TRAIT.DRACONIC_ECHO) ? [draconicEcho.attributes(context)] : [])
+      ])
+    ),
+    2
+  );
 });
 
 test('Nature adds outgoing Assassin damage only while its passive is available', () => {

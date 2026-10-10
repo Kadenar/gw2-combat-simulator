@@ -1,5 +1,4 @@
 import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
-import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Combat attributes: configured stats, their resolved form, and the static per-weapon-set view stat queries start from. */
@@ -56,23 +55,18 @@ export function gw2StatsForWeaponSet(config: Gw2Config, weaponSet = config.start
   return attributeSeed(config, weaponSet).commonTotals;
 }
 
-/** Resolves configured attributes for one weapon set, adding Might to Power and Condition Damage. */
-export function gw2StaticAttributes(
-  config: Gw2Config,
-  mightStacks: number | boolean | undefined = config.boons?.might,
-  weaponSet = config.startingWeaponSet
-): Gw2ResolvedStats {
-  const mightBonus = MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
+/** Resolves the unprocessed weapon-set seed; the attribute evaluator owns boon grants. */
+export function gw2StaticAttributes(config: Gw2Config, weaponSet = config.startingWeaponSet): Gw2ResolvedStats {
   const stats = gw2StatsForWeaponSet(config, weaponSet);
   return {
     criticalChanceBonus: stats.criticalChanceBonus ?? 0,
     uncappedBoonDurationBonus: stats.uncappedBoonDurationBonus ?? 0,
-    power: (stats.power || 0) + mightBonus,
+    power: stats.power || 0,
     precision: stats.precision || 0,
     toughness: stats.toughness || 0,
     vitality: stats.vitality || 0,
     ferocity: stats.ferocity || 0,
-    conditionDamage: (stats.conditionDamage || 0) + mightBonus,
+    conditionDamage: stats.conditionDamage || 0,
     expertise: stats.expertise || 0,
     concentration: stats.concentration || 0,
     healingPower: stats.healingPower || 0,

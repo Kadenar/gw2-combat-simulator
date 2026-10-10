@@ -63,6 +63,7 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
   readonly id: string;
   readonly name: string;
   readonly catalog?: CanonicalCatalog<TSkill>;
+  readonly attributeContributions?: import('#gw2/platform/builds/types.js').Gw2AttributeContributionCalculator;
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
   readonly modifiers?: ProfessionModifierDefinition;
 }
@@ -81,6 +82,7 @@ export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
 export interface NormalizedProfessionContract<TProfessionState extends object = object, TSkill extends Skill = Skill> {
+  readonly attributeContributions?: import('#gw2/platform/builds/types.js').Gw2AttributeContributionCalculator;
   readonly canSwapWeaponSetsInCombat: boolean;
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;

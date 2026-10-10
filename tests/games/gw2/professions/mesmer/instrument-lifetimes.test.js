@@ -1,3 +1,4 @@
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -14,7 +15,7 @@ import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializ
 import { troubadourModifierRules } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { applyTroubadourAttributes } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
+import { fortissimo } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -135,7 +136,10 @@ test('instrument commitment, damage bonuses, projection, and UI share exact excl
     assert.equal(Boolean(view), active);
     const query = modifierContext(context, at);
     assert.equal(troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when(query), active);
-    assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, active ? 104 : 100);
+    assert.equal(
+      evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
+      active ? 104 : 100
+    );
     assert.equal(state.instruments.Lute, 5.301, 'Projection does not mutate the stored deadline');
   }
 });
@@ -149,7 +153,10 @@ test('shorter instrument replays replace their own window without reviving old b
   assert.deepEqual(state.instruments, { Lute: 7.301, Flute: 21.301 });
   const query = modifierContext(context, 7.301);
   assert.equal(troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when(query), false);
-  assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, 104);
+  assert.equal(
+    evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
+    104
+  );
   context.time = 7.301;
   assert.deepEqual(
     projectObservedState(mesmerProfession, context).activeInstruments.map(({ name }) => name),

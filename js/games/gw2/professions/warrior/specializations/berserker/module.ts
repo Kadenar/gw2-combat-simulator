@@ -1,12 +1,14 @@
-import { slicingMaelstromModifiers } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
+import { berserkerAttributes } from '#gw2/professions/warrior/specializations/berserker/attributes.js';
 import { berserkerHooks } from '#gw2/professions/warrior/specializations/berserker/hooks.js';
-import { modifyAttributes } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
 import { berserkerUi } from '#gw2/professions/warrior/specializations/berserker/presentation.js';
 import { BERSERKER_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
-import { BERSERKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
+import {
+  BERSERKER_SKILL_MECHANICS,
+  slicingMaelstromModifiers
+} from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import {
   BERSERKER_PUBLIC_STATE_PROJECTION,
   berserkerState
@@ -22,7 +24,8 @@ export const berserkerModule = defineNativeModule({
   }),
   state: { create: berserkerState.create, project: createPublicStateProjector(BERSERKER_PUBLIC_STATE_PROJECTION) },
   // Preserve live trait attributes alongside skill-owned Slicing Maelstrom rules.
-  modifiers: { modifyAttributes, modifierRules: slicingMaelstromModifiers },
+  attributes: berserkerAttributes,
+  modifiers: { modifierRules: slicingMaelstromModifiers },
   hooks: berserkerHooks,
   presentation: berserkerUi
 });
