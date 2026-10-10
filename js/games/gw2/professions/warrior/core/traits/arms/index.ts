@@ -439,10 +439,6 @@ export function modifyWarriorArmsAttributes(
   }
 }
 
-export function claimTrait(runtime: WarriorRuntime, trait: number): boolean {
-  return hasTrait(runtime, trait) && runtime.procs.claim(trait);
-}
-
 function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !runtime.procs.claim(TRAIT.OPPORTUNIST)) return;
   grantWarriorResource(

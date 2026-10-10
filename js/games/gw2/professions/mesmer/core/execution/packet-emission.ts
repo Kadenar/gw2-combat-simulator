@@ -46,7 +46,7 @@ export function createSkillDamageController({
     at: number,
     castStart: number,
     delivery: EffectDelivery
-  ): readonly number[] => {
+  ): void => {
     const castScale =
       group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
     // Mesmer's replacing handler materializes its own packets, so project the
@@ -71,22 +71,22 @@ export function createSkillDamageController({
       source: 'Player'
     };
     const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
-    const emittedAt = (origin: number, effect: Partial<MesmerStrikeEffect>): readonly number[] =>
-      buildMesmerStrikes(state, skill, origin, effect)
-        .map((packet) => {
-          state.effects.emit({
-            ...delivery,
-            kind: 'packet',
-            event: packet,
-            owner: mesmerPacketOwner(packet),
-            priority: Number(packet.priority ?? 0)
-          });
-          return packet;
-        })
-        .map((event) => event.at);
+    // Emit directly; packet ownership and delivery are the contract, not a discarded timestamp list.
+    const emitStrikes = (origin: number, effect: Partial<MesmerStrikeEffect>): void => {
+      for (const packet of buildMesmerStrikes(state, skill, origin, effect)) {
+        state.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      }
+    };
+
     if (fixedTicks?.length) {
       const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
-      return emittedAt(timingAnchorAt, {
+      return emitStrikes(timingAnchorAt, {
         ...damageGroup,
         coefficient: undefined,
         hits: undefined,
@@ -100,7 +100,7 @@ export function createSkillDamageController({
 
     if (group.castProgress != null) {
       const hitAt = castStart + (at - castStart) * group.castProgress;
-      return emittedAt(hitAt, {
+      return emitStrikes(hitAt, {
         ...damageGroup,
         atMs: undefined,
         intervalMs: undefined,
@@ -110,7 +110,7 @@ export function createSkillDamageController({
     }
 
     const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
-    return emittedAt(timingAnchorAt, damageGroup);
+    return emitStrikes(timingAnchorAt, damageGroup);
   };
 
   const schedulePlayerConditions = (

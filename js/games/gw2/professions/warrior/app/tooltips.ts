@@ -392,7 +392,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [ID.DRAGONSPIKE_MINE]: skillTooltip("Apply the listed effects and reset Dragon Trigger's recharge."),
     [ID.FLOW_STABILIZER]: skillTooltip(
       'Gain Fury and a temporary increase to passive Flow generation. If Fury was already active before this cast, also gain Flow immediately.',
-      [fromProfile(BLADESWORN.resources, 'resourceGain', 'Additional Flow per second per active window')]
+      [fromProfile(BLADESWORN.resources, 'attributePerStack', 'Additional Flow per second per Positive Flow stack')]
     ),
     [ID.TO_THE_LIMIT]: skillTooltip(
       'Restore endurance and gain adrenaline (Flow for Bladesworn). Healing is outside combat simulation scope.',
@@ -690,10 +690,22 @@ export const warriorTooltips: ProfessionTooltips = {
         ['coefficientMultiplier', 'Conversion during Berserk', tooltipPercent]
       ]
     ),
-    [TRAIT.HEAT_THE_SOUL]: traitTooltip(
-      'Completed primal bursts grant quickness, fury, and might to the party. Decapitate grants a shorter quickness duration.',
-      [fromProfile(TRAIT.SMASH_BRAWLER, 'resourceGain', 'Decapitate quickness duration', tooltipSeconds)]
-    ),
+    // Describe each Quickness variant from Heat the Soul's own selected effects.
+    [TRAIT.HEAT_THE_SOUL]: (context) => ({
+      description:
+        'Completed primal bursts grant quickness, fury, and might to the party. Decapitate grants a shorter quickness duration.',
+      facts: (tooltipProfile(context, TRAIT.HEAT_THE_SOUL).effects ?? []).flatMap(
+        (effect) =>
+          simulationEffectFacts(
+            [effect],
+            effect.name === 'Decapitate quickness'
+              ? 'Decapitate'
+              : effect.name === 'quickness'
+                ? 'other primal bursts'
+                : ''
+          ).facts
+      )
+    }),
     [TRAIT.DEAD_OR_ALIVE]: outsideScopeTooltip,
     [TRAIT.BLOODY_ROAR]: traitTooltip(
       'Deal increased strike damage during Berserk. Entering Berserk grants resistance.',

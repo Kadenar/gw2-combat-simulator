@@ -1734,3 +1734,47 @@ test('Deathstrike weapon palette keeps the primary skill identity on cooldown', 
 });
 
 // Restoring scheduler resources must preserve resolver-owned clocks in both active state slices.
+
+// Multiple authored stacks replace the oldest entries consistently for either selected Fervor profile.
+test('Kallas Fervor reports the same selected grant that updates its capped owner', async () => {
+  const { withProfile } = await import('#tests/helpers/catalog-overrides.js');
+  const { fervorProfile } = await import('#gw2/professions/revenant/specializations/renegade/traits/fervor.js');
+  const { captureEffectEmissions } = await import('#tests/helpers/effect-emission.js');
+  for (const selectedTraitIds of [[], [TRAIT.LASTING_LEGACY]]) {
+    const state = {
+      kallasFervorMaximumStacks: 5,
+      kallasFervor: [
+        { at: 0, expiresAt: 3 },
+        { at: 0, expiresAt: 4 }
+      ]
+    };
+    const captured = captureEffectEmissions();
+    const runtime = {
+      time: 1,
+      config: { selectedTraitIds },
+      helpers: revenantCatalog,
+      profession: { specialization: { kind: 'Renegade', state } },
+      effects: captured.effects
+    };
+    const profile = fervorProfile(runtime);
+    runtime.helpers = withProfile(revenantCatalog, profile.id, {
+      maximumStacks: 3,
+      effects: profile.effects.map((effect) => ({ ...effect, stacks: 2, duration: 6 }))
+    });
+    grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Fervor fixture' });
+    assert.equal(captured.events[0].stacks, 2);
+    assert.deepEqual(
+      state.kallasFervor.map((entry) => entry.expiresAt),
+      [4, 7, 7]
+    );
+    assert.equal(activeKallasFervorStacks(state, 4), 2);
+    assert.equal(activeKallasFervorStacks(state, 7), 0);
+    runtime.time = 2;
+    grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Repeated grant' });
+    assert.deepEqual(
+      state.kallasFervor.map((entry) => entry.expiresAt),
+      [7, 8, 8]
+    );
+    assert.equal(captured.events[1].stacks, 2);
+  }
+});

@@ -24,15 +24,15 @@ contributions join those effects before the shared conversion and finalization p
 previews. Runtime resource clocks, stealth and Revealed, Mark/malice, shroud state, artifact slots, and applied windows
 remain on their existing shared state.
 
-Ordered mechanical boundaries remain explicit helper calls: stealth breaks before Unrelenting Strikes and No Quarter;
-Core steals notify trait owners before acquisition and initiative; dodge packets resolve before their new damage
-windows; mark resets, stolen-skill replacement, and malice rewards retain their existing order. Specter emits its
+Ordered mechanic trigger points invoke definition-local handlers: stealth breaks before Unrelenting Strikes and No
+Quarter; Core steals notify trait owners before acquisition and initiative; dodge packets resolve before their new
+damage windows; mark resets, stolen-skill replacement, and malice rewards retain their existing order. Specter emits its
 barrier before Dark Sentry's task and resolves Amplified Siphoning before Improvisation. Antiquary preserves
 artifact-grant ordering, Sun Crystal before Mistburn, and applied charge/window lifetimes after selection changes. The
-trait-only dispatcher is `core/traits/dispatch.ts`; mixed strike reactions live in `core/mechanics/reactions.ts`. Core
-steal rewards, poison, critical boons, stealth, and venoms live inside their owning trait-line folders, while
-`core/traits/steal.ts` preserves cross-line steal ordering. Daredevil dodge transformations and Antiquary artifact
-transformations retain their own behavior files.
+mixed strike sequence lives in `core/mechanics/reactions.ts`. Core steal rewards, poison, critical boons, stealth, and
+venoms live inside their owning trait-line folders; `core/mechanics/steal.ts` fires the ordered steal boundary declared
+in `core/mechanics/boundaries.ts`. Daredevil dodge transformations and Antiquary artifact transformations retain their
+own behavior files.
 
 ## Implemented systems
 
@@ -48,8 +48,8 @@ transformations retain their own behavior files.
 - **Antiquary** — artifact uses with all artifacts selectable, per-cast Double Edge outcomes, backfire state, and
   persistent Antiquary summons.
 
-Core Steal exposes Throw Gunk, Consume Plasma, and Whirling Axe as its standard stolen-skill choice pool. Double Edge
-success/backfire is saved per rotation entry; simulation never uses unseeded randomness.
+Core Steal exposes Detonate Plasma, Throw Magnetic Bomb, and Soul Stone Venom as its standard stolen-skill choice pool.
+Double Edge success/backfire is saved per rotation entry; simulation never uses unseeded randomness.
 
 ## Modeling boundaries
 

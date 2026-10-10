@@ -373,7 +373,14 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
   const elapsed = Math.floor((timeKey(runtime.time) - timeKey(next)) / timeKey(interval)) + 1;
   let granted = 0;
   for (let index = Math.max(0, elapsed - Math.ceil(duration / interval)); index < elapsed; index += 1) {
-    const result = addTimedStacks(core.battleScars, 1, canonicalTime(next + index * interval), duration, maximum);
+    // Each elapsed interval grants its authored count at the historical time, preserving expiry and cap ordering.
+    const result = addTimedStacks(
+      core.battleScars,
+      effectNumber(profile, buff, 'stacks'),
+      canonicalTime(next + index * interval),
+      duration,
+      maximum
+    );
     core.battleScars = result.expiries;
     granted += result.added;
   }

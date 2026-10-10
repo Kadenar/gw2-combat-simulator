@@ -367,7 +367,13 @@ function fierceAsFireAmmo(
           skillName: cast.skill.name,
           activationId: cast.id
         },
-        transform: (event) => ({ ...event, name: traitProfile.name, stacks: spent.rounds, priority: 0 }),
+        // Each spent round grants the selected authored stack count.
+        transform: (event) => ({
+          ...event,
+          name: traitProfile.name,
+          stacks: Number(event.stacks) * spent.rounds,
+          priority: 0
+        }),
         effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
       });
     }

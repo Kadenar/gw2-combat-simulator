@@ -14,7 +14,9 @@ import {
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { holosmithSlotEventHandlers } from '#gw2/professions/engineer/specializations/holosmith/skills/slot-skills.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { buildRangerCondition } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { arachnophobia } from '#gw2/professions/ranger/core/traits/wilderness-survival/index.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
+import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const trigger = {
@@ -129,28 +131,21 @@ test('derived conditions preserve immediate visibility and same-time queued orde
 });
 
 // Independent companion conditions need concrete owner identity even when the parent hit is player-attributed.
-test('profession packet builders retain pet and mech ownership without copying trigger annotations', () => {
+test('live Ranger profile emission and Engineer packets retain companion ownership without trigger annotations', () => {
   const { effects, events: packets } = captureEffectEmissions();
   const config = { selectedPet: 'Carrion Devourer', selectedTraitIds: [] };
-  const context = { config, profession: { core: createRangerCoreState(config) } };
-  effects.emit({
-    kind: 'packet',
-    event: buildRangerCondition(
-      context,
-      { ...trigger, source: 'ranger-pet', summonOwner: 'pet:old-generation' },
-      'Bleeding',
-      4,
-      2,
-      10,
-      'Pet proc'
-    )
+  const context = { config, helpers: rangerCatalog, effects, profession: { core: createRangerCoreState(config) } };
+  // Exercise the live trait producer through the shared materializer, retaining the triggering incarnation.
+  arachnophobia.triggers[0].run(context, {
+    event: { ...trigger, skillId: RANGER.SPIT, source: 'ranger-pet', summonOwner: 'pet:old-generation' }
   });
   const pet = packets[0];
   assert.equal(pet.actorType, 'summon');
   assert.equal(pet.summonOwner, 'pet:old-generation');
   assert.equal(pet.independentConditionOwner, true);
   assert.equal(typeof pet.summonBaseConditionDamage, 'number');
-  assert.equal(pet.metadata, undefined);
+  assert.equal(pet.metadata?.procCount, undefined);
+  assert.equal(pet.holosmithStrikeFactor, undefined);
   effects.emit({
     kind: 'packet',
     settlement: 'reaction',

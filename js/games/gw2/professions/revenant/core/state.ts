@@ -42,7 +42,6 @@ export interface RevenantCoreState {
   exposeDefensesUsed: boolean;
   selfConditions: RevenantSelfCondition[];
   selfConditionCount: number;
-  // Brutality, Vicious Reprisal and Impossible Odds store only numeric deadlines here.
 
   /** Live wake generations let a rate change or combat anchor replace pending work without replaying state. */
   energyWakeGeneration: number;

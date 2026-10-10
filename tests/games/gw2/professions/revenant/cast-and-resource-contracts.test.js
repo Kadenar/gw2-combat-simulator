@@ -403,25 +403,36 @@ test('Thrill of Combat catches up on its original cadence while capped grants re
   // Without the siphon the catch-up hits cannot also consume the scars they grant.
   const withoutSiphon = (catalog) =>
     applyBalanceProfilePatch(catalog, {
-      balanceProfiles: { [profileId]: { removeEffects: [{ type: 'strike', name: 'Battle Scars — Life Siphon' }] } }
+      balanceProfiles: {
+        [profileId]: { removeEffects: [{ type: 'strike', name: 'Battle Scars — Life Siphon' }] },
+        [TRAIT.THRILL_OF_COMBAT]: { effects: [{ type: 'buff', name: 'battle-scars', stacks: 2 }] }
+      }
     });
-  const run = (untilMs) =>
-    core(
-      runRevenant(
-        ['__combat_start', wait(untilMs)],
-        { selectedTraitIds: [TRAIT.THRILL_OF_COMBAT] },
-        {
-          catalog: (catalog) => withProfile(withoutSiphon(catalog), profileId, { maximumStacks: 2 }),
-          initialize: (runtime) =>
-            [3, 12].forEach((at) => runtime.effects.emit({ kind: 'packet', event: revenantHit(at) }))
-        }
-      )
+  const run = (untilMs) => {
+    const result = runRevenant(
+      ['__combat_start', wait(untilMs)],
+      { selectedTraitIds: [TRAIT.THRILL_OF_COMBAT] },
+      {
+        catalog: (catalog) => withProfile(withoutSiphon(catalog), profileId, { maximumStacks: 3 }),
+        initialize: (runtime) =>
+          [3, 12].forEach((at) => runtime.effects.emit({ kind: 'packet', event: revenantHit(at) }))
+      }
     );
+    assert.deepEqual(result.warnings, []);
+    // Published grants report only stacks accepted by the cap, including partially accepted intervals.
+    assert.ok(
+      result.events
+        .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.THRILL_OF_COMBAT)
+        .every((event) => event.stacks === 3)
+    );
+    return core(result);
+  };
+
   const first = run(3500);
-  assert.deepEqual(first.battleScars, [11, 12]);
+  assert.deepEqual(first.battleScars, [11, 11, 12]);
   assert.equal(first.nextThrillOfCombatAt, 4);
   const second = run(12500);
-  assert.deepEqual(second.battleScars, [21, 22]);
+  assert.deepEqual(second.battleScars, [21, 21, 22]);
   assert.equal(second.nextThrillOfCombatAt, 13);
 });
 

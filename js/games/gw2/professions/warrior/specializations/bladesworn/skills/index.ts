@@ -757,7 +757,11 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
     if (effect) {
       const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(cast.skill, effect, 'duration'));
       if (expiresAt > runtime.time)
-        bladeswornState.from(runtime).flowStabilizerWindows.push({ startedAt: runtime.time, expiresAt });
+        bladeswornState.from(runtime).flowStabilizerWindows.push({
+          startedAt: runtime.time,
+          expiresAt,
+          stacks: effectNumber(cast.skill, effect, 'stacks')
+        });
     }
   }
 };

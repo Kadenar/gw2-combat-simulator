@@ -40,12 +40,13 @@ lifetime. Tooltips read the modifier's authoritative stack cap. The remaining Co
 Core registers 45 trait definitions; Tempest registers 11, Weaver 9, Catalyst 10, and Evoker 11 from their
 `specializations/<name>/traits/index.ts` owners, which also export each elite's registration array. Profiles,
 declarative modifiers, build contributions, and ordinary triggers live with those definitions. The Core index collects
-line definitions in registration order; `core/traits/dispatch.ts` preserves ordered runtime calls. Supporting behavior
-lives inside the owning line's folder: Air and Earth use `attunement-entry.ts`, Arcane uses `attunement-swap.ts`, and
-Fire uses `attunement-transition.ts` for entry and exit effects. Lines also own `critical-procs.ts` where needed; only
-shared hit eligibility stays in `core/traits/critical-eligibility.ts`. Elite support stays beside its definitions. Live
-attribute passes and critical procs retain explicit calls so resource and reaction order stay unchanged. Shared state
-still owns ICDs, Fresh Air wakes, Bountiful Power progress, and timed buff applications.
+line definitions in registration order; mechanic trigger points order definition-local runtime handlers. Supporting
+behavior lives inside the owning line's folder: Air and Earth use `attunement-entry.ts`, Arcane keeps swap handlers in
+`arcane/index.ts`, and Fire uses `attunement-transition.ts` for entry and exit effects. Lines also own
+`critical-procs.ts` where needed; only shared hit eligibility stays in `core/traits/critical-eligibility.ts`. Elite
+support stays beside its definitions. Live attribute passes and critical procs retain explicit calls so resource and
+reaction order stay unchanged. Shared state still owns ICDs, Fresh Air wakes, Bountiful Power progress, and timed buff
+applications.
 
 Tempest keeps overload availability, lockouts, Lightning Jolt, and scheduler work in mechanics. Its trait helpers own
 hit-derived alacrity, completion auras, shout rewards, and aura windows. The shared overload profile retains its

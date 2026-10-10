@@ -205,12 +205,8 @@ function assertCallbackContainer(container: object, names: readonly string[], sc
  * Executable resource policies are validated separately with the runtime hooks.
  */
 
-export function defineProfession<
-  TProfessionState extends object,
-  TBuild extends object = object,
-  TSkill extends Skill = Skill
->(
-  definition: ProfessionDefinition<TProfessionState, TBuild, TSkill>
+export function defineProfession<TProfessionState extends object, TSkill extends Skill = Skill>(
+  definition: ProfessionDefinition<TProfessionState, TSkill>
 ): Readonly<NormalizedProfessionContract<TProfessionState, TSkill>> {
   assertDefinition(definition);
   const resources = definition.resources || {};

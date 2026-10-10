@@ -16,21 +16,7 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
         { id: 'later', order: 20, handler: () => calls.push('later') },
         { id: 'first', order: 10, handler: () => calls.push('first') },
         { id: 'same', order: 10, handler: () => calls.push('same') }
-      ],
-      reactions: {
-        control: [
-          {
-            id: 'later-control',
-            order: 20,
-            handler: () => calls.push('later-control')
-          },
-          {
-            id: 'first-control',
-            order: 10,
-            handler: () => calls.push('first-control')
-          }
-        ]
-      }
+      ]
     }
   });
 

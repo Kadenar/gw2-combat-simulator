@@ -10,8 +10,6 @@ export interface RenegadeState {
   kallasFervor: RevenantTimedStack[];
   kallasFervorMaximumStacks: number;
   razorclawsRage: ChargeGrant;
-
-  /** Deadline for Brutal Momentum's Vigor reaction to applied Fury. */
 }
 
 export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({

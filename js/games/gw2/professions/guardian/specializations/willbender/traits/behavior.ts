@@ -17,7 +17,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
-/** Decodes the live stack cap and selected lifetime before granting a window. */
+/** Decodes the selected grant, lifetime, and live cap for a single Tempo trigger. */
 export function lethalTempoParameters(context: unknown) {
   const tyrantsMomentum = hasTrait(context, TRAIT.TYRANTS_MOMENTUM);
   const profileId = tyrantsMomentum ? TRAIT.TYRANTS_MOMENTUM : TRAIT.LETHAL_TEMPO;
@@ -27,6 +27,7 @@ export function lethalTempoParameters(context: unknown) {
   const lethalTempoProfile = requireBalanceProfileFromContext(context, TRAIT.LETHAL_TEMPO);
   return {
     maximumStacks: balanceProfileNumber(lethalTempoProfile, 'maximumStacks'),
+    stacks: effectNumber(profile, window, 'stacks'),
     duration: effectNumber(profile, window, 'duration')
   };
 }

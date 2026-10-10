@@ -43,7 +43,7 @@ export function bladeswornEffectStates(
     }),
     timedEffectState('positive-flow', [
       ...(runtime.combatActive ? [{ stacks: 1, expiresAt: null }] : []),
-      ...state.flowStabilizerWindows.map((window) => ({ stacks: 2, expiresAt: window.expiresAt })),
+      ...state.flowStabilizerWindows.map((window) => ({ stacks: window.stacks, expiresAt: window.expiresAt })),
       { stacks: state.traitPositiveFlowStacks, expiresAt: state.traitPositiveFlowUntil }
     ]),
     ...(['overcharged-cartridges', 'supercharged-cartridges'] as const).map((kind) =>

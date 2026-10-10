@@ -133,3 +133,44 @@ test('the retained Courage variant describes its implemented behavior separately
   assert.match(variant.description, /no simulated effects/);
   assert.deepEqual(variant.facts, []);
 });
+
+// The same selected grant feeds the self charge owner, allied delivery, and its announcement.
+test('Quickfire grants selected charges to self or the eligible ally', async () => {
+  const { quickfire } = await import('#gw2/professions/guardian/specializations/firebrand/traits/index.js');
+  const { captureEffectEmissions } = await import('#tests/helpers/effect-emission.js');
+  const { withProfile } = await import('#tests/helpers/catalog-overrides.js');
+  const catalog = guardianProfession.catalog;
+  const profile = catalog.balanceProfilesById.get(TRAIT.QUICKFIRE);
+  const helpers = withProfile(catalog, TRAIT.QUICKFIRE, {
+    effects: profile.effects.map((effect) => ({ ...effect, stacks: 3, duration: 4 }))
+  });
+  for (const alliedPlayerCount of [0, 1]) {
+    const { effects, announcements } = captureEffectEmissions();
+    const state = { ashes: { charges: 0, expiresAt: 0, readyAt: 0 } };
+    const recipients = [];
+    const scheduled = [];
+    const runtime = {
+      time: 2,
+      helpers,
+      effects,
+      profession: { specialization: { kind: 'Firebrand', state } },
+      procs: { claim: () => true },
+      schedule: (...args) => scheduled.push(args),
+      alliedStrikes: { registerRecipients: (create, options) => recipients.push([create(1), options]) }
+    };
+    quickfire.triggers[0].run(runtime, {
+      cause: { skillName: 'Quickness source', resolvedAudience: { alliedPlayerCount } }
+    });
+    assert.equal(announcements[0].announcement.detail, '+3 Ashes of the Just');
+    if (alliedPlayerCount) {
+      assert.equal(recipients[0][0].charges, 3);
+      assert.equal(recipients[0][0].expiresAt, 6);
+      assert.equal(recipients[0][1].maximumAllies, 1);
+      assert.equal(state.ashes.charges, 0);
+    } else {
+      assert.equal(state.ashes.charges, 3);
+      assert.equal(state.ashes.expiresAt, 6);
+      assert.equal(scheduled[0][1], 6);
+    }
+  }
+});

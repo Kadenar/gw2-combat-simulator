@@ -14,7 +14,9 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 export interface BladeswornState extends DragonTriggerState {
   flow: ResourceClock;
+  /** Each skill window retains its selected grant for resource recovery and observations. */
   flowStabilizerWindows: Array<{
+    stacks: number;
     startedAt: number;
     expiresAt: number;
   }>;

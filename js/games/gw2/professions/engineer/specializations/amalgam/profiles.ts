@@ -28,7 +28,6 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: AMALGAM_BALANCE_PROFILE_IDS.morphs,
     name: 'Amalgam Morphs',
     profileKind: 'mechanic',
-    durationMultiplier: 6,
     pulseInterval: 1,
     maximumStacks: 6,
     effects: [{ name: 'Amalgam Morphs', type: 'strike', coefficient: 0.5, hits: 1 }]
@@ -106,7 +105,6 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     durationMultiplier: 8,
     damageMultiplier: 1.1,
     coefficientMultiplier: 1.2,
-    minimumStacks: 1,
     maximumStacks: 2,
     effects: []
   },

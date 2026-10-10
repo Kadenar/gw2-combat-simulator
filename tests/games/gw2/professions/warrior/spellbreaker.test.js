@@ -260,3 +260,30 @@ test('No Escape keeps Insight ordering, actor eligibility, and live profile payl
     if (removed) assert.equal(result.planningState.profession.attackerInsightExpiries.length, 1);
   }
 });
+
+// Kick's defiance rule multiplies occurrences while the selected buff controls each occurrence's grant.
+test('Attackers Insight combines selected stacks with Kick occurrences and preserves its cap', () => {
+  const source = withPatchPreview(warriorProfession, {
+    id: 'insight-count',
+    label: 'Insight count',
+    professions: {
+      warrior: {
+        balanceProfiles: {
+          [TRAIT.ATTACKERS_INSIGHT]: { effects: [{ type: 'buff', name: 'attackers-insight', stacks: 3 }] }
+        }
+      }
+    }
+  });
+  for (const defiant of [false, true]) {
+    const config = {
+      patchId: 'insight-count',
+      selectedSkillIds: [ID.KICK],
+      selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT],
+      target: { defiant }
+    };
+    const result = run(['Kick'], config, source);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(state(result).attackerInsightExpiries.length, defiant ? 5 : 3);
+    assert.deepEqual(run(['Kick', wait(16000)], config, source).planningState.profession.attackerInsightExpiries, []);
+  }
+});

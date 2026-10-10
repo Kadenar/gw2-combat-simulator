@@ -36,26 +36,6 @@ export const testProfession = defineTestProfession({
   id: 'fixture',
   name: 'Fixture',
   catalog,
-  build: {
-    // Keep the fixture on the supported trait-selection contract so generic
-    // architecture tests exercise the same configuration shape as GW2 builds.
-    createBuildDefaults: () => ({
-      schemaVersion: 3,
-      profession: 'fixture',
-      selectedTraitIds: ['fixture.power'],
-      rotation: []
-    }),
-    migrateBuild: (saved) => ({
-      schemaVersion: 3,
-      profession: 'fixture',
-      selectedTraitIds: Array.isArray(saved?.selectedTraitIds) ? saved.selectedTraitIds : [],
-      rotation: Array.isArray(saved?.rotation) ? saved.rotation : []
-    }),
-    validateBuild: (build) => ({
-      valid: build?.profession === 'fixture',
-      errors: build?.profession === 'fixture' ? [] : ['Wrong profession.']
-    })
-  },
   resources: {
     createState: () => ({ charge: 0, controlEvents: 0 })
   },
@@ -64,24 +44,6 @@ export const testProfession = defineTestProfession({
       ...attributes,
       power: attributes.power + (context.config.selectedTraitIds?.includes('fixture.power') ? 100 : 0)
     })
-  },
-  ui: {
-    paletteGroups: () => [
-      {
-        id: 'fixture',
-        label: 'Fixture',
-        skillIds: [900001, 900002]
-      }
-    ],
-    resourceViews: (context) => [
-      {
-        id: 'charge',
-        singular: 'charge',
-        plural: 'charges',
-        maximum: 5,
-        value: context.state?.profession?.charge || 0
-      }
-    ]
   },
   hooks: {
     eventHandlers: {
@@ -93,10 +55,6 @@ export const testProfession = defineTestProfession({
       'control.resolved': (context) => {
         context.profession.controlEvents += 1;
       }
-    },
-    snapshot: (context) => ({
-      charge: context.profession.charge,
-      controlEvents: context.profession.controlEvents
-    })
+    }
   }
 });

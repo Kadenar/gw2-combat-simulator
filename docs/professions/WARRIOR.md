@@ -56,8 +56,8 @@ registering an independent hook would reorder resource changes or same-time even
   target/tether/disenchantment traits.
 - **Bladesworn** — flow replaces adrenaline, gunsaber entry/exit and gating, gunsaber/pistol ammo, armament reloads,
   Dragon Trigger charge conversion, and scaling Dragon Slash packets. Normal weapon swapping is disabled.
-- **Paragon** — 10-point adrenaline cap, chants, motivation, active refrains, periodic motivation drain, and refrain
-  traits.
+- **Paragon** — a 30-point adrenaline pool with a 10-point burst-spending cap, chants, motivation, active refrains,
+  periodic motivation drain, and refrain traits.
 
 ## Dragon Trigger (Bladesworn) rotations
 
@@ -85,5 +85,6 @@ intentional hold from a Flow shortage or processing delay. Imported holds can be
 ## Modeling boundaries
 
 Single-target, outgoing-damage focused. Incoming attacks, active defense, ally healing/revival, projectile interaction,
-pathing, secondary targets, and competitive (PvP/WvW) splits are out of model. Full Counter is treated as triggered when
-cast.
+pathing, secondary targets, and competitive (PvP/WvW) splits are out of model. Full Counter activation spends adrenaline
+and starts recharge, but does not produce an automatic counterattack or successful-burst rewards without an incoming
+attack.

@@ -35,10 +35,10 @@ critical procs, poison, attributes, and companion attributes inside their owning
 as Lingering Magic's companion Concentration stay in the line's `index.ts`. Elite trait helpers remain beside their
 definitions. Pet identity and attribute snapshots live separately from scheduling in `core/mechanics/pet-attributes.ts`;
 the signet passive query does not load slot-skill execution. Soulbeast hooks and modifiers assemble merged-pet
-contributions before manifest registration. Core trait-only completion and swap dispatch lives in `traits/dispatch.ts`.
-Profile consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only skill and mechanic packages.
-Build calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives and Soulbeast archetype
-attributes.
+contributions before manifest registration. Ordered mechanic trigger points deliver completion and swap boundaries to
+definition-local handlers. Profile consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only
+skill and mechanic packages. Build calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives
+and Soulbeast archetype attributes.
 
 Commanded pet recharge captures the accepting companion's incarnation and retains it through shared cooldown projection.
 Received Alacrity is integrated only from that companion's grants and extensions, ending at retirement while preserving

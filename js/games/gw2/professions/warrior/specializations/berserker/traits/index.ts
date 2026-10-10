@@ -132,6 +132,7 @@ export const heatTheSoul = defineTrait({
   balance: {
     effects: [
       { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
+      { name: 'Decapitate quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 2 },
       { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
       { name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 5 }
     ]
@@ -328,13 +329,13 @@ function heatTheSoulCompletion(runtime: Runtime, cast: RuntimeCast<WarriorSkill>
       transform: (event) => ({
         ...event,
         name: profile.name,
-        duration:
-          event.kind === 'quickness' && cast.skill.id === ID.DECAPITATE
-            ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER), 'resourceGain')
-            : event.duration,
         audience: { recipients: 'party' }
       }),
-      effects: (effect) => effect.type === 'boon'
+      // Select exactly one Quickness variant before materialization so live boon duration applies once.
+      effects: (effect) =>
+        effect.type === 'boon' &&
+        (effect.boon !== 'quickness' ||
+          effect.name === (cast.skill.id === ID.DECAPITATE ? 'Decapitate quickness' : 'quickness'))
     });
   }
 }

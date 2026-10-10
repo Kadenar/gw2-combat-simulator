@@ -751,3 +751,66 @@ test('release choices honor insertion-time charges, actual regeneration, and the
   });
   assert.deepEqual(closed.rows, []);
 });
+
+// Selected Positive Flow counts survive independently until each window expires, in resources and observations.
+test('Flow Stabilizer uses authored stacks for regeneration and both observations', async () => {
+  const { bladeswornEffectStates } =
+    await import('#gw2/professions/warrior/specializations/bladesworn/effect-state.js');
+  const source = withPatchPreview(warriorProfession, {
+    id: 'flow-count',
+    label: 'Flow count',
+    professions: {
+      warrior: {
+        skills: { [ID.FLOW_STABILIZER]: { effects: [{ type: 'buff', name: 'Positive Flow', stacks: 3, duration: 1 }] } }
+      }
+    }
+  });
+  const config = { patchId: 'flow-count', selectedSkillIds: [ID.FLOW_STABILIZER] };
+  const result = run(['Flow Stabilizer', wait(400), 'Flow Stabilizer', wait(800)], config, source);
+  assert.deepEqual(result.warnings, []);
+  close(state(result).flow.value, 25.8);
+  assert.equal(state(result).flowStabilizerWindows.length, 1);
+  assert.equal(state(result).flowStabilizerWindows[0].stacks, 3);
+  const effects = bladeswornEffectStates(observedRuntime(result));
+  assert.equal(
+    effects.find((effect) => effect.kind === 'positive-flow').windows.find((entry) => entry.expiresAt > 1.2).stacks,
+    3
+  );
+  const display = source.ui.rotationStateSnapshot({
+    balanceContext: source.balanceContextFor('flow-count'),
+    specialization: 'Bladesworn',
+    professionState: result.planningState.profession,
+    atSeconds: 1.2,
+    result
+  });
+  assert.match(display.find((item) => item.id === 'positive-flow').value, /^3 stacks/);
+  const expired = run(['Flow Stabilizer', wait(400), 'Flow Stabilizer', wait(1000)], config, source);
+  close(state(expired).flow.value, 27);
+  assert.deepEqual(state(expired).flowStabilizerWindows, []);
+});
+
+// Ammunition spent multiplies the selected trait grant rather than replacing it.
+test('Fierce as Fire scales its authored grant by committed ammunition', () => {
+  const source = withPatchPreview(warriorProfession, {
+    id: 'fierce-count',
+    label: 'Fierce count',
+    professions: {
+      warrior: {
+        balanceProfiles: { [TRAIT.FIERCE_AS_FIRE]: { effects: [{ type: 'buff', name: 'fierce-as-fire', stacks: 3 }] } }
+      }
+    }
+  });
+  const result = run(
+    ['Unsheathe Gunsaber', 'Artillery Slash'],
+    {
+      patchId: 'fierce-count',
+      selectedTraitIds: [TRAIT.FIERCE_AS_FIRE]
+    },
+    source
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.FIERCE_AS_FIRE).stacks,
+    6
+  );
+});

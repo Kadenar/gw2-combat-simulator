@@ -528,8 +528,8 @@ effects, including eligibility, replacement rewards, duration, and sharing. A sk
 skill execution must not depend on a trait dispatcher. A mechanic fires ordered trigger points around intrinsic work,
 capturing the accepted cast/cause and any pre-transition values its listeners require. Each point declares the complete
 listener order, including Core and elite listeners when needed. `fireTrigger` runs synchronously, so nested boundaries
-settle before the firing mechanic continues. The [trait ownership contract](trait-ownership/README.md) and
-[current inventory](trait-ownership/CURRENT-INVENTORY.md) document the completed migration and retained exceptions.
+settle before the firing mechanic continues. Trait handlers live beside their definitions; the maintained
+[profession guides](../professions/) describe each family's owners and ordering boundaries.
 
 New trait rewards, counters, armed states and recurring-loop startup register under `triggers`. Platform stages use
 `{ on: 'castCommit', ... }` or resolver stage names; mechanic points use `onTriggerPoint(point, reaction)` to bind the
@@ -553,11 +553,11 @@ effects. Imperative attribute modifiers stay under the module's modifier contrac
 When an owner exports a complete `RuntimeHooks` contribution, register it with `composeRuntimeHooks` rather than copying
 selected fields or spreading whole hook objects. The composer preserves notification/transform ordering and rejects
 duplicate named task, event, and action handlers. Spreading handler maps before composition hides duplicate keys; use
-separate contributions when owners should remain independent. Retain explicit dispatch where callbacks must interleave.
-Trait value/lifetime contributions run before explicit module hooks, and Core runs before the selected elite. Compiled
-point listeners instead follow the mechanic's profession-wide order list. Moving a callback between those locations
-requires reviewing phase, selection and ordering. Profession-level hooks retain their full mechanic capabilities; the
-restricted trait API does not replace them.
+separate contributions when owners should remain independent. Use ordered mechanic trigger points where trait callbacks
+must interleave intrinsic work. Trait value/lifetime contributions run before explicit module hooks, and Core runs
+before the selected elite. Compiled point listeners instead follow the mechanic's profession-wide order list. Moving a
+callback between those locations requires reviewing phase, selection and ordering. Profession-level hooks retain their
+full mechanic capabilities; the restricted trait API does not replace them.
 
 Ordinary trait profiles and triggered skills use `emitTraitProfile` or `invokeTraitSkill`, both backed by the shared
 materializer. Stateful choices and real custom delivery remain with their owner: finite charges, captured windows,
@@ -609,7 +609,6 @@ core/
 │   └── shroud-lifecycle.ts
 └── traits/
     ├── index.ts
-    ├── dispatch.ts           shared ordering across lines, when needed
     └── <trait-line>/
         ├── index.ts          definitions and small helpers
         └── <concept>.ts      substantial support or an independent dependency boundary, when needed

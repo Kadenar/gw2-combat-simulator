@@ -44,7 +44,6 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'mechanic',
     maximumStacks: 100,
     energyRegenerationPerSecond: 2,
-    resourceGain: 4,
     attributePerStack: 2,
     effects: []
   },

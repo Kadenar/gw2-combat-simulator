@@ -16,39 +16,39 @@ test('Lethal Tempo uses patched caps and trait windows without sharing phase sta
         id: TRAIT.LETHAL_TEMPO,
         name: 'Lethal Tempo',
         profileKind: 'trait',
-        maximumStacks: 2,
-        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 9 }]
+        maximumStacks: 5,
+        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 2, duration: 9 }]
       },
       {
         id: TRAIT.TYRANTS_MOMENTUM,
         name: "Tyrant's Momentum",
         profileKind: 'trait',
-        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 3 }]
+        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 3, duration: 3 }]
       }
     ]
   });
-  for (const [traits, duration] of [
-    [[], 9],
-    [[TRAIT.TYRANTS_MOMENTUM], 3]
+  for (const [traits, duration, stacks] of [
+    [[], 9, 2],
+    [[TRAIT.TYRANTS_MOMENTUM], 3, 3]
   ]) {
     const parameters = lethalTempoParameters({ catalog, traits: new Set(traits) });
-    assert.deepEqual(parameters, { maximumStacks: 2, duration });
+    assert.deepEqual(parameters, { maximumStacks: 5, duration, stacks });
     const scheduler = { lethalTempo: { stacks: 0, expiresAt: 0 } };
     const resolver = { ...scheduler };
     // Grants refresh at the cap through expiry; only a later grant starts a new stack window.
-    assert.equal(grantTempo(scheduler, 0, parameters), 1);
-    assert.equal(grantTempo(scheduler, 1, parameters), 2);
-    assert.equal(grantTempo(scheduler, 2, parameters), 2);
-    assert.equal(activeLethalTempo(scheduler, 2 + duration), 2);
-    assert.equal(grantTempo(scheduler, 2 + duration, parameters), 2);
-    assert.equal(grantTempo(scheduler, 2 + 2 * duration + 0.000001, parameters), 1);
-    assert.equal(grantTempo(resolver, 1, parameters), 1);
+    assert.equal(grantTempo(scheduler, 0, parameters), stacks);
+    assert.equal(grantTempo(scheduler, 1, parameters), Math.min(5, stacks * 2));
+    assert.equal(grantTempo(scheduler, 2, parameters), 5);
+    assert.equal(activeLethalTempo(scheduler, 2 + duration), 5);
+    assert.equal(grantTempo(scheduler, 2 + duration, parameters), 5);
+    assert.equal(grantTempo(scheduler, 2 + 2 * duration + 0.000001, parameters), stacks);
+    assert.equal(grantTempo(resolver, 1, parameters), stacks);
     assert.equal(resolver.lethalTempo.expiresAt, 1 + duration);
   }
 });
 
 test('Lethal Tempo refreshes existing stacks through its rounded expiry tick', () => {
-  const parameters = { maximumStacks: 5, duration: 6 };
+  const parameters = { maximumStacks: 5, duration: 6, stacks: 1 };
   for (const at of [6.001, 6.02, 6.039999, 6.04, 6.040001]) {
     const state = { lethalTempo: { stacks: 0, expiresAt: 0 } };
     assert.equal(activeLethalTempo(state, 0), 0);
@@ -69,7 +69,15 @@ function grantTempo(state, at, parameters) {
         name: 'Lethal Tempo',
         profileKind: 'trait',
         maximumStacks: parameters.maximumStacks,
-        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: parameters.duration }]
+        effects: [
+          {
+            type: 'buff',
+            name: 'lethal-tempo',
+            kind: 'lethal-tempo',
+            stacks: parameters.stacks,
+            duration: parameters.duration
+          }
+        ]
       }
     ]
   });
@@ -85,3 +93,27 @@ function grantTempo(state, at, parameters) {
     .run(runtime, { cause: { at, skillName: 'Fixture' } });
   return state.lethalTempo.stacks;
 }
+
+// Supplied state is an absolute count even when ordinary triggers grant multiple stacks.
+test('Lethal Tempo initialization does not multiply imported stacks by the selected grant', () => {
+  const catalog = createCanonicalCatalog({
+    balanceProfiles: [
+      {
+        id: TRAIT.LETHAL_TEMPO,
+        name: 'Lethal Tempo',
+        profileKind: 'trait',
+        maximumStacks: 5,
+        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 6, stacks: 3 }]
+      }
+    ]
+  });
+  const state = { lethalTempo: { stacks: 0, expiresAt: 0 } };
+  lethalTempo.hooks.initialize({
+    time: 0,
+    catalog,
+    traits: new Set(),
+    config: { initialBuffs: [{ kind: 'lethal-tempo', stacks: 2, duration: 20 }] },
+    profession: { specialization: { kind: 'Willbender', state } }
+  });
+  assert.deepEqual(state.lethalTempo, { stacks: 2, expiresAt: 20 });
+});

@@ -1,8 +1,6 @@
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import {
@@ -31,48 +29,6 @@ export function petDerivedConditionMetadata(
     ...rangerPetCombatMetadata(context),
     summonOwner: event.summonOwner ?? rangerPetCompanionId(context)
   };
-}
-
-export function buildRangerBleeding(
-  context: RangerResolverContext,
-  event: Gw2ResolverEvent,
-  duration: number,
-  sourceId: number,
-  name: string,
-  stacks = 1
-): SimulationEventBase {
-  // Preserve the Bleeding row label while sharing condition ownership and packet construction.
-  return buildRangerCondition(context, event, 'Bleeding', duration, stacks, sourceId, name, `${name} — Bleeding`);
-}
-
-export function buildRangerCondition(
-  context: RangerResolverContext,
-  event: Gw2ResolverEvent,
-  condition: string,
-  duration: number,
-  stacks: number,
-  sourceId: number,
-  name: string,
-  displayName = `${name} - ${condition}`
-): SimulationEventBase {
-  const petSource = isPetStrike(event);
-  // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
-  return buildResolverCondition({
-    ...petDerivedConditionMetadata(context, event),
-
-    at: event.at,
-    source: petSource ? 'ranger-pet' : 'Trait',
-    sourceId,
-    actorType: petSource ? 'summon' : 'effect',
-    ownerActorType: petSource ? undefined : 'player',
-    skillId: sourceId,
-    skillName: name,
-    name: displayName,
-    condition,
-    duration,
-    stacks,
-    triggeredBy: event.skillName
-  });
 }
 
 export function isPlayerStrike(event: Gw2ResolverEvent): boolean {

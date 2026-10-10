@@ -147,7 +147,7 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
       const cast = context.cast;
       const state = firebrandState.from(runtime);
       state.activeTome = '';
-      runtime.fireTrigger(tomeStowed, { cast });
+      runtime.fireTrigger(tomeStowed, {});
       runtime.effects.emit({
         kind: 'packet',
         event: {
@@ -201,7 +201,7 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
     'damage.resolved'(runtime, event, details) {
       if (event.actorType === 'player' && ((details as NativeResolvedDamageDetails).hitContext?.damage ?? 0) > 0) {
         reactToAshesHit(runtime, event, details);
-        runtime.fireTrigger(firebrandStruck, { cause: event, details });
+        runtime.fireTrigger(firebrandStruck, { cause: event });
       }
 
       reactToTomeJusticeHit(runtime, event, details);

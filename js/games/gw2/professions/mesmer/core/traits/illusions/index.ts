@@ -331,25 +331,22 @@ function triggerCompoundingPower(
       skillId: TRAIT.COMPOUNDING_POWER,
       skillName: traitProfile.name
     };
-    const options: { detail?: string; announce?: boolean } = { detail };
     if (grants.length) {
-      const proc =
-        options.announce !== false
-          ? context.effects.emit({
-              receipt: true,
-              ...delivery,
-              kind: 'announcement',
-              log: true,
-              attribution: { ...traitSource, actorType: 'effect' },
-              announcement: {
-                type: 'trait',
-                name: traitProfile.name,
-                at: at,
-                sourceSkill: sourceSkill,
-                detail: options.detail ?? ''
-              }
-            })
-          : undefined;
+      // The announcement receipt parents each granted stack's delivery.
+      const proc = context.effects.emit({
+        receipt: true,
+        ...delivery,
+        kind: 'announcement',
+        log: true,
+        attribution: { ...traitSource, actorType: 'effect' },
+        announcement: {
+          type: 'trait',
+          name: traitProfile.name,
+          at: at,
+          sourceSkill: sourceSkill,
+          detail
+        }
+      });
       for (const grant of grants)
         context.effects.emit({
           ...delivery,

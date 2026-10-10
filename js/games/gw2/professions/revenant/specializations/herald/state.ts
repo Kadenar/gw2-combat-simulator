@@ -7,10 +7,9 @@ export interface HeraldState {
   /** Consumed passives retain their window and legend without retaining upkeep drain. */
   lingeringFacets: Record<string, { startsAt: number; expiresAt: number; legendId: string }>;
   facetPulseReadyAt: Record<string, number>;
-  /** Assassin Nature's life-steal cooldown, claimed when a landed strike resolves. */
 }
 
-// Keep Herald ICDs private so threshold re-entry and rapid boon packets cannot reset either trait's cadence.
+// Own facet pulse readiness, retained passives, and the pending Elevated Compassion pulse.
 export function createHeraldState(): HeraldState {
   return {
     elevatedCompassionPulseAt: null,

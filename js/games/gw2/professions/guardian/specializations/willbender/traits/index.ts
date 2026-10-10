@@ -50,14 +50,17 @@ export const lethalTempo = defineTrait({
     })
   ],
   hooks: {
-    /** Initial Tempo uses its normal grant function, retaining the selected cap and subsequent refresh behavior. */
+    /** Imported stacks are absolute counts, while retaining the selected cap and refresh behavior. */
     initialize(runtime) {
       const parameters = lethalTempoParameters(runtime);
       if (!parameters) return;
       for (const buff of runtime.config.initialBuffs ?? []) {
         if (buff.kind !== 'lethal-tempo') continue;
-        for (let i = 0; i < Math.min(buff.stacks, parameters.maximumStacks); i++)
-          gainLethalTempo(willbenderState.from(runtime), runtime.time, { ...parameters, duration: buff.duration });
+        gainLethalTempo(willbenderState.from(runtime), runtime.time, {
+          ...parameters,
+          stacks: buff.stacks,
+          duration: buff.duration
+        });
       }
     }
   },
@@ -345,13 +348,13 @@ function phoenixAudience(runtime: Runtime): (authored: BoonAudience) => BoonAudi
 function gainLethalTempo(
   state: GuardianWillbenderState,
   at: number,
-  { maximumStacks, duration }: NonNullable<ReturnType<typeof lethalTempoParameters>>
+  { maximumStacks, duration, stacks }: NonNullable<ReturnType<typeof lethalTempoParameters>>
 ): number {
   // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
   at = canonicalTime(at);
   state.lethalTempo = grantRefreshedStacks(
     state.lethalTempo,
-    1,
+    stacks,
     at,
     gw2EffectExpiresAt(at, duration),
     maximumStacks,

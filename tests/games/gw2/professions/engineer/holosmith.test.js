@@ -1172,3 +1172,50 @@ test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {
 });
 
 // Restoring scheduler resources must not rewind trait clocks already advanced by the resolver.
+
+// Positive heat-factor reductions preserve player ownership and captured heat.
+test('Holosmith positive strike factors below one apply and retain delayed captures', () => {
+  const rule = holosmithModifierRules.find((candidate) => candidate.id === 'engineer.enhanced-capacity-damage-tier');
+  const native = engineerProfession.runtimeFor({ specialization: 'Holosmith', selectedTraitIds: [] });
+  for (const factor of [0.5, 1, 1.3]) {
+    const context = {
+      time: 0,
+      config: { selectedTraitIds: [] },
+      catalog: engineerCatalog,
+      profession: {
+        core: createEngineerCoreState(),
+        specialization: { kind: 'Holosmith', state: createHolosmithState() }
+      },
+      event: { actorType: 'player', holosmithStrikeFactor: factor }
+    };
+    assert.equal(rule.when(context), true);
+    assert.equal(native.modifyStrikeDamage(context, 1), factor);
+    assert.equal(rule.when({ ...context, event: { ...context.event, actorType: 'summon' } }), false);
+  }
+
+  const catalog = applyBalanceProfilePatch(engineerCatalog, {
+    balanceProfiles: {
+      [HOLOSMITH_BALANCE_PROFILE_IDS.swordHeatTier]: { fields: { highStrikeFactor: 0.4 } }
+    }
+  });
+  const context = {
+    catalog,
+    config: { selectedTraitIds: [] },
+    profession: {
+      specialization: {
+        kind: 'Holosmith',
+        state: { heat: { value: 75 } }
+      }
+    },
+    event: { actorType: 'player', holosmithStrikeProfileId: HOLOSMITH_BALANCE_PROFILE_IDS.swordHeatTier }
+  };
+  assert.equal(rule.factor(context, 'strikeDamage', rule.parameters), 0.4);
+  assert.equal(
+    rule.factor(
+      { ...context, event: { ...context.event, holosmithStrikeFactor: 0.25 } },
+      'strikeDamage',
+      rule.parameters
+    ),
+    0.25
+  );
+});

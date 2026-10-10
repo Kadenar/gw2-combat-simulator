@@ -341,7 +341,7 @@ export const unrelentingCriticism = defineTrait({
   ]
 });
 
-/** Delivered Quickness grants one allied or self Ashes charge and retains passive Justice. */
+/** Delivered Quickness grants authored allied or self Ashes charges and retains passive Justice. */
 export const quickfire = defineTrait({
   id: TRAIT.QUICKFIRE,
   name: 'Quickfire',
@@ -486,7 +486,7 @@ function grantStalwartSpeed(runtime: Runtime, { cause: boonCause }: FirebrandBuf
   });
 }
 
-/** Delivered Quickness grants one allied or self Ashes charge once both the charge and its Burning survive. */
+/** Delivered Quickness grants the selected allied or self Ashes count once both the charge and Burning survive. */
 function grantQuickfireAshes(runtime: Runtime, { cause: event }: FirebrandBuffApplication): void {
   const state = firebrandState.from(runtime);
   const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
@@ -496,15 +496,16 @@ function grantQuickfireAshes(runtime: Runtime, { cause: event }: FirebrandBuffAp
   const burn = requireEffect(ashes, 'condition', 'Burning');
   if (!buff || !burn || !runtime.procs.claim(TRAIT.QUICKFIRE, 'guardian.firebrand.quickfire', runtime.time)) return;
   const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(profile, buff, 'duration'));
+  const stacks = effectNumber(profile, buff, 'stacks');
   if (allies > 0)
-    alliedAshes(runtime, event, 1, expiresAt - runtime.time, {
+    alliedAshes(runtime, event, stacks, expiresAt - runtime.time, {
       maximumAllies: 1,
       priority: 5,
       skillName: 'Quickfire',
       name: 'Quickfire'
     });
   else {
-    state.ashes = grantCharges(1, expiresAt, state.ashes, runtime.time);
+    state.ashes = grantCharges(stacks, expiresAt, state.ashes, runtime.time);
     state.ashesBurnDuration = effectNumber(ashes, burn, 'duration');
     runtime.schedule(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, undefined, 10);
   }
@@ -516,7 +517,7 @@ function grantQuickfireAshes(runtime: Runtime, { cause: event }: FirebrandBuffAp
       name: 'Quickfire',
       at: runtime.time,
       sourceSkill: event.skillName,
-      detail: '+1 Ashes of the Just',
+      detail: `+${stacks} Ashes of the Just`,
       icon: guardianTraitIcon(TRAIT.QUICKFIRE)
     }
   });

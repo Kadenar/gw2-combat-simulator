@@ -22,11 +22,10 @@ export const holosmithModifierRules = Object.freeze<readonly Gw2ModifierRule[]>(
     operation: 'multiply',
     parameters: { defaultFactor: 1 },
     // Heat-sensitive emitters own skill selection and tuning; this rule applies
-    // either a delayed packet's captured factor or a direct packet's live profile tier.
+    // either a delayed packet's captured factor or a direct packet's live profile tier, including positive reductions below one.
     factor: (context, _target, parameters) =>
       holosmithEventStrikeFactor(context, context.event || {}, parameters.defaultFactor),
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) && holosmithEventStrikeFactor(context, context.event || {}) > 1
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
   }
 ]);
 

@@ -22,7 +22,7 @@ in a given runtime.
   cancellation.
 - **Herald** — facet upkeep and consume flips.
 - **Renegade** — warband actor ownership and Soulcleave strike reactions.
-- **Vindicator** — Alliance-side state and explicit dodge selection.
+- **Vindicator** — legend skills, trait-selected dodge variants, and Energy Meld; shared legend state remains in Core.
 - **Conduit** — affinity, legend-specific Release Potential, and Cosmic Wisdom state.
 
 ## Modeling boundaries
@@ -39,27 +39,28 @@ Invocation, Retribution, and Salvation; the Core index preserves their registrat
 registers its traits in `traits/index.ts`. Generated selection metadata remains in `data/`; module profiles retain
 shared mechanics and skill variants.
 
-Core runtime callers import helpers from their owning trait-line folders. Assassin's Presence, Vicious Reprisal, and
-small Salvation helpers stay beside their definitions; substantial Battle Scars and invocation behavior have support
-files within their lines. Core `traits/dispatch.ts` retains trait-only sequencing; mixed skill and trait on-hit behavior
-lives in `mechanics/reactions.ts`. Energy and Endurance policies live in `mechanics/resources.ts`. Renegade's Heroic
-Command, warband, and Soulcleave behavior lives with skills. Conduit separates form transitions, Affinity policy/gains,
-and form attack/release skills. Its cap reward and Herald's Draconic Echo duration remain trait policies called at the
-existing mechanic boundary. Herald's Draconic Echo duration helper is co-located in `traits/index.ts`;
-`mechanics/facets.ts` owns facet scheduling and eligibility, and `modifiers.ts` assembles passive attributes. Conduit's
-`traits/cap-rewards.ts` remains separate to avoid a cycle through Affinity gains. Elite substantial helpers can still
-use `traits/behavior.ts`. The Alliance Spirit Boon profile identifier lives directly in `family-state.ts` so its
-initialization is independent of Vindicator behavior. Renegade and Vindicator compose their attribute callbacks directly
-in `module.ts`.
+Core runtime callers import helpers from their owning trait-line folders. Assassin's Presence, Vicious Reprisal, Battle
+Scars grants, invocation rewards, and Salvation helpers stay beside their definitions. Ordered points in
+`core/mechanics/boundaries.ts` deliver trait reactions; `mechanics/reactions.ts` interleaves them with intrinsic on-hit
+work. Energy and Endurance policies live in `mechanics/resources.ts`. Renegade's Heroic Command, warband, and Soulcleave
+behavior lives with skills. Conduit separates form transitions, Affinity policy/gains, and form attack/release skills.
+Its cap reward and Herald's Draconic Echo duration remain trait policies called at the existing mechanic boundary.
+Herald's Draconic Echo duration helper is co-located in `traits/index.ts`; `mechanics/facets.ts` owns facet scheduling
+and eligibility, and `modifiers.ts` assembles passive attributes. Conduit's cap rewards live in `traits/index.ts` and
+listen to the Affinity mechanic's ordered grant boundary. Elite substantial helpers can still use `traits/behavior.ts`.
+`family-state.ts` supplies elite Song of the Mists skill IDs without loading their runtime behavior; Spirit Boon's
+legend effects belong to its Core definition. Renegade and Vindicator compose their attribute callbacks directly in
+`module.ts`.
 
 The build finalizer composes `revenantProfession.traitBuildAttributes`; static contributions and live adjustments retain
 their existing provenance. Spirit Boon's legend-specific profiles now belong to its single Core definition; their stable
 profile IDs remain patch targets.
 
-Explicit owner calls preserve execution order where trait reactions interleave mechanics:
+Ordered mechanic trigger points preserve execution order where definition-local trait handlers interleave mechanics:
 
-- Core cast rewards precede Herald consumes, Renegade commands, and Conduit form/ammo transitions. The dispatcher
-  prevents double publication. Legend invocations remain Fury, Spirit Boon, Song of the Mists, then Invoke Torment.
+- Core cast rewards precede Herald consumes, Renegade commands, and Conduit form/ammo transitions. Compiled listeners
+  publish each reward at its declared boundary. Legend invocations remain Fury, Spirit Boon, Song of the Mists, then
+  Invoke Torment.
 - Charged Mists samples pre-reset Energy; Enduring Recovery adds to Vigor before the endurance cap. Landed strikes catch
   up Thrill of Combat, consume Battle Scars, apply Vicious Reprisal and Expose Defenses, then consume skill-owned
   Enchanted Daggers charges.

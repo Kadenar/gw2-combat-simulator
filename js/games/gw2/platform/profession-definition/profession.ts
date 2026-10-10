@@ -473,7 +473,7 @@ export function defineNativeProfession<
     const projectors = selected.flatMap((module) =>
       module.state.project ? [module.state.project as (input: unknown) => object] : []
     );
-    const source = defineProfession<State, object, TSkill>({
+    const source = defineProfession<State, TSkill>({
       id: definition.id,
       name: definition.name,
       canSwapWeaponSetsInCombat: elite?.canSwapWeaponSetsInCombat ?? core.canSwapWeaponSetsInCombat ?? true,

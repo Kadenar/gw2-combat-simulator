@@ -195,7 +195,8 @@ function gainAttackersInsight(
   state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
     at,
     expiresAt: canonicalTime(at + effectNumber(attackersInsightProfile, effect, 'duration')),
-    count: Math.max(1, Math.trunc(applications)),
+    // Kick's occurrence multiplier scales the selected per-application grant.
+    count: Math.max(1, Math.trunc(applications)) * effectNumber(attackersInsightProfile, effect, 'stacks'),
     maximumStacks: balanceProfileNumber(attackersInsightProfile, 'maximumStacks'),
     retain: 'newest-grant'
   });

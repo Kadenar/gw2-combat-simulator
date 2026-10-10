@@ -481,3 +481,23 @@ test('Life Siphon previews its Bleeding-target bonus without applying actual Ble
 
   assert.ok(totals[1] > totals[0]);
 });
+
+// Revealed changes Revealed Training; Hidden Killer's actual preview input is Stealth.
+test('Hidden Killer exposes Stealth without an ineffective Revealed control', () => {
+  const hidden = previewApp('thief', ['Hidden Killer']);
+  const revealed = previewApp('thief', ['Revealed Training']);
+  for (const controls of [skillDamageControls, attributeEffectControls]) {
+    assert.equal(
+      controls(hidden).some((control) => control.key === 'revealed'),
+      false
+    );
+    assert.equal(
+      controls(hidden).some((control) => control.key === 'stealth'),
+      true
+    );
+    assert.equal(
+      controls(revealed).some((control) => control.key === 'revealed'),
+      true
+    );
+  }
+});

@@ -41,16 +41,16 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 - `core/mechanics/` and specialization `mechanics/` directories — resources, availability, state transitions, and event
   behavior.
 - `core/traits/` — five trait-line folders own 36 definitions in their `index.ts` files; the parent `index.ts` preserves
-  registration order. `dispatch.ts` preserves cross-line reactions. Supporting behavior lives in the owning line:
-  `alchemy/elixirs.ts`, `explosives/explosions.ts`, `firearms/condition-procs.ts`, `firearms/modifiers.ts`,
-  `firearms/critical-procs.ts`, `firearms/emissions.ts`, and `tools/toolbelt.ts`. Mechanics retain kit/toolbelt state
-  and cooldown execution.
+  registration order. `core/mechanics/activations.ts` declares ordered trigger points for definition-local handlers.
+  Alchemy and Firearms reactions live in their line's `index.ts`; supporting behavior includes
+  `explosives/explosions.ts`, `firearms/modifiers.ts`, and `tools/toolbelt.ts`. Mechanics retain kit/toolbelt state and
+  cooldown execution.
 - `specializations/scrapper/traits/index.ts` — eight registered definitions own gyro triggers, Function Gyro ammo, combo
   rewards, build conversion, and the live Stability pulse. `traits/behavior.ts` includes Kinetic Accelerators combo
   rewards; Scrapper state retains the pending pulse timestamp.
 - `specializations/holosmith/traits/index.ts` — seven definitions own heat policies, Lens grants/consumption, Forge
-  action eligibility, and trait modifiers. `traits/behavior.ts` includes Solar Focusing Lens grants and consumption;
-  mechanics retain heat cadence and transition sequencing.
+  action eligibility, and trait modifiers. Solar Focusing Lens grants and consumption live in that same `index.ts`;
+  `traits/heat.ts` supplies heat policies, while mechanics retain heat cadence and transition sequencing.
 - `specializations/mechanist/traits/index.ts` — ten definitions own command rows, arm procs, frame inheritance, and
   core/signet adjustments; mechanics retain the independent mech lane and packet ownership.
 - `specializations/amalgam/traits/index.ts` — nine definitions own Morph/Evolve payoffs, trait build contributions,

@@ -296,7 +296,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const positiveFlowSources = (state.flowStabilizerWindows || [])
       .filter((candidate) => candidate.startedAt <= at && candidate.expiresAt > at)
       .map((candidate) => ({
-        stacks: 2,
+        stacks: candidate.stacks,
         expiresAt: candidate.expiresAt
       }));
     if ((state.traitPositiveFlowStartedAt || 0) <= at && (state.traitPositiveFlowUntil || 0) > at) {

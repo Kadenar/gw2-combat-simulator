@@ -1,8 +1,6 @@
-import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
-import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -53,11 +51,7 @@ export interface ProfessionModifierDefinition {
   };
 }
 
-export interface ProfessionDefinition<
-  TProfessionState extends object = object,
-  TBuild extends object = object,
-  TSkill extends Skill = Skill
-> {
+export interface ProfessionDefinition<TProfessionState extends object = object, TSkill extends Skill = Skill> {
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   /** Equipment stays universal; this capability restricts only swaps after combat begins. */
@@ -65,10 +59,8 @@ export interface ProfessionDefinition<
   readonly id: string;
   readonly name: string;
   readonly catalog?: CanonicalCatalog<TSkill>;
-  readonly build?: ProfessionBuildDefinition<TBuild>;
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
   readonly modifiers?: ProfessionModifierDefinition;
-  readonly ui?: Partial<ProfessionUiContract>;
 }
 
 export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {

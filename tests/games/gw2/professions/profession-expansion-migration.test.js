@@ -147,7 +147,8 @@ function assertEventDescriptors(entry, profession) {
 
     for (const type of Object.keys(runtime.eventHandlers ?? {})) {
       const descriptor = profession.ui.eventLogRow?.(
-        { specialization, config: { specialization } },
+        // Presentation reads selected balance from the same canonical catalog as the runtime.
+        { specialization, config: { specialization }, catalog: runtime.catalog },
         { ...baseEvent, type }
       );
 

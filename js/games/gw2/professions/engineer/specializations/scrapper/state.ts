@@ -4,7 +4,7 @@ export interface ScrapperState {
   massMomentumAt: number;
 }
 
-/** Creates Scrapper's whirl-only Kinetic Accelerators cooldown state. */
+/** Creates Scrapper's pending Mass Momentum pulse state. */
 export function createScrapperState(): ScrapperState {
   return {
     massMomentumAt: Infinity

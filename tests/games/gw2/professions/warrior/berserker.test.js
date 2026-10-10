@@ -273,3 +273,40 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
     }
   }
 });
+
+// Heat the Soul owns both Quickness variants; unrelated Smash Brawler tuning cannot change either packet.
+test('Heat the Soul selects its own Decapitate variant and tooltip independently of Smash Brawler', async () => {
+  const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
+  const source = withPatchPreview(warriorProfession, {
+    id: 'heat-duration',
+    label: 'Heat duration',
+    professions: {
+      warrior: {
+        balanceProfiles: {
+          [TRAIT.SMASH_BRAWLER]: { fields: { resourceGain: 9 } },
+          [TRAIT.HEAT_THE_SOUL]: { effects: [{ type: 'boon', name: 'Decapitate quickness', duration: 3 }] }
+        }
+      }
+    }
+  });
+  for (const [primaryWeapon, burst, expected] of [
+    ['Axe', 'Decapitate', 3],
+    ['Greatsword', 'Arc Divider', 5]
+  ]) {
+    const result = run(
+      ['Berserk', burst],
+      { patchId: 'heat-duration', primaryWeapon, selectedTraitIds: [TRAIT.SMASH_BRAWLER, TRAIT.HEAT_THE_SOUL] },
+      source
+    );
+    assert.deepEqual(result.warnings, []);
+    const quickness = result.events.filter(
+      (event) => event.sourceId === TRAIT.HEAT_THE_SOUL && event.kind === 'quickness'
+    );
+    assert.equal(quickness.length, 1);
+    assert.equal(quickness[0].duration, expected);
+  }
+
+  const context = source.balanceContextFor('heat-duration');
+  const tooltip = warriorTooltips.traits[TRAIT.HEAT_THE_SOUL](context, { id: TRAIT.HEAT_THE_SOUL });
+  assert.ok(tooltip.facts.some((fact) => /Decapitate/.test(fact.detail) && /3s/.test(fact.detail)));
+});

@@ -38,7 +38,7 @@ export function bandTogetherReady(runtime: MechanicQueriesOf<RevenantRuntime>, s
   );
 }
 
-/** Adds one Kalla's Fervor stack; at the cap it replaces the soonest-expiring stack so hits sustain Fervor. */
+/** Grants the selected Fervor count, replacing the soonest-expiring stacks at the cap so hits sustain Fervor. */
 export function grantKallasFervor(
   runtime: RevenantRuntime,
   { sourceId, sourceName, cause = null }: { sourceId: SkillId; sourceName: string; cause?: Gw2ResolverEvent | null }
@@ -51,10 +51,14 @@ export function grantKallasFervor(
   const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
   state.kallasFervorMaximumStacks = maximum;
   state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
-  if (activeKallasFervorStacks(state, runtime.time, maximum) >= maximum)
-    state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
   const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
-  state.kallasFervor.push({ at: runtime.time, expiresAt: runtime.time + duration });
+  const stacks = Math.max(0, Math.floor(effectNumber(profile, effect, 'stacks')));
+  for (let index = 0; index < stacks; index++) {
+    if (activeKallasFervorStacks(state, runtime.time, maximum) >= maximum)
+      state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
+    state.kallasFervor.push({ at: runtime.time, expiresAt: runtime.time + duration });
+  }
+
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -69,7 +73,7 @@ export function grantKallasFervor(
         name: `${sourceName} — Kalla's Fervor`,
         kind: String(effect.kind),
         duration,
-        stacks: effectNumber(profile, effect, 'stacks')
+        stacks
       },
       fixedDuration: true
     },

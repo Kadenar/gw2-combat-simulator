@@ -173,14 +173,15 @@ export const thiefCoreUi = Object.freeze({
         description: 'Autoattack axes available before setup; expiry and recall follow the runtime'
       });
 
-    if (preview.has('Revealed Training', 'Hidden Killer'))
+    // Revealed only affects Revealed Training; Hidden Killer uses the separate Stealth preview.
+    if (preview.has('Revealed Training'))
       preview.add({
         key: 'revealed',
         scope: ['attributes', 'damage'],
         label: 'Revealed',
         group: 'Trait conditionals',
         kind: 'special',
-        description: 'Revealed Training / Hidden Killer'
+        description: 'Revealed Training'
       });
     preview.trait('Hidden Killer', {
       key: 'stealth',

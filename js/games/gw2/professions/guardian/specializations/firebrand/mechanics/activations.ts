@@ -1,6 +1,5 @@
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -16,18 +15,12 @@ export interface TomeOpening {
 /** A new tome session restarts Swift Scholar's page count; a ready opening also grants its boon after virtue rewards. */
 export const tomeOpened = defineTriggerPoint<TomeOpening>('guardian.tome-opened', [TRAIT.SWIFT_SCHOLAR]);
 
-/** A stowed tome. */
-export interface TomeStow {
-  readonly cast: RuntimeCast<GuardianSkill>;
-}
-
 /** Stowing ends the page session without revoking refunds earned by accepted pages. */
-export const tomeStowed = defineTriggerPoint<TomeStow>('guardian.tome-stowed', [TRAIT.SWIFT_SCHOLAR]);
+export const tomeStowed = defineTriggerPoint<Record<string, never>>('guardian.tome-stowed', [TRAIT.SWIFT_SCHOLAR]);
 
 /** An accepted player hit that dealt damage, after Ashes consumption. */
 export interface FirebrandStrike {
   readonly cause: Gw2ResolverEvent;
-  readonly details: NativeResolvedDamageDetails;
 }
 
 /** Axe Bleeding follows Ashes consumption on the same accepted hit. */

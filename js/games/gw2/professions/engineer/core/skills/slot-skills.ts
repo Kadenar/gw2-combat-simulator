@@ -17,7 +17,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
       { on: 'castCommit', do: { type: 'engineer.deploy-turret' } }
     ],
     // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
-    // 10s overcharge window; see `core/mechanics/weapons.ts`.
+    // 10s overcharge window; see `core/mechanics/turrets.ts`.
 
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     paletteTileId: HEALING_TURRET_PALETTE_TILE,

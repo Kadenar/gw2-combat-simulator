@@ -135,12 +135,18 @@ test('removed Berserk window retains resource spending and entry boons without a
   );
 });
 
-test('removed Heat the Soul Quickness preserves Fury and Might', () => {
-  const result = run({ [TRAIT.HEAT_THE_SOUL]: remove('boon', 'quickness') }, 'Berserker', [ID.BERSERK, ID.DECAPITATE], {
-    initialResource: 30,
-    primaryWeapon: 'Axe',
-    selectedTraitIds: [TRAIT.HEAT_THE_SOUL]
-  });
+test('removed Heat the Soul Decapitate Quickness preserves Fury and Might', () => {
+  // Remove the selected variant without touching the ordinary primal-burst packet.
+  const result = run(
+    { [TRAIT.HEAT_THE_SOUL]: remove('boon', 'Decapitate quickness') },
+    'Berserker',
+    [ID.BERSERK, ID.DECAPITATE],
+    {
+      initialResource: 30,
+      primaryWeapon: 'Axe',
+      selectedTraitIds: [TRAIT.HEAT_THE_SOUL]
+    }
+  );
   const events = result.events.filter((e) => e.sourceId === TRAIT.HEAT_THE_SOUL);
   assert.equal(
     events.some((e) => e.kind === 'quickness'),

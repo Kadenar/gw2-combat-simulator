@@ -769,31 +769,29 @@ function emitShredding(
 ): void {
   const shredding = shreddingStrike(context, data);
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
-  for (const attack of [shredding]) {
-    if (attack?.type !== 'strike') continue;
-    buildMesmerStrikes(
-      context,
-      skill,
-      damageAt,
-      {
-        ...attack,
-        name: undefined,
-        summonKind: undefined,
-        source,
-        actorType,
-        persistsAfterInterrupt: data.persistsAfterInterrupt,
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-      },
-      { source, sourceId: skill.id, skillId: skill.id, actorType }
-    ).forEach((packet) => {
-      context.effects.emit({
-        ...delivery,
-        kind: 'packet',
-        // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
-        event: attack === shredding ? { ...packet, name: 'Shredding', procType: 'trait' } : packet,
-        owner: mesmerPacketOwner(packet),
-        priority: Number(packet.priority ?? 0)
-      });
+  if (shredding?.type !== 'strike') return;
+  buildMesmerStrikes(
+    context,
+    skill,
+    damageAt,
+    {
+      ...shredding,
+      name: undefined,
+      summonKind: undefined,
+      source,
+      actorType,
+      persistsAfterInterrupt: data.persistsAfterInterrupt,
+      weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+    },
+    { source, sourceId: skill.id, skillId: skill.id, actorType }
+  ).forEach((packet) => {
+    context.effects.emit({
+      ...delivery,
+      kind: 'packet',
+      // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
+      event: { ...packet, name: 'Shredding', procType: 'trait' },
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
     });
-  }
+  });
 }
