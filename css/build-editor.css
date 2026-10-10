@@ -928,6 +928,8 @@
 .template-actions {
   position: relative;
   flex: 0 0 32px;
+  /* Keep wider platform glyphs from expanding the action column and shifting the aligned DPS values. */
+  min-width: 0;
 }
 
 .template-actions > summary {
