@@ -31,6 +31,8 @@ import type { MechanicQueryContext } from '#gw2/platform/profession-definition/m
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
   name: 'Grenadier',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damageMultiplier: 1 },
   // Completed heals request the skill-owned barrage, which shares its recharge with direct casts. The barrage follows
   // Core elixir rewards and precedes the remaining imperative commit hooks.
   triggers: [
@@ -49,7 +51,8 @@ export const grenadier = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Live remains neutral; preview tuning increases only player-owned explosion strikes with Grenadier selected.
-      factor: 1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GRENADIER), 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         isExplosion(
@@ -201,14 +204,20 @@ export const blastShield = defineTrait({
 export const glassCannon = defineTrait({
   id: TRAIT.GLASS_CANNON,
   name: 'Glass Cannon',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damageMultiplier: 1.07, threshold: 0.75 },
   modifierRules: [
     {
       order: -20,
       id: 'engineer.glass-cannon',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.07,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && playerHealthFraction(context) > 0.75
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GLASS_CANNON), 'damageMultiplier'),
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        playerHealthFraction(context) >
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GLASS_CANNON), 'threshold')
     }
   ]
 });
@@ -217,13 +226,16 @@ export const glassCannon = defineTrait({
 export const bigBoomer = defineTrait({
   id: TRAIT.BIG_BOOMER,
   name: 'Big Boomer',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damageMultiplier: 1.15 },
   modifierRules: [
     {
       order: -19,
       id: 'engineer.big-boomer',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BIG_BOOMER), 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && playerHealthFraction(context) > targetHealthFraction(context)
     }
@@ -234,6 +246,8 @@ export const bigBoomer = defineTrait({
 export const shapedCharge = defineTrait({
   id: TRAIT.SHAPED_CHARGE,
   name: 'Shaped Charge',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { maximumStacks: 25, damageIncreasePerStack: 0.005 },
   modifierRules: [
     {
       order: -18,
@@ -241,12 +255,17 @@ export const shapedCharge = defineTrait({
       id: 'engineer.shaped-charge',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        maximumStacks: 25,
-        damagePerStack: 0.005
-      },
-      factor: (context, _target, parameters) =>
-        1 + Math.min(parameters.maximumStacks, vulnerabilityStacks(context)) * parameters.damagePerStack,
+
+      factor: (context) =>
+        1 +
+        Math.min(
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHAPED_CHARGE), 'maximumStacks'),
+          vulnerabilityStacks(context)
+        ) *
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.SHAPED_CHARGE),
+            'damageIncreasePerStack'
+          ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]

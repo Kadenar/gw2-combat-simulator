@@ -62,11 +62,13 @@ export const boundingDodger = defineTrait({
       id: 'thief.bounding-dodger',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.15,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNDING_DODGER), 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'bounding-dodger')
     }
   ],
   balance: {
+    damageIncrease: 0.15,
     durationMultiplier: 6,
     effects: [{ type: 'strike', name: 'Bounding Dodger', coefficient: 3.5, hits: 1 }]
   }
@@ -90,11 +92,16 @@ export const lotusTraining = defineTrait({
       id: 'thief.lotus-training',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.15,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.LOTUS_TRAINING),
+          'conditionDamageIncrease'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'lotus-training')
     }
   ],
   balance: {
+    conditionDamageIncrease: 0.15,
     durationMultiplier: 6,
     effects: [
       {
@@ -142,13 +149,16 @@ export const enduranceThief = defineTrait({
 export const havocSpecialist = defineTrait({
   id: TRAIT.HAVOC_SPECIALIST,
   name: 'Havoc Specialist',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.15 },
   modifierRules: [
     {
       order: 101,
       id: 'thief.havoc-specialist',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HAVOC_SPECIALIST), 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
@@ -226,11 +236,13 @@ export const weakeningStrikes = defineTrait({
       id: 'thief.weakening-strikes',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WEAKENING_STRIKES), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
     }
   ],
   balance: {
+    damageMultiplier: 1.1,
     durationMultiplier: 4,
     effects: [{ type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 3 }]
   }

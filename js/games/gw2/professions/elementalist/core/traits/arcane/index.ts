@@ -182,7 +182,8 @@ export const evasiveArcana = defineTrait({
       { type: 'condition', name: 'Fire Burning', condition: 'Burning', stacks: 3, duration: 6 },
       { type: 'strike', name: 'Earth', coefficient: 0.5, hits: 1 },
       { type: 'condition', name: 'Earth Bleeding', condition: 'Bleeding', stacks: 1, duration: 20 },
-      { type: 'condition', name: 'Earth Cripple', condition: 'Crippled', stacks: 1, duration: 2 }
+      { type: 'condition', name: 'Earth Cripple', condition: 'Crippled', stacks: 1, duration: 2 },
+      { type: 'condition', name: 'Air Blindness', condition: 'Blindness', stacks: 1, duration: 5 }
     ]
   }
 });
@@ -203,7 +204,8 @@ export const arcaneLightning = defineTrait({
       },
       { type: 'boon', name: 'Arcane Brilliance', boon: 'protection', stacks: 1, duration: 3.5 },
       { type: 'condition', name: 'Arcane Wave', condition: 'Immobilized', stacks: 1, duration: 2 },
-      { type: 'boon', name: 'Arcane Echo', boon: 'quickness', stacks: 1, duration: 4 }
+      { type: 'boon', name: 'Arcane Echo', boon: 'quickness', stacks: 1, duration: 4 },
+      { type: 'condition', name: 'Arcane Blast', condition: 'Blindness', stacks: 1, duration: 5 }
     ]
   }
 });
@@ -223,6 +225,7 @@ export const bountifulPower = defineTrait({
   id: TRAIT.BOUNTIFUL_POWER,
   name: 'Bountiful Power',
   balance: {
+    damageIncrease: 0.2,
     threshold: 5,
     effects: [
       { type: 'boon', name: 'Quickness', boon: 'quickness', stacks: 1, duration: 5 },
@@ -242,7 +245,8 @@ export const bountifulPower = defineTrait({
       order: -12,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.2,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_POWER), 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'bountiful-power-active', 1) > 0
     }
   ]
@@ -301,20 +305,12 @@ function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: Elementali
       transform: (event) => ({ ...event, name: source + ' \u2014 ' + event.condition })
     });
   } else if (attunement === 'Air') {
-    context.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'condition',
-        condition: 'Blindness',
-        stacks: 1,
-        duration: 5,
-        at,
-        source,
-        sourceId: skill.id,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillName: source
-      }
+    // Air's optional Blindness uses the same patchable emission contract as Fire and Earth.
+    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
+      at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Air Blindness' },
+      attribution: { source, sourceId: skill.id, actorType: 'effect', ownerActorType: 'player', skillName: source }
     });
   } else if (attunement === 'Earth') {
     const evasiveArcanaEarthStrike = requireEffect(evasiveArcanaProfile, 'strike', 'Earth');
@@ -440,14 +436,12 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
       transform: (event) => ({ ...event, name: skill.name + ' \u2014 ' + event.condition })
     });
   } else if (skill.id === ID.ARCANE_BLAST) {
-    context.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'condition',
-        condition: 'Blindness',
-        stacks: 1,
-        duration: 5,
-        at,
+    // Arcane Blast's trait condition can be tuned or removed independently of the native skill.
+    emitTraitProfile(context, TRAIT.ARCANE_LIGHTNING, TRAIT.ARCANE_LIGHTNING, undefined, {
+      at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Arcane Blast' },
+      attribution: {
         source: 'Trait',
         sourceId: TRAIT.ARCANE_LIGHTNING,
         actorType: 'effect',

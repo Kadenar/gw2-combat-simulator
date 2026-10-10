@@ -50,6 +50,7 @@ export const lightOnYourFeet = defineTrait({
   id: TRAIT.LIGHT_ON_YOUR_FEET,
   name: 'Light on Your Feet',
   balance: {
+    damageMultiplier: 1.1,
     conditionDurationBonus: 0.1,
     durationPerTier: 2,
     minimumStacks: 1,
@@ -71,7 +72,8 @@ export const lightOnYourFeet = defineTrait({
       id: 'ranger.light-on-your-feet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'light-on-your-feet')
     },
     {
@@ -277,6 +279,7 @@ export const huntersTactics = defineTrait({
   id: TRAIT.HUNTERS_TACTICS,
   name: "Hunter's Tactics",
   balance: {
+    damageMultiplier: 1.1,
     criticalChance: 0.1
   },
   modifierRules: [
@@ -285,7 +288,8 @@ export const huntersTactics = defineTrait({
       id: 'ranger.hunters-tactics-damage',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HUNTERS_TACTICS), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && qualifiesForFlankingBonuses(context)
     },
     {
@@ -304,13 +308,19 @@ export const huntersTactics = defineTrait({
 export const hiddenBarbs = defineTrait({
   id: TRAIT.HIDDEN_BARBS,
   name: 'Hidden Barbs',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { conditionDamageMultiplier: 1.2 },
   modifierRules: [
     {
       order: 12,
       id: 'ranger.hidden-barbs',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.2,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.HIDDEN_BARBS),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => context.condition === 'Bleeding'
     }
   ]

@@ -102,6 +102,7 @@ export const kineticBattery = defineTrait({
   id: TRAIT.KINETIC_BATTERY,
   name: 'Kinetic Battery',
   balance: {
+    damageIncrease: 0.15,
     maximumStacks: 5,
     effects: [
       { name: 'kinetic-battery', type: 'buff', kind: 'kinetic-battery', stacks: 1, duration: 5 },
@@ -116,7 +117,8 @@ export const kineticBattery = defineTrait({
       id: 'engineer.kinetic-battery',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.15,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY), 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'kinetic-battery', 1) > 0
     }
@@ -173,13 +175,16 @@ export const mechanizedDeployment = defineTrait({
 export const excessiveEnergy = defineTrait({
   id: TRAIT.EXCESSIVE_ENERGY,
   name: 'Excessive Energy',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
       order: -16,
       id: 'engineer.excessive-energy',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXCESSIVE_ENERGY), 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, 'vigor', 1) > 0
     }
   ]
@@ -189,6 +194,8 @@ export const excessiveEnergy = defineTrait({
 export const takedownRound = defineTrait({
   id: TRAIT.TAKEDOWN_ROUND,
   name: 'Takedown Round',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
       order: -15,
@@ -196,7 +203,8 @@ export const takedownRound = defineTrait({
       id: 'engineer.takedown-round',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TAKEDOWN_ROUND), 'damageIncrease'),
       when: (context) => {
         const state = engineerRuntimeState(context);
         return (

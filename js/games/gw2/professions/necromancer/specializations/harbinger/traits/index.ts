@@ -51,6 +51,8 @@ export const cascadingCorruption = defineTrait({
   id: TRAIT.CASCADING_CORRUPTION,
   name: 'Cascading Corruption',
   balance: {
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.1,
     minimumStacks: 20,
     effects: [
       {
@@ -87,7 +89,16 @@ export const cascadingCorruption = defineTrait({
       id: 'necromancer.cascading-corruption',
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context, target) =>
+        target === MODIFIER_TARGET.CONDITION_DAMAGE
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.CASCADING_CORRUPTION),
+              'conditionDamageIncrease'
+            )
+          : balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.CASCADING_CORRUPTION),
+              'damageIncrease'
+            ),
       // Read the emitted buff through the shared timeline, including explicitly supplied initial buffs.
       when: (context) => buffActive(context, 'meltdown')
     }
@@ -105,6 +116,7 @@ export const septicCorruption = defineTrait({
   id: TRAIT.SEPTIC_CORRUPTION,
   name: 'Septic Corruption',
   balance: {
+    conditionDamageIncreasePerStack: 0.0025,
     effects: [
       {
         name: 'Poisoned',
@@ -122,8 +134,13 @@ export const septicCorruption = defineTrait({
       id: 'necromancer.septic-corruption-blight',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      parameters: { damagePerStack: 0.0025 },
-      amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack
+
+      amount: (context) =>
+        activeBlight(context) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.SEPTIC_CORRUPTION),
+          'conditionDamageIncreasePerStack'
+        )
     }
   ]
 });
@@ -322,6 +339,7 @@ export const wickedCorruption = defineTrait({
   id: TRAIT.WICKED_CORRUPTION,
   name: 'Wicked Corruption',
   balance: {
+    damageIncreasePerStack: 0.01,
     criticalDamage: 1.1
   },
   modifierRules: [
@@ -330,8 +348,13 @@ export const wickedCorruption = defineTrait({
       id: 'necromancer.wicked-corruption-blight',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: { damagePerStack: 0.01 },
-      amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack
+
+      amount: (context) =>
+        activeBlight(context) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.WICKED_CORRUPTION),
+          'damageIncreasePerStack'
+        )
     },
     {
       order: 121,

@@ -119,6 +119,8 @@ export const shredding = defineTrait<MesmerSkill>({
   id: TRAIT.SHREDDING,
   name: 'Shredding',
   balance: {
+    damageIncrease: 0.15,
+    conditionDamageIncrease: 0.15,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1, atMs: 600 }]
   },
   modifierRules: [
@@ -126,7 +128,10 @@ export const shredding = defineTrait<MesmerSkill>({
       id: 'mesmer.shredding',
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: 0.15,
+      amount: (context, target) =>
+        target === MODIFIER_TARGET.CONDITION_DAMAGE
+          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), 'conditionDamageIncrease')
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), 'damageIncrease'),
       when: (context) => hasLute(context) && !illusionSource(context)
     }
   ]
@@ -243,6 +248,7 @@ export const alteredChord = defineTrait<MesmerSkill>({
   id: TRAIT.ALTERED_CHORD,
   name: 'Altered Chord',
   balance: {
+    damageIncrease: 0.25,
     rechargeReduction: 2,
     durationMultiplier: 10,
     effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 8, stacks: 5 }]
@@ -253,7 +259,8 @@ export const alteredChord = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.25,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD), 'damageIncrease'),
       when: (context) => buffActive(context, 'altered-chord') && !illusionSource(context)
     }
   ]

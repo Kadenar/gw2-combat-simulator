@@ -46,6 +46,7 @@ export const demonicLore = defineTrait({
   id: TRAIT.DEMONIC_LORE,
   name: 'Demonic Lore',
   balance: {
+    conditionDamageMultiplier: 1.33,
     cooldown: 3,
     effects: [
       {
@@ -64,7 +65,11 @@ export const demonicLore = defineTrait({
       id: 'necromancer.demonic-lore',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.33,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.DEMONIC_LORE),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => context.condition === 'Torment'
     }
   ]
@@ -187,6 +192,7 @@ export const fellBeacon = defineTrait({
   id: TRAIT.FELL_BEACON,
   name: 'Fell Beacon',
   balance: {
+    conditionDamageMultiplier: 1.1,
     attributeConversion: 0.07
   },
   modifierRules: [
@@ -195,7 +201,8 @@ export const fellBeacon = defineTrait({
       id: 'necromancer.fell-beacon',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FELL_BEACON), 'conditionDamageMultiplier'),
       when: (context) => context.condition === 'Burning'
     }
   ],

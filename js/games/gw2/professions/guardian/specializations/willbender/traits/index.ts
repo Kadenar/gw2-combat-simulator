@@ -62,6 +62,8 @@ export const lethalTempo = defineTrait({
     }
   },
   balance: {
+    damageIncreasePerStack: 0.02,
+    conditionDamageIncreasePerStack: 0.02,
     maximumStacks: 5,
     effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 1, duration: 6 }]
   },
@@ -73,15 +75,18 @@ export const lethalTempo = defineTrait({
       // Lethal Tempo shares the outgoing additive bucket with equipment and other additive traits.
       operation: 'damage-additive',
       // Tyrant's Momentum raises strike bonus (5 % vs 2 %) to compensate for the shorter window.
-      parameters: {
-        damagePerStack: 0.02,
-        tyrantsMomentumDamagePerStack: 0.05
-      },
-      amount: (context, _target, parameters) =>
+
+      amount: (context) =>
         lethalTempoStacks(context) *
         (hasTrait(context, TRAIT.TYRANTS_MOMENTUM)
-          ? parameters.tyrantsMomentumDamagePerStack
-          : parameters.damagePerStack),
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.TYRANTS_MOMENTUM),
+              'damageIncreasePerStack'
+            )
+          : balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.LETHAL_TEMPO),
+              'damageIncreasePerStack'
+            )),
       order: 100
     },
     {
@@ -91,15 +96,18 @@ export const lethalTempo = defineTrait({
       // Use the same additive grouping for conditions so Bursting does not multiply Lethal Tempo.
       operation: 'damage-additive',
       // Condition bonus is identical (2 %) without Tyrant's Momentum; the trait adds 1 % here too.
-      parameters: {
-        damagePerStack: 0.02,
-        tyrantsMomentumDamagePerStack: 0.03
-      },
-      amount: (context, _target, parameters) =>
+
+      amount: (context) =>
         lethalTempoStacks(context) *
         (hasTrait(context, TRAIT.TYRANTS_MOMENTUM)
-          ? parameters.tyrantsMomentumDamagePerStack
-          : parameters.damagePerStack),
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.TYRANTS_MOMENTUM),
+              'conditionDamageIncreasePerStack'
+            )
+          : balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.LETHAL_TEMPO),
+              'conditionDamageIncreasePerStack'
+            )),
       order: 100
     }
   ]
@@ -110,6 +118,8 @@ export const tyrantsMomentum = defineTrait({
   id: TRAIT.TYRANTS_MOMENTUM,
   name: "Tyrant's Momentum",
   balance: {
+    damageIncreasePerStack: 0.05,
+    conditionDamageIncreasePerStack: 0.03,
     effects: [
       { type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 1, duration: 4 },
       { type: 'buff', name: 'justice', kind: 'justice', stacks: 1, duration: 10 }
@@ -216,13 +226,17 @@ export const phoenixProtocol = defineTrait({
 export const powerForPower = defineTrait({
   id: TRAIT.POWER_FOR_POWER,
   name: 'Power for Power',
-  balance: { attributeBonus: 120 },
+  balance: {
+    damageMultiplier: 3,
+    attributeBonus: 120
+  },
   modifierRules: [
     {
       id: 'guardian.willbender.power-for-power',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 3,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POWER_FOR_POWER), 'damageMultiplier'),
       order: 100,
       // willbenderFlames flag is set only on Willbender Flames pulse strikes emitted by hooks.ts,
       // so this 3× multiplier never applies to normal weapon hits.

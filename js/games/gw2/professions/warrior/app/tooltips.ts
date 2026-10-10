@@ -1,7 +1,5 @@
 import {
   fromProfile,
-  fromModifier,
-  modifierFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -455,8 +453,13 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.PEAK_PERFORMANCE]: traitTooltip(
       'Deal increased strike damage. Physical skills temporarily grant an additional bonus.',
       [
-        fromModifier('warrior.peak-performance', 'baseBonus', 'Strike damage'),
-        fromModifier('warrior.peak-performance', 'activeBonus', 'Additional strike damage after a physical skill')
+        fromProfile(TRAIT.PEAK_PERFORMANCE, 'baseBonus', 'Strike damage', tooltipPercent),
+        fromProfile(
+          TRAIT.PEAK_PERFORMANCE,
+          'activeBonus',
+          'Additional strike damage after a physical skill',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.BODY_BLOW]: traitTooltip('Player hard-control effects inflict weakness and vulnerability.'),
@@ -488,12 +491,19 @@ export const warriorTooltips: ProfessionTooltips = {
       [['internalCooldown', "Soldier's Focus cooldown", tooltipSeconds]]
     ),
     [TRAIT.EMPOWERED]: traitTooltip('Deal increased strike damage for each different boon on you.', [
-      fromModifier('warrior.empowered', 'damagePerBoon', 'Strike damage per boon')
+      fromProfile(TRAIT.EMPOWERED, 'damagePerBoon', 'Strike damage per boon', tooltipPercent)
     ]),
     [TRAIT.MENDING_MIGHT]: outsideScopeTooltip,
     [TRAIT.LEG_SPECIALIST]: traitTooltip(
       'Cripple applications also immobilize. Deal increased strike damage to crippled, chilled, or immobilized targets.',
-      [fromModifier('warrior.leg-specialist', 'factor', 'Strike damage against affected targets', tooltipFactorChange)]
+      [
+        fromProfile(
+          TRAIT.LEG_SPECIALIST,
+          'damageMultiplier',
+          'Strike damage against affected targets',
+          tooltipFactorChange
+        )
+      ]
     ),
     [TRAIT.SOLDIERS_COMFORT]: traitTooltip(
       "Soldier's Focus grants protection to the party. Healing is outside combat simulation scope."
@@ -501,7 +511,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.ROARING_REVEILLE]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
     [TRAIT.WARRIORS_CUNNING]: traitTooltip(
       'Deal increased strike damage while the target is above the high-health threshold.',
-      [fromModifier('warrior.warriors-cunning', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.WARRIORS_CUNNING, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.SHRUG_IT_OFF]: outsideScopeTooltip,
     [TRAIT.EMPOWER_ALLIES]: traitTooltip('Periodically grant might to the party.', [
@@ -521,7 +531,14 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.DOGGED_MARCH]: outsideScopeTooltip,
     [TRAIT.CULL_THE_WEAK]: traitTooltip(
       'A qualifying burst hit inflicts weakness. Deal increased strike damage to weakened targets.',
-      [fromModifier('warrior.cull-the-weak', 'factor', 'Strike damage against weakened targets', tooltipFactorChange)]
+      [
+        fromProfile(
+          TRAIT.CULL_THE_WEAK,
+          'damageMultiplier',
+          'Strike damage against weakened targets',
+          tooltipFactorChange
+        )
+      ]
     ),
     [TRAIT.DEFY_PAIN]: outsideScopeTooltip,
     [TRAIT.RESILIENT_ROLL]: outsideScopeTooltip,
@@ -529,7 +546,7 @@ export const warriorTooltips: ProfessionTooltips = {
       'Player control effects grant adrenaline. Hammer and mace strikes deal increased damage to defiant targets.',
       [
         ['resourceGain', 'Adrenaline gained'],
-        fromModifier('warrior.merciless-hammer', 'factor', 'Hammer and mace strike damage', tooltipFactorChange)
+        fromProfile(TRAIT.MERCILESS_HAMMER, 'damageMultiplier', 'Hammer and mace strike damage', tooltipFactorChange)
       ]
     ),
     [TRAIT.LAST_STAND]: outsideScopeTooltip,
@@ -538,7 +555,7 @@ export const warriorTooltips: ProfessionTooltips = {
       'Player control effects grant stability. Deal increased strike damage while you have stability.',
       [
         ['internalCooldown', 'Internal cooldown', tooltipSeconds],
-        fromModifier('warrior.stalwart-strength', 'factor', 'Strike damage with stability', tooltipFactorChange)
+        fromProfile(TRAIT.STALWART_STRENGTH, 'damageMultiplier', 'Strike damage with stability', tooltipFactorChange)
       ]
     ),
     [TRAIT.FURIOUS_BURST]: traitTooltip('Weapon swapping grants fury. Fury grants additional critical-strike chance.', [
@@ -615,11 +632,11 @@ export const warriorTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.CRACK_SHOT]: traitTooltip(
       'Enhance rifle and longbow autoattacks: Fierce Shot deals increased strike damage, and each Dual Shot arrow inflicts burning.',
-      [fromModifier('warrior.crack-shot', 'factor', 'Fierce Shot damage', tooltipFactorChange)],
+      [fromProfile(TRAIT.CRACK_SHOT, 'damageMultiplier', 'Fierce Shot damage', tooltipFactorChange)],
       'per Dual Shot arrow'
     ),
     [TRAIT.WARRIORS_SPRINT]: traitTooltip('Deal increased strike damage while you have swiftness.', [
-      fromModifier('warrior.warriors-sprint', 'amount', 'Strike damage with swiftness')
+      fromProfile(TRAIT.WARRIORS_SPRINT, 'damageIncrease', 'Strike damage with swiftness', tooltipPercent)
     ]),
     [TRAIT.STALWART_FOCUS]: outsideScopeTooltip,
     [TRAIT.DOUBLED_STANDARDS]: outsideScopeTooltip,
@@ -641,7 +658,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.BURST_MASTERY]: traitTooltip(
       'Bursts deal increased strike damage. Completing a burst refunds part of the resource spent and grants swiftness.',
       [
-        fromModifier('warrior.burst-mastery', 'factor', 'Burst strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.BURST_MASTERY, 'damageMultiplier', 'Burst strike damage', tooltipFactorChange),
         ['resourceGain', 'Resource refunded', tooltipPercent]
       ]
     ),
@@ -680,7 +697,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.DEAD_OR_ALIVE]: outsideScopeTooltip,
     [TRAIT.BLOODY_ROAR]: traitTooltip(
       'Deal increased strike damage during Berserk. Entering Berserk grants resistance.',
-      [fromModifier('warrior.bloody-roar', 'factor', 'Strike damage during Berserk', tooltipFactorChange)]
+      [fromProfile(TRAIT.BLOODY_ROAR, 'damageMultiplier', 'Strike damage during Berserk', tooltipFactorChange)]
     ),
     [TRAIT.KING_OF_FIRES]: traitTooltip(
       'Burning lasts longer. Eligible critical hits grant a fire aura; completing a Berserker skill detonates an active aura to strike and burn the target.',
@@ -708,14 +725,14 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.LOSS_AVERSION]: outsideScopeTooltip,
     [TRAIT.RESILIENT_COUNTER]: outsideScopeTooltip,
     [TRAIT.SUN_AND_MOON_STYLE]: traitTooltip('Deal increased strike damage while wielding a main-hand dagger.', [
-      fromModifier('warrior.sun-and-moon-style', 'factor', 'Strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.SUN_AND_MOON_STYLE, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.ENCHANTMENT_COLLAPSE]: outsideScopeTooltip,
     [TRAIT.RESOLUTE_COUNTER]: outsideScopeTooltip,
     [TRAIT.MAGEBANE_TETHER]: traitTooltip(
       'Qualifying burst hits tether the target, increasing strike damage while the tether lasts. Alacrity shortens its recharge.',
       [
-        fromModifier('warrior.magebane-tether', 'factor', 'Strike damage while tethered', tooltipFactorChange),
+        fromProfile(TRAIT.MAGEBANE_TETHER, 'damageMultiplier', 'Strike damage while tethered', tooltipFactorChange),
         ['cooldown', 'Base tether recharge', tooltipSeconds]
       ]
     ),
@@ -784,8 +801,8 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.CALMING_TONGUE]: outsideScopeTooltip,
     [TRAIT.LIBERATING_LIAISE]: outsideScopeTooltip,
     [TRAIT.STRENGTHENING_STANZAS]: traitTooltip('Deal increased damage while Chant of Action is the active refrain.', [
-      fromModifier('warrior.strengthening-stanzas', 'strikeBonus', 'Strike damage'),
-      fromModifier('warrior.strengthening-stanzas', 'conditionBonus', 'Condition damage')
+      fromProfile(TRAIT.STRENGTHENING_STANZAS, 'strikeBonus', 'Strike damage', tooltipPercent),
+      fromProfile(TRAIT.STRENGTHENING_STANZAS, 'conditionBonus', 'Condition damage', tooltipPercent)
     ]),
     [TRAIT.INVIGORATING_TEMPO]: traitTooltip('Refrain pulses grant adrenaline for the motivation actually spent.', [
       ['resourceGain', 'Adrenaline per motivation spent']
@@ -801,17 +818,23 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.BRISK_PACING]: traitTooltip(
       'Motivation increases strike and condition damage. Higher motivation tiers replace the lower-tier bonuses.',
       (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'warrior.brisk-pacing',
-          'middleThreshold',
-          'Middle-tier motivation',
-          tooltipDecimal
-        ),
-        modifierFact(balanceContext, 'warrior.brisk-pacing', 'highThreshold', 'High-tier motivation', tooltipDecimal),
+        profileFact(balanceContext, TRAIT.BRISK_PACING, 'middleThreshold', 'Middle-tier motivation', tooltipDecimal),
+        profileFact(balanceContext, TRAIT.BRISK_PACING, 'highThreshold', 'High-tier motivation', tooltipDecimal),
         ...(['Low', 'Middle', 'High'] as const).flatMap((tier) => [
-          modifierFact(balanceContext, 'warrior.brisk-pacing', `strike${tier}`, `${tier}-tier strike damage`),
-          modifierFact(balanceContext, 'warrior.brisk-pacing', `condition${tier}`, `${tier}-tier condition damage`)
+          profileFact(
+            balanceContext,
+            TRAIT.BRISK_PACING,
+            `strike${tier}`,
+            `${tier}-tier strike damage`,
+            tooltipPercent
+          ),
+          profileFact(
+            balanceContext,
+            TRAIT.BRISK_PACING,
+            `condition${tier}`,
+            `${tier}-tier condition damage`,
+            tooltipPercent
+          )
         ])
       ]
     ),

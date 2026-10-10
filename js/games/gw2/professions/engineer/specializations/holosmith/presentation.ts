@@ -15,7 +15,8 @@ import {
   hasActiveTrait,
   uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
@@ -75,7 +76,10 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        max: 6,
+        max: balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS),
+          'maximumStacks'
+        ),
         description: 'Starting charges; consumed by strikes in impact order'
       });
       preview.add({
@@ -84,7 +88,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        max: enhancedCapacityMaximumHeat({ selectedTraitIds: context.activeTraits.map((trait) => trait.id) }),
+        max: enhancedCapacityMaximumHeat({ selectedTraitIds: context.activeTraits.map((trait) => trait.id) }, context),
         initial: Number((context.build as { readonly initialHeat?: unknown }).initialHeat) || 0,
         description: 'Heat before the occurrence; skill tiers, cooling and overheat follow the runtime'
       });
@@ -157,7 +161,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
       const state = engineerUiState(context);
       // Use the observed clock capacity, or selected traits before an initial result exists.
-      const maximum = state.heat?.maximum ?? enhancedCapacityMaximumHeat(context.config ?? {});
+      const maximum = state.heat?.maximum ?? enhancedCapacityMaximumHeat(context.config ?? {}, context.balanceContext);
       return [
         {
           id: 'heat',

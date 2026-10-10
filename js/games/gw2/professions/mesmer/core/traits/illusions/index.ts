@@ -41,6 +41,8 @@ export const compoundingPower = defineTrait<MesmerSkill>({
   id: TRAIT.COMPOUNDING_POWER,
   name: 'Compounding Power',
   balance: {
+    damageIncreasePerStack: 0.01,
+    conditionDamageIncreasePerStack: 0.01,
     maximumStacks: 5,
     durationMultiplier: 8
   },
@@ -52,19 +54,29 @@ export const compoundingPower = defineTrait<MesmerSkill>({
       conditionSampleInvariant: true,
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      parameters: Object.freeze({
-        duration: 8,
-        maximumStacks: 5,
-        // Match the supplied PvE logs' embedded buff formulas: 1% outgoing strike damage per active stack.
-        strikePerStack: 0.01,
-        conditionPerStack: 0.01
-      }),
-      amount: (context, target, parameters) => {
+
+      amount: (context, target) => {
         // Illusion strikes use summon ownership, while their applied conditions inherit the Mesmer's outgoing modifiers.
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
         return (
-          timedStacks(context, 'compounding', parameters.duration, parameters.maximumStacks) *
-          (target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikePerStack : parameters.conditionPerStack)
+          timedStacks(
+            context,
+            'compounding',
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER),
+              'durationMultiplier'
+            ),
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER), 'maximumStacks')
+          ) *
+          (target === MODIFIER_TARGET.STRIKE_DAMAGE
+            ? balanceProfileNumber(
+                requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER),
+                'damageIncreasePerStack'
+              )
+            : balanceProfileNumber(
+                requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER),
+                'conditionDamageIncreasePerStack'
+              ))
         );
       }
     }
@@ -229,15 +241,21 @@ export const thePledge = defineTrait<MesmerSkill>({
 export const phantasmalForce = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTASMAL_FORCE,
   name: 'Phantasmal Force',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1, damageIncreasePerStack: 0.01 },
   modifierRules: [
     {
       id: 'mesmer.phantasmal-force',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: Object.freeze({ baseFactor: 1, damagePerMight: 0.01 }),
-      factor: (context, _target, parameters) =>
-        parameters.baseFactor +
-        context.query!.mightStacksAt(context.time, context.runtime, context.event) * parameters.damagePerMight,
+
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_FORCE), 'damageMultiplier') +
+        context.query!.mightStacksAt(context.time, context.runtime, context.event) *
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_FORCE),
+            'damageIncreasePerStack'
+          ),
       order: 98,
       when: (context) => context.event?.summonKind === 'phantasm'
     }

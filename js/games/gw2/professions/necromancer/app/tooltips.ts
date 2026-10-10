@@ -1,7 +1,6 @@
 import {
   fromModifier,
   fromProfile,
-  modifierFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -404,7 +403,14 @@ const minionCommandTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const corruptionTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Applies the listed target effects and self-conditions. Master of Corruption adds its listed self-condition. Expertise does not extend self-conditions; they can be transferred to the target.'
+  'Applies the listed target effects and self-conditions. Master of Corruption adds its listed self-condition. Expertise does not extend self-conditions; they can be transferred to the target.',
+  (balanceContext, skill) =>
+    simulationEffectFacts(
+      tooltipProfile(balanceContext, TRAIT.MASTER_OF_CORRUPTION).effects?.filter(
+        (effect) => effect.metadata?.trigger === String(skill.id)
+      ),
+      'with Master of Corruption'
+    ).facts
 );
 
 const darkPactTooltip: DescribeSimulationTooltip = skillTooltip(
@@ -596,11 +602,14 @@ export const necromancerTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.SIPHONED_POWER]: traitTooltip(
       'Striking a low-health target grants might.',
-      [['cooldown', 'Internal cooldown', tooltipSeconds]],
+      [
+        ['cooldown', 'Internal cooldown', tooltipSeconds],
+        ['threshold', 'Target health below', tooltipPercent]
+      ],
       'against a low-health target'
     ),
     [TRAIT.SPITEFUL_TALISMAN]: traitTooltip('Increases strike damage.', [
-      fromModifier('necromancer.spiteful-talisman', 'factor', 'Strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.SPITEFUL_TALISMAN, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.MALICIOUS_SWARM]: traitTooltip('Using a healing skill triggers a Lesser Signet of the Locust strike.', [
       ['cooldown', 'Base skill recharge', tooltipSeconds]
@@ -608,12 +617,16 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.BITTER_CHILL]: traitTooltip('Applying chill also applies vulnerability.'),
     [TRAIT.CHILL_OF_DEATH]: traitTooltip(
       'Striking a low-health target triggers Lesser Spinal Shivers. Its strike applies chill; target boon removal is not simulated.',
-      [['cooldown', 'Internal cooldown', tooltipSeconds]]
+      [
+        ['cooldown', 'Internal cooldown', tooltipSeconds],
+        ['threshold', 'Target health below', tooltipPercent]
+      ]
     ),
     [TRAIT.SPITEFUL_FORTITUDE]: traitTooltip(
       'Gain vitality from power. Player strikes against a low-health target generate life force.',
       [
         ['attributeConversion', 'Power converted to vitality', tooltipPercent],
+        ['threshold', 'Life force target health threshold', tooltipPercent],
         ['lifeForceGain', 'Life force gained', lifeForce]
       ]
     ),
@@ -621,10 +634,12 @@ export const necromancerTooltips: ProfessionTooltips = {
       'Activating a signet deals life-steal damage. Signet passives remain active while recharging in shroud.'
     ),
     [TRAIT.DREAD]: traitTooltip('Fear briefly increases your strike damage.', [
-      fromModifier('necromancer.dread', 'amount', 'Strike damage')
+      ['duration', 'Damage bonus duration', tooltipSeconds],
+      fromProfile(TRAIT.DREAD, 'damageIncrease', 'Strike damage', tooltipPercent)
     ]),
     [TRAIT.CLOSE_TO_DEATH]: traitTooltip('Deal increased strike damage to low-health targets.', [
-      fromModifier('necromancer.close-to-death', 'factor', 'Strike damage', tooltipFactorChange)
+      ['threshold', 'Target health below', tooltipPercent],
+      fromProfile(TRAIT.CLOSE_TO_DEATH, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.SPITEFUL_SPIRIT]: traitTooltip('Entering shroud triggers a strike.'),
     [TRAIT.BARBED_PRECISION]: traitTooltip(
@@ -662,17 +677,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Corruption recharge reduction', (value) =>
           tooltipPercent(1 - value)
-        ),
-        // Trait facts read the same skill-owned extras used by corruption completion.
-        ...[...balanceContext.catalog.skillsById.values()]
-          .filter((skill) => skill.categories?.includes('Corruption'))
-          .flatMap(
-            (skill) =>
-              simulationEffectFacts(
-                skill.effects?.filter((effect) => effect.requiredTrait === TRAIT.MASTER_OF_CORRUPTION),
-                skill.name
-              ).facts
-          )
+        )
       ]
     ),
     [TRAIT.PATH_OF_CORRUPTION]: outsideScopeTooltip,
@@ -680,7 +685,10 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.WEAKENING_SHROUD]: traitTooltip(
       'Entering shroud strikes and inflicts bleeding and weakness with Lesser Enfeeble.'
     ),
-    [TRAIT.TERROR]: traitTooltip("Fear applications also apply the simulator's damaging Fear condition."),
+    [TRAIT.TERROR]: traitTooltip("Fear applications also apply the simulator's damaging Fear condition.", [
+      ['conditionBaseDamage', 'Base damage'],
+      ['conditionDamageScaling', 'Condition damage scaling']
+    ]),
     [TRAIT.LINGERING_CURSE]: traitTooltip(
       'Gain condition damage, extend scepter conditions, and replace Feast of Corruption with Devouring Darkness.',
       [
@@ -705,7 +713,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       ['maximumStacks', 'Maximum carapace']
     ]),
     [TRAIT.PUTRID_DEFENSE]: traitTooltip('Poison deals increased damage.', [
-      fromModifier('necromancer.putrid-defense', 'factor', 'Poison damage', tooltipFactorChange)
+      fromProfile(TRAIT.PUTRID_DEFENSE, 'conditionDamageMultiplier', 'Poison damage', tooltipFactorChange)
     ]),
     [TRAIT.SHROUDED_REMOVAL]: traitTooltip(
       'Entering shroud removes active self-condition applications. Successful removal grants carapace.',
@@ -743,13 +751,17 @@ export const necromancerTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.RITUAL_OF_LIFE]: outsideScopeTooltip,
     [TRAIT.OVERFLOWING_THIRST]: traitTooltip(
-      'Dagger skills grant Taste for Blood. Each recipient consumes their own stacks on eligible hits to deal life-steal damage.'
+      'Dagger skills grant Taste for Blood. Each recipient consumes their own stacks on eligible hits to deal life-steal damage.',
+      [['minimumStacks', 'Necrotic Bite stacks']]
     ),
     [TRAIT.BLOOD_RENEWAL]: outsideScopeTooltip,
     [TRAIT.LIFE_FROM_DEATH]: outsideScopeTooltip,
     [TRAIT.BANSHEES_WAIL]: traitTooltip(
       'Increase Locust Swarm siphon base damage, pulse count, and swiftness duration. Power scaling is unchanged.',
-      [['durationMultiplier', 'Effectiveness', tooltipFactorChange]]
+      [
+        ['durationMultiplier', 'Effectiveness', tooltipFactorChange],
+        ['pulseInterval', 'Extended pulse interval', tooltipSeconds]
+      ]
     ),
     [TRAIT.VAMPIRIC_PRESENCE]: traitTooltip(
       'Eligible player, creature, and configured allied hits trigger life-steal damage once Vampiric Aura is up; the first aura pulse is assumed half an interval after combat starts. The stronger payload applies to every recipient while you are in shroud.',
@@ -782,7 +794,8 @@ export const necromancerTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.SPEED_OF_SHADOWS]: traitTooltip('Entering shroud grants swiftness.'),
     [TRAIT.SOUL_BARBS]: traitTooltip('Entering or leaving shroud briefly increases strike and condition damage.', [
-      fromModifier('necromancer.soul-barbs', 'amount', 'Strike and condition damage'),
+      fromProfile(TRAIT.SOUL_BARBS, 'damageIncrease', 'Strike and siphon damage', tooltipPercent),
+      fromProfile(TRAIT.SOUL_BARBS, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
       ['duration', 'Damage bonus duration', tooltipSeconds]
     ]),
     [TRAIT.VITAL_PERSISTENCE]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
@@ -826,7 +839,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.SHROUD_KNIGHT]: traitTooltip("This specialization uses Reaper's Shroud and its melee shroud skills."),
     [TRAIT.SHIVERS_OF_DREAD]: traitTooltip('Applying fear also inflicts chill.', undefined, 'on fear'),
     [TRAIT.COLD_SHOULDER]: traitTooltip('Deal increased strike damage to chilled targets.', [
-      fromModifier('necromancer.cold-shoulder', 'factor', 'Strike damage against chilled targets', tooltipFactorChange)
+      fromProfile(TRAIT.COLD_SHOULDER, 'damageMultiplier', 'Strike damage against chilled targets', tooltipFactorChange)
     ]),
     [TRAIT.AUGURY_OF_DEATH]: traitTooltip(
       'Shouts trigger life-steal damage. The simulator assumes melee range, including the doubled siphon damage.',
@@ -841,7 +854,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.RELENTLESS_PURSUIT]: outsideScopeTooltip,
     [TRAIT.SOUL_EATER]: traitTooltip(
       'Deal increased strike damage; the simulator always assumes a nearby target. Healing is outside simulation scope.',
-      [fromModifier('necromancer.soul-eater', 'factor', 'Strike damage near target', tooltipFactorChange)]
+      [fromProfile(TRAIT.SOUL_EATER, 'damageMultiplier', 'Strike damage near target', tooltipFactorChange)]
     ),
     [TRAIT.CHILLING_VICTORY]: traitTooltip('Striking chilled targets generates life force.', [
       ['lifeForceGain', 'Life force gained', lifeForce],
@@ -874,7 +887,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.FELL_BEACON]: traitTooltip('Gain expertise from condition damage and increase burning damage.', [
       ['attributeConversion', 'Condition damage converted to expertise', tooltipPercent],
-      fromModifier('necromancer.fell-beacon', 'factor', 'Burning damage', tooltipFactorChange)
+      fromProfile(TRAIT.FELL_BEACON, 'conditionDamageMultiplier', 'Burning damage', tooltipFactorChange)
     ]),
     [TRAIT.NOURISHING_ASHES]: traitTooltip(
       'Burning applications generate life force, subject to an internal cooldown.',
@@ -894,7 +907,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       'Torment deals increased damage and can trigger burning.',
       [
         ['cooldown', 'Internal cooldown', tooltipSeconds],
-        fromModifier('necromancer.demonic-lore', 'factor', 'Torment damage', tooltipFactorChange)
+        fromProfile(TRAIT.DEMONIC_LORE, 'conditionDamageMultiplier', 'Torment damage', tooltipFactorChange)
       ],
       'on torment'
     ),
@@ -913,7 +926,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.WICKED_CORRUPTION]: traitTooltip(
       'Blight increases strike damage. Critical strikes deal more damage to targets with torment.',
       [
-        fromModifier('necromancer.wicked-corruption-blight', 'damagePerStack', 'Strike damage per blight'),
+        fromProfile(TRAIT.WICKED_CORRUPTION, 'damageIncreasePerStack', 'Strike damage per blight', tooltipPercent),
         ['criticalDamage', 'Critical damage against tormented targets', tooltipFactorChange]
       ]
     ),
@@ -929,11 +942,12 @@ export const necromancerTooltips: ProfessionTooltips = {
             ? ' Shroud skill 2 also inflicts poison.'
             : ''),
         facts: [
-          modifierFact(
+          profileFact(
             balanceContext,
-            'necromancer.septic-corruption-blight',
-            'damagePerStack',
-            'Condition damage per blight'
+            TRAIT.SEPTIC_CORRUPTION,
+            'conditionDamageIncreasePerStack',
+            'Condition damage per blight',
+            tooltipPercent
           ),
           ...effects.facts
         ]
@@ -954,7 +968,13 @@ export const necromancerTooltips: ProfessionTooltips = {
       'Consuming enough blight triggers Meltdown, strike damage, and torment. Meltdown increases strike and condition damage.',
       [
         ['minimumStacks', 'Blight consumed per trigger'],
-        fromModifier('necromancer.cascading-corruption', 'amount', 'Damage during Meltdown')
+        fromProfile(TRAIT.CASCADING_CORRUPTION, 'damageIncrease', 'Strike damage during Meltdown', tooltipPercent),
+        fromProfile(
+          TRAIT.CASCADING_CORRUPTION,
+          'conditionDamageIncrease',
+          'Condition damage during Meltdown',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.DEATHLY_HASTE]: traitTooltip(
@@ -999,7 +1019,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.LINGERING_SPIRITS]: traitTooltip(
       'Spirits persist through the modeled shroud transition. Active Anguish increases strike damage.',
-      [fromModifier('necromancer.lingering-spirits', 'amount', 'Strike damage with Anguish active')]
+      [fromProfile(TRAIT.LINGERING_SPIRITS, 'damageIncrease', 'Strike damage with Anguish active', tooltipPercent)]
     ),
     [TRAIT.SOUL_TWISTING]: traitTooltip(
       "Entering Ritualist's Shroud causes your next spirit summon to clear its own cooldown."

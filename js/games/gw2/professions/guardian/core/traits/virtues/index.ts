@@ -45,6 +45,8 @@ export const inspiredVirtue = defineTrait({
   ],
   name: 'Inspired Virtue',
   balance: {
+    damagePerBoon: 0.005,
+    maximumBoons: GW2_STANDARD_BOONS.length,
     effects: [
       { type: 'boon', name: 'might', boon: 'might', stacks: 3, duration: 5 },
       { type: 'boon', name: 'regeneration', boon: 'regeneration', stacks: 1, duration: 5 },
@@ -59,14 +61,20 @@ export const inspiredVirtue = defineTrait({
       // Boon bonuses sum within this trait, then multiply the outgoing additive bucket.
       operation: 'multiply',
       // Live counts every standard boon; previews can lower the cap independently of the per-boon bonus.
-      parameters: { damagePerBoon: 0.005, maximumBoons: GW2_STANDARD_BOONS.length },
-      factor: (context, _target, parameters) =>
+
+      factor: (context) =>
         1 +
         Math.min(
-          parameters.maximumBoons,
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE),
+            'maximumBoons'
+          ),
           countActiveBoons(context, { actor: 'player' }, (boon) => guardianBoonActive(context, boon))
         ) *
-          parameters.damagePerBoon
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE),
+            'damagePerBoon'
+          )
     }
   ]
 });
@@ -105,6 +113,7 @@ export const inspiringVirtue = defineTrait({
   ],
   name: 'Inspiring Virtue',
   balance: {
+    damageIncrease: 0.1,
     effects: [
       {
         type: 'buff',
@@ -121,7 +130,11 @@ export const inspiringVirtue = defineTrait({
       id: 'guardian.inspiring-virtue',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE),
+          'damageIncrease'
+        ),
       when: (context) => buffActive(context, 'guardian-inspiring-virtue')
     }
   ]
@@ -219,6 +232,8 @@ export const powerOfTheVirtuous = defineTrait({
 export const unscathedContender = defineTrait({
   id: GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER,
   name: 'Unscathed Contender',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.05, damageIncrease: 0.05 },
   modifierRules: [
     {
       order: -12,
@@ -226,14 +241,22 @@ export const unscathedContender = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // The assumed above-90% health bonus multiplies damage; the Aegis bonus stays additive.
       operation: 'multiply',
-      factor: 1.05
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER),
+          'damageMultiplier'
+        )
     },
     {
       order: -11,
       id: 'guardian.unscathed-contender-aegis',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.05,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER),
+          'damageIncrease'
+        ),
       when: (context) => guardianBoonActive(context, 'aegis')
     }
   ]

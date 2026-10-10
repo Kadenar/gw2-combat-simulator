@@ -48,7 +48,8 @@ export const leaderOfThePack = defineTrait({
   id: TRAIT.LEADER_OF_THE_PACK,
   name: 'Leader of the Pack',
   balance: {
-    durationMultiplier: 1.2
+    durationMultiplier: 1.2,
+    sharedDurationMultiplier: 0.5
   }
 });
 
@@ -74,6 +75,8 @@ export const twiceAsVicious = defineTrait({
   id: TRAIT.TWICE_AS_VICIOUS,
   name: 'Twice as Vicious',
   balance: {
+    damageIncrease: 0.07,
+    conditionDamageIncrease: 0.1,
     effects: [
       {
         name: 'twice-as-vicious',
@@ -91,7 +94,8 @@ export const twiceAsVicious = defineTrait({
       id: 'ranger.twice-as-vicious-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.07,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TWICE_AS_VICIOUS), 'damageIncrease'),
       when: (context) => activeBuff(context, 'twice-as-vicious')
     },
     {
@@ -100,7 +104,11 @@ export const twiceAsVicious = defineTrait({
       id: 'ranger.twice-as-vicious-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.TWICE_AS_VICIOUS),
+          'conditionDamageIncrease'
+        ),
       when: (context) => activeBuff(context, 'twice-as-vicious')
     }
   ],
@@ -179,6 +187,7 @@ export const oppressiveSuperiority = defineTrait({
   id: TRAIT.OPPRESSIVE_SUPERIORITY,
   name: 'Oppressive Superiority',
   balance: {
+    damageMultiplier: 1.1,
     conditionDurationBonus: 0.1
   },
   modifierRules: [
@@ -187,7 +196,11 @@ export const oppressiveSuperiority = defineTrait({
       id: 'ranger.oppressive-superiority',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.OPPRESSIVE_SUPERIORITY),
+          'damageMultiplier'
+        ),
       when: oppressiveSuperiorityActive
     },
     {
@@ -219,13 +232,16 @@ export const essenceOfSpeed = defineTrait({
 export const furiousStrength = defineTrait({
   id: TRAIT.FURIOUS_STRENGTH,
   name: 'Furious Strength',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageIncrease: 0.15 },
   modifierRules: [
     {
       order: 101,
       id: 'ranger.furious-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.15,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FURIOUS_STRENGTH), 'damageIncrease'),
       // Furious Strength requires the player to have Fury; pet fury does not count.
       when: (context) => boonActive(context, 'fury')
     }

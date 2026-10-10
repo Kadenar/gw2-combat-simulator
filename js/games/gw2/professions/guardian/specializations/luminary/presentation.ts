@@ -10,7 +10,7 @@ import {
   guardianUiSkillIds,
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 
 import type {
@@ -65,7 +65,12 @@ function strikeBonus(context: GuardianUiContext, id: string, field: 'amount' | '
     context.balanceContext?.modifierRulesById.get(id)?.[field],
     `modifier=${id} field=${field}`
   );
-  const percent = Number(((field === 'factor' ? value - 1 : value) * 100).toPrecision(8));
+  return formatStrikeBonus(field === 'factor' ? value - 1 : value);
+}
+
+/** Round profile and skill modifier percentages consistently for snapshot labels. */
+function formatStrikeBonus(value: number): string {
+  const percent = Number((value * 100).toPrecision(8));
   return `${percent > 0 ? '+' : ''}${percent}%`;
 }
 
@@ -100,14 +105,14 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  // Mirror the hammer-only modifier gate and read each bonus from the selected patch's rules.
+  // Mirror the hammer-only gate while reading trait tuning from the selected balance profile.
   const radiant = planningBuffAt(context.planningState, 'guardian-radiant-armaments');
   if (radiant && radiant.event?.metadata?.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
       label: 'Radiant Armaments',
       value: formatSecondsRemaining(radiant.remaining),
-      title: `Dazzling Hammer: ${strikeBonus(context, 'guardian.radiant-armaments', 'amount')} strike damage`
+      title: `Dazzling Hammer: ${formatStrikeBonus(balanceProfileNumber(requireBalanceProfileFromContext(context.balanceContext, TRAIT.RADIANT_ARMAMENTS), 'damageIncrease'))} strike damage`
     });
   }
 

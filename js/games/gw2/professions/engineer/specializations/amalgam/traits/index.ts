@@ -106,6 +106,8 @@ export const willingHost = defineTrait({
   id: TRAIT.WILLING_HOST,
   name: 'Willing Host',
   balance: {
+    damageIncrease: 0.05,
+    conditionDamageIncrease: 0.05,
     durationMultiplier: 10
   },
   triggers: [onTriggerPoint(amalgamMorphed, { run: extendWillingHost })],
@@ -114,7 +116,12 @@ export const willingHost = defineTrait({
       id: 'engineer.willing-host',
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: 0.05,
+      // Strike and condition balance remain independently editable.
+      amount: (context, target) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.WILLING_HOST),
+          target === MODIFIER_TARGET.CONDITION_DAMAGE ? 'conditionDamageIncrease' : 'damageIncrease'
+        ),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         activeEngineerSpecializationState(context, 'Amalgam', 'willingHostUntil')
@@ -126,13 +133,16 @@ export const willingHost = defineTrait({
 export const symbioticSynergy = defineTrait({
   id: TRAIT.SYMBIOTIC_SYNERGY,
   name: 'Symbiotic Synergy',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damageIncrease: 0.33 },
   triggers: [onTriggerPoint(amalgamEvolved, { run: resetMorphRecharge })],
   modifierRules: [
     {
       id: 'engineer.symbiotic-synergy',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.33,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SYMBIOTIC_SYNERGY), 'damageIncrease'),
       when: (context) => morphStrike(context)
     }
   ]

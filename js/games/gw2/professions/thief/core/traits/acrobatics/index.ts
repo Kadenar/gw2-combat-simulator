@@ -47,11 +47,13 @@ export const fluidStrikes = defineTrait({
       id: 'thief.fluid-strikes',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLUID_STRIKES), 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'fluid-strikes')
     }
   ],
   balance: {
+    damageIncrease: 0.1,
     durationMultiplier: 5
   }
 });

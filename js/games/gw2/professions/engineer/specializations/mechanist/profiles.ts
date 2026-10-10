@@ -6,6 +6,7 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'engineer.mechanist.mech',
   forceSignet: 'engineer.mechanist.force-signet',
+  superconductingSignet: 'engineer.mechanist.superconducting-signet',
   overclock: ID.OVERCLOCK_SIGNET
 });
 
@@ -23,9 +24,6 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     inheritanceRatio: 0.5,
     secondaryAttributeCap: 750,
     powerCap: 2250,
-    improvedSecondaryAttributeCap: 1500,
-    precisionCap: 2500,
-    improvedInheritanceRatio: 1,
     basePrecision: 1,
     effects: []
   },
@@ -34,7 +32,13 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Force Signet',
     profileKind: 'skill-variant',
     damageIncrease: 0.15,
-    activeDamageIncrease: 0.18,
+    effects: []
+  },
+  {
+    id: MECHANIST_BALANCE_PROFILE_IDS.superconductingSignet,
+    name: 'Superconducting Signet Passive',
+    profileKind: 'skill-variant',
+    conditionDamageIncrease: 0.1,
     effects: []
   },
   {

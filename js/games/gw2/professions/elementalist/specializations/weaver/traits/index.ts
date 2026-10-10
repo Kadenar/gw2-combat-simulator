@@ -156,6 +156,8 @@ export const elementsOfRage = defineTrait({
   id: TRAIT.ELEMENTS_OF_RAGE,
   name: 'Elements of Rage',
   balance: {
+    damageIncrease: 0.15,
+    conditionDamageIncrease: 0.1,
     durationMultiplier: 8
   },
   modifierRules: [
@@ -163,14 +165,19 @@ export const elementsOfRage = defineTrait({
       id: 'elementalist.elements-of-rage-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.15,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE), 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     },
     {
       id: 'elementalist.elements-of-rage-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE),
+          'conditionDamageIncrease'
+        ),
       when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     }
   ],

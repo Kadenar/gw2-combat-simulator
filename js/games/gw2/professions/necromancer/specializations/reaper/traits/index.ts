@@ -291,13 +291,16 @@ export const reapersOnslaught = defineTrait({
 export const coldShoulder = defineTrait({
   id: TRAIT.COLD_SHOULDER,
   name: 'Cold Shoulder',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.15 },
   modifierRules: [
     {
       order: 122,
       id: 'necromancer.cold-shoulder',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.COLD_SHOULDER), 'damageMultiplier'),
       // Share the target's canonical Chilled lifetime with Chilling Nova eligibility.
       when: (context) => targetConditionActive(context, 'Chilled')
     }
@@ -308,13 +311,16 @@ export const coldShoulder = defineTrait({
 export const soulEater = defineTrait({
   id: TRAIT.SOUL_EATER,
   name: 'Soul Eater',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.15 },
   modifierRules: [
     {
       order: 123,
       id: 'necromancer.soul-eater',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_EATER), 'damageMultiplier')
     }
   ]
 });

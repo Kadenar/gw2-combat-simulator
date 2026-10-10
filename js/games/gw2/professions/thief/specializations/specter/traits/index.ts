@@ -164,11 +164,16 @@ export const strengthOfShadows = defineTrait({
       id: 'thief.strength-of-shadows',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.2,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.STRENGTH_OF_SHADOWS),
+          'conditionDamageIncrease'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Torment'
     }
   ],
   balance: {
+    conditionDamageIncrease: 0.2,
     attributeConversion: 0.13
   },
   buildAttributes(_common, { balanceContext }) {

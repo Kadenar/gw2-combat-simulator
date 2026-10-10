@@ -24,7 +24,6 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Photon Forge Heat',
     profileKind: 'mechanic',
     energyRegenerationPerSecond: 2,
-    resourceGain: 1,
     cooldown: 6,
     effects: []
   },

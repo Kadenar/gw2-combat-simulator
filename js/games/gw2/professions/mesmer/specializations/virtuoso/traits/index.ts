@@ -3,7 +3,7 @@ import {
   mesmerPhantasmPreparing,
   type MesmerPhantasmAdmission
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
-import { phantasmalBladesDamage } from '#gw2/professions/mesmer/specializations/virtuoso/traits/behavior.js';
+import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -20,11 +20,9 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -58,6 +56,8 @@ export const deadlyBlades = defineTrait<MesmerSkill>({
   id: TRAIT.DEADLY_BLADES,
   name: 'Deadly Blades',
   balance: {
+    damageIncrease: 0.05,
+    conditionDamageIncrease: 0.1,
     durationMultiplier: 7,
     effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', duration: 5, stacks: 1 }]
   },
@@ -67,9 +67,14 @@ export const deadlyBlades = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      parameters: { strikeBonus: 0.05, conditionBonus: 0.1 },
-      amount: (_context, target, parameters) =>
-        target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionBonus : parameters.strikeBonus,
+
+      amount: (context, target) =>
+        target === MODIFIER_TARGET.CONDITION_DAMAGE
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES),
+              'conditionDamageIncrease'
+            )
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES), 'damageIncrease'),
       when: (context) => !illusionSource(context) && buffActive(context, 'deadly-blades')
     }
   ]
@@ -103,6 +108,7 @@ export const bloodsong = defineTrait<MesmerSkill>({
   id: TRAIT.BLOODSONG,
   name: 'Bloodsong',
   balance: {
+    conditionDamageMultiplier: 1.25,
     threshold: 5,
     resourceGain: 1
   },
@@ -111,7 +117,8 @@ export const bloodsong = defineTrait<MesmerSkill>({
       id: 'mesmer.bloodsong',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLOODSONG), 'conditionDamageMultiplier'),
       order: 100,
       when: (context) => context.condition === 'Bleeding'
     }
@@ -141,11 +148,6 @@ export const bloodsong = defineTrait<MesmerSkill>({
 });
 
 /** The proc owns its baseline attack; the shared phantasm lifecycle supplies the conversion boundary. */
-const phantasmalBlade: MesmerTraitDamage = {
-  coefficient: 0.7,
-  hits: 1
-};
-
 export const phantasmalBlades = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTASMAL_BLADES,
   name: 'Phantasmal Blades',
@@ -153,7 +155,7 @@ export const phantasmalBlades = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
       run(runtime, admission: MesmerPhantasmAdmission) {
-        const damage = phantasmalBladesDamage(runtime);
+        const damage = mesmerProfiledTraitDamage(runtime, {}, TRAIT.PHANTASMAL_BLADES);
         if (damage.type === 'strike')
           admission.bonusStrike = {
             name: 'Phantasmal Blade',
@@ -164,7 +166,7 @@ export const phantasmalBlades = defineTrait<MesmerSkill>({
       }
     })
   ],
-  profiles: [mesmerTraitDamageProfile(TRAIT.PHANTASMAL_BLADES, 'Phantasmal Blades', phantasmalBlade)]
+  balance: { weaponStrength: 2553.5, effects: [{ name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 }] }
 });
 
 /** Keep the rounded build conversion separate from live Fury and direct-simulation attribute adjustments. */
@@ -205,12 +207,15 @@ export const quietIntensity = defineTrait<MesmerSkill>({
 export const mentalFocus = defineTrait<MesmerSkill>({
   id: TRAIT.MENTAL_FOCUS,
   name: 'Mental Focus',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.05 },
   modifierRules: [
     {
       id: 'mesmer.mental-focus',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MENTAL_FOCUS), 'damageMultiplier'),
       // Apply after the blade-specific multiplier, as in the original collector.
       order: 101,
       when: (context) => isGw2PlayerActorEvent(context.event)
@@ -253,6 +258,7 @@ export const infiniteForge = defineTrait<MesmerSkill>({
   id: TRAIT.INFINITE_FORGE,
   name: 'Infinite Forge',
   balance: {
+    damageMultiplier: 1.07,
     pulseInterval: 3,
     threshold: 5,
     playerStacks: 1,
@@ -263,7 +269,8 @@ export const infiniteForge = defineTrait<MesmerSkill>({
       id: 'mesmer.infinite-forge',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.07,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE), 'damageMultiplier'),
       order: 100,
       when: (context) => Boolean(context.event?.metadata?.blade)
     }

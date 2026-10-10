@@ -30,6 +30,7 @@ export const crackShot = defineTrait({
   id: TRAIT.CRACK_SHOT,
   name: 'Crack Shot',
   balance: {
+    damageMultiplier: 1.1,
     effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 1 }]
   },
   modifierRules: [
@@ -37,7 +38,8 @@ export const crackShot = defineTrait({
       id: 'warrior.crack-shot',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CRACK_SHOT), 'damageMultiplier'),
       when: (context) =>
         skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.FIERCE_SHOT
     }
@@ -67,7 +69,9 @@ export const burstMastery = defineTrait({
   id: TRAIT.BURST_MASTERY,
   name: 'Burst Mastery',
   balance: {
+    damageMultiplier: 1.15,
     resourceGain: 0.33,
+    bladeswornResourceGain: 0.2,
     effects: [{ name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 }]
   },
   modifierRules: [
@@ -75,18 +79,10 @@ export const burstMastery = defineTrait({
       id: 'warrior.burst-mastery',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BURST_MASTERY), 'damageMultiplier'),
       order: 100,
       when: (context) => Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst)
-    }
-  ],
-  profiles: [
-    {
-      id: 'warrior.bladesworn.burst-mastery',
-      name: 'Bladesworn Burst Mastery Conversion',
-      profileKind: 'mechanic',
-      resourceGain: 0.2,
-      effects: []
     }
   ]
 });
@@ -159,6 +155,7 @@ export const heightenedFocus = defineTrait({
   id: TRAIT.HEIGHTENED_FOCUS,
   name: 'Heightened Focus',
   balance: {
+    threshold: 0.5,
     internalCooldown: 12,
     effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 }]
   },
@@ -172,13 +169,16 @@ export const heightenedFocus = defineTrait({
 export const warriorsSprint = defineTrait({
   id: TRAIT.WARRIORS_SPRINT,
   name: "Warrior's Sprint",
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
       order: 7,
       id: 'warrior.warriors-sprint',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WARRIORS_SPRINT), 'damageIncrease'),
       when: (context) => warriorBoonActive(context, 'swiftness')
     }
   ]
@@ -196,7 +196,9 @@ export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2Resolv
     event.actorType !== 'player' ||
     !((event.coefficient || 0) > 0) ||
     !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS) ||
-    !runtime.combat.targetHealthBelow(0.5) ||
+    !runtime.combat.targetHealthBelow(
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS), 'threshold')
+    ) ||
     !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
   )
     return;
@@ -306,10 +308,7 @@ function burstMasteryDragonSlash(
     runtime.resourceController.grant(
       'flow',
       release.flowSpent *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, 'warrior.bladesworn.burst-mastery'),
-          'resourceGain'
-        )
+        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY), 'bladeswornResourceGain')
     );
     {
       {

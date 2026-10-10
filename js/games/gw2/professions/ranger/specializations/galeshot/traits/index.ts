@@ -45,11 +45,18 @@ function windForce(context: RangerModifierContext): number {
   return galeshotRuntimeState(context)?.windForce?.value ?? 0;
 }
 
-function galeForceAmount(context: RangerModifierContext, parameters: Readonly<Record<string, number>>): number {
-  const galeForce = (galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time ? parameters.galeForceBonus : 0;
+function galeForceAmount(context: RangerModifierContext): number {
+  const galeForce =
+    (galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time
+      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GALE_FORCE), 'damageIncrease')
+      : 0;
   // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
   // but Wind Force earned while Gale Force is active still adds 3% per stack on top.
-  return galeForce + windForce(context) * parameters.windForcePerStack;
+  return (
+    galeForce +
+    windForce(context) *
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GALE_FORCE), 'damageIncreasePerStack')
+  );
 }
 
 function activePetIsFeathered(context: RangerModifierContext): boolean {
@@ -129,6 +136,7 @@ export const flockTogether = defineTrait({
   id: TRAIT.FLOCK_TOGETHER,
   name: 'Flock Together',
   balance: {
+    damageMultiplier: 1.25,
     internalCooldown: 20,
     effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }]
   },
@@ -138,7 +146,8 @@ export const flockTogether = defineTrait({
       id: 'ranger.flock-together',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLOCK_TOGETHER), 'damageMultiplier'),
       when: (context) =>
         context.event?.actorType === 'summon' && context.event.source === 'ranger-pet' && activePetIsFeathered(context)
     }
@@ -177,6 +186,8 @@ export const galeForce = defineTrait({
   id: TRAIT.GALE_FORCE,
   name: 'Gale Force',
   balance: {
+    damageIncrease: 0.25,
+    damageIncreasePerStack: 0.03,
     effects: [{ name: 'gale-force', type: 'buff', kind: 'gale-force', duration: 10, stacks: 1 }]
   },
   modifierRules: [
@@ -185,11 +196,8 @@ export const galeForce = defineTrait({
       id: 'ranger.gale-force',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: {
-        galeForceBonus: 0.25,
-        windForcePerStack: 0.03
-      },
-      amount: (context, _target, parameters) => galeForceAmount(context, parameters),
+
+      amount: (context) => galeForceAmount(context),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         ((galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
@@ -201,13 +209,16 @@ export const galeForce = defineTrait({
 export const birdOfPrey = defineTrait({
   id: TRAIT.BIRD_OF_PREY,
   name: 'Bird of Prey',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageIncrease: 0.05 },
   modifierRules: [
     {
       order: 100,
       id: 'ranger.bird-of-prey',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.05,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BIRD_OF_PREY), 'damageIncrease'),
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&

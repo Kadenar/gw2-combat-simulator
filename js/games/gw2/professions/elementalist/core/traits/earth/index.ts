@@ -58,14 +58,18 @@ export const earthsEmbrace = defineTrait({
 export const serratedStones = defineTrait({
   id: TRAIT.SERRATED_STONES,
   name: 'Serrated Stones',
-  balance: { durationMultiplier: 20 },
+  balance: {
+    damageMultiplier: 1.05,
+    durationMultiplier: 20
+  },
   modifierRules: [
     {
       order: -9,
       id: 'elementalist.serrated-stones',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SERRATED_STONES), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
     }
   ],

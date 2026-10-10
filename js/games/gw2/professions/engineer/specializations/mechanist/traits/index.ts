@@ -125,7 +125,7 @@ export const jadeDynamo = defineTrait({
 export const jDrive = defineTrait({
   id: TRAIT.MECH_CORE_J_DRIVE,
   name: 'Mech Core: J-Drive',
-  balance: { rechargeMultiplier: 0.76, effects: [] },
+  balance: { rechargeMultiplier: 0.76, damageIncrease: 0.18, conditionDamageIncrease: 0.12, effects: [] },
   rechargeRules: [
     {
       when: overclockPassive,
@@ -162,7 +162,9 @@ export const barrierEngine = defineTrait({
 /** Owns Mech Frame: Conductive Alloys command selection and existing trait behavior. */
 export const conductiveAlloys = defineTrait({
   id: TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
-  name: 'Mech Frame: Conductive Alloys'
+  name: 'Mech Frame: Conductive Alloys',
+  // Each selected frame owns its improved inheritance rather than sharing another frame's tuning.
+  balance: { inheritanceRatio: 1, secondaryAttributeCap: 1500 }
 });
 
 /** Accepted player and mech barriers grant alacrity with one shared cooldown per recipient. */
@@ -170,6 +172,8 @@ export const channelingConduits = defineTrait({
   id: TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
   name: 'Mech Frame: Channeling Conduits',
   balance: {
+    inheritanceRatio: 1,
+    secondaryAttributeCap: 1500,
     internalCooldown: 1,
     effects: [{ type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 1 }]
   },
@@ -181,6 +185,7 @@ export const channelingConduits = defineTrait({
 export const variableMassDistributor = defineTrait({
   id: TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
   name: 'Mech Frame: Variable Mass Distributor',
+  balance: { precisionCap: 2500 },
   modifierRules: [
     {
       requiresSelection: false,

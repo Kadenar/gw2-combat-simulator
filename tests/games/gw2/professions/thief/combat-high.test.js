@@ -27,9 +27,10 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
     [18, 1],
     [20, 0]
   ]) {
-    const query = { runtime: { profession }, time };
-    assert.equal(strike.amount(query, strike.target, strike.parameters), count * 0.03);
-    assert.equal(condition.amount(query, condition.target, condition.parameters), count * 0.02);
+    // Modifier rates and stack state come from the same selected runtime.
+    const query = { helpers: observedRuntime(result).helpers, runtime: { profession }, time };
+    assert.equal(strike.amount(query), count * 0.03);
+    assert.equal(condition.amount(query), count * 0.02);
     assert.equal(projectObservedState(thiefProfession, { profession, time }).combatHighExpirations.length, count);
     assert.equal(state.combatHighExpirations.length, 10, 'projection cannot mutate the runtime buff');
   }

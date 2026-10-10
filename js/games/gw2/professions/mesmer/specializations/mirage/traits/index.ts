@@ -41,6 +41,8 @@ export const nomadsEndurance = defineTrait<MesmerSkill>({
   id: TRAIT.NOMADS_ENDURANCE,
   name: "Nomad's Endurance",
   balance: {
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.05,
     effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 3, stacks: 1 }]
   },
   modifierRules: [
@@ -48,14 +50,16 @@ export const nomadsEndurance = defineTrait<MesmerSkill>({
       id: 'mesmer.nomads-endurance',
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      parameters: {
-        strikeBonus: 0.1,
-        conditionBonus: 0.05
-      },
-      amount: (context, target, parameters) => {
+
+      amount: (context, target) => {
         // Illusion strikes do not inherit personal strike bonuses, while their conditions remain owner-resolved.
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
-        return target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikeBonus : parameters.conditionBonus;
+        return target === MODIFIER_TARGET.STRIKE_DAMAGE
+          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NOMADS_ENDURANCE), 'damageIncrease')
+          : balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.NOMADS_ENDURANCE),
+              'conditionDamageIncrease'
+            );
       },
       when: (context) => Boolean(context.timeline?.vigorActiveAt(context.time))
     }
@@ -136,6 +140,8 @@ export const phantomPain = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTOM_PAIN,
   name: 'Phantom Pain',
   balance: {
+    damageIncreasePerStack: 0.0625,
+    conditionDamageIncreasePerStack: 0.05,
     maximumStacks: 4,
     durationMultiplier: 10
   },
@@ -145,19 +151,27 @@ export const phantomPain = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      parameters: {
-        duration: 10,
-        maximumStacks: 4,
-        strikePerStack: 0.0625,
-        conditionPerStack: 0.05
-      },
-      amount: (context, target, parameters) => {
+
+      amount: (context, target) => {
         // Phantom Pain joins other additive outgoing-damage bonuses; phantasm
         // conditions use owner modifiers, but phantasm strikes use summon ownership.
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
         return (
-          timedStacks(context, 'phantom-pain', parameters.duration, parameters.maximumStacks) *
-          (target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionPerStack : parameters.strikePerStack)
+          timedStacks(
+            context,
+            'phantom-pain',
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN), 'durationMultiplier'),
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN), 'maximumStacks')
+          ) *
+          (target === MODIFIER_TARGET.CONDITION_DAMAGE
+            ? balanceProfileNumber(
+                requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN),
+                'conditionDamageIncreasePerStack'
+              )
+            : balanceProfileNumber(
+                requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN),
+                'damageIncreasePerStack'
+              ))
         );
       }
     }

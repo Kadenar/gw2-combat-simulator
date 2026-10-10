@@ -35,6 +35,7 @@ export const hgh = defineTrait({
   name: 'HGH',
   balance: {
     durationMultiplier: 1.2,
+    initialDelay: 6,
     effects: [
       { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 12 },
       { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 },
@@ -168,7 +169,7 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   // HGH adds one admitted field extension with Acid Bomb ownership; the profile owns the damage formula.
   emitTraitProfile(context, TRAIT.HGH, TRAIT.HGH, undefined, {
-    at: cast.fullEnd + 6,
+    at: cast.fullEnd + balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HGH), 'initialDelay'),
     effect: { type: 'strike', name: 'HGH' },
     activationId: cast.id,
     skillWeaponFallback: 'Unequipped',

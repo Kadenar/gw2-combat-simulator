@@ -47,6 +47,7 @@ export const bigGameHunter = defineTrait({
   id: TRAIT.BIG_GAME_HUNTER,
   name: 'Big Game Hunter',
   balance: {
+    damageMultiplier: 1.25,
     pulseInterval: 12,
     effects: [
       {
@@ -63,7 +64,8 @@ export const bigGameHunter = defineTrait({
       id: 'guardian.dragonhunter.big-game-hunter',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BIG_GAME_HUNTER), 'damageMultiplier'),
       order: 100,
       // Uses context.time (resolver clock), not event.at, because modifier rules
       // are evaluated at the moment damage resolves, not when it was scheduled.
@@ -164,6 +166,7 @@ export const heavyLight = defineTrait({
   id: TRAIT.HEAVY_LIGHT,
   name: 'Heavy Light',
   balance: {
+    damageMultiplier: 1.15,
     internalCooldown: 1,
     effects: [{ type: 'boon', name: 'stability', boon: 'stability', stacks: 1, duration: 6 }]
   },
@@ -173,7 +176,8 @@ export const heavyLight = defineTrait({
       id: 'guardian.dragonhunter.heavy-light',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HEAVY_LIGHT), 'damageMultiplier'),
       order: 100,
       when: (context) => Boolean(context.config?.target?.defiant)
     }
@@ -184,12 +188,15 @@ export const heavyLight = defineTrait({
 export const pureOfSight = defineTrait({
   id: TRAIT.PURE_OF_SIGHT,
   name: 'Pure of Sight',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.07 },
   modifierRules: [
     {
       id: 'guardian.dragonhunter.pure-of-sight',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.07,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PURE_OF_SIGHT), 'damageMultiplier'),
       order: 100
     }
   ]
@@ -199,12 +206,15 @@ export const pureOfSight = defineTrait({
 export const zealotsAggression = defineTrait({
   id: TRAIT.ZEALOTS_AGGRESSION,
   name: "Zealot's Aggression",
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       id: 'guardian.dragonhunter.zealots-aggression',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ZEALOTS_AGGRESSION), 'damageMultiplier'),
       order: 100,
       when: (context) => targetConditionActive(context, 'Crippled')
     }

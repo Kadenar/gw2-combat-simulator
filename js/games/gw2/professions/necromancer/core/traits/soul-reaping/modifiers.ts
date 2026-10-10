@@ -22,6 +22,6 @@ export function modifyVitalPersistenceAttributes(
 export function soulBarbsSiphonMultiplier(runtime: NecromancerRuntime): number {
   return hasTrait(runtime, TRAIT.SOUL_BARBS) &&
     runtime.combat.activeBuffStacks('necromancer-soul-barbs', runtime.time, 1) > 0
-    ? 1.1
+    ? 1 + balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'damageIncrease')
     : 1;
 }

@@ -303,7 +303,7 @@ export function prepareHolosmithSwordEvent(
 ): SimulationEventBase {
   if (event.type === 'engineer.radiant-arc-quickness' || event.type === 'engineer.refraction-cutter-extra-blades') {
     const snapshot = snapshotHolosmithHeat(context);
-    const tier = holosmithHeatTier(snapshot);
+    const tier = holosmithHeatTier(snapshot, context);
     const arc = event.type === 'engineer.radiant-arc-quickness';
     const field = arc
       ? tier === 'enhanced'

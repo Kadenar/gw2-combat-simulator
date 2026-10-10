@@ -195,6 +195,7 @@ export const thermalVision = defineTrait({
   id: TRAIT.THERMAL_VISION,
   name: 'Thermal Vision',
   balance: {
+    conditionDamageIncrease: 0.05,
     attributeBonus: 150,
     effects: [{ name: 'thermal-vision', type: 'buff', kind: 'thermal-vision', stacks: 1, duration: 4 }]
   },
@@ -206,7 +207,11 @@ export const thermalVision = defineTrait({
       conditionSampleInvariant: true,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.05,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.THERMAL_VISION),
+          'conditionDamageIncrease'
+        ),
       when: (context) => buffActive(context, 'thermal-vision')
     }
   ],
@@ -330,19 +335,29 @@ export const sharpshooter = defineTrait({
 export const modifiedAmmunition = defineTrait({
   id: TRAIT.MODIFIED_AMMUNITION,
   name: 'Modified Ammunition',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damagePerCondition: 0.01, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },
   modifierRules: [
     {
       order: -17,
       id: 'engineer.modified-ammunition',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        damagePerCondition: 0.01,
-        maximumConditions: CANONICAL_TARGET_CONDITIONS.length
-      },
+
       // Count unique conditions only up to the selected balance cap.
-      factor: (context, _target, parameters) =>
-        1 + Math.min(parameters.maximumConditions, targetConditionCount(context)) * parameters.damagePerCondition,
+      factor: (context) =>
+        1 +
+        Math.min(
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.MODIFIED_AMMUNITION),
+            'maximumConditions'
+          ),
+          targetConditionCount(context)
+        ) *
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.MODIFIED_AMMUNITION),
+            'damagePerCondition'
+          ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]

@@ -55,12 +55,6 @@ export function specializedElementsAvailability(
     : { ready: true };
 }
 
-/** Retain each existing percentage-recharge patch identity under its trait owner. */
-export const SPECIALIZED_ELEMENTS_PROFILE_IDS = Object.freeze({
-  basicRecharge: 'elementalist.evoker.specialized-elements.basic-recharge',
-  empoweredRecharge: 'elementalist.evoker.specialized-elements.empowered-recharge'
-});
-
 // Evocation's five-second trait ICD applies to some Fire and Earth entry effects
 const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
   TRAIT.SUNSPOT,

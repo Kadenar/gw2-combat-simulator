@@ -39,6 +39,7 @@ export const signetMastery = defineTrait({
   id: TRAIT.SIGNET_MASTERY,
   name: 'Signet Mastery',
   balance: {
+    threshold: 0.5,
     // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
     cooldownPolicy: 'playerRecharge',
     cooldown: 20,
@@ -76,6 +77,7 @@ export const burstPrecision = defineTrait({
   id: TRAIT.BURST_PRECISION,
   name: 'Burst Precision',
   balance: {
+    threshold: 30,
     criticalChance: 1,
     minimumStacks: 2,
     maximumStacks: 4,
@@ -359,7 +361,13 @@ function signetMasteryDamage(
   context: MechanicContext<WarriorRuntimeState, WarriorSkill>,
   event: Gw2ResolverEvent
 ): void {
-  if (event.actorType !== 'player' || !((event.coefficient || 0) > 0) || !context.combat.targetHealthBelow(0.5)) {
+  if (
+    event.actorType !== 'player' ||
+    !((event.coefficient || 0) > 0) ||
+    !context.combat.targetHealthBelow(
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SIGNET_MASTERY), 'threshold')
+    )
+  ) {
     return;
   }
 
@@ -481,7 +489,9 @@ function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): vo
         kind: 'burst-precision',
         duration: balanceProfileNumber(
           profile,
-          Number(event.metadata?.warriorAdrenalineSpent) >= 30 ? 'maximumStacks' : 'minimumStacks'
+          Number(event.metadata?.warriorAdrenalineSpent) >= balanceProfileNumber(profile, 'threshold')
+            ? 'maximumStacks'
+            : 'minimumStacks'
         )
       }
     });

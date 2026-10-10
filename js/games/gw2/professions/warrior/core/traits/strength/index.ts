@@ -71,6 +71,7 @@ export const berserkersPower = defineTrait({
   balance: {
     // Damage, presentation, and tooltip consumers share this trait's balance values.
     maximumStacks: 4,
+    stackMultiplier: 1,
     damageIncreasePerStack: 0.0375,
     effects: [{ name: 'berserkers-power', type: 'buff', kind: 'berserkers-power', stacks: 1, duration: 15 }]
   },
@@ -150,6 +151,8 @@ export const peakPerformance = defineTrait({
   id: TRAIT.PEAK_PERFORMANCE,
   name: 'Peak Performance',
   balance: {
+    baseBonus: 0.05,
+    activeBonus: 0.1,
     effects: [{ name: 'peak-performance', type: 'buff', kind: 'peak-performance', stacks: 1, duration: 6 }]
   },
   modifierRules: [
@@ -158,12 +161,12 @@ export const peakPerformance = defineTrait({
       id: 'warrior.peak-performance',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: {
-        baseBonus: 0.05,
-        activeBonus: 0.1
-      },
-      amount: (context, _target, parameters) =>
-        parameters.baseBonus + (warriorActiveBuffStacks(context, 'peak-performance', 1) ? parameters.activeBonus : 0)
+
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PEAK_PERFORMANCE), 'baseBonus') +
+        (warriorActiveBuffStacks(context, 'peak-performance', 1)
+          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PEAK_PERFORMANCE), 'activeBonus')
+          : 0)
     }
   ]
 });
@@ -259,6 +262,7 @@ export const forcefulGreatsword = defineTrait({
     weaponAttributeBonus: 120,
     // Critical Might has twice the proc chance while wielding a greatsword.
     procChance: 0.5,
+    weaponProcChanceMultiplier: 2,
     effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
   },
   buildAttributes(_common, context) {
@@ -465,7 +469,9 @@ function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent, 
         ...packet,
         priority: 5,
         name: traitProfile.name,
-        stacks: Number(event.metadata?.warriorBurstTier) + 1
+        stacks:
+          Number(event.metadata?.warriorBurstTier) * balanceProfileNumber(traitProfile, 'stackMultiplier') +
+          Number(packet.stacks)
       }),
       effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
     });
@@ -487,7 +493,16 @@ function forcefulGreatswordCritical(
     const proc = advanceCriticalProc(opportunity, {
       id: 'warrior.core.forceful-greatsword',
       at: runtime.time,
-      chanceOnCriticalHit: Math.min(1, chance * (weapons.includes('Greatsword') ? 2 : 1)),
+      chanceOnCriticalHit: Math.min(
+        1,
+        chance *
+          (weapons.includes('Greatsword')
+            ? balanceProfileNumber(
+                requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
+                'weaponProcChanceMultiplier'
+              )
+            : 1)
+      ),
       randomStream: 'warrior.forceful-greatsword',
       roll: (chance, stream) => runtime.random.roll(chance, stream)
     });
@@ -545,7 +560,12 @@ function berserkersPowerDragonSlash(
           skillName: cast.skill.name,
           activationId: cast.id
         },
-        transform: (event) => ({ ...event, name: traitProfile.name, stacks: adrenalineSpent / 10 + 1, priority: 5 }),
+        transform: (event) => ({
+          ...event,
+          name: traitProfile.name,
+          stacks: (adrenalineSpent / 10) * balanceProfileNumber(traitProfile, 'stackMultiplier') + Number(event.stacks),
+          priority: 5
+        }),
         effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
       });
     }

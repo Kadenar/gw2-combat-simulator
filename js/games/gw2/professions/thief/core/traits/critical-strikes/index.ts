@@ -84,13 +84,16 @@ export const unrelentingStrikes = defineTrait({
 export const deadlyAim = defineTrait({
   id: TRAIT.DEADLY_AIM,
   name: 'Deadly Aim',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       order: 6,
       id: 'thief.deadly-aim',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEADLY_AIM), 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === 'Pistol'
@@ -110,10 +113,14 @@ export const ferociousStrikes = defineTrait({
       operation: 'multiply',
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_STRIKES), 'criticalDamage'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthFraction(context) > 0.5
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        targetHealthFraction(context) >
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_STRIKES), 'threshold')
     }
   ],
   balance: {
+    threshold: 0.5,
     criticalDamage: 1.1
   }
 });
@@ -160,7 +167,7 @@ export const keenObserver = defineTrait({
       // Preserve low-health stat previews; simulation queries always return full player health.
       amount: (context) => {
         const keenObserverProfile = requireBalanceProfileFromContext(context, TRAIT.KEEN_OBSERVER);
-        return playerHealthFraction(context) > 0.5
+        return playerHealthFraction(context) > balanceProfileNumber(keenObserverProfile, 'threshold')
           ? balanceProfileNumber(keenObserverProfile, 'criticalChance')
           : balanceProfileNumber(keenObserverProfile, 'lowHealthCriticalChance');
       },
@@ -168,6 +175,7 @@ export const keenObserver = defineTrait({
     }
   ],
   balance: {
+    threshold: 0.5,
     lowHealthCriticalChance: 0.1,
     criticalChance: 0.15
   }
@@ -277,7 +285,10 @@ export const twinFangs = defineTrait({
       factor: (context) =>
         balanceProfileNumber(
           requireBalanceProfileFromContext(context, TRAIT.TWIN_FANGS),
-          playerHealthFraction(context) > 0.5 ? 'criticalDamage' : 'lowHealthCriticalDamage'
+          playerHealthFraction(context) >
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TWIN_FANGS), 'threshold')
+            ? 'criticalDamage'
+            : 'lowHealthCriticalDamage'
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
@@ -292,6 +303,7 @@ export const twinFangs = defineTrait({
     }
   ],
   balance: {
+    threshold: 0.5,
     criticalDamage: 1.07,
     lowHealthCriticalDamage: 1.05,
     criticalChance: 0.07

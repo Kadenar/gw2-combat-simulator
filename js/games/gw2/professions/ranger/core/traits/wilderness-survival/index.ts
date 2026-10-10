@@ -73,6 +73,7 @@ export const poisonMaster = defineTrait({
   id: TRAIT.POISON_MASTER,
   name: 'Poison Master',
   balance: {
+    conditionDamageMultiplier: 1.25,
     effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 8, stacks: 2 }]
   },
   modifierRules: [
@@ -81,7 +82,11 @@ export const poisonMaster = defineTrait({
       id: 'ranger.poison-master',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.POISON_MASTER),
+          'conditionDamageMultiplier'
+        ),
       // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
       when: (context) => context.condition === 'Poisoned' && isGw2PlayerModifierOwnedEvent(context.event)
     }
@@ -202,13 +207,16 @@ export const ambidexterity = defineTrait({
 export const survivalInstincts = defineTrait({
   id: TRAIT.SURVIVAL_INSTINCTS,
   name: 'Survival Instincts',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageIncrease: 0.15 },
   modifierRules: [
     {
       order: 14,
       id: 'ranger.survival-instincts',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.15,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SURVIVAL_INSTINCTS), 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]

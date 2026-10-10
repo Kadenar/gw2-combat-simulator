@@ -55,13 +55,16 @@ export const fireForEffect = defineTrait({
 export const ironSight = defineTrait({
   id: TRAIT.IRON_SIGHT,
   name: 'Iron Sight',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       order: 203,
       id: 'thief.iron-sight',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.IRON_SIGHT), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
     }
   ]
@@ -106,13 +109,16 @@ export const oneInTheChamber = defineTrait({
   ],
   id: TRAIT.ONE_IN_THE_CHAMBER,
   name: 'One in the Chamber',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.25 },
   modifierRules: [
     {
       order: 205,
       id: 'thief.one-in-the-chamber',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ONE_IN_THE_CHAMBER), 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         Boolean(
@@ -135,13 +141,20 @@ export const premeditation = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Count unique boons only up to the selected balance cap.
-      parameters: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
-      factor: (context, _target, parameters) =>
-        1 + Math.min(parameters.maximumBoons, activeBoonCount(context)) * parameters.damagePerBoon,
+
+      factor: (context) =>
+        1 +
+        Math.min(
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREMEDITATION), 'maximumBoons'),
+          activeBoonCount(context)
+        ) *
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREMEDITATION), 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
   balance: {
+    damagePerBoon: 0.01,
+    maximumBoons: GW2_STANDARD_BOONS.length,
     attributeBonus: 180
   },
   buildAttributes(_common, { balanceContext }) {

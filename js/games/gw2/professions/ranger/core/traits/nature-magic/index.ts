@@ -58,6 +58,7 @@ export const fortifyingBond = defineTrait({
   id: TRAIT.FORTIFYING_BOND,
   name: 'Fortifying Bond',
   balance: {
+    pulseInterval: 3,
     effects: Object.entries({
       aegis: 5,
       alacrity: 3,
@@ -107,16 +108,20 @@ export const fortifyingBond = defineTrait({
         // Emit only the trait's pet grant: the configured player boon already exists in the permanent-boon layer.
         for (const [kind, value] of Object.entries(runtime.config.boons ?? {}))
           if (isStandardBoon(kind) && Number(value) > 0) shareFortifyingBond(runtime, kind, Number(value));
-        runtime.schedule('ranger.fortifying-bond-console', runtime.time + 3, null);
+        const interval = balanceProfileNumber(
+          requireBalanceProfileFromContext(runtime, TRAIT.FORTIFYING_BOND),
+          'pulseInterval'
+        );
+        if (interval > 0) runtime.schedule('ranger.fortifying-bond-console', runtime.time + interval, null);
       }
     }
   }
 });
 
 /** Every spirit repeats its slam one second after the final authored shake, including patched pulse timings. */
-function spiritRepeatSlamAt(cast: RuntimeCast<RangerSkill>): number {
+function spiritRepeatSlamAt(runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>): number {
   return (
-    1 +
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.NATURES_VENGEANCE), 'baseDuration') +
     Math.max(
       cast.fullEnd,
       ...(cast.skill.effects ?? [])
@@ -147,6 +152,8 @@ const admittedSpiritRepeats = new WeakSet<RuntimeCast<RangerSkill>>();
 export const naturesVengeance = defineTrait({
   id: TRAIT.NATURES_VENGEANCE,
   name: "Nature's Vengeance",
+  // The trait owns the delay between the final spirit shake and its repeated slam.
+  balance: { baseDuration: 1 },
   triggers: [
     {
       on: 'castStart',
@@ -159,18 +166,18 @@ export const naturesVengeance = defineTrait({
       run(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) {
         // Child-owned slams repeat their own selected profiles rather than duplicating parent effects.
         if (cast.skill.id === ID.SUN_SPIRIT)
-          runtime.schedule('ranger.natures-vengeance-sun', spiritRepeatSlamAt(cast), cast.skill);
+          runtime.schedule('ranger.natures-vengeance-sun', spiritRepeatSlamAt(runtime, cast), cast.skill);
         if (cast.skill.id === ID.STORM_SPIRIT)
-          runtime.scheduleForCast('ranger.natures-vengeance-storm', spiritRepeatSlamAt(cast), cast);
+          runtime.scheduleForCast('ranger.natures-vengeance-storm', spiritRepeatSlamAt(runtime, cast), cast);
       }
     }
   ],
   hooks: {
-    modifyEffects(_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>, effects) {
+    modifyEffects(runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>, effects) {
       if (!admittedSpiritRepeats.has(cast)) return effects;
       const slams = effects.filter((effect) => effect.metadata?.packetKind === 'ranger.spirit-slam');
       if (!slams.length) return effects;
-      const atMs = (spiritRepeatSlamAt(cast) - cast.start) * 1000;
+      const atMs = (spiritRepeatSlamAt(runtime, cast) - cast.start) * 1000;
       return [
         ...effects,
         ...slams.map((effect) => ({
@@ -321,6 +328,8 @@ export const lingeringMagic = defineTrait({
 export const bountifulHunter = defineTrait({
   id: TRAIT.BOUNTIFUL_HUNTER,
   name: 'Bountiful Hunter',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
   modifierRules: [
     {
       order: 7,
@@ -328,10 +337,14 @@ export const bountifulHunter = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Count unique boons only up to the selected balance cap.
-      parameters: { baseFactor: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
-      factor: (context, _target, parameters) =>
-        parameters.baseFactor +
-        Math.min(parameters.maximumBoons, rangerActiveBoonCount(context, 'player')) * parameters.damagePerBoon,
+
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damageMultiplier') +
+        Math.min(
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'maximumBoons'),
+          rangerActiveBoonCount(context, 'player')
+        ) *
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
@@ -340,10 +353,14 @@ export const bountifulHunter = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Count unique boons only up to the selected balance cap.
-      parameters: { baseFactor: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
-      factor: (context, _target, parameters) =>
-        parameters.baseFactor +
-        Math.min(parameters.maximumBoons, rangerActiveBoonCount(context, 'pet')) * parameters.damagePerBoon,
+
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damageMultiplier') +
+        Math.min(
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'maximumBoons'),
+          rangerActiveBoonCount(context, 'pet')
+        ) *
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damagePerBoon'),
       when: (context) => rangerPetEvent(context)
     }
   ]

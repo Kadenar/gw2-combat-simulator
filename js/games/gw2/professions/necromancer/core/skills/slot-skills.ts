@@ -18,12 +18,6 @@ import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mec
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import {
-  masterOfCorruptionBloodIsPower,
-  masterOfCorruptionConsumeConditions,
-  masterOfCorruptionCorrosivePoisonCloud,
-  masterOfCorruptionPlaguelands
-} from '#gw2/professions/necromancer/core/traits/curses/skill-variants.js';
 import { signetsOfSufferingPassive } from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
@@ -90,7 +84,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       ]),
       // Opening application owns self-conditions and boons independently of hostile target acceptance.
       { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
-      masterOfCorruptionBloodIsPower,
       {
         name: 'might',
         type: 'boon',
@@ -170,8 +163,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         stacks: 5,
         duration: 4,
         target: 'self'
-      },
-      masterOfCorruptionConsumeConditions
+      }
     ]
   },
   [ID.PLAGUELANDS]: {
@@ -273,8 +265,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         }
       ]),
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
-      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
-      masterOfCorruptionPlaguelands
+      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' }
     ]
   },
   [ID.LICH_FORM]: {
@@ -533,8 +524,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 2
       },
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
-      { name: 'Self Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
-      masterOfCorruptionCorrosivePoisonCloud
+      { name: 'Self Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' }
     ]
   },
   [ID.SIGNET_OF_VAMPIRISM]: {

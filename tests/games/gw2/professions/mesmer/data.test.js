@@ -162,15 +162,10 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
-    module.modifierRules.filter(
-      (rule) =>
-        (typeof rule.amount === 'function' || typeof rule.factor === 'function') &&
-        Object.keys(rule.parameters).length === 0
-    )
-  );
-
-  assert.deepEqual(opaqueModifierRules, []);
+  // Trait authoring exposes balance values; executable modifiers consume those profiles.
+  const compounding = modules.get('Core').balanceProfiles.find((profile) => profile.id === TRAIT.COMPOUNDING_POWER);
+  assert.equal(compounding.patchableFields.maximumStacks, 5);
+  assert.equal(compounding.patchableFields.damageIncreasePerStack, 0.01);
 
   // Keep the live catalog isolated while exercising skill, profile, and runtime projection patch consumers.
   const originalCooldown = mesmerCatalog.skillsById.get(ID.MIND_WRACK).cooldown;

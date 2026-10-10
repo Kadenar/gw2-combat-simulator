@@ -2,13 +2,11 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { noScopeBoonFerocity } from '#gw2/professions/engineer/core/traits/firearms/modifiers.js';
 import { selectedFirearmsDurationBonuses } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerMechModifierEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import {
   selectedSignet,
   signetModifierRules
@@ -34,11 +32,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
     ferocity: Math.max(0, (modified.ferocity || 0) - noScopeBoonFerocity(context)),
     conditionDamage: Math.max(0, (modified.conditionDamage || 0) - mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK)
   };
-  const mech = engineerMechAttributes(
-    context.config,
-    inheritedSource,
-    requireBalanceProfileFromContext(context, PROFILE.resources)
-  );
+  const mech = engineerMechAttributes(context.config ?? {}, inheritedSource, context);
   if (selectedSignet(context, ID.SHIFT_SIGNET)) {
     mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
     mech.conditionDamage += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;

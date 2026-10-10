@@ -68,14 +68,13 @@ export const combatHigh = defineTrait({
       id: 'thief.combat-high-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: {
-        damagePerStack: 0.03
-      },
-      amount: (context, _target, parameters) =>
+
+      amount: (context) =>
         activeStackCount(
           thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
           context.time
-        ) * parameters.damagePerStack,
+        ) *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.COMBAT_HIGH), 'damageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
@@ -83,18 +82,22 @@ export const combatHigh = defineTrait({
       id: 'thief.combat-high-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      parameters: {
-        damagePerStack: 0.02
-      },
-      amount: (context, _target, parameters) =>
+
+      amount: (context) =>
         activeStackCount(
           thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
           context.time
-        ) * parameters.damagePerStack,
+        ) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.COMBAT_HIGH),
+          'conditionDamageIncreasePerStack'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
   balance: {
+    damageIncreasePerStack: 0.03,
+    conditionDamageIncreasePerStack: 0.02,
     maximumStacks: 10,
     pulseInterval: 2,
     durationMultiplier: 20
@@ -121,13 +124,15 @@ export const exhilaratingEphemera = defineTrait({
       requiresSelection: false,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXHILARATING_EPHEMERA), 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         (thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').antiquaryDamageUntil || 0) > context.time
     }
   ],
   balance: {
+    damageIncrease: 0.1,
     durationMultiplier: 10,
     maximumStacks: 20
   }
@@ -167,20 +172,6 @@ export const meticulousCustodian = defineTrait({
   },
   profiles: [
     {
-      id: PROFILE.artifactWindows,
-      name: 'Antiquary Artifact Windows',
-      profileKind: 'mechanic',
-      durationMultiplier: 10,
-      maximumStacks: 12,
-      minimumStacks: 8,
-      threshold: 10,
-      playerStacks: 5,
-      resourceGain: 3,
-      chakRefundMaximum: 4,
-      rechargeMultiplier: 0.2,
-      effects: []
-    },
-    {
       id: PROFILE.forgedSurferMeticulous,
       name: 'Forged Surfer Dash - Meticulous',
       profileKind: 'skill-variant',
@@ -208,15 +199,7 @@ export const meticulousCustodian = defineTrait({
       id: 'thief.meticulous-custodian-artifact-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        guitarFinalFactor: 3 / 2.5,
-        guitarFactor: 1.2 / 0.8,
-        mortarFactor: 0.6 / 0.5,
-        chakFactor: 1,
-        // Meticulous grants 20% stronger turret and decoy strikes.
-        kryptisFactor: 3.36 / 2.8,
-        holoFactor: 2.4 / 2
-      },
+
       factor: meticulousArtifactStrikeFactor,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
@@ -227,7 +210,11 @@ export const meticulousCustodian = defineTrait({
       id: 'thief.meticulous-custodian-mortar-burning',
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'multiply',
-      factor: 2 / 1.5,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.METICULOUS_CUSTODIAN),
+          'mortarBurningDurationMultiplier'
+        ),
       when: (context) =>
         context.event?.skillId === ID.MISTBURN_MORTAR &&
         context.event.condition === 'Burning' &&
@@ -238,7 +225,11 @@ export const meticulousCustodian = defineTrait({
       id: 'thief.meticulous-custodian-sun-crystal-burning',
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'multiply',
-      factor: 5 / 4,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.METICULOUS_CUSTODIAN),
+          'sunCrystalBurningDurationMultiplier'
+        ),
       when: (context) =>
         context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
         context.event.condition === 'Burning' &&
@@ -246,6 +237,16 @@ export const meticulousCustodian = defineTrait({
     }
   ],
   balance: {
+    durationMultiplier: 12,
+    kryptisDuration: 10,
+    mortarBurningDurationMultiplier: 2 / 1.5,
+    sunCrystalBurningDurationMultiplier: 5 / 4,
+    guitarFinalFactor: 3 / 2.5,
+    guitarFactor: 1.2 / 0.8,
+    mortarFactor: 0.6 / 0.5,
+    chakFactor: 1,
+    kryptisFactor: 3.36 / 2.8,
+    holoFactor: 2.4 / 2,
     // Enhanced artifact packets remain part of the artifact's measured cast.
     damagePreviewAttribution: 'skill',
     kryptisTormentDurationMultiplier: 5 / 4,

@@ -244,6 +244,7 @@ export const numinousGiftTrait = defineTrait({
   name: 'Numinous Gift',
   balance: {
     id: CONDUIT_BALANCE_PROFILE_IDS.numinousGift,
+    damageIncrease: 0.05,
     conditionDurationBonus: 0.05,
     effects: [
       { type: 'boon', boon: 'might', duration: 10, stacks: 5 },
@@ -290,15 +291,25 @@ export const numinousGiftTrait = defineTrait({
       order: 100,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        vulnerabilityPerStack: 0.005,
-        bonus: 0.05
-      },
+
       // Numinous Gift unlocks Targeted Destruction's bonus; the factor is expressed as a multiplier delta on top of
       // the existing vulnerability bonus so both traits stack multiplicatively with the base formula.
-      factor: (context, _target, parameters) => {
-        const base = 1 + vulnerabilityStacks(context) * parameters.vulnerabilityPerStack;
-        return (base + parameters.bonus) / base;
+      factor: (context) => {
+        const base =
+          1 +
+          vulnerabilityStacks(context) *
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.TARGETED_DESTRUCTION),
+              'damageIncreasePerStack'
+            );
+        return (
+          (base +
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift),
+              'damageIncrease'
+            )) /
+          base
+        );
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
     },

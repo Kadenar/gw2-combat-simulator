@@ -620,7 +620,7 @@ test('Herald invocation traits emit their declared proc skills', () => {
     selectedTraitIds: [TRAIT.SPIRIT_BOON, TRAIT.SONG_OF_THE_MISTS]
   });
   const call = result.events.find((event) => event.type === 'damage' && event.name === 'Call of the Dragon');
-  const spiritBoon = result.events.find((event) => event.type === 'buff' && event.skillName === 'Spirit Boon (Dragon)');
+  const spiritBoon = result.events.find((event) => event.type === 'buff' && event.skillName === 'Spirit Boon');
 
   assert.equal(call.skillId, SKILL.CALL_OF_THE_DRAGON);
   assert.equal(call.sourceId, TRAIT.SONG_OF_THE_MISTS);
@@ -641,9 +641,7 @@ test('Renegade invocation traits emit declared proc skills and grant fervor', ()
     (event) =>
       event.type === 'condition' && event.skillName === 'Call of the Renegade' && event.condition === 'Bleeding'
   );
-  const spiritBoon = result.events.find(
-    (event) => event.type === 'buff' && event.skillName === 'Spirit Boon (Renegade)'
-  );
+  const spiritBoon = result.events.find((event) => event.type === 'buff' && event.skillName === 'Spirit Boon');
 
   assert.equal(call.skillId, SKILL.CALL_OF_THE_RENEGADE);
   assert.equal(call.sourceId, TRAIT.SONG_OF_THE_MISTS);

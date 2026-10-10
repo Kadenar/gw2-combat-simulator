@@ -13,7 +13,15 @@ export function leaderOfThePackStance(
   const duration =
     baseDuration *
     balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEADER_OF_THE_PACK), 'durationMultiplier');
-  return { duration, sharedDuration: duration * 0.5 };
+  return {
+    duration,
+    sharedDuration:
+      duration *
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.LEADER_OF_THE_PACK),
+        'sharedDurationMultiplier'
+      )
+  };
 }
 
 // Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.

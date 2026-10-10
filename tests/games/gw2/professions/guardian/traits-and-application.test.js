@@ -158,7 +158,10 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     [19, 1],
     [20, 0]
   ]) {
-    assert.equal(rule.amount({ runtime: { profession }, time: at }, rule.target, rule.parameters), stacks * 0.01);
+    assert.equal(
+      rule.amount({ catalog: guardianCatalog, runtime: { profession }, time: at }, rule.target),
+      stacks * 0.01
+    );
     const projected = projectObservedState(guardianProfession, { profession, time: at });
     assert.equal(projected.symbolicAvengerExpirations.length, stacks);
     assert.equal(profession.core.symbolicAvengerExpirations.length, 5);

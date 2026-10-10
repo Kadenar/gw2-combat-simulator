@@ -1,7 +1,6 @@
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 
 export const RENEGADE_PROFILE_IDS = Object.freeze({
-  spiritBoon: 'revenant.renegade.spirit-boon-renegade',
   bandTogether: 'revenant.renegade.band-together',
   kallasFervor: 'revenant.renegade.kallas-fervor',
   kallasFervorLastingLegacy: 'revenant.renegade.kallas-fervor-lasting-legacy',
@@ -17,8 +16,6 @@ export const RENEGADE_PROFILE_IDS = Object.freeze({
   allForOne: 'revenant.renegade.all-for-one',
   vindication: 'revenant.renegade.vindication'
 });
-
-export const RENEGADE_SPIRIT_BOON_PROFILE_ID = RENEGADE_PROFILE_IDS.spiritBoon;
 
 function renegadeBalanceProfile(profile: {
   readonly id: SkillId;

@@ -416,7 +416,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.ILLUSION_OF_VULNERABILITY]: outsideScopeTooltip,
     [TRAIT.DAZZLING]: traitTooltip('Landed control effects from you or your summons inflict vulnerability.'),
     [TRAIT.FRAGILITY]: traitTooltip('Your strikes deal increased damage for each vulnerability stack on the target.', [
-      fromModifier('mesmer.fragility', 'damagePerStack', 'Strike damage per vulnerability stack')
+      fromProfile(TRAIT.FRAGILITY, 'damageIncreasePerStack', 'Strike damage per vulnerability stack', tooltipPercent)
     ]),
     [TRAIT.BOUNTIFUL_BLADES]: traitTooltip(
       'Mirror Blade gains additional target hits. Phantasmal Berserker summons additional phantasms, each with reduced damage.',
@@ -427,7 +427,7 @@ export const mesmerTooltips: ProfessionTooltips = {
       'additional Mirror Blade hits'
     ),
     [TRAIT.EMPOWERED_ILLUSIONS]: traitTooltip('Clones and phantasms deal increased strike damage.', [
-      fromModifier('mesmer.empowered-illusions', 'factor', 'Illusion strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.EMPOWERED_ILLUSIONS, 'damageMultiplier', 'Illusion strike damage', tooltipFactorChange)
     ]),
     [TRAIT.RENDING_SHATTER]: traitTooltip(
       'Shatter hits inflict vulnerability for each illusion or blade. Instrument hits also inflict vulnerability.'
@@ -435,23 +435,23 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.SHATTERED_CONCENTRATION]: outsideScopeTooltip,
     [TRAIT.EGOTISM]: traitTooltip(
       'Your strikes deal increased damage after the target has lost health. Your own health remains full in combat.',
-      [fromModifier('mesmer.egotism', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.EGOTISM, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.FURIOUS_INTERRUPTION]: outsideScopeTooltip,
     [TRAIT.VICIOUS_EXPRESSION]: traitTooltip(
       'Deal increased strike damage against the boonless simulated target, including illusion strikes.',
-      [fromModifier('mesmer.vicious-expression', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.VICIOUS_EXPRESSION, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.MENTAL_ANGUISH]: traitTooltip(
       'Eligible first-strike shatter packets deal increased damage, with a larger bonus while the target is not activating skills.',
       [
-        fromModifier(
-          'mesmer.mental-anguish',
+        fromProfile(
+          TRAIT.MENTAL_ANGUISH,
           'activatingFactor',
           'Damage while target activates skills',
           tooltipFactorChange
         ),
-        fromModifier('mesmer.mental-anguish', 'idleFactor', 'Damage while target is idle', tooltipFactorChange)
+        fromProfile(TRAIT.MENTAL_ANGUISH, 'idleFactor', 'Damage while target is idle', tooltipFactorChange)
       ]
     ),
     [TRAIT.POWER_BLOCK]: outsideScopeTooltip,
@@ -504,7 +504,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.METAPHYSICAL_REJUVENATION]: outsideScopeTooltip,
     [TRAIT.ILLUSIONARY_MEMBRANE]: traitTooltip(
       'Using your second shatter activates a temporary condition-damage bonus.',
-      [fromModifier('mesmer.illusionary-membrane', 'amount', 'Condition damage')]
+      [fromProfile(TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)]
     ),
     [TRAIT.CHAOTIC_PERSISTENCE]: traitTooltip(
       'Gain expertise and concentration while regeneration is assumed active.',
@@ -556,8 +556,13 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.COMPOUNDING_POWER]: traitTooltip(
       'Creating illusion resources grants temporary stacks that increase your strike and condition damage. Illusion strikes do not inherit the personal strike bonus.',
       [
-        fromModifier('mesmer.compounding-power', 'strikePerStack', 'Strike damage per stack'),
-        fromModifier('mesmer.compounding-power', 'conditionPerStack', 'Condition damage per stack'),
+        fromProfile(TRAIT.COMPOUNDING_POWER, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(
+          TRAIT.COMPOUNDING_POWER,
+          'conditionDamageIncreasePerStack',
+          'Condition damage per stack',
+          tooltipPercent
+        ),
         ['maximumStacks', 'Maximum stacks'],
         ['durationMultiplier', 'Stack duration', tooltipSeconds]
       ]
@@ -580,7 +585,7 @@ export const mesmerTooltips: ProfessionTooltips = {
       'per eligible shatter hit'
     ),
     [TRAIT.PHANTASMAL_FORCE]: traitTooltip('Phantasms deal increased strike damage for each active might stack.', [
-      fromModifier('mesmer.phantasmal-force', 'damagePerMight', 'Phantasm strike damage per might')
+      fromProfile(TRAIT.PHANTASMAL_FORCE, 'damageIncreasePerStack', 'Phantasm strike damage per might', tooltipPercent)
     ]),
     [TRAIT.MASTER_OF_FRAGMENTATION]: (balanceContext, entity) => ({
       description:
@@ -629,7 +634,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.TIME_CATCHES_UP]: traitTooltip(
       'Eligible shatter packets deal increased damage against chilled, crippled, immobilized, or slowed targets.',
-      [fromModifier('mesmer.time-catches-up', 'factor', 'Shatter strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.TIME_CATCHES_UP, 'damageMultiplier', 'Shatter strike damage', tooltipFactorChange)]
     ),
     [TRAIT.ALLS_WELL_THAT_ENDS_WELL]: outsideScopeTooltip,
     [TRAIT.DANGER_TIME]: traitTooltip(
@@ -647,7 +652,7 @@ export const mesmerTooltips: ProfessionTooltips = {
       'Completing Time Sink arms a delayed explosion. Your strike damage increases until it explodes; another bomb cannot be armed while the timer is active.',
       [
         ['durationMultiplier', 'Explosion delay / bonus duration', tooltipSeconds],
-        fromModifier('mesmer.time-bomb', 'factor', 'Strike damage while armed', tooltipFactorChange)
+        fromProfile(TRAIT.TIME_BOMB, 'damageMultiplier', 'Strike damage while armed', tooltipFactorChange)
       ]
     ),
     [TRAIT.STRETCHED_TIME]: traitTooltip(
@@ -670,8 +675,8 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.NOMADS_ENDURANCE]: traitTooltip(
       'Shattering grants vigor. While vigor is active, increase your strike and condition damage.',
       [
-        fromModifier('mesmer.nomads-endurance', 'strikeBonus', 'Strike damage with vigor'),
-        fromModifier('mesmer.nomads-endurance', 'conditionBonus', 'Condition damage with vigor')
+        fromProfile(TRAIT.NOMADS_ENDURANCE, 'damageIncrease', 'Strike damage with vigor', tooltipPercent),
+        fromProfile(TRAIT.NOMADS_ENDURANCE, 'conditionDamageIncrease', 'Condition damage with vigor', tooltipPercent)
       ]
     ),
     [TRAIT.SPEED_OF_SAND]: outsideScopeTooltip,
@@ -691,8 +696,13 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.PHANTOM_PAIN]: traitTooltip(
       'Shattering grants damage stacks for yourself and each clone spent. Stacks increase personal strike damage and condition damage.',
       [
-        fromModifier('mesmer.phantom-pain', 'strikePerStack', 'Strike damage per stack'),
-        fromModifier('mesmer.phantom-pain', 'conditionPerStack', 'Condition damage per stack'),
+        fromProfile(TRAIT.PHANTOM_PAIN, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(
+          TRAIT.PHANTOM_PAIN,
+          'conditionDamageIncreasePerStack',
+          'Condition damage per stack',
+          tooltipPercent
+        ),
         ['maximumStacks', 'Maximum stacks'],
         ['durationMultiplier', 'Stack duration', tooltipSeconds]
       ]
@@ -715,8 +725,8 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.DEADLY_BLADES]: traitTooltip(
       'Blade critical hits inflict vulnerability. Completing a bladesong temporarily increases personal strike and condition damage.',
       [
-        fromModifier('mesmer.deadly-blades', 'strikeBonus', 'Strike damage'),
-        fromModifier('mesmer.deadly-blades', 'conditionBonus', 'Condition damage'),
+        fromProfile(TRAIT.DEADLY_BLADES, 'damageIncrease', 'Strike damage', tooltipPercent),
+        fromProfile(TRAIT.DEADLY_BLADES, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
         ['durationMultiplier', 'Damage-bonus duration', tooltipSeconds]
       ]
     ),
@@ -730,7 +740,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.BLADETURN_REFRAIN]: outsideScopeTooltip,
     [TRAIT.MENTAL_FOCUS]: traitTooltip(
       'Your strikes deal increased damage. The simulator always assumes a nearby target.',
-      [fromModifier('mesmer.mental-focus', 'factor', 'Nearby strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.MENTAL_FOCUS, 'damageMultiplier', 'Nearby strike damage', tooltipFactorChange)]
     ),
     [TRAIT.JAGGED_MIND]: traitTooltip('Critical blade strikes inflict bleeding.'),
     [TRAIT.DUELISTS_REVERSAL]: outsideScopeTooltip,
@@ -748,13 +758,13 @@ export const mesmerTooltips: ProfessionTooltips = {
         ['playerStacks', 'Blades per interval'],
         ['threshold', 'Blades spent to trigger refund'],
         ['resourceGain', 'Blades refunded'],
-        fromModifier('mesmer.infinite-forge', 'factor', 'Blade strike damage', tooltipFactorChange)
+        fromProfile(TRAIT.INFINITE_FORGE, 'damageMultiplier', 'Blade strike damage', tooltipFactorChange)
       ]
     ),
     [TRAIT.BLOODSONG]: traitTooltip(
       'Bleeding deals increased damage. Applying enough bleeding stacks stocks a blade.',
       [
-        fromModifier('mesmer.bloodsong', 'factor', 'Bleeding damage', tooltipFactorChange),
+        fromProfile(TRAIT.BLOODSONG, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange),
         ['threshold', 'Bleeding stacks to stock blades'],
         ['resourceGain', 'Blades stocked']
       ]
@@ -783,7 +793,10 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.SHREDDING]: traitTooltip(
       'Lively Lute gains an additional strike. While Lute is playing, gain additional personal strike and condition damage.',
-      [fromModifier('mesmer.shredding', 'amount', 'Additional strike and condition damage with Lute')],
+      [
+        fromProfile(TRAIT.SHREDDING, 'damageIncrease', 'Additional strike damage with Lute', tooltipPercent),
+        fromProfile(TRAIT.SHREDDING, 'conditionDamageIncrease', 'Additional condition damage with Lute', tooltipPercent)
+      ],
       'additional Lute strike'
     ),
     [TRAIT.LIFE_OF_THE_PARTY]: traitTooltip(
@@ -812,7 +825,7 @@ export const mesmerTooltips: ProfessionTooltips = {
       'Spending notes on an instrument reduces Crescendo recharge. Crescendo grants a strike-damage bonus after Lute, applies confusion after Flute, or applies a control effect after Drum.',
       [
         ['rechargeReduction', 'Crescendo recharge removed', tooltipSeconds],
-        fromModifier('mesmer.altered-chord', 'amount', 'Strike damage after Lute'),
+        fromProfile(TRAIT.ALTERED_CHORD, 'damageIncrease', 'Strike damage after Lute', tooltipPercent),
         ['durationMultiplier', 'Lute bonus duration', tooltipSeconds]
       ],
       'Crescendo after Flute'

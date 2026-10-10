@@ -5,7 +5,6 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
@@ -46,80 +45,82 @@ export const abyssalChill = defineTrait({
 export const acolyteOfTorment = defineTrait({
   id: TRAIT.ACOLYTE_OF_TORMENT,
   name: 'Acolyte of Torment',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { conditionDamageMultiplier: 1.1 },
   modifierRules: [
     {
       id: 'revenant.acolyte-of-torment',
       order: 2,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.ACOLYTE_OF_TORMENT),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Torment'
     }
   ]
 });
 
 /** Owns Diabolic Inferno tuning and behavior at its established execution boundaries. */
-export const diabolicInferno = defineTrait({ id: TRAIT.DIABOLIC_INFERNO, name: 'Diabolic Inferno' });
-
-/** Owns optional Invoke Torment conditions while preserving the shared patch profile and impact timing. */
-export const diabolicInfernoEffects: readonly SkillEffect[] = [
-  {
-    type: 'condition',
-    condition: 'Poisoned',
-    stacks: 1,
-    duration: 10,
-    name: 'Invoke Torment - Poisoned',
-    skillName: 'Invoke Torment',
-    actorType: 'player',
-    metadata: { trigger: 'diabolic-inferno' }
-  },
-  {
-    type: 'condition',
-    condition: 'Burning',
-    stacks: 1,
-    duration: 4,
-    name: 'Invoke Torment - Burning',
-    skillName: 'Invoke Torment',
-    actorType: 'player',
-    metadata: { trigger: 'diabolic-inferno' }
+export const diabolicInferno = defineTrait({
+  id: TRAIT.DIABOLIC_INFERNO,
+  name: 'Diabolic Inferno',
+  balance: {
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'condition',
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 10,
+        name: 'Invoke Torment - Poisoned',
+        skillName: 'Invoke Torment',
+        actorType: 'player',
+        metadata: { trigger: 'diabolic-inferno' }
+      },
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 4,
+        name: 'Invoke Torment - Burning',
+        skillName: 'Invoke Torment',
+        actorType: 'player',
+        metadata: { trigger: 'diabolic-inferno' }
+      }
+    ])
   }
-];
+});
 
 /** Owns invocation strike and condition tuning. */
 export const invokingTorment = defineTrait({
   triggers: [onTriggerPoint(legendInvoked, { run: invokeTorment })],
   id: TRAIT.INVOKING_TORMENT,
   name: 'Invoking Torment',
-  profiles: [
-    {
-      id: TRAIT.INVOKING_TORMENT,
-      // Keep the invocation strike and its conditions together on the nearest action tick.
-      name: 'Invoke Torment',
-      profileKind: 'trait',
-      categories: ['Trait'],
-      skillFamily: 'Trait',
-      // Share one impact timing while preserving independent payloads and declaration order.
-      effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          coefficient: 1,
-          hits: 1,
-          name: 'Invoke Torment',
-          actorType: 'player'
-        },
-        {
-          type: 'condition',
-          condition: 'Torment',
-          stacks: 1,
-          duration: 10,
-          name: 'Invoke Torment - Torment',
-          skillName: 'Invoke Torment',
-          actorType: 'player'
-        },
-        ...diabolicInfernoEffects
-      ])
-    }
-  ]
+  balance: {
+    id: TRAIT.INVOKING_TORMENT,
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        name: 'Invoke Torment',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 1,
+        duration: 10,
+        name: 'Invoke Torment - Torment',
+        skillName: 'Invoke Torment',
+        actorType: 'player'
+      }
+    ])
+  }
 });
 
 /** Owns Pact of Pain tuning and behavior at its established execution boundaries. */
@@ -198,33 +199,22 @@ function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantS
 
 /** Runs the trait at its original ordered mechanic boundary. */
 function invokeTorment(runtime: RevenantRuntime): void {
-  {
-    const diabolicInferno = diabolicInfernoSelected(runtime);
-    {
-      const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.INVOKING_TORMENT);
-      emitTraitProfile(runtime, TRAIT.INVOKING_TORMENT, invocationProfile.id, undefined, {
-        preserveName: true,
-        effects: (effect) =>
-          (
-            invocationProfile.effects?.filter(
-              (effect) => effect.metadata?.trigger !== 'diabolic-inferno' || diabolicInferno
-            ) ?? []
-          ).includes(effect),
-        attribution: (effect) => ({
-          activationId: `legend-invocation:${TRAIT.INVOKING_TORMENT}:${runtime.time}`,
-          source: 'Trait',
-          sourceId: TRAIT.INVOKING_TORMENT,
-          actorType: effect.actorType || 'player',
-          skillId: invocationProfile.id,
-          skillName: invocationProfile.name
-        }),
-        skillWeaponFallback: 'Unequipped'
-      });
-    }
-  }
-}
-
-/** Keeps the additional condition payload tied to the invocation's selected trait. */
-function diabolicInfernoSelected(runtime: RevenantRuntime): boolean {
-  return hasTrait(runtime, TRAIT.DIABOLIC_INFERNO);
+  // Each selected trait emits its own balance payload while retaining the shared invocation identity.
+  const profiles = [
+    TRAIT.INVOKING_TORMENT,
+    ...(hasTrait(runtime, TRAIT.DIABOLIC_INFERNO) ? [TRAIT.DIABOLIC_INFERNO] : [])
+  ];
+  for (const profileId of profiles)
+    emitTraitProfile(runtime, TRAIT.INVOKING_TORMENT, profileId, undefined, {
+      preserveName: true,
+      attribution: {
+        activationId: `legend-invocation:${TRAIT.INVOKING_TORMENT}:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.INVOKING_TORMENT,
+        actorType: 'player',
+        skillId: TRAIT.INVOKING_TORMENT,
+        skillName: 'Invoke Torment'
+      },
+      skillWeaponFallback: 'Unequipped'
+    });
 }

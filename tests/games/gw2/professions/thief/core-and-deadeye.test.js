@@ -1418,9 +1418,9 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
   const weakening = daredevilModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.weakening-strikes');
 
   assert.equal(havoc.operation, 'multiply');
-  assert.equal(havoc.factor, 1.15);
+  assert.equal(thiefCatalog.balanceProfilesById.get(TRAIT.HAVOC_SPECIALIST).damageMultiplier, 1.15);
   assert.equal(weakening.operation, 'multiply');
-  assert.equal(weakening.factor, 1.1);
+  assert.equal(thiefCatalog.balanceProfilesById.get(TRAIT.WEAKENING_STRIKES).damageMultiplier, 1.1);
 });
 
 test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {

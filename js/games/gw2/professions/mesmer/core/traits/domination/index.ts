@@ -41,15 +41,18 @@ export const dazzling = defineTrait<MesmerSkill>({
 export const fragility = defineTrait<MesmerSkill>({
   id: TRAIT.FRAGILITY,
   name: 'Fragility',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1, damageIncreasePerStack: 0.005 },
   modifierRules: [
     {
       id: 'mesmer.fragility',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: Object.freeze({ baseFactor: 1, damagePerStack: 0.005 }),
-      factor: (context, _target, parameters) =>
-        parameters.baseFactor +
-        (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FRAGILITY), 'damageMultiplier') +
+        (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) *
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FRAGILITY), 'damageIncreasePerStack'),
       order: 95,
       when: (context) => !illusionSource(context)
     }
@@ -60,13 +63,16 @@ export const fragility = defineTrait<MesmerSkill>({
 export const viciousExpression = defineTrait<MesmerSkill>({
   id: TRAIT.VICIOUS_EXPRESSION,
   name: 'Vicious Expression',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.15 },
   modifierRules: [
     {
       id: 'mesmer.vicious-expression',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // The target never has boons, so the full bonus always applies.
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_EXPRESSION), 'damageMultiplier'),
       order: 96
     }
   ]
@@ -76,12 +82,15 @@ export const viciousExpression = defineTrait<MesmerSkill>({
 export const empoweredIllusions = defineTrait<MesmerSkill>({
   id: TRAIT.EMPOWERED_ILLUSIONS,
   name: 'Empowered Illusions',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.15 },
   modifierRules: [
     {
       id: 'mesmer.empowered-illusions',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED_ILLUSIONS), 'damageMultiplier'),
       order: 97,
       when: (context) => illusionSource(context)
     }
@@ -92,17 +101,18 @@ export const empoweredIllusions = defineTrait<MesmerSkill>({
 export const mentalAnguish = defineTrait<MesmerSkill>({
   id: TRAIT.MENTAL_ANGUISH,
   name: 'Mental Anguish',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { activatingFactor: 1.25, idleFactor: 1.5 },
   modifierRules: [
     {
       id: 'mesmer.mental-anguish',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: Object.freeze({
-        activatingFactor: 1.25,
-        idleFactor: 1.5
-      }),
-      factor: (context, _target, parameters) =>
-        context.config?.target?.activatingSkills ? parameters.activatingFactor : parameters.idleFactor,
+
+      factor: (context) =>
+        context.config?.target?.activatingSkills
+          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MENTAL_ANGUISH), 'activatingFactor')
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MENTAL_ANGUISH), 'idleFactor'),
       order: 99,
       // Repeat packets are still shatter damage, but the skill contract limits shatter traits to the first strike.
       when: (context) => Boolean(context.event?.metadata?.shatterTraitEligible)
@@ -114,12 +124,15 @@ export const mentalAnguish = defineTrait<MesmerSkill>({
 export const egotism = defineTrait<MesmerSkill>({
   id: TRAIT.EGOTISM,
   name: 'Egotism',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       id: 'mesmer.egotism',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EGOTISM), 'damageMultiplier'),
       order: 100,
       when: (context) => !illusionSource(context) && remainingTargetHealthBelow(context.config, context.runtime, 1)
     }

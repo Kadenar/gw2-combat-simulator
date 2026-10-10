@@ -14,7 +14,6 @@ import {
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import {
   holosmithEventMetadata,
   type HolosmithResolverEvent
@@ -63,6 +62,9 @@ export const enhancedCapacityStorageUnit = defineTrait({
   id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
   name: 'Enhanced Capacity Storage Unit',
   balance: {
+    maximumDamageIncrease: 0.225,
+    maximumStacks: 150,
+    threshold: 100,
     pulseInterval: 1,
     effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 6 }]
   },
@@ -76,7 +78,14 @@ export const enhancedCapacityStorageUnit = defineTrait({
         const state = holosmithState.from(context);
         if (state.enhancedCapacityMightAt !== context.time) return;
         state.enhancedCapacityMightAt = Infinity;
-        if (state.heat.value <= HOLOSMITH_HEAT.enhancedCapacityThreshold) return;
+        if (
+          state.heat.value <=
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
+            'threshold'
+          )
+        )
+          return;
         emitEnhancedCapacityMight(context, context.time);
         const interval = balanceProfileNumber(
           requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
@@ -120,29 +129,38 @@ export const photonicBlastingModule = defineTrait({
 /** Registers the passive heat adjustment consumed by Forge's cadence. */
 export const lightDensityAmplifier = defineTrait({
   id: TRAIT.LIGHT_DENSITY_AMPLIFIER,
-  name: 'Light Density Amplifier'
+  name: 'Light Density Amplifier',
+  balance: { resourceGain: 1 }
 });
 
 /** Laser's Edge samples live heat after trait-adjusted capacity and overheat state. */
 export const lasersEdge = defineTrait({
   id: TRAIT.LASERS_EDGE,
   name: "Laser's Edge",
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { maximumDamageIncrease: 0.15, bonusPerHeat: 0.0015 },
   modifierRules: [
     {
       id: 'engineer.lasers-edge',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        standardMaximum: 0.15,
-        enhancedMaximum: 0.225,
-        bonusPerHeat: 0.0015
-      },
-      factor: (context, _target, parameters) => {
+
+      factor: (context) => {
         const state = engineerSpecializationState(context, 'Holosmith');
         const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-          ? parameters.enhancedMaximum
-          : parameters.standardMaximum;
-        return 1 + Math.min(maximum, (state.heat?.value ?? 0) * parameters.bonusPerHeat);
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
+              'maximumDamageIncrease'
+            )
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LASERS_EDGE), 'maximumDamageIncrease');
+        return (
+          1 +
+          Math.min(
+            maximum,
+            (state.heat?.value ?? 0) *
+              balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LASERS_EDGE), 'bonusPerHeat')
+          )
+        );
       },
       when: (context) => {
         const state = engineerSpecializationState(context, 'Holosmith');
@@ -163,6 +181,7 @@ export const solarFocusingLens = defineTrait({
   id: TRAIT.SOLAR_FOCUSING_LENS,
   name: 'Solar Focusing Lens',
   balance: {
+    damageIncrease: 0.1,
     minimumStacks: 2,
     maximumStacks: 6,
     durationMultiplier: 4,
@@ -173,7 +192,8 @@ export const solarFocusingLens = defineTrait({
       id: 'engineer.solar-focusing-lens',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS), 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && holosmithEventMetadata(context.event).solarFocusingLens === true
     }
@@ -232,8 +252,13 @@ function crossEnhancedCapacityThreshold(
 ): void {
   const state = holosmithState.from(context);
   if (
-    previousHeat > HOLOSMITH_HEAT.enhancedCapacityThreshold ||
-    state.heat.value <= HOLOSMITH_HEAT.enhancedCapacityThreshold
+    previousHeat >
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
+        'threshold'
+      ) ||
+    state.heat.value <=
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT), 'threshold')
   )
     return;
   emitEnhancedCapacityMight(context, at);
@@ -246,7 +271,10 @@ function crossEnhancedCapacityThreshold(
 /** Seed the Might task before passive cooling begins in preheated simulations. */
 function seedEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>): void {
   const state = holosmithState.from(context);
-  if (state.heat.value > HOLOSMITH_HEAT.enhancedCapacityThreshold) {
+  if (
+    state.heat.value >
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT), 'threshold')
+  ) {
     state.enhancedCapacityMightAt = context.time;
     context.schedule('engineer.enhanced-capacity-might', context.time, undefined, undefined, -200);
   }

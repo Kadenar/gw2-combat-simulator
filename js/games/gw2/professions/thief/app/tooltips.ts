@@ -163,8 +163,8 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       ),
       profileFact(
         balanceContext,
-        ANTIQUARY.artifactWindows,
-        kryptis ? 'threshold' : 'maximumStacks',
+        TRAIT.METICULOUS_CUSTODIAN,
+        kryptis ? 'kryptisDuration' : 'durationMultiplier',
         'Effect window with Meticulous Custodian',
         tooltipSeconds
       )
@@ -744,6 +744,7 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.COVER_OF_SHADOW]: outsideScopeTooltip,
     [TRAIT.SHADOWS_REJUVENATION]: traitTooltip('Entering and breaking stealth restore initiative.', [
+      ['entryResourceGain', 'Initiative on entering stealth'],
       ['resourceGain', 'Initiative on breaking stealth']
     ]),
     [TRAIT.RENDING_SHADE]: outsideScopeTooltip,
@@ -756,7 +757,7 @@ export const thiefTooltips: ProfessionTooltips = {
       ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
     [TRAIT.EXPOSED_WEAKNESS]: traitTooltip('Deal increased strike damage for each different condition on the target.', [
-      fromModifier('thief.exposed-weakness', 'damagePerCondition', 'Strike damage per condition')
+      fromProfile(TRAIT.EXPOSED_WEAKNESS, 'damagePerCondition', 'Strike damage per condition', tooltipPercent)
     ]),
     // State the full weapon-dependent bonus so build-only attributes are not hidden by empty profiles.
     [TRAIT.DAGGER_TRAINING]: traitTooltip('Gain power and additional power while wielding a dagger.', [
@@ -790,7 +791,7 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.POTENT_POISON]: traitTooltip(
       "Poison deals increased damage and lasts longer. Serpent's Touch, Deadly Ambition, and Panic Strike apply additional poison stacks.",
       [
-        fromModifier('thief.potent-poison-damage', 'factor', 'Poison damage', tooltipFactorChange),
+        fromProfile(TRAIT.POTENT_POISON, 'conditionDamageMultiplier', 'Poison damage', tooltipFactorChange),
         ['conditionDurationBonus', 'Poison duration', tooltipPercent]
       ]
     ),
@@ -809,7 +810,7 @@ export const thiefTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.EXECUTIONER]: traitTooltip('Deal increased strike damage against targets below half health.', [
-      fromModifier('thief.executioner', 'factor', 'Strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.EXECUTIONER, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.KEEN_OBSERVER]: traitTooltip(
       'Gain critical-strike chance. The full-health bonus applies in combat simulation.',
@@ -842,7 +843,7 @@ export const thiefTooltips: ProfessionTooltips = {
       ['attributeConversion', 'Eligible precision converted to ferocity', tooltipPercent]
     ]),
     [TRAIT.DEADLY_AIM]: traitTooltip('Pistol strikes deal increased damage.', [
-      fromModifier('thief.deadly-aim', 'factor', 'Pistol strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.DEADLY_AIM, 'damageMultiplier', 'Pistol strike damage', tooltipFactorChange)
     ]),
     [TRAIT.NO_QUARTER]: (balanceContext, entity) => ({
       description:
@@ -897,12 +898,12 @@ export const thiefTooltips: ProfessionTooltips = {
       ['rechargeMultiplier', 'Steal recharge', tooltipFactorChange]
     ]),
     [TRAIT.DEADLY_AMBUSH]: traitTooltip('Stealing inflicts bleeding. Bleeding deals increased damage.', [
-      fromModifier('thief.deadly-ambush-bleeding', 'factor', 'Bleeding damage', tooltipFactorChange)
+      fromProfile(TRAIT.DEADLY_AMBUSH, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)
     ]),
     [TRAIT.EXPEDITIOUS_DODGER]: outsideScopeTooltip,
     [TRAIT.FELINE_GRACE]: outsideScopeTooltip,
     [TRAIT.FLUID_STRIKES]: traitTooltip('Completing a movement skill temporarily increases strike damage.', [
-      fromModifier('thief.fluid-strikes', 'amount', 'Strike damage'),
+      fromProfile(TRAIT.FLUID_STRIKES, 'damageIncrease', 'Strike damage', tooltipPercent),
       ['durationMultiplier', 'Bonus duration', tooltipSeconds]
     ]),
     [TRAIT.INSTANT_REFLEXES]: outsideScopeTooltip,
@@ -929,7 +930,12 @@ export const thiefTooltips: ProfessionTooltips = {
       'After dodging, your next landed player strike inflicts weakness. Deal increased strike damage to weakened targets.',
       [
         ['durationMultiplier', 'Time to land the strike', tooltipSeconds],
-        fromModifier('thief.weakening-strikes', 'factor', 'Strike damage against weakened targets', tooltipFactorChange)
+        fromProfile(
+          TRAIT.WEAKENING_STRIKES,
+          'damageMultiplier',
+          'Strike damage against weakened targets',
+          tooltipFactorChange
+        )
       ]
     ),
     [TRAIT.ENDURANCE_THIEF]: traitTooltip('Stealing restores endurance.', [['resourceGain', 'Endurance restored']]),
@@ -950,13 +956,13 @@ export const thiefTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.HAVOC_SPECIALIST]: traitTooltip('Deal increased strike damage while endurance is below maximum.', [
-      fromModifier('thief.havoc-specialist', 'factor', 'Strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.HAVOC_SPECIALIST, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.IMPACTING_DISRUPTION]: outsideScopeTooltip,
     [TRAIT.LOTUS_TRAINING]: traitTooltip(
       'Replace your dodge with Impaling Lotus, striking and applying conditions. Completing the dodge temporarily increases condition damage.',
       [
-        fromModifier('thief.lotus-training', 'amount', 'Condition damage'),
+        fromProfile(TRAIT.LOTUS_TRAINING, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
         ['durationMultiplier', 'Bonus duration', tooltipSeconds]
       ]
     ),
@@ -966,7 +972,7 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.BOUNDING_DODGER]: traitTooltip(
       'Replace your dodge with Bound, striking the target. Completing the dodge temporarily increases strike damage.',
       [
-        fromModifier('thief.bounding-dodger', 'amount', 'Strike damage'),
+        fromProfile(TRAIT.BOUNDING_DODGER, 'damageIncrease', 'Strike damage', tooltipPercent),
         ['durationMultiplier', 'Bonus duration', tooltipSeconds]
       ]
     ),
@@ -975,7 +981,7 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.RENEWING_GAZE]: outsideScopeTooltip,
     [TRAIT.IRON_SIGHT]: traitTooltip('Deal increased strike damage to the marked target.', [
-      fromModifier('thief.iron-sight', 'factor', 'Strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.IRON_SIGHT, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.MALICIOUS_INTENT]: traitTooltip(
       'Gain malice when marking a target and after a malicious attack spends malice.',
@@ -984,7 +990,7 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.COLLATERAL_DAMAGE]: outsideScopeTooltip,
     [TRAIT.ONE_IN_THE_CHAMBER]: traitTooltip(
       'Cantrips grant a new stolen skill choice, replacing the stored choice. Stolen skills deal increased strike damage.',
-      [fromModifier('thief.one-in-the-chamber', 'factor', 'Stolen skill strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.ONE_IN_THE_CHAMBER, 'damageMultiplier', 'Stolen skill strike damage', tooltipFactorChange)]
     ),
     [TRAIT.SILENT_SCOPE]: traitTooltip(
       'Gain precision. Dodging above the malice threshold grants one temporary stealth-attack use without entering stealth.',
@@ -999,7 +1005,7 @@ export const thiefTooltips: ProfessionTooltips = {
       'Gain concentration and increased strike damage for each different boon on you.',
       [
         ['attributeBonus', 'Concentration'],
-        fromModifier('thief.premeditation', 'damagePerBoon', 'Strike damage per boon')
+        fromProfile(TRAIT.PREMEDITATION, 'damagePerBoon', 'Strike damage per boon', tooltipPercent)
       ]
     ),
     [TRAIT.MALEFICENT_SEVEN]: traitTooltip(
@@ -1048,7 +1054,7 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.TRAVERSING_DUSK]: outsideScopeTooltip,
     [TRAIT.STRENGTH_OF_SHADOWS]: traitTooltip('Gain expertise from vitality. Torment deals more damage.', [
       ['attributeConversion', 'Vitality converted to expertise', tooltipPercent],
-      fromModifier('thief.strength-of-shadows', 'amount', 'Torment damage')
+      fromProfile(TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease', 'Torment damage', tooltipPercent)
     ]),
     [TRAIT.HUNGERING_DARKNESS]: outsideScopeTooltip,
     [TRAIT.SHADESTEP]: (balanceContext, entity) => ({
@@ -1089,46 +1095,21 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.METICULOUS_CUSTODIAN]: traitTooltip(
       'Enhance artifacts: extend their special-effect windows, improve eligible strikes, burning and turret torment, and add a strike to Chak Shield.',
       [
-        fromModifier(
-          'thief.meticulous-custodian-artifact-strike',
-          'guitarFactor',
-          'Guitar strike damage',
-          tooltipFactorChange
-        ),
-        fromModifier(
-          'thief.meticulous-custodian-artifact-strike',
-          'guitarFinalFactor',
-          'Guitar final strike damage',
-          tooltipFactorChange
-        ),
-        fromModifier(
-          'thief.meticulous-custodian-artifact-strike',
-          'mortarFactor',
-          'Mortar strike damage',
-          tooltipFactorChange
-        ),
-        fromModifier(
-          'thief.meticulous-custodian-artifact-strike',
-          'holoFactor',
-          'Holo Dancer strike damage',
-          tooltipFactorChange
-        ),
-        fromModifier(
-          'thief.meticulous-custodian-artifact-strike',
-          'kryptisFactor',
-          'Kryptis Turret strike damage',
-          tooltipFactorChange
-        ),
+        fromProfile(TRAIT.METICULOUS_CUSTODIAN, 'guitarFactor', 'Guitar strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.METICULOUS_CUSTODIAN, 'guitarFinalFactor', 'Guitar final strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.METICULOUS_CUSTODIAN, 'mortarFactor', 'Mortar strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.METICULOUS_CUSTODIAN, 'holoFactor', 'Holo Dancer strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.METICULOUS_CUSTODIAN, 'kryptisFactor', 'Kryptis Turret strike damage', tooltipFactorChange),
         ['kryptisTormentDurationMultiplier', 'Kryptis Turret base torment duration', tooltipFactorChange],
-        fromModifier(
-          'thief.meticulous-custodian-mortar-burning',
-          'factor',
+        fromProfile(
+          TRAIT.METICULOUS_CUSTODIAN,
+          'mortarBurningDurationMultiplier',
           'Mortar burning duration',
           tooltipFactorChange
         ),
-        fromModifier(
-          'thief.meticulous-custodian-sun-crystal-burning',
-          'factor',
+        fromProfile(
+          TRAIT.METICULOUS_CUSTODIAN,
+          'sunCrystalBurningDurationMultiplier',
           'Sun Crystal burning duration',
           tooltipFactorChange
         )
@@ -1138,7 +1119,7 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.EXHILARATING_EPHEMERA]: traitTooltip(
       'Using an artifact extends a temporary strike-damage bonus, up to the maximum remaining duration.',
       [
-        fromModifier('thief.antiquary-artifact-momentum', 'amount', 'Strike damage'),
+        fromProfile(TRAIT.EXHILARATING_EPHEMERA, 'damageIncrease', 'Strike damage', tooltipPercent),
         ['durationMultiplier', 'Duration added', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining duration', tooltipSeconds]
       ]
@@ -1163,8 +1144,8 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.COMBAT_HIGH]: traitTooltip(
       'Skritt Swipe grants a full set of damage-bonus stacks, replacing earlier stacks. Stacks expire one at a time.',
       [
-        fromModifier('thief.combat-high-strike', 'damagePerStack', 'Strike damage per stack'),
-        fromModifier('thief.combat-high-condition', 'damagePerStack', 'Condition damage per stack'),
+        fromProfile(TRAIT.COMBAT_HIGH, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(TRAIT.COMBAT_HIGH, 'conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent),
         ['maximumStacks', 'Initial stacks'],
         ['pulseInterval', 'Time between stack expirations', tooltipSeconds],
         ['durationMultiplier', 'Final stack duration', tooltipSeconds]

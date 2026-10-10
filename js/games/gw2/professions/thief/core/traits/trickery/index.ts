@@ -82,11 +82,16 @@ export const deadlyAmbush = defineTrait({
       id: 'thief.deadly-ambush-bleeding',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBUSH),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Bleeding'
     }
   ],
   balance: {
+    conditionDamageMultiplier: 1.25,
     effects: [{ type: 'condition', name: 'Bleeding', condition: 'Bleeding', stacks: 3, duration: 10 }]
   }
 });

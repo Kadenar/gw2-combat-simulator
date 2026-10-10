@@ -23,6 +23,7 @@ const mesmerRules = (specialization) =>
 const necromancerRules = (specialization) => necromancerProfession.resolveProfession({ specialization });
 
 function modifierContext({
+  catalog = mesmerCatalog,
   traits = [],
   event = { source: 'Player' },
   config = {},
@@ -51,6 +52,7 @@ function modifierContext({
   const vulnerabilityStacksAt = () => Number(config.target?.conditions?.Vulnerability || 0);
 
   return {
+    catalog,
     time: 1,
     traits: new Set(traits),
     event,
@@ -90,6 +92,7 @@ function assertClose(actual, expected) {
 
 test('Guardian additive and multiplicative modifiers use separate buckets', () => {
   const context = modifierContext({
+    catalog: guardianLuminaryRules.catalog,
     traits: [
       GUARDIAN.EMPOWERED_ARMAMENTS,
       GUARDIAN.RADIANT_ARMAMENTS,
@@ -137,6 +140,7 @@ test('Guardian additive and multiplicative modifiers use separate buckets', () =
 
 test('Glaring Burst hammer damage multiplies shared additive modifiers', () => {
   const context = modifierContext({
+    catalog: guardianLuminaryRules.catalog,
     event: {
       source: 'Player',
       skillId: GUARDIAN_SKILL_IDS.GLARING_BURST,
@@ -156,6 +160,7 @@ test('Glaring Burst hammer damage multiplies shared additive modifiers', () => {
 
 test('Necromancer active runtimes isolate their Discretize modifier buckets', () => {
   const shared = {
+    catalog: necromancerProfession.catalog,
     config: {
       target: {
         health: 100,
@@ -501,7 +506,10 @@ test('Mental Focus, Soul Eater, and Reaper shouts always receive nearby bonuses'
     1.05
   );
   assertClose(
-    necromancerRules('Reaper').modifyStrikeDamage({ ...context, traits: new Set([NECROMANCER.SOUL_EATER]) }, 1),
+    necromancerRules('Reaper').modifyStrikeDamage(
+      { ...context, catalog: necromancerProfession.catalog, traits: new Set([NECROMANCER.SOUL_EATER]) },
+      1
+    ),
     1.15
   );
   const reaper = necromancerRules('Reaper');

@@ -43,7 +43,7 @@ export const coreValue = defineTrait({
   balance: { duration: 1 }
 });
 
-/** Owns Draconic Echo tuning and behavior at its established execution boundaries. */
+/** Retain consumed facets while allowing each facet's bonus to be tuned independently. */
 export const draconicEcho = defineTrait({
   triggers: [
     onTriggerPoint(facetConsumed, {
@@ -58,7 +58,10 @@ export const draconicEcho = defineTrait({
       operation: 'multiply',
       factor: (context) =>
         1 +
-        balanceProfileNumber(requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID), 'damageBonus'),
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+          'damageIncrease'
+        ),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_STRENGTH)
     },
@@ -68,7 +71,10 @@ export const draconicEcho = defineTrait({
       operation: 'multiply',
       factor: (context) =>
         1 +
-        balanceProfileNumber(requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID), 'damageBonus'),
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+          'conditionDamageIncrease'
+        ),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_ELEMENTS)
     },
@@ -91,7 +97,8 @@ export const draconicEcho = defineTrait({
   balance: {
     id: HERALD_DRACONIC_ECHO_PROFILE_ID,
     duration: 6,
-    damageBonus: 0.1,
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.1,
     criticalChanceBonus: 0.1,
     boonDurationBonus: 10,
     effects: []
@@ -138,6 +145,7 @@ export const elevatedCompassion = defineTrait({
 export const forcefulPersistence = defineTrait({
   id: TRAIT.FORCEFUL_PERSISTENCE,
   name: 'Forceful Persistence',
+  balance: { damageIncreasePerStack: 0.1, upkeepDamageIncrease: 0.25 },
   modifierRules: [
     {
       id: 'revenant.forceful-persistence',
@@ -147,7 +155,14 @@ export const forcefulPersistence = defineTrait({
       // Each active facet contributes 10%, other upkeeps 25%; share Ferocious Aggression's additive bucket.
       amount: (context) =>
         (revenantRuntimeCoreState(context).activeUpkeeps || []).reduce(
-          (bonus, upkeep) => bonus + (HERALD_BASE_SKILL_MECHANICS[Number(upkeep.skillId)]?.facet ? 0.1 : 0.25),
+          (bonus, upkeep) =>
+            bonus +
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.FORCEFUL_PERSISTENCE),
+              HERALD_BASE_SKILL_MECHANICS[Number(upkeep.skillId)]?.facet
+                ? 'damageIncreasePerStack'
+                : 'upkeepDamageIncrease'
+            ),
           0
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
@@ -162,7 +177,11 @@ export const reinforcedPotency = defineTrait({
   ]),
   id: TRAIT.REINFORCED_POTENCY,
   name: 'Reinforced Potency',
-  balance: { attributeBonus: 240 },
+  balance: {
+    damagePerBoon: 0.01,
+    maximumBoons: GW2_STANDARD_BOONS.length,
+    attributeBonus: 240
+  },
   modifierRules: [
     {
       id: 'revenant.reinforced-potency',
@@ -170,9 +189,12 @@ export const reinforcedPotency = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       // Count unique boons only up to the selected balance cap.
-      parameters: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
-      amount: (context, _target, parameters) =>
-        Math.min(parameters.maximumBoons, countActiveBoons(context)) * parameters.damagePerBoon,
+
+      amount: (context) =>
+        Math.min(
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.REINFORCED_POTENCY), 'maximumBoons'),
+          countActiveBoons(context)
+        ) * balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.REINFORCED_POTENCY), 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]

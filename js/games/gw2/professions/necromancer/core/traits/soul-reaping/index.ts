@@ -169,14 +169,21 @@ export const soulBarbs = defineTrait({
   ],
   id: TRAIT.SOUL_BARBS,
   name: 'Soul Barbs',
-  balance: { duration: 15 },
+  balance: {
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.1,
+    duration: 15
+  },
   modifierRules: [
     {
       order: -17,
       id: 'necromancer.soul-barbs',
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context, target) =>
+        target === MODIFIER_TARGET.CONDITION_DAMAGE
+          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_BARBS), 'conditionDamageIncrease')
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_BARBS), 'damageIncrease'),
       when: (context) => buffActive(context, 'necromancer-soul-barbs')
     }
   ]

@@ -159,6 +159,7 @@ export const overflowingThirst = defineTrait({
   id: TRAIT.OVERFLOWING_THIRST,
   name: 'Overflowing Thirst',
   balance: {
+    minimumStacks: 1,
     effects: [
       {
         name: 'taste-for-blood',
@@ -259,14 +260,13 @@ export const markOfEvasion = defineTrait({
 export const bansheesWail = defineTrait({
   id: TRAIT.BANSHEES_WAIL,
   name: "Banshee's Wail",
-  balance: { durationMultiplier: 1.5 },
+  balance: { pulseInterval: 0.5, durationMultiplier: 1.5 },
   hooks: {
     modifyEffects(runtime, cast, effects) {
       if (cast.skill.id !== ID.LOCUST_SWARM || !hasTrait(runtime, TRAIT.BANSHEES_WAIL)) return effects;
-      const multiplier = balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, TRAIT.BANSHEES_WAIL),
-        'durationMultiplier'
-      );
+      const profile = requireBalanceProfileFromContext(runtime, TRAIT.BANSHEES_WAIL);
+      const multiplier = balanceProfileNumber(profile, 'durationMultiplier');
+      const pulseIntervalMs = balanceProfileNumber(profile, 'pulseInterval') * 1000;
       return effects.map((effect) => {
         if (effect.type === 'boon') return { ...effect, duration: effect.duration * multiplier };
         if (effect.type !== 'strike' || !effect.ticks?.length) return effect;
@@ -277,7 +277,12 @@ export const bansheesWail = defineTrait({
           flatStrikeBase: Math.floor((effect.flatStrikeBase ?? 0) * multiplier),
           ticks: Array.from(
             { length: Math.round(ticks.length * multiplier) },
-            (_, index) => ticks[index] ?? { ...last, atMs: quantizeGw2ActionDurationUp(index * 500) }
+            (_, index) =>
+              ticks[index] ?? {
+                ...last,
+                // Extend after the native swarm so faster trait pulses cannot advance damage or life force.
+                atMs: quantizeGw2ActionDurationUp(last.atMs + (index - ticks.length + 1) * pulseIntervalMs)
+              }
           )
         };
       });
@@ -531,18 +536,17 @@ function applyOverflowingThirstDamage(context: NecromancerResolverContext, event
   if (recipient) consumeTasteForBlood(context, event, recipient);
 }
 
-const TASTE_FOR_BLOOD_STACKS_BY_SKILL = new Map<number, number>([
-  [ID.NECROTIC_BITE, 1],
-  [ID.LIFE_SIPHON, 3],
-  [ID.DARK_PACT, 3],
-  [ID.DEATHLY_SWARM, 3],
-  [ID.ENFEEBLING_BLOOD, 3]
+const TASTE_FOR_BLOOD_SKILLS = new Set<number>([
+  ID.NECROTIC_BITE,
+  ID.LIFE_SIPHON,
+  ID.DARK_PACT,
+  ID.DEATHLY_SWARM,
+  ID.ENFEEBLING_BLOOD
 ]);
 
 /** Dagger activations deliver party charges before player, minion, and allied hits spend their individual pools. */
 function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(cast.skill.id)) ?? 0;
-  if (!stacks || !hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) return;
+  if (!TASTE_FOR_BLOOD_SKILLS.has(Number(cast.skill.id)) || !hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.OVERFLOWING_THIRST);
   const buff = requireEffect(profile, 'buff', 'taste-for-blood');
   if (!buff) return;
@@ -564,7 +568,14 @@ function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCa
       }
     },
     preserveName: true,
-    transform: (packet) => ({ ...packet, stacks: stacks })
+    // The autoattack grants the smaller balance amount; other dagger skills use the authored buff stacks.
+    transform: (packet) => ({
+      ...packet,
+      stacks:
+        cast.skill.id === ID.NECROTIC_BITE
+          ? balanceProfileNumber(profile, 'minimumStacks')
+          : effectNumber(profile, buff, 'stacks')
+    })
   });
 }
 

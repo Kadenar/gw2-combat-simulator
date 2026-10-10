@@ -38,7 +38,7 @@ export const empireDivided = defineTrait({
   ]),
   id: TRAIT.EMPIRE_DIVIDED,
   name: 'Empire Divided',
-  balance: { attributeBonus: 240 }
+  balance: { attributeBonus: 240, threshold: 0.5 }
 });
 
 /** Owns Forerunner of Death tuning and behavior at its established execution boundaries. */
@@ -52,6 +52,7 @@ export const forerunnerOfDeath = defineTrait({
   id: TRAIT.FORERUNNER_OF_DEATH,
   name: 'Forerunner of Death',
   balance: {
+    damageIncrease: 0.25,
     effects: [
       {
         name: 'forerunner-of-death',
@@ -70,7 +71,8 @@ export const forerunnerOfDeath = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "damage-additive" goes into the GW2 shared outgoing-damage bucket alongside other % modifiers.
       operation: 'damage-additive',
-      amount: 0.25,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FORERUNNER_OF_DEATH), 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
@@ -85,6 +87,8 @@ export const forerunnerOfDeath = defineTrait({
 export const leviathanStrength = defineTrait({
   id: TRAIT.LEVIATHAN_STRENGTH,
   name: 'Leviathan Strength',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       id: 'revenant.leviathan-strength',
@@ -92,7 +96,8 @@ export const leviathanStrength = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "multiply" runs after the damage-additive bucket, so Leviathan compounds on top of Forerunner.
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEVIATHAN_STRENGTH), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && enduranceNotFull(context)
     }
   ]

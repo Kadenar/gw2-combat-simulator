@@ -238,6 +238,8 @@ export const appliedForce = defineTrait<EngineerSkill>({
 export const objectInMotion = defineTrait<EngineerSkill>({
   id: TRAIT.OBJECT_IN_MOTION,
   name: 'Object in Motion',
+  // The trait balance owns tuning consumed by damage rules and presentation.
+  balance: { damageMultiplier: 1.05 },
   modifierRules: [
     {
       // Object in Motion: +5% strike damage per active movement status (stability/swiftness/superspeed).
@@ -245,15 +247,16 @@ export const objectInMotion = defineTrait<EngineerSkill>({
       id: 'engineer.object-in-motion',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        damageFactorPerBoon: 1.05
-      },
-      factor: (context, _target, parameters) => {
+
+      factor: (context) => {
         const count = ['stability', 'swiftness', 'superspeed'].filter(
           (kind) =>
             (kind === 'superspeed' ? activeBuffStacks(context, kind, 1) : modifierBoonStacks(context, kind, 1)) > 0
         ).length;
-        return parameters.damageFactorPerBoon ** count;
+        return (
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.OBJECT_IN_MOTION), 'damageMultiplier') **
+          count
+        );
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }

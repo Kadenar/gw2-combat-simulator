@@ -173,18 +173,22 @@ export const reverberation = defineTrait({
 export const strengtheningStanzas = defineTrait({
   id: TRAIT.STRENGTHENING_STANZAS,
   name: 'Strengthening Stanzas',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { strikeBonus: 0.15, conditionBonus: 0.1 },
   modifierRules: [
     {
       order: 11,
       id: 'warrior.strengthening-stanzas',
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      parameters: {
-        strikeBonus: 0.15,
-        conditionBonus: 0.1
-      },
-      amount: (_context, target, parameters) =>
-        target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionBonus : parameters.strikeBonus,
+
+      amount: (context, target) =>
+        target === MODIFIER_TARGET.CONDITION_DAMAGE
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.STRENGTHENING_STANZAS),
+              'conditionBonus'
+            )
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STRENGTHENING_STANZAS), 'strikeBonus'),
       when: (context) => paragonRuntimeState(context).activeRefrainId === ID.CHANT_OF_ACTION
     }
   ]
@@ -194,22 +198,24 @@ export const strengtheningStanzas = defineTrait({
 export const briskPacing = defineTrait({
   id: TRAIT.BRISK_PACING,
   name: 'Brisk Pacing',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: {
+    middleThreshold: 4,
+    highThreshold: 7,
+    strikeLow: 0.1,
+    strikeMiddle: 0.2,
+    strikeHigh: 0.3,
+    conditionLow: 0.05,
+    conditionMiddle: 0.15,
+    conditionHigh: 0.25
+  },
   modifierRules: [
     {
       order: 12,
       id: 'warrior.brisk-pacing',
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      parameters: {
-        middleThreshold: 4,
-        highThreshold: 7,
-        strikeLow: 0.1,
-        strikeMiddle: 0.2,
-        strikeHigh: 0.3,
-        conditionLow: 0.05,
-        conditionMiddle: 0.15,
-        conditionHigh: 0.25
-      },
+
       amount: briskPacingAmount,
       when: (context) => motivation(context) > 0
     }
@@ -227,25 +233,22 @@ function motivation(context: Gw2ModifierContext): number {
 
 // Resolve Brisk Pacing's modifier amount from live Motivation and refrain state
 // at the queried event timestamp.
-function briskPacingAmount(
-  context: Gw2ModifierContext,
-  target: string,
-  parameters: Readonly<Record<string, number>>
-): number {
+function briskPacingAmount(context: Gw2ModifierContext, target: string): number {
+  const profile = requireBalanceProfileFromContext(context, TRAIT.BRISK_PACING);
   const current = motivation(context);
   if (current <= 0) return 0;
   const strike =
-    current >= parameters.highThreshold
-      ? parameters.strikeHigh
-      : current >= parameters.middleThreshold
-        ? parameters.strikeMiddle
-        : parameters.strikeLow;
+    current >= balanceProfileNumber(profile, 'highThreshold')
+      ? balanceProfileNumber(profile, 'strikeHigh')
+      : current >= balanceProfileNumber(profile, 'middleThreshold')
+        ? balanceProfileNumber(profile, 'strikeMiddle')
+        : balanceProfileNumber(profile, 'strikeLow');
   const condition =
-    current >= parameters.highThreshold
-      ? parameters.conditionHigh
-      : current >= parameters.middleThreshold
-        ? parameters.conditionMiddle
-        : parameters.conditionLow;
+    current >= balanceProfileNumber(profile, 'highThreshold')
+      ? balanceProfileNumber(profile, 'conditionHigh')
+      : current >= balanceProfileNumber(profile, 'middleThreshold')
+        ? balanceProfileNumber(profile, 'conditionMiddle')
+        : balanceProfileNumber(profile, 'conditionLow');
   return target === MODIFIER_TARGET.CONDITION_DAMAGE ? condition : strike;
 }
 

@@ -190,7 +190,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
     concentration: 400,
     healingPower: 500
   };
-  const base = engineerMechAttributes({ specialization: 'Mechanist' }, player);
+  const base = engineerMechAttributes({ specialization: 'Mechanist' }, player, { catalog: engineerCatalog });
 
   assert.deepEqual(base, {
     power: 2000,
@@ -209,7 +209,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         specialization: 'Mechanist',
         selectedTraitIds: [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]
       },
-      player
+      player,
+      { catalog: engineerCatalog }
     ).conditionDamage,
     1000
   );
@@ -219,7 +220,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         specialization: 'Mechanist',
         selectedTraitIds: [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]
       },
-      player
+      player,
+      { catalog: engineerCatalog }
     ).expertise,
     300
   );
@@ -229,7 +231,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         specialization: 'Mechanist',
         selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
       },
-      player
+      player,
+      { catalog: engineerCatalog }
     ).concentration,
     400
   );
@@ -239,7 +242,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         specialization: 'Mechanist',
         selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
       },
-      player
+      player,
+      { catalog: engineerCatalog }
     ).healingPower,
     500
   );
@@ -249,7 +253,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         specialization: 'Mechanist',
         selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]
       },
-      player
+      player,
+      { catalog: engineerCatalog }
     ).precision,
     1501
   );
@@ -269,7 +274,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
     {
       specialization: 'Mechanist'
     },
-    uncapped
+    uncapped,
+    { catalog: engineerCatalog }
   );
 
   assert.equal(cappedBase.power, 2250);
@@ -284,7 +290,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         specialization: 'Mechanist',
         selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]
       },
-      uncapped
+      uncapped,
+      { catalog: engineerCatalog }
     ).precision,
     2500
   );
@@ -293,7 +300,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
       specialization: 'Mechanist',
       selectedTraitIds: [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]
     },
-    uncapped
+    uncapped,
+    { catalog: engineerCatalog }
   );
 
   assert.equal(cappedConductive.conditionDamage, 1500);
@@ -303,7 +311,8 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
       specialization: 'Mechanist',
       selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
     },
-    uncapped
+    uncapped,
+    { catalog: engineerCatalog }
   );
 
   assert.equal(cappedChanneling.concentration, 1500);
@@ -781,6 +790,7 @@ describe('Mechanist grandmaster active effects', () => {
         .modifyConditionDamage(
           {
             config: jDriveConfig,
+            catalog: engineerCatalog,
             time: 0
           },
           1

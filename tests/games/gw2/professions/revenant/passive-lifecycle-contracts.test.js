@@ -1,4 +1,5 @@
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
@@ -166,7 +167,19 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
   const state = createHeraldState();
   const context = {
     config: { ...base, selectedTraitIds: [TRAIT.DRACONIC_ECHO] },
-    catalog: revenantCatalog,
+    // Distinct facet values verify that each selected balance field controls only its own bonus.
+    catalog: applyBalanceProfilePatch(revenantCatalog, {
+      balanceProfiles: {
+        'revenant.draconic-echo': {
+          fields: {
+            damageIncrease: 0.2,
+            conditionDamageIncrease: 0.3,
+            criticalChanceBonus: 0.15,
+            boonDurationBonus: 20
+          }
+        }
+      }
+    }),
     time: 2,
     event: { actorType: 'player' },
     runtime: { profession: { core, specialization: { kind: 'Herald', state } } }
@@ -177,6 +190,7 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
     SKILL.FACET_OF_DARKNESS
   ].entries()) {
     const rule = heraldPassiveModifierRules[index];
+    assert.equal(index < 2 ? rule.factor(context) : rule.amount(context), [1.2, 1.3, 0.15][index]);
     core.activeUpkeeps = [{ skillId, startsAt: 0 }];
     assert.equal(rule.when(context), true);
     core.activeUpkeeps = [];
@@ -187,7 +201,7 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
   }
 
   core.activeUpkeeps = [{ skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }];
-  assert.equal(modifyHeraldPassiveAttributes(context, { boonDurationBonus: 5 }).boonDurationBonus, 15);
+  assert.equal(modifyHeraldPassiveAttributes(context, { boonDurationBonus: 5 }).boonDurationBonus, 25);
 });
 
 test('Assassin Nature procs only on eligible resolved strikes while its passive is available', () => {

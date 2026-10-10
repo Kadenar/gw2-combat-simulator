@@ -341,8 +341,10 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
 
   // Implemented fixed bonuses must remain visible, with off-hand alternatives and per-stack units kept distinct.
   for (const [id, name, detail] of [
-    [traits.DESTRUCTIVE_IMPULSES, 'Strike and condition damage without an off-hand weapon', '+5%'],
-    [traits.DESTRUCTIVE_IMPULSES, 'Strike and condition damage with an off-hand weapon', '+7.5%'],
+    [traits.DESTRUCTIVE_IMPULSES, 'Strike damage without an off-hand weapon', '+5%'],
+    [traits.DESTRUCTIVE_IMPULSES, 'Condition damage without an off-hand weapon', '+5%'],
+    [traits.DESTRUCTIVE_IMPULSES, 'Strike damage with an off-hand weapon', '+7.5%'],
+    [traits.DESTRUCTIVE_IMPULSES, 'Condition damage with an off-hand weapon', '+7.5%'],
     [traits.TARGETED_DESTRUCTION, 'Strike damage per vulnerability stack', '+0.5%'],
     [traits.REINFORCED_POTENCY, 'Concentration', '+240'],
     [traits.REINFORCED_POTENCY, 'Strike damage per unique boon', '+1%'],
@@ -593,12 +595,12 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
     label: 'Tooltip check',
     professions: {
       necromancer: {
-        modifierRules: {
-          'necromancer.septic-corruption-blight': { parameters: { damagePerStack: 0.005 } }
-        },
         balanceProfiles: {
           [TRAIT.DEATH_PERCEPTION]: { fields: { criticalChance: 0.2 } },
-          2185: { conditions: { Poisoned: { stacks: 2, duration: 4 } } }
+          2185: {
+            fields: { conditionDamageIncreasePerStack: 0.005 },
+            conditions: { Poisoned: { stacks: 2, duration: 4 } }
+          }
         }
       }
     }

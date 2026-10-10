@@ -4,10 +4,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
-import {
-  defineTraitProfile as trait,
-  defineSkillVariantProfile as variant
-} from '#gw2/platform/profession-definition/profile-authoring.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerShatter, MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
@@ -51,30 +48,6 @@ export function mesmerShatterProfile(
             }
       ),
       ...(shatter.effects ?? [])
-    ]
-  });
-}
-
-// Profiles tune trait packets and timers; damage multipliers belong to executable modifier rules.
-export function mesmerTraitDamageProfile(
-  id: SkillId,
-  name: string,
-  damage: MesmerTraitDamage,
-  cooldownPolicy: BalanceProfile['cooldownPolicy'] = 'internal'
-): BalanceProfile {
-  return trait(id, name, {
-    // Skill recharges retain base work separately from genuine trait ICDs.
-    ...(damage.cooldown == null
-      ? {}
-      : {
-          cooldownPolicy,
-          [cooldownPolicy === 'internal' ? 'internalCooldown' : 'cooldown']: damage.cooldown
-        }),
-    ...(damage.duration == null ? {} : { durationMultiplier: damage.duration }),
-    effects: [
-      damage.ticks?.length
-        ? { name: 'Strike', type: 'strike', ticks: damage.ticks, timingAnchor: 'castEnd', timingScale: 'fixed' }
-        : { name: 'Strike', type: 'strike', coefficient: damage.coefficient, hits: damage.hits }
     ]
   });
 }
@@ -143,7 +116,7 @@ export function mesmerProfiledShatter(context: unknown, shatter: MesmerShatterDe
 
 export function mesmerProfiledTraitDamage(
   context: unknown,
-  metadata: { readonly weaponStrength?: number; readonly requiresCooldown?: boolean },
+  metadata: { readonly requiresCooldown?: boolean },
   balanceProfileId: SkillId
 ): MesmerTraitDamage {
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
@@ -153,7 +126,7 @@ export function mesmerProfiledTraitDamage(
   // Runtime callers supply only mechanic metadata; all attack tuning comes from the active profile.
   return {
     balanceProfileId,
-    weaponStrength: metadata.weaponStrength,
+    weaponStrength: profile.weaponStrength === undefined ? undefined : balanceProfileNumber(profile, 'weaponStrength'),
     ...strike,
     name: undefined,
     cooldown:

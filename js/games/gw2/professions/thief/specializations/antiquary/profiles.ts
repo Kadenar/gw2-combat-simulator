@@ -17,6 +17,19 @@ export const ANTIQUARY_BALANCE_PROFILE_IDS = Object.freeze({
 
 export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   ANTIQUARY_THIEVES_GUILD_PROFILE,
+  // Base artifact windows are intrinsic; Meticulous Custodian owns only their improvements.
+  {
+    id: ANTIQUARY_BALANCE_PROFILE_IDS.artifactWindows,
+    name: 'Antiquary Artifact Windows',
+    profileKind: 'mechanic',
+    durationMultiplier: 10,
+    minimumStacks: 8,
+    playerStacks: 5,
+    resourceGain: 3,
+    chakRefundMaximum: 4,
+    rechargeMultiplier: 0.2,
+    effects: []
+  },
   {
     id: ANTIQUARY_BALANCE_PROFILE_IDS.resources,
     name: 'Antiquary Artifact Resources',

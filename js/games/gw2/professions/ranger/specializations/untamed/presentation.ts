@@ -1,4 +1,5 @@
 import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewContext,
@@ -7,7 +8,7 @@ import type {
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
@@ -29,7 +30,7 @@ function stateOption(catalog: Readonly<CanonicalCatalog<RangerSkill>>, value: 'P
 }
 
 /** Reports the weapon ambush deadline and each beneficiary's Ferocious Symbiosis stacks. */
-function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
+function untamedStateSnapshot(context: RangerUiContext, maximumStacks: number): RotationStateSnapshotItem[] {
   const state = rangerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
@@ -49,12 +50,12 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
     ['untamed-ferocious-symbiosis-pet', 'Pet', state.ferociousSymbiosisPet]
   ] as const) {
     const remaining = (pool?.expiresAt || 0) - at;
-    const stacks = boundedInteger(activeRefreshedStacks(pool, at, 'exclusive'), 0, 0, 5);
+    const stacks = boundedInteger(activeRefreshedStacks(pool, at, 'exclusive'), 0, 0, maximumStacks);
     if (stacks <= 0) continue;
     items.push({
       id,
       label: `Ferocious Symbiosis (${beneficiary})`,
-      value: `${stacks}/5 · ${remaining.toFixed(1)}s`,
+      value: `${stacks}/${maximumStacks} · ${remaining.toFixed(1)}s`,
       title: `${beneficiary} damage stacks and time remaining`
     });
   }
@@ -131,7 +132,15 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
         resourceAnchor: true
       }
     ],
-    rotationStateSnapshot: untamedStateSnapshot
+    // Snapshot labels use the same selected cap as damage and stack grants.
+    rotationStateSnapshot: (context) =>
+      untamedStateSnapshot(
+        context,
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context.balanceContext, TRAIT.FEROCIOUS_SYMBIOSIS),
+          'maximumStacks'
+        )
+      )
     // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
   });
 }

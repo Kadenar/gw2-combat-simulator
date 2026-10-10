@@ -67,24 +67,34 @@ export const empoweringAuras = defineTrait({
   balance: {
     maximumStacks: 5,
     durationMultiplier: 10,
-    damageIncreasePerStack: 0.01
+    damageIncreasePerStack: 0.01,
+    conditionDamageIncreasePerStack: 0.01
   },
+  // The trait balance owns the shared cap and independent damage rates; modifiers only apply them.
   modifierRules: [
     {
       id: 'elementalist.empowering-auras-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: { maximumStacks: 5, damagePerStack: 0.01 },
-      amount: (context, _target, parameters) =>
-        Math.min(parameters.maximumStacks, empoweringAuraStacks(context)) * parameters.damagePerStack
+      amount: (context) => {
+        const profile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+        return (
+          Math.min(balanceProfileNumber(profile, 'maximumStacks'), empoweringAuraStacks(context)) *
+          balanceProfileNumber(profile, 'damageIncreasePerStack')
+        );
+      }
     },
     {
       id: 'elementalist.empowering-auras-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      parameters: { maximumStacks: 5, damagePerStack: 0.01 },
-      amount: (context, _target, parameters) =>
-        Math.min(parameters.maximumStacks, empoweringAuraStacks(context)) * parameters.damagePerStack
+      amount: (context) => {
+        const profile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+        return (
+          Math.min(balanceProfileNumber(profile, 'maximumStacks'), empoweringAuraStacks(context)) *
+          balanceProfileNumber(profile, 'conditionDamageIncreasePerStack')
+        );
+      }
     }
   ]
 });

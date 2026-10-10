@@ -230,6 +230,7 @@ export const amplifiedWrath = defineTrait({
   id: TRAIT.AMPLIFIED_WRATH,
   name: 'Amplified Wrath',
   balance: {
+    conditionDamageMultiplier: 1.1,
     durationMultiplier: 1.2
   },
   modifierRules: [
@@ -238,7 +239,11 @@ export const amplifiedWrath = defineTrait({
       id: 'guardian.amplified-wrath-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.AMPLIFIED_WRATH),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => context.condition === 'Burning'
     }
   ]
@@ -275,13 +280,16 @@ export const justiceIsBlind = defineTrait({
 export const retribution = defineTrait({
   id: TRAIT.RETRIBUTION,
   name: 'Retribution',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
       order: -7,
       id: 'guardian.retribution',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RETRIBUTION), 'damageIncrease'),
       when: (context) => guardianBoonActive(context, 'resolution')
     }
   ]

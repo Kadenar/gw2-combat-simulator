@@ -2,7 +2,7 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -542,7 +542,7 @@ test('live corruption excludes Expertise from self durations and expires the act
   assert.deepEqual(result.warnings, []);
 });
 
-// Skill-owned self packets keep trait gating and can be removed without suppressing sibling effects.
+// Skill and trait self packets retain separate owners and can be removed without suppressing sibling effects.
 test('corruption skill effects apply self conditions once and honor trait selection and packet removal', () => {
   for (const [skillId, ordinary, extra] of [
     [ID.CONSUME_CONDITIONS, ['Vulnerability', 5], ['Vulnerability', 5]],
@@ -558,9 +558,13 @@ test('corruption skill effects apply self conditions once and honor trait select
         mode === 'removed'
           ? {
               ...native,
-              catalog: withSkill(native.catalog, skillId, {
-                effects: skill.effects.filter((effect) => effect.target !== 'self')
-              })
+              catalog: withProfile(
+                withSkill(native.catalog, skillId, {
+                  effects: skill.effects.filter((effect) => effect.target !== 'self')
+                }),
+                TRAIT.MASTER_OF_CORRUPTION,
+                { effects: [] }
+              )
             }
           : native;
       const result = simulate([cast(skillId)], config, { profession });

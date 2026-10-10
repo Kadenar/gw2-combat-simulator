@@ -98,6 +98,10 @@ export const writOfPersistence = defineTrait({
   id: TRAIT.WRIT_OF_PERSISTENCE,
   name: 'Writ of Persistence',
   balance: {
+    // Extended native symbol pulses and their self boons share this trait's tuning.
+    pulseInterval: 1,
+    boonDuration: 1,
+    boonStacks: 1,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -230,8 +234,9 @@ function writOfPersistenceEffects(
     } else {
       const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
       const extension = window ? effectNumber(profile, window, 'duration') : 0;
+      const interval = balanceProfileNumber(profile, 'pulseInterval');
       const pulse = effects.filter((effect) => effect.type === 'strike' && strikeEffectTicks(effect).length > 1).at(-1);
-      if (pulse?.type === 'strike' && extension > 0) {
+      if (pulse?.type === 'strike' && extension > 0 && interval > 0) {
         const ticks = strikeEffectTicks(pulse);
         const last = ticks.at(-1)!;
         const fieldEnd =
@@ -250,8 +255,8 @@ function writOfPersistenceEffects(
           timingAnchor: 'castStart',
           timingScale: 'fixed',
           persistsAfterInterrupt: pulse.persistsAfterInterrupt,
-          ticks: Array.from({ length: Math.floor(extension) }, (_, index) => ({
-            atMs: (lastAt - cast.start + index + 1) * 1000,
+          ticks: Array.from({ length: Math.floor(extension / interval) }, (_, index) => ({
+            atMs: (lastAt - cast.start + (index + 1) * interval) * 1000,
             coefficient: last.coefficient
           }))
         });
@@ -268,8 +273,14 @@ function writOfPersistenceEffects(
         selected.push({
           type: 'boon',
           boon: skill.id === ID.SYMBOL_OF_FAITH ? 'regeneration' : 'resolution',
-          duration: 1,
-          stacks: 1,
+          duration: balanceProfileNumber(
+            requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE),
+            'boonDuration'
+          ),
+          stacks: balanceProfileNumber(
+            requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE),
+            'boonStacks'
+          ),
           atMs: tick.atMs,
           timingAnchor: effect.timingAnchor,
           timingScale: effect.timingScale,

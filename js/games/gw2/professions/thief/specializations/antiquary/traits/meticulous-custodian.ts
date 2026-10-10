@@ -16,25 +16,22 @@ export const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
 
 // Return the Meticulous Custodian strike multiplier only for the artifact and
 // active identity window that owns the queried packet.
-export function meticulousArtifactStrikeFactor(
-  context: Gw2ModifierContext,
-  _target: unknown,
-  parameters: Readonly<Record<string, number>>
-): number {
+export function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): number {
+  const profile = requireBalanceProfileFromContext(context, TRAIT.METICULOUS_CUSTODIAN);
   const event = context.event;
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
     return event.metadata?.packetKind === 'thief.metal-legion-guitar-final-smash'
-      ? parameters.guitarFinalFactor
-      : parameters.guitarFactor;
+      ? balanceProfileNumber(profile, 'guitarFinalFactor')
+      : balanceProfileNumber(profile, 'guitarFactor');
   }
 
-  if (event?.skillId === ID.MISTBURN_MORTAR) return parameters.mortarFactor;
-  if (event?.skillId === ID.CHAK_SHIELD) return parameters.chakFactor;
+  if (event?.skillId === ID.MISTBURN_MORTAR) return balanceProfileNumber(profile, 'mortarFactor');
+  if (event?.skillId === ID.CHAK_SHIELD) return balanceProfileNumber(profile, 'chakFactor');
   if (event?.skillId === ID.SUMMON_KRYPTIS_TURRET) {
-    return parameters.kryptisFactor;
+    return balanceProfileNumber(profile, 'kryptisFactor');
   }
 
-  if (event?.skillId === ID.HOLO_DANCER_DECOY) return parameters.holoFactor;
+  if (event?.skillId === ID.HOLO_DANCER_DECOY) return balanceProfileNumber(profile, 'holoFactor');
   return 1;
 }
 
@@ -45,8 +42,10 @@ export function artifactWindow(runtime: ThiefRuntime): {
 } {
   const windows = requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows);
   const duration = balanceProfileNumber(
-    windows,
-    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'maximumStacks' : 'durationMultiplier'
+    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
+      ? requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN)
+      : windows,
+    'durationMultiplier'
   );
   return { windows, duration };
 }
@@ -62,5 +61,7 @@ export function forgedSurferProfile(runtime: ThiefRuntime) {
 /** Kryptis has its separate enhanced identity lifetime. */
 export function meticulousKryptisDuration(runtime: ThiefRuntime): number {
   const windows = requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows);
-  return balanceProfileNumber(windows, hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'threshold' : 'minimumStacks');
+  return hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN), 'kryptisDuration')
+    : balanceProfileNumber(windows, 'minimumStacks');
 }

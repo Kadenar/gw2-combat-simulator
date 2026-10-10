@@ -3,7 +3,6 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.bladesworn.flow',
-  burstMastery: 'warrior.bladesworn.burst-mastery',
   dragonTrigger: 'warrior.bladesworn.dragon-trigger',
   artillerySlash: 'warrior.bladesworn.artillery-slash',
   sharpArtillerySlash: 'warrior.bladesworn.sharp-artillery-slash',

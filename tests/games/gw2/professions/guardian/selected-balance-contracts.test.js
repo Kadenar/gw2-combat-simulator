@@ -71,10 +71,10 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
       guardian: {
         balanceProfiles: {
           [TRAIT.SYMBOLIC_AVENGER]: { fields: { maximumStacks: 7 } },
+          [TRAIT.RADIANT_ARMAMENTS]: { fields: { damageIncrease: 0.09 } },
           [PROFILE.effulgentStance]: { fields: { maximumStacks: 12 } }
         },
         modifierRules: {
-          'guardian.radiant-armaments': { amount: 0.09 },
           'guardian.piercing-stance': { amount: 0.125 },
           'guardian.daring-advance': { factor: 1.2 }
         }

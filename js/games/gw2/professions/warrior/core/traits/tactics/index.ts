@@ -63,6 +63,7 @@ export const legSpecialist = defineTrait({
   id: TRAIT.LEG_SPECIALIST,
   name: 'Leg Specialist',
   balance: {
+    damageMultiplier: 1.05,
     effects: [{ name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
   },
   modifierRules: [
@@ -70,7 +71,8 @@ export const legSpecialist = defineTrait({
       id: 'warrior.leg-specialist',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEG_SPECIALIST), 'damageMultiplier'),
       order: 91,
       when: (context) =>
         ['Crippled', 'Chilled', 'Immobilized'].some((condition) => targetConditionActive(context, condition))
@@ -174,15 +176,22 @@ export const roaringReveille = defineTrait({
 export const empowered = defineTrait({
   id: TRAIT.EMPOWERED,
   name: 'Empowered',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
   modifierRules: [
     {
       id: 'warrior.empowered',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Count unique boons only up to the selected balance cap.
-      parameters: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
-      factor: (context, _target, parameters) =>
-        1 + Math.min(parameters.maximumBoons, warriorActiveBoonCount(context)) * parameters.damagePerBoon,
+
+      factor: (context) =>
+        1 +
+        Math.min(
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED), 'maximumBoons'),
+          warriorActiveBoonCount(context)
+        ) *
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED), 'damagePerBoon'),
       order: 90
     }
   ]
@@ -192,14 +201,19 @@ export const empowered = defineTrait({
 export const warriorsCunning = defineTrait({
   id: TRAIT.WARRIORS_CUNNING,
   name: "Warrior's Cunning",
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.25, threshold: 0.8 },
   modifierRules: [
     {
       id: 'warrior.warriors-cunning',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WARRIORS_CUNNING), 'damageMultiplier'),
       order: 92,
-      when: (context) => targetHealthFraction(context) > 0.8
+      when: (context) =>
+        targetHealthFraction(context) >
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WARRIORS_CUNNING), 'threshold')
     }
   ]
 });

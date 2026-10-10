@@ -117,56 +117,115 @@ const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
   'selfStunMs'
 ]);
 
-/** Profiles also expose named summon inheritance values without widening castable skill fields. */
+/** Trait and mechanic profiles extend shared skill fields with their own independently patchable tuning. */
 export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   ...PATCHABLE_SKILL_NUMERIC_FIELDS,
-  // Trait/passive and Specter profiles retain their own numeric resource tuning.
-  'lifeForceGain',
-  // Profession resource profiles still own recharge values independent of skill cooldowns.
+
+  // Recharge, ammo, resource costs, and regeneration.
   'recharge',
-  // Shade strikes gate Dhuumfire independently of other shade-triggered traits.
-  'dhuumfireInterval',
+  'empoweredRechargeMultiplier',
+  'maximumAmmo',
+  'resourceCostMultiplier',
+  'entryResourceGain',
+  'enduranceRegenerationMultiplier',
+
+  // Strike, condition, and general damage scaling.
+  'conditionDamageMultiplier',
+  'conditionDamageIncrease',
+  'conditionDamageIncreasePerStack',
+  'conditionBaseDamage',
+  'conditionDamageScaling',
+  'playerDamageMultiplier',
+  'damagePerBoon',
+  'damagePerCondition',
+  'maximumDamageIncrease',
+  'bonusPerHeat',
+  'activatingFactor',
+  'idleFactor',
+  'offhandDamageIncrease',
+  'offhandConditionDamageIncrease',
+  'upkeepDamageIncrease',
+  'baseBonus',
+  'activeBonus',
+  'strikeBonus',
+  'conditionBonus',
+  'waterFactor',
+  'otherFactor',
+  'highHealthFactor',
+  'lowHealthOrDisabledFactor',
+
+  // Tiered damage curves and their activation thresholds.
+  'lowerThreshold',
+  'middleThreshold',
+  'upperThreshold',
+  'highThreshold',
+  'lowerBonus',
+  'middleBonus',
+  'upperBonus',
+  'strikeLow',
+  'strikeMiddle',
+  'strikeHigh',
+  'conditionLow',
+  'conditionMiddle',
+  'conditionHigh',
+
+  // Attributes, summon inheritance, and critical-hit scaling.
   'baseAttribute',
+  'attributeMultiplier',
   'inheritanceRatio',
   'secondaryAttributeCap',
-  'improvedSecondaryAttributeCap',
-  'improvedInheritanceRatio',
   'powerCap',
   'precisionCap',
   'basePrecision',
-  // Trait attributes and resources share patchable tuning with build calculations and combat.
-  // Natural Balance reads its damage bonus from the selected balance profile.
-  'conditionDamageIncrease',
-  'conditionDurationMultiplier',
-  'conditionDurationBonus',
+  'criticalChanceBonus',
   'phantasmCriticalChance',
   'lowHealthCriticalDamage',
   'lowHealthCriticalChance',
   'criticalChancePerCondition',
   'criticalChancePerStack',
-  'lowerThreshold',
-  'middleThreshold',
-  'upperThreshold',
-  'lowerBonus',
-  'middleBonus',
-  'upperBonus',
-  'highHealthFactor',
-  'lowHealthOrDisabledFactor',
-  'attributeMultiplier',
   'fullEnduranceCriticalChance',
   'assassinAttributeBonus',
   'centaurAttributeBonus',
   'demonAttributeBonus',
   'dwarfAttributeBonus',
   'entityAttributeBonus',
-  'maximumAmmo',
-  'enduranceRegenerationMultiplier',
-  'resourceCostMultiplier',
+
+  // Stacks, durations, and proc gates.
+  'maximumDamageStacks',
+  'maximumBoons',
   'maximumConditions',
+  'boonStacks',
+  'boonDuration',
+  'boonDurationBonus',
+  'duration',
+  'sharedDurationMultiplier',
+  'conditionDurationMultiplier',
+  'conditionDurationBonus',
+  'weaponProcChanceMultiplier',
+
+  // Recurring effects and trait-specific pulse gates.
+  'auraPulseInterval',
+  'interval',
+  'dhuumfireInterval',
+
+  // Profession-specific resource grants and capacity.
+  'fervorStacks',
+  'lifeForceGain',
   'lifeForcePerStack',
   'lifeForceGainMultiplier',
   'lifeForceCapacityMultiplier',
-  'duration'
+
+  // Antiquary artifact damage and condition-duration scaling.
+  'guitarFactor',
+  'guitarFinalFactor',
+  'mortarFactor',
+  'chakFactor',
+  'kryptisFactor',
+  'holoFactor',
+  'mortarBurningDurationMultiplier',
+  'sunCrystalBurningDurationMultiplier',
+  'kryptisTormentDurationMultiplier',
+  'kryptisDuration'
 ]);
 
 const ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([

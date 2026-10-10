@@ -17,7 +17,8 @@ export function modifyVindicatorAttributes(context: Gw2ModifierContext, attribut
     hasTrait(context, TRAIT.EMPIRE_DIVIDED) &&
     // Skip if the caller already baked static profession rules into the supplied attributes.
     !professionStaticRulesApplied(context.config) &&
-    playerHealthFraction(context) > 0.5
+    playerHealthFraction(context) >
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPIRE_DIVIDED), 'threshold')
   ) {
     // Runtime-only attributes use the same patchable bonus as the build calculator.
     modified.power =

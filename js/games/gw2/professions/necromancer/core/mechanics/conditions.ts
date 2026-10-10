@@ -12,6 +12,8 @@ import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/profes
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+
 const CORRUPTION = 'necromancer.corruption';
 const DEVOURING = 'necromancer.devouring-impact';
 const EXPIRY = 'necromancer.self-condition-expiry';
@@ -123,7 +125,18 @@ export function isCorruptionCompletionEffect(effect: SkillEffect): boolean {
 function corruption(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as ConditionWork;
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
-  for (const effect of skill.effects?.filter(isCorruptionCompletionEffect) ?? []) {
+  // Insert the selected trait's extra self-condition before the skill's boons, preserving transfer order.
+  const effects = skill.effects?.filter(isCorruptionCompletionEffect) ?? [];
+  if (hasTrait(runtime, TRAIT.MASTER_OF_CORRUPTION)) {
+    const extras =
+      requireBalanceProfileFromContext(runtime, TRAIT.MASTER_OF_CORRUPTION).effects?.filter(
+        (effect) => effect.metadata?.trigger === String(skill.id)
+      ) ?? [];
+    const boonIndex = effects.findIndex((effect) => effect.type === 'boon');
+    effects.splice(boonIndex < 0 ? effects.length : boonIndex, 0, ...extras);
+  }
+
+  for (const effect of effects) {
     if (effect.requiredTrait != null && !hasTrait(runtime, Number(effect.requiredTrait))) continue;
     if (effect.type === 'condition')
       applySelfCondition(

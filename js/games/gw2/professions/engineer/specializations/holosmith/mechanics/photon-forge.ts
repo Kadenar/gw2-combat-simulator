@@ -426,7 +426,7 @@ export const photonForgeHooks = {
     heat: {
       kind: 'continuous',
       state: (context) => holosmithState.from(context).heat,
-      maximum: (context) => enhancedCapacityMaximumHeat(context.config),
+      maximum: (context) => enhancedCapacityMaximumHeat(context.config, context),
       initial: (context, maximum) => boundedNumber((context.config as EngineerConfig).initialHeat, 0, 0, maximum),
       recovery: () => 0
     }

@@ -109,15 +109,15 @@ test('Mechanist profile overrides preserve canonical edits and reject obsolete f
     professions: {
       engineer: {
         balanceProfiles: {
+          [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]: { fields: { precisionCap: 300 } },
+          [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]: { fields: { inheritanceRatio: 0.75, secondaryAttributeCap: 80 } },
+          [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]: { fields: { inheritanceRatio: 0.75, secondaryAttributeCap: 80 } },
           [resourceId]: {
             fields: {
               baseAttribute: 100,
               inheritanceRatio: 0.25,
               secondaryAttributeCap: 50,
               powerCap: 500,
-              improvedSecondaryAttributeCap: 80,
-              precisionCap: 300,
-              improvedInheritanceRatio: 0.75,
               basePrecision: 2
             }
           }
@@ -131,11 +131,10 @@ test('Mechanist profile overrides preserve canonical edits and reject obsolete f
   assert.deepEqual(validatePatchPreview(normalized), normalized);
   assert.deepEqual(saved, original);
   const catalog = applyEngineerPatch(normalized.professions.engineer);
-  const resources = catalog.balanceProfilesById.get(resourceId);
   const attributes = engineerMechAttributes(
     { selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR] },
     { power: 4000, precision: 1000, ferocity: 1000 },
-    resources
+    { catalog }
   );
   assert.equal(attributes.power, 500);
   assert.equal(attributes.precision, 300);
@@ -267,8 +266,8 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
   assert.equal(profile('Scrapper', TRAIT.APPLIED_FORCE).patchableFields.attributePerStack, 30);
   assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.maximumStacks, undefined);
   assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.threshold, undefined);
-  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.maximumStacks, undefined);
-  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.threshold, undefined);
+  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.maximumStacks, 150);
+  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.threshold, 100);
   assert.equal(
     profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).patchableFields.enhancedStrikeFactor,
     1.35

@@ -2,6 +2,7 @@ import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -89,12 +90,17 @@ test('Kinetic Battery resets on the fifth command and grants five seconds of spe
 
 // Active State follows the inspected time, including before activation and at buff expiry.
 test('Kinetic Battery charges and buff timer appear in Active State across Engineer specializations', () => {
+  // Both displays must use the inspected patch's activation cap.
+  const catalog = applyBalanceProfilePatch(engineerCatalog, {
+    balanceProfiles: { [TRAIT.KINETIC_BATTERY]: { fields: { maximumStacks: 3 } } }
+  });
   for (const specialization of ['Core', 'Mechanist', 'Holosmith', 'Scrapper', 'Amalgam']) {
     const context = {
-      catalog: engineerCatalog,
+      catalog,
+      balanceContext: { catalog },
       specialization,
       config: { selectedTraitIds: [TRAIT.KINETIC_BATTERY] },
-      professionState: { kineticCharges: 4 }
+      professionState: { kineticCharges: 2 }
     };
     assert.equal(
       engineerProfession.ui.resourceViews(context).some((view) => view.id === 'kineticCharges'),
@@ -133,11 +139,11 @@ test('Kinetic Battery charges and buff timer appear in Active State across Engin
           })
           .map((item) => [item.id, item.value])
       );
-    assert.equal(snapshot(9, 4)['engineer-kinetic-charges'], '4/5');
-    assert.equal(snapshot(9, 4)['engineer-kinetic-battery'], undefined);
-    assert.equal(snapshot(10, 0)['engineer-kinetic-charges'], '0/5');
+    assert.equal(snapshot(9, 2)['engineer-kinetic-charges'], '2/3');
+    assert.equal(snapshot(9, 2)['engineer-kinetic-battery'], undefined);
+    assert.equal(snapshot(10, 0)['engineer-kinetic-charges'], '0/3');
     assert.equal(snapshot(10, 0)['engineer-kinetic-battery'], '5.0s');
-    assert.equal(snapshot(12, 1)['engineer-kinetic-charges'], '1/5');
+    assert.equal(snapshot(12, 1)['engineer-kinetic-charges'], '1/3');
     assert.equal(snapshot(12, 1)['engineer-kinetic-battery'], '3.0s');
     assert.equal(snapshot(15, 1)['engineer-kinetic-battery'], undefined);
     assert.equal(
@@ -146,9 +152,9 @@ test('Kinetic Battery charges and buff timer appear in Active State across Engin
         .some((item) => item.id === 'engineer-kinetic-charges'),
       false
     );
-    const event = { type: 'engineer.kinetic-battery', kineticCharges: 4 };
-    assert.match(engineerProfession.ui.eventLogRow(context, event).description, /4\/5/);
+    const event = { type: 'engineer.kinetic-battery', kineticCharges: 2 };
+    assert.match(engineerProfession.ui.eventLogRow(context, event).description, /2\/3/);
     event.kineticCharges = 0;
-    assert.match(engineerProfession.ui.eventLogRow(context, event).description, /activated/);
+    assert.match(engineerProfession.ui.eventLogRow(context, event).description, /activated.*0\/3/);
   }
 });

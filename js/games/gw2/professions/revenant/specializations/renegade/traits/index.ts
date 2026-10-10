@@ -73,26 +73,23 @@ export const ambushCommander = defineTrait({
   ],
   id: TRAIT.AMBUSH_COMMANDER,
   name: 'Ambush Commander',
-  profiles: [
-    {
-      id: RENEGADE_PROFILE_IDS.kallasFervor,
-      name: "Kalla's Fervor",
-      profileKind: 'mechanic',
-
-      maximumStacks: 5,
-      lifeSiphonDamagePerStack: 0.02,
-      effects: [
-        {
-          name: 'kallas-fervor',
-          type: 'buff',
-          kind: 'kallas-fervor',
-          duration: 8,
-          stacks: 1,
-          actorType: 'player'
-        }
-      ]
-    }
-  ]
+  balance: {
+    damageIncreasePerStack: 0.02,
+    conditionDamageIncreasePerStack: 0.02,
+    id: RENEGADE_PROFILE_IDS.kallasFervor,
+    maximumStacks: 5,
+    lifeSiphonDamagePerStack: 0.02,
+    effects: [
+      {
+        name: 'kallas-fervor',
+        type: 'buff',
+        kind: 'kallas-fervor',
+        duration: 8,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  }
 });
 
 /** Owns Ashen Demeanor tuning and behavior at its established execution boundaries. */
@@ -153,27 +150,22 @@ export const bloodFury = defineTrait({
 export const boldReversal = defineTrait({
   id: TRAIT.BOLD_REVERSAL,
   name: 'Bold Reversal',
-  profiles: [
-    {
-      id: RENEGADE_PROFILE_IDS.boldReversalRighteousRebel,
-      name: 'Orders from Above (Bold Reversal + Righteous Rebel)',
-      profileKind: 'skill-variant',
-
-      effects: [
-        {
-          type: 'boon',
-          boon: 'protection',
-          duration: 1,
-          stacks: 1,
-          applications: 6,
-          intervalMs: 1000,
-          timingAnchor: 'castEnd',
-          timingScale: 'fixed',
-          actorType: 'player'
-        }
-      ]
-    }
-  ]
+  balance: {
+    id: RENEGADE_PROFILE_IDS.boldReversalRighteousRebel,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'protection',
+        duration: 1,
+        stacks: 1,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
+  }
 });
 
 /** Owns Brutal Momentum tuning and behavior at its established execution boundaries. */
@@ -264,13 +256,16 @@ export const endlessEnmity = defineTrait({
 export const heartpiercer = defineTrait({
   id: TRAIT.HEARTPIERCER,
   name: 'Heartpiercer',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.15, conditionDamageMultiplier: 1.25 },
   modifierRules: [
     {
       id: 'revenant.heartpiercer-strike',
       order: 100,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HEARTPIERCER), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
     },
     {
@@ -278,7 +273,11 @@ export const heartpiercer = defineTrait({
       order: 101,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.HEARTPIERCER),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Bleeding'
     }
   ]
@@ -288,26 +287,25 @@ export const heartpiercer = defineTrait({
 export const lastingLegacy = defineTrait({
   id: TRAIT.LASTING_LEGACY,
   name: 'Lasting Legacy',
+  balance: {
+    damageIncreasePerStack: 0.05,
+    conditionDamageIncreasePerStack: 0.03,
+    id: RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy,
+    variantBadge: 'Lasting Legacy',
+    maximumStacks: 5,
+    lifeSiphonDamagePerStack: 0.03,
+    effects: [
+      {
+        name: 'kallas-fervor',
+        type: 'buff',
+        kind: 'kallas-fervor',
+        duration: 12,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  },
   profiles: [
-    {
-      id: RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy,
-      name: "Kalla's Fervor (Lasting Legacy)",
-      profileKind: 'trait',
-
-      variantBadge: 'Lasting Legacy',
-      maximumStacks: 5,
-      lifeSiphonDamagePerStack: 0.03,
-      effects: [
-        {
-          name: 'kallas-fervor',
-          type: 'buff',
-          kind: 'kallas-fervor',
-          duration: 12,
-          stacks: 1,
-          actorType: 'player'
-        }
-      ]
-    },
     {
       id: RENEGADE_PROFILE_IDS.heroicCommandLastingLegacy,
       name: 'Heroic Command (Lasting Legacy)',
@@ -333,16 +331,16 @@ export const lastingLegacy = defineTrait({
       order: 102,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: {
-        damagePerStack: 0.02,
-        improvedDamagePerStack: 0.05
-      },
-      amount: (context, _target, parameters) => {
-        const perStack = hasTrait(context, TRAIT.LASTING_LEGACY)
-          ? parameters.improvedDamagePerStack
-          : parameters.damagePerStack;
-        return kallasFervorStacks(context) * perStack;
-      },
+
+      amount: (context) =>
+        kallasFervorStacks(context) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(
+            context,
+            hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
+          ),
+          'damageIncreasePerStack'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
     },
     {
@@ -351,16 +349,16 @@ export const lastingLegacy = defineTrait({
       order: 103,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      parameters: {
-        damagePerStack: 0.02,
-        improvedDamagePerStack: 0.03
-      },
-      amount: (context, _target, parameters) => {
-        const perStack = hasTrait(context, TRAIT.LASTING_LEGACY)
-          ? parameters.improvedDamagePerStack
-          : parameters.damagePerStack;
-        return kallasFervorStacks(context) * perStack;
-      },
+
+      amount: (context) =>
+        kallasFervorStacks(context) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(
+            context,
+            hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
+          ),
+          'conditionDamageIncreasePerStack'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
     }
   ]
@@ -370,28 +368,23 @@ export const lastingLegacy = defineTrait({
 export const righteousRebel = defineTrait({
   id: TRAIT.RIGHTEOUS_REBEL,
   name: 'Righteous Rebel',
-  profiles: [
-    {
-      id: RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel,
-      name: 'Orders from Above (Righteous Rebel)',
-      profileKind: 'skill-variant',
-
-      variantBadge: 'Righteous Rebel',
-      effects: [
-        {
-          type: 'boon',
-          boon: 'alacrity',
-          duration: 2,
-          stacks: 1,
-          applications: 6,
-          intervalMs: 1000,
-          timingAnchor: 'castEnd',
-          timingScale: 'fixed',
-          actorType: 'player'
-        }
-      ]
-    }
-  ]
+  balance: {
+    id: RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel,
+    variantBadge: 'Righteous Rebel',
+    effects: [
+      {
+        type: 'boon',
+        boon: 'alacrity',
+        duration: 2,
+        stacks: 1,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
+  }
 });
 
 /** Owns Vindication tuning and behavior at its established execution boundaries. */

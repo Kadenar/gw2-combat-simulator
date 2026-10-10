@@ -1,4 +1,4 @@
-import type { SkillId, BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { selectedMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
@@ -6,10 +6,7 @@ import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import {
-  MECHANIST_BALANCE_PROFILES,
-  MECHANIST_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
+import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 
 interface EngineerMechAttributes {
   power: number;
@@ -39,31 +36,35 @@ function playerAttribute(stats: Partial<Gw2Stats>, key: keyof EngineerMechAttrib
 
 /** Frame selection adjusts inheritance groups and caps without applying player boon or damage ownership. */
 export function engineerMechAttributes(
-  config: EngineerConfig = {},
-  playerStats: Partial<Gw2Stats> = {},
-  profile: BalanceProfile = MECHANIST_BALANCE_PROFILES.find((entry) => entry.id === PROFILE.resources)!
+  config: EngineerConfig,
+  playerStats: Partial<Gw2Stats>,
+  balanceContext: unknown
 ): EngineerMechAttributes {
   const traits = selectedEngineerTraits(config);
-  const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS);
-  const channeling = hasTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
+  const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS)
+    ? TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS
+    : undefined;
+  const channeling = hasTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS)
+    ? TRAIT.MECH_FRAME_CHANNELING_CONDUITS
+    : undefined;
   const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
 
-  // Standalone initialization uses the canonical declaration; runtime callers pass their selected profile.
-  const balanceContext = { balanceProfile: () => profile };
+  // Base mech attributes use mechanic balance; selected frame improvements use their own trait balance.
   const resourcesProfile = requireBalanceProfileFromContext(balanceContext, PROFILE.resources);
   const baseAttribute = balanceProfileNumber(resourcesProfile, 'baseAttribute');
   const inheritanceRatio = balanceProfileNumber(resourcesProfile, 'inheritanceRatio');
   const secondaryCap = balanceProfileNumber(resourcesProfile, 'secondaryAttributeCap');
-  const improvedSecondaryCap = balanceProfileNumber(resourcesProfile, 'improvedSecondaryAttributeCap');
-  const improvedInheritanceRatio = balanceProfileNumber(resourcesProfile, 'improvedInheritanceRatio');
   // Secondary stats inherit 50 % of the player's value up to 750.
   // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
   // raise the inheritance ratio to 100 % for their respective stat groups.
-  const secondary = (key: keyof EngineerMechAttributes, improved = false): number =>
-    Math.min(
-      improved ? improvedSecondaryCap : secondaryCap,
-      playerAttribute(playerStats, key) * (improved ? improvedInheritanceRatio : inheritanceRatio)
+  const secondary = (key: keyof EngineerMechAttributes, trait?: SkillId): number => {
+    const improved = trait == null ? undefined : requireBalanceProfileFromContext(balanceContext, trait);
+    return Math.min(
+      improved ? balanceProfileNumber(improved, 'secondaryAttributeCap') : secondaryCap,
+      playerAttribute(playerStats, key) *
+        (improved ? balanceProfileNumber(improved, 'inheritanceRatio') : inheritanceRatio)
     );
+  };
 
   return {
     power: Math.min(
@@ -72,7 +73,10 @@ export function engineerMechAttributes(
     ),
     precision: variable
       ? Math.min(
-          balanceProfileNumber(resourcesProfile, 'precisionCap'),
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(balanceContext, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR),
+            'precisionCap'
+          ),
           balanceProfileNumber(resourcesProfile, 'basePrecision') + playerAttribute(playerStats, 'precision', 1000)
         )
       : balanceProfileNumber(resourcesProfile, 'basePrecision'),

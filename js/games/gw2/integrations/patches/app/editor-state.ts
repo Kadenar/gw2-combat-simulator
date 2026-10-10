@@ -425,7 +425,8 @@ export function setNumericEdit(input: NumericEditInput): void {
     if (numericEdit) fields![input.field] = numericEdit;
     else if (fields) delete fields[input.field];
     removeEmptyRecord(edit, 'fields');
-    if (!Object.keys(edit).length) deleteEdit(input.id);
+    // Remove a provisional assumption when its last balance edit is reset.
+    if (!Object.keys(edit).some((key) => key !== 'assumption')) deleteEdit(input.id);
     return;
   }
 

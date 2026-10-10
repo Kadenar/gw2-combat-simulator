@@ -41,6 +41,8 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.beast-skill-used',
   'ranger.blood-thirst',
+  // The marker delegates to the trait-owned siphon, which supplies the visible damage event.
+  'ranger.natural-fortitude',
   'ranger.pet-swapped',
   'ranger.poisonous-strikes',
   'ranger.sharpening-stone'

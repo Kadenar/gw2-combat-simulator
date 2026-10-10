@@ -132,12 +132,18 @@ function engineerEventLogRow(
   context: EngineerUiContext,
   event: EngineerResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
-  // Surface charge progress and the fifth-charge activation before suppressing internal snapshots.
+  // Show progress against the selected patch's activation cap before suppressing internal snapshots.
   if (event.type === 'engineer.kinetic-battery') {
     const charges = Number(event.kineticCharges || 0);
+    const maximum = balanceProfileNumber(
+      requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY),
+      'maximumStacks'
+    );
     return {
       type: event.type,
-      description: charges ? `Kinetic Charge - ${charges}/5` : 'Kinetic Battery activated - charges reset to 0/5',
+      description: charges
+        ? `Kinetic Charge - ${charges}/${maximum}`
+        : `Kinetic Battery activated - charges reset to 0/${maximum}`,
       className: 'resource',
       order: 30
     };
@@ -276,13 +282,18 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       return [endurance];
     },
     // Keep battery progress and its active buff timer together at the inspected rotation point.
-    rotationStateSnapshot: (context: EngineerUiContext): RotationStateSnapshotItem[] => {
+    rotationStateSnapshot: (context): RotationStateSnapshotItem[] => {
       const items: RotationStateSnapshotItem[] = [];
       if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
+        // The inspected rotation's balance source owns the cap displayed beside its charge count.
+        const maximum = balanceProfileNumber(
+          requireBalanceProfileFromContext(context.balanceContext, TRAIT.KINETIC_BATTERY),
+          'maximumStacks'
+        );
         items.push({
           id: 'engineer-kinetic-charges',
           label: 'Kinetic Charges',
-          value: `${engineerUiState(context).kineticCharges || 0}/5`
+          value: `${engineerUiState(context).kineticCharges || 0}/${maximum}`
         });
       }
 

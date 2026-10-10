@@ -220,7 +220,8 @@ test("Fox's Fury applies its baseline coefficient and Might multipliers", () => 
   }
 });
 
-test('core damage traits expose their exact resolver modifiers', () => {
+// Trait tuning is authored in balances; resolver rules retain their operations and eligibility.
+test('core damage traits expose balances consumed by their resolver modifiers', () => {
   const rules = new Map(
     [...elementalistCoreModule.modifiers.modifierRules, ...weaverModule.modifiers.modifierRules].map((rule) => [
       rule.id,
@@ -228,20 +229,20 @@ test('core damage traits expose their exact resolver modifiers', () => {
     ])
   );
 
-  assert.equal(rules.get('elementalist.pyromancers-training').factor, 1.07);
-  assert.equal(rules.get('elementalist.serrated-stones').factor, 1.05);
-  assert.equal(rules.get('elementalist.stormsoul').factor, 1.07);
-  assert.equal(rules.get('elementalist.flow-like-water').factor, 1.1);
-  assert.equal(rules.get('elementalist.bolt-to-the-heart').factor, 1.2);
-  assert.equal(rules.get('elementalist.bountiful-power').amount, 0.2);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.PYROMANCERS_TRAINING).damageMultiplier, 1.07);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.SERRATED_STONES).damageMultiplier, 1.05);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.STORMSOUL).damageMultiplier, 1.07);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.FLOW_LIKE_WATER).damageMultiplier, 1.1);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.BOLT_TO_THE_HEART).damageMultiplier, 1.2);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.BOUNTIFUL_POWER).damageIncrease, 0.2);
   assert.equal(rules.get('elementalist.zephyrs-speed-critical-chance').amount({ catalog: elementalistCatalog }), 0.05);
   assert.equal(rules.get('elementalist.superior-elements').amount({ catalog: elementalistCatalog }), 0.2);
   assert.equal(rules.get('elementalist.weave-self-fire').amount, 0.2);
   assert.equal(rules.get('elementalist.weave-self-fire').operation, 'damage-additive');
   assert.equal(rules.get('elementalist.weave-self-air').amount, 0.1);
-  assert.equal(rules.get('elementalist.elements-of-rage-condition').amount, 0.1);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.ELEMENTS_OF_RAGE).conditionDamageIncrease, 0.1);
   assert.equal(rules.get('elementalist.elements-of-rage-condition').operation, 'damage-additive');
-  assert.equal(rules.get('elementalist.elements-of-rage-strike').amount, 0.15);
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.ELEMENTS_OF_RAGE).damageIncrease, 0.15);
   assert.equal(rules.get('elementalist.persisting-flames').operation, 'damage-additive');
   const { app: core } = createNativeApp({
     lines: [['Fire'], ['Air'], ['Arcane']]

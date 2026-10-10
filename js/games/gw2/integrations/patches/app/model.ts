@@ -348,7 +348,9 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   }
 
   const summary = [...changes].join('; ');
-  return summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Skill metadata changed.';
+  const text = summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Skill metadata changed.';
+  // Trait balance edits retain the same provisional qualification as their displayed patch notes.
+  return edit.assumption ? `${text} ${edit.assumption}` : text;
 }
 
 /** Generates overview entries for authored skill changes using live display names. */

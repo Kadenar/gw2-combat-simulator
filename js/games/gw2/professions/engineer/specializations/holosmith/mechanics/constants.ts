@@ -8,10 +8,8 @@ export const HOLOSMITH_FORGE_TOGGLE_SKILL_IDS = new Set<number>([
 ]);
 
 export const HOLOSMITH_HEAT = Object.freeze({
-  // Heat capacity and tier boundaries are fixed profession mechanics; balance
-  // profiles tune only the effects activated at those tiers.
+  // Base heat mechanics are independent of trait-owned capacity and enhanced tier thresholds.
   baseMaximum: 100,
-  enhancedCapacityMaximum: 150,
   highThreshold: 50,
   // Passive heat and Overheat both advance every 100 ms from Forge entry.
   heatTickInterval: 0.1,
@@ -20,8 +18,6 @@ export const HOLOSMITH_HEAT = Object.freeze({
   slowCoolingPerSecond: 5,
   fastCoolingStartsAt: 8,
   fastCoolingPerSecond: 10,
-  // Heat at or above which Enhanced Capacity Storage Unit buffs activate.
-  enhancedCapacityThreshold: 100,
   // Observed delay from forge ejection to Overheat damage, the PBM blast, and
   // the tool-belt recharge penalty that the delayed effect applies.
   overheatEffectDelay: 1.56

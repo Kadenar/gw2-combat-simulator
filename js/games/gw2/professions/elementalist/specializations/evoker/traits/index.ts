@@ -47,7 +47,6 @@ import {
   type EvokerEvent
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { familiarBlessingName } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
 import type {
   ElementalistModifierContext,
@@ -56,7 +55,6 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
@@ -134,23 +132,11 @@ export const specializedElements = defineTrait({
   id: TRAIT.SPECIALIZED_ELEMENTS,
   name: 'Specialized Elements',
   balance: {
+    rechargeMultiplier: 0.9,
+    empoweredRechargeMultiplier: 0.67,
     maximumStacks: 6,
     playerStacks: 3
   },
-  profiles: [
-    variant(
-      SPECIALIZED_ELEMENTS_PROFILE_IDS.basicRecharge,
-      TRAIT.SPECIALIZED_ELEMENTS,
-      'Specialized Elements - Basic Familiar Recharge',
-      { rechargeMultiplier: 0.9 }
-    ),
-    variant(
-      SPECIALIZED_ELEMENTS_PROFILE_IDS.empoweredRecharge,
-      TRAIT.SPECIALIZED_ELEMENTS,
-      'Specialized Elements - Empowered Familiar Recharge',
-      { rechargeMultiplier: 0.67 }
-    )
-  ],
   hooks: { availability: specializedElementsAvailability }
 });
 
@@ -231,17 +217,25 @@ export const familiarsProwess = defineTrait({
   balance: {
     durationMultiplier: 5,
     maximumStacks: 15,
-    durationPerTier: 5
+    durationPerTier: 5,
+    damageIncrease: 0.05,
+    conditionDamageIncrease: 0.05
   },
+  // Applied Prowess supplies the window; the selected trait's balance owns each damage bonus.
   modifierRules: [
     {
       requiresSelection: false,
       id: 'elementalist.familiars-prowess-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: { baseAmount: 0.05, focusedAmount: 0.1 },
-      amount: (context, _target, parameters) =>
-        hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(
+            context,
+            hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS
+          ),
+          'damageIncrease'
+        ),
       when: (context: ElementalistModifierContext) =>
         context.config?.evokerElement === 'Air' && activeBuffStacks(context, 'familiars-prowess', 1) > 0
     },
@@ -250,9 +244,14 @@ export const familiarsProwess = defineTrait({
       id: 'elementalist.familiars-prowess-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      parameters: { baseAmount: 0.05, focusedAmount: 0.1 },
-      amount: (context, _target, parameters) =>
-        hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(
+            context,
+            hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS
+          ),
+          'conditionDamageIncrease'
+        ),
       when: (context: ElementalistModifierContext) =>
         context.config?.evokerElement === 'Fire' && activeBuffStacks(context, 'familiars-prowess', 1) > 0
     }
@@ -279,12 +278,13 @@ export const altruisticAspect = defineTrait({
   }
 });
 
-/** Owns Familiar's Focus tuning at its existing execution boundaries. */
+/** Focus owns its replacement bonuses; Prowess modifiers consume them during the applied window. */
 export const familiarsFocus = defineTrait({
   id: TRAIT.FAMILIARS_FOCUS,
   name: "Familiar's Focus",
   balance: {
-    damageIncrease: 0.1
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.1
   }
 });
 
@@ -307,12 +307,15 @@ export const familiarsBlessing = defineTrait({
 export const fieryMight = defineTrait({
   id: TRAIT.FIERY_MIGHT,
   name: 'Fiery Might',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.05 },
   modifierRules: [
     {
       id: 'elementalist.fiery-might',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FIERY_MIGHT), 'damageMultiplier'),
       when: (context) => targetConditionActive(context, 'Burning')
     }
   ]
@@ -464,11 +467,8 @@ function applySpecializedElementsTrait(
       context,
       cast,
       balanceProfileNumber(
-        requireBalanceProfileFromContext(
-          context,
-          basic ? SPECIALIZED_ELEMENTS_PROFILE_IDS.basicRecharge : SPECIALIZED_ELEMENTS_PROFILE_IDS.empoweredRecharge
-        ),
-        'rechargeMultiplier'
+        requireBalanceProfileFromContext(context, TRAIT.SPECIALIZED_ELEMENTS),
+        basic ? 'rechargeMultiplier' : 'empoweredRechargeMultiplier'
       )
     );
     if (!basic) {

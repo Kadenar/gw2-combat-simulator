@@ -26,6 +26,20 @@ import { GALESHOT_BALANCE_PROFILE_IDS as GALESHOT } from '#gw2/professions/range
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 
+/** Replace the delivery marker with its selected trait payload when describing ambush damage. */
+const ambushTooltip: DescribeSimulationTooltip = (context, entity) => {
+  const skill = context.catalog.skillsById.get(entity.id)!;
+  const effects = skill.effects?.flatMap((effect) =>
+    effect.type === 'custom' && effect.eventType === 'ranger.natural-fortitude'
+      ? (tooltipProfile(context, TRAIT.NATURAL_FORTITUDE).effects ?? [])
+      : [effect]
+  );
+  return {
+    ...simulationEffectFacts(effects),
+    description: 'Use the available unleashed ambush and consume its window. Apply eligible ambush traits.'
+  };
+};
+
 /** Descriptions bind to canonical skill identities independently of runtime dispatch. */
 const familyTooltips = {
   'ranger.dodge': skillTooltip(
@@ -142,9 +156,7 @@ const familyTooltips = {
   'ranger.unleash-pet': skillTooltip(
     'Unleash your pet and replace its commands with unleashed skills. Your weapon and trait effects follow the pet-unleashed state.'
   ),
-  'ranger.unleashed-ambush': skillTooltip(
-    'Use the available unleashed ambush and consume its window. Apply eligible ambush traits.'
-  ),
+  'ranger.unleashed-ambush': ambushTooltip,
   'ranger.exploding-spores': skillTooltip(
     'Strike, poison, and control the target. Gain might if you were unleashed at cast start, or protection if your pet was unleashed.',
     (balanceContext) => [
@@ -448,10 +460,13 @@ export const rangerTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.STONEFORM]: outsideScopeTooltip,
     [TRAIT.HUNTERS_GAZE]: traitTooltip(
-      'Your strikes grant might against targets below three-quarter health. Lower target-health tiers grant more stacks.',
+      'Your strikes grant might against low-health targets. Lower target-health tiers grant more stacks.',
       [
         ['internalCooldown', 'Internal cooldown', tooltipSeconds],
-        ['maximumStacks', 'Might stacks below one-quarter target health']
+        ['maximumStacks', 'Might stacks in the lowest health tier'],
+        ['lowerThreshold', 'Lowest target-health threshold', tooltipPercent],
+        ['threshold', 'Middle target-health threshold', tooltipPercent],
+        ['upperThreshold', 'Highest target-health threshold', tooltipPercent]
       ],
       'base application; stacks depend on target health'
     ),
@@ -461,22 +476,22 @@ export const rangerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.WOLFSONG]: traitTooltip(
       'Your strikes deal increased damage against vulnerable targets. Using a beast skill with a canine pet inflicts vulnerability.',
-      [fromModifier('ranger.wolfsong', 'factor', 'Strike damage against vulnerable targets', tooltipFactorChange)]
+      [fromProfile(TRAIT.WOLFSONG, 'damageMultiplier', 'Strike damage against vulnerable targets', tooltipFactorChange)]
     ),
     [TRAIT.FARSIGHTED]: traitTooltip('Your weapon skills deal increased strike damage.', [
-      fromModifier('ranger.farsighted', 'factor', 'Weapon strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.FARSIGHTED, 'damageMultiplier', 'Weapon strike damage', tooltipFactorChange)
     ]),
     [TRAIT.MOMENT_OF_CLARITY]: outsideScopeTooltip,
     [TRAIT.PREDATORS_ONSLAUGHT]: traitTooltip(
       'You and your pet deal increased strike damage against movement-impaired targets.',
       [
-        fromModifier('ranger.predators-onslaught-player', 'factor', 'Player strike damage', tooltipFactorChange),
-        fromModifier('ranger.predators-onslaught-pet', 'factor', 'Pet strike damage', tooltipFactorChange)
+        fromProfile(TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier', 'Player strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier', 'Pet strike damage', tooltipFactorChange)
       ]
     ),
     [TRAIT.REMORSELESS]: traitTooltip(
       'Receiving fury on yourself refreshes Opening Strike for you and your pet. Opening Strike deals increased damage.',
-      [fromModifier('ranger.remorseless', 'factor', 'Opening Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.REMORSELESS, 'damageMultiplier', 'Opening Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.LEAD_THE_WIND]: traitTooltip(
       'Longbow skills recharge faster. Point-Blank Shot grants swiftness and quickness.',
@@ -489,15 +504,15 @@ export const rangerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.FORTIFYING_BOND]: traitTooltip(
       "Boons received from players are shared with your active pet using the ranger's boon duration. Permanent boon settings represent training-console pulses and also trigger sharing. Inactive in Beastmode; other NPC boons do not trigger sharing.",
-      () => [],
+      [['pulseInterval', 'Configured boon refresh interval', tooltipSeconds]],
       'summons'
     ),
     [TRAIT.LINGERING_MAGIC]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
     [TRAIT.BOUNTIFUL_HUNTER]: traitTooltip(
       'You and your pet deal increased strike damage for each different boon affecting the respective attacker.',
       [
-        fromModifier('ranger.bountiful-hunter-player', 'damagePerBoon', 'Player strike damage per boon'),
-        fromModifier('ranger.bountiful-hunter-pet', 'damagePerBoon', 'Pet strike damage per boon')
+        fromProfile(TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon', 'Player strike damage per boon', tooltipPercent),
+        fromProfile(TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon', 'Pet strike damage per boon', tooltipPercent)
       ]
     ),
     [TRAIT.WELLSPRING]: traitTooltip(
@@ -519,7 +534,7 @@ export const rangerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.NATURES_VENGEANCE]: traitTooltip(
       'Spirits repeat their slam after their final boon shake. Summon effects and boon pulses are not repeated.',
-      () => []
+      [['baseDuration', 'Delay after final shake', tooltipSeconds]]
     ),
     [TRAIT.PROTECTIVE_WARD]: outsideScopeTooltip,
     [TRAIT.INVIGORATING_BOND]: outsideScopeTooltip,
@@ -532,7 +547,7 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.HUNTERS_TACTICS]: traitTooltip(
       'Gain personal strike damage and critical-strike chance when flanking. The simulator treats defiant targets as flanked.',
       [
-        fromModifier('ranger.hunters-tactics-damage', 'factor', 'Strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.HUNTERS_TACTICS, 'damageMultiplier', 'Strike damage', tooltipFactorChange),
         ['criticalChance', 'Critical chance', tooltipPercent]
       ]
     ),
@@ -556,7 +571,7 @@ export const rangerTooltips: ProfessionTooltips = {
       ['weaponAttributeBonus', 'Power while wielding a sword']
     ]),
     [TRAIT.HIDDEN_BARBS]: traitTooltip('Bleeding deals increased damage.', [
-      fromModifier('ranger.hidden-barbs', 'factor', 'Bleeding damage', tooltipFactorChange)
+      fromProfile(TRAIT.HIDDEN_BARBS, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)
     ]),
     [TRAIT.QUICK_DRAW]: traitTooltip(
       'Swapping weapons in combat grants quickness and opens a brief window. The next non-autoattack weapon skill used in that window has reduced recharge.',
@@ -569,7 +584,7 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.LIGHT_ON_YOUR_FEET]: traitTooltip(
       'Dodging or using an evade skill adds a temporary strike-damage and condition-duration bonus. Shortbow recharges faster; flanking extends selected shortbow conditions and Concussion Shot applies vulnerability.',
       [
-        fromModifier('ranger.light-on-your-feet', 'factor', 'Strike damage during bonus', tooltipFactorChange),
+        fromProfile(TRAIT.LIGHT_ON_YOUR_FEET, 'damageMultiplier', 'Strike damage during bonus', tooltipFactorChange),
         ['conditionDurationBonus', 'Condition duration during bonus', tooltipPercent],
         ['rechargeMultiplier', 'Shortbow recharge', tooltipFactorChange],
         ['durationPerTier', 'Crossfire bleeding / Poison Volley poison extension', tooltipSeconds],
@@ -591,8 +606,13 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.LOUD_WHISTLE]: traitTooltip(
       'Your pet deals increased strike damage. Beastmode grants a separate personal strike-damage bonus.',
       [
-        fromModifier('ranger.loud-whistle-pet', 'factor', 'Pet strike damage', tooltipFactorChange),
-        fromModifier('ranger.loud-whistle-player', 'factor', 'Player strike damage in Beastmode', tooltipFactorChange)
+        fromProfile(TRAIT.LOUD_WHISTLE, 'damageMultiplier', 'Pet strike damage', tooltipFactorChange),
+        fromProfile(
+          TRAIT.LOUD_WHISTLE,
+          'playerDamageMultiplier',
+          'Player strike damage in Beastmode',
+          tooltipFactorChange
+        )
       ]
     ),
     [TRAIT.PETS_PROWESS]: traitTooltip('Your pet gains ferocity. The bonus also applies to you in Beastmode.', [
@@ -627,11 +647,17 @@ export const rangerTooltips: ProfessionTooltips = {
         "Your pet's beast-skill hit grants it Lesser Sic 'Em. The first hit of your merged Beast Ability grants the separate personal bonus instead.",
       facts: [
         profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
-        modifierFact(balanceContext, 'ranger.lesser-sic-em-pet', 'factor', 'Pet strike damage', tooltipFactorChange),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'ranger.lesser-sic-em-player',
-          'factor',
+          TRAIT.GO_FOR_THE_THROAT,
+          'damageMultiplier',
+          'Pet strike damage',
+          tooltipFactorChange
+        ),
+        profileFact(
+          balanceContext,
+          TRAIT.GO_FOR_THE_THROAT,
+          'playerDamageMultiplier',
           'Player strike damage in Beastmode',
           tooltipFactorChange
         ),
@@ -681,7 +707,7 @@ export const rangerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.SURVIVAL_INSTINCTS]: traitTooltip(
       'Gain personal strike damage. Your full-health bonus applies throughout combat.',
-      [fromModifier('ranger.survival-instincts', 'amount', 'Strike damage')]
+      [fromProfile(TRAIT.SURVIVAL_INSTINCTS, 'damageIncrease', 'Strike damage', tooltipPercent)]
     ),
     [TRAIT.EMPATHIC_BOND]: outsideScopeTooltip,
     [TRAIT.CARNIVORE]: traitTooltip(
@@ -691,7 +717,7 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.WILDERNESS_KNOWLEDGE]: outsideScopeTooltip,
     [TRAIT.POISON_MASTER]: traitTooltip(
       "Your poison deals increased damage. Using an eligible beast skill prepares the pet's next strike to apply additional player-owned poison.",
-      [fromModifier('ranger.poison-master', 'factor', 'Player poison damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.POISON_MASTER, 'conditionDamageMultiplier', 'Player poison damage', tooltipFactorChange)]
     ),
     [TRAIT.CELESTIAL_BEING]: traitTooltip(
       'Unlock Druid, staff, glyphs, and Celestial Avatar. Build astral force outside Avatar and spend it to use Avatar skills.'
@@ -750,11 +776,11 @@ export const rangerTooltips: ProfessionTooltips = {
       'Unlock Soulbeast, dagger, stances, and Beastmode. Merging replaces the pet with beast skills and grants attributes from its archetype.'
     ),
     [TRAIT.FURIOUS_STRENGTH]: traitTooltip('Deal increased strike damage while fury is active.', [
-      fromModifier('ranger.furious-strength', 'amount', 'Strike damage with fury')
+      fromProfile(TRAIT.FURIOUS_STRENGTH, 'damageIncrease', 'Strike damage with fury', tooltipPercent)
     ]),
     [TRAIT.TWICE_AS_VICIOUS]: traitTooltip('Control effects temporarily increase strike and condition damage.', [
-      fromModifier('ranger.twice-as-vicious-strike', 'amount', 'Strike damage'),
-      fromModifier('ranger.twice-as-vicious-condition', 'amount', 'Condition damage')
+      fromProfile(TRAIT.TWICE_AS_VICIOUS, 'damageIncrease', 'Strike damage', tooltipPercent),
+      fromProfile(TRAIT.TWICE_AS_VICIOUS, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)
     ]),
     [TRAIT.FRESH_REINFORCEMENT]: outsideScopeTooltip,
     [TRAIT.LIVE_FAST]: traitTooltip('The first hit of your merged Beast Ability grants fury and quickness.'),
@@ -770,25 +796,33 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.ETERNAL_BOND]: outsideScopeTooltip,
     // Explain how the shared stance benefits allies as well as showing its reduced duration.
     [TRAIT.LEADER_OF_THE_PACK]: traitTooltip(
-      'Stances last longer and grant their effects to nearby allies for 50% of your extended duration. Allied hits trigger One Wolf Pack follow-up strikes and Vulture Stance effects, with a separate trigger cooldown for each ally.',
+      'Stances last longer and share a fraction of their extended duration with nearby allies. Allied hits trigger One Wolf Pack follow-up strikes and Vulture Stance effects, with a separate trigger cooldown for each ally.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'durationMultiplier', 'Stance duration', tooltipFactorChange),
-        { name: 'Allied stance duration', detail: '50% of your extended duration' }
+        profileFact(
+          balanceContext,
+          id,
+          'sharedDurationMultiplier',
+          'Allied stance duration',
+          (value) => `${tooltipPercent(value)} of your extended duration`
+        )
       ]
     ),
     [TRAIT.OPPRESSIVE_SUPERIORITY]: traitTooltip(
       'Gain strike damage and condition duration when the target has a lower health percentage than you. Player health remains full in combat.',
       [
-        fromModifier('ranger.oppressive-superiority', 'factor', 'Strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.OPPRESSIVE_SUPERIORITY, 'damageMultiplier', 'Strike damage', tooltipFactorChange),
         ['conditionDurationBonus', 'Condition duration', tooltipPercent]
       ]
     ),
     [TRAIT.UNLEASHED_POWER]: traitTooltip(
       'Unlock Untamed, hammer, cantrips, and unleash. Swap unleashed power between yourself and your pet to change available skills.'
     ),
-    [TRAIT.NATURAL_FORTITUDE]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+    [TRAIT.NATURAL_FORTITUDE]: traitTooltip('Gain vitality. Ambushes trigger a life siphon at their first impact.', [
+      ['attributeBonus', 'Vitality']
+    ]),
     [TRAIT.VOW_OF_THE_UNTAMED]: traitTooltip('Your strikes deal increased damage while you are unleashed.', [
-      fromModifier('ranger.vow-of-the-untamed', 'amount', 'Unleashed player strike damage')
+      fromProfile(TRAIT.VOW_OF_THE_UNTAMED, 'damageIncrease', 'Unleashed player strike damage', tooltipPercent)
     ]),
     [TRAIT.DEBILITATING_BLOWS]: (balanceContext, entity) => ({
       description:
@@ -803,7 +837,7 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.NATURES_SHIELD]: outsideScopeTooltip,
     [TRAIT.BLINDING_OUTBURST]: traitTooltip(
       'Venomous Outburst blinds the target. Supported unleashed ambushes and Venomous Outburst deal increased strike damage.',
-      [fromModifier('ranger.blinding-outburst', 'amount', 'Eligible strike damage')]
+      [fromProfile(TRAIT.BLINDING_OUTBURST, 'damageIncrease', 'Eligible strike damage', tooltipPercent)]
     ),
     [TRAIT.ENHANCING_IMPACT]: (balanceContext, entity) => ({
       description:
@@ -826,7 +860,7 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.FEROCIOUS_SYMBIOSIS]: traitTooltip(
       "Your strikes build the pet's strike-damage stacks; pet strikes build yours. Each side has an independent trigger cooldown and refreshes its stack duration.",
       [
-        fromModifier('ranger.ferocious-symbiosis', 'damagePerStack', 'Strike damage per stack'),
+        fromProfile(TRAIT.FEROCIOUS_SYMBIOSIS, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         ['maximumStacks', 'Maximum stacks per side'],
         ['durationMultiplier', 'Stack duration', tooltipSeconds],
         ['internalCooldown', 'Cooldown per side', tooltipSeconds]
@@ -836,7 +870,7 @@ export const rangerTooltips: ProfessionTooltips = {
       'Unlock Galeshot, gust skills, and Cyclone Bow. Generate wind force and spend wind arrows on Cyclone Bow attacks.'
     ),
     [TRAIT.BIRD_OF_PREY]: traitTooltip('Your strikes deal increased damage while swiftness or superspeed is active.', [
-      fromModifier('ranger.bird-of-prey', 'amount', 'Strike damage')
+      fromProfile(TRAIT.BIRD_OF_PREY, 'damageIncrease', 'Strike damage', tooltipPercent)
     ]),
     [TRAIT.JETSTREAM]: outsideScopeTooltip,
     [TRAIT.JOY_OF_MOVEMENT]: outsideScopeTooltip,
@@ -847,7 +881,7 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.FLOCK_TOGETHER]: traitTooltip(
       'Feathered pets deal increased strike damage. Using a beast skill grants quickness to the party.',
       [
-        fromModifier('ranger.flock-together', 'factor', 'Feathered pet strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.FLOCK_TOGETHER, 'damageMultiplier', 'Feathered pet strike damage', tooltipFactorChange),
         ['internalCooldown', 'Quickness cooldown', tooltipSeconds]
       ],
       'party'
@@ -867,8 +901,8 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.GALE_FORCE]: traitTooltip(
       'Wind Force increases your strike damage. Hawkeye grants an additional temporary damage bonus; wind force gained during that bonus still contributes.',
       [
-        fromModifier('ranger.gale-force', 'windForcePerStack', 'Strike damage per Wind Force stack'),
-        fromModifier('ranger.gale-force', 'galeForceBonus', 'Additional strike damage after Hawkeye')
+        fromProfile(TRAIT.GALE_FORCE, 'damageIncreasePerStack', 'Strike damage per Wind Force stack', tooltipPercent),
+        fromProfile(TRAIT.GALE_FORCE, 'damageIncrease', 'Additional strike damage after Hawkeye', tooltipPercent)
       ]
     ),
     [TRAIT.SHRIKE]: (balanceContext, entity) => {

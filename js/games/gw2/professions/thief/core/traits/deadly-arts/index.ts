@@ -112,14 +112,22 @@ export const evenTheOdds = defineTrait({
 export const executioner = defineTrait({
   id: TRAIT.EXECUTIONER,
   name: 'Executioner',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.2, threshold: 0.5 },
   modifierRules: [
     {
       order: 2,
       id: 'thief.executioner',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.2,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthBelow(context, 0.5)
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXECUTIONER), 'damageMultiplier'),
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        targetHealthBelow(
+          context,
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXECUTIONER), 'threshold')
+        )
     }
   ]
 });
@@ -128,19 +136,23 @@ export const executioner = defineTrait({
 export const exposedWeakness = defineTrait({
   id: TRAIT.EXPOSED_WEAKNESS,
   name: 'Exposed Weakness',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damagePerCondition: 0.02, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },
   modifierRules: [
     {
       order: 1,
       id: 'thief.exposed-weakness',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        damagePerCondition: 0.02,
-        maximumConditions: CANONICAL_TARGET_CONDITIONS.length
-      },
+
       // Count distinct conditions only up to the selected balance cap.
-      factor: (context, _target, parameters) =>
-        1 + Math.min(parameters.maximumConditions, targetConditionCount(context)) * parameters.damagePerCondition,
+      factor: (context) =>
+        1 +
+        Math.min(
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXPOSED_WEAKNESS), 'maximumConditions'),
+          targetConditionCount(context)
+        ) *
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXPOSED_WEAKNESS), 'damagePerCondition'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -225,7 +237,11 @@ export const potentPoison = defineTrait({
       id: 'thief.potent-poison-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.33,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.POTENT_POISON),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Poisoned'
     },
     {
@@ -240,6 +256,7 @@ export const potentPoison = defineTrait({
     }
   ],
   balance: {
+    conditionDamageMultiplier: 1.33,
     conditionDurationBonus: 0.33
   },
   buildAttributes(_common, { balanceContext }) {

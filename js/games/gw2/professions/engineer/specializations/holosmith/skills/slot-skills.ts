@@ -193,7 +193,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
 function handlePrimeLightBeamField(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   // Derive all packet tuning from the captured activation tier before expanding the delayed field.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
-  const tier = holosmithHeatTier(snapshot);
+  const tier = holosmithHeatTier(snapshot, context);
   if (tier === 'base') return;
   const enhancedCapacityTier = tier === 'enhanced';
   const primeLightBeamHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.primeLightBeamHeatTier);
@@ -257,7 +257,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
 function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   // Resolve the heat-dependent cadence once so every delayed packet preserves the activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
-  const tier = holosmithHeatTier(snapshot);
+  const tier = holosmithHeatTier(snapshot, context);
   const laserDiskHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.laserDiskHeatTier);
   const pulses = Math.max(
     0,
@@ -317,7 +317,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
 function handleLaunchWall(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   // Resolve wall count, delay, and strike scaling from the captured activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
-  const tier = holosmithHeatTier(snapshot);
+  const tier = holosmithHeatTier(snapshot, context);
   const launchWallHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.launchWallHeatTier);
   const walls = Math.max(
     0,

@@ -52,6 +52,7 @@ export const magebaneTether = defineTrait({
   id: TRAIT.MAGEBANE_TETHER,
   name: 'Magebane Tether',
   balance: {
+    damageMultiplier: 1.15,
     cooldownPolicy: 'playerRecharge',
     cooldown: 12,
     effects: [{ name: 'magebane-tether', type: 'buff', kind: 'magebane-tether', stacks: 1, duration: 8 }]
@@ -61,7 +62,8 @@ export const magebaneTether = defineTrait({
       id: 'warrior.magebane-tether',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MAGEBANE_TETHER), 'damageMultiplier'),
       order: 110,
       when: (context) => (spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
     }
@@ -114,12 +116,15 @@ export const pureStrike = defineTrait({
 export const sunAndMoonStyle = defineTrait({
   id: TRAIT.SUN_AND_MOON_STYLE,
   name: 'Sun and Moon Style',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       id: 'warrior.sun-and-moon-style',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SUN_AND_MOON_STYLE), 'damageMultiplier'),
       order: 100,
       when: (context) =>
         gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Dagger'
@@ -170,7 +175,7 @@ function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEvent): v
         name: 'Magebane Tether',
         at: event.at,
         sourceSkill: event.skillName,
-        detail: '15% strike damage for 8 seconds'
+        detail: 'Strike damage increased while tethered'
       }
     });
   }

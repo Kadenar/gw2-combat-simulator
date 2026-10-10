@@ -84,6 +84,8 @@ export const tempestuousAria = defineTrait({
   id: TRAIT.TEMPESTUOUS_ARIA,
   name: 'Tempestuous Aria',
   balance: {
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.05,
     // Each aura extends the damage buff by `durationMultiplier` seconds, capped `maximumStacks`
     // seconds past the triggering aura; `Shout Might` is the separate shout-completion payload.
     maximumStacks: 10,
@@ -95,14 +97,19 @@ export const tempestuousAria = defineTrait({
       id: 'elementalist.tempestuous-aria-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA), 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'tempestuous aria', 1) > 0
     },
     {
       id: 'elementalist.tempestuous-aria-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.05,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA),
+          'conditionDamageIncrease'
+        ),
       when: (context) => activeBuffStacks(context, 'tempestuous aria', 1) > 0
     }
   ]
@@ -251,6 +258,8 @@ export const transcendentTempest = defineTrait({
   id: TRAIT.TRANSCENDENT_TEMPEST,
   name: 'Transcendent Tempest',
   balance: {
+    damageIncrease: 0.25,
+    conditionDamageIncrease: 0.2,
     // Completion grants the timed damage-bonus status from this profile.
     effects: [{ type: 'buff', name: 'Transcendent Tempest', kind: 'transcendent-tempest', duration: 7, stacks: 1 }]
   },
@@ -259,14 +268,19 @@ export const transcendentTempest = defineTrait({
       id: 'elementalist.transcendent-tempest-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.25,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TRANSCENDENT_TEMPEST), 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'transcendent-tempest', 1) > 0
     },
     {
       id: 'elementalist.transcendent-tempest-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.2,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.TRANSCENDENT_TEMPEST),
+          'conditionDamageIncrease'
+        ),
       when: (context) => activeBuffStacks(context, 'transcendent-tempest', 1) > 0
     }
   ],

@@ -22,6 +22,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
 import { grantAmbush } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
@@ -41,7 +42,33 @@ export const naturalFortitude = defineTrait({
   id: TRAIT.NATURAL_FORTITUDE,
   name: 'Natural Fortitude',
   balance: {
-    attributeBonus: 240
+    attributeBonus: 240,
+    // The unconditional ambush siphon keeps trait attribution and reads the active patch's damage payload.
+    effects: [
+      {
+        type: 'strike',
+        name: 'Natural Fortitude',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 3517,
+        flatStrikePowerCoeff: 0.005,
+        canCrit: false,
+        damageKind: 'life-steal',
+        damageBreakdownName: 'Life Siphon - Natural Fortitude',
+        icon: String(TRAITS.find((trait) => trait.id === TRAIT.NATURAL_FORTITUDE)?.icon || '')
+      }
+    ]
+  },
+  lifetime: {
+    eventHandlers: {
+      'ranger.natural-fortitude'(runtime, event) {
+        emitTraitProfile(runtime, TRAIT.NATURAL_FORTITUDE, TRAIT.NATURAL_FORTITUDE, event, {
+          at: event.at,
+          effect: { type: 'strike', name: 'Natural Fortitude' },
+          attribution: { actorType: 'player', source: event.source, offTarget: event.offTarget }
+        });
+      }
+    }
   },
   buildAttributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
@@ -88,6 +115,7 @@ export const blindingOutburst = defineTrait({
   id: TRAIT.BLINDING_OUTBURST,
   name: 'Blinding Outburst',
   balance: {
+    damageIncrease: 0.25,
     effects: [{ name: 'Blindness', type: 'condition', condition: 'Blindness', duration: 2, stacks: 1 }]
   },
   modifierRules: [
@@ -96,7 +124,8 @@ export const blindingOutburst = defineTrait({
       id: 'ranger.blinding-outburst',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.25,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLINDING_OUTBURST), 'damageIncrease'),
       when: (context) => BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.skillId ?? context.skillId))
     }
   ],
@@ -130,6 +159,8 @@ export const ferociousSymbiosis = defineTrait({
   id: TRAIT.FEROCIOUS_SYMBIOSIS,
   name: 'Ferocious Symbiosis',
   balance: {
+    damageMultiplier: 1,
+    damageIncreasePerStack: 0.05,
     maximumStacks: 5,
     durationMultiplier: 5,
     internalCooldown: 0.5
@@ -140,12 +171,8 @@ export const ferociousSymbiosis = defineTrait({
       id: 'ranger.ferocious-symbiosis',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: {
-        baseFactor: 1,
-        maximumStacks: 5,
-        damagePerStack: 0.05
-      },
-      factor: (context, _target, parameters) => {
+
+      factor: (context) => {
         const state = untamedModifierState(context);
         const pet = context.event?.source === 'ranger-pet';
         // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
@@ -154,7 +181,20 @@ export const ferociousSymbiosis = defineTrait({
           context.time,
           'exclusive'
         );
-        return parameters.baseFactor + Math.min(parameters.maximumStacks, stacks) * parameters.damagePerStack;
+        return (
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS),
+            'damageMultiplier'
+          ) +
+          Math.min(
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS), 'maximumStacks'),
+            stacks
+          ) *
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS),
+              'damageIncreasePerStack'
+            )
+        );
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || context.event?.source === 'ranger-pet'
     }
@@ -267,13 +307,16 @@ export const enhancingImpact = defineTrait({
 export const vowOfTheUntamed = defineTrait({
   id: TRAIT.VOW_OF_THE_UNTAMED,
   name: 'Vow of the Untamed',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageIncrease: 0.25 },
   modifierRules: [
     {
       order: 100,
       id: 'ranger.vow-of-the-untamed',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.25,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VOW_OF_THE_UNTAMED), 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Pet strikes don't benefit from Vow even when Ranger is unleashed.

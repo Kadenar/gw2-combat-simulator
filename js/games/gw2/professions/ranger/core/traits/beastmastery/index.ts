@@ -81,6 +81,8 @@ export const goForTheThroat = defineTrait({
   id: TRAIT.GO_FOR_THE_THROAT,
   name: 'Go for the Throat',
   balance: {
+    damageMultiplier: 1.4,
+    playerDamageMultiplier: 1.15,
     // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
     cooldownPolicy: 'playerRecharge',
     cooldown: 10,
@@ -102,7 +104,8 @@ export const goForTheThroat = defineTrait({
       id: 'ranger.lesser-sic-em-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.4,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT), 'damageMultiplier'),
       when: (context) => rangerPetEvent(context) && activeBuff(context, 'lesser-sic-em-pet')
     }
   ]
@@ -256,13 +259,16 @@ export const beastlyWarden = defineTrait({
 export const loudWhistle = defineTrait({
   id: TRAIT.LOUD_WHISTLE,
   name: 'Loud Whistle',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.15, playerDamageMultiplier: 1.1 },
   modifierRules: [
     {
       order: 34,
       id: 'ranger.loud-whistle-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'damageMultiplier'),
       when: (context) => rangerPetEvent(context)
     }
   ]
@@ -311,7 +317,8 @@ export const loudWhistleMergedModifier: Gw2ModifierRule = {
   id: 'ranger.loud-whistle-player',
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'multiply',
-  factor: 1.1,
+  factor: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'playerDamageMultiplier'),
   when: (context) =>
     isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context) && hasTrait(context, TRAIT.LOUD_WHISTLE)
 };
@@ -322,7 +329,8 @@ export const goForTheThroatMergedModifier: Gw2ModifierRule = {
   id: 'ranger.lesser-sic-em-player',
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'multiply',
-  factor: 1.15,
+  factor: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT), 'playerDamageMultiplier'),
   when: (context) => activeBuff(context, 'lesser-sic-em')
 };
 

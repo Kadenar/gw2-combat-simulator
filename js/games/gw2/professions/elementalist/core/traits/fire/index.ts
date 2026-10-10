@@ -174,6 +174,7 @@ export const pyromancersTraining = defineTrait({
   id: TRAIT.PYROMANCERS_TRAINING,
   name: "Pyromancer's Training",
   balance: {
+    damageMultiplier: 1.07,
     rechargeMultiplier: 0.8
   },
   modifierRules: [
@@ -182,7 +183,8 @@ export const pyromancersTraining = defineTrait({
       id: 'elementalist.pyromancers-training',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.07,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PYROMANCERS_TRAINING), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Burning')
     }
   ]
@@ -235,20 +237,30 @@ export const persistingFlames = defineTrait({
     })
   ],
   name: 'Persisting Flames',
-  balance: { durationMultiplier: 15, durationPerTier: 2, summons: 2, maximumStacks: 5 },
+  balance: {
+    damageIncreasePerStack: 0.02,
+    durationMultiplier: 15,
+    durationPerTier: 2,
+    summons: 2,
+    maximumStacks: 5
+  },
   modifierRules: [
     {
       id: 'elementalist.persisting-flames',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       order: -11,
-      parameters: { damagePerStack: 0.02 },
-      amount: (context, _target, parameters) =>
+
+      amount: (context) =>
         activeBuffStacks(
           context,
           'persisting flames',
           balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES), 'maximumStacks')
-        ) * parameters.damagePerStack
+        ) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES),
+          'damageIncreasePerStack'
+        )
     }
   ],
   hooks: {

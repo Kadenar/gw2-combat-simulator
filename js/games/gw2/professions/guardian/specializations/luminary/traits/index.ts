@@ -112,6 +112,7 @@ export const radiantArmaments = defineTrait({
   id: TRAIT.RADIANT_ARMAMENTS,
   name: 'Radiant Armaments',
   balance: {
+    damageIncrease: 0.07,
     effects: [{ type: 'buff', name: 'radiant-armaments', kind: 'guardian-radiant-armaments', duration: 10 }]
   },
   triggers: [onTriggerPoint(radiantWeaponDrawn, { run: startRadiantArmaments })],
@@ -122,7 +123,8 @@ export const radiantArmaments = defineTrait({
       id: 'guardian.radiant-armaments',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.07,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_ARMAMENTS), 'damageIncrease'),
       when: (context) => {
         const armament = latestGuardianTimedBuff(context, 'guardian-radiant-armaments');
         // The buff is emitted for every radiant weapon, but the +7% bonus is
@@ -143,6 +145,7 @@ export const empoweredArmaments = defineTrait({
   id: TRAIT.EMPOWERED_ARMAMENTS,
   name: 'Empowered Armaments',
   balance: {
+    damageIncrease: 0.1,
     maximumStacks: 20,
     resourceGain: 6
   },
@@ -154,7 +157,8 @@ export const empoweredArmaments = defineTrait({
       id: 'guardian.empowered-armaments',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED_ARMAMENTS), 'damageIncrease'),
       when: (context) => buffActive(context, 'guardian-empowered-armaments')
     }
   ]

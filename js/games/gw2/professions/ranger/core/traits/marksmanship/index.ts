@@ -61,6 +61,7 @@ export const wolfsong = defineTrait({
   id: TRAIT.WOLFSONG,
   name: 'Wolfsong',
   balance: {
+    damageMultiplier: 1.1,
     effects: [
       {
         name: 'Vulnerability',
@@ -77,7 +78,8 @@ export const wolfsong = defineTrait({
       id: 'ranger.wolfsong',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WOLFSONG), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context)
     }
   ]
@@ -151,6 +153,9 @@ export const huntersGaze = defineTrait({
   id: TRAIT.HUNTERS_GAZE,
   name: "Hunter's Gaze",
   balance: {
+    lowerThreshold: 0.25,
+    threshold: 0.5,
+    upperThreshold: 0.75,
     internalCooldown: 1,
     maximumStacks: 3,
     effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 1 }]
@@ -231,13 +236,16 @@ export const preciseStrike = defineTrait({
 export const farsighted = defineTrait({
   id: TRAIT.FARSIGHTED,
   name: 'Farsighted',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       order: 6,
       id: 'ranger.farsighted',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FARSIGHTED), 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         skillForEvent(context.profession?.catalog, context.event, context.skillId)?.type === 'Weapon'
@@ -254,13 +262,16 @@ export const remorseless = defineTrait({
   ],
   id: TRAIT.REMORSELESS,
   name: 'Remorseless',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.25 },
   modifierRules: [
     {
       order: 9,
       id: 'ranger.remorseless',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.REMORSELESS), 'damageMultiplier'),
       when: (context) => openingStrikeReady(context)
     }
   ]
@@ -270,13 +281,16 @@ export const remorseless = defineTrait({
 export const predatorsOnslaught = defineTrait({
   id: TRAIT.PREDATORS_ONSLAUGHT,
   name: "Predator's Onslaught",
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       order: 11,
       id: 'ranger.predators-onslaught-player',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREDATORS_ONSLAUGHT), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerTargetImpaired(context)
     },
     {
@@ -284,7 +298,8 @@ export const predatorsOnslaught = defineTrait({
       id: 'ranger.predators-onslaught-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREDATORS_ONSLAUGHT), 'damageMultiplier'),
       when: (context) => rangerPetEvent(context) && rangerTargetImpaired(context)
     }
   ]
@@ -427,11 +442,11 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
   if (!might) return;
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const stacks =
-    health < 0.25
+    health < balanceProfileNumber(profile, 'lowerThreshold')
       ? maximumStacks
-      : health < 0.5
+      : health < balanceProfileNumber(profile, 'threshold')
         ? Math.max(0, maximumStacks - 1)
-        : health < 0.75
+        : health < balanceProfileNumber(profile, 'upperThreshold')
           ? Math.max(0, maximumStacks - 2)
           : 0;
   // Target health must yield actual Might stacks before this hit claims the interval.

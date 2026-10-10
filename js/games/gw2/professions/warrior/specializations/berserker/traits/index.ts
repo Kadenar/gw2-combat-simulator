@@ -54,6 +54,7 @@ export const bloodyRoar = defineTrait({
   id: TRAIT.BLOODY_ROAR,
   name: 'Bloody Roar',
   balance: {
+    damageMultiplier: 1.1,
     effects: [{ name: 'resistance', type: 'boon', boon: 'resistance', stacks: 1, duration: 3.5 }]
   },
   modifierRules: [
@@ -61,7 +62,8 @@ export const bloodyRoar = defineTrait({
       id: 'warrior.bloody-roar',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLOODY_ROAR), 'damageMultiplier'),
       order: 100,
       when: (context) => active(context)
     }

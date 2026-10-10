@@ -109,12 +109,15 @@ export const chronophantasma = defineTrait<MesmerSkill>({
 export const timeCatchesUp = defineTrait<MesmerSkill>({
   id: TRAIT.TIME_CATCHES_UP,
   name: 'Time Catches Up',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       id: 'mesmer.time-catches-up',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TIME_CATCHES_UP), 'damageMultiplier'),
       order: 100,
       // Time Catches Up affects only first-strike shatter packets against a movement-impaired target.
       when: (context) =>
@@ -195,6 +198,7 @@ export const timeBomb = defineTrait<MesmerSkill>({
   id: TRAIT.TIME_BOMB,
   name: 'Time Bomb',
   balance: {
+    damageMultiplier: 1.1,
     durationMultiplier: 5,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 3, hits: 1 }]
   },
@@ -204,7 +208,8 @@ export const timeBomb = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TIME_BOMB), 'damageMultiplier'),
       // Preserve Time Catches Up before the applied Time Bomb multiplier.
       order: 101,
       when: (context) => isGw2PlayerActorEvent(context.event) && buffActive(context, 'time-bomb')

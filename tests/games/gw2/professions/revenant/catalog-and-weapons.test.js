@@ -211,7 +211,8 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
   const call = herald.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_DRAGON);
   const spiritBoon = authoringRevenantProfession.patchAuthoring.modules
     .find((module) => module.id === 'Core')
-    .balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Dragon)');
+    .balanceProfiles.find((profile) => profile.id === REVENANT_TRAIT_IDS.SPIRIT_BOON);
+  const effectIndex = spiritBoon.profile.effects.findIndex((effect) => effect.metadata?.legendId === LEGEND.DRAGON);
 
   assert.deepEqual(
     call.skill.effects.map((effect) => [
@@ -227,15 +228,14 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
       ['condition', undefined, 'Chilled', 1, 3]
     ]
   );
-  assert.deepEqual(spiritBoon.profile.effects, [
-    {
-      type: 'boon',
-      boon: 'protection',
-      duration: 3,
-      stacks: 1,
-      actorType: 'player'
-    }
-  ]);
+  assert.deepEqual(spiritBoon.profile.effects[effectIndex], {
+    type: 'boon',
+    boon: 'protection',
+    duration: 3,
+    stacks: 1,
+    actorType: 'player',
+    metadata: { legendId: LEGEND.DRAGON }
+  });
 
   const preview = applyRevenantPatch({
     skills: {
@@ -252,7 +252,7 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
       [spiritBoon.id]: {
         effects: [
           {
-            effectIndex: 0,
+            effectIndex,
             duration: { from: 3, to: 4 }
           }
         ]
@@ -261,7 +261,7 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
   });
 
   assert.equal(preview.skillsById.get(SKILL.CALL_OF_THE_DRAGON).effects[0].coefficient, 1);
-  assert.equal(preview.balanceProfilesById.get(spiritBoon.id).effects[0].duration, 4);
+  assert.equal(preview.balanceProfilesById.get(spiritBoon.id).effects[effectIndex].duration, 4);
 });
 
 test('Renegade invocation effects use patch-authorable skill declarations', () => {
@@ -269,7 +269,8 @@ test('Renegade invocation effects use patch-authorable skill declarations', () =
   const call = renegade.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_RENEGADE);
   const spiritBoon = authoringRevenantProfession.patchAuthoring.modules
     .find((module) => module.id === 'Core')
-    .balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Renegade)');
+    .balanceProfiles.find((profile) => profile.id === REVENANT_TRAIT_IDS.SPIRIT_BOON);
+  const effectIndex = spiritBoon.profile.effects.findIndex((effect) => effect.metadata?.legendId === LEGEND.RENEGADE);
 
   assert.deepEqual(
     call.skill.effects.map((effect) => [
@@ -284,15 +285,14 @@ test('Renegade invocation effects use patch-authorable skill declarations', () =
       ['condition', undefined, 'Bleeding', 2, 8]
     ]
   );
-  assert.deepEqual(spiritBoon.profile.effects, [
-    {
-      type: 'boon',
-      boon: 'resolution',
-      duration: 4,
-      stacks: 1,
-      actorType: 'player'
-    }
-  ]);
+  assert.deepEqual(spiritBoon.profile.effects[effectIndex], {
+    type: 'boon',
+    boon: 'resolution',
+    duration: 4,
+    stacks: 1,
+    actorType: 'player',
+    metadata: { legendId: LEGEND.RENEGADE }
+  });
 
   const preview = applyRevenantPatch({
     skills: {
@@ -309,7 +309,7 @@ test('Renegade invocation effects use patch-authorable skill declarations', () =
       [spiritBoon.id]: {
         effects: [
           {
-            effectIndex: 0,
+            effectIndex,
             duration: { from: 4, to: 5 }
           }
         ]
@@ -318,10 +318,10 @@ test('Renegade invocation effects use patch-authorable skill declarations', () =
   });
 
   assert.equal(preview.skillsById.get(SKILL.CALL_OF_THE_RENEGADE).effects[1].stacks, 3);
-  assert.equal(preview.balanceProfilesById.get(spiritBoon.id).effects[0].duration, 5);
+  assert.equal(preview.balanceProfilesById.get(spiritBoon.id).effects[effectIndex].duration, 5);
 });
 
-test('Renegade mechanics use authorable skills and modifier parameters', () => {
+test('Renegade mechanics use authorable skills and trait balances', () => {
   const renegade = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
   const skill = (id) => renegade.skills.find((entry) => entry.id === id);
   const named = (name) => renegade.skills.find((entry) => entry.name === name);
@@ -332,7 +332,7 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
   const enhancedRazorclaw = skill(SKILL.RAZORCLAWS_RAGE_ID_72363);
   const heroic = skill(SKILL.HEROIC_COMMAND);
   const improvedHeroic = namedProfile('Heroic Command (Lasting Legacy)');
-  const kallasFervor = namedProfile("Kalla's Fervor");
+  const kallasFervor = namedProfile('Ambush Commander');
   const soulcleaveProc = named("Soulcleave's Summit — Triggered Attack");
   const allForOne = namedProfile('All for One');
   assert.equal(enhancedIcerazor.skill.simulatorExcluded, true);
@@ -377,10 +377,17 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
     ),
     { resourceGain: 10, rechargeMultiplier: 0.5 }
   );
-  assert.deepEqual(renegade.modifierRules.find((rule) => rule.id === 'revenant.kallas-fervor-strike').parameters, {
-    damagePerStack: 0.02,
-    improvedDamagePerStack: 0.05
-  });
+  // Base Fervor and Lasting Legacy expose their own strike rates to authoring.
+  assert.equal(
+    renegade.balanceProfiles.find((entry) => entry.id === 'revenant.renegade.kallas-fervor').patchableFields
+      .damageIncreasePerStack,
+    0.02
+  );
+  assert.equal(
+    renegade.balanceProfiles.find((entry) => entry.id === 'revenant.renegade.kallas-fervor-lasting-legacy')
+      .patchableFields.damageIncreasePerStack,
+    0.05
+  );
   assert.equal(
     renegade.balanceProfiles.find((entry) => entry.id === 'revenant.renegade.blood-fury').patchableFields
       .conditionDurationBonus,

@@ -67,6 +67,7 @@ export const siphonedPower = defineTrait({
   id: TRAIT.SIPHONED_POWER,
   name: 'Siphoned Power',
   balance: {
+    threshold: 0.5,
     cooldown: 1,
     effects: [
       {
@@ -98,6 +99,7 @@ export const chillOfDeath = defineTrait({
   id: TRAIT.CHILL_OF_DEATH,
   name: 'Chill of Death',
   balance: {
+    threshold: 0.5,
     // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
     cooldownPolicy: 'playerRecharge',
     cooldown: 16,
@@ -144,7 +146,12 @@ export const spitefulFortitude = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrikeLifeForce, {
       run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
-        if (!runtime.combat.targetHealthBelow(0.5)) return;
+        if (
+          !runtime.combat.targetHealthBelow(
+            balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE), 'threshold')
+          )
+        )
+          return;
         input.percent += balanceProfileNumber(
           requireBalanceProfileFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE),
           'lifeForceGain'
@@ -154,10 +161,7 @@ export const spitefulFortitude = defineTrait({
   ],
   id: TRAIT.SPITEFUL_FORTITUDE,
   name: 'Spiteful Fortitude',
-  balance: {
-    attributeConversion: 0.1,
-    lifeForceGain: 1
-  },
+  balance: { threshold: 0.5, attributeConversion: 0.1, lifeForceGain: 1 },
   buildAttributes: traitAttributeEffects(TRAIT.SPITEFUL_FORTITUDE, [
     {
       kind: 'conversion',
@@ -290,13 +294,19 @@ export const dread = defineTrait({
   ],
   id: TRAIT.DREAD,
   name: 'Dread',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: {
+    duration: 3,
+    damageIncrease: 0.2
+  },
   modifierRules: [
     {
       order: -16,
       id: 'necromancer.dread',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.2,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DREAD), 'damageIncrease'),
       when: (context) => buffActive(context, 'necromancer-dread')
     }
   ]
@@ -306,13 +316,16 @@ export const dread = defineTrait({
 export const spitefulTalisman = defineTrait({
   id: TRAIT.SPITEFUL_TALISMAN,
   name: 'Spiteful Talisman',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.05 },
   modifierRules: [
     {
       order: 106,
       id: 'necromancer.spiteful-talisman',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SPITEFUL_TALISMAN), 'damageMultiplier')
     }
   ]
 });
@@ -321,14 +334,21 @@ export const spitefulTalisman = defineTrait({
 export const closeToDeath = defineTrait({
   id: TRAIT.CLOSE_TO_DEATH,
   name: 'Close to Death',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { threshold: 0.5, damageMultiplier: 1.2 },
   modifierRules: [
     {
       order: 107,
       id: 'necromancer.close-to-death',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.2,
-      when: (context) => targetHealthBelow(context, 0.5)
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CLOSE_TO_DEATH), 'damageMultiplier'),
+      when: (context) =>
+        targetHealthBelow(
+          context,
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CLOSE_TO_DEATH), 'threshold')
+        )
     }
   ]
 });
@@ -365,8 +385,8 @@ function applyReapersMight(
 }
 
 function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (!targetBelowHalfHealth(context)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.SIPHONED_POWER);
+  if (!context.combat.targetHealthBelow(balanceProfileNumber(profile, 'threshold'))) return;
   const effect = requireEffect(profile, 'boon', 'might');
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // might, so a removed boon leaves it ready.
@@ -393,8 +413,8 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
 }
 
 function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (!targetBelowHalfHealth(context)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.CHILL_OF_DEATH);
+  if (!context.combat.targetHealthBelow(balanceProfileNumber(profile, 'threshold'))) return;
   // No target boons can be removed, so use only the zero-boon strike profile.
   const strike = requireEffect(profile, 'strike', 'Lesser Spinal Shivers - No Boons');
   const chilled = requireEffect(profile, 'condition', 'Chilled');
@@ -502,7 +522,7 @@ function applyDreadWindow(context: NecromancerResolverContext, event: Necromance
         type: 'buff',
         kind: 'necromancer-dread',
         at: event.at,
-        duration: 3,
+        duration: balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DREAD), 'duration'),
         stacks: 1,
         source: 'Trait',
         sourceId: TRAIT.DREAD,
@@ -514,9 +534,4 @@ function applyDreadWindow(context: NecromancerResolverContext, event: Necromance
       }
     });
   }
-}
-
-/** Reactions use the same supported target-health threshold as resource queries. */
-function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
-  return context.combat.targetHealthBelow(0.5);
 }

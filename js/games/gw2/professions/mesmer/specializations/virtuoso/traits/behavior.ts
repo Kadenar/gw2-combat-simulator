@@ -4,15 +4,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-
-export function phantasmalBladesDamage(context: MesmerRuntime): MesmerTraitDamage {
-  // The phantasm conversion keeps its fixed weapon strength independently of patched or removed attacks.
-  return mesmerProfiledTraitDamage(context, { weaponStrength: 2553.5 }, TRAIT.PHANTASMAL_BLADES);
-}
 
 /** Direct simulations convert configured Vitality at the original imperative attribute boundary; built stats already include it. */
 export function quietIntensityFerocity(context: Gw2ModifierContext): number {

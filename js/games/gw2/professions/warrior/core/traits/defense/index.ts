@@ -19,6 +19,7 @@ export const mercilessHammer = defineTrait({
   id: TRAIT.MERCILESS_HAMMER,
   name: 'Merciless Hammer',
   balance: {
+    damageMultiplier: 1.25,
     resourceGain: 7
   },
   modifierRules: [
@@ -26,7 +27,8 @@ export const mercilessHammer = defineTrait({
       id: 'warrior.merciless-hammer',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.25,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MERCILESS_HAMMER), 'damageMultiplier'),
       order: 94,
       when: (context) =>
         ['Hammer', 'Mace'].includes(
@@ -46,6 +48,7 @@ export const stalwartStrength = defineTrait({
   id: TRAIT.STALWART_STRENGTH,
   name: 'Stalwart Strength',
   balance: {
+    damageMultiplier: 1.1,
     internalCooldown: 0.32,
     effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
   },
@@ -54,7 +57,8 @@ export const stalwartStrength = defineTrait({
       id: 'warrior.stalwart-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STALWART_STRENGTH), 'damageMultiplier'),
       order: 95,
       when: (context) => warriorBoonActive(context, 'stability')
     }
@@ -82,6 +86,7 @@ export const cullTheWeak = defineTrait({
   id: TRAIT.CULL_THE_WEAK,
   name: 'Cull the Weak',
   balance: {
+    damageMultiplier: 1.1,
     internalCooldown: 5,
     effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 3.5, stacks: 1 }]
   },
@@ -90,7 +95,8 @@ export const cullTheWeak = defineTrait({
       id: 'warrior.cull-the-weak',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CULL_THE_WEAK), 'damageMultiplier'),
       order: 93,
       when: (context) => targetConditionActive(context, 'Weakness')
     }

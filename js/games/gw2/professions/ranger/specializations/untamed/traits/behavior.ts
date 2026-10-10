@@ -5,26 +5,16 @@ import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 
-/** Ambushes retain their authored first-hit timing and unconditional life-steal packet. */
+/** Ambushes own the delivery time; their accepted proc resolves the selected trait balance at impact. */
 export function naturalFortitudeAmbushEffect(atMs: number): SkillEffect {
   return {
-    type: 'strike',
-    sourceId: TRAIT.NATURAL_FORTITUDE,
-    name: 'Natural Fortitude',
-    // Separate the siphon in the breakdown while retaining the ambush's combat attribution.
-    damageBreakdownName: 'Life Siphon - Natural Fortitude',
-    // Use the granting trait's artwork instead of the triggering ambush's icon.
-    icon: String(TRAITS.find((trait) => trait.id === TRAIT.NATURAL_FORTITUDE)?.icon || ''),
-    // Life siphon adds Power to its base damage without weapon, armor, or critical scaling.
-    ticks: [{ atMs, coefficient: 0 }],
-    flatStrikeBase: 3517,
-    flatStrikePowerCoeff: 0.005,
+    type: 'custom',
+    eventType: 'ranger.natural-fortitude',
+    event: {},
+    atMs,
     timingAnchor: 'castStart',
-    timingScale: 'fixed',
-    canCrit: false,
-    damageKind: 'life-steal'
+    timingScale: 'fixed'
   };
 }
 

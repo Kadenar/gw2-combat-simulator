@@ -1,6 +1,5 @@
 import {
-  fromModifier,
-  modifierFact,
+  fromProfile,
   outsideScopeTooltip,
   profileFact,
   profileTooltip,
@@ -60,6 +59,9 @@ function variantEffects(effects: readonly SkillEffect[] = [], context = '') {
     LegendaryDemon: 'Demon',
     LegendaryDwarf: 'Dwarf',
     LegendaryCentaur: 'Centaur',
+    LegendaryDragon: 'Dragon',
+    LegendaryRenegade: 'Renegade',
+    LegendaryAlliance: 'Alliance',
     LegendaryEntity: 'Entity',
     'entity-skill': 'using an Entity skill',
     'beguiling-haze': 'Beguiling Haze',
@@ -603,7 +605,7 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.CLEANSING_CHANNEL]: outsideScopeTooltip,
     [TRAIT.RISING_TIDE]: traitTooltip(
       'Player-owned strikes deal increased damage at the full health used by combat simulations.',
-      [fromModifier('revenant.rising-tide', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.RISING_TIDE, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.GLARING_RESOLVE]: outsideScopeTooltip,
     [TRAIT.SPIRIT_BOON]: (balanceContext, entity) => {
@@ -611,22 +613,7 @@ export const revenantTooltips: ProfessionTooltips = {
       return {
         ...effects,
         description:
-          "Invoking a legend grants its corresponding boon. Entity invocation uses the paired core legend's boon.",
-        factTabs: [
-          ...effects.factTabs,
-          {
-            label: 'Dragon',
-            facts: simulationEffectFacts(tooltipProfile(balanceContext, 'revenant.spirit-boon.dragon').effects).facts
-          },
-          {
-            label: 'Renegade',
-            facts: simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.spiritBoon).effects).facts
-          },
-          {
-            label: 'Alliance',
-            facts: simulationEffectFacts(tooltipProfile(balanceContext, 'revenant.spirit-boon.alliance').effects).facts
-          }
-        ]
+          "Invoking a legend grants its corresponding boon. Entity invocation uses the paired core legend's boon."
       };
     },
     [TRAIT.RAPID_FLOW]: outsideScopeTooltip,
@@ -715,9 +702,9 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.DWARVEN_BATTLE_TRAINING]: traitTooltip(
       'Control effects apply weakness. Player-owned strikes deal increased damage to weakened targets.',
       [
-        fromModifier(
-          'revenant.dwarven-battle-training',
-          'factor',
+        fromProfile(
+          TRAIT.DWARVEN_BATTLE_TRAINING,
+          'damageMultiplier',
           'Strike damage against weakened targets',
           tooltipFactorChange
         )
@@ -726,7 +713,13 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.VICIOUS_REPRISAL]: traitTooltip(
       'Resolution increases player-owned strike and condition damage. Qualifying strikes with resolution grant might.',
       [
-        fromModifier('revenant.vicious-reprisal', 'amount', 'Strike and condition damage with resolution'),
+        fromProfile(TRAIT.VICIOUS_REPRISAL, 'damageIncrease', 'Strike damage with resolution', tooltipPercent),
+        fromProfile(
+          TRAIT.VICIOUS_REPRISAL,
+          'conditionDamageIncrease',
+          'Condition damage with resolution',
+          tooltipPercent
+        ),
         ['cooldown', 'Might cooldown', tooltipSeconds]
       ]
     ),
@@ -772,7 +765,7 @@ export const revenantTooltips: ProfessionTooltips = {
       [['conditionDurationBonus', 'Damaging-condition duration', tooltipPercent]]
     ),
     [TRAIT.ACOLYTE_OF_TORMENT]: traitTooltip('Player-owned torment deals increased damage.', [
-      fromModifier('revenant.acolyte-of-torment', 'factor', 'Torment damage', tooltipFactorChange)
+      fromProfile(TRAIT.ACOLYTE_OF_TORMENT, 'conditionDamageMultiplier', 'Torment damage', tooltipFactorChange)
     ]),
     [TRAIT.DEMONIC_DEFIANCE]: outsideScopeTooltip,
     [TRAIT.REPLENISHING_DESPAIR]: outsideScopeTooltip,
@@ -783,11 +776,7 @@ export const revenantTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.DIABOLIC_INFERNO]: (balanceContext) => ({
       description: 'Invoke Torment applies additional conditions.',
-      facts: simulationEffectFacts(
-        tooltipProfile(balanceContext, TRAIT.INVOKING_TORMENT).effects?.filter(
-          (effect) => effect.metadata?.trigger === 'diabolic-inferno'
-        )
-      ).facts
+      facts: simulationEffectFacts(tooltipProfile(balanceContext, TRAIT.DIABOLIC_INFERNO).effects).facts
     }),
     [TRAIT.FIENDISH_TENACITY]: outsideScopeTooltip,
     [TRAIT.PERMEATING_PESTILENCE]: outsideScopeTooltip,
@@ -795,19 +784,21 @@ export const revenantTooltips: ProfessionTooltips = {
     // Fixed runtime bonuses show both off-hand alternatives and the per-stack rate without requiring a selected build.
     [TRAIT.DESTRUCTIVE_IMPULSES]: traitTooltip(
       'Player-owned strikes and conditions deal increased damage. Wielding an off-hand weapon strengthens the bonus.',
-      () => [
-        { name: 'Strike and condition damage without an off-hand weapon', detail: tooltipPercent(0.05) },
-        { name: 'Strike and condition damage with an off-hand weapon', detail: tooltipPercent(0.075) }
+      [
+        ['damageIncrease', 'Strike damage without an off-hand weapon', tooltipPercent],
+        ['conditionDamageIncrease', 'Condition damage without an off-hand weapon', tooltipPercent],
+        ['offhandDamageIncrease', 'Strike damage with an off-hand weapon', tooltipPercent],
+        ['offhandConditionDamageIncrease', 'Condition damage with an off-hand weapon', tooltipPercent]
       ]
     ),
     [TRAIT.TARGETED_DESTRUCTION]: traitTooltip(
       'Player-owned strikes deal increased damage for each vulnerability stack on the target.',
-      () => [{ name: 'Strike damage per vulnerability stack', detail: tooltipPercent(0.005) }]
+      [['damageIncreasePerStack', 'Strike damage per vulnerability stack', tooltipPercent]]
     ),
     [TRAIT.AGGRESSIVE_ARRIVAL]: outsideScopeTooltip,
     [TRAIT.UNSUSPECTING_STRIKES]: traitTooltip(
       'Player-owned strikes deal increased damage while the target remains above its high-health threshold.',
-      [fromModifier('revenant.unsuspecting-strikes', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.UNSUSPECTING_STRIKES, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.BATTLE_SCARRED]: traitTooltip(
       'Completing a healing skill grants Battle Scars. Qualifying player strikes consume a scar to deal life-siphon damage.'
@@ -828,7 +819,7 @@ export const revenantTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.SWIFT_TERMINATION]: traitTooltip(
       'Player-owned strikes deal increased damage while the target is below half health.',
-      [fromModifier('revenant.swift-termination', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.SWIFT_TERMINATION, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.DANCE_OF_DEATH]: traitTooltip(
       'Applying vulnerability grants Battle Scars according to the stacks applied. Qualifying player strikes consume a scar to deal life-siphon damage.'
@@ -868,7 +859,8 @@ export const revenantTooltips: ProfessionTooltips = {
       'Consumed facets retain their passive effects temporarily. Strength grants strike damage, Elements grants condition damage, Darkness grants critical chance, and Nature grants boon duration.',
       [
         ['duration', 'Echo duration', tooltipSeconds],
-        ['damageBonus', 'Strength strike / Elements condition damage', tooltipPercent],
+        ['damageIncrease', 'Strength strike damage', tooltipPercent],
+        ['conditionDamageIncrease', 'Elements condition damage', tooltipPercent],
         ['criticalChanceBonus', 'Darkness critical chance', tooltipPercent],
         ['boonDurationBonus', 'Nature boon duration', (value) => `${value}%`]
       ]
@@ -876,9 +868,9 @@ export const revenantTooltips: ProfessionTooltips = {
     // Count each active upkeep skill, rather than its energy drain, using the runtime's two additive rates.
     [TRAIT.FORCEFUL_PERSISTENCE]: traitTooltip(
       'Each active upkeep skill adds to player strike damage. Facets and other upkeep skills grant different bonuses.',
-      () => [
-        { name: 'Strike damage per active facet', detail: tooltipPercent(0.1) },
-        { name: 'Strike damage per other active upkeep skill', detail: tooltipPercent(0.25) }
+      [
+        ['damageIncreasePerStack', 'Strike damage per active facet', tooltipPercent],
+        ['upkeepDamageIncrease', 'Strike damage per other active upkeep skill', tooltipPercent]
       ]
     ),
     [TRAIT.AMBUSH_COMMANDER]: profileTooltip(
@@ -886,8 +878,13 @@ export const revenantTooltips: ProfessionTooltips = {
       "Qualifying critical or positional hits grant Kalla's Fervor. Defiant targets satisfy the simulator's positional condition.",
       [
         ['maximumStacks', 'Maximum stacks'],
-        fromModifier('revenant.kallas-fervor-strike', 'damagePerStack', 'Strike damage per stack'),
-        fromModifier('revenant.kallas-fervor-condition', 'damagePerStack', 'Condition damage per stack'),
+        fromProfile(RENEGADE.kallasFervor, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(
+          RENEGADE.kallasFervor,
+          'conditionDamageIncreasePerStack',
+          'Condition damage per stack',
+          tooltipPercent
+        ),
         ['lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent]
       ]
     ),
@@ -929,13 +926,13 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.HEARTPIERCER]: traitTooltip(
       'Player-owned strikes deal increased damage to bleeding targets. Bleeding also deals increased damage.',
       [
-        fromModifier(
-          'revenant.heartpiercer-strike',
-          'factor',
+        fromProfile(
+          TRAIT.HEARTPIERCER,
+          'damageMultiplier',
           'Strike damage against bleeding targets',
           tooltipFactorChange
         ),
-        fromModifier('revenant.heartpiercer-bleeding', 'factor', 'Bleeding damage', tooltipFactorChange)
+        fromProfile(TRAIT.HEARTPIERCER, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)
       ]
     ),
     [TRAIT.ALL_FOR_ONE]: profileTooltip(RENEGADE.allForOne, 'An empowered Band Together skill recharges faster.', [
@@ -950,8 +947,18 @@ export const revenantTooltips: ProfessionTooltips = {
       "Kalla's Fervor lasts longer and grants stronger damage bonuses. Heroic Command grants additional might per Fervor stack.",
       [
         ['maximumStacks', 'Maximum stacks'],
-        fromModifier('revenant.kallas-fervor-strike', 'improvedDamagePerStack', 'Strike damage per stack'),
-        fromModifier('revenant.kallas-fervor-condition', 'improvedDamagePerStack', 'Condition damage per stack'),
+        fromProfile(
+          RENEGADE.kallasFervorLastingLegacy,
+          'damageIncreasePerStack',
+          'Strike damage per stack',
+          tooltipPercent
+        ),
+        fromProfile(
+          RENEGADE.kallasFervorLastingLegacy,
+          'conditionDamageIncreasePerStack',
+          'Condition damage per stack',
+          tooltipPercent
+        ),
         ['lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent]
       ]
     ),
@@ -966,7 +973,14 @@ export const revenantTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.LEVIATHAN_STRENGTH]: traitTooltip(
       'Player-owned strikes deal increased damage while endurance is below full.',
-      [fromModifier('revenant.leviathan-strength', 'factor', 'Strike damage below full endurance', tooltipFactorChange)]
+      [
+        fromProfile(
+          TRAIT.LEVIATHAN_STRENGTH,
+          'damageMultiplier',
+          'Strike damage below full endurance',
+          tooltipFactorChange
+        )
+      ]
     ),
     [TRAIT.AMNESTY_OF_SHING_JEA]: outsideScopeTooltip,
     [TRAIT.REDEMPTORS_SERMON]: outsideScopeTooltip,
@@ -988,7 +1002,13 @@ export const revenantTooltips: ProfessionTooltips = {
       'Dodge with Death Drop, then gain a temporary player strike-damage bonus after the landing damage resolves.',
       (context) => [
         ...simulationEffectFacts(context.catalog.skillsById.get(ID.DEATH_DROP)!.effects, 'Death Drop').facts,
-        modifierFact(context, 'revenant.forerunner-of-death', 'amount', 'Strike damage during the bonus')
+        profileFact(
+          context,
+          TRAIT.FORERUNNER_OF_DEATH,
+          'damageIncrease',
+          'Strike damage during the bonus',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.VASSALS_OF_THE_EMPIRE]: traitTooltip(
@@ -1022,11 +1042,12 @@ export const revenantTooltips: ProfessionTooltips = {
           ...effects.facts,
           // Each enhancement identifies the affected trait with its catalog icon.
           {
-            ...modifierFact(
+            ...profileFact(
               balanceContext,
-              'revenant.targeted-destruction-numinous-gift',
-              'bonus',
-              'Additional Targeted Destruction bonus'
+              CONDUIT.numinousGift,
+              'damageIncrease',
+              'Additional Targeted Destruction bonus',
+              tooltipPercent
             ),
             icon: String(
               balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.TARGETED_DESTRUCTION)?.icon || ''

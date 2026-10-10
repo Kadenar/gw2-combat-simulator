@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -87,4 +89,29 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
 
   const clipped = simulate('Core', ['Locust Swarm']);
   assert.equal(clipped.planningState.profession.lifeForce.value, 1.5);
+
+  // A faster extension must not grant its life force before the native swarm finishes.
+  const run = createProfessionSimulator(necromancerProfession, () => ({
+    specialization: 'Core',
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Warhorn',
+    initialResource: 0,
+    selectedTraitIds: [TRAIT.BANSHEES_WAIL]
+  }));
+  const nativeEndMs = necromancerProfession.catalog.skillsById
+    .get(ID.LOCUST_SWARM)
+    .effects.find((effect) => effect.type === 'strike')
+    .ticks.at(-1).atMs;
+  const result = run(
+    ['Locust Swarm', wait(nativeEndMs - clipped.steps[0].end)],
+    {},
+    {
+      catalog: (catalog) =>
+        applyBalanceProfilePatch(catalog, {
+          balanceProfiles: { [TRAIT.BANSHEES_WAIL]: { fields: { pulseInterval: 0.25 } } }
+        })
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.lifeForce.value, 15);
 });

@@ -115,13 +115,32 @@ export const danceOfDeath = defineTrait({
 export const destructiveImpulses = defineTrait({
   id: TRAIT.DESTRUCTIVE_IMPULSES,
   name: 'Destructive Impulses',
+  balance: {
+    damageIncrease: 0.05,
+    offhandDamageIncrease: 0.075,
+    conditionDamageIncrease: 0.05,
+    offhandConditionDamageIncrease: 0.075
+  },
   modifierRules: [
     {
       id: 'revenant.destructive-impulses',
       order: 5,
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: (context) => (activeOffhand(context) ? 0.075 : 0.05),
+      amount: (context, target) => {
+        const profile = requireBalanceProfileFromContext(context, TRAIT.DESTRUCTIVE_IMPULSES);
+        const condition = target === MODIFIER_TARGET.CONDITION_DAMAGE;
+        return balanceProfileNumber(
+          profile,
+          activeOffhand(context)
+            ? condition
+              ? 'offhandConditionDamageIncrease'
+              : 'offhandDamageIncrease'
+            : condition
+              ? 'conditionDamageIncrease'
+              : 'damageIncrease'
+        );
+      },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -174,14 +193,22 @@ export const notoriety = defineTrait({
 export const swiftTermination = defineTrait({
   id: TRAIT.SWIFT_TERMINATION,
   name: 'Swift Termination',
+  // Trait balance owns both the bonus and its supported target-health threshold.
+  balance: { damageMultiplier: 1.2, threshold: 0.5 },
   modifierRules: [
     {
       id: 'revenant.swift-termination',
       order: 8,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.2,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthBelow(context, 0.5)
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SWIFT_TERMINATION), 'damageMultiplier'),
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        targetHealthBelow(
+          context,
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SWIFT_TERMINATION), 'threshold')
+        )
     }
   ]
 });
@@ -190,13 +217,20 @@ export const swiftTermination = defineTrait({
 export const targetedDestruction = defineTrait({
   id: TRAIT.TARGETED_DESTRUCTION,
   name: 'Targeted Destruction',
+  balance: { damageIncreasePerStack: 0.005 },
   modifierRules: [
     {
       id: 'revenant.targeted-destruction',
       order: 7,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + vulnerabilityStacks(context) * 0.005,
+      factor: (context) =>
+        1 +
+        vulnerabilityStacks(context) *
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.TARGETED_DESTRUCTION),
+            'damageIncreasePerStack'
+          ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -228,14 +262,20 @@ export const thrillOfCombatTrait = defineTrait({
 export const unsuspectingStrikes = defineTrait({
   id: TRAIT.UNSUSPECTING_STRIKES,
   name: 'Unsuspecting Strikes',
+  // Trait balance owns both the bonus and its supported target-health threshold.
+  balance: { damageMultiplier: 1.2, threshold: 0.8 },
   modifierRules: [
     {
       id: 'revenant.unsuspecting-strikes',
       order: 6,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.2,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthFraction(context) > 0.8
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_STRIKES), 'damageMultiplier'),
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        targetHealthFraction(context) >
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_STRIKES), 'threshold')
     }
   ]
 });

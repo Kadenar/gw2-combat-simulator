@@ -23,7 +23,7 @@ import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/i
 import { buildMesmerStrikes, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerProfiledTraitDamage, mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -70,6 +70,7 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
   id: TRAIT.ILLUSIONARY_MEMBRANE,
   name: 'Illusionary Membrane',
   balance: {
+    conditionDamageIncrease: 0.07,
     effects: [{ name: 'illusionary-membrane', type: 'buff', kind: 'illusionary-membrane', duration: 15, stacks: 1 }]
   },
   modifierRules: [
@@ -80,7 +81,11 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
       conditionSampleInvariant: true,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.07,
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE),
+          'conditionDamageIncrease'
+        ),
       when: (context) => buffActive(context, 'illusionary-membrane')
     }
   ]
@@ -103,12 +108,6 @@ export const chaoticInterruption = defineTrait<MesmerSkill>({
 });
 
 /** Keep Method of Madness's authored attack and cooldown with its definition. */
-const lesserChaosStorm: MesmerTraitDamage = {
-  // Each storm pulse is a distinct strike packet, not an aggregate hit count.
-  ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 1.98 / 6 })),
-  cooldown: 28
-};
-
 export const methodOfMadness = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerHealCompleted, {
@@ -119,7 +118,19 @@ export const methodOfMadness = defineTrait<MesmerSkill>({
   id: TRAIT.METHOD_OF_MADNESS,
   name: 'Method of Madness',
   // The lesser storm owns a skill recharge, including Chronomancer's stronger Alacrity.
-  profiles: [mesmerTraitDamageProfile(TRAIT.METHOD_OF_MADNESS, 'Method of Madness', lesserChaosStorm, 'playerRecharge')]
+  balance: {
+    cooldownPolicy: 'playerRecharge',
+    cooldown: 28,
+    effects: [
+      {
+        name: 'Strike',
+        type: 'strike',
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 1.98 / 6 })),
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
+  }
 });
 
 /**

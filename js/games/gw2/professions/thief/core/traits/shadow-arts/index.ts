@@ -163,7 +163,7 @@ export const shadowsRejuvenation = defineTrait({
     onTriggerPoint(stealthEntered, { run: enterShadowsRejuvenation }),
     onTriggerPoint(stealthExited, { run: exitShadowsRejuvenation })
   ],
-  balance: { resourceGain: 1 }
+  balance: { resourceGain: 1, entryResourceGain: 2 }
 });
 
 /** Applies Cloaked in Shadow at its established mechanical boundary. */
@@ -183,7 +183,11 @@ function enterCloakedInShadow(runtime: ThiefRuntime, { skill, at }: StealthTrans
 
 /** Applies Shadow's Rejuvenation at its established mechanical boundary. */
 function enterShadowsRejuvenation(runtime: ThiefRuntime): void {
-  runtime.resourceController.grant('initiative', 2);
+  // Entry and exit have independently authored initiative rewards.
+  runtime.resourceController.grant(
+    'initiative',
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SHADOWS_REJUVENATION), 'entryResourceGain')
+  );
 }
 
 /** Applies Shadow's Rejuvenation at its established mechanical boundary. */

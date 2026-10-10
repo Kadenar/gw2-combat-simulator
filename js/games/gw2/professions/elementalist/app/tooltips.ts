@@ -49,7 +49,6 @@ import {
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as WEAVER } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 
@@ -644,8 +643,8 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.PIERCING_SHARDS]: traitTooltip(
       'Your strikes deal increased damage against vulnerable targets, with a larger bonus while primarily attuned to Water.',
       [
-        fromModifier('elementalist.piercing-shards', 'otherFactor', 'Strike damage', tooltipFactorChange),
-        fromModifier('elementalist.piercing-shards', 'waterFactor', 'Strike damage in Water', tooltipFactorChange)
+        fromProfile(TRAIT.PIERCING_SHARDS, 'otherFactor', 'Strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.PIERCING_SHARDS, 'waterFactor', 'Strike damage in Water', tooltipFactorChange)
       ]
     ),
     [TRAIT.STOP_DROP_AND_ROLL]: outsideScopeTooltip,
@@ -653,7 +652,7 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.CLEANSING_WAVE]: outsideScopeTooltip,
     [TRAIT.FLOW_LIKE_WATER]: traitTooltip(
       'Your strikes deal increased damage. The full-health condition applies throughout combat.',
-      [fromModifier('elementalist.flow-like-water', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.FLOW_LIKE_WATER, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.CLEANSING_WATER]: outsideScopeTooltip,
     [TRAIT.POWERFUL_AURA]: outsideScopeTooltip,
@@ -674,9 +673,9 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Bleeding lasts longer. Your strikes deal increased damage against bleeding targets.',
       [
         ['durationMultiplier', 'Bleeding duration', percentagePoints],
-        fromModifier(
-          'elementalist.serrated-stones',
-          'factor',
+        fromProfile(
+          TRAIT.SERRATED_STONES,
+          'damageMultiplier',
           'Strike damage against bleeding targets',
           tooltipFactorChange
         )
@@ -707,9 +706,9 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Fire-attuned skills recharge faster. Your strikes deal increased damage against burning targets.',
       [
         ['rechargeMultiplier', 'Fire skill recharge', tooltipFactorChange],
-        fromModifier(
-          'elementalist.pyromancers-training',
-          'factor',
+        fromProfile(
+          TRAIT.PYROMANCERS_TRAINING,
+          'damageMultiplier',
           'Strike damage against burning targets',
           tooltipFactorChange
         )
@@ -742,7 +741,7 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.PERSISTING_FLAMES]: traitTooltip(
       'Eligible fire-field hits grant temporary strike-damage stacks. Weapon fire fields last longer and repeat their final damage and condition packets.',
       [
-        fromModifier('elementalist.persisting-flames', 'damagePerStack', 'Strike damage per stack'),
+        fromProfile(TRAIT.PERSISTING_FLAMES, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         ['maximumStacks', 'Maximum stacks', tooltipDecimal],
         ['durationMultiplier', 'Stack duration', tooltipSeconds],
         ['durationPerTier', 'Additional weapon field duration', tooltipSeconds],
@@ -807,7 +806,7 @@ export const elementalistTooltips: ProfessionTooltips = {
       'After enough attunement transitions, gain quickness and a temporary strike-damage bonus.',
       [
         ['threshold', 'Transitions required'],
-        fromModifier('elementalist.bountiful-power', 'amount', 'Strike damage during bonus')
+        fromProfile(TRAIT.BOUNTIFUL_POWER, 'damageIncrease', 'Strike damage during bonus', tooltipPercent)
       ]
     ),
     [TRAIT.ZEPHYRS_SPEED]: traitTooltip('Gain personal critical-strike chance.', [
@@ -837,11 +836,11 @@ export const elementalistTooltips: ProfessionTooltips = {
       ['attributeBonus', 'Ferocity with fury']
     ]),
     [TRAIT.STORMSOUL]: traitTooltip('Your strikes deal increased damage.', [
-      fromModifier('elementalist.stormsoul', 'factor', 'Strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.STORMSOUL, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.BOLT_TO_THE_HEART]: traitTooltip(
       'Your strikes deal increased damage against targets at or below half health.',
-      [fromModifier('elementalist.bolt-to-the-heart', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.BOLT_TO_THE_HEART, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.FRESH_AIR]: traitTooltip(
       'Eligible critical hits while outside Air recharge Air attunement and Overload Air. Newly entering Air grants temporary ferocity.',
@@ -861,8 +860,8 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.TEMPESTUOUS_ARIA]: traitTooltip(
       'Completing a shout grants might to the party. Gaining an aura starts or extends a temporary strike- and condition-damage bonus.',
       [
-        fromModifier('elementalist.tempestuous-aria-strike', 'amount', 'Strike damage during bonus'),
-        fromModifier('elementalist.tempestuous-aria-condition', 'amount', 'Condition damage during bonus'),
+        fromProfile(TRAIT.TEMPESTUOUS_ARIA, 'damageIncrease', 'Strike damage during bonus', tooltipPercent),
+        fromProfile(TRAIT.TEMPESTUOUS_ARIA, 'conditionDamageIncrease', 'Condition damage during bonus', tooltipPercent),
         ['durationMultiplier', 'Bonus duration added per aura', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining bonus duration', tooltipSeconds]
       ],
@@ -874,8 +873,8 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Singularities form sooner. Completing an overload grants a temporary strike- and condition-damage bonus.',
       [
         fromProfile(TEMPEST.overloads, 'durationMultiplier', 'Base attunement dwell', tooltipSeconds),
-        fromModifier('elementalist.transcendent-tempest-strike', 'amount', 'Strike damage'),
-        fromModifier('elementalist.transcendent-tempest-condition', 'amount', 'Condition damage')
+        fromProfile(TRAIT.TRANSCENDENT_TEMPEST, 'damageIncrease', 'Strike damage', tooltipPercent),
+        fromProfile(TRAIT.TRANSCENDENT_TEMPEST, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)
       ]
     ),
     [TRAIT.LUCID_SINGULARITY]: traitTooltip(
@@ -914,8 +913,8 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Fully attuning to an element grants a temporary strike- and condition-damage bonus.',
       [
         ['durationMultiplier', 'Bonus duration', tooltipSeconds],
-        fromModifier('elementalist.elements-of-rage-strike', 'amount', 'Strike damage'),
-        fromModifier('elementalist.elements-of-rage-condition', 'amount', 'Condition damage')
+        fromProfile(TRAIT.ELEMENTS_OF_RAGE, 'damageIncrease', 'Strike damage', tooltipPercent),
+        fromProfile(TRAIT.ELEMENTS_OF_RAGE, 'conditionDamageIncrease', 'Condition damage', tooltipPercent)
       ]
     ),
     [TRAIT.WOVEN_STRIDE]: outsideScopeTooltip,
@@ -950,8 +949,9 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.EMPOWERING_AURAS]: traitTooltip(
       'Gaining an aura adds a damage-bonus stack and refreshes all active stacks.',
       [
-        fromModifier('elementalist.empowering-auras-strike', 'damagePerStack', 'Strike damage per stack'),
-        fromModifier('elementalist.empowering-auras-condition', 'damagePerStack', 'Condition damage per stack'),
+        // Damage facts read the same trait balance fields as combat modifiers.
+        ['damageIncreasePerStack', 'Strike damage per stack', tooltipPercent],
+        ['conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent],
         ['maximumStacks', 'Maximum stacks'],
         ['durationMultiplier', 'Stack duration', tooltipSeconds]
       ]
@@ -1010,23 +1010,23 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.FAMILIARS_PROWESS]: traitTooltip(
       'Completing a familiar skill starts or extends a damage-bonus window. Air selection increases strike damage; Fire selection increases condition damage.',
       [
-        fromModifier('elementalist.familiars-prowess-strike', 'baseAmount', 'Air strike damage'),
-        fromModifier('elementalist.familiars-prowess-condition', 'baseAmount', 'Fire condition damage'),
+        ['damageIncrease', 'Air strike damage', tooltipPercent],
+        ['conditionDamageIncrease', 'Fire condition damage', tooltipPercent],
         ['durationMultiplier', 'Initial duration', tooltipSeconds],
         ['durationPerTier', 'Duration added while active', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining duration', tooltipSeconds]
       ]
     ),
     [TRAIT.FIERY_MIGHT]: traitTooltip('Deal increased strike damage against burning targets.', [
-      fromModifier('elementalist.fiery-might', 'factor', 'Strike damage', tooltipFactorChange)
+      fromProfile(TRAIT.FIERY_MIGHT, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.ALTRUISTIC_ASPECT]: traitTooltip('Completing an eligible meditation grants its corresponding boon.'),
     [TRAIT.SPIRITS_SUCCOR]: outsideScopeTooltip,
     [TRAIT.FAMILIARS_FOCUS]: traitTooltip(
       "Improve Familiar's Prowess, using the stronger bonus for the selected element.",
       [
-        fromModifier('elementalist.familiars-prowess-strike', 'focusedAmount', 'Air strike damage'),
-        fromModifier('elementalist.familiars-prowess-condition', 'focusedAmount', 'Fire condition damage')
+        ['damageIncrease', 'Air strike damage', tooltipPercent],
+        ['conditionDamageIncrease', 'Fire condition damage', tooltipPercent]
       ]
     ),
     [TRAIT.FAMILIARS_BLESSING]: (balanceContext) => ({
@@ -1061,14 +1061,14 @@ export const elementalistTooltips: ProfessionTooltips = {
         ['maximumStacks', 'Maximum familiar charges'],
         ['playerStacks', 'Charges per matching weapon skill'],
         fromProfile(
-          SPECIALIZED_ELEMENTS_PROFILE_IDS.basicRecharge,
+          TRAIT.SPECIALIZED_ELEMENTS,
           'rechargeMultiplier',
           'Base weapon recharge removed by basic familiar',
           (value) => tooltipPercent(1 - value)
         ),
         fromProfile(
-          SPECIALIZED_ELEMENTS_PROFILE_IDS.empoweredRecharge,
-          'rechargeMultiplier',
+          TRAIT.SPECIALIZED_ELEMENTS,
+          'empoweredRechargeMultiplier',
           'Base weapon recharge removed by empowered familiar',
           (value) => tooltipPercent(1 - value)
         )

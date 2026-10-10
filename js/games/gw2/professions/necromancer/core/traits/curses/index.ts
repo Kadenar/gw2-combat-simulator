@@ -26,7 +26,7 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
 import { transfer } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { shroudEntered, shroudEntering, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -243,7 +243,51 @@ export const weakeningShroud = defineTrait({
 export const masterOfCorruption = defineTrait({
   id: TRAIT.MASTER_OF_CORRUPTION,
   name: 'Master of Corruption',
-  balance: { rechargeMultiplier: 0.67 },
+  balance: {
+    rechargeMultiplier: 0.67,
+    effects: [
+      {
+        name: 'Self Torment',
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 2,
+        duration: 10,
+        target: 'self',
+        metadata: { trigger: String(ID.BLOOD_IS_POWER) },
+        packetLabel: 'additional with Master of Corruption'
+      },
+      {
+        name: 'Master of Corruption Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 4,
+        target: 'self',
+        metadata: { trigger: String(ID.CONSUME_CONDITIONS) },
+        packetLabel: 'additional with Master of Corruption'
+      },
+      {
+        name: 'Self Poisoned',
+        type: 'condition',
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 4,
+        target: 'self',
+        metadata: { trigger: String(ID.PLAGUELANDS) },
+        packetLabel: 'additional with Master of Corruption'
+      },
+      {
+        name: 'Self Crippled',
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 2,
+        target: 'self',
+        metadata: { trigger: String(ID.CORROSIVE_POISON_CLOUD) },
+        packetLabel: 'additional with Master of Corruption'
+      }
+    ]
+  },
   rechargeRules: [
     {
       order: 0,
@@ -275,15 +319,27 @@ export const plagueSending = defineTrait({
 export const terror = defineTrait({
   id: TRAIT.TERROR,
   name: 'Terror',
+  // The owning trait supplies tuning to its runtime consumers.
+  balance: { conditionBaseDamage: 444, conditionDamageScaling: 0.4 },
   hooks: {
     prepareEvent: (runtime, event) =>
       event.type === 'condition' && event.condition === 'Fear' && hasTrait(runtime, TRAIT.TERROR)
-        ? { ...event, conditionDamageFormula: TERROR_DAMAGE }
+        ? {
+            ...event,
+            conditionDamageFormula: {
+              base: balanceProfileNumber(
+                requireBalanceProfileFromContext(runtime, TRAIT.TERROR),
+                'conditionBaseDamage'
+              ),
+              scaling: balanceProfileNumber(
+                requireBalanceProfileFromContext(runtime, TRAIT.TERROR),
+                'conditionDamageScaling'
+              )
+            }
+          }
         : event
   }
 });
-
-const TERROR_DAMAGE = Object.freeze({ base: 444, scaling: 0.4 });
 
 /** Lets player and Ritualist spirit critical hits advance Barbed Precision, while excluding minions. */
 const necromancerBarbedPrecisionReaction = criticalProcHandler<

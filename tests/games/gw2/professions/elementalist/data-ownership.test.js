@@ -8,7 +8,6 @@ import { catalystModule } from '#gw2/professions/elementalist/specializations/ca
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
-import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
@@ -115,12 +114,10 @@ test('Elementalist weapon skill fragments compose without duplicates or omission
 test('Specialized Elements models percentage recharge changes as multipliers', () => {
   const profiles = new Map(evokerModule.data.balanceProfiles.map((profile) => [profile.id, profile]));
   const trait = profiles.get(ELEMENTALIST_TRAIT_IDS.SPECIALIZED_ELEMENTS);
-  const basic = profiles.get(SPECIALIZED_ELEMENTS_PROFILE_IDS.basicRecharge);
-  const empowered = profiles.get(SPECIALIZED_ELEMENTS_PROFILE_IDS.empoweredRecharge);
 
   assert.equal(Object.hasOwn(trait, 'rechargeReduction'), false);
-  assert.equal(basic.rechargeMultiplier, 0.9);
-  assert.equal(empowered.rechargeMultiplier, 0.67);
+  assert.equal(trait.rechargeMultiplier, 0.9);
+  assert.equal(trait.empoweredRechargeMultiplier, 0.67);
 });
 
 test('Elementalist trait and specialization IDs follow the API snapshot', () => {

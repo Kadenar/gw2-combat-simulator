@@ -54,8 +54,8 @@ export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSna
 }
 
 /** Classifies a heat snapshot into base, high, or ECSU-enhanced skill tiers. */
-export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot): HolosmithHeatTier {
-  if (enhancedCapacityHeatTier(snapshot.heat, snapshot.enhancedCapacitySelected)) {
+export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot, context: unknown): HolosmithHeatTier {
+  if (enhancedCapacityHeatTier(snapshot.heat, snapshot.enhancedCapacitySelected, context)) {
     return 'enhanced';
   }
 
@@ -68,7 +68,7 @@ export function holosmithProfileStrikeFactor(
   profileId: SkillId,
   snapshot: HolosmithHeatSnapshot
 ): number {
-  const tier = holosmithHeatTier(snapshot);
+  const tier = holosmithHeatTier(snapshot, context);
   if (tier === 'enhanced') {
     const profile = requireBalanceProfileFromContext(context, profileId);
     return balanceProfileNumber(profile, 'enhancedStrikeFactor');

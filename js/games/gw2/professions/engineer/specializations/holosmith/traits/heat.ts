@@ -6,12 +6,14 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 
-/** Structural ECSU capacity is selected before initial heat is clamped. */
-export function enhancedCapacityMaximumHeat(config: EngineerConfig): number {
+/** The selected trait owns capacity before initial heat is clamped. */
+export function enhancedCapacityMaximumHeat(config: EngineerConfig, balanceContext: unknown): number {
   return hasTrait(selectedEngineerTraits(config), TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-    ? HOLOSMITH_HEAT.enhancedCapacityMaximum
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(balanceContext, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
+        'maximumStacks'
+      )
     : HOLOSMITH_HEAT.baseMaximum;
 }
 
@@ -21,14 +23,21 @@ export function enhancedCapacitySelected(config: EngineerConfig): boolean {
 }
 
 /** Delayed packets use captured selection and heat when deciding whether ECSU upgrades their skill tier. */
-export function enhancedCapacityHeatTier(heat: number, selected: boolean): boolean {
-  return selected && heat > HOLOSMITH_HEAT.enhancedCapacityThreshold;
+export function enhancedCapacityHeatTier(heat: number, selected: boolean, balanceContext: unknown): boolean {
+  return (
+    selected &&
+    heat >
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(balanceContext, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
+        'threshold'
+      )
+  );
 }
 
-/** Light Density Amplifier uses the existing shared heat-profile patch key. */
+/** Light Density Amplifier owns its passive heat increase in its trait balance. */
 export function lightDensityHeatPerSecond(context: EngineerRuntime<HolosmithSkill>): number {
   return hasTrait(context.traits, TRAIT.LIGHT_DENSITY_AMPLIFIER)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.heat), 'resourceGain')
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LIGHT_DENSITY_AMPLIFIER), 'resourceGain')
     : 0;
 }
 

@@ -130,13 +130,16 @@ export const empoweringSpirits = defineTrait({
 export const lingeringSpirits = defineTrait({
   id: TRAIT.LINGERING_SPIRITS,
   name: 'Lingering Spirits',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageIncrease: 0.05 },
   modifierRules: [
     {
       order: 1,
       id: 'necromancer.lingering-spirits',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.05,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_SPIRITS), 'damageIncrease'),
       when: (context) => Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist').activeSpirits?.anguish)
     }
   ]

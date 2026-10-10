@@ -66,16 +66,14 @@ export function ordinaryOverclockEligible(context: MechanicQueriesOf<EngineerRun
   );
 }
 
-/** Force Signet keeps its existing profile identity while J-Drive chooses the improved value. */
+/** The signet owns its base passive; J-Drive owns the replacement bonus while selected. */
 export function forceSignetDamage(context: Gw2ModifierContext): number {
-  const profile = requireBalanceProfileFromContext(context, PROFILE.forceSignet);
-  return balanceProfileNumber(
-    profile,
-    hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? 'activeDamageIncrease' : 'damageIncrease'
-  );
+  const owner = hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? TRAIT.MECH_CORE_J_DRIVE : PROFILE.forceSignet;
+  return balanceProfileNumber(requireBalanceProfileFromContext(context, owner), 'damageIncrease');
 }
 
-/** Superconducting's two existing passive strengths share J-Drive's selection owner. */
+/** The selected trait balance supplies Superconducting's improved passive without a second literal rate. */
 export function superconductingSignetDamage(context: Gw2ModifierContext): number {
-  return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? 0.12 : 0.1;
+  const owner = hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? TRAIT.MECH_CORE_J_DRIVE : PROFILE.superconductingSignet;
+  return balanceProfileNumber(requireBalanceProfileFromContext(context, owner), 'conditionDamageIncrease');
 }

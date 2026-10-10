@@ -32,6 +32,8 @@ export const furiousFocus = defineTrait({
   name: 'Furious Focus',
   triggers: [onTriggerPoint(justiceActivated, { run: placeFuriousFocusSymbol })],
   balance: {
+    baseDuration: 4,
+    damageIncrease: 0.1,
     cooldownPolicy: 'playerRecharge',
     cooldown: 10,
     effects: [
@@ -51,7 +53,8 @@ export const furiousFocus = defineTrait({
       id: 'guardian.furious-focus',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FURIOUS_FOCUS), 'damageIncrease'),
       when: (context) => Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
     }
   ]
@@ -62,6 +65,7 @@ export const symbolicExposure = defineTrait({
   id: TRAIT.SYMBOLIC_EXPOSURE,
   name: 'Symbolic Exposure',
   balance: {
+    damageMultiplier: 1.05,
     effects: [
       {
         type: 'condition',
@@ -78,7 +82,8 @@ export const symbolicExposure = defineTrait({
       id: 'guardian.symbolic-exposure',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SYMBOLIC_EXPOSURE), 'damageMultiplier'),
       order: 100,
       when: (context) => targetConditionActive(context, 'Vulnerability')
     }
@@ -115,22 +120,31 @@ export const symbolicAvenger = defineTrait({
       run: stackSymbolicAvenger
     })
   ],
-  balance: { maximumStacks: 5, pulseInterval: 15 },
+  balance: {
+    maximumDamageStacks: 5,
+    damageIncreasePerStack: 0.01,
+    maximumStacks: 5,
+    pulseInterval: 15
+  },
   modifierRules: [
     {
       order: -5,
       id: 'guardian.symbolic-avenger',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      parameters: {
-        maximumStacks: 5,
-        damagePerStack: 0.01
-      },
-      amount: (context, _target, parameters) =>
+
+      amount: (context) =>
         Math.min(
-          parameters.maximumStacks,
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.SYMBOLIC_AVENGER),
+            'maximumDamageStacks'
+          ),
           activeSymbolicAvengerExpirations(guardianRuntimeState(context), context.time).length
-        ) * parameters.damagePerStack
+        ) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.SYMBOLIC_AVENGER),
+          'damageIncreasePerStack'
+        )
     }
   ]
 });
@@ -263,12 +277,15 @@ export const eternalArmory = defineTrait({
 export const fieryWrath = defineTrait({
   id: TRAIT.FIERY_WRATH,
   name: 'Fiery Wrath',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.05 },
   modifierRules: [
     {
       id: 'guardian.fiery-wrath',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FIERY_WRATH), 'damageMultiplier'),
       order: 100,
       when: (context) => targetConditionActive(context, 'Burning')
     }
@@ -283,7 +300,7 @@ function placeFuriousFocusSymbol(runtime: Runtime, { cast }: JusticeActivation):
   // The symbol reserves shared player recharge before its effects can trigger another activation.
   emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause, {
     cooldownKey: 'guardian.core.furiousFocus',
-    fieldDuration: () => 4
+    fieldDuration: () => balanceProfileNumber(profile, 'baseDuration')
   });
 }
 

@@ -96,14 +96,20 @@ export const invokersRage = defineTrait({
 export const risingTide = defineTrait({
   id: TRAIT.RISING_TIDE,
   name: 'Rising Tide',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1, threshold: 0.75 },
   modifierRules: [
     {
       id: 'revenant.rising-tide',
       order: 1,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && playerHealthFraction(context) > 0.75
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RISING_TIDE), 'damageMultiplier'),
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        playerHealthFraction(context) >
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RISING_TIDE), 'threshold')
     }
   ]
 });
@@ -127,7 +133,8 @@ export const songOfTheMists = defineTrait({
     onTriggerPoint(legendInvoked, { run: invokeSongOfTheMists })
   ],
   id: TRAIT.SONG_OF_THE_MISTS,
-  name: 'Song of the Mists'
+  name: 'Song of the Mists',
+  balance: { resourceGain: 2 }
 });
 
 /** Owns Spirit Boon tuning and behavior at its established execution boundaries. */
@@ -135,101 +142,66 @@ export const spiritBoon = defineTrait({
   triggers: [onTriggerPoint(legendInvoked, { run: invokeSpiritBoon })],
   id: TRAIT.SPIRIT_BOON,
   name: 'Spirit Boon',
-  profiles: [
-    {
-      id: TRAIT.SPIRIT_BOON,
-      name: 'Spirit Boon (Core Legends)',
-      profileKind: 'trait',
-
-      categories: ['Trait'],
-      skillFamily: 'Trait',
-      effects: [
-        {
-          type: 'boon',
-          boon: 'might',
-          duration: 10,
-          stacks: 2,
-          actorType: 'player',
-          metadata: { legendId: LEGEND.ASSASSIN }
-        },
-        {
-          type: 'boon',
-          boon: 'resistance',
-          duration: 2,
-          stacks: 1,
-          actorType: 'player',
-          metadata: { legendId: LEGEND.DEMON }
-        },
-        {
-          type: 'boon',
-          boon: 'stability',
-          duration: 3,
-          stacks: 1,
-          actorType: 'player',
-          metadata: { legendId: LEGEND.DWARF }
-        },
-        {
-          type: 'boon',
-          boon: 'regeneration',
-          duration: 5,
-          stacks: 1,
-          actorType: 'player',
-          metadata: { legendId: LEGEND.CENTAUR }
-        }
-      ]
-    },
-    {
-      id: REVENANT_ELITE_INVOCATIONS[LEGEND.DRAGON].spiritBoon,
-      name: 'Spirit Boon (Dragon)',
-      profileKind: 'trait',
-
-      description: 'Invoking Legendary Dragon grants protection to nearby allies.',
-      icon: 'https://render.guildwars2.com/file/62279406A52F47A00CE7BFFB43D405907A67A60F/1012681.png',
-      effects: [
-        {
-          type: 'boon',
-          boon: 'protection',
-          duration: 3,
-          stacks: 1,
-          actorType: 'player'
-        }
-      ]
-    },
-    {
-      id: REVENANT_ELITE_INVOCATIONS[LEGEND.RENEGADE].spiritBoon,
-      name: 'Spirit Boon (Renegade)',
-      profileKind: 'trait',
-
-      description: 'Invoking Legendary Renegade grants resolution to nearby allies.',
-      icon: 'https://render.guildwars2.com/file/62279406A52F47A00CE7BFFB43D405907A67A60F/1012681.png',
-      categories: ['Trait'],
-      skillFamily: 'Trait',
-      effects: [
-        {
-          type: 'boon',
-          boon: 'resolution',
-          duration: 4,
-          stacks: 1,
-          actorType: 'player'
-        }
-      ]
-    },
-    {
-      id: REVENANT_ELITE_INVOCATIONS[LEGEND.ALLIANCE].spiritBoon,
-      name: 'Spirit Boon (Alliance)',
-      profileKind: 'trait',
-
-      effects: [
-        {
-          type: 'boon',
-          boon: 'vigor',
-          duration: 4,
-          stacks: 1,
-          actorType: 'player'
-        }
-      ]
-    }
-  ]
+  balance: {
+    effects: [
+      {
+        type: 'boon',
+        boon: 'might',
+        duration: 10,
+        stacks: 2,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'boon',
+        boon: 'resistance',
+        duration: 2,
+        stacks: 1,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DEMON }
+      },
+      {
+        type: 'boon',
+        boon: 'stability',
+        duration: 3,
+        stacks: 1,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DWARF }
+      },
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 5,
+        stacks: 1,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.CENTAUR }
+      },
+      {
+        metadata: { legendId: LEGEND.DRAGON },
+        type: 'boon',
+        boon: 'protection',
+        duration: 3,
+        stacks: 1,
+        actorType: 'player'
+      },
+      {
+        metadata: { legendId: LEGEND.RENEGADE },
+        type: 'boon',
+        boon: 'resolution',
+        duration: 4,
+        stacks: 1,
+        actorType: 'player'
+      },
+      {
+        metadata: { legendId: LEGEND.ALLIANCE },
+        type: 'boon',
+        boon: 'vigor',
+        duration: 4,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  }
 });
 
 /** Runs the trait at its original ordered mechanic boundary. */
@@ -259,10 +231,9 @@ function invokeSpiritBoon(runtime: RevenantRuntime): void {
     core.activeLegendId === LEGEND.ENTITY
       ? core.selectedLegendIds.find((id) => id !== LEGEND.ENTITY)
       : core.activeLegendId;
-  const elite = legendId ? REVENANT_ELITE_INVOCATIONS[legendId] : undefined;
-  const matchesLegend = (effect: SkillEffect) => elite != null || effect.metadata?.legendId === legendId;
+  const matchesLegend = (effect: SkillEffect) => effect.metadata?.legendId === legendId;
   if (legendId) {
-    const invocationProfile = requireBalanceProfileFromContext(runtime, elite?.spiritBoon ?? TRAIT.SPIRIT_BOON);
+    const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.SPIRIT_BOON);
     emitTraitProfile(runtime, TRAIT.SPIRIT_BOON, invocationProfile.id, undefined, {
       preserveName: true,
       effects: (effect) => (invocationProfile.effects?.filter(matchesLegend) ?? []).includes(effect),
@@ -315,7 +286,11 @@ function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
   if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.combatStartedAt()) return;
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_RENEGADE);
   if (!song) return;
-  for (let index = 0; index < 2; index += 1)
+  for (
+    let index = 0;
+    index < balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SONG_OF_THE_MISTS), 'resourceGain');
+    index += 1
+  )
     runtime.fireTrigger(invocationFervorGranted, {
       sourceId: TRAIT.SONG_OF_THE_MISTS,
       sourceName: song.name,

@@ -55,13 +55,16 @@ export const soothingPower = defineTrait({
 export const flowLikeWater = defineTrait({
   id: TRAIT.FLOW_LIKE_WATER,
   name: 'Flow like Water',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.1 },
   modifierRules: [
     {
       order: -7,
       id: 'elementalist.flow-like-water',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLOW_LIKE_WATER), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -70,15 +73,19 @@ export const flowLikeWater = defineTrait({
 export const piercingShards = defineTrait({
   id: TRAIT.PIERCING_SHARDS,
   name: 'Piercing Shards',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { waterFactor: 1.14, otherFactor: 1.07 },
   modifierRules: [
     {
       order: -5,
       id: 'elementalist.piercing-shards',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: { waterFactor: 1.14, otherFactor: 1.07 },
-      factor: (context, _target, parameters) =>
-        primaryAttunement(context) === 'Water' ? parameters.waterFactor : parameters.otherFactor,
+
+      factor: (context) =>
+        primaryAttunement(context) === 'Water'
+          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PIERCING_SHARDS), 'waterFactor')
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PIERCING_SHARDS), 'otherFactor'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Vulnerability')
     }
   ]

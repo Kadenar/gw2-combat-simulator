@@ -188,8 +188,6 @@ export interface BalanceProfile extends CatalogEntity {
   readonly baseAttribute?: number;
   readonly inheritanceRatio?: number;
   readonly secondaryAttributeCap?: number;
-  readonly improvedSecondaryAttributeCap?: number;
-  readonly improvedInheritanceRatio?: number;
   readonly powerCap?: number;
   readonly precisionCap?: number;
   readonly basePrecision?: number;

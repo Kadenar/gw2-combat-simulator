@@ -19,6 +19,7 @@ export const dwarvenBattleTraining = defineTrait({
   id: TRAIT.DWARVEN_BATTLE_TRAINING,
   name: 'Dwarven Battle Training',
   balance: {
+    damageMultiplier: 1.1,
     categories: ['Trait'],
     skillFamily: 'Trait',
     effects: [
@@ -38,7 +39,11 @@ export const dwarvenBattleTraining = defineTrait({
       order: 3,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.1,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.DWARVEN_BATTLE_TRAINING),
+          'damageMultiplier'
+        ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
     }
   ],
@@ -93,6 +98,8 @@ export const viciousReprisalTrait = defineTrait({
   id: TRAIT.VICIOUS_REPRISAL,
   name: 'Vicious Reprisal',
   balance: {
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.1,
     categories: ['Trait'],
     skillFamily: 'Trait',
     cooldown: 1,
@@ -113,7 +120,13 @@ export const viciousReprisalTrait = defineTrait({
       order: 4,
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: 0.1,
+      amount: (context, target) =>
+        target === MODIFIER_TARGET.CONDITION_DAMAGE
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, TRAIT.VICIOUS_REPRISAL),
+              'conditionDamageIncrease'
+            )
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_REPRISAL), 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'resolution')
     }
   ]

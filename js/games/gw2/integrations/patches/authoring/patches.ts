@@ -108,6 +108,8 @@ export interface EffectPatch extends EffectSelector {
 }
 
 export interface SkillPatchEdit {
+  /** Keep provisional balance assumptions attached to their canonical skill or trait profile edit. */
+  readonly assumption?: string;
   /** Reclassify a skill in the preview while retaining its identity and mechanics. */
   readonly placement?:
     | { readonly type: 'Weapon'; readonly weapon: string; readonly slot: `Weapon_${1 | 2 | 3 | 4 | 5}` }
@@ -690,6 +692,8 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
 /** Patches only fields exposed by the canonical profile; obsolete spellings fail ordinary numeric validation. */
 function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
+  if (edit.assumption !== undefined && (typeof edit.assumption !== 'string' || !edit.assumption.trim()))
+    throw new TypeError(`${ownerLabel} assumption must be a nonempty string.`);
   if (edit.placement != null) throw new TypeError(`${ownerLabel} cannot change skill placement.`);
   const clone = cloneCatalogData(profile);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);

@@ -434,9 +434,9 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.SYMBOLIC_EXPOSURE]: traitTooltip(
       'Symbol hits inflict vulnerability. Deal increased strike damage to vulnerable targets.',
       [
-        fromModifier(
-          'guardian.symbolic-exposure',
-          'factor',
+        fromProfile(
+          TRAIT.SYMBOLIC_EXPOSURE,
+          'damageMultiplier',
           'Strike damage against vulnerable targets',
           tooltipFactorChange
         )
@@ -445,14 +445,14 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.SYMBOLIC_AVENGER]: traitTooltip(
       'Symbol hits grant stacking strike damage. New stacks replace the shortest remaining stack at the cap.',
       [
-        fromModifier('guardian.symbolic-avenger', 'damagePerStack', 'Strike damage per stack'),
-        fromModifier('guardian.symbolic-avenger', 'maximumStacks', 'Maximum damage stacks', tooltipDecimal),
+        fromProfile(TRAIT.SYMBOLIC_AVENGER, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(TRAIT.SYMBOLIC_AVENGER, 'maximumDamageStacks', 'Maximum damage stacks', tooltipDecimal),
         ['pulseInterval', 'Stack duration', tooltipSeconds]
       ]
     ),
     [TRAIT.WRATHFUL_SPIRIT]: outsideScopeTooltip,
     [TRAIT.FIERY_WRATH]: traitTooltip('Deal increased strike damage to burning targets.', [
-      fromModifier('guardian.fiery-wrath', 'factor', 'Strike damage against burning targets', tooltipFactorChange)
+      fromProfile(TRAIT.FIERY_WRATH, 'damageMultiplier', 'Strike damage against burning targets', tooltipFactorChange)
     ]),
     [TRAIT.ZEALOUS_SCEPTER]: outsideScopeTooltip,
     [TRAIT.RENEWING_SPLENDOR]: outsideScopeTooltip,
@@ -475,7 +475,8 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.FURIOUS_FOCUS]: traitTooltip(
       'Activating Justice creates Lesser Symbol of Blades. Deal increased strike damage while you have fury.',
       [
-        fromModifier('guardian.furious-focus', 'amount', 'Strike damage with fury'),
+        fromProfile(TRAIT.FURIOUS_FOCUS, 'damageIncrease', 'Strike damage with fury', tooltipPercent),
+        ['baseDuration', 'Symbol field duration', tooltipSeconds],
         ['cooldown', 'Base symbol recharge', tooltipSeconds]
       ]
     ),
@@ -515,12 +516,12 @@ export const guardianTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.RETRIBUTION]: traitTooltip('Deal increased strike damage while you have resolution.', [
-      fromModifier('guardian.retribution', 'amount', 'Strike damage with resolution')
+      fromProfile(TRAIT.RETRIBUTION, 'damageIncrease', 'Strike damage with resolution', tooltipPercent)
     ]),
     [TRAIT.AMPLIFIED_WRATH]: traitTooltip(
       'Burning deals increased damage. Justice passive burning also lasts longer.',
       [
-        fromModifier('guardian.amplified-wrath-damage', 'factor', 'Burning damage', tooltipFactorChange),
+        fromProfile(TRAIT.AMPLIFIED_WRATH, 'conditionDamageMultiplier', 'Burning damage', tooltipFactorChange),
         ['durationMultiplier', 'Justice passive burning duration', tooltipFactorChange]
       ]
     ),
@@ -593,6 +594,9 @@ export const guardianTooltips: ProfessionTooltips = {
         description:
           'Extend supported symbol fields and their strike pulses. Symbol of Punishment uses its separately authored extra strikes and might pulses; other symbols repeat their own final strike.',
         facts: [
+          profileFact(balanceContext, entity.id, 'pulseInterval', 'Other symbol pulse interval', tooltipSeconds),
+          profileFact(balanceContext, entity.id, 'boonDuration', 'Extended self boon duration', tooltipSeconds),
+          profileFact(balanceContext, entity.id, 'boonStacks', 'Extended self boon stacks'),
           ...simulationEffectFacts(
             effects.filter((effect) => effect.type === 'buff'),
             'field extension'
@@ -612,7 +616,7 @@ export const guardianTooltips: ProfessionTooltips = {
       return {
         ...tooltip,
         facts: [
-          modifierFact(balanceContext, 'guardian.inspired-virtue', 'damagePerBoon', 'Strike damage per boon'),
+          profileFact(balanceContext, TRAIT.INSPIRED_VIRTUE, 'damagePerBoon', 'Strike damage per boon', tooltipPercent),
           ...tooltip.facts
         ]
       };
@@ -631,8 +635,8 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.UNSCATHED_CONTENDER]: traitTooltip(
       'Deal increased strike damage at full health, as assumed by the combat simulation. Aegis grants an additional strike-damage bonus.',
       [
-        fromModifier('guardian.unscathed-contender-health', 'factor', 'Full-health strike damage', tooltipFactorChange),
-        fromModifier('guardian.unscathed-contender-aegis', 'amount', 'Additional strike damage with aegis')
+        fromProfile(TRAIT.UNSCATHED_CONTENDER, 'damageMultiplier', 'Full-health strike damage', tooltipFactorChange),
+        fromProfile(TRAIT.UNSCATHED_CONTENDER, 'damageIncrease', 'Additional strike damage with aegis', tooltipPercent)
       ]
     ),
     [TRAIT.RESOLUTE_SUBCONSCIOUS]: outsideScopeTooltip,
@@ -642,7 +646,7 @@ export const guardianTooltips: ProfessionTooltips = {
       'additional Purging Flames effects'
     ),
     [TRAIT.INSPIRING_VIRTUE]: traitTooltip('Activating a virtue temporarily increases strike damage.', [
-      fromModifier('guardian.inspiring-virtue', 'amount', 'Strike damage during the bonus')
+      fromProfile(TRAIT.INSPIRING_VIRTUE, 'damageIncrease', 'Strike damage during the bonus', tooltipPercent)
     ]),
     [TRAIT.ABSOLUTE_RESOLVE]: outsideScopeTooltip,
     [TRAIT.GLACIAL_HEART]: traitTooltip(
@@ -662,7 +666,7 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.DEFENDERS_DOGMA]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
     [TRAIT.PURE_OF_SIGHT]: traitTooltip(
       "Deal increased strike damage within the simulator's fixed positioning assumptions.",
-      [fromModifier('guardian.dragonhunter.pure-of-sight', 'factor', 'Strike damage', tooltipFactorChange)]
+      [fromProfile(TRAIT.PURE_OF_SIGHT, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.HUNTERS_PREMONITION]: traitTooltip('Using a trap grants aegis.'),
     [TRAIT.DULLED_SENSES]: traitTooltip('Applying player control effects inflicts crippled.'),
@@ -671,9 +675,9 @@ export const guardianTooltips: ProfessionTooltips = {
       ['resourceGain', 'Endurance restored']
     ]),
     [TRAIT.ZEALOTS_AGGRESSION]: traitTooltip('Deal increased strike damage to crippled targets.', [
-      fromModifier(
-        'guardian.dragonhunter.zealots-aggression',
-        'factor',
+      fromProfile(
+        TRAIT.ZEALOTS_AGGRESSION,
+        'damageMultiplier',
         'Strike damage against crippled targets',
         tooltipFactorChange
       )
@@ -683,9 +687,9 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.HEAVY_LIGHT]: traitTooltip(
       'Control effects grant stability. Deal increased strike damage to disabled or defiant targets.',
       [
-        fromModifier(
-          'guardian.dragonhunter.heavy-light',
-          'factor',
+        fromProfile(
+          TRAIT.HEAVY_LIGHT,
+          'damageMultiplier',
           'Strike damage against disabled targets',
           tooltipFactorChange
         ),
@@ -696,12 +700,7 @@ export const guardianTooltips: ProfessionTooltips = {
       'Spear of Justice keeps its tether longer. Strikes during the tether apply vulnerability and deal increased damage.',
       [
         ['pulseInterval', 'Tether duration', tooltipSeconds],
-        fromModifier(
-          'guardian.dragonhunter.big-game-hunter',
-          'factor',
-          'Strike damage while tethered',
-          tooltipFactorChange
-        )
+        fromProfile(TRAIT.BIG_GAME_HUNTER, 'damageMultiplier', 'Strike damage while tethered', tooltipFactorChange)
       ]
     ),
     [TRAIT.PURITY_OF_WORD]: traitTooltip('Unlock tomes and their shared page resource.'),
@@ -745,8 +744,8 @@ export const guardianTooltips: ProfessionTooltips = {
       'Virtue activations and completed virtue triggers grant stacking damage. New grants refresh the active stack window.',
       [
         ['maximumStacks', 'Maximum stacks'],
-        fromModifier('guardian.willbender.lethal-tempo-strike', 'damagePerStack', 'Strike damage per stack'),
-        fromModifier('guardian.willbender.lethal-tempo-condition', 'damagePerStack', 'Condition damage per stack')
+        fromProfile(TRAIT.LETHAL_TEMPO, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(TRAIT.LETHAL_TEMPO, 'conditionDamageIncreasePerStack', 'Condition damage per stack', tooltipPercent)
       ]
     ),
     [TRAIT.SEARING_PACT]: traitTooltip('Gain condition damage. Willbender flames also inflict burning.', [
@@ -754,12 +753,7 @@ export const guardianTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.POWER_FOR_POWER]: traitTooltip('Gain power. Willbender flame strikes deal increased damage.', [
       ['attributeBonus', 'Power'],
-      fromModifier(
-        'guardian.willbender.power-for-power',
-        'factor',
-        'Willbender flame strike damage',
-        tooltipFactorChange
-      )
+      fromProfile(TRAIT.POWER_FOR_POWER, 'damageMultiplier', 'Willbender flame strike damage', tooltipFactorChange)
     ]),
     [TRAIT.CONCEITED_CURATE]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
     [TRAIT.RESTORATIVE_VIRTUES]: traitTooltip(
@@ -776,15 +770,12 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.TYRANTS_MOMENTUM]: traitTooltip(
       'Lethal Tempo grants stronger damage bonuses with a shorter stack window. Rushing Justice uses the extended Justice window.',
       [
-        fromModifier(
-          'guardian.willbender.lethal-tempo-strike',
-          'tyrantsMomentumDamagePerStack',
-          'Strike damage per stack'
-        ),
-        fromModifier(
-          'guardian.willbender.lethal-tempo-condition',
-          'tyrantsMomentumDamagePerStack',
-          'Condition damage per stack'
+        fromProfile(TRAIT.TYRANTS_MOMENTUM, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(
+          TRAIT.TYRANTS_MOMENTUM,
+          'conditionDamageIncreasePerStack',
+          'Condition damage per stack',
+          tooltipPercent
         )
       ]
     ),
@@ -793,7 +784,7 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.LIGHTS_GIFT]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
     [TRAIT.RADIANT_ARMAMENTS]: traitTooltip(
       'Equipping a radiant hammer temporarily increases strike damage. Equipping another radiant weapon removes the hammer bonus.',
-      [fromModifier('guardian.radiant-armaments', 'amount', 'Radiant hammer strike damage')]
+      [fromProfile(TRAIT.RADIANT_ARMAMENTS, 'damageIncrease', 'Radiant hammer strike damage', tooltipPercent)]
     ),
     [TRAIT.SHIMMERING_STANCES]: traitTooltip('Completed stances grant protection to the party and blind the target.'),
     [TRAIT.RESOLUTE_BLESSING]: outsideScopeTooltip,
@@ -805,7 +796,7 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.EMPOWERED_ARMAMENTS]: traitTooltip(
       'Equipping radiant weapons grants or extends a strike-damage bonus, up to its remaining-duration cap.',
       [
-        fromModifier('guardian.empowered-armaments', 'amount', 'Strike damage'),
+        fromProfile(TRAIT.EMPOWERED_ARMAMENTS, 'damageIncrease', 'Strike damage', tooltipPercent),
         ['resourceGain', 'Duration added per equip', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining duration', tooltipSeconds]
       ]

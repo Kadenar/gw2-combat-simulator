@@ -69,10 +69,10 @@ test('Phantasmal Fury keeps Core and Virtuoso tuning behind its current selectio
 test('Luminary definitions preserve eligible build grants and applied armament windows', () => {
   // Imported buffs retain their lifetime without current trait selection; live patches still own their amounts.
   const family = patched(guardianProfession, {
-    balanceProfiles: { [GUARDIAN.LIGHTS_GIFT]: { fields: { attributeBonus: 240 } } },
-    modifierRules: {
-      'guardian.empowered-armaments': { amount: 0.2 },
-      'guardian.radiant-armaments': { amount: 0.1 }
+    balanceProfiles: {
+      [GUARDIAN.LIGHTS_GIFT]: { fields: { attributeBonus: 240 } },
+      [GUARDIAN.EMPOWERED_ARMAMENTS]: { fields: { damageIncrease: 0.2 } },
+      [GUARDIAN.RADIANT_ARMAMENTS]: { fields: { damageIncrease: 0.1 } }
     }
   });
   const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.traitBuildAttributes);
@@ -380,8 +380,9 @@ test('Electric Discharge keeps its packet-owned critical modifier after selectio
 test('Familiar Prowess retains its applied window and patched Focus scaling after selection ends', () => {
   // Buff lifetime owns eligibility; the cached runtime still checks Focus against each current build.
   const family = patched(elementalistProfession, {
-    modifierRules: {
-      'elementalist.familiars-prowess-strike': { parameters: { baseAmount: 0.2, focusedAmount: 0.3 } }
+    balanceProfiles: {
+      [ELEMENTALIST.FAMILIARS_PROWESS]: { fields: { damageIncrease: 0.2 } },
+      [ELEMENTALIST.FAMILIARS_FOCUS]: { fields: { damageIncrease: 0.3 } }
     }
   });
   const runtime = family.runtimeFor({ specialization: 'Evoker', patchId: 's4-preview' });
@@ -410,8 +411,10 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
 
 test('Virtuoso definitions share patched build conversion and live modifiers without leaking between builds', () => {
   const family = patched(mesmerProfession, {
-    balanceProfiles: { [MESMER.QUIET_INTENSITY]: { fields: { vitalityConversion: 0.2, criticalChance: 0.25 } } },
-    modifierRules: { 'mesmer.mental-focus': { factor: 1.2 } }
+    balanceProfiles: {
+      [MESMER.QUIET_INTENSITY]: { fields: { vitalityConversion: 0.2, criticalChance: 0.25 } },
+      [MESMER.MENTAL_FOCUS]: { fields: { damageMultiplier: 1.2 } }
+    }
   });
   const runtime = family.runtimeFor({ specialization: 'Virtuoso', patchId: 's4-preview', selectedTraitIds: [] });
   assert.equal(
@@ -553,9 +556,10 @@ test('Dazzling keeps accepted-control actor gates and effect removal through reg
 test('Persisting Flames patches transform packets before emission and display the same stack cap used by damage', () => {
   const family = patched(elementalistProfession, {
     balanceProfiles: {
-      [ELEMENTALIST.PERSISTING_FLAMES]: { fields: { summons: 1, durationPerTier: 3, maximumStacks: 2 } }
-    },
-    modifierRules: { 'elementalist.persisting-flames': { parameters: { damagePerStack: 0.1 } } }
+      [ELEMENTALIST.PERSISTING_FLAMES]: {
+        fields: { summons: 1, durationPerTier: 3, maximumStacks: 2, damageIncreasePerStack: 0.1 }
+      }
+    }
   });
   const effects = [
     {

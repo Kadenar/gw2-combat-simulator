@@ -112,13 +112,19 @@ export const armoredShroud = defineTrait({
 export const putridDefense = defineTrait({
   id: TRAIT.PUTRID_DEFENSE,
   name: 'Putrid Defense',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { conditionDamageMultiplier: 1.15 },
   modifierRules: [
     {
       order: 110,
       id: 'necromancer.putrid-defense',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.PUTRID_DEFENSE),
+          'conditionDamageMultiplier'
+        ),
       when: (context) => context.condition === 'Poisoned'
     }
   ]
@@ -161,7 +167,16 @@ function prepareSoulComprehension(runtime: NecromancerRuntime): void {
   {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOUL_COMPREHENSION);
     const minionStacks = hasTrait(runtime, TRAIT.FLESH_OF_THE_MASTER)
-      ? Object.values(state.activeMinions).reduce((sum, count) => sum + count * 2, 0)
+      ? Object.values(state.activeMinions).reduce(
+          (sum, count) =>
+            sum +
+            count *
+              balanceProfileNumber(
+                requireBalanceProfileFromContext(runtime, TRAIT.FLESH_OF_THE_MASTER),
+                'resourceGain'
+              ),
+          0
+        )
       : 0;
     grantNecromancerLifeForce(
       runtime,

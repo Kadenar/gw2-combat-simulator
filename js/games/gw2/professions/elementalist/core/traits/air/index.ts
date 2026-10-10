@@ -274,13 +274,16 @@ export const lightningRod = defineTrait({
 export const stormsoul = defineTrait({
   id: TRAIT.STORMSOUL,
   name: 'Stormsoul',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.07 },
   modifierRules: [
     {
       order: -8,
       id: 'elementalist.stormsoul',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.07,
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STORMSOUL), 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -289,14 +292,22 @@ export const stormsoul = defineTrait({
 export const boltToTheHeart = defineTrait({
   id: TRAIT.BOLT_TO_THE_HEART,
   name: 'Bolt to the Heart',
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { damageMultiplier: 1.2, threshold: 0.5 },
   modifierRules: [
     {
       order: -6,
       id: 'elementalist.bolt-to-the-heart',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.2,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthBelow(context, 0.5)
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOLT_TO_THE_HEART), 'damageMultiplier'),
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        targetHealthBelow(
+          context,
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOLT_TO_THE_HEART), 'threshold')
+        )
     }
   ]
 });

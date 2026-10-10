@@ -147,6 +147,26 @@ export const activePatchPreview: PatchPreview = {
         }
       },
       balanceProfiles: {
+        '1788': {
+          fields: {
+            damagePerBoon: {
+              from: 0.01,
+              to: 0.02
+            },
+            maximumBoons: {
+              from: 12,
+              to: 5
+            }
+          }
+        },
+        'revenant.renegade.kallas-fervor-lasting-legacy': {
+          fields: {
+            damageIncreasePerStack: {
+              from: 0.05,
+              to: 0.04
+            }
+          }
+        },
         'revenant.conduit.beguiling-haze-follow-up': {
           effects: [
             {
@@ -209,38 +229,16 @@ export const activePatchPreview: PatchPreview = {
           source: 'profile-diff'
         },
         {
-          subject: 'revenant.reinforced-potency',
-          text: 'Parameter damage per boon 0.01 → 0.02; parameter maximum boons 12 → 5.',
-          source: 'modifier-diff'
+          subject: 'Reinforced Potency',
+          text: 'damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
+          source: 'profile-diff'
         },
         {
-          subject: 'revenant.kallas-fervor-strike',
-          text: 'Parameter improved damage per stack 0.05 → 0.04.',
-          source: 'modifier-diff'
+          subject: 'Lasting Legacy',
+          text: 'Strike damage increase per stack 0.05 → 0.04.',
+          source: 'profile-diff'
         }
-      ],
-      modifierRules: {
-        'revenant.reinforced-potency': {
-          parameters: {
-            damagePerBoon: {
-              from: 0.01,
-              to: 0.02
-            },
-            maximumBoons: {
-              from: 12,
-              to: 5
-            }
-          }
-        },
-        'revenant.kallas-fervor-strike': {
-          parameters: {
-            improvedDamagePerStack: {
-              from: 0.05,
-              to: 0.04
-            }
-          }
-        }
-      }
+      ]
     },
     thief: {
       skills: {
@@ -296,6 +294,30 @@ export const activePatchPreview: PatchPreview = {
         }
       },
       balanceProfiles: {
+        '1257': {
+          fields: {
+            damagePerCondition: {
+              from: 0.02,
+              to: 0.03
+            },
+            maximumConditions: {
+              from: 14,
+              to: 5
+            }
+          }
+        },
+        '2160': {
+          fields: {
+            damagePerBoon: {
+              from: 0.01,
+              to: 0.02
+            },
+            maximumBoons: {
+              from: 12,
+              to: 5
+            }
+          }
+        },
         'thief.antiquary.artifact-windows': {
           fields: {
             resourceGain: {
@@ -368,19 +390,21 @@ export const activePatchPreview: PatchPreview = {
           source: 'profile-diff'
         },
         {
-          subject: 'thief.premeditation',
-          text: 'Parameter damage per boon 0.01 → 0.02; parameter maximum boons 12 → 5.',
-          source: 'modifier-diff'
+          subject: 'Premeditation',
+          text: 'damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
+          source: 'profile-diff'
         },
         {
-          subject: 'thief.exposed-weakness',
-          text: 'Parameter damage per condition 0.02 → 0.03; parameter maximum conditions 14 → 5.',
-          source: 'modifier-diff'
+          subject: 'Exposed Weakness',
+          text: 'damage per condition 0.02 → 0.03; maximum conditions 14 → 5.',
+          source: 'profile-diff'
         }
-      ],
-      modifierRules: {
-        'thief.premeditation': {
-          parameters: {
+      ]
+    },
+    ranger: {
+      balanceProfiles: {
+        '1062': {
+          fields: {
             damagePerBoon: {
               from: 0.01,
               to: 0.02
@@ -391,22 +415,14 @@ export const activePatchPreview: PatchPreview = {
             }
           }
         },
-        'thief.exposed-weakness': {
-          parameters: {
-            damagePerCondition: {
-              from: 0.02,
-              to: 0.03
-            },
-            maximumConditions: {
-              from: 14,
-              to: 5
+        '2274': {
+          fields: {
+            damageIncreasePerStack: {
+              from: 0.05,
+              to: 0.04
             }
           }
-        }
-      }
-    },
-    ranger: {
-      balanceProfiles: {
+        },
         '1912': {
           fields: {
             rechargeMultiplier: {
@@ -481,40 +497,7 @@ export const activePatchPreview: PatchPreview = {
           }
         }
       },
-      modifierRules: {
-        'ranger.ferocious-symbiosis': {
-          parameters: {
-            damagePerStack: {
-              from: 0.05,
-              to: 0.04
-            }
-          }
-        },
-        'ranger.bountiful-hunter-player': {
-          parameters: {
-            damagePerBoon: {
-              from: 0.01,
-              to: 0.02
-            },
-            maximumBoons: {
-              from: 12,
-              to: 5
-            }
-          }
-        },
-        'ranger.bountiful-hunter-pet': {
-          parameters: {
-            damagePerBoon: {
-              from: 0.01,
-              to: 0.02
-            },
-            maximumBoons: {
-              from: 12,
-              to: 5
-            }
-          }
-        }
-      },
+
       overview: [
         {
           subject: 'Poison Volley',
@@ -562,19 +545,14 @@ export const activePatchPreview: PatchPreview = {
           source: 'profile-diff'
         },
         {
-          subject: 'ranger.ferocious-symbiosis',
-          text: 'Parameter damage per stack 0.05 → 0.04.',
-          source: 'modifier-diff'
+          subject: 'Ferocious Symbiosis',
+          text: 'damage per stack 0.05 → 0.04.',
+          source: 'profile-diff'
         },
         {
-          subject: 'ranger.bountiful-hunter-player',
-          text: 'Parameter damage per boon 0.01 → 0.02; parameter maximum boons 12 → 5.',
-          source: 'modifier-diff'
-        },
-        {
-          subject: 'ranger.bountiful-hunter-pet',
-          text: 'Parameter damage per boon 0.01 → 0.02; parameter maximum boons 12 → 5.',
-          source: 'modifier-diff'
+          subject: 'Bountiful Hunter',
+          text: 'Player and pet damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
+          source: 'profile-diff'
         }
       ],
       skills: {
@@ -698,7 +676,17 @@ export const activePatchPreview: PatchPreview = {
                 to: 3
               }
             }
-          ]
+          ],
+          fields: {
+            damageIncrease: {
+              from: 0.1,
+              to: 0.07
+            },
+            conditionDamageIncrease: {
+              from: 0.1,
+              to: 0.07
+            }
+          }
         },
         '2421': {
           fields: {
@@ -709,14 +697,7 @@ export const activePatchPreview: PatchPreview = {
           }
         }
       },
-      modifierRules: {
-        'necromancer.cascading-corruption': {
-          amount: {
-            from: 0.1,
-            to: 0.07
-          }
-        }
-      },
+
       overview: [
         {
           subject: 'Target the Weak',
@@ -749,14 +730,34 @@ export const activePatchPreview: PatchPreview = {
           source: 'profile-diff'
         },
         {
-          subject: 'necromancer.cascading-corruption',
-          text: 'Amount 0.1 → 0.07.',
-          source: 'modifier-diff'
+          subject: 'Cascading Corruption',
+          text: 'Strike and condition damage increases 0.1 → 0.07.',
+          source: 'profile-diff'
         }
       ]
     },
     guardian: {
       balanceProfiles: {
+        '621': {
+          fields: {
+            damagePerBoon: {
+              from: 0.005,
+              to: 0.015
+            },
+            maximumBoons: {
+              from: 12,
+              to: 5
+            }
+          }
+        },
+        '2419': {
+          fields: {
+            damageIncrease: {
+              from: 0.1,
+              to: 0.13
+            }
+          }
+        },
         '2195': {
           removeEffects: [
             {
@@ -793,26 +794,7 @@ export const activePatchPreview: PatchPreview = {
           ]
         }
       },
-      modifierRules: {
-        'guardian.empowered-armaments': {
-          amount: {
-            from: 0.1,
-            to: 0.13
-          }
-        },
-        'guardian.inspired-virtue': {
-          parameters: {
-            damagePerBoon: {
-              from: 0.005,
-              to: 0.015
-            },
-            maximumBoons: {
-              from: 12,
-              to: 5
-            }
-          }
-        }
-      },
+
       overview: [
         {
           subject: 'Phoenix Protocol',
@@ -820,14 +802,14 @@ export const activePatchPreview: PatchPreview = {
           source: 'profile-diff'
         },
         {
-          subject: 'guardian.empowered-armaments',
-          text: 'Amount 0.1 → 0.13.',
-          source: 'modifier-diff'
+          subject: 'Empowered Armaments',
+          text: 'Damage increase 0.1 → 0.13.',
+          source: 'profile-diff'
         },
         {
-          subject: 'guardian.inspired-virtue',
-          text: 'Parameter damage per boon 0.005 → 0.015; parameter maximum boons 12 → 5.',
-          source: 'modifier-diff'
+          subject: 'Inspired Virtue',
+          text: 'damage per boon 0.005 → 0.015; maximum boons 12 → 5.',
+          source: 'profile-diff'
         }
       ]
     },
@@ -913,71 +895,70 @@ export const activePatchPreview: PatchPreview = {
           source: 'profile-diff'
         },
         {
-          subject: 'Specialized Elements - Empowered Familiar Recharge',
+          subject: 'Specialized Elements',
           text: 'Recharge multiplier 0.67 → 0.8.',
           source: 'profile-diff'
         },
         {
-          subject: 'elementalist.elements-of-rage-strike',
-          text: 'Amount 0.15 → 0.12.',
-          source: 'modifier-diff'
+          subject: '2131',
+          text: 'Damage increase 0.15 → 0.12.',
+          source: 'profile-diff'
         },
         {
-          subject: 'elementalist.elements-of-rage-condition',
-          text: 'Amount 0.1 → 0.07.',
-          source: 'modifier-diff'
+          subject: '2131',
+          text: 'Damage increase 0.1 → 0.07.',
+          source: 'profile-diff'
         },
         {
-          subject: 'elementalist.tempestuous-aria-condition',
-          text: 'Amount 0.05 → 0.07.',
-          source: 'modifier-diff'
+          subject: '1891',
+          text: 'Damage increase 0.05 → 0.07.',
+          source: 'profile-diff'
         },
         {
-          subject: 'elementalist.transcendent-tempest-condition',
-          text: 'Amount 0.2 → 0.25.',
-          source: 'modifier-diff'
+          subject: '1839',
+          text: 'Damage increase 0.2 → 0.25.',
+          source: 'profile-diff'
         },
         {
-          subject: 'elementalist.familiars-prowess-strike',
-          text: 'Parameter focused amount 0.1 → 0.12.',
-          source: 'modifier-diff'
+          subject: "Familiar's Focus",
+          text: 'Damage increase 0.1 → 0.12.',
+          source: 'profile-diff'
         }
       ],
-      modifierRules: {
-        'elementalist.elements-of-rage-strike': {
-          amount: {
-            from: 0.15,
-            to: 0.12
-          }
-        },
-        'elementalist.elements-of-rage-condition': {
-          amount: {
-            from: 0.1,
-            to: 0.07
-          }
-        },
-        'elementalist.tempestuous-aria-condition': {
-          amount: {
-            from: 0.05,
-            to: 0.07
-          }
-        },
-        'elementalist.transcendent-tempest-condition': {
-          amount: {
-            from: 0.2,
-            to: 0.25
-          }
-        },
-        'elementalist.familiars-prowess-strike': {
-          parameters: {
-            focusedAmount: {
-              from: 0.1,
-              to: 0.12
+
+      balanceProfiles: {
+        '1839': {
+          fields: {
+            conditionDamageIncrease: {
+              from: 0.2,
+              to: 0.25
             }
           }
-        }
-      },
-      balanceProfiles: {
+        },
+        '1891': {
+          fields: {
+            conditionDamageIncrease: {
+              from: 0.05,
+              to: 0.07
+            }
+          }
+        },
+        '2131': {
+          fields: {
+            damageIncrease: {
+              from: 0.15,
+              to: 0.12
+            },
+            conditionDamageIncrease: {
+              from: 0.1,
+              to: 0.07
+            }
+          }
+        },
+        // Focus owns the Air bonus that replaces Prowess's base damage increase.
+        '2342': {
+          fields: { damageIncrease: { from: 0.1, to: 0.12 } }
+        },
         // Spear dual skills arm buffs; patch the profiles that supply their deferred strikes.
         'elementalist.weaver.spear.shale-storm': {
           effects: [
@@ -1012,9 +993,9 @@ export const activePatchPreview: PatchPreview = {
             }
           ]
         },
-        'elementalist.evoker.specialized-elements.empowered-recharge': {
+        '2437': {
           fields: {
-            rechargeMultiplier: {
+            empoweredRechargeMultiplier: {
               from: 0.67,
               to: 0.8
             }
@@ -1023,9 +1004,9 @@ export const activePatchPreview: PatchPreview = {
       }
     },
     warrior: {
-      modifierRules: {
-        'warrior.empowered': {
-          parameters: {
+      balanceProfiles: {
+        '1485': {
+          fields: {
             damagePerBoon: {
               from: 0.01,
               to: 0.02
@@ -1037,6 +1018,7 @@ export const activePatchPreview: PatchPreview = {
           }
         }
       },
+
       skills: {
         '14355': {
           fields: {
@@ -1103,14 +1085,35 @@ export const activePatchPreview: PatchPreview = {
           source: 'skill-diff'
         },
         {
-          subject: 'warrior.empowered',
-          text: 'Parameter damage per boon 0.01 → 0.02; parameter maximum boons 12 → 5.',
-          source: 'modifier-diff'
+          subject: 'Empowered',
+          text: 'damage per boon 0.01 → 0.02; maximum boons 12 → 5.',
+          source: 'profile-diff'
         }
       ]
     },
     engineer: {
       balanceProfiles: {
+        '514': {
+          assumption: 'TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
+          fields: {
+            damageMultiplier: {
+              from: 1,
+              to: 1.1
+            }
+          }
+        },
+        '516': {
+          fields: {
+            damagePerCondition: {
+              from: 0.01,
+              to: 0.02
+            },
+            maximumConditions: {
+              from: 14,
+              to: 5
+            }
+          }
+        },
         'engineer.amalgam.evolve': {
           fields: {
             coefficientMultiplier: {
@@ -1127,38 +1130,16 @@ export const activePatchPreview: PatchPreview = {
           source: 'profile-diff'
         },
         {
-          subject: 'engineer.grenadier-explosion-damage',
+          subject: 'Grenadier',
           text: 'Factor 1 → 1.1. TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
-          source: 'modifier-diff'
+          source: 'profile-diff'
         },
         {
-          subject: 'engineer.modified-ammunition',
+          subject: 'Modified Ammunition',
           text: 'Parameter damage per condition 0.01 → 0.02; parameter maximum conditions 14 → 5.',
-          source: 'modifier-diff'
+          source: 'profile-diff'
         }
-      ],
-      modifierRules: {
-        'engineer.grenadier-explosion-damage': {
-          // The unpublished percentage is provisionally assumed to be 10%; live tuning stays neutral.
-          assumption: 'TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
-          factor: {
-            from: 1,
-            to: 1.1
-          }
-        },
-        'engineer.modified-ammunition': {
-          parameters: {
-            damagePerCondition: {
-              from: 0.01,
-              to: 0.02
-            },
-            maximumConditions: {
-              from: 14,
-              to: 5
-            }
-          }
-        }
-      }
+      ]
     }
   }
 };
