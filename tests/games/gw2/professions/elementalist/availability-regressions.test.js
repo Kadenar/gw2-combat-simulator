@@ -139,6 +139,7 @@ test('Arcane Echo accepts weapon starts through its ten-second deadline and cons
       armArcaneEcho(context, { effectiveEnd: 0 });
       assert.equal(context.profession.core.arcaneEchoUntil, 10);
     }
+
     context.time = canonicalTime(start + 2);
     const cast = { start, effectiveEnd: context.time, rechargeWork: 5 };
     completeArcaneEcho(context, cast, weapon);
