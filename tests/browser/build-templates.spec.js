@@ -368,16 +368,22 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
   await expect(chrono.locator('.template-preset-warning')).toHaveCount(0);
 
   // Benchmark values share one right edge with their heading, even when labels wrap on narrow screens.
-  for (const width of [1000, 360]) {
-    await page.setViewportSize({ width, height: 900 });
-    const heading = await templates.locator('.template-list-dps-heading').boundingBox();
-    for (const dps of await chrono.locator('.template-preset-dps').all()) {
-      const bounds = await dps.boundingBox();
-      expect(Math.abs(bounds.x + bounds.width - heading.x - heading.width)).toBeLessThan(1);
-    }
+  // Wider fallback glyphs must not expand the action column and shift DPS values on other platforms.
+  for (const fontFamily of ['inherit', '"Courier New", monospace']) {
+    await templates.locator('.template-actions > summary').evaluateAll((summaries, font) => {
+      for (const summary of summaries) summary.style.fontFamily = font;
+    }, fontFamily);
+    for (const width of [1000, 360]) {
+      await page.setViewportSize({ width, height: 900 });
+      const heading = await templates.locator('.template-list-dps-heading').boundingBox();
+      for (const dps of await chrono.locator('.template-preset-dps').all()) {
+        const bounds = await dps.boundingBox();
+        expect(Math.abs(bounds.x + bounds.width - heading.x - heading.width)).toBeLessThan(1);
+      }
 
-    const dialog = templates.locator('dialog').first();
-    expect(await dialog.evaluate((element) => element.scrollWidth === element.clientWidth)).toBe(true);
+      const dialog = templates.locator('dialog').first();
+      expect(await dialog.evaluate((element) => element.scrollWidth === element.clientWidth)).toBe(true);
+    }
   }
 
   await power.locator(':scope > summary').focus();
