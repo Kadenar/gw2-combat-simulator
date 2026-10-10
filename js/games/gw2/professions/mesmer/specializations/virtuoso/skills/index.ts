@@ -30,129 +30,48 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
       atMs: 200
     },
     blade: true,
+    // Group simultaneous daggers per impact while preserving the outgoing and returning projectile effects.
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.25
-          },
-          {
-            atMs: 200,
-            coefficient: 0.25
-          },
-          {
-            atMs: 200,
-            coefficient: 0.25
-          }
-        ],
-        name: 'Outgoing damage',
-        persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'dagger',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'mesmer',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2720,
-            coefficient: 0.25
-          },
-          {
-            atMs: 2720,
-            coefficient: 0.25
-          },
-          {
-            atMs: 2760,
-            coefficient: 0.25
-          }
-        ],
-        name: 'Returning damage',
-        persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'dagger',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'mesmer',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      }
-    ],
+      { atMs: 200, hits: 3 },
+      { atMs: 2720, hits: 2 },
+      { atMs: 2760, hits: 1 }
+    ].flatMap(({ atMs, hits }) =>
+      impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+        {
+          type: 'strike',
+          coefficient: 0.25 * hits,
+          hits,
+          actorType: 'player',
+          weapon: 'dagger',
+          comboFinishers: [
+            {
+              ownerId: 'mesmer',
+              finisherType: 'Projectile',
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        }
+      ])
+    ),
     castTimeMs: 440
   },
   [ID.THOUSAND_CUTS]: {
     castTimeMs: 0,
     blade: true,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 0.5
-          },
-          {
-            atMs: 520,
-            coefficient: 0.5
-          },
-          {
-            atMs: 1040,
-            coefficient: 0.5
-          },
-          {
-            atMs: 1560,
-            coefficient: 0.5
-          },
-          {
-            atMs: 2080,
-            coefficient: 0.5
-          },
-          {
-            atMs: 2600,
-            coefficient: 0.5
-          },
-          {
-            atMs: 3120,
-            coefficient: 0.5
-          },
-          {
-            atMs: 3640,
-            coefficient: 0.5
-          },
-          {
-            atMs: 4160,
-            coefficient: 0.5
-          },
-          {
-            atMs: 4680,
-            coefficient: 0.5
-          }
-        ],
-        name: 'Damage',
-        actorType: 'player',
-        weapon: 'unequipped',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // The portal delivers ten equal impacts at a fixed cadence after its startup delay.
+    effects: Array.from({ length: 10 }, (_, index) => 560 + index * 520).flatMap((atMs) =>
+      impactEffects({ atMs, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.5,
+          hits: 1,
+          actorType: 'player',
+          weapon: 'unequipped'
+        }
+      ])
+    )
   },
   [ID.SWORD_OF_DECIMATION]: {
     // Resolve the strike after the reviewed activation duration.
@@ -184,29 +103,19 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
   [ID.RAIN_OF_SWORDS]: {
     castTimeMs: 680,
     blade: true,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        // Rain begins after the ground-target delay observed in EVTC, then pulses once per second.
-        ticks: [840, 1840, 2840, 3840, 4840].map((atMs) => ({
-          atMs,
-          coefficient: 1.2
-        })),
-        name: 'Damage',
-        actorType: 'player',
-        weapon: 'utility'
-      },
-      {
-        type: 'condition',
-        ticks: [840, 1840, 2840, 3840, 4840].map((atMs) => ({
-          atMs,
-          condition: 'Vulnerability',
-          stacks: 3,
-          duration: 10
-        }))
-      }
-    ])
+    // Each delayed pulse owns its strike and vulnerability together so they share the same impact timing.
+    effects: Array.from({ length: 5 }, (_, index) => 840 + index * 1000).flatMap((atMs) =>
+      impactEffects({ atMs, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 1.2,
+          hits: 1,
+          actorType: 'player',
+          weapon: 'utility'
+        },
+        { type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 10 }
+      ])
+    )
   },
   [ID.TWIN_BLADE_RESTORATION]: {
     castTimeMs: 680,

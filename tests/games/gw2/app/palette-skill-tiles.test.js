@@ -8,6 +8,7 @@ import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -48,6 +49,20 @@ function projectionApp(
     }
   };
 }
+
+// The dodge tile renders the projected fractional pool as endurance, without inventing ammunition.
+test('Mirage dodge markup exposes projected endurance instead of ammo', async () => {
+  const profession = await loadProfession('mesmer');
+  const app = projectionApp(profession, {
+    specialization: 'Mirage',
+    professionState: { endurance: { value: 7.5, maximum: 100, updatedAt: 0, rate: 0 } }
+  });
+  const skill = profession.catalog.skillsByName.get('Dodge / Mirage Cloak');
+  const markup = paletteSkillHtml(paletteSkillView(app, skill));
+  assert.match(markup, /class="pal-skill-resource" data-resource-id="endurance"/);
+  assert.match(markup, /aria-valuenow="7\.5"/);
+  assert.doesNotMatch(markup, /pal-ammo-pip|Ammunition:|Count recharge/);
+});
 
 // The palette consumes projected deadlines while recharge storage remains in base seconds.
 test('a used 20-second skill displays 16 seconds under Alacrity', () => {

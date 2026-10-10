@@ -7,34 +7,6 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-// Averaged damage needs a visible explanation while the reported proc outcomes remain Yes/No.
-test('averaged hit details explain critical outcomes without changing rolled hit labels', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await page.evaluate(async () => {
-    const { mountHitTimeline } = await import('/js/games/gw2/app/results/charts/hit-timeline-view.ts');
-    document.body.innerHTML = '<div id="averaged"></div><div id="rolled"></div>';
-    for (const mode of ['averaged', 'rolled']) {
-      mountHitTimeline(
-        document.getElementById(mode),
-        [
-          { t: 100, v: 100, crit: true, averagedCriticalDamage: mode === 'averaged', damageType: 'strike' },
-          { t: 200, v: 100, crit: false, averagedCriticalDamage: mode === 'averaged', damageType: 'strike' }
-        ],
-        { durationMs: 1000 }
-      );
-    }
-  });
-  for (const mode of ['averaged', 'rolled']) {
-    const chart = page.locator(`#${mode}`);
-    await chart.getByRole('button', { name: '0.100s · 2 hits', exact: true }).click();
-    const details = chart.locator('[data-role="hit-detail"]');
-    await expect(details.locator('tbody tr td:last-child')).toHaveText(['Yes', 'No']);
-    await expect(details.getByText('Critical damage is averaged.', { exact: false })).toHaveCount(
-      mode === 'averaged' ? 1 : 0
-    );
-  }
-});
-
 // Pulse state belongs beside individual strikes, without an extra strip or labels on condition payouts.
 test('skill details distinguish normal and empowered applications', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });

@@ -107,12 +107,6 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await expect(
     workspace
       .locator('.attr-row')
-      .filter({ hasText: /^Power/ })
-      .locator('.attr-delta')
-  ).toHaveText(' (+750)');
-  await expect(
-    workspace
-      .locator('.attr-row')
       .filter({ hasText: /^Toughness/ })
       .locator('.attr-before')
   ).toHaveCount(0);

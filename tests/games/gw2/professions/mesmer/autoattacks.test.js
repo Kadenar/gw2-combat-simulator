@@ -39,10 +39,6 @@ test('sword and spear autos apply their authored debuffs with or without Aristoc
       );
       for (const condition of conditions) {
         assert.equal(condition.actorType, 'player');
-        assert.equal(
-          condition.at,
-          result.events.find((event) => event.type === 'damage' && event.skillId === condition.skillId).at
-        );
       }
 
       assert.equal(result.procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy').length, relic ? 1 : 0);

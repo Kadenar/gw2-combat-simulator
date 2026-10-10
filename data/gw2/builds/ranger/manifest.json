@@ -34,25 +34,25 @@
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 39194,
+        "benchmarkDps": 38811,
         "upToDate": true,
-        "benchmarkApm": 105.1,
+        "benchmarkApm": 105.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 36308, "phase": 36308 },
-          "80-60": { "cumulative": 37869, "phase": 39585 },
-          "60-40": { "cumulative": 37834, "phase": 37764 },
-          "40-20": { "cumulative": 39217, "phase": 44060 },
-          "20-0": { "cumulative": 39194, "phase": 39103 }
+          "100-80": { "cumulative": 36250, "phase": 36250 },
+          "80-60": { "cumulative": 37624, "phase": 39063 },
+          "60-40": { "cumulative": 37921, "phase": 38561 },
+          "40-20": { "cumulative": 39000, "phase": 42577 },
+          "20-0": { "cumulative": 38811, "phase": 38811 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 37223,
+          "benchmarkDps": 36898,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 34076, "phase": 34076 },
-            "80-60": { "cumulative": 36363, "phase": 39108 },
-            "60-40": { "cumulative": 36191, "phase": 35848 },
-            "40-20": { "cumulative": 37032, "phase": 39808 },
-            "20-0": { "cumulative": 37223, "phase": 37223 }
+            "100-80": { "cumulative": 33532, "phase": 33532 },
+            "80-60": { "cumulative": 36150, "phase": 39212 },
+            "60-40": { "cumulative": 36361, "phase": 36785 },
+            "40-20": { "cumulative": 36919, "phase": 38758 },
+            "20-0": { "cumulative": 36898, "phase": 36898 }
           }
         }
       }

@@ -198,21 +198,19 @@ test('offset combat starts respect the clock and keep sigil procs aligned with r
   }
 });
 
-// Combat starts and target death bound the events and elapsed time used for DPS.
+// A controlled strike after an idle period isolates the DPS window from native skill timing.
 test('DPS excludes elapsed time before the first hit', () => {
-  const result = simulateMesmer(
-    [{ name: '__wait', waitMs: 1000 }, 'Mind Slash', { name: '__wait', waitMs: 1000 }],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      primaryWeapon: 'Sword',
-      secondaryWeapon: '',
-      initialResource: 0
-    })
-  );
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [{ type: 'wait', durationMs: 1000 }, 'Fixture Slash', { type: 'wait', durationMs: 1000 }],
+    config: { target: {}, sigilSets: [{ names: [] }] }
+  });
 
-  assert.ok(Math.abs(result.firstHitTime - 1.36) < 1e-12);
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.totalDamage > 0);
+  assert.equal(result.firstHitTime, 2);
   assert.equal(result.dpsStartTime, result.firstHitTime);
-  assert.ok(Math.abs(result.dpsWindow - 1) < 1e-12);
+  assert.equal(result.dpsWindow, 1);
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 
@@ -416,51 +414,6 @@ test('explicit combat start keeps precombat projectiles that land afterward', ()
   assert.ok(result.dpsWindow < result.rotationEndTime);
 });
 
-test('delayed combat start uses its offset instead of the preceding cast end', () => {
-  const result = simulateMesmer(
-    ['Mind Slash', { name: '__combat_start', offset: 100 }, { name: '__wait', waitMs: 1000 }],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      primaryWeapon: 'Sword',
-      secondaryWeapon: '',
-      initialResource: 0
-    })
-  );
-
-  assert.equal(result.combatStartTime, 0.1);
-  assert.equal(result.combatStartTime, 0.1);
-  assert.equal(result.hasExplicitCombatStart, true);
-  assert.ok(Math.abs(result.firstHitTime - 0.36) < 1e-12);
-  assert.equal(result.dpsStartTime, result.firstHitTime);
-  assert.ok(Math.abs(result.dpsWindow - 1) < 1e-12);
-  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
-  assert.ok(result.dps < 100_000);
-});
-
-test('DPS duration starts at the first hit in the supplied delayed-start rotation', () => {
-  const result = simulateMesmer(
-    ['Phantasmal Swordsman', { name: '__combat_start', offset: 700 }, 'Bladecall'],
-    defaultSimulationConfig()
-  );
-
-  assert.equal(result.combatStartTime, 0.7);
-  assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
-  assert.ok(Math.abs(result.rotationEndTime - 1.32) < 1e-12);
-  assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
-  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
-});
-
-test('standalone Combat Start uses the first subsequent hit like Elementalist', () => {
-  const result = simulateMesmer(['__combat_start', 'Phantasmal Swordsman', 'Bladecall'], defaultSimulationConfig());
-
-  assert.equal(result.steps[0].start, 0);
-  assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
-  assert.ok(Math.abs(result.rotationEndTime - 1.32) < 1e-12);
-  assert.equal(result.dpsStartTime, result.firstHitTime);
-  assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
-  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
-});
-
 test('zero-length combat windows report zero DPS instead of epsilon DPS', () => {
   const result = simulateMesmer(
     ['Mind Slash', '__combat_start'],
@@ -477,6 +430,7 @@ test('zero-length combat windows report zero DPS instead of epsilon DPS', () => 
   assert.equal(result.dps, 0);
 });
 
+// The marker's offset controls combat entry even when the preceding activation ends later.
 test('generic simulation starts combat at a delayed marker within a cast', () => {
   const result = simulateGw2({
     profession: testProfession,
@@ -494,6 +448,10 @@ test('generic simulation starts combat at a delayed marker within a cast', () =>
   });
   const marker = result.events.find((event) => event.type === 'combat_start');
 
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.totalDamage > 0);
+  assert.equal(result.combatStartTime, 0.1);
+  assert.equal(result.hasExplicitCombatStart, true);
   assert.equal(marker.at, 0.1);
   assert.equal(result.firstHitTime, 1);
   assert.equal(result.dpsStartTime, 1);

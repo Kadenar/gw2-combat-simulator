@@ -461,6 +461,7 @@ test('Severance queries retain application windows across refreshes and gaps', (
   }
 });
 
+// The exact cooldown deadline remains blocked, and accepted grants rearm it before another application.
 test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
   const context = { relic, effects: captureEffectEmissions().effects };
@@ -478,8 +479,14 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   trigger(0);
   assert.equal(relicConditionDurationBonus(context, 0), 0);
   assert.equal(relicConditionDurationBonus(context, 0.001), 0.03);
+  trigger(0.999999);
+  assert.equal(relic.state.stacks, 1);
   trigger(1);
   assert.equal(relic.state.stacks, 1);
+  trigger(1.000001);
+  assert.equal(relic.state.stacks, 2);
+  trigger(1.000001);
+  assert.equal(relic.state.stacks, 2);
   for (const at of [1.001, 2.002, 3.003, 4.004, 5.005]) trigger(at);
   assert.equal(relic.state.stacks, 5);
   assert.equal(relicConditionDurationBonus(context, 5.006), 0.15);
@@ -512,7 +519,9 @@ test('Aristocracy accepted applications preserve combat entry and historical sta
   assert.equal(relicConditionDurationBonus(context, 2.001), 0.03);
   trigger(3);
   assert.equal(context.relic.state.stacks, 1);
+  assert.equal(relicConditionDurationBonus(context, 3), 0.03);
   trigger(3.001);
+  assert.equal(context.relic.state.stacks, 2);
   assert.equal(relicConditionDurationBonus(context, 3.002), 0.06);
   // Reading an earlier time uses the accepted window at that time, not the latest stack total.
   assert.equal(relicConditionDurationBonus(context, 2.001), 0.03);

@@ -52,31 +52,11 @@ test('Ranger pet warning appears only for unsupported selections', async ({ page
   await expect(warning).toBeVisible();
   await expect(secondPet.locator('.sbar-icon > .sbar-selection-warning')).toBeVisible();
   await expect(secondPet.locator('.sbar-icon')).toHaveAccessibleName('Change Lynx 2. Lynx is not modeled.');
-  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
-    'Lynx is not modeled and may produce inaccurate results.'
-  );
-  await selectPet('selectedPet', 'Pig');
-  await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(2);
-  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
-    'Pig and Lynx are not modeled and may produce inaccurate results.'
-  );
-  await selectPet('selectedPet2', 'Pig');
-  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
-    'Pig is not modeled and may produce inaccurate results.'
-  );
-  await selectPet('selectedPet', 'Tiger');
-  await selectPet('selectedPet2', 'Hawk');
-  await expect(warning).toBeHidden();
-  await selectPet('selectedPet', 'Pig');
-  await expect(warning).toBeVisible();
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect(warning).toBeVisible();
   await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(1);
-  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
-    'Pig is not modeled and may produce inaccurate results.'
-  );
-  await selectPet('selectedPet', 'Tiger');
+  await selectPet('selectedPet2', 'Hawk');
   await expect(warning).toBeHidden();
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);

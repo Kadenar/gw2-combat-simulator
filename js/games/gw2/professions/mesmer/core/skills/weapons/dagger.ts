@@ -1,5 +1,6 @@
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
@@ -8,70 +9,31 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
       mode: 'add',
       count: 1
     },
+    // Group simultaneous daggers per impact while preserving the outgoing and returning projectile effects.
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.25
-          },
-          {
-            atMs: 200,
-            coefficient: 0.25
-          },
-          {
-            atMs: 200,
-            coefficient: 0.25
-          }
-        ],
-        name: 'Outgoing damage',
-        actorType: 'player',
-        weapon: 'dagger',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'mesmer',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2720,
-            coefficient: 0.25
-          },
-          {
-            atMs: 2720,
-            coefficient: 0.25
-          },
-          {
-            atMs: 2760,
-            coefficient: 0.25
-          }
-        ],
-        name: 'Returning damage',
-        actorType: 'player',
-        weapon: 'dagger',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'mesmer',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      }
-    ],
+      { atMs: 200, hits: 3 },
+      { atMs: 2720, hits: 2 },
+      { atMs: 2760, hits: 1 }
+    ].flatMap(({ atMs, hits }) =>
+      impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.25 * hits,
+          hits,
+          actorType: 'player',
+          weapon: 'dagger',
+          comboFinishers: [
+            {
+              ownerId: 'mesmer',
+              finisherType: 'Projectile',
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        }
+      ])
+    ),
     castTimeMs: 440
   },
   [ID.FLYING_CUTTER]: {

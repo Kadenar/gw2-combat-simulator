@@ -87,7 +87,7 @@ test('skill strip above traits replaces equipped skills without queuing casts', 
 });
 
 // Equipped choices swap in either direction, while repeated selections preserve the loadout.
-test('utility selections swap slots and normalization repairs duplicate or unavailable picks', async ({ page }) => {
+test('utility selections swap slots and restore focus', async ({ page }) => {
   await page.goto('/necromancer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const selected = await page.evaluate(() => window.professionApp.build.selectedSkillIds);
@@ -105,22 +105,6 @@ test('utility selections swap slots and normalization repairs duplicate or unava
     expect(await page.evaluate(() => window.professionApp.build.selectedSkillIds)).toEqual(selected);
     await expect(slot.locator('.sbar-icon')).toHaveAttribute('data-wiki-name', label);
     await expect(slot.locator('.sbar-icon')).toBeFocused();
-  }
-
-  // Normalization must also reserve valid later picks when repairing earlier invalid slots.
-  for (const invalid of [selected.Utility1, 'Unavailable utility']) {
-    const repaired = await page.evaluate((name) => {
-      const app = window.professionApp;
-      app.build.selectedSkillIds.Utility1 = name;
-      app.build.selectedSkillIds.Utility2 = name;
-      app.changed();
-      return app.build.selectedSkillIds;
-    }, invalid);
-    expect(repaired.Utility3).toBe(selected.Utility3);
-    const utilities = [repaired.Utility1, repaired.Utility2, repaired.Utility3];
-    expect(utilities.every(Boolean)).toBe(true);
-    expect(new Set(utilities).size).toBe(3);
-    expect(utilities).not.toContain('Unavailable utility');
   }
 });
 

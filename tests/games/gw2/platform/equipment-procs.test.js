@@ -903,25 +903,30 @@ test('Relic of Aristocracy extends conditions after weakness or vulnerability', 
   assert.equal(result.procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy').length, 1);
 });
 
+// Controlled applications isolate the relic cooldown boundary from profession skill schedules.
 test('Relic of Aristocracy requires more than its one-second ICD', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    relic: 'Aristocracy',
-    initialResource: 0,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol'
-  });
-  const aristocracyProcs = (waitMs) =>
-    simulateMesmer(
-      ['Mind Slash', { name: '__wait', waitMs }, 'Mind Gash', { name: '__wait', waitMs: 2000 }],
-      config
-    ).procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy');
+  const aristocracyProcs = (interval) =>
+    resolveTestGw2Events({
+      events: [1, 1 + interval].map((at) => ({
+        type: 'condition',
+        at,
+        source: 'Player',
+        sourceId: 'aristocracy-trigger',
+        actorType: 'player',
+        skillName: 'Fixture vulnerability',
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 5
+      })),
+      endTime: 3,
+      config: { relic: 'Aristocracy', target: {}, sigilSets: [{ names: [] }] }
+    }).procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy');
 
-  assert.equal(aristocracyProcs(479).length, 1);
-  assert.equal(aristocracyProcs(480).length, 1);
-  assert.equal(aristocracyProcs(481).length, 2);
+  assert.equal(aristocracyProcs(0.999999).length, 1);
+  assert.equal(aristocracyProcs(1).length, 1);
+  assert.equal(aristocracyProcs(1.000001).length, 2);
   assert.deepEqual(
-    aristocracyProcs(481).map((proc) => proc.detail),
+    aristocracyProcs(1.000001).map((proc) => proc.detail),
     ['1/5 stacks', '2/5 stacks']
   );
 });

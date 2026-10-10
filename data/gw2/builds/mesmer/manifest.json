@@ -150,26 +150,26 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-virtuoso-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
-        "benchmarkDps": 41959,
+        "benchmarkDps": 41955,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-virtuoso-spear-greatsword",
         "upToDate": true,
         "benchmarkApm": 80.2,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 47211, "phase": 47211 },
           "80-60": { "cumulative": 40532, "phase": 35387 },
-          "60-40": { "cumulative": 42285, "phase": 46353 },
-          "40-20": { "cumulative": 41025, "phase": 37739 },
-          "20-0": { "cumulative": 41959, "phase": 41959 }
+          "60-40": { "cumulative": 42284, "phase": 46348 },
+          "40-20": { "cumulative": 41020, "phase": 37724 },
+          "20-0": { "cumulative": 41955, "phase": 41955 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 38418,
+          "benchmarkDps": 38421,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 45950, "phase": 45950 },
             "80-60": { "cumulative": 38394, "phase": 32995 },
-            "60-40": { "cumulative": 37859, "phase": 36828 },
-            "40-20": { "cumulative": 38475, "phase": 40464 },
-            "20-0": { "cumulative": 38418, "phase": 38418 }
+            "60-40": { "cumulative": 37863, "phase": 36840 },
+            "40-20": { "cumulative": 38478, "phase": 40464 },
+            "20-0": { "cumulative": 38421, "phase": 38421 }
           }
         }
       },
@@ -177,26 +177,26 @@
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39788,
+        "benchmarkDps": 39758,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-virtuoso-dagger-sword-pistol",
         "upToDate": true,
-        "benchmarkApm": 58.7,
+        "benchmarkApm": 58.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40392, "phase": 40392 },
-          "80-60": { "cumulative": 39847, "phase": 39302 },
-          "60-40": { "cumulative": 39949, "phase": 40155 },
-          "40-20": { "cumulative": 39881, "phase": 39675 },
-          "20-0": { "cumulative": 39788, "phase": 39418 }
+          "100-80": { "cumulative": 40395, "phase": 40395 },
+          "80-60": { "cumulative": 39848, "phase": 39302 },
+          "60-40": { "cumulative": 39940, "phase": 40122 },
+          "40-20": { "cumulative": 39882, "phase": 39709 },
+          "20-0": { "cumulative": 39758, "phase": 39261 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 39788,
+          "benchmarkDps": 39758,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 40392, "phase": 40392 },
-            "80-60": { "cumulative": 39847, "phase": 39302 },
-            "60-40": { "cumulative": 39949, "phase": 40155 },
-            "40-20": { "cumulative": 39881, "phase": 39675 },
-            "20-0": { "cumulative": 39788, "phase": 39418 }
+            "100-80": { "cumulative": 40395, "phase": 40395 },
+            "80-60": { "cumulative": 39848, "phase": 39302 },
+            "60-40": { "cumulative": 39940, "phase": 40122 },
+            "40-20": { "cumulative": 39882, "phase": 39709 },
+            "20-0": { "cumulative": 39758, "phase": 39261 }
           }
         }
       }

@@ -3,8 +3,46 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { groupSkillHits } from '#gw2/app/results/charts/hit-timeline-model.js';
-import { drawHitTimeline } from '#gw2/app/results/charts/hit-timeline-view.js';
+import { drawHitTimeline, mountHitTimeline } from '#gw2/app/results/charts/hit-timeline-view.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+
+// Averaging changes the damage explanation, while critical labels still describe rolled proc outcomes.
+test('hit details explain averaged damage without replacing rolled critical outcomes', () => {
+  for (const averagedCriticalDamage of [false, true]) {
+    const button = { ...inertContainer(), dataset: { group: '0' }, style: {} };
+    const controls = { ...inertContainer(), children: [], querySelectorAll: () => [button] };
+    const detail = inertContainer();
+    const context = {
+      setTransform() {},
+      clearRect() {},
+      beginPath() {},
+      moveTo() {},
+      lineTo() {},
+      stroke() {},
+      fillText() {},
+      measureText: (text) => ({ width: text.length * 6 })
+    };
+    const canvas = { style: {}, getContext: () => context };
+    const elements = {
+      '[data-role="hit-timeline-canvas"]': canvas,
+      '[data-role="hit-groups"]': controls,
+      '[data-role="hit-detail"]': detail
+    };
+    mountHitTimeline(
+      { ...inertContainer(), querySelector: (selector) => elements[selector] ?? null },
+      [true, false].map((crit, index) => ({ t: 100 + index * 100, v: 100, crit, averagedCriticalDamage })),
+      { durationMs: 1000 }
+    );
+    button.onclick();
+    assert.equal(detail.innerHTML.includes('Critical damage is averaged.'), averagedCriticalDamage);
+    assert.match(detail.innerHTML, /<th scope="col">Critical<\/th>/);
+    assert.deepEqual(
+      [...detail.innerHTML.matchAll(/<td>(Yes|No)<\/td>/g)].map((match) => match[1]),
+      ['Yes', 'No']
+    );
+  }
+});
 
 // Payout inspection preserves partial and zero-rounded shares across sources and the observation boundary.
 test('condition payouts retain full and partial attribution independently of skill grouping', () => {

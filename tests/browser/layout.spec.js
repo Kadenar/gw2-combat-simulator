@@ -197,30 +197,6 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
   }
 });
 
-// The real palette must show projected endurance under Mirage Dodge without exposing an ammo counter.
-test('Mirage dodge displays its continuously regenerated endurance', async ({ page }) => {
-  await openSimulator(page);
-  await page.evaluate(async () => {
-    const app = window.professionApp;
-    const saved = await (await fetch('/data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json')).json();
-    app.build = app.adapter.toApplicationBuild({
-      ...saved,
-      rotation: [
-        { type: 'cast', skillId: -1 },
-        { type: 'cast', skillId: -1 },
-        { type: 'wait', durationMs: 1000 }
-      ]
-    });
-    app.changed();
-  });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  const dodge = page.locator('.pal-skill[data-skill="Dodge / Mirage Cloak"]');
-  await expect(dodge.locator('.pal-skill-resource')).toHaveAttribute('data-resource-id', 'endurance');
-  await expect(dodge.locator('.pal-skill-resource')).toHaveAttribute('aria-valuenow', '7.5');
-  await expect(dodge.locator('.pal-ammo-pip')).toHaveCount(0);
-  await expect(dodge).not.toHaveAttribute('title', /ammo|Count recharge/);
-});
-
 // A bound side mouse button adds its skill without also committing the browser's history action on release.
 test('side mouse rotation hotkeys suppress browser navigation', async ({ page }) => {
   await page.addInitScript(() =>
