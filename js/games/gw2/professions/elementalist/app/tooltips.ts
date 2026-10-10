@@ -308,7 +308,7 @@ export const elementalistTooltips: ProfessionTooltips = {
       [fromProfile(CORE.signetOfFire, 'attributeBonus', 'Passive precision')]
     ),
     [ID.ARCANE_ECHO]: skillTooltip(
-      "Arm a window for the next completed weapon skill with a recharge. That skill receives the short recharge below, and its normal recharge duration is added to Arcane Echo's recharge.",
+      "Arm a window for the next completed weapon skill with a recharge. If its cast begins within the window, it receives the short base recharge below, and its original recharge is added to Arcane Echo's base 15-second recharge, before Alacrity. Autoattacks and follow-up skills do not consume the effect; ammunition charges are not replenished.",
       [
         fromProfile(CORE.arcaneEcho, 'durationMultiplier', 'Window', tooltipSeconds),
         fromProfile(CORE.arcaneEcho, 'recharge', 'Weapon recharge after triggering', tooltipSeconds)

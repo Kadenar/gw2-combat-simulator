@@ -1,9 +1,12 @@
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
+import { runNative, runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
@@ -102,41 +105,151 @@ test('Weaver runtime and palette share hand eligibility through Unravel and full
   }
 });
 
-test('Arcane Echo requires an armed, unexpired window and consumes it only once', () => {
+// Isolate the buff and recharge contracts using the same controller as native execution.
+function arcaneEchoContext(rate = 1) {
+  const context = {
+    time: 0,
+    profession: { core: createElementalistCoreState() },
+    helpers: elementalistCatalog
+  };
+  context.cooldownController = createCooldownController({
+    clock: context,
+    rechargeDuration: (skill) => gw2BaseRecharge(skill) / rate,
+    rechargeIntervals: (_skill, start, end) => [{ start, end, rate }],
+    skillFor: (id) => elementalistCatalog.skillsById.get(id)
+  });
+  return context;
+}
+
+test('Arcane Echo accepts weapon starts through its ten-second deadline and consumes the buff once', () => {
   const echo = elementalistCatalog.skillsByName.get('Arcane Echo');
   const weapon = elementalistCatalog.skillsByName.get('Lightning Strike');
-  // Inactive and exact-expiry casts must leave both cooldowns untouched.
-  for (const [armed, at, active] of [
+  // A weapon started in the window remains eligible when its completion follows expiry.
+  for (const [armed, start, active] of [
     [false, 0, false],
     [true, 0, true],
-    [true, 9.999, true],
-    [true, 10, false],
-    [true, 11, false]
+    [true, 9.999999, true],
+    [true, 10, true],
+    [true, 10.000001, false]
   ]) {
-    const core = createElementalistCoreState();
-
-    const context = {
-      time: 0,
-      profession: { core },
-
-      helpers: elementalistCatalog,
-      effectiveEnd: 0,
-      rechargeWork: 5
-    };
-    context.cooldownController = createCooldownController({ clock: context, rechargeDuration: () => 5 });
+    const context = arcaneEchoContext();
     context.cooldownController.setReadyAt(weapon.id, 20);
-    context.cooldownController.setReadyAt(echo.id, 30);
-    if (armed) armArcaneEcho(context, context);
-    context.effectiveEnd = at;
-    completeArcaneEcho(context, context, weapon);
-    assert.equal(context.cooldownController.readyAt(weapon.id), active ? at + 1 : 20);
-    assert.equal(context.cooldownController.readyAt(echo.id), active ? 35 : 30);
+    context.cooldownController.startRecharge(echo, 0);
+    if (armed) {
+      armArcaneEcho(context, { effectiveEnd: 0 });
+      assert.equal(context.profession.core.arcaneEchoUntil, 10);
+    }
+    context.time = canonicalTime(start + 2);
+    const cast = { start, effectiveEnd: context.time, rechargeWork: 5 };
+    completeArcaneEcho(context, cast, weapon);
+    assert.equal(context.cooldownController.readyAt(weapon.id), active ? canonicalTime(context.time + 1) : 20);
+    const expectedEcho = active ? 15 + gw2BaseRecharge(weapon) : 15;
+    assert.equal(context.cooldownController.readyAt(echo.id), expectedEcho);
     if (active) {
-      assert.equal(core.arcaneEchoUntil, 0);
-      completeArcaneEcho(context, context, weapon);
-      assert.equal(context.cooldownController.readyAt(echo.id), 35);
+      assert.equal(context.profession.core.arcaneEchoUntil, 0);
+      completeArcaneEcho(context, cast, weapon);
+      assert.equal(context.cooldownController.readyAt(echo.id), expectedEcho);
     }
   }
+});
+
+// Original recharge is transferred before modifiers, while both running cooldowns earn Alacrity progress.
+test('Arcane Echo adds original weapon recharge to its 15-second base and grants one base second', () => {
+  const echo = elementalistCatalog.skillsById.get(ID.ARCANE_ECHO);
+  const weapon = { ...elementalistCatalog.skillsById.get(ID.LIGHTNING_STRIKE), cooldown: 30 };
+  assert.equal(echo.cooldown, 15);
+  for (const rate of [1, 1.25]) {
+    const context = arcaneEchoContext(rate);
+    context.cooldownController.startRecharge(echo, 0);
+    armArcaneEcho(context, { effectiveEnd: 0 });
+    context.time = 5;
+    context.cooldownController.startRecharge(weapon, 5, 7);
+    completeArcaneEcho(context, { start: 4, effectiveEnd: 5, rechargeWork: 7 }, weapon);
+    assert.deepEqual(context.cooldownController.rechargeFor(weapon.id), { startedAt: 5, work: 1 });
+    assert.equal(context.cooldownController.readyAt(weapon.id), canonicalTime(5 + 1 / rate));
+    assert.deepEqual(context.cooldownController.rechargeFor(echo.id), { startedAt: 5, work: 45 - 5 * rate });
+    assert.equal(context.cooldownController.readyAt(echo.id), 45 / rate);
+  }
+});
+
+// Autoattacks must not claim the buff even when their authored data includes a positive cooldown.
+test('Arcane Echo ignores autoattacks, non-weapons, follow-ups, zero recharge, and cancelled casts', () => {
+  const weapon = elementalistCatalog.skillsById.get(ID.LIGHTNING_STRIKE);
+  for (const [patch, cancelled] of [
+    [{ autoattack: true }, false],
+    [{ slot: 'Weapon_1', autoattack: false }, false],
+    [{ type: 'Utility' }, false],
+    [{ type: 'Heal' }, false],
+    [{ flipParentId: weapon.id }, false],
+    [{ cooldown: 0 }, false],
+    [{}, true]
+  ]) {
+    const context = arcaneEchoContext();
+    const echo = elementalistCatalog.skillsById.get(ID.ARCANE_ECHO);
+    context.cooldownController.startRecharge(echo, 0);
+    context.cooldownController.setReadyAt(weapon.id, 20);
+    armArcaneEcho(context, { effectiveEnd: 0 });
+    context.time = 2;
+    completeArcaneEcho(context, { start: 1, effectiveEnd: 2, cancelled }, { ...weapon, ...patch });
+    assert.equal(context.profession.core.arcaneEchoUntil, 10);
+    assert.equal(context.cooldownController.readyAt(weapon.id), 20);
+    assert.equal(context.cooldownController.readyAt(echo.id), 15);
+    completeArcaneEcho(context, { start: 1, effectiveEnd: 2 }, weapon);
+    assert.equal(context.profession.core.arcaneEchoUntil, 0);
+  }
+});
+
+// Ammo weapons retain their spent charges and count-recharge queue after the effect is consumed.
+test('Arcane Echo preserves spent ammunition and adds its original count recharge', () => {
+  const context = arcaneEchoContext();
+  const echo = elementalistCatalog.skillsById.get(ID.ARCANE_ECHO);
+  const weapon = elementalistCatalog.skillsById.get(ID.WATER_TRIDENT);
+  context.cooldownController.startRecharge(echo, 0);
+  armArcaneEcho(context, { effectiveEnd: 0 });
+  context.time = 2;
+  context.cooldownController.spendAmmo(weapon, 2, 7);
+  completeArcaneEcho(context, { start: 1, effectiveEnd: 2, rechargeWork: 7 }, weapon);
+  const ammo = context.cooldownController.readAmmo(weapon.id);
+  assert.equal(ammo.charges, 1);
+  assert.deepEqual(ammo.recharges, [{ startedAt: 2, work: 7 }]);
+  assert.equal(context.cooldownController.readyAt(echo.id), 15 + weapon.ammoRecharge);
+});
+
+// Native hit-based recharge reduction must not shrink Echo's surcharge, and the repeat waits for reduced recharge.
+test('Arcane Echo transfers original Ride the Lightning recharge and schedules its repeat after one base second', () => {
+  const weapon = elementalistCatalog.skillsById.get(ID.RIDE_THE_LIGHTNING);
+  const completions = [];
+  const result = runElementalist(
+    [ID.ARCANE_ECHO, weapon.id, weapon.id].map((skillId) => ({ type: 'cast', skillId })),
+    {
+      specialization: 'Core',
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Dagger',
+      startAttunement: 'Air',
+      selectedTraitIds: []
+    },
+    {
+      extend(native) {
+        return {
+          onCastCommit(context, cast) {
+            native.onCastCommit?.(context, cast);
+            if (cast.skill.id === weapon.id)
+              completions.push({
+                at: context.time,
+                committedWork: cast.rechargeWork,
+                echoReady: context.cooldownController.readyAt(ID.ARCANE_ECHO)
+              });
+          }
+        };
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(completions[0].committedWork < gw2BaseRecharge(weapon));
+  assert.equal(completions[0].echoReady, (15 + gw2BaseRecharge(weapon)) / 1.25);
+  assert.equal(completions[1].echoReady, completions[0].echoReady);
+  const repeat = result.events.filter((event) => event.type === 'action' && event.skillId === weapon.id)[1];
+  assert.equal(repeat.at, gw2CooldownReadyAt(completions[0].at + 1 / 1.25));
 });
 
 test('Fervent Stance grants dual-attack Might only inside an armed window', () => {
