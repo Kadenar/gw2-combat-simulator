@@ -17,6 +17,47 @@ import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.j
 const BLADESWORN = 'data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json';
 const HARBINGER = 'data/gw2/builds/necromancer/b-condi-harbinger.json';
 
+// Held Amalgam bonuses must reach both the displayed stats and measured packets without prerequisite casts.
+test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain independently', async () => {
+  const app = await headlessApp('engineer', 'data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json');
+  app.build.specializations = app.build.specializations.filter((entry) => entry.name === 'Amalgam');
+  app.adapter.recalculate(app);
+  const saved = structuredClone({ build: app.build, attributes: app.attributeData });
+  const controls = skillDamageControls(app);
+  for (const key of ['willingHost', 'evolved', 'titanic'])
+    assert.equal(controls.filter((control) => control.key === key).length, 1);
+  assert.ok(!attributeEffectControls(app).some((control) => control.key === 'willingHost'));
+  const baseValues = { ...clearedValues(controls), might: 25 };
+  const base = calculateSkillDamageAttributes(app, baseValues, controls).attributes;
+  const cache = new Map();
+  for (const bonuses of [
+    { willingHost: 1 },
+    { evolved: 1 },
+    { titanic: 1 },
+    { willingHost: 1, evolved: 1, titanic: 1 },
+    {}
+  ]) {
+    const values = { ...baseValues, ...bonuses };
+    const { request } = createSkillDamagePlan(app, controls, values);
+    const strip = calculateSkillDamageAttributes(app, values, controls).attributes;
+    const pool = request.config.amalgamEvolveAttributePool;
+    for (const name of ['Power', 'Condition Damage'])
+      assert.equal(
+        strip[name].final,
+        base[name].final + (bonuses.evolved ? Math.round(pool[name] * 0.2) : 0) + (bonuses.titanic ? 125 : 0)
+      );
+    for (const name of ['Strike Multiplier', 'Condition Multiplier'])
+      assert.ok(Math.abs(strip[name].final - base[name].final - (bonuses.willingHost ? 0.05 : 0)) < 1e-8);
+    const strike = request.occurrences.find((entry) => entry.name === 'Positive Strike');
+    assert.ok(strike);
+    const [measured] = evaluateSkillDamage({ ...request, occurrences: [strike] }, app.profession, cache).occurrences;
+    assert.equal(measured.status, 'measured');
+    assert.equal(measured.measurement.strikeBreakdown.power, strip.Power.final);
+  }
+
+  assert.deepEqual({ build: app.build, attributes: app.attributeData }, saved);
+});
+
 // One ordinary strike shares panel state with the strip; a Beastmode-only strike retains its own form override.
 test('Soulbeast damage attributes and occurrences share merge preparation without changing the saved build', async () => {
   const app = await headlessApp('ranger', 'data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json');
@@ -314,6 +355,54 @@ test('Evoker measures both familiar forms using existing initial charge settings
       occurrences.map((occurrence) => occurrence.config.profession.initialEvokerEmpowered),
       [0, 3]
     );
+    assert.deepEqual(app.build, saved);
+  }
+});
+
+// A familiar's element identifies its payload, not the player's required casting attunement.
+test('Evoker familiar damage follows the preview attunement independently of familiar element', async () => {
+  const app = await headlessApp(
+    'elementalist',
+    'data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json'
+  );
+  app.build.specializations = [
+    { name: 'Fire', traits: '0-0-0' },
+    { name: 'Evoker', traits: '0-0-0' }
+  ];
+  for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
+    app.build.evokerElement = element;
+    app.adapter.recalculate(app);
+    const saved = structuredClone(app.build);
+    const controls = skillDamageControls(app);
+    const measurements = [];
+    for (const damageAttunement of ['Water', 'Fire', 'Water']) {
+      const values = { ...clearedValues(controls), damageAttunement };
+      const plan = createSkillDamagePlan(app, controls, values);
+      const ids = new Set(plan.groups.find((group) => group.id === 'mechanic-familiar').rowIds);
+      const occurrences = plan.request.occurrences.filter((occurrence) => ids.has(occurrence.id));
+      const results = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession).occurrences;
+      assert.ok(
+        results.every((result) => result.measurement != null),
+        element
+      );
+      measurements.push(results.map((result) => result.measurement.strikeBreakdown?.power ?? null));
+    }
+
+    for (const index of [0, 1]) {
+      // Water's familiar forms heal; only damaging familiar forms have a Power breakdown.
+      if (element === 'Water') {
+        assert.deepEqual(
+          measurements.map((entry) => entry[index]),
+          [null, null, null]
+        );
+        continue;
+      }
+
+      // Empowering Flame adds 150 Power in Fire for both basic and empowered familiar attacks.
+      assert.equal(measurements[1][index] - measurements[0][index], 150, element);
+      assert.equal(measurements[2][index], measurements[0][index], element);
+    }
+
     assert.deepEqual(app.build, saved);
   }
 });

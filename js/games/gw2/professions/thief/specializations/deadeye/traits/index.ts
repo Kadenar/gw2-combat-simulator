@@ -1,3 +1,22 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import { STOLEN_SKILLS, stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import {
+  maliceGained,
+  maliceSpent,
+  markCompleted,
+  deadeyeCastCompleted,
+  type DeadeyeCast,
+  type DeadeyeMalice
+} from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -10,6 +29,7 @@ import { activeBoonCount } from '#gw2/professions/thief/specializations/deadeye/
 
 /** Owns Be Quick or Be Killed tuning and behavior at the existing execution boundaries. */
 export const beQuickOrBeKilled = defineTrait({
+  triggers: [onTriggerPoint(markCompleted, { run: grantBeQuickOrBeKilled })],
   id: TRAIT.BE_QUICK_OR_BE_KILLED,
   name: 'Be Quick or Be Killed',
   balance: {
@@ -20,6 +40,7 @@ export const beQuickOrBeKilled = defineTrait({
 
 /** Owns Fire for Effect tuning and behavior at the existing execution boundaries. */
 export const fireForEffect = defineTrait({
+  triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantFireForEffect })],
   id: TRAIT.FIRE_FOR_EFFECT,
   name: 'Fire for Effect',
   balance: {
@@ -48,6 +69,7 @@ export const ironSight = defineTrait({
 
 /** Owns Maleficent Seven tuning and behavior at the existing execution boundaries. */
 export const maleficentSeven = defineTrait({
+  triggers: [onTriggerPoint(maliceGained, { run: applyMaleficentSeven })],
   id: TRAIT.MALEFICENT_SEVEN,
   name: 'Maleficent Seven',
   balance: {
@@ -66,6 +88,7 @@ export const maleficentSeven = defineTrait({
 
 /** Owns Malicious Intent tuning and behavior at the existing execution boundaries. */
 export const maliciousIntent = defineTrait({
+  triggers: [onTriggerPoint(maliceSpent, { run: restoreMaliciousIntent })],
   id: TRAIT.MALICIOUS_INTENT,
   name: 'Malicious Intent',
   balance: {
@@ -75,6 +98,12 @@ export const maliciousIntent = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 export const oneInTheChamber = defineTrait({
+  triggers: [
+    onTriggerPoint(deadeyeCastCompleted, {
+      when: (_runtime, { cast }: DeadeyeCast) => Boolean(cast.skill.categories?.includes('Cantrip')),
+      run: grantOneInTheChamber
+    })
+  ],
   id: TRAIT.ONE_IN_THE_CHAMBER,
   name: 'One in the Chamber',
   modifierRules: [
@@ -132,6 +161,7 @@ export const premeditation = defineTrait({
 
 /** Owns Silent Scope tuning and behavior at the existing execution boundaries. */
 export const silentScope = defineTrait({
+  triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantSilentScope })],
   id: TRAIT.SILENT_SCOPE,
   name: 'Silent Scope',
   balance: {
@@ -165,3 +195,81 @@ export const deadeyeTraits = Object.freeze([
   ironSight,
   oneInTheChamber
 ]);
+
+/** Trait listeners retain deferred rewards and the malice-cycle claim at their owning definitions. */
+function grantBeQuickOrBeKilled(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
+  traitBoons(runtime, cast, 'Be Quick or Be Killed', TRAIT.BE_QUICK_OR_BE_KILLED, false, 'Quickness');
+}
+
+function traitBoons(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast<ThiefSkill> | null,
+  source: string,
+  profileId: SkillId,
+  party: boolean,
+  only?: string
+): void {
+  emitTraitProfile(runtime, profileId, profileId, undefined, {
+    effects: (effect) => effect.type === 'boon' && (only == null || effect.name === only),
+    attribution: {
+      sourceId: `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`,
+      actorType: 'player',
+      ...(cast ? { skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id } : {})
+    },
+    transform: (event, effect) => ({
+      ...event,
+      name: `${source} \u2014 ${effect.boon}`,
+      boon: String(effect.boon),
+      audience: party ? { recipients: 'party', maximumRecipients: 5 } : undefined
+    })
+  });
+}
+
+function grantFireForEffect(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
+  const skill = cast.skill;
+  if (STOLEN_SKILLS.has(skill.id)) traitBoons(runtime, cast, 'Fire for Effect', TRAIT.FIRE_FOR_EFFECT, true);
+}
+
+function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): void {
+  const state = deadeyeState.from(runtime);
+  if (state.malice.value !== state.malice.maximum || state.maleficentSevenTriggered) return;
+  state.maleficentSevenTriggered = true;
+  const initiativeGain = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.MALEFICENT_SEVEN),
+    'resourceGain'
+  );
+  if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+  traitBoons(runtime, cast, 'Maleficent Seven', TRAIT.MALEFICENT_SEVEN, false);
+}
+
+function restoreMaliciousIntent(runtime: ThiefRuntime): void {
+  {
+    runtime.resourceController.grant(
+      'malice',
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
+    );
+    runtime.fireTrigger(maliceGained, { cast: null });
+  }
+}
+
+function grantOneInTheChamber(runtime: ThiefRuntime): void {
+  {
+    const grant = stolenSkillGrant(runtime);
+    storeThiefStolenSkillChoices(runtime, grant.skillIds, grant.forcedSkillId);
+  }
+}
+
+function grantSilentScope(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
+  const skill = cast.skill;
+  const state = deadeyeState.from(runtime);
+  if (skill.id === SHARED_SKILL_IDS.DODGE) {
+    const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);
+    if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
+      // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.
+      state.bonusStealthAttack = grantCharges(
+        1,
+        runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier')
+      );
+    }
+  }
+}

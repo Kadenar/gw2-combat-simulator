@@ -4,7 +4,7 @@ import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/even
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import { masterAtArmsRecharges } from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
+import { radiantVirtueArmed } from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /**
@@ -14,12 +14,8 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 
 export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RADIANT_COURAGE]: {
-    // Master-at-Arms recharges the matching radiant weapons once the virtue commits.
-    sideEffects: [
-      // Commitment arms this virtue's next weapon entitlement.
-      { on: 'castCommit', do: { type: 'guardian.arm-radiant-courage' } },
-      masterAtArmsRecharges[ID.RADIANT_COURAGE]
-    ],
+    // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-radiant-courage' } }],
     castTimeMs: 0,
     // Courage's activation grants these boons to the player and nearby allies.
     effects: [
@@ -28,23 +24,17 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.RADIANT_RESOLVE]: {
-    // Master-at-Arms recharges the matching radiant weapons once the virtue commits.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.resolve-aura' } },
-      // Commitment arms this virtue's next weapon entitlement.
-      { on: 'castCommit', do: { type: 'guardian.arm-radiant-resolve' } },
-      masterAtArmsRecharges[ID.RADIANT_RESOLVE]
+      // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
+      { on: 'castCommit', do: { type: 'guardian.arm-radiant-resolve' } }
     ],
     castTimeMs: 0,
     effects: []
   },
   [ID.RADIANT_JUSTICE]: {
-    // Master-at-Arms recharges the matching radiant weapons once the virtue commits.
-    sideEffects: [
-      // Commitment arms this virtue's next weapon entitlement.
-      { on: 'castCommit', do: { type: 'guardian.arm-radiant-justice' } },
-      masterAtArmsRecharges[ID.RADIANT_JUSTICE]
-    ],
+    // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-radiant-justice' } }],
     castTimeMs: 0,
     effects: []
   }
@@ -76,9 +66,11 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
         icon: context.skill.icon
       }
     });
+    runtime.fireTrigger(radiantVirtueArmed, { context });
   },
-  'guardian.arm-radiant-resolve'(runtime) {
+  'guardian.arm-radiant-resolve'(runtime, context) {
     luminaryState.from(runtime).radiantResolveArmed = true;
+    runtime.fireTrigger(radiantVirtueArmed, { context });
   },
   'guardian.arm-radiant-courage'(runtime, context) {
     if (context.kind !== 'cast') return;
@@ -94,5 +86,6 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
         icon: context.skill.icon
       }
     });
+    runtime.fireTrigger(radiantVirtueArmed, { context });
   }
 };

@@ -167,6 +167,9 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.damageBuff('Compounding Power', 'compoundingPower', 'compounding', true);
+    preview.damageBuff('Illusionary Membrane', 'illusionaryMembrane', 'illusionary-membrane');
 
     // Every specialization seeds its existing resource owner; shatters and instruments spend it normally.
     const resource = mesmerResourceDefinition(context.specialization, context);

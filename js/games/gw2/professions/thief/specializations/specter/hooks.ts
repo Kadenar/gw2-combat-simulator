@@ -38,11 +38,11 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
         grantBarrier(runtime, context.cast, PROFILE.enterShadowShroud, 'Enter Shadow Shroud - Barrier');
     },
     'thief.dawns-barrier'(runtime, context) {
+      // The intrinsic barrier is independent of Shadestep's cast-commit reward.
       if (context.kind === 'cast')
         grantBarrier(runtime, context.cast, PROFILE.dawnsReposeBarrier, "Dawn's Repose - Barrier");
     }
   },
-  // These shroud skills grant their own party boon; Dawn's declaration notifies Shade Step before its barrier.
 
   resources: { shadowForce },
   availability: specterAvailability,

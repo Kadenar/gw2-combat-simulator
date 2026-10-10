@@ -1,3 +1,5 @@
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -26,6 +28,8 @@ test('Shrike resets each completed hit cycle before refunding arrows', () => {
     resourceController: { grant: (resource, amount) => refunds.push([resource, amount, state.missileHits]) },
     effects: captureEffectEmissions({ submit: () => assert.fail('Removed strike must not emit') }).effects
   };
+  // Exercise the same selected point listeners as the live profession.
+  bindTriggerPoints(runtime, rangerProfession, { specialization: 'Galeshot', selectedTraitIds: [TRAIT.SHRIKE] });
   const event = {
     type: 'damage',
     at: 1,

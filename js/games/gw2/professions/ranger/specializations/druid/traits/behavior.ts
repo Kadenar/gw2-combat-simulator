@@ -1,20 +1,18 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import {
   LUNAR_IMPACT_HIT_MS,
   SEED_OF_LIFE_DETONATION_MS
 } from '#gw2/professions/ranger/specializations/druid/skills/index.js';
-import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Trait packets retain their cast-relative pulse times and are filtered by the shared interruption owner. */
 export function avatarEffects(
@@ -81,31 +79,6 @@ export function avatarEffects(
   }
 
   return result;
-}
-
-/** Fires at the Avatar transition before chain reset and swap reactions. */
-export function applyNaturalBalance(runtime: RangerRuntime): void {
-  if (hasTrait(runtime, TRAIT.NATURAL_BALANCE)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_BALANCE);
-    const effect = requireEffect(profile, 'buff', 'natural-balance');
-    if (effect)
-      runtime.effects.emit({
-        kind: 'packet',
-        event: buildRangerPacket(
-          {
-            at: runtime.time,
-            source: 'Trait',
-            sourceId: TRAIT.NATURAL_BALANCE,
-            skillId: TRAIT.NATURAL_BALANCE,
-            skillName: 'Natural Balance',
-            kind: String(effect.kind),
-            duration: effectNumber(profile, effect, 'duration'),
-            stacks: effectNumber(profile, effect, 'stacks')
-          },
-          'buff'
-        )
-      });
-  }
 }
 
 /** Eclipse scales only native Astral Force gain from accepted player impacts. */

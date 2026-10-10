@@ -13,21 +13,23 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
-import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
-  applyGuardianVirtueActivationTraits,
-  indomitableCourageInterval
-} from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
-import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
+  guardianVirtueForSlot,
+  justiceActivated,
+  refreshGuardianVirtues,
+  virtueActivated,
+  type JusticeActivation
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { indomitableCourageInterval } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
+import {
+  dragonhunterCastCompleted,
+  dragonhunterControlAccepted
+} from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/activations.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { reactToDragonhunterJusticeHit } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
-import {
-  bigGameHunterTetherDuration,
-  completeHuntersDetermination,
-  reactToDragonhunterControl
-} from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
+import { bigGameHunterTetherDuration } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -126,6 +128,10 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
 
 /** Dragonhunter owns its landed tether, passive cadence, and committed trap/virtue effects without replay records. */
 export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
+  /** Hold the selected preview state while evaluating detached damage queries. */
+  prepareDamageState(runtime, _skill, inputs) {
+    dragonhunterState.from(runtime).tetherUntil = inputs.bigGameHunter ? Infinity : 0;
+  },
   sideEffectHandlers: {
     // Breaking a tether retires its follow-up without touching parent recharge.
     'guardian.break-tether'(runtime) {
@@ -165,10 +171,10 @@ export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
     const virtue = cast.skill.categories?.includes('Virtue') ? guardianVirtueForSlot(cast.skill.slot) : null;
     if (virtue) {
       refreshGuardianVirtues(runtime);
-      if (readyVirtues.has(cast)) applyGuardianVirtueActivationTraits(runtime, cast, virtue);
+      if (readyVirtues.has(cast)) runtime.fireTrigger(virtueActivated, { cast, virtue });
     }
 
-    completeHuntersDetermination(runtime, cast);
+    runtime.fireTrigger(dragonhunterCastCompleted, { cast });
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
@@ -178,13 +184,13 @@ export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
       reactToDragonhunterJusticeHit(runtime, event, damage);
     },
     'control.resolved'(runtime, event) {
-      if (event.actorType === 'player') reactToDragonhunterControl(runtime, event);
+      if (event.actorType === 'player') runtime.fireTrigger(dragonhunterControlAccepted, { cause: event });
     }
   },
   tasks: {
     [COURAGE]: couragePulse,
-    [FURIOUS]: (runtime, data) =>
-      triggerGuardianFuriousFocus(runtime, data as Parameters<typeof triggerGuardianFuriousFocus>[1]),
+    // The deferred spear grants Furious Focus at its own impact, later than the shared virtue rewards.
+    [FURIOUS]: (runtime, data) => runtime.fireTrigger(justiceActivated, { cast: data as JusticeActivation['cast'] }),
     [TETHER]: attachTether,
     [BURN]: tetherBurn,
     [EXPIRY](runtime, data) {

@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
@@ -170,16 +172,37 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
     /** Compare the native lingering armament window without inventing an independent entitlement field. */
-    previewControls: () => [
-      {
-        key: 'radiantHammer',
-        label: 'Radiant hammer bonus',
-        group: 'Mechanic',
-        kind: 'special' as const,
-        scope: ['damage' as const],
-        description: 'Assume the lingering Radiant Armaments hammer bonus is active'
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.damageBuff('Empowered Armaments', 'empoweredArmaments', 'guardian-empowered-armaments');
+      for (const [id, key, field] of [
+        [GUARDIAN_SKILL_IDS.PIERCING_STANCE, 'piercingStance', 'guardian-piercing-stance'],
+        [GUARDIAN_SKILL_IDS.DARING_ADVANCE, 'daringAdvance', 'guardian-daring-advance']
+      ] as const) {
+        if (preview.skills.has(id))
+          preview.add({
+            key,
+            label: context.catalog.skillsById.get(id)!.name,
+            group: 'Other buffs',
+            kind: 'buff',
+            field,
+            scope: ['damage'],
+            description: 'Damage bonus active'
+          });
       }
-    ],
+
+      return [
+        ...preview.controls,
+        {
+          key: 'radiantHammer',
+          label: 'Radiant hammer bonus',
+          group: 'Mechanic',
+          kind: 'special' as const,
+          scope: ['damage' as const],
+          description: 'Assume the lingering Radiant Armaments hammer bonus is active'
+        }
+      ];
+    },
 
     // Only this specialization offers its trait-proc overlay; storage remains a browser concern.
     timelineOverlays: () => [

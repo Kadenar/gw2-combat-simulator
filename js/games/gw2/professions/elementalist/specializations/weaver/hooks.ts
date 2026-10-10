@@ -12,6 +12,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
@@ -25,7 +26,6 @@ import {
   isElementalistAttunement,
   setElementalistAttunementReadyAt
 } from '#gw2/professions/elementalist/core/state.js';
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane/attunement-swap.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
 import {
@@ -40,6 +40,13 @@ import {
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 import { triggerWeaverSpearFollowups } from '#gw2/professions/elementalist/specializations/weaver/mechanics/spear-followups.js';
 import {
+  weaverAttunementCompleted,
+  weaverCastCompleted,
+  weaverHandsChanged,
+  weaverHandsInitialized,
+  weaverUnraveled
+} from '#gw2/professions/elementalist/specializations/weaver/mechanics/trigger-points.js';
+import {
   applyWeaveSelfAttunement,
   handleWeaveSelfActivation,
   modifyWeaveSelfRechargeStart,
@@ -48,14 +55,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import {
-  applyElementsOfRageAttunement,
-  applyUnravelElementsOfRage,
-  applyWeaverCastTraits,
-  applyWeaversProwess,
-  flowStateAttunementReduction,
-  initializeElementsOfRage
-} from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
+import { flowStateAttunementReduction } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,
@@ -77,7 +77,7 @@ function initialize(context: ElementalistRuntime): void {
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-  initializeElementsOfRage(context);
+  context.fireTrigger(weaverHandsInitialized, { at: context.time });
 }
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
@@ -146,14 +146,14 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   }
 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
-  applyElementsOfRageAttunement(context, event, undefined);
+  context.fireTrigger(weaverHandsChanged, { event });
   applyWeaveSelfAttunement(context, at, target, source, sourceId, undefined);
   // Pre-combat setup swaps must not generate trait procs.
   if (canonicalTime(at) < (context.combatStartTime || 0)) return;
-  applyWeaversProwess(context, event, undefined);
+  context.fireTrigger(weaverAttunementCompleted, { event });
   // A normal Weaver swap moves both hands and so counts as two attunement
   // changes; under Unravel the hands move together and it counts as one.
-  triggerBountifulPower(context, at, unravelActive ? 1 : 2, sourceId, undefined);
+  context.fireTrigger(attunementsCounted, { at, stacks: unravelActive ? 1 : 2, sourceId });
 }
 
 /** Core calls the elite transition once before shared attunement completion effects. */
@@ -190,7 +190,7 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<Elementali
   // attunements on one shared dual recharge, with trait reductions and recharge
   // speed applied in order by the shared attunement-duration calculation.
   if (targetAttunement(skill)) return;
-  applyWeaverCastTraits(context, cast, skill, dualAttunements);
+  context.fireTrigger(weaverCastCompleted, { cast, dualAttunements });
   // Swift Revenge pays out per element of the dual skill that was just cast.
   // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
@@ -327,7 +327,7 @@ export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
           );
         }
 
-        applyUnravelElementsOfRage(context, cast, previousPrimary, previousSecondary);
+        context.fireTrigger(weaverUnraveled, { cast, previousPrimary, previousSecondary });
       }
     },
     [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,

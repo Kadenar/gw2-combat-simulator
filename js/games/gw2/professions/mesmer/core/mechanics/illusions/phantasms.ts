@@ -1,3 +1,5 @@
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -12,12 +14,25 @@ import {
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { mesmerIllusionsGained } from '#gw2/professions/mesmer/core/mechanics/resources.js';
+import { phantasmalHasteSpeed } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+/** Each accepted summon batch captures its trait work before timing and conversion are committed. */
+export interface MesmerPhantasmAdmission {
+  readonly skill: MesmerSkill;
+  repeat?: MesmerPhantasmPolicy['repeat'];
+  bonusStrike?: MesmerPhantasmPolicy['bonusStrike'];
+}
+export const mesmerPhantasmPreparing = defineTriggerPoint<MesmerPhantasmAdmission>('mesmer.phantasm-preparing', [
+  TRAIT.CHRONOPHANTASMA,
+  TRAIT.PHANTASMAL_BLADES
+]);
+
 export interface MesmerPhantasmExecution {
+  readonly policy: MesmerPhantasmPolicy;
   readonly delivery: EffectDelivery;
   readonly skill: MesmerSkill;
   // Index among co-spawned entities (e.g. Bountiful Blades spawns 2 Berserkers: 0 and 1).
@@ -81,7 +96,9 @@ export function createPhantasmEffectController({
     if (skill.resource?.mode !== 'phantasm') return [];
 
     // Skill-owned summon counts use the accepted Clarity snapshot before trait spawn policies.
-    const policy = phantasmPolicy();
+    const admission: MesmerPhantasmAdmission = { skill };
+    state.fireTrigger(mesmerPhantasmPreparing, admission);
+    const policy = { ...phantasmPolicy(), repeat: admission.repeat, bonusStrike: admission.bonusStrike };
     const spawnModifier = policy.spawnModifiers[skill.id];
     const count =
       (clarityConsumed ? (skill.resource.clarityCount ?? skill.resource.count ?? 1) : (skill.resource.count ?? 1)) *
@@ -111,6 +128,7 @@ export function createPhantasmEffectController({
       // Blade ticks table may have fewer entries than phantasm count; clamp to last entry.
       const conversionTick = timing.conversionTicks?.[Math.min(entityIndex, timing.conversionTicks.length - 1)];
       return {
+        policy,
         delivery,
         skill,
         entityIndex,
@@ -139,7 +157,7 @@ export function createPhantasmEffectController({
   };
 
   const addBonusStrike = (execution: MesmerPhantasmExecution, at: number): void => {
-    const bonus = phantasmPolicy().bonusStrike;
+    const bonus = execution.policy.bonusStrike;
     if (!bonus) return;
     buildMesmerStrikes(
       state,
@@ -179,7 +197,7 @@ export function createPhantasmEffectController({
     if (!execution) return;
     const { skill } = execution;
     const count = executions.length;
-    const policy = phantasmPolicy();
+    const policy = execution.policy;
 
     // Lifecycle events use the latest entity's timestamp so the "complete" marker
     // fires after every entity in the batch has finished attacking. They retain explicit phantasm ownership.
@@ -187,14 +205,13 @@ export function createPhantasmEffectController({
     const repeatDamageAt = Math.max(...executions.map((item) => item.repeatDamageAt));
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
 
-    triggerCompoundingPower(
-      state,
-      execution.summonAt,
+    state.fireTrigger(mesmerIllusionsGained, {
+      at: execution.summonAt,
       count,
-      skill.name,
-      `${count} phantasm${count === 1 ? '' : 's'}`,
-      execution.delivery
-    );
+      sourceSkill: skill.name,
+      detail: `${count} phantasm${count === 1 ? '' : 's'}`,
+      delivery: execution.delivery
+    });
 
     {
       const packet = buildMesmerPacket({
@@ -260,14 +277,13 @@ export function createPhantasmEffectController({
     if (!execution.hasRepeat || !policy.repeat) return;
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
-    triggerCompoundingPower(
-      state,
-      execution.spawnAt,
+    state.fireTrigger(mesmerIllusionsGained, {
+      at: execution.spawnAt,
       count,
-      `${skill.name} - ${policy.repeat.label}`,
-      `${count} phantasm${count === 1 ? '' : 's'}`,
-      execution.delivery
-    );
+      sourceSkill: `${skill.name} - ${policy.repeat.label}`,
+      detail: `${count} phantasm${count === 1 ? '' : 's'}`,
+      delivery: execution.delivery
+    });
 
     {
       const packet = buildMesmerPacket({
@@ -470,7 +486,7 @@ export function createPhantasmEffectController({
 
     const initialHitTimes = initialEvents.map((event) => event.at);
     if (execution.hasRepeat) {
-      const repeatPolicy = phantasmPolicy().repeat;
+      const repeatPolicy = execution.policy.repeat;
       if (!repeatPolicy) return;
       // Prefer dedicated repeat tick data; fall back to shifting the initial
       // hit pattern by the delta between repeatDamageAt and damageAt.
@@ -674,7 +690,7 @@ export function createPhantasmEffectController({
     }
 
     if (!execution.hasRepeat || entityConditions.length === 0) return;
-    const repeatPolicy = phantasmPolicy().repeat;
+    const repeatPolicy = execution.policy.repeat;
     if (!repeatPolicy) return;
 
     // Repeat cycle: prefer dedicated repeat tick data; fall back to shifting

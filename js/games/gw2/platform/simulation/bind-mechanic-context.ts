@@ -122,6 +122,7 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
   readonly schedule: MechanicContext<T, TSkill>['schedule'];
   readonly scheduleForCast: MechanicContext<T, TSkill>['scheduleForCast'];
   readonly cancelOwner: MechanicContext<T, TSkill>['cancelOwner'];
+  readonly fireTrigger: MechanicContext<T, TSkill>['fireTrigger'];
   constructor(runtime: Gw2Runtime<T, TSkill>) {
     this.#runtime = runtime;
     this.hasExplicitCombatStart = runtime.hasExplicitCombatStart;
@@ -144,6 +145,7 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.schedule = runtime.schedule;
     this.scheduleForCast = runtime.scheduleForCast;
     this.cancelOwner = runtime.cancelOwner;
+    this.fireTrigger = runtime.fireTrigger;
   }
 
   get queries() {

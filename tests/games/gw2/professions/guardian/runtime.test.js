@@ -1375,6 +1375,18 @@ test('Writ and Consecration extensions keep cast ownership and do not survive an
   }
 });
 
+// Symbol of Ignition's field is selected at cast time, so Writ must extend the selected field, not the catalog one.
+test('Writ of Persistence extends the Symbol of Ignition field selected at cast time', () => {
+  const fieldDuration = (selectedTraitIds) => {
+    const result = run([ID.SYMBOL_OF_IGNITION, wait(8000)], { primaryWeapon: 'Pistol', selectedTraitIds });
+    assert.deepEqual(result.warnings, []);
+    const field = result.events.find((event) => event.type === 'combo_field');
+    return field.expiresAt - field.at;
+  };
+
+  assert.equal(fieldDuration([TRAIT.WRIT_OF_PERSISTENCE]), fieldDuration([]) + 2);
+});
+
 test('Furious Focus ignores transient Alacrity and keeps its exclusive deadline across rotation cooldown resets', () => {
   const result = run(
     [ID.JUSTICE, wait(8000), { type: 'cooldown-reset' }, ID.JUSTICE, wait(40), { type: 'cooldown-reset' }, ID.JUSTICE],

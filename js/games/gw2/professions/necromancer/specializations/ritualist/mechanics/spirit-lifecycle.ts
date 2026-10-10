@@ -1,22 +1,19 @@
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import { runCreatureSummonReactions } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { spiritFields } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
 import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import {
-  applyEmpoweringSpirits,
-  armSoulTwisting,
-  consumeSoulTwisting,
-  lingeringSpiritsActive
-} from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
+import { lingeringSpiritsActive } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -116,10 +113,10 @@ export function summonRitualistSpirit(
     busyUntil: canonicalTime(runtime.time + spirit.initialBusyMs / 1000)
   };
   runtime.resourceController.refresh('lifeForce');
-  consumeSoulTwisting(runtime, cast);
+  runtime.fireTrigger(ritualistSpiritCommitted, { cast, at: runtime.time, activationId: cast.id });
 
-  runCreatureSummonReactions(runtime, cast.skill, runtime.time, 1, cast.id);
-  applyEmpoweringSpirits(runtime, cast, key);
+  runtime.fireTrigger(creatureSummoned, { skill: cast.skill, at: runtime.time, count: 1, activationId: cast.id });
+  runtime.fireTrigger(ritualistSpiritSummoned, { cast, key, at: runtime.time, activationId: cast.id });
 
   startRitualistSpirits(runtime);
 }
@@ -171,7 +168,7 @@ export function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime):
       const state = ritualistState.from(runtime);
       state.resummonedSpiritAutoCycle = Object.keys(state.activeSpirits).length > 0;
       state.spiritAutoAnchorAt = NaN;
-      armSoulTwisting(runtime);
+      runtime.fireTrigger(ritualistShroudEntered, { skill, at: runtime.time });
     },
     onExit: () => {
       if (!lingeringSpiritsActive(runtime)) clearSpirits(runtime);
@@ -209,3 +206,24 @@ export const ritualistSpiritTasks: NonNullable<RuntimeHooks<NecromancerRuntimeSt
       runtime.effects.emit({ kind: 'packet', event: work.event });
   }
 };
+
+/** Preserve the accepted spirit-committed boundary and its original reward order. */
+export const ritualistSpiritCommitted = defineTriggerPoint<{
+  readonly cast: RuntimeCast<NecromancerSkill>;
+  readonly at: number;
+  readonly activationId: string;
+}>('necromancer.spirit-committed', [TRAIT.SOUL_TWISTING]);
+
+/** Preserve the accepted spirit-summoned boundary and its original reward order. */
+export const ritualistSpiritSummoned = defineTriggerPoint<{
+  readonly cast: RuntimeCast<NecromancerSkill>;
+  readonly at: number;
+  readonly activationId: string;
+  readonly key: string;
+}>('necromancer.spirit-summoned', [TRAIT.EMPOWERING_SPIRITS]);
+
+/** Preserve the accepted ritualist-shroud-entered boundary and its original reward order. */
+export const ritualistShroudEntered = defineTriggerPoint<{ readonly skill: NecromancerSkill; readonly at: number }>(
+  'necromancer.ritualist-shroud-entered',
+  [TRAIT.SOUL_TWISTING]
+);

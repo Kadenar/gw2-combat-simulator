@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
-import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
-/** Initialize the real trait registrations against isolated per-run state and the shared emission service. */
+/** Bind the real trait listeners to isolated per-run state and the shared emission service. */
 function fixture(selected, capture = captureEffectEmissions()) {
   const runtime = {
     time: 1,
@@ -17,8 +18,8 @@ function fixture(selected, capture = captureEffectEmissions()) {
     profession: { core: createEngineerCoreState() },
     effects: capture.effects
   };
-  engineerCoreModule.hooks.initialize(runtime);
-  return { runtime, ...capture };
+  const profession = bindTriggerPoints(runtime, engineerProfession);
+  return { runtime, profession, ...capture };
 }
 
 test('toolbelt notifications preserve commit, independent-command, and precast-mine boundaries', () => {
@@ -47,10 +48,10 @@ test('activation subscriptions remain isolated between simulations and respect t
   const selected = fixture([TRAIT.KINETIC_BATTERY]);
   const unselected = fixture([]);
   const toolbelt = engineerCatalog.skillsById.get(ID.DETONATE_MINE_FIELD);
-  notifyToolbeltActivation(selected.runtime, { ...toolbelt, countsAsToolbeltSkill: false }, 1);
+  notifyToolbeltActivation(selected.runtime, { ...toolbelt, countsAsToolbeltSkill: false }, 'cast:1');
   assert.equal(selected.runtime.profession.core.kineticCharges, 0);
-  notifyToolbeltActivation(selected.runtime, toolbelt, 1);
-  notifyToolbeltActivation(unselected.runtime, toolbelt, 1);
+  notifyToolbeltActivation(selected.runtime, toolbelt, 'cast:1');
+  notifyToolbeltActivation(unselected.runtime, toolbelt, 'cast:1');
   assert.equal(selected.runtime.profession.core.kineticCharges, 1);
   assert.equal(unselected.runtime.profession.core.kineticCharges, 0);
   assert.deepEqual(unselected.events, []);
@@ -69,7 +70,7 @@ test('Steel-Packed Powder settles Vulnerability before subsequent explosion reac
       return event;
     }
   });
-  const { runtime } = fixture([TRAIT.STEEL_PACKED_POWDER, TRAIT.SHRAPNEL], capture);
+  const { runtime, profession } = fixture([TRAIT.STEEL_PACKED_POWDER, TRAIT.SHRAPNEL], capture);
   runtime.random = {
     roll() {
       assert.equal(vulnerability, 1);
@@ -77,7 +78,7 @@ test('Steel-Packed Powder settles Vulnerability before subsequent explosion reac
       return false;
     }
   };
-  const react = engineerCoreModule.hooks.reactions['damage.resolved'];
+  const react = profession.reactions['damage.resolved'];
   const hit = { at: 1, actorType: 'effect', ownerActorType: 'player', coefficient: 1, explosion: true };
   react(runtime, { ...hit, coefficient: 0 }, {});
   react(runtime, { ...hit, explosion: false }, {});

@@ -35,10 +35,11 @@ export const conduitUi: RevenantUiSlice = Object.freeze({
     const preview = createPreviewControls(context);
     preview.add({
       key: 'cosmicWisdom',
+      scope: ['attributes', 'damage'],
       label: 'Cosmic Wisdom',
       kind: 'special',
       group: 'Other buffs',
-      description: 'Bolstered Bonds attributes'
+      description: 'Cosmic Wisdom form and Bolstered Bonds attributes'
     });
     return preview.controls;
   },

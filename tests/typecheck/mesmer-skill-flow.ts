@@ -6,7 +6,7 @@ import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
-import { harmonize, mayhem } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
+import { harmonize, syncopate } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 type Assert<T extends true> = T;
@@ -16,8 +16,10 @@ const first = mesmerProfession.runtimeFor({ specialization: 'Chronomancer' });
 const second = mesmerProfession.resolveProfession({ specialization: 'Troubadour' });
 type CoreAvailability = NonNullable<typeof mesmerCoreHooks.availability>;
 type EliteCast = NonNullable<typeof chronomancerHooks.onCastStart>;
-type TraitCast = NonNullable<NonNullable<typeof harmonize.hooks>['onCastCommit']>;
-type TraitTask = NonNullable<NonNullable<typeof mayhem.hooks>['tasks']>[string];
+type TraitCast = NonNullable<
+  Extract<NonNullable<typeof harmonize.triggers>[number], { readonly on: 'castStart' | 'castCommit' }>['run']
+>;
+type TraitTask = NonNullable<NonNullable<typeof syncopate.lifetime>['tasks']>[string];
 
 // Real modules, selected catalogs, and hooks retain profession fields without widening to Skill or any.
 export type MesmerSkillFlowAssertions = [

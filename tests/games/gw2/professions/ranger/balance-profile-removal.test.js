@@ -8,7 +8,8 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
@@ -121,6 +122,8 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
     }),
     profession: { core: createRangerCoreState(config), ...(specialization ? { specialization } : {}) }
   };
+  // Exercise the same selected point listeners as the live profession.
+  bindTriggerPoints(context, rangerProfession, config);
   return context;
 }
 
@@ -166,18 +169,20 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
     effects: { emit: ({ event }) => events.push(event) }
   };
-  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1);
+  // Exercise the same selected point listeners as the live profession.
+  bindTriggerPoints(context, rangerProfession, config);
+  context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 1 });
   const core = context.state.profession.core;
   assert.equal(core.quickDraw.expiresAt, 6);
   assert.equal(core.quickDraw.charges, 1);
   assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
   assert.deepEqual(events, []);
   // The grant cannot bypass the trait's independent ICD, even when its boon packet is absent.
-  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 2);
+  context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 2 });
   assert.equal(core.quickDraw.expiresAt, 6);
-  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 10);
+  context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 10 });
   assert.equal(core.quickDraw.expiresAt, 6, 'the ICD remains blocked at its exact boundary');
-  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 11);
+  context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 11 });
   assert.equal(core.quickDraw.expiresAt, 16);
   assert.equal(core.quickDraw.charges, 1);
 });
@@ -243,8 +248,11 @@ test('a missing required Ranger scalar fails instead of using a local default', 
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
     emit() {}
   };
+  // Exercise the same selected point listeners as the live profession.
+  bindTriggerPoints(context, rangerProfession, config);
   assert.throws(
-    () => applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1),
+    () =>
+      context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 1 }),
     /Invalid balance data: .*field=durationMultiplier/
   );
 });

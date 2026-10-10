@@ -10,12 +10,17 @@ import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/avail
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
 import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import {
+  mesmerConditionApplied,
+  mesmerControlAccepted,
+  mesmerCritical,
+  mesmerStrikeResolved
+} from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import {
   armMesmerSkillFlip,
   exhaustMesmerMantra,
   extendMesmerParentRecharge,
   prepareMesmerMantra
 } from '#gw2/professions/mesmer/core/mechanics/flips.js';
-import { createCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/critical-traits.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
 import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { mesmerMaximumAmmo, mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
@@ -27,9 +32,6 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
-import { triggerMesmerControlTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
-import { applyFencersFinesse, triggerIneptitudeFromBlind } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
-import { triggerThePledge } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
@@ -174,18 +176,16 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'buff.applied': applyMesmerClarity,
       'damage.resolved'(runtime, event, details) {
         const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;
-        createCriticalTraitDispatcher({ state: runtime }).process(
-          { ...event, didCrit: critical.didCrit },
-          critical.chance
-        );
-        applyFencersFinesse(runtime, event);
+        runtime.fireTrigger(mesmerCritical, {
+          event: { ...event, didCrit: critical.didCrit },
+          chance: critical.chance
+        });
+        runtime.fireTrigger(mesmerStrikeResolved, { event });
       },
       'condition.applied'(runtime, event) {
-        triggerThePledge(runtime, event);
-        // Ineptitude observes each accepted Blindness stack through the ordinary condition hook.
-        if (event.condition === 'Blindness') triggerIneptitudeFromBlind(runtime, event);
+        runtime.fireTrigger(mesmerConditionApplied, { event });
       },
-      'control.resolved': triggerMesmerControlTraits
+      'control.resolved': (runtime, event) => runtime.fireTrigger(mesmerControlAccepted, { event })
     }
   }
 ]);

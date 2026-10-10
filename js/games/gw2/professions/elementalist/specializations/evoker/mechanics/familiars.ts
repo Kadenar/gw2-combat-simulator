@@ -1,8 +1,10 @@
+import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
-import { applySpecializedElementsTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
-import { applyFamiliarTraitProcs } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
+import {
+  evokerCastCompleted,
+  familiarSettled
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 /**
  * Familiar cast lifecycle - the heart of the Evoker specialization.
  *
@@ -14,26 +16,26 @@ import { applyFamiliarTraitProcs } from '#gw2/professions/elementalist/specializ
  * (Prowess, Blessing, Galvanic Enchantment, Specialized Elements) and the Evoker
  * meditation payloads.
  */
+import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import { settleBasicFamiliar } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+import { elementalProcessionEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
 import {
   emitResource,
   flushPendingWeaponChargeGains,
   grantWeaponSkillCharges,
   weaponSkillChargeGain
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { settleBasicFamiliar } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { elementalProcessionEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,
@@ -247,18 +249,14 @@ export const evokerSkillCommitTasks: NonNullable<
   }
 };
 /** Release each deferred grant after the familiar reset, then run the final familiar trait observer. */
-export function finishEvokerCast(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
-): void {
+export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);
   if (state.activeFamiliarCast?.reservationId === cast.id) {
     flushPendingWeaponChargeGains(context, state);
     state.activeFamiliarCast = null;
   }
 
-  applySpecializedElementsTrait(context, cast, skill);
+  context.fireTrigger(familiarSettled, { cast });
 }
 
 /**
@@ -270,5 +268,5 @@ export function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<Ele
   // A settled grant cannot fund another retry or be awarded again after a familiar spends it.
   state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
   grantWeaponSkillCharges(context, cast, skill, state);
-  applyFamiliarTraitProcs(context, cast, skill);
+  context.fireTrigger(evokerCastCompleted, { cast });
 }

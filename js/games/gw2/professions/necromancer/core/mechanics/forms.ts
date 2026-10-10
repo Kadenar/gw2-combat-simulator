@@ -2,6 +2,7 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { DEPLETION } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import {
@@ -10,11 +11,9 @@ import {
   runNecromancerShroudExit
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { prepareShroudEntry, shroudEntryEffects } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
-import { applySoulBarbs } from '#gw2/professions/necromancer/core/traits/soul-reaping/shroud.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 
 /** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
 
@@ -76,7 +75,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   }
 
   transition(runtime, false);
-  applySoulBarbs(runtime);
+  runtime.fireTrigger(shroudExited, { at: runtime.time });
 }
 
 /** Lich entry arms one generation-owned expiry shared with manual exit. */
@@ -94,7 +93,12 @@ export function enterLich(runtime: NecromancerRuntime): void {
 export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
   const state = runtime.profession.core;
-  prepareShroudEntry(runtime);
+  // Neither pre-entry resource grant reads conditions; prune before the ordered removals and arming.
+  state.selfConditions = state.selfConditions.filter((application) =>
+    isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
+  );
+  state.plagueSendingArmed = false;
+  runtime.fireTrigger(shroudEntering, { cast, at: runtime.time, activationId: cast.id });
   state.activeShroud = skill.shroudEntry!;
   state.activeShroudEntryId = skill.id;
   state.activeShroudProfileId = skill.shroudProfileId || PROFILE.shroud;
@@ -104,7 +108,7 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   runtime.cooldownController.setReadyAt(skill.id, Infinity);
   runNecromancerShroudEnter(runtime, skill);
   runtime.resourceController.refresh('lifeForce');
-  shroudEntryEffects(runtime, cast);
+  runtime.fireTrigger(shroudEntered, { cast, at: runtime.time, activationId: cast.id });
   transition(runtime, true, skill);
 }
 
@@ -115,3 +119,42 @@ export const necromancerFormTasks = {
   },
   [LICH_EXPIRY]: exitLich
 };
+
+/** Keep the original reward order at the shroud-entering boundary. */
+export const shroudEntering = defineTriggerPoint<{
+  readonly cast: RuntimeCast<NecromancerSkill>;
+  readonly at: number;
+  readonly activationId: string;
+}>('necromancer.shroud-entering', [
+  TRAIT.SOUL_COMPREHENSION,
+  TRAIT.ARMORED_SHROUD,
+  TRAIT.SHROUDED_REMOVAL,
+  TRAIT.PLAGUE_SENDING
+]);
+
+/** Keep the original reward order at the shroud-entered boundary. */
+export const shroudEntered = defineTriggerPoint<{
+  readonly cast: RuntimeCast<NecromancerSkill>;
+  readonly at: number;
+  readonly activationId: string;
+}>('necromancer.shroud-entered', [
+  TRAIT.SOUL_BARBS,
+  TRAIT.AWAKEN_THE_PAIN,
+  TRAIT.FURIOUS_DEMISE,
+  TRAIT.SPEED_OF_SHADOWS,
+  TRAIT.ETERNAL_LIFE,
+  TRAIT.WEAKENING_SHROUD,
+  TRAIT.SPITEFUL_SPIRIT
+]);
+
+/** Keep the original reward order at the shroud-exited boundary. */
+export const shroudExited = defineTriggerPoint<{ readonly at: number }>('necromancer.shroud-exited', [
+  TRAIT.SOUL_BARBS
+]);
+
+/** Keep the original reward order at the shroud-invoked boundary. */
+export const shroudInvoked = defineTriggerPoint<{
+  readonly cast: RuntimeCast<NecromancerSkill>;
+  readonly at: number;
+  readonly activationId: string;
+}>('necromancer.shroud-invoked', [TRAIT.PLAGUE_SENDING, TRAIT.SOUL_BARBS]);

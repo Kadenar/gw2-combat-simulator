@@ -1,3 +1,4 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -54,6 +55,8 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
     helpers: profession.catalog,
     schedule() {}
   };
+  // Bind actual trait selection to the owning lifecycle boundary.
+  bindTriggerPoints(runtime, mesmerProfession, config);
   runtime.effects = captureEffectEmissions({
     submit(event) {
       if (event.type === 'mesmer.phantasm-summoned') prepared.push(event.count);

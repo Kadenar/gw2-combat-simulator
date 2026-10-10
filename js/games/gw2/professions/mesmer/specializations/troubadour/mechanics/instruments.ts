@@ -17,25 +17,24 @@ import { masterOfFragmentationCrescendo } from '#gw2/professions/mesmer/core/tra
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
+import {
+  troubadourCrescendoResolved,
+  troubadourInstrumentAnnounced,
+  troubadourInstrumentCommitted,
+  troubadourInstrumentConditions,
+  troubadourInstrumentControl,
+  troubadourInstrumentStrike
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import {
   activeTroubadourInstrumentsAt,
   troubadourState
 } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import {
-  applyCallAndResponse,
-  applyCrescendoTraits,
-  applyLuteLifeOfTheParty,
-  applyMayhemInstrument,
-  reduceAlteredChordRecharge,
-  shreddingStrike
-} from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
-import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
-function instrumentAttack(
+export function instrumentAttack(
   context: MesmerRuntime,
   skill: MesmerSkill,
   data: MesmerInstrument,
@@ -44,10 +43,9 @@ function instrumentAttack(
   actorType: 'player' | 'summon' = 'player',
   delivery: EffectDelivery = {}
 ): void {
-  const shredding = shreddingStrike(context, data);
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
-  for (const attack of actorType === 'summon' ? [data, shredding] : [shredding]) {
-    if (attack?.type !== 'strike') continue;
+  for (const attack of actorType === 'summon' ? [data] : []) {
+    if (attack.type !== 'strike') continue;
     buildMesmerStrikes(
       context,
       skill,
@@ -67,12 +65,14 @@ function instrumentAttack(
         ...delivery,
         kind: 'packet',
         // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
-        event: attack === shredding ? { ...packet, name: 'Shredding', procType: 'trait' } : packet,
+        event: packet,
         owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });
   }
+
+  context.fireTrigger(troubadourInstrumentStrike, { skill, data, damageAt, source, actorType, delivery });
 
   for (const condition of actorType === 'summon' ? data.conditions || [] : []) {
     buildMesmerConditions(context, skill.name, damageAt, condition, source, '', {
@@ -92,7 +92,7 @@ function instrumentAttack(
   }
 
   // The trait condition is independent of the instrument's strike and recharge behavior.
-  applyMayhemInstrument(context, skill, data, damageAt, source, actorType, delivery);
+  context.fireTrigger(troubadourInstrumentConditions, { skill, data, damageAt, source, actorType, delivery });
 
   // Player and valid afterimage impacts use the same authored control with distinct ownership.
   if (actorType === 'summon')
@@ -108,9 +108,7 @@ function instrumentAttack(
       attribution: { source, sourceId: skill.id, actorType, skillId: skill.id, skillName: skill.name }
     });
 
-  scheduleSyncopateDrumWave(context, skill, data, damageAt, source, actorType, delivery);
-
-  applyLuteLifeOfTheParty(context, skill, data, damageAt, delivery);
+  context.fireTrigger(troubadourInstrumentControl, { skill, data, damageAt, source, actorType, delivery });
 }
 
 /** Spends notes and commits the active-instrument state after its cast completes. */
@@ -150,7 +148,7 @@ function commitInstrument(
     });
   }
 
-  applyCallAndResponse(context, skill, data, at, spent, instrumentAttack, delivery);
+  context.fireTrigger(troubadourInstrumentCommitted, { skill, data, at, spent, delivery });
 
   {
     const packet = buildMesmerPacket({
@@ -168,7 +166,7 @@ function commitInstrument(
     });
   }
 
-  reduceAlteredChordRecharge(context, spent, at);
+  context.fireTrigger(troubadourInstrumentAnnounced, { spent, at });
 }
 
 /** Resolves Crescendo against the instruments active at its cast-start packet timestamp. */
@@ -208,7 +206,13 @@ export function resolveCrescendo(
       });
     });
 
-  applyCrescendoTraits(context, skill, damageAt, at, delivery);
+  context.fireTrigger(troubadourCrescendoResolved, {
+    skill,
+    damageAt,
+    at,
+    delivery,
+    lastInstrument: troubadourState.from(context).lastInstrument
+  });
 }
 
 /** Registers performance packets at cast start while leaving note spending and instrument state at completion. */

@@ -1,15 +1,45 @@
-import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { skillForEvent, targetConditionCount, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
+
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+
+import type {
+  StealAcceptance,
+  ThiefConditionApplication,
+  ThiefStrike,
+  VenomConsumption
+} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import {
+  stealAccepted,
+  thiefConditionApplied,
+  thiefStruck,
+  venomsConsumed
+} from '#gw2/professions/thief/core/mechanics/boundaries.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
+import { potentPoisonStacks } from '#gw2/professions/thief/core/traits/deadly-arts/poison.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+
+import { stealCompleted, type StealCompletion } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 
 /** Owns Dagger Training tuning and behavior at the existing execution boundaries. */
 export const daggerTraining = defineTrait({
@@ -39,6 +69,7 @@ export const daggerTraining = defineTrait({
 export const deadlyAmbition = defineTrait({
   id: TRAIT.DEADLY_AMBITION,
   name: 'Deadly Ambition',
+  triggers: [onTriggerPoint(thiefStruck, { run: applyDeadlyAmbition })],
   balance: {
     attributeBonus: 180,
     playerStacks: 2,
@@ -63,6 +94,7 @@ export const deadlyAmbition = defineTrait({
 export const evenTheOdds = defineTrait({
   id: TRAIT.EVEN_THE_ODDS,
   name: 'Even the Odds',
+  triggers: [onTriggerPoint(stealAccepted, { run: applyEvenTheOdds })],
   balance: {
     effects: [
       {
@@ -118,6 +150,13 @@ export const exposedWeakness = defineTrait({
 export const improvisation = defineTrait({
   id: TRAIT.IMPROVISATION,
   name: 'Improvisation',
+  triggers: [
+    // Antiquary Swipe pilfers shorten recharging utilities before Kleptomaniac.
+    onTriggerPoint(stealCompleted, {
+      when: (_runtime, { swipe }: StealCompletion) => swipe === true,
+      run: reduceUtilityRecharges
+    })
+  ],
   balance: {
     maximumStacks: 2,
     internalCooldown: 15,
@@ -131,6 +170,7 @@ export const improvisation = defineTrait({
 export const lotusPoison = defineTrait({
   id: TRAIT.LOTUS_POISON,
   name: 'Lotus Poison',
+  triggers: [onTriggerPoint(thiefConditionApplied, { run: applyLotusPoison })],
   balance: {
     internalCooldown: 10,
     effects: [
@@ -144,8 +184,9 @@ export const lotusPoison = defineTrait({
 export const mug = defineTrait({
   id: TRAIT.MUG,
   name: 'Mug',
+  triggers: [onTriggerPoint(stealAccepted, { run: applyMug })],
   balance: {
-    effects: [{ type: 'strike', name: 'Mug', coefficient: 1.5, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Mug', canCrit: false, coefficient: 1.5, hits: 1 }]
   }
 });
 
@@ -153,6 +194,10 @@ export const mug = defineTrait({
 export const panicStrike = defineTrait({
   id: TRAIT.PANIC_STRIKE,
   name: 'Panic Strike',
+  triggers: [
+    onTriggerPoint(venomsConsumed, { run: applyPanicStrike }),
+    onTriggerPoint(thiefConditionApplied, { run: applyPanicStrikePoison })
+  ],
   balance: {
     threshold: 3,
     internalCooldown: 20,
@@ -230,6 +275,7 @@ export const revealedTraining = defineTrait({
 export const serpentsTouch = defineTrait({
   id: TRAIT.SERPENTS_TOUCH,
   name: "Serpent's Touch",
+  triggers: [onTriggerPoint(stealAccepted, { run: applySerpentsTouch })],
   balance: {
     playerStacks: 3,
     effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 2, duration: 10 }]
@@ -258,4 +304,235 @@ export function applyRevealedTrainingAttributes(
       result.power += balanceProfileNumber(revealedTrainingProfile, 'attributePerStack');
     }
   }
+}
+
+function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EVEN_THE_ODDS);
+  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+  if (!vulnerability) return;
+  emitTraitProfile(runtime, TRAIT.EVEN_THE_ODDS, TRAIT.EVEN_THE_ODDS, undefined, {
+    at: runtime.time,
+    fullEnd: runtime.time,
+    effect: { type: 'condition', name: 'Vulnerability' },
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.EVEN_THE_ODDS,
+      activationId: cast.id,
+      name: 'Even the Odds — Vulnerability',
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name
+    }
+  });
+}
+
+/** Improvisation shortens every selected, still-recharging utility once per internal cooldown. */
+function reduceUtilityRecharges(runtime: ThiefRuntime): void {
+  // An eligible pilfer claims the interval even when no selected utility is recharging.
+  if (!runtime.procs.claim(TRAIT.IMPROVISATION, 'thief.antiquary.improvisation', runtime.time)) return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.IMPROVISATION);
+  const multiplier = balanceProfileNumber(profile, 'rechargeMultiplier');
+  for (const id of selectedSkillIdSet(runtime.config.selectedSkillIds)) {
+    const skill = runtime.helpers.skillsById.get(id);
+    if (skill?.type === 'Utility')
+      runtime.cooldownController.reduceSkillRecharge(skill, gw2BaseRecharge(skill) * (1 - multiplier), runtime.time);
+  }
+}
+
+/** Mug is an uncritical strike owned by the steal skill. */
+function applyMug(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+  // The steal supplies identity; the authored noncritical strike supplies all damage fields.
+  emitTraitProfile(runtime, TRAIT.MUG, TRAIT.MUG, undefined, {
+    at: runtime.time,
+    effect: { type: 'strike', name: 'Mug' },
+    activationId: cast.id,
+    attribution: { actorType: 'player', skillId: cast.skill.id, skillName: cast.skill.name, name: 'Mug' }
+  });
+}
+
+/** Serpent's Touch Poison is attributed to its trait while retaining the triggering steal. */
+function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SERPENTS_TOUCH);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  if (!poison) return;
+  emitTraitProfile(runtime, TRAIT.SERPENTS_TOUCH, TRAIT.SERPENTS_TOUCH, undefined, {
+    at: runtime.time,
+    fullEnd: runtime.time,
+    effect: { type: 'condition', name: 'Poisoned' },
+    attribution: {
+      source: 'Trait',
+      skillId: TRAIT.SERPENTS_TOUCH,
+      skillName: "Serpent's Touch",
+      triggeredBy: cast.skill.name,
+      activationId: cast.id,
+      name: "Serpent's Touch — Poison",
+      actorType: 'player',
+      sourceId: TRAIT.SERPENTS_TOUCH
+    },
+    transform: (packet) => ({ ...packet, stacks: potentPoisonStacks(runtime, profile, poison) })
+  });
+}
+
+/**
+ * The first landed strike of each dual attack applies poison, even when its cast is interrupted later. Returned
+ * projectile damage keeps its original skill label while the dual-wield recall owns this trait proc.
+ */
+function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStrike): void {
+  const recallId = cause.metadata?.recallSkillId;
+  const event: ThiefResolverEvent =
+    recallId == null ? cause : { ...cause, skillId: Number(recallId), sourceId: Number(recallId) };
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  const skill = skillForEvent(context.helpers, event);
+  if (!skill || event.sourceId !== skill.id) return;
+  const isDualWieldAttack =
+    skill.categories?.includes('DualWield') ||
+    Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
+  if (!isDualWieldAttack) return;
+  const state = professionCoreState(context);
+
+  const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBITION);
+  const poison = requireEffect(deadlyAmbitionProfile, 'condition', 'Poisoned');
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!poison) return;
+  // Preserve the local identity rule for packets without an activation ID.
+  const activation = event.activationId || `${skill.id}:${event.at}`;
+  if (!claimActivation(state.activationClaims, 'thief.deadly-ambition', activation)) return;
+  emitTraitProfile(context, TRAIT.DEADLY_AMBITION, TRAIT.DEADLY_AMBITION, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'condition', name: 'Poisoned' },
+    settlement: 'reaction',
+    attribution: {
+      source: 'Trait',
+      actorType: 'player',
+      skillId: TRAIT.DEADLY_AMBITION,
+      skillName: 'Deadly Ambition',
+      activationId: event.activationId,
+      triggeredBy: event.skillName,
+      sourceId: TRAIT.DEADLY_AMBITION,
+      name: 'Deadly Ambition — Poison'
+    },
+    transform: (packet) => ({ ...packet, stacks: potentPoisonStacks(context.config, deadlyAmbitionProfile, poison) })
+  });
+}
+
+/** Player-applied poison grants self Might and target Weakness once per shared ten-second cooldown. */
+function applyLotusPoison(context: ThiefResolverContext, { cause: event }: ThiefConditionApplication): void {
+  if (event.condition !== 'Poisoned' || event.actorType !== 'player' || (event.metadata?.triggeredByAlly || 0) > 0)
+    return;
+
+  const lotusPoisonProfile = requireBalanceProfileFromContext(context, TRAIT.LOTUS_POISON);
+  if (
+    !context.procs.claimCooldown(
+      TRAIT.LOTUS_POISON,
+      event.at,
+      balanceProfileNumber(lotusPoisonProfile, 'internalCooldown')
+    )
+  )
+    return;
+  const might = requireEffect(lotusPoisonProfile, 'boon', 'Might');
+  if (might) {
+    const boon = String(might.boon);
+    emitTraitProfile(context, TRAIT.LOTUS_POISON, TRAIT.LOTUS_POISON, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'boon', name: 'Might' },
+      durationContext: event,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.LOTUS_POISON,
+        actorType: 'effect',
+        skillId: TRAIT.LOTUS_POISON,
+        skillName: 'Lotus Poison',
+        name: `Lotus Poison - ${boon}`,
+        audience: { recipients: 'self' },
+        triggeredBy: event.skillName
+      }
+    });
+  }
+
+  const weakness = requireEffect(lotusPoisonProfile, 'condition', 'Weakness');
+  if (weakness)
+    emitTraitProfile(context, TRAIT.LOTUS_POISON, TRAIT.LOTUS_POISON, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Weakness' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.LOTUS_POISON,
+        actorType: 'player',
+        skillId: TRAIT.LOTUS_POISON,
+        skillName: 'Lotus Poison',
+        name: 'Lotus Poison - Weakness',
+        activationId: event.activationId,
+        triggeredBy: event.skillName
+      }
+    });
+}
+
+function applyPanicStrike(context: ThiefResolverContext, { cause: event }: VenomConsumption): void {
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+
+  const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
+  if (poisonTargetConditionCount(context, event.at) < balanceProfileNumber(panicStrikeProfile, 'threshold')) return;
+  const immobilized = requireEffect(panicStrikeProfile, 'condition', 'Immobilized');
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!immobilized) return;
+  // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
+  if (
+    !context.procs.claimCooldown(
+      TRAIT.PANIC_STRIKE,
+      event.at,
+      balanceProfileNumber(panicStrikeProfile, 'internalCooldown')
+    )
+  )
+    return;
+  emitTraitProfile(context, TRAIT.PANIC_STRIKE, TRAIT.PANIC_STRIKE, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'condition', name: 'Immobilized' },
+    settlement: 'reaction',
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.PANIC_STRIKE,
+      actorType: 'player',
+      skillId: TRAIT.PANIC_STRIKE,
+      skillName: 'Panic Strike',
+      name: 'Panic Strike - Immobilized',
+      activationId: `panic-strike:${event.at}`,
+      triggeredBy: event.skillName
+    }
+  });
+}
+
+function applyPanicStrikePoison(
+  context: ThiefResolverContext,
+  { cause: application }: ThiefConditionApplication
+): void {
+  if (application.condition !== 'Immobilized' || application.actorType !== 'player') return;
+
+  const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
+  const poison = requireEffect(panicStrikeProfile, 'condition', 'Poisoned');
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!poison) return;
+  emitTraitProfile(context, TRAIT.PANIC_STRIKE, TRAIT.PANIC_STRIKE, undefined, {
+    at: application.at,
+    fullEnd: application.at,
+    effect: { type: 'condition', name: 'Poisoned' },
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.PANIC_STRIKE,
+      actorType: 'player',
+      skillId: TRAIT.PANIC_STRIKE,
+      skillName: 'Panic Strike',
+      name: 'Panic Strike - Poison',
+      activationId: application.activationId || `panic-strike:${application.at}`,
+      triggeredBy: application.skillName
+    },
+    transform: (packet) => ({ ...packet, stacks: potentPoisonStacks(context.config, panicStrikeProfile, poison) })
+  });
+}
+
+function poisonTargetConditionCount(context: ThiefResolverContext, at: number): number {
+  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.combat.targetHasCondition(condition, at)).length;
 }

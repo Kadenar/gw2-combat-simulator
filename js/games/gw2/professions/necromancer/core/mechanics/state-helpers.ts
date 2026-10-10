@@ -1,7 +1,9 @@
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /**
  * Shared live Carapace, Soul Shard, and creature-summon operations.
@@ -9,8 +11,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
  */
 
 import { addTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
 const SOUL_SHARD_MAXIMUM_STACKS = 6;
@@ -73,73 +75,22 @@ export function consumeSoulShards(state: NecromancerCoreState, stacks: number, a
   return consumed;
 }
 
-type CreatureSummonReaction = (
-  skill: NecromancerSkill,
-  at: number,
-  count: number,
-  activationId: string | undefined
-) => void;
+/** Preserve the existing ordered rewards at the accepted creature-summoned boundary. */
+export const creatureSummoned = defineTriggerPoint<{
+  readonly skill: NecromancerSkill;
+  readonly at: number;
+  readonly count: number;
+  readonly activationId: string | undefined;
+}>('necromancer.creature-summoned', [TRAIT.BOON_OF_CREATION, TRAIT.EXPLOSIVE_GROWTH]);
 
-// Each simulation owns its creature reactions and multipliers independently of other runs.
-const creatureSummonReactions = new WeakMap<NecromancerRuntime, Map<string, CreatureSummonReaction>>();
-
-/**
- * Registers an active module's reaction without making Core depend on that
- * module. The caller supplies the simulation owner and actual summon attribution.
- */
-export function registerCreatureSummonReaction(
-  owner: NecromancerRuntime,
-  id: string,
-  reaction: CreatureSummonReaction
-): void {
-  let reactions = creatureSummonReactions.get(owner);
-  if (!reactions) {
-    reactions = new Map();
-    creatureSummonReactions.set(owner, reactions);
-  }
-
-  reactions.set(id, reaction);
+// One active elite may supply a pure creature value policy; summon reactions use compiled points above.
+const creatureStrikeScaling = new WeakMap<NecromancerRuntime, () => number>();
+/** Install the selected specialization's scalar query without subscribing a trait reaction. */
+export function setNecromancerCreatureStrikeScaling(runtime: NecromancerRuntime, scaling: () => number): void {
+  creatureStrikeScaling.set(runtime, scaling);
 }
 
-/** Dispatches a creature summon to every reaction registered for this simulation state. */
-export function runCreatureSummonReactions(
-  owner: NecromancerRuntime,
-  skill: NecromancerSkill,
-  at: number,
-  count: number,
-  activationId: string | undefined
-): void {
-  for (const reaction of creatureSummonReactions.get(owner)?.values() || []) {
-    reaction(skill, at, count, activationId);
-  }
-}
-
-type CreatureStrikeMultiplier = () => number;
-
-const creatureStrikeMultipliers = new WeakMap<NecromancerRuntime, Map<string, CreatureStrikeMultiplier>>();
-
-/** Registers specialization-owned multipliers that must be stamped onto Core creature attacks. */
-export function registerNecromancerCreatureStrikeMultiplier(
-  owner: NecromancerRuntime,
-  id: string,
-  multiplier: CreatureStrikeMultiplier
-): void {
-  let multipliers = creatureStrikeMultipliers.get(owner);
-  if (!multipliers) {
-    multipliers = new Map();
-    creatureStrikeMultipliers.set(owner, multipliers);
-  }
-
-  multipliers.set(id, multiplier);
-}
-
-/** Multiplies all registered Core and specialization contributions for a creature strike. */
-export function necromancerCreatureStrikeMultiplier(owner: NecromancerRuntime): number {
-  let multiplier = 1;
-  for (const contribution of creatureStrikeMultipliers.get(owner)?.values() || []) {
-    // A specialization can explicitly disable creature strikes with a zero multiplier.
-    multiplier *= contribution();
-  }
-
-  return multiplier;
+/** Core creatures sample their active specialization's scalar when committing an attack. */
+export function necromancerCreatureStrikeMultiplier(runtime: NecromancerRuntime): number {
+  return creatureStrikeScaling.get(runtime)?.() ?? 1;
 }

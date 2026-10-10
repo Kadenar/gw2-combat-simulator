@@ -4,7 +4,6 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { SIGNET_INITIATIVE } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -12,6 +11,11 @@ import { canonicalTime } from '#kernel/core/clock.js';
 // The prepared field's five packets begin after the activation-to-damage delay observed in EVTC.
 const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
 const PITFALL_PULSE_OFFSETS_MS = [1000, 2000, 3000];
+
+// Signets announce their completed activation at cast end, so trait rewards never follow an interrupted cast.
+const SIGNET_COMPLETED: NonNullable<Skill['sideEffects']> = [
+  { on: 'castCommit', do: { type: 'thief.signet-completed' } }
+];
 
 // EVTC-measured Quickness timings keep utility casts aligned with their observed cast-lane occupancy.
 // Share each impact's timing while preserving effect order and effect-local payloads.
@@ -122,7 +126,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
   },
   [ID.ASSASSINS_SIGNET]: {
     // Activate only after recharge settlement.
-    sideEffects: [...SIGNET_INITIATIVE, { on: 'castCommit', do: { type: 'thief.assassins-signet' } }],
+    sideEffects: [...SIGNET_COMPLETED, { on: 'castCommit', do: { type: 'thief.assassins-signet' } }],
 
     castTimeMs: 0,
     cooldown: 20,
@@ -130,7 +134,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: []
   },
   [ID.SIGNET_OF_MALICE]: {
-    sideEffects: SIGNET_INITIATIVE,
+    sideEffects: SIGNET_COMPLETED,
     castTimeMs: 200,
     cooldown: 12,
     initiativeCost: 0,
@@ -161,7 +165,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
   [ID.SIGNET_OF_AGILITY]: {
     // The active grant commits once and uses the selected balance profile.
     sideEffects: [
-      ...SIGNET_INITIATIVE,
+      ...SIGNET_COMPLETED,
       {
         on: 'castCommit',
         do: {
@@ -178,7 +182,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
   },
   [ID.INFILTRATORS_SIGNET]: {
     // Activate only after recharge settlement.
-    sideEffects: [...SIGNET_INITIATIVE, { on: 'castCommit', do: { type: 'thief.restart-signet' } }],
+    sideEffects: [...SIGNET_COMPLETED, { on: 'castCommit', do: { type: 'thief.restart-signet' } }],
     // The active shadowstep participates in movement traits and relic triggers.
     movementSkill: true,
     shadowstepSkill: true,

@@ -1,24 +1,47 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { invocationFervorGranted } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import {
+  renegadeBoonApplied,
+  renegadeCastCompleted,
+  renegadeStruck
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/boundaries.js';
+import {
+  bandTogetherReady,
+  grantKallasFervor
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import {
   RENEGADE_PROFILE_IDS as PROFILE,
   RENEGADE_PROFILE_IDS
 } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { warbandCompleted } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { kallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns All for One tuning and behavior at its established execution boundaries. */
 export const allForOne = defineTrait({
+  triggers: [
+    onTriggerPoint(warbandCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof warbandCompleted>) => grantAllForOneEnergy(runtime, input.enhanced)
+    })
+  ],
   id: TRAIT.ALL_FOR_ONE,
   name: 'All for One',
   balance: {
@@ -39,6 +62,15 @@ export const allForOne = defineTrait({
 
 /** Owns Ambush Commander tuning and behavior at its established execution boundaries. */
 export const ambushCommander = defineTrait({
+  triggers: [
+    onTriggerPoint(invocationFervorGranted, {
+      requiresSelection: false,
+      run: (runtime, input: TriggerPointInput<typeof invocationFervorGranted>) => grantKallasFervor(runtime, input)
+    }),
+    onTriggerPoint(renegadeStruck, {
+      run: (runtime, input: TriggerPointInput<typeof renegadeStruck>) => criticalTraits(runtime, input.cause, input.hit)
+    })
+  ],
   id: TRAIT.AMBUSH_COMMANDER,
   name: 'Ambush Commander',
   profiles: [
@@ -65,6 +97,11 @@ export const ambushCommander = defineTrait({
 
 /** Owns Ashen Demeanor tuning and behavior at its established execution boundaries. */
 export const ashenDemeanorTrait = defineTrait({
+  triggers: [
+    onTriggerPoint(renegadeCastCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof renegadeCastCompleted>) => ashenDemeanor(runtime, input.cast)
+    })
+  ],
   id: TRAIT.ASHEN_DEMEANOR,
   name: 'Ashen Demeanor',
   balance: {
@@ -80,6 +117,11 @@ export const ashenDemeanorTrait = defineTrait({
 
 /** Owns Blood Fury tuning and behavior at its established execution boundaries. */
 export const bloodFury = defineTrait({
+  triggers: [
+    onTriggerPoint(renegadeBoonApplied, {
+      run: (runtime, input: TriggerPointInput<typeof renegadeBoonApplied>) => furyTraits(runtime, input.cause)
+    })
+  ],
   id: TRAIT.BLOOD_FURY,
   name: 'Blood Fury',
   balance: {
@@ -401,3 +443,61 @@ export const traitDefinitions = [
   vindication,
   heartpiercer
 ];
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function grantAllForOneEnergy(runtime: RevenantRuntime, enhanced: boolean): void {
+  if (enhanced)
+    runtime.resourceController.grant(
+      'energy',
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.allForOne), 'resourceGain')
+    );
+}
+
+/** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
+function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?: Gw2HitResolutionContext): void {
+  const critical = Boolean(hit?.critEligible && hit.critical.didCrit);
+  // A defiant golem never rotates, so flanking/behind positional triggers always apply.
+  if (Boolean(runtime.config.target?.defiant) || critical)
+    grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander', cause: event });
+}
+
+/** Ashen Demeanor grants its Fervor and self boons once per healing-skill cooldown. */
+function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  if (cast.skill.slot !== 'Heal') return;
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashenDemeanor);
+  if (!runtime.procs.claimCooldown('ashenDemeanor', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
+  for (let stack = 0; stack < Math.max(0, balanceProfileNumber(profile, 'fervorStacks')); stack += 1)
+    grantKallasFervor(runtime, { sourceId: TRAIT.ASHEN_DEMEANOR, sourceName: profile.name });
+  // Fervor has settled; surviving self boons use the same authored materialization as other traits.
+  emitTraitProfile(runtime, TRAIT.ASHEN_DEMEANOR, PROFILE.ashenDemeanor, undefined, {
+    at: runtime.time,
+    activationId: cast.id,
+    effects: (effect) => effect.type === 'boon',
+    attribution: (effect) => ({
+      source: 'revenant',
+      actorType: 'player',
+      skillId: TRAIT.ASHEN_DEMEANOR,
+      skillName: profile.name,
+      audience: effect.audience ?? { recipients: 'self' }
+    }),
+    transform: (packet) => ({ ...packet, name: profile.name + ' — ' + packet.kind })
+  });
+}
+
+/** Received Fury advances Blood Fury's Fervor on its own cooldown. */
+function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
+  if ((event.kind || '').toLowerCase() !== 'fury') return;
+  {
+    const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodFury);
+    // The Fury trigger claims its interval even if Fervor is already capped.
+    if (
+      !runtime.procs.claimCooldown(
+        'revenant.renegade.bloodFury',
+        runtime.time,
+        Math.max(0, balanceProfileNumber(profile, 'cooldown'))
+      )
+    )
+      return;
+    grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
+  }
+}

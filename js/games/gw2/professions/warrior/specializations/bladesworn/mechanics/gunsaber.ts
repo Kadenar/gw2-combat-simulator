@@ -3,10 +3,10 @@ import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { resetSoldierFocus } from '#gw2/professions/warrior/core/traits/tactics/index.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { focusReset } from '#gw2/professions/warrior/core/mechanics/combat.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { gunsaberEntryTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
@@ -16,7 +16,7 @@ export function swapGunsaber(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, 
   // Every actual Gunsaber entry or exit shares weapon-swap recovery, including entry through Dragon Trigger.
   lockTransitionInput(runtime, 'weaponSwapMs', cast.skill);
   resetAutoattackChains(runtime);
-  resetSoldierFocus(runtime);
+  runtime.fireTrigger(focusReset, {});
   const swapId = cast.skill.id === ID.DRAGON_TRIGGER ? ID.UNSHEATHE_GUNSABER : cast.skill.id;
   if (cast.skill.id === ID.DRAGON_TRIGGER)
     runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.UNSHEATHE_GUNSABER)!, runtime.time);
@@ -36,7 +36,7 @@ export function swapGunsaber(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, 
       weaponSet: runtime.activeWeaponSet
     }
   });
-  if (active) gunsaberEntryTraits(runtime, cast);
+  if (active) runtime.fireTrigger(gunsaberEntered, { cast });
 }
 
 /** Bar replacement and explicit transition eligibility precede charge-specific readiness. */
@@ -67,3 +67,9 @@ export function gunsaberAttackAvailability(runtime: MechanicQueriesOf<Runtime>, 
 
   return CAST_READY;
 }
+
+/** Gunsaber entry rewards share their original recharge gate after the bar transaction. */
+export const gunsaberEntered = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>(
+  'warrior.gunsaber-entered',
+  [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_FLOW]
+);

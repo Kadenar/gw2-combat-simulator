@@ -1,10 +1,11 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane/attunement-swap.js';
+import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -38,8 +39,9 @@ for (const { threshold, progress, grants } of [
       }).effects
     };
 
+    bindTriggerPoints(context, elementalistProfession);
     for (const [index, stacks] of [1, 2, 2, 1].entries()) {
-      triggerBountifulPower(context, index, stacks, ID.AIR_ATTUNEMENT);
+      context.fireTrigger(attunementsCounted, { at: index, stacks: stacks, sourceId: ID.AIR_ATTUNEMENT });
       assert.equal(core.bountifulPowerProgress, progress[index]);
       for (const kind of ['quickness', 'bountiful-power-active']) {
         assert.equal(events.filter((event) => event.kind === kind).length, grants[index]);

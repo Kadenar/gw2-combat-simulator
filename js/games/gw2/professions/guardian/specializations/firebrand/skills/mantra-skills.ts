@@ -1,6 +1,5 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { weightyTermsRewards } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
 
 /**
  * Owns Firebrand mantra preparation and charge-variant skill fragments.
@@ -59,11 +58,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.OVERWHELMING_CELERITY]: {
-    // Weighty Terms rewards precede final-charge retirement.
-    sideEffects: [
-      ...weightyTermsRewards,
-      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_POTENCE}` } }
-    ],
+    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_POTENCE}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -150,11 +146,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.FLAME_SURGE]: {
-    // Weighty Terms rewards precede final-charge retirement.
-    sideEffects: [
-      ...weightyTermsRewards,
-      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_FLAME}` } }
-    ],
+    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_FLAME}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -173,11 +166,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.REJUVENATING_RESPITE]: {
-    // Weighty Terms rewards precede final-charge retirement.
-    sideEffects: [
-      ...weightyTermsRewards,
-      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }
-    ],
+    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -188,11 +178,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.UNHINDERED_DELIVERY]: {
-    // Weighty Terms rewards precede final-charge retirement.
-    sideEffects: [
-      ...weightyTermsRewards,
-      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_LIBERATION}` } }
-    ],
+    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_LIBERATION}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],

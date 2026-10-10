@@ -1,3 +1,4 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -8,8 +9,10 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { ConditionEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
@@ -17,8 +20,11 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { mesmerConditionApplied } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
+import { mesmerIllusionsGained } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -26,6 +32,12 @@ import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/
 
 /** Own Compounding Power tuning alongside its runtime behavior. */
 export const compoundingPower = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerIllusionsGained, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerIllusionsGained>) =>
+        triggerCompoundingPower(runtime, input.at, input.count, input.sourceSkill, input.detail, input.delivery)
+    })
+  ],
   id: TRAIT.COMPOUNDING_POWER,
   name: 'Compounding Power',
   balance: {
@@ -72,6 +84,12 @@ export const cryOfPain = defineTrait<MesmerSkill>({
 
 /** Own Maim the Disillusioned tuning alongside its runtime behavior. */
 export const maimTheDisillusioned = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerShatterResolved, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterResolved>) =>
+        triggerMaimTheDisillusioned(runtime, input.resolution)
+    })
+  ],
   id: TRAIT.MAIM_THE_DISILLUSIONED,
   name: 'Maim the Disillusioned',
   balance: {
@@ -194,6 +212,12 @@ export const shatterStorm = defineTrait<MesmerSkill>({
 
 /** Own The Pledge tuning alongside its runtime behavior. */
 export const thePledge = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerConditionApplied, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerConditionApplied>) =>
+        triggerThePledge(runtime, input.event)
+    })
+  ],
   id: TRAIT.THE_PLEDGE,
   name: 'The Pledge',
   balance: {
@@ -221,9 +245,8 @@ export const phantasmalForce = defineTrait<MesmerSkill>({
 });
 
 /** Adds The Pledge only to the skill's player Burning, inheriting its timing and excluding summon or trait procs. */
-export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void {
+function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void {
   if (
-    !hasTrait(context, TRAIT.THE_PLEDGE) ||
     event.type !== 'condition' ||
     event.condition !== 'Burning' ||
     !isGw2PlayerActorEvent(event) ||
@@ -234,25 +257,26 @@ export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent)
   const thePledgeProfile = requireBalanceProfileFromContext(context, TRAIT.THE_PLEDGE);
   const effect = requireEffect(thePledgeProfile, 'condition', 'Burning');
   if (!effect) return;
-  context.effects.emit({
-    kind: 'packet',
-    cause: event,
-    event: buildResolverCondition({
-      actorType: 'player',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.THE_PLEDGE,
-      skillId: event.skillId,
-      skillName: event.skillName,
-      condition: 'Burning',
-      duration: Number(effect.duration),
-      stacks: Number(effect.stacks)
-    })
+  emitTraitProfile(context, TRAIT.THE_PLEDGE, TRAIT.THE_PLEDGE, event, {
+    at: event.at,
+    effect: { type: 'condition', name: 'Burning' },
+    transform: (payload) =>
+      buildResolverCondition({
+        actorType: 'player',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.THE_PLEDGE,
+        skillId: event.skillId,
+        skillName: event.skillName,
+        condition: 'Burning',
+        duration: Number(payload.duration),
+        stacks: Number(payload.stacks)
+      })
   });
 }
 
 /** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */
-export function applyCryOfPain(
+export function cryOfPainConfusion(
   context: MesmerRuntime,
   condition: ConditionEffect | undefined
 ): ConditionEffect | undefined {
@@ -263,7 +287,7 @@ export function applyCryOfPain(
 }
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
-export function triggerCompoundingPower(
+function triggerCompoundingPower(
   context: MesmerRuntime,
   at: number,
   count: number,
@@ -271,7 +295,7 @@ export function triggerCompoundingPower(
   detail: string,
   delivery: EffectDelivery = {}
 ): void {
-  if (!hasTrait(context, TRAIT.COMPOUNDING_POWER) || count <= 0) return;
+  if (count <= 0) return;
   const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
   const duration = balanceProfileNumber(compoundingPowerProfile, 'durationMultiplier');
   // Simultaneous gains retain independent applications under one trait activation.
@@ -320,8 +344,8 @@ export function triggerCompoundingPower(
 }
 
 /** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
-export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  if (!resolution.traitHits.length || !hasTrait(context, TRAIT.MAIM_THE_DISILLUSIONED)) return;
+function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
+  if (!resolution.traitHits.length) return;
   const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
   const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
   if (!effect) return;

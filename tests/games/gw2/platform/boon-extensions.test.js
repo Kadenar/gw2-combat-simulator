@@ -15,7 +15,9 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
-import { noQuarterCriticalReaction } from '#gw2/professions/thief/core/traits/critical-strikes/critical-boons.js';
+import { thiefStruck } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -327,13 +329,19 @@ function extend(profession, events, at) {
   };
   context.combat = createMechanicCombatServices(context);
   if (profession === 'Thief') {
-    // Direct handler calls need the same selected balance source as resolver dispatch.
-    noQuarterCriticalReaction.handler(
-      { ...context, catalog: thiefProfession.catalog },
-      { at, skillName: 'probe' },
-      {},
-      { quantity: 1 }
-    );
+    // Enter the registered strike boundary with one accepted critical hit and the real selected profile.
+    Object.assign(context, {
+      time: at,
+      traits: new Set([THIEF_TRAIT_IDS.NO_QUARTER]),
+      helpers: thiefProfession.catalog,
+      catalog: thiefProfession.catalog,
+      procs: createProcRegistry(() => context)
+    });
+    bindTriggerPoints(context, thiefProfession);
+    context.fireTrigger(thiefStruck, {
+      cause: { type: 'damage', actorType: 'player', coefficient: 1, at, skillName: 'probe' },
+      details: { hitContext: { critEligible: true, critical: { chance: 1, didCrit: true, furyActive: true } } }
+    });
   } else {
     applyBoonExtension(boons, { at, duration: 2 });
   }

@@ -3,7 +3,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
-import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/traits/trickery/behavior.js';
+import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';

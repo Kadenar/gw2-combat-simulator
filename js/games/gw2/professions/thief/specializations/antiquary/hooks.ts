@@ -25,6 +25,8 @@ import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/profession
 export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   /** Seed non-expiring Combat High stacks for an isolated damage occurrence. */
   prepareDamageState(runtime, _skill, inputs) {
+    // Artifact use can buff ordinary attacks independently of Combat High.
+    antiquaryState.from(runtime).antiquaryDamageUntil = inputs.artifactMomentum ? Infinity : 0;
     if (!hasTrait(runtime, TRAIT.COMBAT_HIGH)) return;
     const stacks = Number(inputs.combatHigh ?? 0);
     const maximum = balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.COMBAT_HIGH), 'maximumStacks');

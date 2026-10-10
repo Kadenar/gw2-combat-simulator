@@ -1,3 +1,5 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -43,8 +45,11 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     helpers: rangerCatalog,
     boons: new Map(),
     buffs: new Map(),
-    effects: { emit: ({ event }) => queued.push(event) }
+    // Exercise real expansion so causal ordering is independent of the author's emission shape.
+    effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
   };
+  // Exercise the same selected point listeners as the live profession.
+  bindTriggerPoints(context, rangerProfession, config);
   // Bind real owner operations for this focused mechanic fixture.
   context.combat = createMechanicCombatServices(context);
   const event = {
@@ -118,6 +123,8 @@ test('Ranger condition-count bonuses use canonical active conditions and query p
   );
   for (const [inputs, count] of cases) {
     const context = { time: 5, ...inputs };
+    // Exercise the same selected point listeners as the live profession.
+    bindTriggerPoints(context, rangerProfession, config);
     const strike = { ...context, event: { damageKind: 'ranger-unleashed-disabled-condition-count' } };
     const pet = { ...context, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
     assert.equal(bonus.when(strike), true);
@@ -139,6 +146,8 @@ test('Ranger condition bonuses retain the Consuming Bite cap and coefficient gua
     (rule) => rule.id === 'ranger.consuming-bite-condition-count'
   );
   const context = { config, time: 5, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
+  // Exercise the same selected point listeners as the live profession.
+  bindTriggerPoints(context, rangerProfession, config);
   assert.equal(bonus.factor(context, bonus.target, bonus.parameters), 1.12);
   assert.equal(bite.factor(context, bite.target, bite.parameters), (0.45 + 0.125) / 0.45);
   for (const coefficient of [undefined, 0, -1]) {

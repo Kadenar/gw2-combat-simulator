@@ -1,5 +1,6 @@
 import type { SkillEffect, StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import { effectApplicationCount, validateConditionExpansion } from '#gw2/platform/effects/expansion-budget.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -106,8 +107,25 @@ export function materializeSkillEffectApplications({
   reactionGroup
 }: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
   const label = `${skill.name} (${skill.id}) effect=${effect.type}/${effect.name ?? '<unnamed>'}`;
-  // Direct mechanic callers also materialize effects, so reject oversized batches before creating any packets.
+  // Reject oversized batches before inspecting their packets; procedural callers obey the catalog's numeric contract.
   const count = effectApplicationCount(effect, label);
+  if (effect.type === 'strike' || effect.type === 'condition') {
+    if (effect.ticks) {
+      for (const tick of effect.ticks) requireBalanceNumber(tick.atMs, `${label} tick offset`);
+    }
+
+    if (effect.type === 'strike') {
+      if (effect.ticks) {
+        for (const tick of effect.ticks) requireBalanceNumber(tick.coefficient, `${label} tick coefficient`);
+      } else requireBalanceNumber(effect.coefficient ?? 0, `${label} coefficient`);
+    } else {
+      for (const packet of effect.ticks ?? [effect]) {
+        requireBalanceNumber(packet.stacks, `${label} stacks`);
+        requireBalanceNumber(packet.duration, `${label} duration`);
+      }
+    }
+  }
+
   validateConditionExpansion(effect, label);
   const firstAt = effectFirstAt(start, fullEnd, effect);
   const applications: MaterializedEffectApplication[] = [];

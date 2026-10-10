@@ -1,3 +1,4 @@
+import { evokerEntryObserved } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { expireElementalistState } from '#gw2/professions/elementalist/core/mechanics/expiry.js';
 import {
@@ -7,17 +8,15 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane/attunement-swap.js';
+import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import {
-  applyEvokerEntryTraits,
-  commitRechargeDuration
-} from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
+import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -41,14 +40,15 @@ test('Bountiful Power resets at the cap and preserves progress earned by nested 
         observations.push([event.kind, core.bountifulPowerProgress]);
         if (!nested && event.kind === 'quickness') {
           nested = true;
-          triggerBountifulPower(context, 1, 0.5, ID.AIR_ATTUNEMENT);
+          context.fireTrigger(attunementsCounted, { at: 1, stacks: 0.5, sourceId: ID.AIR_ATTUNEMENT });
         }
 
         return event;
       }
     }).effects
   };
-  triggerBountifulPower(context, 1, 3.5, ID.AIR_ATTUNEMENT);
+  bindTriggerPoints(context, elementalistProfession);
+  context.fireTrigger(attunementsCounted, { at: 1, stacks: 3.5, sourceId: ID.AIR_ATTUNEMENT });
   assert.deepEqual(observations, [
     ['quickness', 0],
     ['bountiful-power-active', 0.5]
@@ -78,15 +78,16 @@ test('Elemental Balance resets its entry cycle and arms before Dynamo grants', (
       }
     }).effects
   };
+  bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
   for (const event of [
     { type: 'damage', to: 'Fire' },
     { type: 'elementalist.attunement', to: 'Water' }
   ])
-    applyEvokerEntryTraits(context, { at: 2, ...event });
+    context.fireTrigger(evokerEntryObserved, { event: { at: 2, ...event } });
   assert.deepEqual(observations, []);
   assert.equal(state.elementalBalanceProgress, 0);
 
-  applyEvokerEntryTraits(context, { type: 'elementalist.attunement-enter', to: 'Fire', at: 2 });
+  context.fireTrigger(evokerEntryObserved, { event: { type: 'elementalist.attunement-enter', to: 'Fire', at: 2 } });
   assert.deepEqual(observations, [
     ['Elemental Balance', 0, 7],
     ['familiarCharges', 1, 0, 7]
@@ -98,7 +99,7 @@ test('Elemental Balance resets its entry cycle and arms before Dynamo grants', (
   assert.equal(state.elementalBalanceProgress, 0);
 
   observations.length = 0;
-  applyEvokerEntryTraits(context, { type: 'elementalist.attunement', to: 'Fire', at: 3 });
+  context.fireTrigger(evokerEntryObserved, { event: { type: 'elementalist.attunement', to: 'Fire', at: 3 } });
   assert.deepEqual(observations, [
     ['Elemental Balance', 0, 8],
     ['familiarCharges', 1, 0, 8]
@@ -118,9 +119,14 @@ test('Elemental Balance arms on every second selected-attunement entry and resta
     profession: { specialization: { kind: 'Evoker', state } },
     effects
   };
+  bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
   for (const [index, expected] of [1, 0, 1, 0].entries()) {
-    applyEvokerEntryTraits(context, { type: 'elementalist.attunement-enter', to: 'Water', at: index });
-    applyEvokerEntryTraits(context, { type: 'elementalist.attunement-enter', to: 'Fire', at: index });
+    context.fireTrigger(evokerEntryObserved, {
+      event: { type: 'elementalist.attunement-enter', to: 'Water', at: index }
+    });
+    context.fireTrigger(evokerEntryObserved, {
+      event: { type: 'elementalist.attunement-enter', to: 'Fire', at: index }
+    });
     assert.equal(state.elementalBalanceProgress, expected);
     assert.equal(announcements.length, Math.floor((index + 1) / 2));
   }
@@ -139,7 +145,8 @@ test('Elemental Balance resets after one reward for nonpositive patched threshol
       profession: { specialization: { kind: 'Evoker', state } },
       effects
     };
-    applyEvokerEntryTraits(context, { type: 'elementalist.attunement-enter', to: 'Fire', at: 1 });
+    bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
+    context.fireTrigger(evokerEntryObserved, { event: { type: 'elementalist.attunement-enter', to: 'Fire', at: 1 } });
     assert.equal(state.elementalBalanceProgress, 0);
     assert.equal(state.elementalBalanceUntil, 6);
     assert.equal(announcements.length, 1);

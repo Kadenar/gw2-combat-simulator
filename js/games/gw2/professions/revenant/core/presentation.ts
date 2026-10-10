@@ -98,15 +98,11 @@ function revenantCoreStateSnapshot(
 /** Core presentation reads the current legend and resource projection without a catalog binding. */
 export const revenantCoreUi: RevenantUiSlice = Object.freeze({
   /** Declare the damage context for one assumed occurrence. */
-  skillDamageState(context: SkillDamagePreviewPreparation, input: PreviewSkill): SkillDamageState | null {
+  skillDamageState(_context: SkillDamagePreviewPreparation, input: PreviewSkill): SkillDamageState | null {
     // Direct evaluation supplies damage state without prerequisite actions.
     const skill = input as import('#gw2/professions/revenant/types.js').RevenantSkill;
     return {
-      ...(skill.legendId ? { config: { startingLegend: skill.legendId } } : {}),
-      inputs:
-        context.values.upkeep && context.values.upkeep !== 'null'
-          ? { upkeepSkillId: JSON.parse(String(context.values.upkeep)) }
-          : {}
+      ...(skill.legendId ? { config: { startingLegend: skill.legendId } } : {})
     };
   },
 

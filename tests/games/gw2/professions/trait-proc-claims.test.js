@@ -4,12 +4,12 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { ENGINEER_TRAIT_IDS as E, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { GUARDIAN_TRAIT_IDS as G } from '#gw2/professions/guardian/data/ids.js';
-import { shortFuse } from '#gw2/professions/engineer/core/traits/explosives/index.js';
-import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import { aimAssistedRocket, shortFuse } from '#gw2/professions/engineer/core/traits/explosives/index.js';
 import { hematicFocus } from '#gw2/professions/engineer/core/traits/firearms/index.js';
-import { reactToAppliedForceBuff } from '#gw2/professions/engineer/specializations/scrapper/traits/behavior.js';
-import { reactToMechArmDamage } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
-import { reactToFirebrandBuff } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
+import { appliedForce } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
+import { mechStruck } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { firebrandBuffApplied } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
 import { liberatorsVow } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';
@@ -25,6 +25,12 @@ const hit = (runtime, extra = {}) => ({
   ...extra
 });
 const mechHit = (runtime) => hit(runtime, { actorType: 'summon', metadata: { engineerMech: true } });
+// A trait's compiled stage triggers, applied to an observed runtime's mechanic capabilities.
+const stageTrigger = (trait, stage) => (runtime, event) =>
+  compileProfessionRules({ traitTriggers: trait.triggers.map((rule) => ({ ...rule, trait: trait.id })) }).reactions[
+    stage
+  ](runtime.mechanics, event, {});
+const mechStrike = (runtime) => runtime.fireTrigger(mechStruck, { cause: mechHit(runtime), details: {} });
 
 // Real trait handlers share cooldown admission while retaining their own removed-effect consumption rules.
 const cases = [
@@ -32,38 +38,38 @@ const cases = [
     trait: E.SHORT_FUSE,
     key: 'shortFuse',
     consumesRemoved: true,
-    invoke: (r) => shortFuse.hooks.reactions['damage.resolved'](r, hit(r, { explosion: true }))
+    invoke: (r) => stageTrigger(shortFuse, 'damage.resolved')(r, hit(r, { explosion: true }))
   },
   {
     trait: E.AIM_ASSISTED_ROCKET,
-    key: 'aimAssistedRocket',
+    key: String(E.AIM_ASSISTED_ROCKET),
     consumesRemoved: true,
-    invoke: (r) => applyAimAssistedRocket(r, hit(r, { projectile: true }))
+    invoke: (r) => stageTrigger(aimAssistedRocket, 'damage.resolved')(r, hit(r, { projectile: true }))
   },
   {
     trait: E.HEMATIC_FOCUS,
     key: 'hematicFocus',
     invoke: (r) =>
-      hematicFocus.hooks.reactions['condition.applied'](r, hit(r, { type: 'condition', condition: 'Bleeding' }))
+      stageTrigger(hematicFocus, 'condition.applied')(r, hit(r, { type: 'condition', condition: 'Bleeding' }))
   },
   {
     trait: E.APPLIED_FORCE,
     key: 'appliedForce',
     specialization: 'Scrapper',
     consumesRemoved: true,
-    invoke: (r) => reactToAppliedForceBuff(r, hit(r, { type: 'buff', kind: 'might' }))
+    invoke: (r) => stageTrigger(appliedForce, 'buff.applied')(r, hit(r, { type: 'buff', kind: 'might' }))
   },
   {
     trait: E.MECH_ARMS_SINGLE_EDGE_CUTTERS,
     key: 'singleEdgeCutters',
     specialization: 'Mechanist',
-    invoke: (r) => reactToMechArmDamage(r, mechHit(r))
+    invoke: mechStrike
   },
   {
     trait: E.MECH_ARMS_HIGH_IMPACT_DRIVERS,
     key: 'highImpactDrivers',
     specialization: 'Mechanist',
-    invoke: (r) => reactToMechArmDamage(r, mechHit(r))
+    invoke: mechStrike
   },
   {
     family: guardianProfession,
@@ -71,10 +77,9 @@ const cases = [
     key: 'guardian.firebrand.stalwartSpeed',
     specialization: 'Firebrand',
     invoke: (r) =>
-      reactToFirebrandBuff(
-        r,
-        hit(r, { type: 'buff', kind: 'aegis', resolvedAudience: { includesSelf: false, alliedPlayerCount: 2 } })
-      )
+      r.fireTrigger(firebrandBuffApplied, {
+        cause: hit(r, { type: 'buff', kind: 'aegis', resolvedAudience: { includesSelf: false, alliedPlayerCount: 2 } })
+      })
   },
   {
     family: guardianProfession,
@@ -82,7 +87,9 @@ const cases = [
     key: 'guardian.firebrand.liberatorsVow',
     specialization: 'Firebrand',
     invoke: (r) =>
-      liberatorsVow.hooks.onCastCommit(r, { id: 'heal', skill: { id: 'heal', name: 'Fixture heal', type: 'Heal' } })
+      compileProfessionRules({
+        traitTriggers: liberatorsVow.triggers.map((rule) => ({ ...rule, trait: liberatorsVow.id }))
+      }).onCastCommit(r.mechanics, { id: 'heal', skill: { id: 'heal', name: 'Fixture heal', type: 'Heal' } })
   }
 ];
 

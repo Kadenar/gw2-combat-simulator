@@ -19,6 +19,13 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
   /** Spellbreaker's starting cap belongs to its own resource profile; Core applies the shared configuration field. */
   previewControls(context) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.trait('Magebane Tether', {
+      key: 'magebaneTether',
+      kind: 'special',
+      scope: ['damage'],
+      description: 'Tether damage bonus active'
+    });
     preview.add({
       key: 'adrenaline',
       label: 'Starting adrenaline',

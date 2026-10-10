@@ -1,11 +1,13 @@
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { berserkersPowerDragonSlash } from '#gw2/professions/warrior/core/traits/strength/index.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { dragonSlashCompleted, dragonSlashReleased } from '#gw2/professions/warrior/core/mechanics/combat.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
   bladeswornBuffPolicies,
   bladeswornEffectStates
@@ -33,11 +35,6 @@ import {
   cartridgeExplosion
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import {
-  ammoTraits,
-  burstMasteryDragonSlash,
-  gunsAndGloryExplosion
-} from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
@@ -46,7 +43,7 @@ type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 function explosion(runtime: Runtime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
 
-  gunsAndGloryExplosion(runtime, event);
+  runtime.fireTrigger(explosionAccepted, { event });
 
   cartridgeExplosion(runtime, event);
 }
@@ -101,12 +98,16 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     },
     onCastCommit(runtime, cast) {
       // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
-      ammoTraits(runtime, cast);
+      const spent = warriorAmmunition.get(cast);
+      if (spent) runtime.fireTrigger(ammunitionCommitted, { cast, spent });
       const release = dragonSlashRelease(runtime, cast);
       if (release) {
-        burstMasteryDragonSlash(runtime, cast, release);
+        runtime.fireTrigger(dragonSlashReleased, { cast, flowSpent: release.flowSpent });
 
-        berserkersPowerDragonSlash(runtime, cast, dragonChargesToAdrenalineSpent(release.charges));
+        runtime.fireTrigger(dragonSlashCompleted, {
+          cast,
+          adrenalineSpent: dragonChargesToAdrenalineSpent(release.charges)
+        });
       }
 
       if (cast.skill.gunsaberSkill && !runtime.helpers.autoattackChainPositions.has(Number(cast.skill.id)))
@@ -119,3 +120,14 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     reactions: { 'damage.resolved': explosion }
   }
 ]);
+
+/** Completed ammunition rewards use the spend captured before the magazine transaction. */
+export const ammunitionCommitted = defineTriggerPoint<{
+  readonly cast: RuntimeCast<WarriorSkill>;
+  readonly spent: { readonly rounds: number; readonly startedFull: boolean };
+}>('warrior.ammunition-committed', [TRAIT.FIERCE_AS_FIRE, TRAIT.LUSH_FOREST]);
+/** Explosion Glory extends before cartridge effects inspect the accepted strike. */
+export const explosionAccepted = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
+  'warrior.explosion-accepted',
+  [TRAIT.GUNS_AND_GLORY]
+);

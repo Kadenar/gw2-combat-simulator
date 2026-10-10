@@ -1,4 +1,3 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -21,21 +20,24 @@ export const wardensFeedback = defineTrait<MesmerSkill>({
 export const egoRestoration = defineTrait<MesmerSkill>({
   id: TRAIT.EGO_RESTORATION,
   name: 'Ego Restoration',
-  hooks: {
-    onCastCommit(runtime, cast) {
-      if (!hasTrait(runtime, TRAIT.EGO_RESTORATION) || !runtime.combatStartedAt() || cast.skill.type !== 'Heal') return;
-      createMesmerIllusionRewards(runtime).gainResources(
-        runtime.time,
-        1,
-        mesmerActivePrimaryWeapon(runtime),
-        cast.skill.name,
-        {
-          kind: 'trait',
-          sourceSkillId: cast.skill.id,
-          traitId: TRAIT.EGO_RESTORATION,
-          traitName: 'Ego Restoration'
-        }
-      );
+  triggers: [
+    {
+      on: 'castCommit',
+      run(runtime, cast) {
+        if (!runtime.combatStartedAt() || cast.skill.type !== 'Heal') return;
+        createMesmerIllusionRewards(runtime).gainResources(
+          runtime.time,
+          1,
+          mesmerActivePrimaryWeapon(runtime),
+          cast.skill.name,
+          {
+            kind: 'trait',
+            sourceSkillId: cast.skill.id,
+            traitId: TRAIT.EGO_RESTORATION,
+            traitName: 'Ego Restoration'
+          }
+        );
+      }
     }
-  }
+  ]
 });

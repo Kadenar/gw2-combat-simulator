@@ -416,6 +416,20 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      preview.damageBuff('Bountiful Power', 'bountifulPower', 'bountiful-power-active');
+      preview.condition('Burning', "Pyromancer's Training", 'Fiery Might');
+      preview.condition('Bleeding', 'Serrated Stones');
+      if (context.weapons.includes('Hammer'))
+        preview.add({
+          key: 'flameWheel',
+          label: 'Flame Wheel',
+          group: 'Other buffs',
+          kind: 'buff',
+          field: 'hammer fire orb',
+          scope: ['damage'],
+          description: 'Fire orb damage bonus active'
+        });
       // Grand Finale's orb inputs only apply when this weapon set can use Hammer skills.
       if (context.weapons.includes('Hammer'))
         for (const element of ELEMENTALIST_ATTUNEMENTS)
@@ -431,7 +445,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       // Slot skills use this start element; weapon rows retain the attunement required by their own skill.
       preview.add({
         key: 'damageAttunement',
-        label: 'Starting attunement',
+        label: 'Active attunement',
         group: 'Attunement',
         kind: 'special',
         scope: ['damage'],

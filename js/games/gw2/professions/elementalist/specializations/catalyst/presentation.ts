@@ -13,6 +13,7 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import {
   ELEMENTALIST_JADE_SPHERE_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
@@ -89,6 +90,17 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    if (preview.skills.has(ELEMENTALIST_SKILL_IDS.RELENTLESS_FIRE))
+      preview.add({
+        key: 'relentlessFire',
+        label: 'Relentless Fire',
+        group: 'Other buffs',
+        kind: 'buff',
+        field: 'relentless fire',
+        scope: ['damage'],
+        description: 'Augment damage bonus active'
+      });
     // These are the same resolved buff kinds that the native aura and empowerment owners consume.
     if (preview.has('Elemental Empowerment'))
       preview.trait('Elemental Empowerment', {

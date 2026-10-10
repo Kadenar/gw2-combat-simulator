@@ -11,7 +11,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -48,7 +47,8 @@ export function exitForge(runtime: Runtime, cast?: RuntimeCast<GuardianSkill>): 
       used <= 1
         ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.forge), 'rechargeReduction')
         : 0;
-    const work = guardianRechargeWork(runtime, enter, Math.max(0, gw2BaseRecharge(enter) - reduction));
+    // Forge entry is a fourth profession action, outside weapon and virtue recharge traits.
+    const work = Math.max(0, gw2BaseRecharge(enter) - reduction);
     runtime.cooldownController.startRecharge(enter, runtime.time, work);
   }
 

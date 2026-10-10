@@ -12,5 +12,7 @@ export function engineerWeaponSkillMatchesSet(
   const specialization =
     context.specialization || context.config?.specialization || context.build?.specialization || 'Core';
   if (specialization === 'Holosmith' && NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill.id)) return false;
+  // Other elites use Core's sword identities; heat-aware variants are absent from their runtime catalogs.
+  if (specialization !== 'Holosmith' && skill.weapon === 'Sword' && skill.specialization === 'Holosmith') return false;
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }

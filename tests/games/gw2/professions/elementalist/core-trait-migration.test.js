@@ -328,8 +328,9 @@ test('Elementalist critical reactions emit effects in registration order', () =>
       const emit = runtime.effects.emit.bind(runtime.effects);
       runtime.effects = {
         emit(request) {
-          if (request.kind === 'packet' && expected.includes(request.event.skillName))
-            effects.push(request.event.skillName);
+          // Observe submitted profile identity while the real emitter expands the payload.
+          if (request.kind === 'profile' && expected.includes(request.attribution?.skillName))
+            effects.push(request.attribution.skillName);
           return emit(request);
         }
       };

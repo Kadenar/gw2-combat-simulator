@@ -1,9 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -11,7 +9,7 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
 
 /** Extend authored weapon Fire fields without editing already queued packets. */
 export function extendPersistingFlamesEffects(
-  context: ElementalistRuntime,
+  context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
@@ -96,43 +94,4 @@ export function extendPersistingFlamesFields(
   return fields?.map((field) =>
     field.fieldType === 'Fire' ? { ...field, duration: Number(field.duration) + extension } : field
   );
-}
-
-/** Grants one resolver-side Persisting Flames stack from a classified field tick or Burning application. */
-function grantPersistingFlames(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  if (!hasTrait(context, TRAIT.PERSISTING_FLAMES)) return;
-  const persistingFlamesProfile = requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES);
-  context.effects.emit({
-    kind: 'packet',
-    durationContext: event,
-    event: {
-      type: 'buff',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.PERSISTING_FLAMES,
-      actorType: 'player',
-      skillName: requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES).name,
-      kind: 'Persisting Flames'.toLowerCase(),
-      stacks: 1,
-      duration: balanceProfileNumber(persistingFlamesProfile, 'durationMultiplier'),
-      triggeredBy: resolverSourceSkill(event),
-      priority: Number(event.priority || 0)
-    }
-  });
-}
-
-/** Fire-field rewards precede Shattering Stone; profession fields grant stacks without gaining extra packets. */
-export function applyPersistingFlamesDamage(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  if (
-    event.damageKind === 'field-tick' &&
-    context.helpers.skillsById
-      .get(event.skillId ?? event.sourceId)
-      ?.comboFields?.some((field) => field.fieldType === 'Fire')
-  )
-    grantPersistingFlames(context, event);
-}
-
-/** Burning rewards stay after Strength of Stone in the accepted-condition reaction. */
-export function applyPersistingFlamesCondition(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  if (event.condition === 'Burning') grantPersistingFlames(context, event);
 }

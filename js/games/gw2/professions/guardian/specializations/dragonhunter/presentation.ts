@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
@@ -33,6 +35,18 @@ function dragonhunterStateSnapshot(context: GuardianUiContext): RotationStateSna
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindDragonhunterUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    /** Expose held combat bonuses without changing the saved build or simulation. */
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.trait('Big Game Hunter', {
+        key: 'bigGameHunter',
+        kind: 'special',
+        scope: ['damage'],
+        description: 'Target tethered by Spear of Justice'
+      });
+      preview.condition('Crippled', "Zealot's Aggression");
+      return preview.controls;
+    },
     rotationStateSnapshot: dragonhunterStateSnapshot,
     paletteGroups: (context: GuardianUiContext) => [
       {

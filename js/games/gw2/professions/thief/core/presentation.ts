@@ -137,6 +137,18 @@ export const thiefCoreUi = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.damageBuff('Fluid Strikes', 'fluidStrikes', 'fluid-strikes');
+    if (context.weapons.includes('Spear'))
+      preview.add({
+        key: 'distractingThrow',
+        label: 'Distracting Throw',
+        group: 'Other buffs',
+        kind: 'buff',
+        field: 'distracting-throw',
+        scope: ['damage'],
+        description: 'Finisher damage bonus active'
+      });
 
     // Damage-only stack assumptions appear only while their owning trait is selected.
     if (preview.has('Lead Attacks'))
@@ -164,12 +176,18 @@ export const thiefCoreUi = Object.freeze({
     if (preview.has('Revealed Training', 'Hidden Killer'))
       preview.add({
         key: 'revealed',
+        scope: ['attributes', 'damage'],
         label: 'Revealed',
         group: 'Trait conditionals',
         kind: 'special',
         description: 'Revealed Training / Hidden Killer'
       });
-    preview.trait('Hidden Killer', { key: 'stealth', kind: 'special', description: 'Stealthed; Critical Chance' });
+    preview.trait('Hidden Killer', {
+      key: 'stealth',
+      kind: 'special',
+      scope: ['attributes', 'damage'],
+      description: 'Stealthed; Critical Chance'
+    });
     preview.targetHealth('Ferocious Strikes');
     preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
     if (preview.has('Twin Fangs'))
@@ -180,15 +198,33 @@ export const thiefCoreUi = Object.freeze({
         kind: 'special',
         description: 'Positional Critical Chance'
       });
-    preview.passives(ID.ASSASSINS_SIGNET);
+    // Active replaces the passive; Off represents the signet's inactive recharge window.
+    if (preview.skills.has(ID.ASSASSINS_SIGNET))
+      preview.add({
+        key: 'assassinsSignet',
+        label: "Assassin's Signet",
+        group: 'Other buffs',
+        kind: 'special',
+        scope: ['attributes', 'damage'],
+        options: ['off', 'passive', 'active'],
+        optionLabels: { off: 'Off', passive: 'Passive', active: 'Active' },
+        initial: 'passive',
+        description: 'Passive Power, active Power bonus, or neither'
+      });
     return preview.controls;
   },
-  /** Axe inputs belong only to the detached damage configuration. */
-  prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
-    values.spinningAxes == null ? {} : { initialSpinningAxes: Number(values.spinningAxes) },
+  /** Seed selected axes and the held active signet buff only in the detached damage configuration. */
+  prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) => ({
+    ...(values.spinningAxes == null ? {} : { initialSpinningAxes: Number(values.spinningAxes) }),
+    initialBuffs: values.assassinsSignet === 'active' ? [{ kind: 'assassins-signet', stacks: 1, duration: 3600 }] : []
+  }),
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
     const core = readProfessionCoreState<ThiefCoreState>(context.professionState);
+    // Retain the equipped skill while suspending its passive in the Off and Active states.
+    if ('assassinsSignet' in context.values)
+      core.assassinsSignetPassiveDisabledUntil = context.values.assassinsSignet === 'passive' ? 0 : Infinity;
+    if (context.values.assassinsSignet === 'active') context.addBuff('assassins-signet', 1, "Assassin's Signet");
     if ('revealed' in context.values) core.revealedUntil = context.values.revealed ? 60 : 0;
     if ('stealth' in context.values) core.stealthUntil = context.values.stealth ? 60 : 0;
   },

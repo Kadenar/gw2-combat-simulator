@@ -67,7 +67,8 @@ test('header profession selector preserves navigation and the landing page owns 
   await expect(professions).toBeHidden();
   await expect(selector).toBeFocused();
   await selector.click();
-  await page.locator('#header-dps').click();
+  // DPS now sits beneath this popover; dismiss through an unobscured editor heading.
+  await page.getByRole('heading', { name: 'Gear loadout', exact: true }).click();
   await expect(professions).toBeHidden();
   await navigation.getByRole('link', { name: 'Analysis', exact: true }).click();
   await expect(navigation.getByRole('link', { name: 'Analysis', exact: true })).toHaveAttribute('aria-current', 'page');
@@ -104,17 +105,29 @@ async function newBuild(page) {
   await page.getByRole('button', { name: 'New blank build', exact: true }).click();
 }
 
-async function buildAction(page, name) {
-  await page.getByRole('button', { name: 'Build actions', exact: true }).click();
-  await page.getByRole('button', { name, exact: true }).click();
+// Closing a build leaves the switcher menu open, so only toggle it when it is closed.
+async function openSwitcher(page) {
+  const menu = page.locator('#build-switcher-menu');
+  if (!(await menu.evaluate((element) => element.matches(':popover-open'))))
+    await page.locator('#build-switcher').click();
+  await expect(menu).toBeVisible();
+  return menu;
 }
 
-async function tabAction(page, name, tabName) {
-  const trigger = tabName
-    ? page.getByRole('button', { name: `Options for ${tabName}`, exact: true })
-    : page.locator('.build-tab.is-active .build-tab-menu-trigger');
-  await trigger.click();
-  await page.locator('#build-tab-menu').getByRole('button', { name, exact: true }).click();
+async function selectBuild(page, name) {
+  const menu = await openSwitcher(page);
+  await menu.locator('.build-tab-list').getByRole('button', { name, exact: true }).click();
+}
+
+async function closeBuild(page, name) {
+  const menu = await openSwitcher(page);
+  await menu.getByRole('button', { name: `Close ${name}`, exact: true }).click();
+}
+
+// Build actions always apply to the build being edited.
+async function tabAction(page, name) {
+  const menu = await openSwitcher(page);
+  await menu.getByRole('button', { name, exact: true }).click();
 }
 
 async function settled(page) {
@@ -128,14 +141,16 @@ async function settled(page) {
 test('build tabs isolate edits and results and support duplication, rename, close, and refresh', async ({ page }) => {
   await openWorkspace(page);
   const strip = page.locator('#build-workspace-tabs');
-  await expect(strip.locator('.build-tab-menu-trigger')).toHaveCount(1);
+  const current = strip.locator('.build-switcher-name');
+  await expect(strip.locator('.build-tab')).toHaveCount(1);
+  await expect(strip.locator('.build-switcher-count')).toHaveText('1 open build');
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await settled(page);
   const originalDps = await page.locator('#header-dps').textContent();
   await tabAction(page, 'Duplicate');
   await settled(page);
   await expect(strip.locator('.build-tab')).toHaveCount(2);
-  await expect(strip.locator('.build-tab-menu-trigger')).toHaveCount(2);
+  await expect(strip.locator('.build-switcher-count')).toHaveText('2 open builds');
   await tabAction(page, 'Rename');
   const renameDialog = page.getByRole('dialog', { name: 'Rename build', exact: true });
   await renameDialog.getByRole('textbox', { name: 'Build name' }).fill('Alternative');
@@ -144,52 +159,124 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await page.locator('#btn-sim-clear').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
-  await strip.getByRole('button', { name: 'Build 1', exact: true }).click();
+  await selectBuild(page, 'Build 1');
+  await expect(current).toHaveText('Build 1');
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
   await expect(page.locator('#header-dps')).toHaveText(originalDps);
   await page.locator('#btn-sim-undo').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
-  await strip.getByRole('button', { name: 'Alternative', exact: true }).click();
+  await selectBuild(page, 'Alternative');
   await page.locator('#btn-sim-undo').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();
   await expect(page.locator('#rotation-results')).toContainText('Bladecall');
-  await strip.getByRole('button', { name: 'Build 1', exact: true }).click();
+  await selectBuild(page, 'Build 1');
   await expect(page.locator('#rotation-results')).toContainText('No analysis yet');
   await page.locator('.simulator-view-tab[data-simulator-view="workspace"]').click();
-  await strip.getByRole('button', { name: 'Alternative', exact: true }).click();
-  await strip.getByRole('button', { name: 'Build 1', exact: true }).hover();
-  page.once('dialog', (dialog) => dialog.accept());
-  await tabAction(page, 'Close', 'Build 1');
+  await selectBuild(page, 'Alternative');
+  // A build other than the one being edited closes from its own row without switching to it.
+  await closeBuild(page, 'Build 1');
+  await page
+    .getByRole('dialog', { name: 'Close this build?' })
+    .getByRole('button', { name: 'Close build', exact: true })
+    .click();
   await expect(strip.locator('.build-tab')).toHaveCount(1);
-  await expect(strip.locator('.build-tab-menu-trigger')).toHaveCount(1);
   await expect(strip.locator('.build-tab-notice')).toBeHidden();
+  await expect(current).toHaveText('Alternative');
   await expect(strip.getByRole('button', { name: 'Alternative', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect(strip.locator('.build-tab')).toHaveCount(1);
-  await expect(strip.getByRole('button', { name: 'Alternative', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(current).toHaveText('Alternative');
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
   await newBuild(page);
   await expect(strip.locator('.build-tab')).toHaveCount(2);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
 });
 
-// Validate cancellation, keyboard submission, and the target tab independently of the active editor.
-test('rename dialog validates names and restores focus without switching builds', async ({ page }) => {
+// Closing confirms the named row locally; cancellation keeps builds intact and returns focus to that row.
+test('close confirmation sits beside the builds menu and supports safe keyboard and pointer dismissal', async ({
+  page
+}) => {
+  await openWorkspace(page);
+  await newBuild(page);
+  const menu = page.locator('#build-switcher-menu');
+  const popup = page.getByRole('dialog', { name: 'Close this build?', exact: true });
+  const close = menu.getByRole('button', { name: 'Close Build 1', exact: true });
+  await closeBuild(page, 'Build 1');
+  await expect(popup).toContainText('Build 1');
+  await expect(popup.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+  await expect(menu).toBeVisible();
+  const menuBounds = await menu.boundingBox();
+  const popupBounds = await popup.boundingBox();
+  expect(popupBounds.x).toBeGreaterThanOrEqual(menuBounds.x + menuBounds.width);
+  await expect(popup).toBeInViewport({ ratio: 1 });
+  // Enter starts on Cancel, preventing accidental removal when the confirmation first opens.
+  await page.keyboard.press('Enter');
+  await expect(popup).toHaveCount(0);
+  await expect(close).toBeFocused();
+  await expect(page.locator('.build-tab')).toHaveCount(2);
+  await close.click();
+  await page.keyboard.press('Escape');
+  await expect(popup).toHaveCount(0);
+  await expect(close).toBeFocused();
+  await expect(menu).toBeVisible();
+  await close.click();
+  await menu.getByText('Current build', { exact: true }).click();
+  await expect(popup).toHaveCount(0);
+  await expect(menu).toBeVisible();
+  await expect(page.locator('.build-tab')).toHaveCount(2);
+  await close.click();
+  await page.locator('#header-dps').click();
+  await expect(popup).toHaveCount(0);
+  await expect(menu).toBeHidden();
+  await closeBuild(page, 'Build 1');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+  await expect(popup).toHaveCount(0);
+  await expect(page.locator('.build-tab')).toHaveCount(1);
+  await expect(menu).toBeVisible();
+  await expect(menu.locator('.build-tab [aria-pressed="true"]')).toBeFocused();
+});
+
+// Long build names and resizing must keep the confirmation's decision buttons inside a narrow embed.
+test('close confirmation stays within narrow and resized viewports', async ({ page }) => {
+  await openWorkspace(page, { width: 390, height: 844 });
+  await newBuild(page);
+  await tabAction(page, 'Rename');
+  const rename = page.getByRole('dialog', { name: 'Rename build', exact: true });
+  const name = 'A very long build name for testing the confirmation layout and wrapping';
+  await rename.getByRole('textbox', { name: 'Build name' }).fill(name);
+  await rename.getByRole('button', { name: 'Save', exact: true }).click();
+  await closeBuild(page, name);
+  const popup = page.getByRole('dialog', { name: 'Close this build?', exact: true });
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 320, height: 568 },
+    { width: 1440, height: 1000 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect(popup).toBeInViewport({ ratio: 1 });
+    await expect(popup.getByRole('button', { name: 'Close build', exact: true })).toBeInViewport({ ratio: 1 });
+    expect(await popup.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  }
+
+  await popup.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.locator('.build-tab')).toHaveCount(2);
+});
+
+// Validate cancellation, keyboard submission, and focus returning to the switcher that opened the dialog.
+test('rename dialog validates names and restores focus to the switcher', async ({ page }) => {
   await openWorkspace(page, { width: 390, height: 844 });
   const strip = page.locator('#build-workspace-tabs');
-  await newBuild(page);
-  const rename = strip.getByRole('button', { name: 'Options for Build 1', exact: true });
+  const switcher = strip.locator('#build-switcher');
   const dialog = page.getByRole('dialog', { name: 'Rename build', exact: true });
   const input = dialog.getByRole('textbox', { name: 'Build name' });
   const save = dialog.getByRole('button', { name: 'Save', exact: true });
-  await rename.focus();
-  await rename.click();
-  await page.locator('#build-tab-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+  await tabAction(page, 'Rename');
   await expect(dialog).toBeInViewport();
   await expect(input).toBeFocused();
   await expect(input).toHaveValue('Build 1');
@@ -204,25 +291,23 @@ test('rename dialog validates names and restores focus without switching builds'
   await input.fill('Discard this');
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(rename).toBeFocused();
-  await rename.click();
-  await page.locator('#build-tab-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+  await expect(switcher).toBeFocused();
+  await tabAction(page, 'Rename');
   await expect(input).toHaveValue('Build 1');
   await input.fill('Discard this too');
   await input.press('Escape');
   await expect(dialog).toHaveCount(0);
-  await expect(rename).toBeFocused();
-  await rename.click();
-  await page.locator('#build-tab-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+  await expect(switcher).toBeFocused();
+  await expect(strip.locator('.build-switcher-name')).toHaveText('Build 1');
+  await tabAction(page, 'Rename');
   await input.fill('  Alternative <build>  ');
   await input.press('Enter');
   await expect(dialog).toHaveCount(0);
-  await expect(strip.getByRole('button', { name: 'Options for Alternative <build>', exact: true })).toBeFocused();
-  await expect(strip.getByRole('button', { name: 'Alternative <build>', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'false'
-  );
-  await expect(strip.getByRole('button', { name: 'New build', exact: true }).first()).toHaveAttribute(
+  await expect(switcher).toBeFocused();
+  // Markup in a name is shown as text in both the trigger and its list.
+  await expect(strip.locator('.build-switcher-name')).toHaveText('Alternative <build>');
+  const menu = await openSwitcher(page);
+  await expect(menu.getByRole('button', { name: 'Alternative <build>', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true'
   );
@@ -253,19 +338,20 @@ test('template tabs reset independently to their loaded build after edits and re
     app.build.rotation = [];
     app.changed();
   });
-  await page.locator('#build-workspace-tabs').getByRole('button', { name: 'Build 1', exact: true }).click();
+  await selectBuild(page, 'Build 1');
   const originalArmor = await page.evaluate(() => window.professionApp.build.targetArmor);
   expect(originalArmor).not.toBe(2400);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 
-  // Reset from an inactive tab's menu must use that tab's persisted template, even on repeated resets.
+  // Reset after a reload must use the build's persisted template, even on repeated resets.
+  await selectBuild(page, templateName);
   for (let attempt = 0; attempt < 2; attempt += 1) {
     page.once('dialog', async (dialog) => {
       expect(dialog.message()).toContain('loaded template');
       await dialog.accept();
     });
-    await tabAction(page, 'Reset build', templateName);
+    await tabAction(page, 'Reset build');
     expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
     expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'wait', durationMs: 10 }]);
     await page.evaluate(() => {
@@ -280,67 +366,70 @@ test('template tabs reset independently to their loaded build after edits and re
   page.once('dialog', (dialog) => dialog.accept());
   await tabAction(page, 'Reset build');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
-  await page.locator('#build-workspace-tabs').getByRole('button', { name: 'Build 1', exact: true }).click();
+  await selectBuild(page, 'Build 1');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(originalArmor);
 });
 
-test('tab overflow stays inside its strip on narrow screens', async ({ page }) => {
+// Many long-named builds must not widen the strip: one switcher replaces the scrolling tab row.
+test('many open builds keep the strip and its menu inside narrow screens', async ({ page }) => {
   await openWorkspace(page, { width: 390, height: 844 });
   await page.evaluate(async () => {
     const { addBuildTab } = await import('/js/games/gw2/app/build/state/workspace.ts');
-    for (let index = 0; index < 5; index += 1)
-      addBuildTab(window.professionApp, window.professionApp.build, `Alternative build ${index}`);
+    for (let index = 0; index < 8; index += 1)
+      addBuildTab(window.professionApp, window.professionApp.build, `Alternative build with a long name ${index}`);
   });
-  const geometry = await page.locator('.build-tab-list').evaluate((list) => ({
-    scrollWidth: list.scrollWidth,
-    clientWidth: list.clientWidth,
+  const strip = page.locator('#build-workspace-tabs');
+  await expect(strip.locator('.build-switcher-count')).toHaveText('9 open builds');
+  const geometry = await strip.evaluate((element) => ({
+    scrollWidth: element.scrollWidth,
+    clientWidth: element.clientWidth,
     pageWidth: document.documentElement.scrollWidth,
     viewport: window.innerWidth
   }));
-  expect(geometry.scrollWidth).toBeGreaterThan(geometry.clientWidth);
+  expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth);
   expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
-  await expect(page.locator('.build-tab.is-active')).toBeInViewport();
-  await expect(page.locator('.build-tab-new')).toBeInViewport();
+  await expect(page.locator('#build-switcher')).toBeInViewport({ ratio: 1 });
+  await expect(page.locator('.build-tab-new')).toBeInViewport({ ratio: 1 });
+  // The list scrolls inside its menu and opens on the build being edited.
+  const menu = await openSwitcher(page);
+  await expect(menu).toBeInViewport({ ratio: 1 });
+  await expect(menu.locator('.build-tab.is-active')).toBeInViewport({ ratio: 1 });
+  expect(await menu.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.keyboard.press('Escape');
   // Build switching stays reachable alongside navigation after scrolling the editor.
   await page.evaluate(() => window.scrollTo(0, 500));
   await expect(page.locator('#app > header')).toHaveClass(/simulator-header-scrolled/);
-  await expect(page.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
+  await expect(strip).toBeInViewport({ ratio: 1 });
   await expect(page.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
 });
 
-// Every tab exposes the same actions without switching builds merely to inspect its menu.
-test('tab dropdown exposes its actions and supports keyboard dismissal', async ({ page }) => {
+// One menu lists the open builds and the actions for the build being edited.
+test('switcher menu exposes builds and actions and supports keyboard dismissal', async ({ page }) => {
   await openWorkspace(page);
-  const tab = page.locator('.build-tab').first();
-  const trigger = tab.locator('.build-tab-menu-trigger');
-  await tab.getByRole('button', { name: 'Build 1', exact: true }).focus();
-  await page.keyboard.press('Tab');
-  await expect(trigger).toBeFocused();
+  const switcher = page.locator('#build-switcher');
+  const menu = page.locator('#build-switcher-menu');
+  await switcher.focus();
   await page.keyboard.press('Enter');
-  const menu = page.locator('#build-tab-menu');
-  await expect(menu.locator('button')).toHaveText([
-    'Save to My Builds\u2026',
-    'Load build\u2026',
-    'Rename',
-    'Duplicate',
-    'Reset build',
-    'Close'
-  ]);
-  await expect(menu.getByRole('separator')).toHaveCount(2);
-  await expect(menu.getByRole('button', { name: 'Close' })).toBeDisabled();
-  await expect(menu.getByRole('button', { name: /Save to My Builds/ })).toBeFocused();
+  for (const name of ['Rename', 'Duplicate', /Save to My Builds/, /Load build/, 'Reset build'])
+    await expect(menu.getByRole('button', { name, exact: true })).toBeVisible();
+  // The final build cannot be closed, and the menu opens on the build being edited.
+  await expect(menu.getByRole('button', { name: 'Close Build 1', exact: true })).toBeDisabled();
+  await expect(menu.getByRole('button', { name: 'Build 1', exact: true })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();
-  await expect(trigger).toBeFocused();
+  await expect(switcher).toBeFocused();
   await newBuild(page);
-  await tabAction(page, 'Duplicate', 'Build 1');
+  await selectBuild(page, 'Build 1');
+  await expect(menu).toBeHidden();
+  await expect(switcher).toBeFocused();
+  await tabAction(page, 'Duplicate');
   await expect(page.locator('.build-tab')).toHaveCount(3);
-  await expect(page.locator('.build-tab.is-active')).toContainText('Build 1 copy');
-  await expect(page.locator('.build-tab.is-active .build-tab-menu-trigger')).toBeFocused();
+  await expect(page.locator('.build-switcher-name')).toHaveText('Build 1 copy');
+  await expect(switcher).toBeFocused();
 });
 
-// Loading from a tab replaces that destination while New continues to create independent builds.
-test('tab menu loads a template into the chosen tab and resets only that build', async ({ page }) => {
+// Loading replaces the build being edited while New continues to create independent builds.
+test('Load build replaces the current build and Reset restores only that build', async ({ page }) => {
   let releaseBuild;
   const buildReady = new Promise((resolve) => {
     releaseBuild = resolve;
@@ -361,10 +450,13 @@ test('tab menu loads a template into the chosen tab and resets only that build',
   await page.goto('/mesmer.html?embed=1');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const initialArmor = await page.evaluate(() => window.professionApp.build.targetArmor);
-  const originalId = await page.locator('.build-tab-menu-trigger').getAttribute('data-build-tab-id');
-  const originalTrigger = page.locator(`.build-tab-menu-trigger[data-build-tab-id="${originalId}"]`);
+  const switcher = page.locator('#build-switcher');
+  const originalId = await page
+    .locator('.build-tab [data-build-tab-action="select"]')
+    .getAttribute('data-build-tab-id');
   await newBuild(page);
-  await tabAction(page, /Load build/, 'Build 1');
+  await selectBuild(page, 'Build 1');
+  await tabAction(page, /Load build/);
   const dialog = page.locator('#build-templates-dialog');
   await expect(dialog).toBeVisible();
   await dialog.locator('.template-load-btn').click();
@@ -374,25 +466,29 @@ test('tab menu loads a template into the chosen tab and resets only that build',
   await expect(page.locator('#rotation-timeline .rotation-skeleton')).toBeVisible();
   await expect(page.locator('#rotation-timeline .rot-skill:visible')).toHaveCount(0);
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(initialArmor);
-  await expect(originalTrigger).toBeFocused();
+  await expect(switcher).toBeFocused();
   releaseBuild();
   await expect(page.locator('.template-load-status')).toBeHidden();
   await settled(page);
   await expect(page.locator('#rotation-timeline .rotation-skeleton')).toHaveCount(0);
   await expect(page.locator('.build-tab')).toHaveCount(2);
-  await expect(originalTrigger).toBeFocused();
+  await expect(switcher).toBeFocused();
+  // The label already names its weapons, so the loaded build must not repeat them.
+  await expect(page.locator('.build-switcher-name')).toHaveText('Mirage · Power (Spear)');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
-  // Reset restores this tab's loaded template after edits, leaving the blank tab independent.
+  // Reset restores this build's loaded template after edits, leaving the blank build independent.
   await page.evaluate(() => {
     window.professionApp.build.targetArmor = 2600;
     window.professionApp.changed();
   });
-  await page.getByRole('button', { name: 'New build', exact: true }).click();
+  await selectBuild(page, 'New build');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(initialArmor);
-  await originalTrigger.click();
+  // Loading renamed the original build, so return to it by identity before resetting.
+  const menu = await openSwitcher(page);
+  await menu.locator(`[data-build-tab-action="select"][data-build-tab-id="${originalId}"]`).click();
   page.once('dialog', (dialog) => dialog.accept());
-  await page.locator('#build-tab-menu').getByRole('button', { name: 'Reset build' }).click();
-  await expect(originalTrigger).toBeFocused();
+  await tabAction(page, 'Reset build');
+  await expect(switcher).toBeFocused();
   expect(await page.evaluate(() => window.professionApp.workspace.activeTabId)).toBe(originalId);
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
 });
@@ -493,7 +589,11 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
   await page.evaluate(async () => {
     const { addBuildTab } = await import('/js/games/gw2/app/build/state/workspace.ts');
     for (let index = 0; index < 5; index += 1)
-      addBuildTab(window.professionApp, window.professionApp.build, `Alternative build ${index}`);
+      addBuildTab(
+        window.professionApp,
+        window.professionApp.build,
+        `Alternative build with a long weapon and variant name ${index}`
+      );
   });
   for (const width of [1100, 700, 390, 320, 1100]) {
     await page.setViewportSize({ width, height: 844 });
@@ -503,17 +603,17 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     await expect(page.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
     await expect(page.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
     const mobile = width <= 600;
-    await expect(page.locator('.build-tab-list')).toBeVisible();
-    if (!mobile) {
-      await expect(page.locator('#btn-export-build')).toBeVisible();
-      await expect(page.locator('.build-tab.is-active')).toBeInViewport();
-    }
-
-    const trigger = page.locator(mobile ? '#build-actions-trigger' : '.build-tab.is-active .build-tab-menu-trigger');
+    // File actions stay explicit buttons at every width instead of collapsing into an overflow menu.
+    for (const id of ['btn-export-build', 'btn-import-build'])
+      await expect(page.locator(`.build-toolbar-actions > #${id}`)).toBeInViewport({ ratio: 1 });
+    // Six open builds never give the strip a horizontal scrollbar.
+    expect(
+      await page.locator('#build-workspace-tabs').evaluate((element) => element.scrollWidth <= element.clientWidth)
+    ).toBe(true);
+    const trigger = page.locator('#build-switcher');
     await trigger.click();
-    const menu = page.locator(mobile ? '#build-actions-menu' : '#build-tab-menu');
-    await expect(menu).toBeInViewport();
-    await expect(menu.locator('#btn-export-build')).toHaveCount(mobile ? 1 : 0);
+    const menu = page.locator('#build-switcher-menu');
+    await expect(menu).toBeInViewport({ ratio: 1 });
     await page.keyboard.press('Escape');
     await expect(menu).toBeHidden();
     await expect(trigger).toBeFocused();
@@ -525,19 +625,28 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     await expect(page.locator('#build-new-menu')).toBeHidden();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width + 1);
     const newButton = await page.locator('.build-tab-new').boundingBox();
-    const actions = await page.locator(mobile ? '#build-actions-trigger' : '#btn-export-build').boundingBox();
-    const tab = await page.locator('.build-tab.is-active').boundingBox();
+    const actions = await page.locator('#btn-export-build').boundingBox();
+    const switcher = await trigger.boundingBox();
+    // DPS stays beside the active build even when its name truncates on a phone.
+    const dps = page.locator('#build-workspace-tabs > #header-dps');
+    await expect(dps).toBeInViewport({ ratio: 1 });
+    const result = await dps.boundingBox();
+    expect(result.x - (switcher.x + switcher.width)).toBeCloseTo(8, 0);
+    expect(Math.abs(result.y + result.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
+    expect(await dps.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     expect(Math.abs(newButton.y - actions.y)).toBeLessThan(2);
-    expect(Math.abs(newButton.y - tab.y)).toBeLessThan(2);
+    // Wide strips center the actions on the switcher's row; narrow strips stack them beneath it.
+    if (mobile) expect(newButton.y).toBeGreaterThanOrEqual(switcher.y + switcher.height);
+    else expect(Math.abs(newButton.y + newButton.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
   }
 
   // Help may wrap with wider system fonts; preserve the header's gap in the actual direction of flow.
   for (const width of [700, 1100, 1600]) {
     await page.setViewportSize({ width, height: 844 });
     const nav = await page.locator('.simulator-view-tabs').boundingBox();
-    const firstTab = await page.locator('.build-tab-list').boundingBox();
+    const switcher = await page.locator('#build-switcher').boundingBox();
     const help = await page.locator('.community-actions').boundingBox();
-    expect(nav.x).toBe(firstTab.x);
+    expect(nav.x).toBe(switcher.x);
     const wrapped = help.y >= nav.y + nav.height;
     if (width === 700) expect(wrapped).toBe(true);
     if (width === 1600) expect(wrapped).toBe(false);
@@ -578,17 +687,17 @@ test('build and rotation exports allow custom file names', async ({ page }) => {
 });
 
 // Reparented controls keep their original listeners, and destructive actions still allow cancellation.
-test('mobile actions export, import, reset, and delete the active build', async ({ page }) => {
+test('narrow strip exports, imports, resets, and closes builds', async ({ page }) => {
   await openWorkspace(page, { width: 390, height: 844 });
   const original = await page.evaluate(() => structuredClone(window.professionApp.build));
   const download = page.waitForEvent('download');
-  await buildAction(page, /Export$/);
+  await page.locator('#btn-export-build').click();
   const exportDialog = page.getByRole('dialog', { name: 'Export file', exact: true });
   await expect(exportDialog).toBeInViewport({ ratio: 1 });
   await exportDialog.getByRole('textbox', { name: 'File name', exact: true }).fill('My mobile build');
   await exportDialog.getByRole('button', { name: 'Export', exact: true }).click();
   expect((await download).suggestedFilename()).toBe('My mobile build.json');
-  await buildAction(page, /Import$/);
+  await page.locator('#btn-import-build').click();
   const importDialog = page.locator('.build-file-import-dialog');
   await expect(importDialog).toBeVisible();
   const chooser = page.waitForEvent('filechooser');
@@ -612,12 +721,21 @@ test('mobile actions export, import, reset, and delete the active build', async 
   await tabAction(page, 'Reset build');
   await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(original.targetArmor);
   await newBuild(page);
-  page.once('dialog', (dialog) => dialog.dismiss());
-  await tabAction(page, 'Close');
+  await closeBuild(page, 'New build');
+  await page
+    .getByRole('dialog', { name: 'Close this build?' })
+    .getByRole('button', { name: 'Cancel', exact: true })
+    .click();
   await expect(page.locator('.build-tab')).toHaveCount(2);
-  page.once('dialog', (dialog) => dialog.accept());
-  await tabAction(page, 'Close');
+  await closeBuild(page, 'New build');
+  await page
+    .getByRole('dialog', { name: 'Close this build?' })
+    .getByRole('button', { name: 'Close build', exact: true })
+    .click();
   await expect(page.locator('.build-tab')).toHaveCount(1);
-  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
-  await expect(page.locator('#build-tab-menu').getByRole('button', { name: 'Close' })).toBeDisabled();
+  // The menu stays open on the remaining build, whose close control is unavailable.
+  const menu = page.locator('#build-switcher-menu');
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('button', { name: 'Close Build 1', exact: true })).toBeDisabled();
+  await expect(menu.getByRole('button', { name: 'Build 1', exact: true })).toBeFocused();
 });

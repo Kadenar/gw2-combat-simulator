@@ -1,13 +1,37 @@
-import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import {
+  weaverAttunementCompleted,
+  weaverCastCompleted,
+  weaverHandsChanged,
+  weaverHandsInitialized,
+  weaverUnraveled,
+  type WeaverCastCompleted,
+  type WeaverTransition,
+  type WeaverUnraveled
+} from '#gw2/professions/elementalist/specializations/weaver/mechanics/trigger-points.js';
+import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+
 import { elementsOfRageAvailability } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
 
 export const elementalRefreshment = defineTrait({
@@ -28,6 +52,7 @@ export const elementalPolyphony = defineTrait({
 });
 
 export const superiorElements = defineTrait({
+  triggers: [onTriggerPoint(weaverCastCompleted, { run: applySuperiorElements })],
   id: TRAIT.SUPERIOR_ELEMENTS,
   name: 'Superior Elements',
   balance: {
@@ -81,6 +106,11 @@ export const elementalPursuit = defineTrait({
 });
 
 export const weaversProwess = defineTrait({
+  triggers: [
+    onTriggerPoint(weaverAttunementCompleted, {
+      run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyWeaversProwess(runtime, event)
+    })
+  ],
   id: TRAIT.WEAVERS_PROWESS,
   name: "Weaver's Prowess",
   balance: {
@@ -89,6 +119,7 @@ export const weaversProwess = defineTrait({
 });
 
 export const swiftRevenge = defineTrait({
+  triggers: [onTriggerPoint(weaverCastCompleted, { run: applySwiftRevenge })],
   id: TRAIT.SWIFT_REVENGE,
   name: 'Swift Revenge',
   balance: {
@@ -101,6 +132,7 @@ export const swiftRevenge = defineTrait({
 });
 
 export const bolsteredElements = defineTrait({
+  triggers: [onTriggerPoint(weaverCastCompleted, { run: applyBolsteredElements })],
   id: TRAIT.BOLSTERED_ELEMENTS,
   name: 'Bolstered Elements',
   balance: {
@@ -109,6 +141,18 @@ export const bolsteredElements = defineTrait({
 });
 
 export const elementsOfRage = defineTrait({
+  triggers: [
+    onTriggerPoint(weaverHandsInitialized, {
+      run: (runtime: ElementalistRuntime) => initializeElementsOfRage(runtime)
+    }),
+    onTriggerPoint(weaverHandsChanged, {
+      run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyElementsOfRageAttunement(runtime, event)
+    }),
+    onTriggerPoint(weaverUnraveled, {
+      run: (runtime: ElementalistRuntime, { cast, previousPrimary, previousSecondary }: WeaverUnraveled) =>
+        applyUnravelElementsOfRage(runtime, cast, previousPrimary, previousSecondary)
+    })
+  ],
   id: TRAIT.ELEMENTS_OF_RAGE,
   name: 'Elements of Rage',
   balance: {
@@ -159,3 +203,213 @@ export const weaverTraits = [
   elementsOfRage,
   flowState
 ];
+
+/** Seed the opener only after the mechanic has assigned both starting hands. */
+function initializeElementsOfRage(context: ElementalistRuntime, emissionCast?: EffectDelivery['cast']): void {
+  const core = professionCoreState(context),
+    state = weaverState.from(context);
+  if (core.primaryAttunement === state.secondaryAttunement) {
+    const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
+    context.effects.emit(
+      elementalistBuffRequest(
+        {
+          skill: elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'),
+          at: context.time,
+          source: 'Starting Attunement',
+          sourceId: 'starting-attunement',
+          actorType: 'player',
+          kind: 'elements of rage',
+          stacks: 1,
+          duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+          skillName: 'Starting Attunement'
+        },
+        emissionCast
+      )
+    );
+  }
+}
+
+/** Fully attuned setup swaps may carry Rage into combat before Weave Self observes the transition. */
+function applyElementsOfRageAttunement(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): void {
+  const at = event.at,
+    target = event.to,
+    previous = event.from,
+    sourceId = event.skillId ?? event.sourceId,
+    source = event.skillName || event.source || 'Attunement',
+    unravelActive = weaverState.from(context).unravelUntil > at;
+  if (target === previous || unravelActive) {
+    const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
+    context.effects.emit(
+      elementalistBuffRequest(
+        {
+          skill: elementalistEventSkill(context, source, sourceId),
+          at,
+          source,
+          sourceId,
+          actorType: 'player',
+          kind: 'elements of rage',
+          stacks: 1,
+          duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+          skillName: source
+        },
+        emissionCast
+      )
+    );
+  }
+}
+
+/** Resistance follows the in-combat transition and precedes Core's Bountiful Power accounting. */
+function applyWeaversProwess(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): void {
+  const at = event.at,
+    target = event.to,
+    previous = event.from,
+    sourceId = event.skillId ?? event.sourceId,
+    unravelActive = weaverState.from(context).unravelUntil > at;
+  if (unravelActive || target === previous) {
+    const weaversProwessProfile = requireBalanceProfileFromContext(context, TRAIT.WEAVERS_PROWESS);
+    const resistance = requireEffect(weaversProwessProfile, 'boon', 'Resistance');
+    if (resistance) {
+      emitTraitProfile(context, TRAIT.WEAVERS_PROWESS, TRAIT.WEAVERS_PROWESS, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'boon', name: 'Resistance' },
+        cast: emissionCast,
+        attribution: {
+          source: "Weaver's Prowess",
+          sourceId: sourceId,
+          actorType: 'player',
+          skillName: "Weaver's Prowess",
+          skillId: elementalistEventSkill(context, "Weaver's Prowess", sourceId).id,
+          name: "Weaver's Prowess"
+        }
+      });
+    }
+  }
+}
+
+/** Stances grant Protection before dual-skill rewards. */
+function applyBolsteredElements(context: ElementalistRuntime, { cast }: WeaverCastCompleted): void {
+  const skill = cast.skill,
+    at = cast.effectiveEnd;
+  if (skill.skillFamily === 'Stance') {
+    emitTraitProfile(context, TRAIT.BOLSTERED_ELEMENTS, TRAIT.BOLSTERED_ELEMENTS, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'boon', name: 'Protection' },
+      skillId: skill.id,
+      skillName: skill.name,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      priority: 0,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.BOLSTERED_ELEMENTS,
+        actorType: 'player',
+        name: skill.name,
+        priority: 0
+      }
+    });
+  }
+}
+
+/** Each captured dual element grants its own Swift Revenge benefit. */
+function applySwiftRevenge(context: ElementalistRuntime, { cast, dualAttunements }: WeaverCastCompleted): void {
+  const skill = cast.skill,
+    at = cast.effectiveEnd;
+  if (dualAttunements) {
+    for (const element of dualAttunements) {
+      if (element === 'Fire') {
+        emitTraitProfile(context, TRAIT.SWIFT_REVENGE, TRAIT.SWIFT_REVENGE, undefined, {
+          at: at,
+          fullEnd: at,
+          effect: { type: 'boon', name: 'Fire' },
+          skillId: skill.id,
+          skillName: skill.name,
+          cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+          priority: 0,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.SWIFT_REVENGE,
+            actorType: 'player',
+            name: skill.name,
+            priority: 0
+          }
+        });
+      } else if (element === 'Air') {
+        emitTraitProfile(context, TRAIT.SWIFT_REVENGE, TRAIT.SWIFT_REVENGE, undefined, {
+          at: at,
+          fullEnd: at,
+          effect: { type: 'boon', name: 'Air' },
+          skillId: skill.id,
+          skillName: skill.name,
+          cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+          priority: 0,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.SWIFT_REVENGE,
+            actorType: 'player',
+            name: skill.name,
+            priority: 0
+          }
+        });
+      } else if (element === 'Earth') {
+        const swiftRevengeProfile = requireBalanceProfileFromContext(context, TRAIT.SWIFT_REVENGE);
+        context.endurance.grant(balanceProfileNumber(swiftRevengeProfile, 'resourceGain'));
+      }
+    }
+  }
+}
+
+/** Accepted dual attacks claim Superior Elements before emitting Weakness. */
+function applySuperiorElements(context: ElementalistRuntime, { cast, dualAttunements }: WeaverCastCompleted): void {
+  const skill = cast.skill,
+    at = cast.effectiveEnd;
+  if (dualAttunements && context.procs.claim(TRAIT.SUPERIOR_ELEMENTS, 'elementalist.weaver.superiorElements', at)) {
+    emitTraitProfile(context, TRAIT.SUPERIOR_ELEMENTS, TRAIT.SUPERIOR_ELEMENTS, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Weakness' },
+      skillId: skill.id,
+      skillName: skill.name,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: { source: skill.name, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
+      transform: (event) => ({ ...event, name: skill.name + ' \u2014 ' + event.condition })
+    });
+  }
+}
+
+/** Unravel rewards the transition from split hands after its boons and recharge resets. */
+function applyUnravelElementsOfRage(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  previousPrimary: string,
+  previousSecondary: string | null
+): void {
+  const skill = cast.skill;
+  if (previousPrimary !== previousSecondary) {
+    const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
+    context.effects.emit(
+      elementalistBuffRequest(
+        {
+          skill: skill,
+          at: cast.effectiveEnd,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: 'player',
+          name: skill.name,
+          kind: 'elements of rage',
+          duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+          stacks: 1
+        },
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
+  }
+}

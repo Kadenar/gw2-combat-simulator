@@ -3,13 +3,8 @@ import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
@@ -63,70 +58,6 @@ export function applyCatalystEmpowerment(context: MechanicCombatContext, event: 
     event.stacks || 1,
     balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks')
   );
-}
-
-// Vicious Empowerment's payouts all share one source name.
-function queueCatalystBuff(
-  context: MechanicCombatContext,
-  event: Gw2ResolverEvent,
-  kind: string,
-  stacks: number,
-  duration: number
-): void {
-  context.effects.emit({
-    kind: 'packet',
-    durationContext: event,
-    event: {
-      type: 'buff',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.VICIOUS_EMPOWERMENT,
-      actorType: 'player',
-      skillName: requireBalanceProfileFromContext(context, TRAIT.VICIOUS_EMPOWERMENT).name,
-      kind: kind.toLowerCase(),
-      stacks: stacks,
-      duration: duration,
-      triggeredBy: resolverSourceSkill(event),
-      priority: Number(event.priority || 0)
-    }
-  });
-}
-
-/**
- * Trigger Vicious Empowerment from qualifying control or immobilize events while
- * enforcing its shared internal cooldown.
- *
- * Pays Elemental Empowerment stacks plus might, and ignores anything landing
- * before combat start.
- */
-export function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  const immobilize = event.condition === 'Immobilized';
-  if (
-    !hasTrait(context, TRAIT.VICIOUS_EMPOWERMENT) ||
-    event.actorType !== 'player' ||
-    (event.type !== 'control' && !immobilize) ||
-    (context.combatStartTime != null && event.at < context.combatStartTime)
-  ) {
-    return;
-  }
-
-  // The trait claims its interval independently of its optional buff packets.
-  if (!context.procs.claim(TRAIT.VICIOUS_EMPOWERMENT, 'elementalist.catalyst.viciousEmpowerment', event.at)) return;
-  const viciousEmpowermentProfile = requireBalanceProfileFromContext(context, TRAIT.VICIOUS_EMPOWERMENT);
-  const empowerment = requireEffect(viciousEmpowermentProfile, 'buff', 'Empowerment');
-  const might = requireEffect(viciousEmpowermentProfile, 'boon', 'Might');
-  if (empowerment) {
-    queueCatalystBuff(context, event, 'elemental empowerment', Number(empowerment.stacks), empowerment.duration);
-  }
-
-  if (might) {
-    queueCatalystBuff(context, event, String(might.boon), Number(might.stacks), might.duration);
-  }
-
-  context.effects.emit({
-    kind: 'announcement',
-    announcement: { type: 'trait', name: 'Vicious Empowerment', at: event.at, sourceSkill: event.skillName }
-  });
 }
 
 /** Baseline stacks are granted by actual buff application; one task renews their profile window. */

@@ -5,6 +5,7 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
   SkillDamagePreviewContext,
+  SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
@@ -102,8 +103,28 @@ function bladeswornSkillDamageOccurrence(context: SkillDamagePreviewContext, ski
 
 export const bladeswornUi: WarriorUiSlice = Object.freeze({
   // Fierce as Fire changes outgoing damage only; Guns and Glory's Ferocity also shows in the Attribute Preview.
+  /** Seed only the selected cartridge window for isolated explosion damage. */
+  prepareSkillDamagePreview({ values }: SkillDamagePreviewPreparation) {
+    return { initialBuffs: values.cartridges ? [{ kind: String(values.cartridges), stacks: 1, duration: 3600 }] : [] };
+  },
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Cartridge states are mutually exclusive, matching native detonation behavior.
+    if (preview.skills.has(ID.OVERCHARGED_CARTRIDGES))
+      preview.add({
+        key: 'cartridges',
+        label: 'Cartridges',
+        group: 'Other buffs',
+        kind: 'special',
+        scope: ['damage'],
+        options: ['', 'overcharged-cartridges', 'supercharged-cartridges'],
+        optionLabels: {
+          '': 'None',
+          'overcharged-cartridges': 'Overcharged Cartridges',
+          'supercharged-cartridges': 'Supercharged Cartridges'
+        },
+        description: 'Active explosion damage bonus'
+      });
     if (preview.has('Fierce as Fire'))
       preview.add({
         key: 'fierceAsFire',

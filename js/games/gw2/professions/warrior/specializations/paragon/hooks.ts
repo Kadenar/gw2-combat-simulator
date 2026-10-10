@@ -1,7 +1,9 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { REFRAIN, startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import { paragonMotivationPolicy } from '#gw2/professions/warrior/specializations/paragon/mechanics/resources.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
@@ -11,9 +13,6 @@ import {
 } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import {
-  applyFeverishPulse,
-  applyInspiringImplements,
-  applyInvigoratingTempo,
   enduringRefrainMotivation,
   enduringRefrainMultiplier,
   reverberationEchoCount
@@ -69,7 +68,7 @@ function pulseRefrain(runtime: Runtime): void {
 
   const spent = Math.min(cost, runtime.resourceController.value('motivation'));
   runtime.resourceController.spend('motivation', spent);
-  applyInvigoratingTempo(runtime, spent);
+  runtime.fireTrigger(motivationSpent, { spent });
   if (runtime.resourceController.value('motivation') <= 0) state.activeRefrainId = null;
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   if (state.activeRefrainId != null && interval > 0)
@@ -116,7 +115,7 @@ function activateChant(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void 
     });
   }
 
-  applyFeverishPulse(runtime, cast);
+  runtime.fireTrigger(chantActivated, { cast });
 }
 
 /** A consumed echo invalidates its old wake and starts any remaining repeat from the actual consumption time. */
@@ -185,6 +184,14 @@ function activateCommand(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
 
 /** Paragon mutates live state at combat entry, committed casts, swaps, and queued pulses without replay events. */
 export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  /** Hold the selected preview state while evaluating detached damage queries. */
+  prepareDamageState(runtime, _skill, inputs) {
+    runtime.resourceController.replace('motivation', Number(inputs.motivation ?? 0));
+    paragonState.from(runtime).activeRefrainId = inputs.refrain ? Number(inputs.refrain) : null;
+  },
+  onCombatStart(runtime) {
+    runtime.fireTrigger(paragonCombatStarted, {});
+  },
   resources: { motivation: paragonMotivationPolicy },
   // Declarations own eligibility; these actions retain shared motivation, replacement, and echo lifetimes.
   sideEffectHandlers: {
@@ -201,7 +208,7 @@ export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     if (cast.skill.burst)
       for (const activationId of Object.keys(paragonState.from(runtime).commandEchoes))
         consumeEcho(runtime, activationId);
-    applyInspiringImplements(runtime, cast);
+    runtime.fireTrigger(paragonCastCompleted, { cast });
   },
   tasks: {
     [REFRAIN]: pulseRefrain,
@@ -210,3 +217,25 @@ export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     }
   }
 };
+
+/** Grant the selected reward at this boundary before the mechanic continues. */
+export const motivationSpent = defineTriggerPoint<{ readonly spent: number }>('warrior.motivation-spent', [
+  TRAIT.INVIGORATING_TEMPO
+]);
+
+/** Grant the selected reward at this boundary before the mechanic continues. */
+export const chantActivated = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>(
+  'warrior.chant-activated',
+  [TRAIT.FEVERISH_PULSE]
+);
+
+/** Grant the selected reward at this boundary before the mechanic continues. */
+export const paragonCastCompleted = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>(
+  'warrior.paragon-cast-completed',
+  [TRAIT.INSPIRING_IMPLEMENTS]
+);
+
+/** Combat entry admits Call to Action once; the refrain itself keeps its mechanic-owned lifetime. */
+export const paragonCombatStarted = defineTriggerPoint<Record<string, never>>('warrior.paragon-combat-started', [
+  TRAIT.CALL_TO_ACTION
+]);

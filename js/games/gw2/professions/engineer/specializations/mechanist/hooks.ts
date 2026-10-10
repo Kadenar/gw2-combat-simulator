@@ -1,11 +1,12 @@
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
-import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
+import { mechStruck } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
+import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import { overclockRechargeRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
-import { reactToMechArmDamage } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+
 import { canonicalTime } from '#kernel/core/clock.js';
 
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
@@ -16,6 +17,7 @@ import {
   copyEngineerMechBoon,
   engineerMechHasQuickness,
   initializeEngineerMech,
+  mechanistCombatReady,
   isEngineerMechCommand,
   prepareEngineerMechEvent,
   stepMechAttack,
@@ -24,8 +26,6 @@ import {
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
-const critical = engineerMechCriticalDefinitions.map(criticalProcHandler);
-
 /** Commands reserve the summon lane immediately; its autoattack phase resumes only after command recovery. */
 export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   // Barrier tracks applications and expiry for trait reactions without modeling incoming damage or health.
@@ -33,9 +33,13 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
   // Completed commands grant player Quickness; mech recovery and Overclock retain their lifecycle owner.
 
   initialize(runtime) {
+    // Preserve implicit-start admission before the autonomous mech lane starts.
+    if (!runtime.combatStartPending) runtime.fireTrigger(mechanistCombatReady, {});
     initializeEngineerMech(runtime);
   },
   onCombatStart(runtime) {
+    // Deferred explicit combat starts the same guarded producer, never a second renewal loop.
+    if (runtime.hasExplicitCombatStart) runtime.fireTrigger(mechanistCombatReady, {});
     initializeEngineerMech(runtime);
   },
   availability: mechanistCastAvailability,
@@ -84,8 +88,9 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
   reactions: {
     'buff.applied': copyEngineerMechBoon,
     'damage.resolved'(runtime, event, details) {
-      for (const reaction of critical) reaction(runtime, event, details);
-      reactToMechArmDamage(runtime, event);
+      // Only positive mech strikes reach the mech-owned Firearms trackers and arm rewards.
+      if (Number(event.coefficient) > 0 && engineerMechResolverEvent(runtime, event))
+        runtime.fireTrigger(mechStruck, { cause: event, details });
     }
   }
 };

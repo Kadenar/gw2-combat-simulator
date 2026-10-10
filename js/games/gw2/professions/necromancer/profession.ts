@@ -1,12 +1,12 @@
-import { necromancerFamilyUi } from '#gw2/professions/necromancer/family-presentation.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild
 } from '#gw2/professions/necromancer/build/build.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerFamilyUi } from '#gw2/professions/necromancer/family-presentation.js';
 
 export { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
 

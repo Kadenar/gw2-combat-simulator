@@ -1,11 +1,12 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { serratedSteel, noScope, incendiaryPowder } from '#gw2/professions/engineer/core/traits/firearms/index.js';
-import { emitSerratedSteel } from '#gw2/professions/engineer/core/traits/firearms/emissions.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
+import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -13,9 +14,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const critical = { hitContext: { critical: { chance: 1, didCrit: true } } };
-const reactions = [serratedSteel, noScope, incendiaryPowder]
-  .map((trait) => trait.hooks.reactions['damage.resolved'])
-  .concat(engineerMechCriticalDefinitions.map(criticalProcHandler));
+// Player procs run through their compiled strike triggers; mech procs through the Mechanist mech strike point.
+const playerReaction = compileProfessionRules({
+  traitTriggers: [serratedSteel, noScope, incendiaryPowder].flatMap((trait) =>
+    trait.triggers.filter((rule) => rule.on === 'damage.resolved').map((rule) => ({ ...rule, trait: trait.id }))
+  )
+}).reactions['damage.resolved'];
+const reactions = [playerReaction, mechanistHooks.reactions['damage.resolved']];
 
 /** Exercise the real proc gates with selected profiles and isolated emission observation. */
 function fixture(traits, catalog = engineerCatalog, mode = 'stochastic') {
@@ -36,6 +41,7 @@ function fixture(traits, catalog = engineerCatalog, mode = 'stochastic') {
     effects: capture.effects
   };
   context.procs = createProcRegistry(() => context);
+  bindTriggerPoints(context, engineerProfession, { specialization: 'Mechanist' });
   const hit = (actor, at, overrides = {}, details = critical) => {
     const before = capture.events.length;
     const event = {
@@ -165,10 +171,11 @@ test('Firearms respects selected profile effect removal and Serrated proc quanti
   assert.deepEqual(removed.hit('mech', 1), []);
   assert.deepEqual(removed.announcements, []);
   const selected = withProfile(engineerCatalog, TRAIT.SERRATED_STEEL, {
+    procChance: 1,
     effects: [{ type: 'condition', name: 'Bleeding', condition: 'Bleeding', stacks: 2, duration: 7 }]
   });
-  const { context, events } = fixture([], selected);
-  emitSerratedSteel(context, { at: 1, skillName: 'Trigger' }, 3, { actorType: 'effect', ownerActorType: 'player' });
-  assert.equal(events[0].stacks, 6);
-  assert.equal(events[0].metadata.procCount, 3);
+  const { hit, events } = fixture([TRAIT.SERRATED_STEEL], selected);
+  hit('player', 1);
+  assert.equal(events[0].stacks, 2);
+  assert.equal(events[0].metadata.procCount, 1);
 });

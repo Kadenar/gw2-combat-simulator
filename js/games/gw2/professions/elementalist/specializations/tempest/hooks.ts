@@ -13,13 +13,13 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import {
+  attunementInvoked,
+  attunementReleased
+} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { triggerElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
-import { triggerSunspot } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import { triggerEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
-import { triggerFlameExpulsion } from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
@@ -31,17 +31,13 @@ import {
   registerTempestLightningJolt
 } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
+import {
+  tempestCastCompleted,
+  tempestCastCompleting,
+  tempestCastStarted,
+  tempestTransitionObserved
+} from '#gw2/professions/elementalist/specializations/tempest/mechanics/trigger-points.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import {
-  applyGaleSong,
-  applyLatentStamina,
-  applyTempestResolverAura,
-  applyTempestShoutTraits
-} from '#gw2/professions/elementalist/specializations/tempest/traits/auras.js';
-import {
-  applyLucidSingularity,
-  applyUnstableConduit
-} from '#gw2/professions/elementalist/specializations/tempest/traits/conduits.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,
@@ -57,25 +53,14 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elementalis
   if (!skill.overload) return;
   // Beginning an overload replays the core attunement-entry traits, so fire the proc that belongs
   // to the channeled element (Water has no such proc).
-  if (skill.attunement === 'Fire') {
-    triggerSunspot(context, cast.start, skill.id, {
-      activationId: cast.id,
-      skillId: cast.skill.id,
-      offTarget: cast.command.offTarget
+  if (isElementalistAttunement(skill.attunement))
+    context.fireTrigger(attunementInvoked, {
+      at: cast.start,
+      skill,
+      target: skill.attunement,
+      claimTrait: () => true,
+      emissionCast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
     });
-  } else if (skill.attunement === 'Air') {
-    triggerElectricDischarge(context, cast.start, skill.id, {
-      activationId: cast.id,
-      skillId: cast.skill.id,
-      offTarget: cast.command.offTarget
-    });
-  } else if (skill.attunement === 'Earth') {
-    triggerEarthenBlast(context, cast.start, skill.id, {
-      activationId: cast.id,
-      skillId: cast.skill.id,
-      offTarget: cast.command.offTarget
-    });
-  }
 }
 
 // Gate overloads on the current attunement and on the singularity: the attunement must already be
@@ -106,15 +91,19 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
 // for overloads the attunement lockout and each completion trait.
 function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   // Committed shortened heals retain the same reward before overload-specific completion work.
-  applyGaleSong(context, cast, skill);
+  context.fireTrigger(tempestCastCompleting, { cast });
   if (!skill.overload) return;
   const attunement = String(skill.attunement);
-  applyUnstableConduit(context, cast, skill);
+
   if (attunement === 'Fire') {
-    triggerFlameExpulsion(context, cast.effectiveEnd, skill.id, {
-      activationId: cast.id,
-      skillId: cast.skill.id,
-      offTarget: cast.command.offTarget
+    context.fireTrigger(attunementReleased, {
+      at: cast.effectiveEnd,
+      sourceId: skill.id,
+      emissionCast: {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      }
     });
   }
 }
@@ -140,7 +129,7 @@ function onAttunementEvent(
   }
 
   // Attuning to Water claims Latent Stamina's interval even when its optional vigor packet is removed.
-  applyLatentStamina(context, event, emissionCast);
+  context.fireTrigger(tempestTransitionObserved, { event, emissionCast });
 }
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
@@ -232,15 +221,14 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
   onCastStart(runtime, cast) {
     {
       onCastStart(runtime, cast, cast.skill);
-      applyLucidSingularity(runtime, cast, cast.skill);
+      runtime.fireTrigger(tempestCastStarted, { cast });
     }
   },
   onCastCommit(runtime, cast) {
     // The engine admits committed casts here, including overloads whose remaining aftercast was cancelled.
     {
       onCastCommit(runtime, cast, cast.skill);
-      if (cast.skill.skillFamily === 'Shout') applyTempestShoutTraits(runtime, cast, cast.skill);
+      runtime.fireTrigger(tempestCastCompleted, { cast });
     }
-  },
-  reactions: { 'aura.applied': applyTempestResolverAura }
+  }
 };

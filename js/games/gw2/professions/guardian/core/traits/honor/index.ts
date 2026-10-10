@@ -1,3 +1,4 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
@@ -12,6 +13,10 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import {
+  guardianCastCompleted,
+  type GuardianCastCompletion
+} from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/mechanics/symbols.js';
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
@@ -52,6 +57,12 @@ export const empoweringMight = defineTrait({
 export const protectorsRestoration = defineTrait({
   id: TRAIT.PROTECTORS_RESTORATION,
   name: "Protector's Restoration",
+  triggers: [
+    onTriggerPoint(guardianCastCompleted, {
+      when: (_runtime, { cast }: GuardianCastCompletion) => cast.skill.type === 'Heal',
+      run: placeProtectorsSymbol
+    })
+  ],
   balance: {
     // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
     cooldownPolicy: 'playerRecharge',
@@ -82,6 +93,8 @@ export const protectorsRestoration = defineTrait({
 
 /** Owns Writ of Persistence's live tuning and trait behavior. */
 export const writOfPersistence = defineTrait({
+  hooks: { modifyEffects: writOfPersistenceEffects },
+
   id: TRAIT.WRIT_OF_PERSISTENCE,
   name: 'Writ of Persistence',
   balance: {
@@ -177,7 +190,10 @@ export const invigoratedBulwark = defineTrait({
   }
 });
 
-/** Fields are selected before registration, so extensions never rewrite an already executed action. */
+/**
+ * Fields are selected before registration, so extensions never rewrite an already executed action. Core composes this
+ * after its weapon-field selection, because a trait hook would run before Symbol of Ignition's field exists.
+ */
 export function writOfPersistenceFields(
   runtime: MechanicQueriesOf<Runtime>,
   cast: RuntimeCast<GuardianSkill>,
@@ -196,8 +212,8 @@ export function writOfPersistenceFields(
 }
 
 /** Select authored trait extensions once and leave cancellation, impact delay, and boon sampling to the common runtime. */
-export function writOfPersistenceEffects(
-  runtime: Runtime,
+function writOfPersistenceEffects(
+  runtime: MechanicQueriesOf<Runtime>,
   cast: RuntimeCast<GuardianSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
@@ -265,15 +281,11 @@ export function writOfPersistenceEffects(
 }
 
 /** A committed heal claims Protection's interval only when its selected symbol can emit. */
-export function completeProtectorsRestoration(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
-  if (cast.skill.type !== 'Heal') return;
+function placeProtectorsSymbol(runtime: Runtime, { cast }: GuardianCastCompletion): void {
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
-
-  if (hasTrait(runtime, TRAIT.PROTECTORS_RESTORATION)) {
-    emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause, {
-      party: true,
-      cooldownKey: 'guardian.core.protectorsRestoration',
-      fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
-    });
-  }
+  emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause, {
+    party: true,
+    cooldownKey: 'guardian.core.protectorsRestoration',
+    fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
+  });
 }

@@ -1,12 +1,21 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { isPetStrike, petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
+import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -14,13 +23,30 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { buildRangerBleeding } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+
+import {
+  bloodThirstApplied,
+  criticalResolved,
+  dodged,
+  packStrikeApplied,
+  weaponSwapped
+} from '#gw2/professions/ranger/core/mechanics/combat.js';
+
 import { activeBuff, qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Owns Light on Your Feet's live tuning and trait behavior. */
 export const lightOnYourFeet = defineTrait({
+  triggers: [
+    onTriggerPoint(bloodThirstApplied, {
+      run: (runtime, input: TriggerPointInput<typeof bloodThirstApplied>) =>
+        triggerLightOnYourFeet(runtime, input.event)
+    }),
+    onTriggerPoint(dodged, {
+      run: (runtime, input: TriggerPointInput<typeof dodged>) => applyRangerDodgeTraits(runtime, input.at)
+    })
+  ],
   id: TRAIT.LIGHT_ON_YOUR_FEET,
   name: 'Light on Your Feet',
   balance: {
@@ -72,6 +98,11 @@ export const lightOnYourFeet = defineTrait({
 
 /** Owns Tail Wind's live tuning and trait behavior. */
 export const tailWind = defineTrait({
+  triggers: [
+    onTriggerPoint(weaponSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) => tailWindSwap(runtime, input.skill, input.at)
+    })
+  ],
   id: TRAIT.TAIL_WIND,
   name: 'Tail Wind',
   balance: {
@@ -82,6 +113,11 @@ export const tailWind = defineTrait({
 
 /** Owns Quick Draw's live tuning and trait behavior. */
 export const quickDraw = defineTrait({
+  triggers: [
+    onTriggerPoint(weaponSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) => quickDrawSwap(runtime, input.skill, input.at)
+    })
+  ],
   id: TRAIT.QUICK_DRAW,
   name: 'Quick Draw',
   balance: {
@@ -100,7 +136,7 @@ export const quickDraw = defineTrait({
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }
   ],
-  hooks: {
+  lifetime: {
     reserveRecharge(runtime: RangerRuntime, skill, work) {
       // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
       if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1')
@@ -112,6 +148,11 @@ export const quickDraw = defineTrait({
 
 /** Owns Furious Grip's live tuning and trait behavior. */
 export const furiousGrip = defineTrait({
+  triggers: [
+    onTriggerPoint(weaponSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) => furiousGripSwap(runtime, input.skill, input.at)
+    })
+  ],
   id: TRAIT.FURIOUS_GRIP,
   name: 'Furious Grip',
   balance: {
@@ -122,6 +163,12 @@ export const furiousGrip = defineTrait({
 
 /** Owns Sharpened Edges's live tuning and trait behavior. */
 export const sharpenedEdges = defineTrait({
+  triggers: [
+    onTriggerPoint(criticalResolved, {
+      run: (runtime, input: TriggerPointInput<typeof criticalResolved>) =>
+        sharpenedEdgesCritical(runtime, input.event, input.details)
+    })
+  ],
   id: TRAIT.SHARPENED_EDGES,
   name: 'Sharpened Edges',
   balance: {
@@ -132,6 +179,12 @@ export const sharpenedEdges = defineTrait({
 
 /** Owns Trapper's Expertise's live tuning and trait behavior. */
 export const trappersExpertise = defineTrait({
+  triggers: [
+    onTriggerPoint(packStrikeApplied, {
+      run: (runtime, input: TriggerPointInput<typeof packStrikeApplied>) =>
+        triggerTrappersExpertise(runtime, input.event)
+    })
+  ],
   id: TRAIT.TRAPPERS_EXPERTISE,
   name: "Trapper's Expertise",
   balance: {
@@ -269,26 +322,197 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
   NativeResolvedDamageDetails
 >;
 
-export const rangerCoreCriticalReactions = Object.freeze({
+const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
   chanceOnCriticalHit: (context: RangerResolverContext) =>
     balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHARPENED_EDGES), 'criticalChance'),
   actorTypes: ['player', 'summon'] as const,
-  when(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
-    return hasTrait(context, TRAIT.SHARPENED_EDGES) && (event.actorType === 'player' || event.source === 'ranger-pet');
+  when(_context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
+    return event.actorType === 'player' || event.source === 'ranger-pet';
   },
   handler(context, event, _details, application): void {
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
     const profile = requireBalanceProfileFromContext(context, TRAIT.SHARPENED_EDGES);
     const bleeding = requireEffect(profile, 'condition', 'Bleeding');
     if (!bleeding) return;
-    const duration = effectNumber(profile, bleeding, 'duration');
-    const stacks = effectNumber(profile, bleeding, 'stacks');
-    for (let proc = 0; proc < application.quantity; proc += 1) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildRangerBleeding(context, event, duration, TRAIT.SHARPENED_EDGES, 'Sharpened Edges', stacks)
+    // Each threshold proc uses the canonical condition payload and the triggering pet's independent ownership.
+    for (let proc = 0; proc < application.quantity; proc += 1)
+      emitTraitProfile(context, TRAIT.SHARPENED_EDGES, TRAIT.SHARPENED_EDGES, undefined, {
+        at: event.at,
+        effect: { type: 'condition', name: 'Bleeding' },
+        attribution: {
+          source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
+          actorType: isPetStrike(event) ? 'summon' : 'effect',
+          ownerActorType: isPetStrike(event) ? undefined : 'player',
+          skillId: TRAIT.SHARPENED_EDGES,
+          skillName: 'Sharpened Edges',
+          triggeredBy: event.skillName
+        },
+        transform: (packet) => ({
+          ...packet,
+          ...petDerivedConditionMetadata(context, event),
+          name: 'Sharpened Edges — ' + packet.condition
+        })
+      });
+  }
+} satisfies RangerCriticalHitDefinition);
+
+function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void {
+  const profile = requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET);
+  const effect = requireEffect(profile, 'buff', 'light-on-your-feet');
+  if (!effect) return;
+  const kind = String(effect.kind);
+  const baseDuration = effectNumber(profile, effect, 'duration');
+  // Reapplications stack duration in game, so preserve the live remainder
+  // instead of replacing it with another six-second overlapping window.
+  const activeUntil = context.facts
+    .read()
+    .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
+    .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, event.duration || 0)), at);
+  emitTraitProfile(context, TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.LIGHT_ON_YOUR_FEET, undefined, {
+    at: at,
+    fullEnd: at,
+    effect: { type: 'buff', name: 'light-on-your-feet' },
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+      actorType: 'effect',
+      skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+      skillName: 'Light on your Feet',
+      name: 'Light on your Feet'
+    },
+    transform: (packet) => ({ ...packet, duration: baseDuration + Math.max(0, activeUntil - at) })
+  });
+}
+
+// Apply combat-only weapon-swap traits on independent ICDs and arm Quick Draw's
+// one-use window for the next qualifying weapon skill.
+/** Own the selected reward at the committed weapon-swap boundary. */
+function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
+  const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+  if (inCombat) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.TAIL_WIND);
+    const effect = requireEffect(profile, 'boon', 'swiftness');
+    // The cooldown gates only swiftness, so a removed boon leaves it ready.
+    if (effect && context.procs.claim(TRAIT.TAIL_WIND, 'ranger.core.tailWind', at)) {
+      emitTraitProfile(context, TRAIT.TAIL_WIND, TRAIT.TAIL_WIND, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'boon', name: 'swiftness' },
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.TAIL_WIND,
+          actorType: 'effect',
+          skillId: skill.id,
+          skillName: 'Tail Wind',
+          name: 'Tail Wind'
+        }
       });
     }
   }
-} satisfies RangerCriticalHitDefinition);
+}
+
+/** Own the selected reward at the committed weapon-swap boundary. */
+function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
+  const state = professionCoreState(context);
+  const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+  if (inCombat && context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
+    const effect = requireEffect(profile, 'boon', 'quickness');
+    // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
+    state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'durationMultiplier'));
+    if (effect)
+      emitTraitProfile(context, TRAIT.QUICK_DRAW, TRAIT.QUICK_DRAW, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'boon', name: 'quickness' },
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.QUICK_DRAW,
+          actorType: 'effect',
+          skillId: skill.id,
+          skillName: 'Quick Draw',
+          name: 'Quick Draw'
+        }
+      });
+  }
+}
+
+/** Own the selected reward at the committed weapon-swap boundary. */
+function furiousGripSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
+  const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+  if (inCombat) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS_GRIP);
+    const effect = requireEffect(profile, 'boon', 'fury');
+    // The cooldown gates only fury, so a removed boon leaves it ready.
+    if (effect && context.procs.claim(TRAIT.FURIOUS_GRIP, 'ranger.core.furiousGrip', at)) {
+      emitTraitProfile(context, TRAIT.FURIOUS_GRIP, TRAIT.FURIOUS_GRIP, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'boon', name: 'fury' },
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.FURIOUS_GRIP,
+          actorType: 'effect',
+          skillId: skill.id,
+          skillName: 'Furious Grip',
+          name: 'Furious Grip'
+        }
+      });
+    }
+  }
+}
+
+/** Apply Trapper's Expertise once per trap activation when its damage resolves. */
+function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = professionCoreState(context);
+  const skill = skillForEvent(context.helpers, event);
+  if (skill?.categories?.includes('Trap') && event.activationId) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE);
+    const cripple = requireEffect(profile, 'condition', 'Crippled');
+    if (!cripple) return;
+    if (!claimActivation(state.activationClaims, 'ranger.trappers-expertise', event.activationId)) return;
+    emitTraitProfile(context, TRAIT.TRAPPERS_EXPERTISE, TRAIT.TRAPPERS_EXPERTISE, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Crippled' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.TRAPPERS_EXPERTISE,
+        actorType: 'effect',
+        skillId: TRAIT.TRAPPERS_EXPERTISE,
+        skillName: "Trapper's Expertise",
+        name: "Trapper's Expertise — Crippled",
+        triggeredBy: event.skillName
+      },
+      transform: (packet) => ({ ...packet, fixedDuration: true })
+    });
+  }
+}
+
+/** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
+function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const skill = skillForEvent(context.helpers, event);
+  // Crossfire gains duration through the base-duration hook, never an additional bleed stack.
+  if (skill?.id === ID.CONCUSSION_SHOT) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET);
+    const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+    if (vulnerability)
+      emitTraitProfile(context, TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.LIGHT_ON_YOUR_FEET, undefined, {
+        at: event.at,
+        fullEnd: event.at,
+        effect: { type: 'condition', name: 'Vulnerability' },
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+          actorType: 'effect',
+          skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+          skillName: 'Light on your Feet',
+          name: 'Light on your Feet — Vulnerability',
+          triggeredBy: event.skillName
+        }
+      });
+  }
+}
+
+const sharpenedEdgesCritical = criticalProcHandler(rangerCoreCriticalReactions);

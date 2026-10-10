@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
@@ -16,6 +18,20 @@ function natureConsumes(context: Pick<RevenantUiContext, 'catalog'>): Readonly<R
 }
 
 export const heraldUi: RevenantUiSlice = Object.freeze({
+  /** Expose held combat bonuses without changing the saved build or simulation. */
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    preview.add({
+      key: 'burstOfStrength',
+      label: 'Burst of Strength',
+      group: 'Other buffs',
+      kind: 'buff',
+      field: 'burst-of-strength',
+      scope: ['damage'],
+      description: 'Burst of Strength damage bonus active'
+    });
+    return preview.controls;
+  },
   /** Declare the damage context for one assumed occurrence. */
   skillDamageState(context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageState | null {
     // Direct evaluation supplies damage state without prerequisite actions.

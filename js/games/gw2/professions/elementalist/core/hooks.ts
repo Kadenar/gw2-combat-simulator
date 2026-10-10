@@ -29,10 +29,6 @@ import { expireElementalistState } from '#gw2/professions/elementalist/core/mech
 import { fulgorPulse } from '#gw2/professions/elementalist/core/mechanics/fulgor.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
 import {
-  applyElementalistResolvedCondition,
-  applyElementalistResolvedDamage
-} from '#gw2/professions/elementalist/core/mechanics/reactions.js';
-import {
   elementalistRechargeWork,
   reserveElementalistRecharge
 } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
@@ -43,25 +39,26 @@ import {
   empowerElementalistSpearPacket
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import {
+  auraAccepted,
+  controlAccepted,
+  elementalistConditionApplied,
+  elementalistDamageResolved,
+  elementalistEventPreparing
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import {
   elementalistWeaponStateTasks,
   observeElementalistAutoattackTransition
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
+import {
+  applyShatteringStoneBuff,
+  triggerShatteringStone
+} from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   resetElementalistAttunementCooldowns
 } from '#gw2/professions/elementalist/core/state.js';
 import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
-import {
-  applyFreshAirCritical,
-  observeFreshAirCandidate
-} from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
-import {
-  applyElementalistResolverAuraTraits,
-  observeElementalistTraitEvent,
-  reactElementalistCoreCritical
-} from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { emitEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
 import {
   emitFlameExpulsion,
@@ -158,7 +155,7 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
     const elemental = runtime.profession.core.summonedElemental;
     if (event.type === 'damage' && CONJURED_WEAPONS.has(String(event.skillWeapon)))
       event = { ...event, weaponStrengthSource: 'equipped' };
-    observeFreshAirCandidate(runtime, event);
+    runtime.fireTrigger(elementalistEventPreparing, { event });
     let prepared = prepareGw2BuffCompanionCandidates(
       event,
       elemental.element && elemental.activeUntil >= event.at
@@ -225,16 +222,17 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
   reactions: {
     'damage.resolved'(runtime, event, details) {
       const damage = details as NativeResolvedDamageDetails;
-      applyFreshAirCritical(runtime, event, damage.hitContext!.critical);
-      reactElementalistCoreCritical(runtime, event, damage);
-      applyElementalistResolvedDamage(runtime, event);
+      runtime.fireTrigger(elementalistDamageResolved, { cause: event, details: damage });
+      triggerShatteringStone(runtime, event);
     },
-    'condition.applied': applyElementalistResolvedCondition,
+    'condition.applied': (runtime, event) => runtime.fireTrigger(elementalistConditionApplied, { cause: event }),
     'buff.applied': applyShatteringStoneBuff,
-    'control.resolved': observeElementalistTraitEvent,
+    'control.resolved'(runtime, cause) {
+      if (cause.type === 'control' && cause.actorType === 'player') runtime.fireTrigger(controlAccepted, { cause });
+    },
     // Core consequences run before the composed elite reactions; combo auras are accepted without republishing.
     'aura.applied'(runtime, event) {
-      if (acceptElementalistAuraReaction(runtime, event)) applyElementalistResolverAuraTraits(runtime, event);
+      if (acceptElementalistAuraReaction(runtime, event)) runtime.fireTrigger(auraAccepted, { cause: event });
     }
   }
 };

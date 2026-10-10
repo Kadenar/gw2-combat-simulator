@@ -1,10 +1,10 @@
-import { kineticBattery } from '#gw2/professions/engineer/core/traits/tools/index.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
 import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
@@ -28,19 +28,24 @@ test('Kinetic Battery resets before its reward and admits only qualifying toolbe
       }
     }).effects
   };
-  kineticBattery.hooks.initialize(context);
+  bindTriggerPoints(context, engineerProfession);
   const skill = { id: 'test.toolbelt', name: 'Toolbelt', countsAsToolbeltSkill: true };
-  notifyToolbeltActivation(context, { ...skill, countsAsToolbeltSkill: false }, 1);
+  const activate = (at, activated = skill) => {
+    context.time = at;
+    notifyToolbeltActivation(context, activated, `cast:${at}`);
+  };
+
+  activate(1, { ...skill, countsAsToolbeltSkill: false });
   assert.equal(core.kineticCharges, 2);
   assert.deepEqual(observations, []);
-  notifyToolbeltActivation(context, skill, 1);
+  activate(1);
   assert.equal(core.kineticCharges, 0);
   assert.ok(observations.some(([kind]) => kind === 'quickness'));
   assert.ok(observations.every(([, count]) => count === 0));
-  notifyToolbeltActivation(context, skill, 2);
+  activate(2);
   assert.equal(core.kineticCharges, 1);
   context.traits.clear();
-  notifyToolbeltActivation(context, skill, 3);
+  activate(3);
   assert.equal(core.kineticCharges, 1);
 });
 
@@ -55,17 +60,23 @@ test('Aim-Assisted Rocket claims its ICD and cumulative progress before emitting
     profession: { core },
     effects: captureEffectEmissions({
       submit(event) {
-        observations.push([event.name, core.aimAssistedRocketCount, context.procs.deadline('aimAssistedRocket')]);
+        observations.push([event.name, core.aimAssistedRocketCount, context.procs.deadline(TRAIT.AIM_ASSISTED_ROCKET)]);
         return event;
       }
     }).effects
   };
   context.procs = createProcRegistry(() => context);
+  const strike = bindTriggerPoints(context, engineerProfession).reactions['damage.resolved'];
+  const applyAimAssistedRocket = (_context, hit) => {
+    context.time = hit.at;
+    strike(context, hit, {});
+  };
+
   const event = { at: 1, actorType: 'player', projectile: true, skillName: 'Projectile', coefficient: 1 };
   applyAimAssistedRocket(context, { ...event, actorType: 'effect', ownerActorType: 'player' });
   assert.equal(core.aimAssistedRocketCount, 4);
   applyAimAssistedRocket(context, event);
-  const readyAt = context.procs.deadline('aimAssistedRocket');
+  const readyAt = context.procs.deadline(TRAIT.AIM_ASSISTED_ROCKET);
   assert.ok(readyAt > event.at);
   assert.deepEqual(observations, [['Orbital Command Strike', 5, readyAt]]);
   applyAimAssistedRocket(context, { ...event, at: readyAt });

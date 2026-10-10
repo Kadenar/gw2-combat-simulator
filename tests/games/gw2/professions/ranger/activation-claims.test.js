@@ -1,10 +1,12 @@
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { galeshotPetStrike } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { reactToGaleshotPet } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
 
 // A rearmed charge belongs to a new pet activation, including when old packets arrive much later.
 test('Wuthering Wind preserves charge eligibility and claims before reentrant emissions', () => {
@@ -31,16 +33,18 @@ test('Wuthering Wind preserves charge eligibility and claims before reentrant em
           emitted.push(request);
           // Rearming here makes the activation claim, rather than readiness alone, prevent recursion.
           state.wutheringWindReady = true;
-          reactToGaleshotPet(context, event);
+          context.fireTrigger(galeshotPetStrike, { event: event });
         }
       }
     };
+    // Exercise the same selected point listeners as the live profession.
+    bindTriggerPoints(context, rangerProfession, runtime.config);
     state.wutheringWindReady = true;
     state.wutheringWindReadyAt = 2;
-    reactToGaleshotPet(context, event);
+    context.fireTrigger(galeshotPetStrike, { event: event });
     assert.deepEqual(state.galeshotActivationClaims, {});
     state.wutheringWindReadyAt = 0;
-    reactToGaleshotPet(context, { ...event, coefficient: 0 });
+    context.fireTrigger(galeshotPetStrike, { event: { ...event, coefficient: 0 } });
     assert.deepEqual(state.galeshotActivationClaims, {});
 
     const removed = {
@@ -49,27 +53,29 @@ test('Wuthering Wind preserves charge eligibility and claims before reentrant em
         balanceProfiles: { [TRAIT.WUTHERING_WIND]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
       })
     };
-    reactToGaleshotPet(removed, event);
+    // Exercise the same selected point listeners as the live profession.
+    bindTriggerPoints(removed, rangerProfession, runtime.config);
+    removed.fireTrigger(galeshotPetStrike, { event: event });
     assert.equal(state.wutheringWindReady, true);
     assert.deepEqual(state.galeshotActivationClaims, {});
     assert.deepEqual(emitted, []);
 
-    reactToGaleshotPet(context, event);
+    context.fireTrigger(galeshotPetStrike, { event: event });
     assert.ok(emitted.some((request) => request.kind === 'packet'));
     const accepted = emitted.length;
-    reactToGaleshotPet(context, event);
-    reactToGaleshotPet(context, { ...event, at: 30 });
+    context.fireTrigger(galeshotPetStrike, { event: event });
+    context.fireTrigger(galeshotPetStrike, { event: { ...event, at: 30 } });
     assert.equal(emitted.length, accepted);
     assert.equal(state.wutheringWindReady, true);
 
     // Disable the artificial rearming when exercising a genuinely new or ID-less packet.
     context.effects.emit = (request) => emitted.push(request);
-    reactToGaleshotPet(context, { ...event, activationId: 'next-pet-cast', at: 30 });
+    context.fireTrigger(galeshotPetStrike, { event: { ...event, activationId: 'next-pet-cast', at: 30 } });
     assert.equal(state.wutheringWindReady, false);
     assert.ok(emitted.length > accepted);
     for (let packet = 0; packet < 2; packet += 1) {
       state.wutheringWindReady = true;
-      reactToGaleshotPet(context, { ...event, activationId: undefined });
+      context.fireTrigger(galeshotPetStrike, { event: { ...event, activationId: undefined } });
       assert.equal(state.wutheringWindReady, false);
     }
   }

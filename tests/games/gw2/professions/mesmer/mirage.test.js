@@ -363,6 +363,35 @@ test('Infinite Horizon commands active clones to ambush when cloak is gained', (
   );
 });
 
+// Clone ambush damage must use the clone's own strength through shared effect materialization.
+test('Infinite Horizon ambushes retain clone weapon strength in resolved damage', () => {
+  for (const [weapon, ambushId, strength] of [
+    ['Axe', ID.IMAGINARY_AXES, 28.5],
+    ['Spear', ID.FRACTURED_GLASS, 26.3]
+  ]) {
+    const result = simulateMesmer(['Dodge / Mirage Cloak', { type: 'wait', durationMs: 2000 }], {
+      specialization: 'Mirage',
+      primaryWeapon: weapon,
+      secondaryWeapon: '',
+      initialResource: 1,
+      selectedTraitIds: [TRAIT.INFINITE_HORIZON],
+      stats: { power: 1000, precision: 0, ferocity: 0 },
+      boons: { might: 0, fury: false, quickness: false, alacrity: false, regeneration: false, vigor: false },
+      target: { armor: 1000, health: 0, conditions: {} }
+    });
+    assert.deepEqual(result.warnings, []);
+    const ambushes = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.summonKind === 'clone' && event.skillId === ambushId
+    );
+    assert.ok(ambushes.length > 0, `${weapon} clone ambush resolves`);
+    for (const event of ambushes) {
+      assert.equal(event.resolvedWeaponStrength, strength, `${weapon} clone strength`);
+      // Equal Power and armor, no critical chance, and no modifiers isolate the weapon-strength formula.
+      assert.equal(event.damage, Math.floor(event.coefficient * strength), `${weapon} clone damage`);
+    }
+  }
+});
+
 test('Chaos Vortex selects clone boon recipients when its boon packet lands', () => {
   const result = simulateMesmer(
     ['Dodge / Mirage Cloak', 'Chaos Vortex', { name: 'Phase Retreat', offset: 120 }],

@@ -1,38 +1,67 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+
+import {
+  attunementChanged,
+  attunementsCounted,
+  type ElementalistAttunementChanged,
+  type ElementalistAttunementCount
+} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import {
   elementalistAnnouncement,
-  elementalistProfiledBuffRequest,
-  elementalistProfiledConditionRequest
+  elementalistEventSkill
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import {
+  controlAccepted,
+  elementalistCastCompleted,
+  elementalistDamageResolved,
+  elementalistDodgeCompleted,
+  type ElementalistCastCompleted,
+  type ElementalistDamageResolved,
+  type ElementalistReaction
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistModifierContext,
-  ElementalistRuntime,
-  ElementalistSkill
+  ElementalistResolverContext,
+  ElementalistRuntime
 } from '#gw2/professions/elementalist/types.js';
 
 /** Arcane definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const arcaneProwess = defineTrait({
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
+        applyArcaneProwess(runtime, input.at, input.skill.id, input.emissionCast)
+    })
+  ],
   id: TRAIT.ARCANE_PROWESS,
   name: 'Arcane Prowess',
   balance: {
@@ -42,6 +71,12 @@ export const arcaneProwess = defineTrait({
 
 export const arcanePrecision = defineTrait({
   id: TRAIT.ARCANE_PRECISION,
+  triggers: [
+    onTriggerPoint(elementalistDamageResolved, {
+      run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
+        arcanePrecisionCritical(runtime, cause, details)
+    })
+  ],
   name: 'Arcane Precision',
   balance: {
     procChance: 0.33,
@@ -57,6 +92,12 @@ export const arcanePrecision = defineTrait({
 
 export const renewingStamina = defineTrait({
   id: TRAIT.RENEWING_STAMINA,
+  triggers: [
+    onTriggerPoint(elementalistDamageResolved, {
+      run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
+        renewingStaminaCritical(runtime, cause, details)
+    })
+  ],
   name: 'Renewing Stamina',
   balance: {
     internalCooldown: 10,
@@ -65,6 +106,14 @@ export const renewingStamina = defineTrait({
 });
 
 export const elementalAttunement = defineTrait({
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      when: (_runtime: unknown, input: ElementalistAttunementChanged) =>
+        !input.dualAttunement || input.target !== input.previous,
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
+        grantElementalAttunementBoon(runtime, input.at, input.target, input.skill.id, input.emissionCast)
+    })
+  ],
   id: TRAIT.ELEMENTAL_ATTUNEMENT,
   name: 'Elemental Attunement',
   balance: {
@@ -78,6 +127,11 @@ export const elementalAttunement = defineTrait({
 });
 
 export const elementalLockdown = defineTrait({
+  triggers: [
+    onTriggerPoint(controlAccepted, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyElementalLockdown(runtime, cause)
+    })
+  ],
   id: TRAIT.ELEMENTAL_LOCKDOWN,
   name: 'Elemental Lockdown',
   balance: {
@@ -111,8 +165,9 @@ export const elementalEnchantment = defineTrait({
 
 export const evasiveArcana = defineTrait({
   id: TRAIT.EVASIVE_ARCANA,
+  triggers: [onTriggerPoint(elementalistDodgeCompleted, { run: triggerEvasiveArcana })],
   name: 'Evasive Arcana',
-  hooks: { eventHandlers: { 'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER } },
+  lifetime: { eventHandlers: { 'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER } },
   balance: {
     // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
     cooldownPolicy: 'playerRecharge',
@@ -134,6 +189,7 @@ export const evasiveArcana = defineTrait({
 
 export const arcaneLightning = defineTrait({
   id: TRAIT.ARCANE_LIGHTNING,
+  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyArcaneLightning })],
   name: 'Arcane Lightning',
   balance: {
     attributeBonus: 150,
@@ -153,6 +209,17 @@ export const arcaneLightning = defineTrait({
 });
 
 export const bountifulPower = defineTrait({
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      when: (_runtime: unknown, input: ElementalistAttunementChanged) => !input.dualAttunement,
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
+        triggerBountifulPower(runtime, input.at, 1, input.skill.id, input.emissionCast)
+    }),
+    onTriggerPoint(attunementsCounted, {
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementCount) =>
+        triggerBountifulPower(runtime, input.at, input.stacks, input.sourceId, input.emissionCast)
+    })
+  ],
   id: TRAIT.BOUNTIFUL_POWER,
   name: 'Bountiful Power',
   balance: {
@@ -182,12 +249,9 @@ export const bountifulPower = defineTrait({
 });
 
 // Materialize the current attunement's dodge proc while tracking an independent elemental ICD.
-export function triggerEvasiveArcana(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
-): void {
-  if (!hasTrait(context, TRAIT.EVASIVE_ARCANA)) return;
+function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
+  const skill = cast.skill;
+
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
   const attunement = state.primaryAttunement;
@@ -207,36 +271,35 @@ export function triggerEvasiveArcana(
   if (attunement === 'Fire') {
     const evasiveArcanaFireStrike = requireEffect(evasiveArcanaProfile, 'strike', 'Fire');
     if (evasiveArcanaFireStrike) {
-      context.effects.emit(
-        elementalistStrikeRequest(
-          context,
-          {
-            at,
-            source,
-            sourceId: skill.id,
-            actorType: 'effect',
-            ownerActorType: 'player',
-            skillName: source,
-            coefficient: effectNumber(evasiveArcanaProfile, evasiveArcanaFireStrike, 'coefficient'),
-            skillWeapon: 'Unequipped'
-          },
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
+      emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'strike', name: 'Fire' },
+        cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+        skillWeaponFallback: 'Unequipped',
+        attribution: {
+          source: source,
+          sourceId: skill.id,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          skillName: source,
+          skillId: skill.id,
+          name: source,
+          activationId: context.combat.allocateEffectActivation('elementalist.effect:')
+        }
+      });
     }
 
-    context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        TRAIT.EVASIVE_ARCANA,
-        'Fire Burning',
-        source,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
+    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Fire Burning' },
+      skillId: skill.id,
+      skillName: source,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: { source: source, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
+      transform: (event) => ({ ...event, name: source + ' \u2014 ' + event.condition })
+    });
   } else if (attunement === 'Air') {
     context.effects.emit({
       kind: 'packet',
@@ -256,48 +319,48 @@ export function triggerEvasiveArcana(
   } else if (attunement === 'Earth') {
     const evasiveArcanaEarthStrike = requireEffect(evasiveArcanaProfile, 'strike', 'Earth');
     if (evasiveArcanaEarthStrike) {
-      context.effects.emit(
-        elementalistStrikeRequest(
-          context,
-          {
-            at,
-            source,
-            sourceId: skill.id,
-            actorType: 'effect',
-            skillName: source,
-            coefficient: effectNumber(evasiveArcanaProfile, evasiveArcanaEarthStrike, 'coefficient'),
-            skillWeapon: 'Unequipped',
-            comboFinishers: [{ ownerId: 'elementalist', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
-          },
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
+      emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'strike', name: 'Earth' },
+        cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+        skillWeaponFallback: 'Unequipped',
+        attribution: {
+          source: source,
+          sourceId: skill.id,
+          actorType: 'effect',
+          skillName: source,
+          skillId: skill.id,
+          name: source,
+          activationId: context.combat.allocateEffectActivation('elementalist.effect:')
+        },
+        transform: (packet) => ({
+          ...packet,
+          comboFinishers: [{ ownerId: 'elementalist', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
+        })
+      });
     }
 
-    context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        TRAIT.EVASIVE_ARCANA,
-        'Earth Bleeding',
-        source,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
-    context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        TRAIT.EVASIVE_ARCANA,
-        'Earth Cripple',
-        source,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
+    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Earth Bleeding' },
+      skillId: skill.id,
+      skillName: source,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: { source: source, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
+      transform: (event) => ({ ...event, name: source + ' \u2014 ' + event.condition })
+    });
+    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Earth Cripple' },
+      skillId: skill.id,
+      skillName: source,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: { source: source, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
+      transform: (event) => ({ ...event, name: source + ' \u2014 ' + event.condition })
+    });
   }
 
   context.effects.emit({
@@ -324,61 +387,58 @@ export function triggerEvasiveArcana(
 }
 
 /** Applies Arcane Lightning's shared ferocity window and named Arcane-skill follow-up. */
-export function applyArcaneLightning(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
-): void {
-  if (!hasTrait(context, TRAIT.ARCANE_LIGHTNING) || skill.skillFamily !== 'Arcane') return;
+function applyArcaneLightning(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
+  const skill = cast.skill;
+  if (skill.skillFamily !== 'Arcane') return;
   const at = cast.effectiveEnd;
   const arcaneLightningProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_LIGHTNING);
   const arcaneWindow = requireEffect(arcaneLightningProfile, 'buff', 'Arcane Lightning');
   if (arcaneWindow) {
-    context.effects.emit(
-      elementalistBuffRequest(
-        {
-          skill: skill,
-          at,
-          source: 'Trait',
-          sourceId: TRAIT.ARCANE_LIGHTNING,
-          actorType: 'player',
-          kind: 'arcane-lightning',
-          stacks: Number(arcaneWindow.stacks),
-          duration: arcaneWindow.duration,
-          skillName: skill.name
-        },
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
+    emitTraitProfile(context, TRAIT.ARCANE_LIGHTNING, TRAIT.ARCANE_LIGHTNING, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'buff', name: 'Arcane Lightning' },
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.ARCANE_LIGHTNING,
+        actorType: 'player',
+        skillName: skill.name,
+        skillId: skill.id,
+        name: skill.name
+      },
+      transform: (packet) => ({ ...packet, kind: 'arcane-lightning' })
+    });
   }
 
   if (skill.id === ID.ARCANE_BRILLIANCE) {
-    context.effects.emit(
-      elementalistProfiledBuffRequest(
-        context,
-        at,
-        TRAIT.ARCANE_LIGHTNING,
-        'Arcane Brilliance',
-        skill.name,
-        skill.id,
-        undefined,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
+    emitTraitProfile(context, TRAIT.ARCANE_LIGHTNING, TRAIT.ARCANE_LIGHTNING, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'boon', name: 'Arcane Brilliance' },
+      skillId: skill.id,
+      skillName: skill.name,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      priority: 0,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.ARCANE_LIGHTNING,
+        actorType: 'player',
+        name: skill.name,
+        priority: 0
+      }
+    });
   } else if (skill.id === ID.ARCANE_WAVE) {
-    context.effects.emit(
-      elementalistProfiledConditionRequest(
-        context,
-        at,
-        TRAIT.ARCANE_LIGHTNING,
-        'Arcane Wave',
-        skill.name,
-        skill.id,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
+    emitTraitProfile(context, TRAIT.ARCANE_LIGHTNING, TRAIT.ARCANE_LIGHTNING, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Arcane Wave' },
+      skillId: skill.id,
+      skillName: skill.name,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: { source: skill.name, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
+      transform: (event) => ({ ...event, name: skill.name + ' \u2014 ' + event.condition })
+    });
   } else if (skill.id === ID.ARCANE_BLAST) {
     context.effects.emit({
       kind: 'packet',
@@ -396,30 +456,32 @@ export function applyArcaneLightning(
       }
     });
   } else if (skill.id === ID.ARCANE_ECHO) {
-    context.effects.emit(
-      elementalistProfiledBuffRequest(
-        context,
-        at,
-        TRAIT.ARCANE_LIGHTNING,
-        'Arcane Echo',
-        skill.name,
-        skill.id,
-        undefined,
-        undefined,
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
+    emitTraitProfile(context, TRAIT.ARCANE_LIGHTNING, TRAIT.ARCANE_LIGHTNING, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'boon', name: 'Arcane Echo' },
+      skillId: skill.id,
+      skillName: skill.name,
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      priority: 0,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.ARCANE_LIGHTNING,
+        actorType: 'player',
+        name: skill.name,
+        priority: 0
+      }
+    });
   }
 }
 
 /** Grants Elemental Lockdown's attunement-specific boon after a classified control event. */
-export function applyElementalLockdown(
+function applyElementalLockdown(
   context: ElementalistRuntime,
   event: SimulationEvent,
   emissionCast?: EffectDelivery['cast']
 ): void {
   const state = professionCoreState(context);
-  if (!hasTrait(context, TRAIT.ELEMENTAL_LOCKDOWN)) return;
   const elementalLockdownProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_LOCKDOWN);
   // Claim the existing owner-local timer before any derived effect.
   if (
@@ -431,19 +493,22 @@ export function applyElementalLockdown(
   )
     return;
   const attunement = state.primaryAttunement;
-  context.effects.emit(
-    elementalistProfiledBuffRequest(
-      context,
-      event.at,
-      TRAIT.ELEMENTAL_LOCKDOWN,
-      attunement,
-      'Elemental Lockdown',
-      event.skillId ?? event.sourceId,
-      undefined,
-      undefined,
-      emissionCast
-    )
-  );
+  emitTraitProfile(context, TRAIT.ELEMENTAL_LOCKDOWN, TRAIT.ELEMENTAL_LOCKDOWN, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'boon', name: attunement },
+    skillId: event.skillId ?? event.sourceId,
+    skillName: 'Elemental Lockdown',
+    cast: emissionCast,
+    priority: 0,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.ELEMENTAL_LOCKDOWN,
+      actorType: 'player',
+      name: 'Elemental Lockdown',
+      priority: 0
+    }
+  });
 }
 
 /** Preserve the live arcane attribute pass at its original position in the Core modifier pipeline. */
@@ -463,4 +528,206 @@ export function elementalEnchantmentRecharge(context: ElementalistRuntime, secon
           'rechargeMultiplier'
         )
     : seconds;
+}
+
+/** Materializes Arcane Precision after its registered critical-hit reaction succeeds. */
+function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+  const attunement = professionCoreState(context).primaryAttunement;
+  const arcanePrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION);
+  const condition = requireEffect(arcanePrecisionProfile, 'condition', attunement);
+
+  if (condition) {
+    emitTraitProfile(context, TRAIT.ARCANE_PRECISION, TRAIT.ARCANE_PRECISION, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: attunement },
+      settlement: 'reaction',
+      attribution: {
+        source: 'Arcane Precision',
+        sourceId: TRAIT.ARCANE_PRECISION,
+        actorType: 'player',
+        skillName: 'Arcane Precision',
+        triggeredBy: resolverSourceSkill(event)
+      },
+      transform: (packet) => ({ ...packet, name: 'Arcane Precision' + ' — ' + packet.condition })
+    });
+
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Arcane Precision', at: event.at, sourceSkill: resolverSourceSkill(event) }
+    });
+  }
+}
+
+/** Materializes Renewing Stamina after its registered critical-hit reaction succeeds. */
+function applyRenewingStamina(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
+  const renewingStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA);
+  const vigor = requireEffect(renewingStaminaProfile, 'boon', 'Vigor');
+  if (vigor) {
+    emitTraitProfile(context, TRAIT.RENEWING_STAMINA, TRAIT.RENEWING_STAMINA, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'boon', name: 'Vigor' },
+      durationContext: event,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.RENEWING_STAMINA,
+        actorType: 'player',
+        skillName: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name,
+        triggeredBy: resolverSourceSkill(event),
+        priority: Number(event.priority || 0)
+      },
+      transform: (packet) => ({
+        ...packet,
+        name: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name
+      })
+    });
+  }
+}
+
+/** Keep arcanePrecision's critical sampling and timer with its effect owner; the trigger point fixes cross-trait order. */
+const arcanePrecisionCritical = criticalProcHandler<
+  ElementalistResolverContext,
+  Gw2ResolverEvent,
+  NativeResolvedDamageDetails
+>({
+  id: 'elementalist.arcane-precision',
+  chanceOnCriticalHit: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION), 'procChance'),
+  when: (_context, event, details) => criticalTraitEligible(event, details),
+  internalCooldown: {
+    duration: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION), 'internalCooldown'),
+    readyAt: (context) => context.procs.deadline('arcanePrecision') || 0,
+    setReadyAt: (context, readyAt) => {
+      context.procs.setDeadline('arcanePrecision', readyAt);
+    }
+  },
+  randomStream: 'elementalist.arcane-precision',
+  handler: applyArcanePrecision
+});
+
+/** Keep renewingStamina's critical sampling and timer with its effect owner; the trigger point fixes cross-trait order. */
+const renewingStaminaCritical = criticalProcHandler<
+  ElementalistResolverContext,
+  Gw2ResolverEvent,
+  NativeResolvedDamageDetails
+>({
+  id: 'elementalist.renewing-stamina',
+  when: (_context, event, details) => criticalTraitEligible(event, details),
+  internalCooldown: {
+    duration: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA), 'internalCooldown'),
+    readyAt: (context) => context.procs.deadline('renewingStamina') || 0,
+    setReadyAt: (context, readyAt) => {
+      context.procs.setDeadline('renewingStamina', readyAt);
+    }
+  },
+  handler: applyRenewingStamina
+});
+
+/** Grants Arcane Prowess might for one completed attunement transition. */
+function applyArcaneProwess(
+  context: ElementalistRuntime,
+  at: number,
+  sourceId: Skill['id'],
+  emissionCast?: EffectDelivery['cast']
+): void {
+  {
+    emitTraitProfile(context, TRAIT.ARCANE_PROWESS, TRAIT.ARCANE_PROWESS, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'boon', name: 'Might' },
+      skillId: sourceId,
+      skillName: 'Arcane Prowess',
+      cast: emissionCast,
+      priority: 0,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.ARCANE_PROWESS,
+        actorType: 'player',
+        name: 'Arcane Prowess',
+        priority: 0
+      }
+    });
+  }
+}
+
+/** Grants Elemental Attunement's boon matching the element just entered. */
+function grantElementalAttunementBoon(
+  context: ElementalistRuntime,
+  at: number,
+  attunement: ElementalistAttunement,
+  sourceId: Skill['id'],
+  emissionCast?: EffectDelivery['cast']
+): void {
+  emitTraitProfile(context, TRAIT.ELEMENTAL_ATTUNEMENT, TRAIT.ELEMENTAL_ATTUNEMENT, undefined, {
+    at: at,
+    fullEnd: at,
+    effect: { type: 'boon', name: attunement },
+    skillId: sourceId,
+    skillName: 'Elemental Attunement',
+    cast: emissionCast,
+    priority: 0,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.ELEMENTAL_ATTUNEMENT,
+      actorType: 'player',
+      name: 'Elemental Attunement',
+      priority: 0
+    }
+  });
+}
+
+/** Accumulates Bountiful Power swaps and grants each completed threshold's timed effects. */
+function triggerBountifulPower(
+  context: ElementalistRuntime,
+  at: number,
+  stacks: number,
+  sourceId: Skill['id'],
+  emissionCast?: EffectDelivery['cast']
+): void {
+  const bountifulPowerProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_POWER);
+  const threshold = balanceProfileNumber(bountifulPowerProfile, 'threshold');
+  // Nonpositive custom thresholds disable this proc.
+  if (threshold <= 0) return;
+  const state = professionCoreState(context);
+  // Reaching the stack cap grants one buff package and resets buildup before rewards can start a new cycle.
+  const progress = advanceCounter(state.bountifulPowerProgress, stacks, threshold, 'reset');
+  state.bountifulPowerProgress = progress.value;
+  if (!progress.reached) return;
+  emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, undefined, {
+    at: at,
+    fullEnd: at,
+    effect: { type: 'boon', name: 'Quickness' },
+    skillId: sourceId,
+    skillName: 'Bountiful Power',
+    cast: emissionCast,
+    priority: 0,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.BOUNTIFUL_POWER,
+      actorType: 'player',
+      name: 'Bountiful Power',
+      priority: 0
+    }
+  });
+  const active = requireEffect(bountifulPowerProfile, 'buff', 'Damage Window');
+  if (active) {
+    emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'buff', name: 'Damage Window' },
+      cast: emissionCast,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.BOUNTIFUL_POWER,
+        actorType: 'player',
+        skillName: 'Bountiful Power',
+        skillId: elementalistEventSkill(context, 'Bountiful Power', sourceId).id,
+        name: 'Bountiful Power'
+      },
+      transform: (packet) => ({ ...packet, kind: 'bountiful-power-active' })
+    });
+  }
 }

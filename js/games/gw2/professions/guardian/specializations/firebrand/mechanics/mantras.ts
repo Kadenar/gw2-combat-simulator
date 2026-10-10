@@ -8,6 +8,8 @@ import type { RuntimeProfession } from '#gw2/platform/profession-definition/runt
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type { ActionContext } from '#gw2/platform/effects/actions.js';
+import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
@@ -131,7 +133,8 @@ export const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, Gua
       [`guardian.use-mantra-${definition.rootId}`, (runtime: Runtime) => sync(runtime, definition)],
       [
         `guardian.finish-mantra-${definition.rootId}`,
-        (runtime: Runtime) => {
+        (runtime: Runtime, context: ActionContext) => {
+          runtime.fireTrigger(finalMantraChargeUsed, { context });
           const flips = runtime.profession.core.availableFlips;
           consumeSkillFlip(flips, definition.normalId);
           consumeSkillFlip(flips, definition.finalId);

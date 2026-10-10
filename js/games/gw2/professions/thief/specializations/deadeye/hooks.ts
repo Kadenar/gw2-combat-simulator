@@ -1,3 +1,9 @@
+import {
+  maliceGained,
+  maliceSpent,
+  markCompleted,
+  deadeyeCastCompleted
+} from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
@@ -5,13 +11,7 @@ import { maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/dea
 import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
 import { deadeyeCastFacts } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import {
-  applyMaleficentSeven,
-  grantBeQuickOrBeKilled,
-  grantFireForEffect,
-  grantOneInTheChamber,
-  grantSilentScope,
   initialMalice,
-  restoreMaliciousIntent,
   STOLEN_SKILLS,
   stolenSkillGrant
 } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
@@ -33,7 +33,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal, storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
+import { stealAccepted } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
@@ -56,7 +56,7 @@ function marked(runtime: ThiefRuntime, at = runtime.time): boolean {
  */
 function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = deadeyeState.from(runtime);
-  emitThiefStealTraits(runtime, cast);
+  runtime.fireTrigger(stealAccepted, { cast });
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
   state.markedTargetId = 'primary-target';
   state.markExpiresAt = canonicalTime(
@@ -67,10 +67,10 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));
   else runtime.resourceController.replace('malice', initialMalice(runtime));
   if (!remarking) state.maleficentSevenTriggered = false;
-  applyMaleficentSeven(runtime, cast);
+  runtime.fireTrigger(maliceGained, { cast });
   const grant = stolenSkillGrant(runtime);
   completeThiefSteal(runtime, grant.skillIds, grant.forcedSkillId);
-  grantBeQuickOrBeKilled(runtime, cast);
+  runtime.fireTrigger(markCompleted, { cast });
 
   runtime.schedule(DEADEYE_MARK_EXPIRY, state.markExpiresAt, { generation: state.markGeneration });
 }
@@ -111,19 +111,6 @@ function maliceTorment(
   });
 }
 
-/** Cross-skill dodge and cantrip traits retain their post-packet completion order. */
-function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const skill = cast.skill;
-
-  grantFireForEffect(runtime, cast);
-  // Silent Scope: a dodge above the malice threshold grants one out-of-stealth stealth attack.
-  grantSilentScope(runtime, cast);
-
-  if (!(skill.categories || []).includes('Cantrip')) return;
-  // One in the Chamber refreshes the stolen skill on every cantrip, replacing any stored choice.
-  grantOneInTheChamber(runtime);
-}
-
 /**
  * The first landed strike of a marked activation resolves malice once: a malicious attack spends it (Tactical Strike
  * refunds endurance first), while an initiative attack gains malice plus a bonus for each critical hit.
@@ -145,7 +132,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
     refundMaliciousTacticalStrike(runtime, event);
     runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;
-    restoreMaliciousIntent(runtime);
+    runtime.fireTrigger(maliceSpent, {});
 
     return;
   }
@@ -158,7 +145,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
     'malice',
     balanceProfileNumber(resources, 'resourceGain') + criticals * balanceProfileNumber(resources, 'playerStacks')
   );
-  applyMaleficentSeven(runtime, null);
+  runtime.fireTrigger(maliceGained, { cast: null });
 }
 
 /** Deadeye hooks: the mark and malice, malicious attacks, stolen skills, Mercy, Shadow Flare, and cantrip traits. */
@@ -264,7 +251,7 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   tasks: {
     [DEADEYE_COMPLETE](runtime, data) {
       const { cast } = data as { cast: RuntimeCast<ThiefSkill> };
-      completeDeadeyeCast(runtime, cast);
+      runtime.fireTrigger(deadeyeCastCompleted, { cast });
     },
     [DEADEYE_MARK_EXPIRY]: expireDeadeyesMark
   }

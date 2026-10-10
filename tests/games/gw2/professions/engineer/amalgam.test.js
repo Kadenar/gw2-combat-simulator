@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
@@ -15,6 +16,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import assert from 'node:assert/strict';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { test } from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
@@ -58,14 +60,15 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
       traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
       profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
       queue: new StableEventQueue(),
-      effects: {
-        emit(request) {
-          if (request.kind === 'announcement') return;
-          if (request.settlement === 'reaction') conditions.push(request.event);
-          else context.queue.enqueue(request.event);
+      effects: captureEffectEmissions({
+        submit(event, delivery) {
+          if (delivery.settlement === 'reaction') conditions.push(event);
+          else context.queue.enqueue(event);
+          return event;
         }
-      }
+      }).effects
     };
+    bindTriggerPoints(context, engineerProfession, { specialization: 'Amalgam' });
     const event = {
       type: 'damage',
       at: 0,
@@ -94,14 +97,15 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
     traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
     queue: new StableEventQueue(),
     profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
-    effects: {
-      emit(request) {
-        if (request.kind === 'announcement') return;
-        if (request.settlement === 'reaction') conditions.push(request.event);
-        else context.queue.enqueue(request.event);
+    effects: captureEffectEmissions({
+      submit(event, delivery) {
+        if (delivery.settlement === 'reaction') conditions.push(event);
+        else context.queue.enqueue(event);
+        return event;
       }
-    }
+    }).effects
   };
+  bindTriggerPoints(context, engineerProfession, { specialization: 'Amalgam' });
   amalgamResolverEventReactions.damage(context, {
     type: 'damage',
     at: 1,

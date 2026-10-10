@@ -1,17 +1,11 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantRuntimeCoreState,
@@ -23,11 +17,8 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
-import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import { scheduleFormExpiry } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { numinousGift } from '#gw2/professions/revenant/specializations/conduit/traits/numinous-gift.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Legendary Entity grants every attribute represented by Bolstered Bonds.
@@ -113,24 +104,6 @@ export function modifyConduitAttributes(context: Gw2ModifierContext, attributes:
   return modified;
 }
 
-/** Weapon casts grant affinity after the mechanic has established a positive Energy cost. */
-export function grantConductiveArmaments(runtime: RevenantRuntime, skill: RevenantSkill): void {
-  if (skill.type === 'Weapon' && hasTrait(runtime, TRAIT.CONDUCTIVE_ARMAMENTS)) gainAffinity(runtime, 1);
-}
-
-/** Applies the trait at the mechanic's existing execution boundary. */
-export function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean): void {
-  const state = conduitState.from(runtime);
-  if (formActive && hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) {
-    const enhanced = requireBalanceProfileFromContext(runtime, PROFILE.enhancedEmbodiment);
-    const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
-    if (extension) {
-      state.cosmicWisdomUntil += Math.max(0, effectNumber(enhanced, extension, 'duration'));
-      scheduleFormExpiry(runtime);
-    }
-  }
-}
-
 /** Scales the already-selected base recharge at the original mechanic boundary. */
 export const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeState, RevenantSkill>([
   {
@@ -148,11 +121,6 @@ export function enhancedLegendRecharge(
 ): number {
   if (work === 0 || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
   return enhancedEmbodimentRecharge(runtime, skill, Math.max(0, skill.cooldown ?? work));
-}
-
-/** Applies the trait at the mechanic's existing execution boundary. */
-export function grantFoundPurpose(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, combat: boolean): void {
-  if (combat && hasTrait(runtime, TRAIT.FOUND_PURPOSE)) numinousGift(runtime, cast, true);
 }
 
 export function affinity(context: Gw2ModifierContext): number {
@@ -186,41 +154,3 @@ export const kineticInsightRecharge = compileRechargeRules<RevenantRuntimeState,
 ]);
 
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
-
-/** Applies the trait at the mechanic's existing execution boundary. */
-export function grantLingeringDetermination(runtime: RevenantRuntime, combat: boolean): void {
-  if (combat && hasTrait(runtime, TRAIT.LINGERING_DETERMINATION))
-    gainAffinity(
-      runtime,
-      Math.max(
-        0,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.lingeringDetermination), 'resourceGain')
-      )
-    );
-}
-
-/** Applies the trait at the mechanic's existing execution boundary. */
-export function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  if (hasTrait(runtime, TRAIT.MISTFIRE)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.mistfire);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: profile,
-      effects: profile.effects?.filter((effect) => effect.type === 'strike' || effect.type === 'condition'),
-      attribution: {
-        source: 'revenant',
-        sourceId: TRAIT.MISTFIRE,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillId: TRAIT.MISTFIRE,
-        skillName: 'Mistfire',
-        activationId: cast.id
-      },
-      transform: (event) => ({
-        ...event,
-        name: event.type === 'damage' ? 'Mistfire' : 'Mistfire — Burning',
-        skillWeapon: 'Unequipped'
-      })
-    });
-  }
-}

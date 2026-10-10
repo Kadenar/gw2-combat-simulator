@@ -2,6 +2,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   effectNumber,
@@ -10,12 +11,11 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { grantAllForOneEnergy } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Band Together's selected profile is an acceptance fact: the window is consumed before effects are selected.
@@ -34,7 +34,7 @@ export function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Re
   // Capture the accepted profile before spending; later grants cannot change this cast's effects or rewards.
   bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
   if (enhanced) consumeCharge(state.bandTogether, runtime.time);
-  grantAllForOneEnergy(runtime, enhanced);
+  runtime.fireTrigger(warbandCompleted, { enhanced, at: runtime.time });
   if (profile)
     runtime.effects.emit({
       kind: 'profile',
@@ -162,3 +162,9 @@ export function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent)
     })
   });
 }
+
+/** The accepted summon enhancement determines its Energy reward. */
+export const warbandCompleted = defineTriggerPoint<{ readonly enhanced: boolean; readonly at: number }>(
+  'revenant.warband-completed',
+  [TRAIT.ALL_FOR_ONE]
+);

@@ -1,9 +1,8 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { beastSkillUsed, mergedCommandApplied } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { bestialRageControl } from '#gw2/professions/ranger/core/traits/beastmastery/index.js';
-import { applyMergedResoundingTimbre } from '#gw2/professions/ranger/core/traits/beastmastery/pet-behavior.js';
-import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastBuffPolicies } from '#gw2/professions/ranger/specializations/soulbeast/effect-state.js';
 import {
@@ -50,9 +49,9 @@ export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     const skill = cast.skill;
     if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;
     if (!state.beastmodeActive) return;
-    applyMergedResoundingTimbre(runtime, skill, runtime.time);
+    runtime.fireTrigger(mergedCommandApplied, { skill: skill, at: runtime.time });
     if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
-      applyRangerBeastSkillTraits(runtime, skill, false);
+      runtime.fireTrigger(beastSkillUsed, { skill: skill, at: runtime.time, poisonMaster: false });
   },
   reactions: {
     // Core retains trait ownership; this elite registers its merged-pet control reaction.

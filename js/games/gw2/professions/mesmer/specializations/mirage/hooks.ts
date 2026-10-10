@@ -3,9 +3,9 @@ import { skillTaskAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTask } from '#gw2/platform/skills/types.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
+import { mesmerEvaded } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { mirageBuffPolicies } from '#gw2/professions/mesmer/specializations/mirage/effect-state.js';
 import {
@@ -13,11 +13,11 @@ import {
   mirageEndurance
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
-import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import {
-  completeMirageSkill,
-  initializeMirageTraits
-} from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
+  mirageCastCommitted,
+  mirageInitialized
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
+import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 type TriggerData = { cast: RuntimeCast<MesmerSkill>; trigger: SkillTask };
@@ -25,7 +25,9 @@ type TriggerData = { cast: RuntimeCast<MesmerSkill>; trigger: SkillTask };
 /** Cloak, mirror pickup, and endurance execute at actual command and owned-task boundaries. */
 export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   buffPolicies: mirageBuffPolicies,
-  initialize: initializeMirageTraits,
+  initialize(runtime) {
+    runtime.fireTrigger(mirageInitialized, {});
+  },
   endurance: mirageEndurance,
   availability: mirageAvailability,
   onCastStart(runtime, cast) {
@@ -34,10 +36,11 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     createMirageMechanics(runtime).acceptPlayerAmbush(skill, cast.fullEnd, cast.start, mesmerCastDelivery(cast, skill));
   },
   onCastCommit(runtime, cast) {
-    completeMirageSkill(runtime, cast, {
-      currentResource: () => createMesmerActions(runtime).currentResource(),
-      queueResources: (...args) => createMesmerIllusionRewards(runtime).queueResources(...args),
-      activePrimaryWeapon: () => mesmerActivePrimaryWeapon(runtime)
+    runtime.fireTrigger(mirageCastCommitted, {
+      cast,
+      at: runtime.time,
+      currentResource: professionCoreState(runtime).clones.length,
+      weapon: mesmerActivePrimaryWeapon(runtime)
     });
     for (const trigger of cast.skill.tasks ?? [])
       if (trigger.type === 'mesmer.mirage.create-mirror') {
@@ -71,7 +74,9 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     'mesmer.mirage.dodge'(runtime, data) {
       const { cast } = data as TriggerData;
       createMirageMechanics(runtime).grantMirageCloak(runtime.time, cast.skill.name);
-      triggerDeceptiveEvasion(runtime, (...args) => createMesmerIllusionRewards(runtime).queueResources(...args));
+      runtime.fireTrigger(mesmerEvaded, {
+        at: runtime.time
+      });
     }
   }
 };

@@ -1,14 +1,16 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+  defineTrait,
+  traitAttributeEffects,
+  type TraitDefinition
+} from '#gw2/platform/profession-definition/traits.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { type EngineerRuntime, type EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+
 import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { type SimulationEventBase } from '#gw2/platform/events/events.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -46,14 +48,20 @@ export const hgh = defineTrait({
       }
     ]
   },
-  triggers: ['might', 'fury'].map((boon) => ({
-    on: 'castCommit',
-    when: (_runtime, cast) => isElixirSkill(cast.skill),
-    emit: TRAIT.HGH,
-    effects: (effect) => effect.type === 'boon' && effect.name === boon,
-    attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: 'player', name: `HGH — ${boon}` }
-  })),
-  hooks: { prepareEvent: prepareEngineerHghEvent, onCastCommit: applyHghAcidBomb }
+  // Boons and the extra Acid Bomb strike are producers; elixir duration is a retained value policy.
+  triggers: [
+    ...['might', 'fury'].map<
+      Extract<NonNullable<TraitDefinition<EngineerSkill>['triggers']>[number], { on: 'castCommit' }>
+    >((boon) => ({
+      on: 'castCommit',
+      when: (_runtime, cast) => isElixirSkill(cast.skill),
+      emit: TRAIT.HGH,
+      effects: (effect) => effect.type === 'boon' && effect.name === boon,
+      attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: 'player', name: `HGH — ${boon}` }
+    })),
+    { on: 'castCommit', when: (_runtime, cast) => cast.skill.id === ID.ACID_BOMB, run: applyHghAcidBomb }
+  ],
+  hooks: { prepareEvent: prepareEngineerHghEvent }
 });
 
 /** Owns Compounding Chemicals tuning and behavior at its established runtime and build boundaries. */
@@ -158,30 +166,28 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 
 /** Schedules Acid Bomb's extended final pulse while HGH is selected. */
 function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
-  const skill = cast.skill;
-  if (!hasTrait(context.traits, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
-
-  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
-  const strike = requireEffect(hghProfile, 'strike', 'HGH');
-  if (strike) {
-    buildEngineerPackets(
-      'damage',
-      {
-        at: cast.fullEnd + 6,
-        activationId: cast.id,
-        weaponStrengthProfileId: strike.weaponStrengthProfileId,
-        coefficient: Number(strike.coefficient),
-        hits: Number(strike.hits),
-        name: 'Acid Bomb',
-        actorType: 'player'
-      },
-      skill
-    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
-  }
+  // HGH adds one admitted field extension with Acid Bomb ownership; the profile owns the damage formula.
+  emitTraitProfile(context, TRAIT.HGH, TRAIT.HGH, undefined, {
+    at: cast.fullEnd + 6,
+    effect: { type: 'strike', name: 'HGH' },
+    activationId: cast.id,
+    skillWeaponFallback: 'Unequipped',
+    attribution: {
+      source: 'engineer',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      name: 'Acid Bomb'
+    }
+  });
 }
 
 /** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
-function prepareEngineerHghEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
+function prepareEngineerHghEvent(
+  context: MechanicQueriesOf<EngineerRuntime>,
+  event: SimulationEventBase
+): SimulationEventBase {
   if (!hasTrait(context.traits, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
   const skill = skillForEvent(context.helpers, event);
   if (!isElixirSkill(skill)) return event;

@@ -1,35 +1,36 @@
-import {
-  scourgeBuffPolicies,
-  scourgeEffectStates
-} from '#gw2/professions/necromancer/specializations/scourge/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
+import { shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import {
+  scourgeBuffPolicies,
+  scourgeEffectStates
+} from '#gw2/professions/necromancer/specializations/scourge/effect-state.js';
 import { party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/audiences.js';
+import {
+  scourgeBarrierApplied,
+  scourgeConditionApplied,
+  scourgeShadeCommitted,
+  scourgeShadeManifested
+} from '#gw2/professions/necromancer/specializations/scourge/mechanics/combat-boundaries.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
-import {
-  barrierTraits,
-  desertEmpowermentManifest,
-  reactToScourgeTraits,
-  sandSavantShadeProfile,
-  shadeTraits
-} from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
+import { sandSavantShadeProfile } from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -172,11 +173,15 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
     refreshShadeExpiry(runtime);
   }
 
-  desertEmpowermentManifest(runtime, cast);
+  runtime.fireTrigger(scourgeShadeManifested, { cast, at: runtime.time, activationId: cast.id });
 }
 
 /** Scourge consumes Core life force once at acceptance; its specialization owns shades, barrier pulses, and trait claims. */
 export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
+  /** Hold the selected preview state while evaluating detached damage queries. */
+  prepareDamageState(runtime, _skill, inputs) {
+    scourgeState.from(runtime).shades = Array(Number(inputs.shade ?? 0)).fill(Infinity);
+  },
   buffPolicies: scourgeBuffPolicies,
   observeEffects: scourgeEffectStates,
   sideEffectHandlers: {
@@ -195,7 +200,12 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
       if (context.kind === 'cast') shadeStrike(runtime, context.cast);
     },
     'scourge.barrier'(runtime, context) {
-      if (context.kind === 'cast') barrierTraits(runtime, context.cast);
+      if (context.kind === 'cast')
+        runtime.fireTrigger(scourgeBarrierApplied, {
+          cast: context.cast,
+          at: runtime.time,
+          activationId: context.cast.id
+        });
     },
     'scourge.cleanse'(runtime) {
       removeNecromancerSelfCondition(runtime.profession.core, runtime.time, 1);
@@ -252,7 +262,11 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
         );
     }
   },
-  onCastCommit: shadeTraits,
+  onCastCommit(runtime, cast) {
+    if (cast.skill.id === ID.DESERT_SHROUD || cast.skill.id === ID.SANDSTORM_SHROUD)
+      runtime.fireTrigger(shroudInvoked, { cast, at: runtime.time, activationId: cast.id });
+    runtime.fireTrigger(scourgeShadeCommitted, { cast, at: runtime.time, activationId: cast.id });
+  },
   tasks: {
     [EXPIRE](runtime) {
       purgeScourgeTimedState(scourgeState.from(runtime), runtime.time);
@@ -263,7 +277,7 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
     },
     [BARRIER](runtime, data) {
       const { cast, event } = data as { cast: RuntimeCast<NecromancerSkill>; event: Gw2ResolverEvent };
-      barrierTraits(runtime, cast);
+      runtime.fireTrigger(scourgeBarrierApplied, { cast, at: runtime.time, activationId: cast.id });
       const packet = assertSimulationEvent({ ...event, audience: party(runtime) });
       runtime.effects.emit({
         kind: 'packet',
@@ -273,6 +287,6 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
     }
   },
   reactions: {
-    'condition.applied': reactToScourgeTraits
+    'condition.applied': (runtime, event) => runtime.fireTrigger(scourgeConditionApplied, { event })
   }
 };

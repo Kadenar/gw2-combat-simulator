@@ -11,7 +11,10 @@ import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import {
+  cryOfPainConfusion,
+  masterOfFragmentationRequiem
+} from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {
@@ -62,7 +65,7 @@ export function resolveBladesong(
 
   if (shatter.kind === 'blade-confusion') {
     const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
-    const confusion = bladesongConfusion(shatter, spent, applyCryOfPain(context, baseConfusion));
+    const confusion = bladesongConfusion(shatter, spent, cryOfPainConfusion(context, baseConfusion));
     const ticks = packetTicks();
 
     const hits = addBladeDamage(ticks);

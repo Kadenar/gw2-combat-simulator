@@ -2,7 +2,7 @@ import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { elementalistAuraDuration } from '#gw2/professions/elementalist/core/traits/fire/index.js';
+import { smotheringAurasDuration } from '#gw2/professions/elementalist/core/traits/fire/aura-duration.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 export interface ElementalistAuraApplication {
@@ -24,7 +24,7 @@ export function applyElementalistAura(context: MechanicCombatContext, applicatio
       type: 'elementalist.aura',
       source: application.skillName,
       actorType: 'effect',
-      duration: elementalistAuraDuration(context, application.duration)
+      duration: smotheringAurasDuration(context, application.duration)
     }
   });
 }

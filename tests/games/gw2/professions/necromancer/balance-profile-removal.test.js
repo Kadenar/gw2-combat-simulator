@@ -1,8 +1,9 @@
+import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
-import { applyVampiric } from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
@@ -54,9 +55,9 @@ test('removed minion Vampiric siphon keeps the player siphon bound to its own va
     catalog: patched({ [TRAIT.VAMPIRIC]: remove('strike', 'minion') }),
     effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
   };
-  applyVampiric(context, { type: 'damage', at: 1, actorType: 'summon', summonKind: 'minion', skillName: 'Bite' });
+  vampiricOpportunity(context, { type: 'damage', at: 1, actorType: 'summon', summonKind: 'minion', skillName: 'Bite' });
   assert.deepEqual(queued, []);
-  applyVampiric(context, { type: 'damage', at: 2, actorType: 'player', skillName: 'Strike' });
+  vampiricOpportunity(context, { type: 'damage', at: 2, actorType: 'player', skillName: 'Strike' });
   const player = necromancerCatalog.balanceProfilesById
     .get(TRAIT.VAMPIRIC)
     .effects.find((effect) => effect.name === 'player');
@@ -129,3 +130,14 @@ test('minion strike multipliers read Necromantic Corruption and Spirits Strength
   assert.ok(attack);
   assert.equal(attack.summonStrikeMultiplier, 1.4 * 1.8);
 });
+
+/** Profile removal is exercised through the selected listener's canonical trigger surface. */
+function vampiricOpportunity(runtime, event) {
+  bindTriggerPoints(runtime, necromancerProfession, runtime.config);
+  runtime.fireTrigger(necromancerStrike, {
+    event: { coefficient: 1, ...event },
+    details: {},
+    firstHit: true,
+    shroudSkillOne: false
+  });
+}

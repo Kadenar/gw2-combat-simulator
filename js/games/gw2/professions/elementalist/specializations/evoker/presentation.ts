@@ -32,7 +32,6 @@ import type {
   ProfessionSkillBarSelectionChange,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { elementalistAttunementConfig } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -82,7 +81,7 @@ function familiarSkillIds(context: SkillDamagePreviewContext): readonly [number,
   return [ELEMENTALIST_FAMILIAR_SKILL_IDS[names.basic], ELEMENTALIST_FAMILIAR_SKILL_IDS[names.empowered]];
 }
 
-/** The empowered familiar starts with its full empowered count; both forms keep their attunement requirement. */
+/** Familiar element selects the attack, while the preview's attunement supplies the player's conditional bonuses. */
 function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: Skill): SkillDamageState | null {
   const [basic, empowered] = familiarSkillIds(context);
   if (skill.id !== basic && skill.id !== empowered) return null;
@@ -92,7 +91,6 @@ function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: 
     // Familiar completion may arm enchantments for a subsequent player hit.
 
     config: {
-      ...elementalistAttunementConfig(skill),
       initialEvokerCharges: balanceProfileNumber(resources, 'maximumStacks'),
       initialEvokerEmpowered: skill.id === empowered ? balanceProfileNumber(resources, 'minimumStacks') : 0
     },

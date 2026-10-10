@@ -48,6 +48,8 @@ export interface PacketEmission extends EffectDelivery, EmissionOptions {
 
 export interface ProfileEmission extends EffectDelivery, EmissionOptions {
   readonly kind: 'profile';
+  /** Every expanded application settles inside the current reaction before the caller resumes. */
+  readonly settlement?: 'reaction';
   readonly profile: Skill | BalanceProfile;
   readonly effects?: readonly SkillEffect[];
   readonly at?: number;

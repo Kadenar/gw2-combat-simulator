@@ -5,48 +5,56 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
-// Resource rewards belong to acceptance, survive interruption, and read the selected profile.
-for (const [trait, specialization, resource, skillIds] of [
-  [
-    TRAIT.SIGNETS_OF_POWER,
-    'Core',
-    'initiative',
-    [ID.ASSASSINS_SIGNET, ID.SIGNET_OF_MALICE, ID.SIGNET_OF_AGILITY, ID.INFILTRATORS_SIGNET]
-  ],
-  [TRAIT.BRAWLERS_TENACITY, 'Daredevil', 'endurance', [ID.FIST_FLURRY]]
-]) {
-  test(`${resource} start rewards survive interrupted casts and honor profile changes`, () => {
-    for (const id of skillIds) {
-      const values = [false, true].map((selected) => {
-        const result = runThief(
-          [{ skillId: id, interruptMs: 100 }],
-          {
-            specialization,
-            initialInitiative: 0,
-            initialEndurance: 0,
-            selectedSkillIds: [thiefCatalog.skillsById.get(id).id],
-            selectedTraitIds: selected ? [trait] : []
-          },
-          {
-            catalog: (catalog) =>
-              withProfile(
-                withSkill(catalog, id, {
-                  castTimeMs: 1000,
-                  interruptMode: 'commit',
-                  effects: []
-                }),
-                trait,
-                { resourceGain: 7 }
-              )
-          }
-        );
-        assert.deepEqual(result.warnings, []);
-        assert.equal(result.events.find((event) => event.type === 'action' && event.skillId === id).cancelled, true);
-        return resource === 'initiative'
-          ? result.planningState.profession.initiative.value
-          : result.planningState.profession.endurance.value;
-      });
-      assert.ok(Math.abs(values[1] - values[0] - 7) < 1e-9, `${id}: ${values}`);
-    }
+// Cast one lengthened skill with and without the trait; the difference in the pool is the trait's own reward, read
+// from an overridden profile so the test also proves the selected profile is honored.
+function traitReward(trait, specialization, resource, id, interrupted) {
+  const values = [false, true].map((selected) => {
+    const result = runThief(
+      [interrupted ? { skillId: id, interruptMs: 100 } : { skillId: id }],
+      {
+        specialization,
+        initialInitiative: 0,
+        initialEndurance: 0,
+        selectedSkillIds: [thiefCatalog.skillsById.get(id).id],
+        selectedTraitIds: selected ? [trait] : []
+      },
+      {
+        catalog: (catalog) =>
+          withProfile(
+            withSkill(catalog, id, {
+              castTimeMs: 1000,
+              interruptMode: 'commit',
+              effects: []
+            }),
+            trait,
+            { resourceGain: 7 }
+          )
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.events.some((event) => event.type === 'action' && event.skillId === id && event.cancelled === true),
+      interrupted
+    );
+    return resource === 'initiative'
+      ? result.planningState.profession.initiative.value
+      : result.planningState.profession.endurance.value;
   });
+
+  return values[1] - values[0];
 }
+
+// Brawler's Tenacity belongs to acceptance: its reward survives interruption.
+test('endurance start rewards survive interrupted casts and honor profile changes', () => {
+  const reward = traitReward(TRAIT.BRAWLERS_TENACITY, 'Daredevil', 'endurance', ID.FIST_FLURRY, true);
+  assert.ok(Math.abs(reward - 7) < 1e-9, String(reward));
+});
+
+// Signets of Power belongs to completion: only a signet cast that reaches its end restores initiative.
+test('Signets of Power grants initiative only when the signet cast completes', () => {
+  for (const id of [ID.ASSASSINS_SIGNET, ID.SIGNET_OF_MALICE, ID.SIGNET_OF_AGILITY, ID.INFILTRATORS_SIGNET]) {
+    const completed = traitReward(TRAIT.SIGNETS_OF_POWER, 'Core', 'initiative', id, false);
+    assert.ok(Math.abs(completed - 7) < 1e-9, `${id}: ${completed}`);
+    assert.equal(traitReward(TRAIT.SIGNETS_OF_POWER, 'Core', 'initiative', id, true), 0, String(id));
+  }
+});

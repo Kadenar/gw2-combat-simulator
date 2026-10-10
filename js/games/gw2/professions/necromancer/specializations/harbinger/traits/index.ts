@@ -1,17 +1,53 @@
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { party } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/audiences.js';
+import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
+import {
+  harbingerBlightConsumed,
+  harbingerElixirLaunched,
+  harbingerShroudEntered,
+  harbingerStrike
+} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/combat-boundaries.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
-import { applyDeathlyHaste } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
+import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent,
+  NecromancerRuntime,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Cascading Corruption tuning and behavior at its existing execution boundaries. */
 export const cascadingCorruption = defineTrait({
+  triggers: [
+    onTriggerPoint(harbingerBlightConsumed, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerBlightConsumed>) =>
+        applyCascadingCorruption(runtime, input.cast, input.consumed)
+    })
+  ],
   id: TRAIT.CASCADING_CORRUPTION,
   name: 'Cascading Corruption',
   balance: {
@@ -60,6 +96,12 @@ export const cascadingCorruption = defineTrait({
 
 /** Owns Septic Corruption tuning and behavior at its existing execution boundaries. */
 export const septicCorruption = defineTrait({
+  triggers: [
+    onTriggerPoint(harbingerStrike, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
+        applySepticCorruptionStrike(runtime, input.event)
+    })
+  ],
   id: TRAIT.SEPTIC_CORRUPTION,
   name: 'Septic Corruption',
   balance: {
@@ -88,6 +130,12 @@ export const septicCorruption = defineTrait({
 
 /** Owns Doom Approaches tuning and behavior at its existing execution boundaries. */
 export const doomApproaches = defineTrait({
+  triggers: [
+    onTriggerPoint(harbingerStrike, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
+        applyDoomApproachesStrike(runtime, input.event)
+    })
+  ],
   id: TRAIT.DOOM_APPROACHES,
   name: 'Doom Approaches',
   balance: {
@@ -122,6 +170,19 @@ export const doomApproaches = defineTrait({
 
 /** Owns Deathly Haste tuning and behavior at its existing execution boundaries. */
 export const deathlyHaste = defineTrait({
+  triggers: [
+    // Only compiled cast admission may start the shroud finisher's party reward.
+    {
+      on: 'castCommit',
+      run(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>) {
+        if (cast.skill.id === ID.DARK_BARRAGE) applyDeathlyHaste(runtime, cast.skill);
+      }
+    },
+    onTriggerPoint(harbingerShroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerShroudEntered>) =>
+        applyDeathlyHaste(runtime, input.skill)
+    })
+  ],
   id: TRAIT.DEATHLY_HASTE,
   name: 'Deathly Haste',
   balance: {
@@ -145,16 +206,12 @@ export const deathlyHaste = defineTrait({
         audience: { recipients: 'party' as const }
       }
     ]
-  },
-  hooks: {
-    onCastCommit(runtime, cast) {
-      if (cast.skill.id === ID.DARK_BARRAGE) applyDeathlyHaste(runtime, cast.skill);
-    }
   }
 });
 
 /** Owns Corrupted Talent tuning and behavior at its existing execution boundaries. */
 export const corruptedTalent = defineTrait({
+  triggers: [onTriggerPoint(harbingerShroudEntered, { run: grantCorruptedTalent })],
   id: TRAIT.CORRUPTED_TALENT,
   name: 'Corrupted Talent',
   balance: {
@@ -164,6 +221,12 @@ export const corruptedTalent = defineTrait({
 
 /** Owns Implacable Foe tuning and behavior at its existing execution boundaries. */
 export const implacableFoe = defineTrait({
+  triggers: [
+    onTriggerPoint(harbingerShroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerShroudEntered>) =>
+        grantImplacableFoe(runtime, input.skill)
+    })
+  ],
   id: TRAIT.IMPLACABLE_FOE,
   name: 'Implacable Foe',
   balance: {
@@ -201,6 +264,12 @@ export const implacableFoe = defineTrait({
 
 /** Owns Bolstering Brew tuning and behavior at its existing execution boundaries. */
 export const bolsteringBrew = defineTrait({
+  triggers: [
+    onTriggerPoint(harbingerElixirLaunched, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerElixirLaunched>) =>
+        applyBolsteringBrew(runtime, input.cast)
+    })
+  ],
   id: TRAIT.BOLSTERING_BREW,
   name: 'Bolstering Brew',
   balance: {
@@ -328,3 +397,196 @@ export const necromancerHarbingerTraits = [
   wickedCorruption,
   darkGunslinger
 ];
+
+/** Entry and completed Dark Barrage independently deliver the surviving trait boons. */
+function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): void {
+  // Entry and finisher share profile expansion while preserving party ownership and the invoking skill.
+  if (!hasTrait(runtime, TRAIT.DEATHLY_HASTE)) return;
+  emitTraitProfile(runtime, TRAIT.DEATHLY_HASTE, TRAIT.DEATHLY_HASTE, undefined, {
+    skillId: skill.id,
+    skillName: skill.name,
+    preserveName: true,
+    skillWeaponFallback: 'Unequipped',
+    attribution: (effect) => ({
+      actorType: effect.actorType ?? (skill.type === 'Trait' ? 'effect' : 'player'),
+      audience: party(runtime)
+    })
+  });
+}
+
+/** Consumed stacks claim one Meltdown threshold before the mechanic publishes the remaining Blight. */
+function applyCascadingCorruption(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>,
+  consumed: number
+): void {
+  const state = harbingerState.from(runtime);
+  if (
+    consumed &&
+    !runtime.combatStartPending &&
+    !(runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
+  ) {
+    const corruption = requireBalanceProfileFromContext(runtime, TRAIT.CASCADING_CORRUPTION);
+    const meltdown = requireEffect(corruption, 'buff', 'meltdown');
+    const strike = requireEffect(corruption, 'strike', 'Strike');
+    const torment = requireEffect(corruption, 'condition', 'Torment');
+    if (meltdown || strike || torment) {
+      const threshold = balanceProfileNumber(corruption, 'minimumStacks');
+      // Reaching the stack cap grants one Meltdown and resets buildup before any reward reacts.
+      const progress = advanceCounter(state.cascadingCorruptionStacks, consumed, threshold, 'reset');
+      state.cascadingCorruptionStacks = progress.value;
+      if (progress.reached) {
+        if (meltdown)
+          state.meltdownUntil = canonicalTime(runtime.time + effectNumber(corruption, meltdown, 'duration'));
+        const proc = runtime.effects.emit({
+          receipt: true,
+          kind: 'announcement',
+          log: true,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.CASCADING_CORRUPTION,
+            actorType: 'effect',
+            activationId: cast.id
+          },
+          announcement: {
+            type: 'trait',
+            at: runtime.time,
+            name: 'Meltdown',
+            icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png',
+            sourceSkill: cast.skill.name
+          }
+        });
+        const skill: Skill = { id: ID.CASCADING_CORRUPTION, name: 'Cascading Corruption', type: 'Trait' };
+        runtime.effects.emit({
+          kind: 'profile',
+          cause: proc,
+          profile: skill,
+          effects: [meltdown, strike, torment]
+            .filter((effect) => effect != null)
+            .map((effect) => ({
+              ...effect,
+              sourceId: TRAIT.CASCADING_CORRUPTION,
+              atMs: quantizeGw2ActionTimingMs(effect.atMs ?? 0)
+            })),
+          ...harbingerCastEmissionPolicy(cast, skill)
+        });
+      }
+    }
+  }
+}
+
+/** Elixir boons are chosen at launch, after the shared Blight transaction. */
+function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
+  {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOLSTERING_BREW);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: cast.skill,
+      effects: (profile.effects ?? []).map((effect) => ({
+        ...effect,
+        atMs: 0,
+        // Elixir casting owns the timing; Bolstering Brew owns these additional grants.
+        source: 'Trait',
+        sourceId: TRAIT.BOLSTERING_BREW,
+        audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : undefined
+      })),
+      ...harbingerCastEmissionPolicy(cast, cast.skill)
+    });
+  }
+}
+
+/** Entry grants follow the new form state and precede the first Blight deadline. */
+function grantImplacableFoe(runtime: NecromancerRuntime, skill: Skill): void {
+  // The entry remains the causal skill while the trait profile supplies Stability's payload and label.
+  emitTraitProfile(runtime, TRAIT.IMPLACABLE_FOE, TRAIT.IMPLACABLE_FOE, undefined, {
+    skillId: skill.id,
+    skillName: skill.name,
+    preserveName: true,
+    skillWeaponFallback: 'Unequipped',
+    attribution: (effect) => ({ actorType: effect.actorType ?? (skill.type === 'Trait' ? 'effect' : 'player') })
+  });
+}
+
+/** Applies Harbinger traits triggered by eligible resolved player or summon strikes. */
+function applyDoomApproachesStrike(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  // Trait procs must not trigger from synthetic "effect" damage (e.g. Cascading Corruption Meltdown hits).
+  if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
+  // Doom Approaches Vulnerability applies only on the first hit of Tainted Bolts, not each chain projectile.
+  const firstHit = Number(event.hitIndex || 1) === 1;
+  if (firstHit && skill?.id === ID.TAINTED_BOLTS) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.DOOM_APPROACHES);
+    const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+    if (vulnerability) {
+      /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+        context,
+        TRAIT.DOOM_APPROACHES,
+        TRAIT.DOOM_APPROACHES,
+        undefined,
+        {
+          at: event.at,
+          fullEnd: event.at,
+          effect: { type: 'condition', name: 'Vulnerability' },
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.DOOM_APPROACHES,
+            actorType: 'effect',
+            skillName: 'Doom Approaches',
+            triggeredBy: event.skillName,
+            name: 'Doom Approaches'
+          }
+        }
+      );
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: { type: 'trait', name: 'Doom Approaches', at: event.at, sourceSkill: event.skillName }
+      });
+    }
+  }
+}
+
+/** Septic Corruption observes its shroud-slot packet after Doom Approaches. */
+function applySepticCorruptionStrike(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
+  // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
+  if (skill?.shroudSlot === 2) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.SEPTIC_CORRUPTION);
+    const condition = requireEffect(profile, 'condition', 'Poisoned');
+    if (condition) {
+      /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+        context,
+        TRAIT.SEPTIC_CORRUPTION,
+        TRAIT.SEPTIC_CORRUPTION,
+        undefined,
+        {
+          at: event.at,
+          fullEnd: event.at,
+          effect: { type: 'condition', name: 'Poisoned' },
+          settlement: 'reaction',
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.SEPTIC_CORRUPTION,
+            actorType: 'effect',
+            skillName: 'Septic Corruption',
+            triggeredBy: event.skillName,
+            ownerActorType: 'player',
+            name: 'Septic Corruption' + ' - ' + String(condition.condition)
+          }
+        }
+      );
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: { type: 'trait', name: 'Septic Corruption', at: event.at, sourceSkill: event.skillName }
+      });
+    }
+  }
+}
+
+/** The accepted shroud entry grants its life force before the entry boons. */
+function grantCorruptedTalent(runtime: NecromancerRuntime): void {
+  grantNecromancerLifeForce(
+    runtime,
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CORRUPTED_TALENT), 'lifeForceGain')
+  );
+}

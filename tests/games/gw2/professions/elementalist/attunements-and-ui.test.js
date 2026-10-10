@@ -1,3 +1,4 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { paletteSkillView, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -21,6 +22,7 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
   for (const selected of [false, true]) {
     const core = createElementalistCoreState();
     const runtime = { profession: { core }, time: 1, config: {}, traits: new Set(selected ? [TRAIT.FRESH_AIR] : []) };
+    bindTriggerPoints(runtime, elementalistProfession);
     const prepare = (at, overrides = {}) =>
       elementalistCoreHooks.prepareEvent(runtime, {
         type: 'damage',

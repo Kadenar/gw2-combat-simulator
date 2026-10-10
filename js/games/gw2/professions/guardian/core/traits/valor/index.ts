@@ -1,11 +1,16 @@
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 
 /** Owns Focus Mastery's live tuning and trait behavior. */
 export const focusMastery = defineTrait({
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => skill.weapon === 'Focus',
+      multiplier: { profile: TRAIT.FOCUS_MASTERY, field: 'rechargeMultiplier' }
+    }
+  ],
+
   id: TRAIT.FOCUS_MASTERY,
   name: 'Focus Mastery',
   balance: {
@@ -35,12 +40,3 @@ export const stalwartDefender = defineTrait({
     };
   }
 });
-
-/** Focus recharge retains the selected live multiplier before the final virtue adjustment. */
-export const focusMasteryRecharge = compileRechargeRules<GuardianRuntimeState>([
-  {
-    trait: TRAIT.FOCUS_MASTERY,
-    when: (_runtime, skill) => skill.weapon === 'Focus',
-    multiplier: { profile: TRAIT.FOCUS_MASTERY, field: 'rechargeMultiplier' }
-  }
-]);

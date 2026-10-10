@@ -1,9 +1,10 @@
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { grantExpandedConsciousness } from '#gw2/professions/revenant/specializations/conduit/traits/cap-rewards.js';
 
 /** Affinity starts empty with no passive recovery; the selected profile retains its minimum-one capacity rule. */
 export const conduitAffinityPolicy: ResourcePolicy<RevenantRuntime> = {
@@ -21,5 +22,12 @@ export function gainAffinity(runtime: RevenantRuntime, amount: number): void {
   const state = conduitState.from(runtime);
   const previous = runtime.resourceController.value('affinity');
   runtime.resourceController.grant('affinity', amount);
-  grantExpandedConsciousness(runtime, previous, state.affinity.maximum);
+  runtime.fireTrigger(affinityGranted, { previous, maximum: state.affinity.maximum, at: runtime.time });
 }
+
+/** Capture the pre-grant pool so a cap crossing can reward Energy only once. */
+export const affinityGranted = defineTriggerPoint<{
+  readonly previous: number;
+  readonly maximum: number;
+  readonly at: number;
+}>('revenant.affinity-granted', [TRAIT.EXPANDED_CONSCIOUSNESS]);

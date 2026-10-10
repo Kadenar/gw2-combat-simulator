@@ -2,7 +2,7 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
-import { triggerRaconteur } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
+import { troubadourTaleResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface TroubadourTaleInvocation {
@@ -49,5 +49,5 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
     );
   }
 
-  triggerRaconteur(context, skill, at);
+  context.fireTrigger(troubadourTaleResolved, { skill, at });
 }

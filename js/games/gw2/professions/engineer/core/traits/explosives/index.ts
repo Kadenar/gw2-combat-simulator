@@ -1,12 +1,13 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  emitExplosiveEntrance,
-  reserveExplosiveEntrance,
-  triggerLesserGrenadeBarrage
-} from '#gw2/professions/engineer/core/skills/trait-skills.js';
+import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { playerHealthFraction, targetHealthFraction } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import { airBlastImpacted, type AirBlastImpact } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -17,29 +18,30 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { activeBuffStacks, skillForEvent, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import {
-  isExplosion,
-  buildEngineerBuff,
-  buildEngineerCondition,
-  resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { isExplosion, resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import {
   type EngineerResolverContext,
   type EngineerResolverEvent,
-  type EngineerRuntime
+  type EngineerRuntime,
+  type EngineerRuntimeState,
+  type EngineerSkill
 } from '#gw2/professions/engineer/types.js';
+import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
   name: 'Grenadier',
-  hooks: {
-    // Only completed heals with Grenadier selected request the skill-owned barrage and recharge.
-    onCastCommit(context, cast) {
-      if (!hasTrait(context, TRAIT.GRENADIER) || (cast.skill.type !== 'Heal' && cast.skill.slot !== 'Heal')) return;
-      triggerLesserGrenadeBarrage(context, cast.skill, context.time);
+  // Completed heals request the skill-owned barrage, which shares its recharge with direct casts. The barrage follows
+  // Core elixir rewards and precedes the remaining imperative commit hooks.
+  triggers: [
+    {
+      on: 'castCommit',
+      order: 1,
+      when: (_runtime, cast) => cast.skill.type === 'Heal' || cast.skill.slot === 'Heal',
+      invoke: ID.LESSER_GRENADE_BARRAGE,
+      cooldown: 'skill'
     }
-  },
+  ],
   modifierRules: [
     {
       id: 'engineer.grenadier-explosion-damage',
@@ -62,16 +64,20 @@ export const grenadier = defineTrait({
 export const explosiveEntrance = defineTrait({
   id: TRAIT.EXPLOSIVE_ENTRANCE,
   name: 'Explosive Entrance',
-  hooks: {
-    eventHandlers: { 'engineer.dodge': resetExplosiveEntrance },
-    reactions: { 'damage.resolved': applyExplosiveEntrance }
-  }
+  triggers: [
+    {
+      on: 'damage.resolved',
+      when: strikesWhileArmed,
+      run: fireExplosiveEntrance
+    }
+  ],
+  // The queued dodge event rearms after the dodge's immediate rewards; rearming outlives selection checks.
+  lifetime: { eventHandlers: { 'engineer.dodge': resetExplosiveEntrance } }
 });
 
 /** Owns Steel-Packed Powder tuning and behavior at its established runtime and build boundaries. */
 export const steelPackedPowder = defineTrait({
-  // Register this trait's reaction at its causal gameplay boundary.
-  hooks: { reactions: { 'damage.resolved': applySteelPackedPowder } },
+  triggers: [{ on: 'damage.resolved', run: applySteelPackedPowder }],
   id: TRAIT.STEEL_PACKED_POWDER,
   name: 'Steel-Packed Powder',
   balance: {
@@ -81,8 +87,7 @@ export const steelPackedPowder = defineTrait({
 
 /** Owns Short Fuse tuning and behavior at its established runtime and build boundaries. */
 export const shortFuse = defineTrait({
-  // Register this trait's reaction at its causal gameplay boundary.
-  hooks: { reactions: { 'damage.resolved': applyShortFuse } },
+  triggers: [{ on: 'damage.resolved', run: applyShortFuse }],
   id: TRAIT.SHORT_FUSE,
   name: 'Short Fuse',
   balance: {
@@ -93,8 +98,7 @@ export const shortFuse = defineTrait({
 
 /** Owns Explosive Temper tuning and behavior at its established runtime and build boundaries. */
 export const explosiveTemper = defineTrait({
-  // Register this trait's reaction at its causal gameplay boundary.
-  hooks: { reactions: { 'damage.resolved': applyExplosiveTemper } },
+  triggers: [{ on: 'damage.resolved', run: applyExplosiveTemper }],
   id: TRAIT.EXPLOSIVE_TEMPER,
   name: 'Explosive Temper',
   balance: {
@@ -106,8 +110,7 @@ export const explosiveTemper = defineTrait({
 
 /** Owns Shrapnel tuning and behavior at its established runtime and build boundaries. */
 export const shrapnel = defineTrait({
-  // Register this trait's reaction at its causal gameplay boundary.
-  hooks: { reactions: { 'damage.resolved': applyShrapnel } },
+  triggers: [{ on: 'damage.resolved', run: applyShrapnel }],
   id: TRAIT.SHRAPNEL,
   name: 'Shrapnel',
   balance: {
@@ -127,15 +130,21 @@ export const shrapnel = defineTrait({
 
 /** Owns Aim-Assisted Rocket tuning and behavior at its established runtime and build boundaries. */
 export const aimAssistedRocket = defineTrait({
-  // Register this trait's reaction at its causal gameplay boundary.
-  hooks: {
-    reactions: {
-      'damage.resolved'(context, event) {
-        // Damage reactions require a strike; Air Blast separately supplies its accepted projectile opportunity.
-        if (Number(event.coefficient) > 0) applyAimAssistedRocket(context, event);
-      }
-    }
-  },
+  // Damage reactions require a strike; Air Blast separately supplies its accepted projectile opportunity. Accepted
+  // projectile procs consume recharge and advance the cycle even if their payload is removed.
+  triggers: [
+    {
+      on: 'damage.resolved',
+      when: (runtime, event) => Number(event.coefficient) > 0 && isAimAssistedProjectile(runtime, event),
+      cooldown: 'profile',
+      run: fireAimAssistedRocket
+    },
+    onTriggerPoint(airBlastImpacted, {
+      when: (runtime, { cause }: AirBlastImpact) => isAimAssistedProjectile(runtime, cause),
+      cooldown: 'profile',
+      run: (runtime, { cause }: AirBlastImpact) => fireAimAssistedRocket(runtime, cause)
+    })
+  ],
   id: TRAIT.AIM_ASSISTED_ROCKET,
   name: 'Aim-Assisted Rocket',
   balance: {
@@ -146,12 +155,16 @@ export const aimAssistedRocket = defineTrait({
 
 /** Owns Grand Entrance tuning and behavior at its established runtime and build boundaries. */
 export const grandEntrance = defineTrait({
-  // Register this trait's reaction at its causal gameplay boundary.
-  hooks: { reactions: { 'damage.resolved': applyGrandEntrance } },
+  triggers: [{ on: 'damage.resolved', run: applyGrandEntrance }],
   id: TRAIT.GRAND_ENTRANCE,
   name: 'Grand Entrance',
   balance: {
-    criticalChance: 0.1
+    criticalChance: 0.1,
+    // Each ordinary window is independently editable and removable through its profile.
+    effects: [
+      { type: 'boon', name: 'Resistance', boon: 'resistance', stacks: 1, duration: 3 },
+      { type: 'buff', name: 'Grand Entrance', kind: 'grand-entrance', stacks: 1, duration: 3 }
+    ]
   },
   modifierRules: [
     {
@@ -244,21 +257,25 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
   // Only positive strike packets create explosion proc opportunities.
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
-  if (!explosion || !hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) return;
+  if (!explosion) return;
   const steelPackedPowderProfile = requireBalanceProfileFromContext(context, TRAIT.STEEL_PACKED_POWDER);
   const steelPackedPowderVulnerability = requireEffect(steelPackedPowderProfile, 'condition', 'Vulnerability');
   if (steelPackedPowderVulnerability) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerCondition(event, {
-        name: 'Steel-Packed Powder',
-        condition: String(steelPackedPowderVulnerability.condition),
-        stacks: Number(steelPackedPowderVulnerability.stacks),
-        duration: Number(steelPackedPowderVulnerability.duration),
+    emitTraitProfile(context, TRAIT.STEEL_PACKED_POWDER, TRAIT.STEEL_PACKED_POWDER, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Vulnerability' },
+      settlement: 'reaction',
+      attribution: {
         sourceId: TRAIT.STEEL_PACKED_POWDER,
-        actorType: 'effect'
-      }),
-      settlement: 'reaction'
+        actorType: 'effect',
+        skillName: 'Steel-Packed Powder',
+        source: 'Trait',
+        triggeredBy: event.skillName,
+        offTarget: event.offTarget,
+        metadata: {}
+      },
+      transform: (packet) => ({ ...packet, name: 'Steel-Packed Powder' + ' — ' + packet.condition })
     });
   }
 }
@@ -269,28 +286,24 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
   // Eligible explosions consume the interval even when the Fury packet is removed.
-  if (
-    !explosion ||
-    !hasTrait(context, TRAIT.SHORT_FUSE) ||
-    !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)
-  ) {
-    return;
-  }
+  if (!explosion || !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)) return;
 
   const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
   const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
   if (shortFuseFury) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerBuff(event, {
+    emitTraitProfile(context, TRAIT.SHORT_FUSE, TRAIT.SHORT_FUSE, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'boon', name: 'fury' },
+      durationContext: event,
+      attribution: {
         name: 'Short Fuse',
-        kind: String(shortFuseFury.boon).toLowerCase(),
-        stacks: Number(shortFuseFury.stacks),
-        duration: shortFuseFury.duration,
         sourceId: TRAIT.SHORT_FUSE,
-        actorType: 'effect'
-      }),
-      durationContext: event
+        actorType: 'effect',
+        skillName: 'Short Fuse',
+        source: 'Trait',
+        triggeredBy: event.skillName
+      }
     });
 
     context.effects.emit({
@@ -307,21 +320,23 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
   // Only positive strike packets create explosion proc opportunities.
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
-  if (!explosion || !hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) return;
+  if (!explosion) return;
   const explosiveTemperProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_TEMPER);
   const explosiveTemperBuff = requireEffect(explosiveTemperProfile, 'buff', 'explosive-temper');
   if (explosiveTemperBuff) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerBuff(event, {
+    emitTraitProfile(context, TRAIT.EXPLOSIVE_TEMPER, TRAIT.EXPLOSIVE_TEMPER, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'buff', name: 'explosive-temper' },
+      durationContext: event,
+      attribution: {
         name: 'Explosive Temper',
-        kind: 'explosive-temper',
-        stacks: Number(explosiveTemperBuff.stacks),
-        duration: explosiveTemperBuff.duration,
         sourceId: TRAIT.EXPLOSIVE_TEMPER,
-        actorType: 'effect'
-      }),
-      durationContext: event
+        actorType: 'effect',
+        skillName: 'Explosive Temper',
+        source: 'Trait',
+        triggeredBy: event.skillName
+      }
     });
 
     context.effects.emit({
@@ -335,39 +350,27 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
 
 /** Grants Grand Entrance's resistance and critical-chance window from its trait strike. */
 function applyGrandEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  // Non-strike notifications must not consume this trait's proc opportunity.
-  if (!(Number(event.coefficient) > 0)) return;
-  if (event.skillId !== ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL || !hasTrait(context, TRAIT.GRAND_ENTRANCE)) return;
-  context.effects.emit({
-    kind: 'packet',
-    event: buildEngineerBuff(event, {
-      name: 'Grand Entrance — resistance',
-      kind: 'resistance',
-      stacks: 1,
-      duration: 3,
-      sourceId: TRAIT.GRAND_ENTRANCE,
-      actorType: 'effect'
+  // Only the accepted trait strike grants the surviving profiled windows.
+  if (!(Number(event.coefficient) > 0) || event.skillId !== ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL) return;
+  const emitted = emitTraitProfile(context, TRAIT.GRAND_ENTRANCE, TRAIT.GRAND_ENTRANCE, undefined, {
+    at: event.at,
+    durationContext: event,
+    receipt: true,
+    attribution: (effect) => ({
+      source: 'Trait',
+      actorType: 'effect',
+      skillName: effect.type === 'boon' ? 'Grand Entrance — resistance' : 'Grand Entrance',
+      triggeredBy: event.skillName
     }),
-    durationContext: event
+    transform: (packet) => ({ ...packet, name: packet.skillName })
   });
-  context.effects.emit({
-    kind: 'packet',
-    event: buildEngineerBuff(event, {
-      name: 'Grand Entrance',
-      kind: 'grand-entrance',
-      stacks: 1,
-      duration: 3,
-      sourceId: TRAIT.GRAND_ENTRANCE,
-      actorType: 'effect'
-    }),
-    durationContext: event
-  });
-  context.effects.emit({
-    attribution: { source: 'Trait', sourceId: TRAIT.GRAND_ENTRANCE, actorType: 'effect' },
-    kind: 'announcement',
-    cause: event,
-    announcement: { type: 'trait', name: 'Grand Entrance', at: event.at, sourceSkill: event.skillName, icon: '' }
-  });
+  if (emitted.length)
+    context.effects.emit({
+      kind: 'announcement',
+      attribution: { source: 'Trait', sourceId: TRAIT.GRAND_ENTRANCE, actorType: 'effect' },
+      cause: event,
+      announcement: { type: 'trait', name: 'Grand Entrance', at: event.at, sourceSkill: event.skillName, icon: '' }
+    });
 }
 
 /** Rolls Shrapnel against the simulation seed in both modes for each eligible explosion. */
@@ -376,45 +379,51 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
   // Generated rocket explosions also roll Shrapnel; effect ownership must not discard their opportunity.
-  if (!explosion || !hasTrait(context, TRAIT.SHRAPNEL)) return;
+  if (!explosion) return;
   const chance = procChanceFromContext(context, TRAIT.SHRAPNEL);
   if (!context.random.roll(chance, 'engineer.shrapnel')) return;
 
   const shrapnelProfile = requireBalanceProfileFromContext(context, TRAIT.SHRAPNEL);
   const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', 'Bleeding');
   if (shrapnelBleeding) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerCondition(event, {
-        name: 'Shrapnel',
-        condition: String(shrapnelBleeding.condition),
-        // Count the activation on its primary effect only; the Crippled effect is part of the same proc.
-        procCount: 1,
-        stacks: Number(shrapnelBleeding.stacks),
-        duration: Number(shrapnelBleeding.duration),
+    emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Bleeding' },
+      settlement: 'reaction',
+      attribution: {
         sourceId: TRAIT.SHRAPNEL,
         actorType: 'effect',
-        ownerActorType: 'player'
-      }),
-      settlement: 'reaction'
+        ownerActorType: 'player',
+        skillName: 'Shrapnel',
+        source: 'Trait',
+        triggeredBy: event.skillName,
+        offTarget: event.offTarget,
+        metadata: { procCount: 1 }
+      },
+      transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' — ' + packet.condition })
     });
   }
 
   const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', 'Crippled');
   if (shrapnelCrippled) {
     // Resolve Crippled as a target condition so duration bonuses and condition queries include it.
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerCondition(event, {
-        name: 'Shrapnel',
-        condition: String(shrapnelCrippled.condition),
-        stacks: Number(shrapnelCrippled.stacks),
-        duration: Number(shrapnelCrippled.duration),
+    emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Crippled' },
+      settlement: 'reaction',
+      attribution: {
         sourceId: TRAIT.SHRAPNEL,
         actorType: 'effect',
-        ownerActorType: 'player'
-      }),
-      settlement: 'reaction'
+        ownerActorType: 'player',
+        skillName: 'Shrapnel',
+        source: 'Trait',
+        triggeredBy: event.skillName,
+        offTarget: event.offTarget,
+        metadata: {}
+      },
+      transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' — ' + packet.condition })
     });
   }
 
@@ -427,28 +436,53 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
     });
 }
 
-/** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
+/** Non-strike notifications and other actors must not consume the dodge-armed opportunity. */
+function strikesWhileArmed(
+  runtime: MechanicQueryContext<EngineerRuntimeState, EngineerSkill>,
+  event: EngineerResolverEvent
+): boolean {
+  return (
+    Number(event.coefficient) > 0 && event.actorType === 'player' && !runtime.profession.core.explosiveEntranceFired
+  );
+}
 
 /** Rearms Explosive Entrance after a resolved Engineer dodge. */
 function resetExplosiveEntrance(context: EngineerResolverContext): void {
   professionCoreState(context).explosiveEntranceFired = false;
 }
 
-/** Queues Explosive Entrance once for the next eligible player strike. */
-function applyExplosiveEntrance(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  // Non-strike notifications must not consume this trait's proc opportunity.
-  if (!(Number(event.coefficient) > 0)) return;
-  if (
-    event.actorType !== 'player' ||
-    !hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) ||
-    professionCoreState(context).explosiveEntranceFired
-  ) {
+/**
+ * Fires the dodge-armed attack on the next eligible player strike. The skill keeps an exclusive recharge deadline; a hit
+ * during recharge, or a patch that removed the payload, leaves the attack armed. Consumption commits before emission.
+ */
+function fireExplosiveEntrance(context: EngineerRuntime, event: EngineerResolverEvent): void {
+  const skill = context.helpers.skillsById.get(ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL)!;
+  if (!skill.effects?.length || !isInternalCooldownReady(event.at, context.cooldownController.readyAt(skill.id)))
     return;
-  }
+  // Dodge rearming never resets the skill's recharge.
+  context.cooldownController.startRecharge(skill, event.at);
+  professionCoreState(context).explosiveEntranceFired = true;
+  invokeTraitSkill(context, TRAIT.EXPLOSIVE_ENTRANCE, skill.id, event, { announce: true });
+}
 
-  if (reserveExplosiveEntrance(context, event.at)) {
-    // A hit during skill recharge leaves the dodge-armed attack available for the next eligible hit.
-    professionCoreState(context).explosiveEntranceFired = true;
-    emitExplosiveEntrance(context, event);
-  }
+// Only player packets with authored projectile identity can trigger Aim-Assisted Rocket.
+function isAimAssistedProjectile(
+  context: Pick<EngineerResolverContext, 'helpers'>,
+  event: EngineerResolverEvent
+): boolean {
+  if (event.actorType !== 'player') return false;
+  if (event.projectile === true) return true;
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
+  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'projectile'));
+}
+
+/** Every fifth accepted rocket becomes an Orbital Command Strike; the counter advances only on accepted procs. */
+function fireAimAssistedRocket(context: EngineerRuntime, event: EngineerResolverEvent): void {
+  const profile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
+  const core = professionCoreState(context);
+  // Preserve the cumulative total used to select each orbital strike.
+  const progress = advanceCyclicCounter(core.aimAssistedRocketCount, 1, balanceProfileNumber(profile, 'maximumStacks'));
+  core.aimAssistedRocketCount = progress.value;
+  const variant = progress.reached ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL;
+  invokeTraitSkill(context, TRAIT.AIM_ASSISTED_ROCKET, variant, event, { announce: true });
 }

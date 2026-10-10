@@ -1,5 +1,6 @@
-import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
+import { necromancerCreatureStrikeMultiplier } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -16,10 +17,7 @@ import {
   type MinionAttack,
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import {
-  necromancerCreatureStrikeMultiplier,
-  runCreatureSummonReactions
-} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
 import { necromanticCorruptionMultiplier } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -58,7 +56,12 @@ function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
   const key = `unstable-horror:${work.activationId}:${work.index}`;
   const expiresAt = canonicalTime(runtime.time + Number(skill.summonDuration));
   runtime.profession.core.activeMinions[key] = 1;
-  runCreatureSummonReactions(runtime, skill, runtime.time, 1, `${work.activationId}:horror:${work.index}`);
+  runtime.fireTrigger(creatureSummoned, {
+    skill: skill,
+    at: runtime.time,
+    count: 1,
+    activationId: `${work.activationId}:horror:${work.index}`
+  });
   runtime.schedule(HORROR_EXPIRE, expiresAt, key, undefined, -20);
   runtime.profession.core.minionAttackCursors[companion(key, 0)] = {
     cycleIndex: 1,
@@ -304,7 +307,12 @@ export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: Runti
   state.activeMinions[key] = definition.count;
   state.minionGenerations[key] = (state.minionGenerations[key] ?? 0) + 1;
   // Traits observe the concrete completed summon once, including each member of a multi-creature grant.
-  runCreatureSummonReactions(runtime, skill, runtime.time, definition.count, cast.id);
+  runtime.fireTrigger(creatureSummoned, {
+    skill: skill,
+    at: runtime.time,
+    count: definition.count,
+    activationId: cast.id
+  });
   if (definition.commandId != null) armSkillFlip(state.availableFlips, definition.commandId, runtime.time);
   if (skill.rechargeOnMinionDeath) runtime.cooldownController.clear(skill.id);
   for (let index = 0; index < definition.count; index++) {

@@ -15,6 +15,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import {
   isPlayerStrike,
   rangerBuffRequest,
@@ -22,18 +23,10 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import {
-  triggerMergedGoForTheEyes,
-  triggerMergedGoForTheThroat,
-  triggerMergedWiltingStrike
-} from '#gw2/professions/ranger/core/traits/beastmastery/pet-behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import {
-  essenceOfSpeedExtension,
-  triggerMergedLiveFast
-} from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -209,10 +202,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
   }
 
   if (!firstBeastAbilityHit(context, event)) return;
-  triggerMergedLiveFast(context, event);
-  triggerMergedWiltingStrike(context, event);
-  triggerMergedGoForTheEyes(context, event);
-  triggerMergedGoForTheThroat(context, event);
+  context.fireTrigger(mergedBeastHit, { event });
 }
 
 /** Quickness extends existing boons once; shared attacks wait for an actual combat boundary. */

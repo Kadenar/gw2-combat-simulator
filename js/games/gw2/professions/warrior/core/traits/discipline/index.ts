@@ -1,15 +1,24 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  burstCompleted,
+  critical,
+  dragonSlashReleased,
+  weaponSwapped
+} from '#gw2/professions/warrior/core/mechanics/combat.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
@@ -45,6 +54,16 @@ export const crackShot = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstMastery = defineTrait({
+  triggers: [
+    onTriggerPoint(dragonSlashReleased, {
+      run: (runtime, input: TriggerPointInput<typeof dragonSlashReleased>) =>
+        burstMasteryDragonSlash(runtime, input.cast, { flowSpent: input.flowSpent })
+    }),
+    onTriggerPoint(burstCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof burstCompleted>) =>
+        burstMasteryCommit(runtime, input.cast, input.spent)
+    })
+  ],
   id: TRAIT.BURST_MASTERY,
   name: 'Burst Mastery',
   balance: {
@@ -74,6 +93,12 @@ export const burstMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const axeMastery = defineTrait({
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        axeMasteryCritical(runtime, input.event, input.opportunity.sampledCriticals)
+    })
+  ],
   id: TRAIT.AXE_MASTERY,
   name: 'Axe Mastery',
   balance: {
@@ -109,6 +134,7 @@ export const axeMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const versatileRage = defineTrait({
+  triggers: [onTriggerPoint(weaponSwapped, { run: (runtime) => versatileRageSwap(runtime) })],
   id: TRAIT.VERSATILE_RAGE,
   name: 'Versatile Rage',
   balance: { resourceGain: 5 }
@@ -136,8 +162,8 @@ export const heightenedFocus = defineTrait({
     internalCooldown: 12,
     effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 }]
   },
-  hooks: {
-    reactions: { 'damage.resolved': triggerHeightenedFocus },
+  triggers: [{ on: 'damage.resolved', run: triggerHeightenedFocus }],
+  lifetime: {
     onCastCommit: readyHeightenedFocusBurst
   }
 });
@@ -176,10 +202,7 @@ export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2Resolv
     return;
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: traitProfile,
-      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+    emitTraitProfile(runtime, TRAIT.HEIGHTENED_FOCUS, TRAIT.HEIGHTENED_FOCUS, event, {
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.HEIGHTENED_FOCUS,
@@ -187,8 +210,8 @@ export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2Resolv
         skillId: event.skillId,
         skillName: event.skillName
       },
-      cause: event,
-      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) })
+      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) }),
+      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
     });
   }
 
@@ -225,8 +248,8 @@ export function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: Runtime
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEvent, criticals: number): void {
-  if (criticals > 0 && hasTrait(runtime, TRAIT.AXE_MASTERY)) {
+function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEvent, criticals: number): void {
+  if (criticals > 0) {
     const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
     if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) === 'Axe')
       grantWarriorResource(
@@ -237,17 +260,16 @@ export function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEv
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function versatileRageSwap(runtime: WarriorRuntime): void {
-  if (hasTrait(runtime, TRAIT.VERSATILE_RAGE))
-    grantWarriorResource(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.VERSATILE_RAGE), 'resourceGain')
-    );
+function versatileRageSwap(runtime: WarriorRuntime): void {
+  grantWarriorResource(
+    runtime,
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.VERSATILE_RAGE), 'resourceGain')
+  );
 }
 
 /** Refund the captured burst spend before later completion rewards. */
-export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, spent: number): void {
-  if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {
+function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, spent: number): void {
+  if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0) {
     grantWarriorResource(
       runtime,
       spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY), 'resourceGain')
@@ -257,10 +279,7 @@ export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<Wa
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
       const selectedEffect = requireEffect(traitProfile, 'boon', 'swiftness');
       if (selectedEffect)
-        runtime.effects.emit({
-          kind: 'profile',
-          profile: traitProfile,
-          effects: [selectedEffect],
+        emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {
           at: runtime.time,
           attribution: {
             source: 'Trait',
@@ -270,8 +289,44 @@ export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<Wa
             skillName: cast.skill.name,
             activationId: cast.id
           },
-          transform: (event) => ({ ...event, name: 'Burst Mastery — Swiftness', priority: 5 })
+          transform: (event) => ({ ...event, name: 'Burst Mastery — Swiftness', priority: 5 }),
+          effects: (candidate) => candidate === selectedEffect
         });
+    }
+  }
+}
+
+/** Dragon Slash refunds its captured Flow pool using the elite tuning. */
+function burstMasteryDragonSlash(
+  runtime: MechanicContext<WarriorRuntimeState, WarriorSkill>,
+  cast: RuntimeCast<WarriorSkill>,
+  release: { flowSpent: number }
+): void {
+  {
+    runtime.resourceController.grant(
+      'flow',
+      release.flowSpent *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(runtime, 'warrior.bladesworn.burst-mastery'),
+          'resourceGain'
+        )
+    );
+    {
+      {
+        const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+        emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BURST_MASTERY,
+            actorType: 'effect',
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          },
+          transform: (event) => ({ ...event, name: traitProfile.name, stacks: event.stacks, priority: 5 }),
+          effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
+        });
+      }
     }
   }
 }

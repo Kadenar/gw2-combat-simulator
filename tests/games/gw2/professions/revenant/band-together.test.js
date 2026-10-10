@@ -1,3 +1,4 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -27,6 +28,7 @@ function fixture() {
   };
   const emitted = captureEffectEmissions({ now: () => runtime.time });
   runtime.effects = emitted.effects;
+  bindTriggerPoints(runtime, revenantProfession, config);
   const state = runtime.profession.specialization.state;
   let sequence = 0;
   const cast = (skillId) => ({

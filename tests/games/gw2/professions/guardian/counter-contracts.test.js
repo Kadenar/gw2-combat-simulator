@@ -7,8 +7,11 @@ import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professi
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { resetSwiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
+import { tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { willbenderHooks } from '#gw2/professions/guardian/specializations/willbender/hooks.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as WB_PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
@@ -79,6 +82,7 @@ test('Willbender resets independent open virtues before rewards while expired vi
       }
     }).effects
   };
+  bindTriggerPoints(context, guardianProfession, { specialization: 'Willbender' });
   const react = willbenderHooks.reactions['damage.resolved'];
   react(context, { ...hit, actorType: 'effect', ownerActorType: 'player' }, details);
   assert.deepEqual(state.virtueHitCounts, { justice: 2, resolve: 2, courage: 2 });
@@ -107,21 +111,26 @@ test('Swift Scholar resets the page cycle on acceptance and retains the earned c
     resourceController: { grant: (resource, amount) => grants.push([resource, amount]) },
     effects: captureEffectEmissions().effects
   };
+  bindTriggerPoints(context, guardianProfession, { specialization: 'Firebrand' });
   const cast = { skill: { tome: 'justice', name: 'Page' } };
-  swiftScholar.hooks.onCastStart(context, { ...cast, cancelled: true });
+  // Exercise the compiled admission stage separately from the retained refund completion handler.
+  const { onCastStart } = compileProfessionRules({
+    traitTriggers: swiftScholar.triggers.map((rule) => ({ ...rule, trait: swiftScholar.id }))
+  });
+  onCastStart(context, { ...cast, cancelled: true });
   assert.equal(state.swiftScholarCount, 2);
-  swiftScholar.hooks.onCastStart(context, cast);
+  onCastStart(context, cast);
   assert.equal(state.swiftScholarCount, 0);
   assert.deepEqual(grants, []);
-  resetSwiftScholar(context);
+  context.fireTrigger(tomeStowed, { cast });
   const otherCast = { skill: { tome: 'resolve', name: 'Other page' } };
-  swiftScholar.hooks.onCastStart(context, otherCast);
-  swiftScholar.hooks.onCastCommit(context, otherCast);
+  onCastStart(context, otherCast);
+  swiftScholar.lifetime.onCastCommit(context, otherCast);
   assert.deepEqual(grants, []);
-  swiftScholar.hooks.onCastCommit(context, cast);
+  swiftScholar.lifetime.onCastCommit(context, cast);
   assert.deepEqual(grants, [['tomePages', 1]]);
   assert.equal(state.swiftScholarTome, 'resolve');
   assert.equal(state.swiftScholarCount, 1);
-  swiftScholar.hooks.onCastStart(context, { skill: { tome: 'justice', name: 'New session' } });
+  onCastStart(context, { skill: { tome: 'justice', name: 'New session' } });
   assert.equal(state.swiftScholarCount, 1);
 });

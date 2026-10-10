@@ -2,15 +2,15 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { druidBuffPolicies } from '#gw2/professions/ranger/specializations/druid/effect-state.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import {
-  applyNaturalBalance,
   avatarEffects,
   eclipseAstralForceMultiplier
 } from '#gw2/professions/ranger/specializations/druid/traits/behavior.js';
@@ -46,7 +46,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
     runtime.resourceController.spend('astralForce', state.astralClock.value * (1 - retained));
   }
 
-  applyNaturalBalance(runtime);
+  runtime.fireTrigger(avatarExited, { at: runtime.time });
 
   resetAutoattackChains(runtime);
   const skill = runtime.helpers.skillsById.get(active ? ID.CELESTIAL_AVATAR : ID.RELEASE_CELESTIAL_AVATAR)!;
@@ -57,7 +57,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
       'sigil_swap'
     )
   });
-  applyRangerWeaponSwapTraits(runtime, skill);
+  runtime.fireTrigger(weaponSwapped, { skill: skill, at: runtime.time });
 }
 
 export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
@@ -171,3 +171,8 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     }
   }
 };
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const avatarExited = defineTriggerPoint<{ readonly at: number }>('ranger.avatar-exited', [
+  TRAIT.NATURAL_BALANCE
+]);

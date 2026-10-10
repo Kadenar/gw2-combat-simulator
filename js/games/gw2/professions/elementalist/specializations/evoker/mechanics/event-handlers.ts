@@ -1,13 +1,9 @@
 import {
-  applyEvocationBurning,
-  applyEvokerEntryTraits
-} from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
+  evokerEntryObserved,
+  evokerEventAccepted
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 /** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -15,7 +11,11 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Accepted player disables trigger the equipped Earth familiar's personal boon at most once per interval. */
 export function applyCalcifyProtection(context: ElementalistRuntime, event: SimulationEvent): void {
@@ -39,11 +39,11 @@ export function applyCalcifyProtection(context: ElementalistRuntime, event: Simu
 export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
   applyEvokerAttunementRechargePolicy(context, event, state);
-  applyEvocationBurning(context, event, undefined);
+  context.fireTrigger(evokerEventAccepted, { event });
   // Spend an enchantment only after the shared runtime accepts this player hit.
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {
     consumeElectricEnchantment(context, event);
   }
 
-  applyEvokerEntryTraits(context, event);
+  context.fireTrigger(evokerEntryObserved, { event });
 }

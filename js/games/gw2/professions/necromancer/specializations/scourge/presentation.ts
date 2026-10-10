@@ -33,6 +33,7 @@ export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkil
       const preview = createPreviewControls(context);
       preview.trait('Sand Sage', {
         key: 'shade',
+        scope: ['attributes', 'damage'],
         kind: 'special',
         description: 'Shade active; Expertise / Concentration'
       });

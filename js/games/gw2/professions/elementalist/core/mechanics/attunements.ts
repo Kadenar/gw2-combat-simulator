@@ -2,6 +2,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   inFlightAutoattackCarryover,
@@ -14,7 +15,6 @@ import {
   type ElementalistAttunement
 } from '#gw2/professions/elementalist/core/state.js';
 import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
-import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
@@ -142,21 +142,19 @@ export function onAttunementComplete(
   });
   // Pre-combat swaps still move state and timers but grant no trait effects.
   if (!combatStarted(context, at)) return;
-  // Specializations can gate shared attunement-trait effects without Core inspecting specialization state or policy.
-  const shouldTriggerAttunementTrait = (attunement: ElementalistAttunement, profileId: Skill['id']): boolean =>
+  // The selected compiled listener claims its elite cooldown; isolated swaps only change native state.
+  const claimTrait = (attunement: ElementalistAttunement, profileId: Skill['id']): boolean =>
     transition.shouldTriggerAttunementTrait?.({ attunement, profileId }) !== false;
-  applyElementalistAttunementTraits(
-    context,
-    {
-      at,
-      skill,
-      previous,
-      target,
-      dualAttunement,
-      shouldTrigger: shouldTriggerAttunementTrait
-    },
-    { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-  );
+
+  context.fireTrigger(attunementChanged, {
+    at,
+    skill,
+    previous,
+    target,
+    dualAttunement,
+    claimTrait,
+    emissionCast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+  });
 }
 
 const transitions = new WeakMap<

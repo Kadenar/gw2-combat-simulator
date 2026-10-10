@@ -1,6 +1,6 @@
-import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+
 import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
@@ -55,32 +55,35 @@ export function buildMesmerConditions(
   extra: MesmerEventExtra = {}
 ): readonly SimulationEventBase[] {
   const skill = skillForCondition(context, skillName, extra);
+  // A mechanic may filter every application from a derived timeline before asking for materialization.
+  if (condition.ticks?.length === 0) return [];
   const baseOwnership = ownership(extra.actorType, extra.summonKind ?? condition.summonKind);
   const fields = supplementalFields(extra, ['actorType', 'skillId', 'skillName', 'source', 'sourceId', 'summonKind']);
-  // Canonical descriptors own expansion; Mesmer retains attribution, lifetime ownership, and final metadata overrides.
-  const ticks = conditionEffectTicks(condition);
-
-  return ticks.flatMap((tick, index) => {
-    const name = canonicalTargetConditionName(tick.condition);
-    if (!(tick.duration > 0)) return [];
-    const packet = {
-      ...fields,
+  // The shared materializer owns authored payload expansion; Mesmer keeps canonical labels and companion delivery.
+  return materializeSkillEffectApplications({
+    skill,
+    effect: condition,
+    start: at,
+    fullEnd: at,
+    baseEvent: {
       ...baseOwnership,
-      at: at + (tick.atMs || 0) / 1000,
-      condition: name,
-      duration: tick.duration,
-      stacks: tick.stacks,
-      name: label || `${skillName} — ${name}`,
       source: extra.source || source,
       sourceId: extra.sourceId ?? skill.id,
       skillId: extra.skillId ?? skill.id,
-      skillName,
-      applicationIndex: index + 1,
-      totalApplications: ticks.length,
-      // Packet annotations override application defaults; explicit call annotations win last.
-      metadata: normalizeEffectMetadata({ ...condition.metadata, ...tick.metadata, ...extra.metadata })
-    };
-    return [buildResolverCondition(packet)];
+      skillName
+    }
+  }).flatMap(({ event }) => {
+    if (!(Number(event.duration) > 0)) return [];
+    const conditionName = canonicalTargetConditionName(event.condition);
+    return [
+      {
+        ...fields,
+        ...event,
+        condition: conditionName,
+        name: label || skillName + ' — ' + conditionName,
+        metadata: normalizeEffectMetadata({ ...event.metadata, ...extra.metadata })
+      }
+    ];
   });
 }
 
@@ -92,6 +95,8 @@ export function buildMesmerStrikes(
   group: Partial<MesmerStrikeEffect>,
   extra: MesmerEventExtra = {}
 ): readonly SimulationEventBase[] {
+  // Empty derived timelines suppress the selected variant, while authored catalog effects remain nonempty.
+  if (group.ticks?.length === 0) return [];
   const source = group.source || extra.source || 'Player';
   const baseOwnership = ownership(group.actorType ?? extra.actorType, group.summonKind ?? extra.summonKind);
   const explicit = group.weapon || '';
@@ -116,38 +121,30 @@ export function buildMesmerStrikes(
     'type',
     'weapon'
   ]);
-  // Shared expansion keeps aggregate and explicit strikes consistent without moving summon formula policy.
-  const ticks = strikeEffectTicks(group);
+  // Shared materialization owns all strike fields; this adapter only supplies Mesmer weapon and summon policy.
   const slotSkill = ['Heal', 'Utility', 'Elite'].includes(skill.type || '');
-
-  return ticks.flatMap((tick, index) => {
-    const packet = {
-      ...fields,
+  return materializeSkillEffectApplications({
+    skill,
+    effect: { ...group, type: 'strike' },
+    start: at,
+    fullEnd: at,
+    baseEvent: {
       ...baseOwnership,
-      at: at + (tick.atMs || 0) / 1000,
-      coefficient: tick.coefficient || 0,
-      hits: 1,
-      hitIndex: index + 1,
-      totalHits: ticks.length,
-      name: extra.name || group.name || skill.name,
       source,
       sourceId: extra.sourceId ?? skill.id,
       skillId: extra.skillId ?? skill.id,
       skillName: extra.skillName || skill.name,
-      skillWeapon:
-        skill.weapon || (slotSkill ? 'Utility' : gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet) || ''),
-      canCrit: group.canCrit,
-      // Keep the skill fallback while preserving false, zero, and unrelated packet annotations.
-      metadata: normalizeEffectMetadata({
-        blade: Boolean(skill.blade),
-        ...group.metadata,
-        ...tick.metadata,
-        ...extra.metadata
-      }),
-      ...(strength == null ? {} : { weaponStrength: strength })
-    };
-    return [buildResolverStrike(packet)];
-  });
+      metadata: { blade: Boolean(skill.blade) }
+    }
+  }).map(({ event }) => ({
+    ...fields,
+    ...event,
+    name: extra.name || group.name || skill.name,
+    skillWeapon:
+      skill.weapon || (slotSkill ? 'Utility' : gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet) || ''),
+    metadata: normalizeEffectMetadata({ ...event.metadata, ...extra.metadata }),
+    ...(strength == null ? {} : { weaponStrength: strength })
+  }));
 }
 
 /** Clone lifetime belongs to its owner independently of attribution and the triggering cast. */

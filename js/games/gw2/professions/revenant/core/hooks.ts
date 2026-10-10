@@ -12,6 +12,13 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
+import {
+  legendInvoked,
+  revenantConditionApplied,
+  revenantLifecycleAnchored,
+  revenantWeaponSwapped
+} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
 import { reactRevenantPlayerStrike } from '#gw2/professions/revenant/core/mechanics/reactions.js';
 import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
@@ -35,17 +42,6 @@ import {
 } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
 import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
-import { completeRevenantBrutality } from '#gw2/professions/revenant/core/traits/devastation/cast-rewards.js';
-import {
-  REVENANT_ASSASSINS_PRESENCE,
-  revenantAssassinsPresencePulse,
-  startRevenantAssassinsPresence
-} from '#gw2/professions/revenant/core/traits/devastation/index.js';
-import {
-  applyRevenantInvocationTraits,
-  completeRevenantCastTraits,
-  reactRevenantConditionTraits
-} from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { chargedMistsEnergy } from '#gw2/professions/revenant/core/traits/invocation/behavior.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
@@ -157,7 +153,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
       weaponSet: runtime.activeWeaponSet
     }
   });
-  applyRevenantInvocationTraits(runtime);
+  if (runtime.combatStartedAt()) runtime.fireTrigger(legendInvoked, { at: runtime.time });
 }
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
@@ -183,9 +179,9 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       state.activeLoadoutId = skill.legendId;
     }
 
-    const upkeep = runtime.helpers.skills.find(
-      (entry) => entry.id === inputs.upkeepSkillId && entry.upkeepCost != null
-    );
+    // Both the stat strip and occurrences consume the control's canonical serialized skill identity.
+    const upkeepId = JSON.parse(String(inputs.upkeep ?? 'null'));
+    const upkeep = runtime.helpers.skills.find((entry) => entry.id === upkeepId && entry.upkeepCost != null);
     if (upkeep)
       // Prepared upkeep needs the same activation identity as combat so depletion can retire its owner.
       state.activeUpkeeps = [
@@ -221,13 +217,13 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   resources: { energy: revenantEnergy },
   endurance: revenantEndurance,
   initialize(runtime) {
-    startRevenantAssassinsPresence(runtime, runtime.time);
+    runtime.fireTrigger(revenantLifecycleAnchored, { at: runtime.time });
   },
   onCombatStart(runtime) {
     // Accepted combat raises the recovery ceiling; an authored marker also re-anchors Assassin's Presence.
     runtime.profession.core.combatBeganAt = runtime.time;
     runtime.resourceController.refresh('energy');
-    if (runtime.hasExplicitCombatStart) startRevenantAssassinsPresence(runtime, runtime.time);
+    if (runtime.hasExplicitCombatStart) runtime.fireTrigger(revenantLifecycleAnchored, { at: runtime.time });
   },
   availability: revenantAvailability,
   // Legend swaps stay free during setup until combat is established, like the runtime's weapon swaps.
@@ -251,10 +247,10 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
-      completeRevenantBrutality(runtime, cast);
+      runtime.fireTrigger(revenantWeaponSwapped, { cast });
     }
 
-    completeRevenantCastTraits(runtime, cast);
+    completeRevenantCast(runtime, cast);
     // Empower only after the paid skill commits, so a pulse during its windup cannot consume the bonus.
     empowerRevenantEmbrace(runtime, cast);
   },
@@ -273,12 +269,11 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       reactRevenantImpossibleOdds(runtime, event);
       reactRevenantPlayerStrike(runtime, event);
     },
-    'condition.applied': reactRevenantConditionTraits
+    'condition.applied': (runtime, cause) => runtime.fireTrigger(revenantConditionApplied, { cause })
   },
   tasks: {
     [REVENANT_ENERGY_DEPLETED]: starveRevenantUpkeeps,
-    [REVENANT_UPKEEP_PULSE]: revenantUpkeepPulse,
-    [REVENANT_ASSASSINS_PRESENCE]: revenantAssassinsPresencePulse
+    [REVENANT_UPKEEP_PULSE]: revenantUpkeepPulse
   }
 };
 

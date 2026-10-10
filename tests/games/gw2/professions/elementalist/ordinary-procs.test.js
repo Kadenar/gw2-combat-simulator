@@ -1,17 +1,18 @@
-import { applyElementalistResolvedCondition } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import {
-  applyGenericPostCast,
-  observeElementalistTraitEvent
-} from '#gw2/professions/elementalist/core/traits/dispatch.js';
+  elementalistConditionApplied,
+  elementalistDodgeCompleted
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import {
+  elementalistCastCompleted,
+  controlAccepted
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
+import { reenterEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -57,35 +58,38 @@ for (const [trait, traitId, key, profile, invoke] of [
     TRAIT.EARTHS_EMBRACE,
     'earthsEmbrace',
     TRAIT.EARTHS_EMBRACE,
-    (c) => applyGenericPostCast(c, castFor(c, skill), skill)
+    (c) => c.fireTrigger(elementalistCastCompleted, { cast: castFor(c, skill) })
   ],
   [
     'Soothing Ice',
     TRAIT.SOOTHING_ICE,
     'soothingIce',
     TRAIT.SOOTHING_ICE,
-    (c) => applyGenericPostCast(c, castFor(c, skill), skill)
+    (c) => c.fireTrigger(elementalistCastCompleted, { cast: castFor(c, skill) })
   ],
   [
     'Elemental Lockdown',
     TRAIT.ELEMENTAL_LOCKDOWN,
     'elementalLockdown',
     TRAIT.ELEMENTAL_LOCKDOWN,
-    (c) => observeElementalistTraitEvent(c, { type: 'control', actorType: 'player', at: c.effectiveEnd })
+    (c) => c.fireTrigger(controlAccepted, { cause: { type: 'control', actorType: 'player', at: c.effectiveEnd } })
   ],
   [
     'Strength of Stone',
     TRAIT.STRENGTH_OF_STONE,
     'strengthOfStone',
     TRAIT.STRENGTH_OF_STONE,
-    (c) => applyElementalistResolvedCondition(c, { type: 'condition', condition: 'Immobilized', at: c.effectiveEnd })
+    (c) =>
+      c.fireTrigger(elementalistConditionApplied, {
+        cause: { type: 'condition', condition: 'Immobilized', at: c.effectiveEnd }
+      })
   ],
   [
     'Evasive Arcana',
     TRAIT.EVASIVE_ARCANA,
     'evasiveArcanaWater',
     TRAIT.EVASIVE_ARCANA,
-    (c) => triggerEvasiveArcana(c, castFor(c, skill), skill)
+    (c) => c.fireTrigger(elementalistDodgeCompleted, { cast: castFor(c, skill) })
   ]
 ]) {
   test(`${trait} retains eligibility, zero override and strict owner-local deadlines`, () => {
@@ -127,7 +131,9 @@ for (const [trait, traitId, key, profile, invoke] of [
 
 test('Catalyst combo claims stay per element, and per trait, including Water', () => {
   for (const duration of [2, 0]) {
-    for (const handler of [catalystModule.hooks.reactions['combo.resolved']]) {
+    for (const handler of [
+      elementalistProfession.runtimeFor({ specialization: 'Catalyst' }).reactions['combo.resolved']
+    ]) {
       const invoke = (context, event) => {
         context.time = event.at;
         handler(context, event);
@@ -165,25 +171,27 @@ test('Catalyst combo claims stay per element, and per trait, including Water', (
   }
 });
 
-test('Evoker real and synthetic entry share profile timers without changing trait eligibility', () => {
+test('Evoker real and synthetic entry share selected profile timers', () => {
   const state = evokerState.create();
   state.element = 'Earth';
   const { context, core } = contextFor('Evoker', state);
   const earth = elementalistCatalog.skillsByName.get('Earth Attunement');
-  // Real entry intentionally consults the policy before downstream trait selection.
+  // Unselected real entries must leave claims available for a later selected entry.
+  completeEvokerAttunement(context, castFor(context, earth), earth);
+  assert.deepEqual({ ...context.procs.snapshot() }, {});
+  context.traits = new Set([TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]);
   completeEvokerAttunement(context, castFor(context, earth), earth);
   assert.equal(context.procs.snapshot()[TRAIT.EARTHEN_BLAST], 6);
   assert.equal(context.procs.snapshot()[TRAIT.ROCK_SOLID], 6);
-  context.traits = new Set([TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]);
   core.primaryAttunement = 'Earth';
   context.effectiveEnd = 6;
-  triggerSpecializedElementEntry(context, castFor(context, skill), skill, 'Earth');
+  reenterEvokerAttunement(context, castFor(context, skill), skill, 'Earth');
   assert.equal(context.procs.snapshot()[TRAIT.ROCK_SOLID], 6);
   context.effectiveEnd += 0.000001;
-  triggerSpecializedElementEntry(context, castFor(context, skill), skill, 'Earth');
+  reenterEvokerAttunement(context, castFor(context, skill), skill, 'Earth');
   assert.equal(context.procs.snapshot()[TRAIT.ROCK_SOLID], context.effectiveEnd + 5);
   assert.equal(context.procs.snapshot()[TRAIT.EARTHEN_BLAST], context.effectiveEnd + 5);
   const other = contextFor('Evoker', evokerState.create());
-  triggerSpecializedElementEntry(other.context, castFor(other.context, skill), skill, 'Earth');
+  reenterEvokerAttunement(other.context, castFor(other.context, skill), skill, 'Earth');
   assert.deepEqual({ ...other.context.procs.snapshot() }, {});
 });

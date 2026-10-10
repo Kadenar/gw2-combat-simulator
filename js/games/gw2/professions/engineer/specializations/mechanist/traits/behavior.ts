@@ -3,27 +3,11 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   selectedMechCommand,
-  engineerMechResolverEvent,
   isEngineerMechCommand
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
-import type {
-  EngineerConfig,
-  EngineerResolverContext,
-  EngineerResolverEvent,
-  EngineerRuntime,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerConfig, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import {
-  buildEngineerCondition,
-  buildEngineerBuff
-} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { overclockSignetApplies } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -36,144 +20,6 @@ export function mechArmsCommand(traits: EngineerConfig | ReadonlySet<SkillId>): 
     [TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, ID.EXPLOSIVE_KNUCKLE],
     [TRAIT.MECH_ARMS_JADE_CANNONS, ID.SPARK_REVOLVER]
   ]);
-}
-
-/** Accepted mech hits resolve arm procs in order using independent, effect-aware cooldown slots. */
-export function reactToMechArmDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (!(Number(event.coefficient) > 0)) return;
-  if (!engineerMechResolverEvent(context, event)) return;
-
-  if (hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS)) {
-    const mechArmsSingleEdgeCuttersProfile = requireBalanceProfileFromContext(
-      context,
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS
-    );
-    const packet = requireEffect(mechArmsSingleEdgeCuttersProfile, 'condition', 'Bleeding');
-    // A removed arm effect cannot consume its own proc cooldown.
-    if (packet && context.procs.claim(TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'singleEdgeCutters', event.at)) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildEngineerCondition(event, {
-          name: 'Mech Arms: Single-Edge Cutters',
-          condition: String(packet.condition),
-          stacks: Number(packet.stacks),
-          duration: Number(packet.duration),
-          sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-          actorType: 'summon',
-          metadata: { engineerMech: true }
-        }),
-        settlement: 'reaction'
-      });
-
-      context.effects.emit({
-        attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, actorType: 'effect' },
-        kind: 'announcement',
-        cause: event,
-        announcement: {
-          type: 'trait',
-          name: 'Mech Arms: Single-Edge Cutters',
-          at: event.at,
-          sourceSkill: event.skillName,
-          icon: ''
-        }
-      });
-    }
-  }
-
-  if (hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)) {
-    const mechArmsHighImpactDriversProfile = requireBalanceProfileFromContext(
-      context,
-      TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS
-    );
-    const packet = requireEffect(mechArmsHighImpactDriversProfile, 'boon', 'might');
-    // Each surviving arm reward reserves its independent interval before delivery.
-    if (packet && context.procs.claim(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'highImpactDrivers', event.at)) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildEngineerBuff(event, {
-          name: 'Mech Arms: High-Impact Drivers',
-          kind: String(packet.boon).toLowerCase(),
-          stacks: Number(packet.stacks),
-          duration: packet.duration,
-          sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
-          actorType: 'effect'
-        }),
-        durationContext: event
-      });
-
-      context.effects.emit({
-        attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, actorType: 'effect' },
-        kind: 'announcement',
-        cause: event,
-        announcement: {
-          type: 'trait',
-          name: 'Mech Arms: High-Impact Drivers',
-          at: event.at,
-          sourceSkill: event.skillName,
-          icon: ''
-        }
-      });
-    }
-  }
-
-  if (event.mechBasicAttack === true && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)) {
-    const mechArmsJadeCannonsProfile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS);
-    const vulnerability = requireEffect(mechArmsJadeCannonsProfile, 'condition', 'Vulnerability');
-    if (vulnerability)
-      context.effects.emit({
-        kind: 'packet',
-        event: buildEngineerCondition(event, {
-          name: 'Mech Arms: Jade Cannons',
-          condition: String(vulnerability.condition),
-          stacks: Number(vulnerability.stacks),
-          duration: Number(vulnerability.duration),
-          sourceId: TRAIT.MECH_ARMS_JADE_CANNONS,
-          actorType: 'summon',
-          metadata: { engineerMech: true }
-        }),
-        settlement: 'reaction'
-      });
-  }
-}
-
-/** Invoke the canonical Rocket Punch payload with its own summon activation and trait attribution. */
-function emitRocketPunch(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  // The trait invokes the skill payload with a separate summon activation and native weapon roll.
-  const punch = context.helpers.skillsById.get(ID.ROCKET_PUNCH_MECH)!;
-  context.effects.emit({
-    kind: 'profile',
-    profile: punch,
-    at,
-    skillWeaponFallback: 'Unequipped',
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.MECH_FIGHTER,
-      actorType: 'summon',
-      skillId: punch.id,
-      skillName: punch.name,
-      activationId: 'engineer.rocket-punch:' + at,
-      triggeredBy: skill.name,
-      metadata: { engineerMech: true }
-    }
-  });
-}
-
-/** Weapon slot three invokes Rocket Punch after command recovery, retaining the minor trait's existing implicit eligibility. */
-export function triggerMechFighter(context: EngineerRuntime, skill: EngineerSkill): void {
-  const state = mechanistState.from(context);
-  const at = context.time;
-  if (
-    state.mech.active &&
-    skill.type === 'Weapon' &&
-    !skill.kitId &&
-    skill.slot === 'Weapon_3' &&
-    // Spear triggers the punch on Electric Artillery; placing Lightning Rod does not fire it or consume its cooldown.
-    skill.id !== ID.LIGHTNING_ROD &&
-    context.procs.claim(TRAIT.MECH_FIGHTER, 'rocketPunch', at, 'engineer.mech')
-  ) {
-    // The weapon requests the mech-owned skill even when its optional strike is removed.
-    emitRocketPunch(context, skill, at);
-  }
 }
 
 /** Jade Cannons replaces the basic chain while the mechanic retains attack emission and scheduling. */

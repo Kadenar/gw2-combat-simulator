@@ -1,15 +1,17 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { battleScarConsumed, type RevenantStrike } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Owns Dwarven Battle Training tuning and behavior at its established execution boundaries. */
@@ -87,6 +89,7 @@ export const versedInStone = defineTrait({
 
 /** Owns Vicious Reprisal tuning and behavior at its established execution boundaries. */
 export const viciousReprisalTrait = defineTrait({
+  triggers: [onTriggerPoint(battleScarConsumed, { run: viciousReprisal })],
   id: TRAIT.VICIOUS_REPRISAL,
   name: 'Vicious Reprisal',
   balance: {
@@ -117,23 +120,19 @@ export const viciousReprisalTrait = defineTrait({
 });
 
 /** Vicious Reprisal grants Might from landed strikes while Resolution is active, once per its cooldown. */
-export function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
+function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   // Permanent configured Resolution and executed self applications count; pending packets never do.
-  if (
-    !hasTrait(runtime, TRAIT.VICIOUS_REPRISAL) ||
-    runtime.combat.activeBoonStacks('resolution', runtime.time, 1) === 0
-  )
-    return;
+  if (runtime.combat.activeBoonStacks('resolution', runtime.time, 1) === 0) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.VICIOUS_REPRISAL);
   const boon = requireEffect(profile, 'boon', 'might');
   // The cooldown gates only might, so a removed boon leaves it ready.
   if (!boon) return;
   if (!runtime.procs.claimCooldown('viciousReprisal', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
   // Keep its position among resolved-hit traits while sharing profile expansion and causal placement.
-  runtime.effects.emit({
-    kind: 'profile',
-    profile: profile,
-    effects: [{ ...boon, name: 'Vicious Reprisal — might' }],
+  // The boon packet stays unlabelled, so reports name it by its boon and trait attribution.
+  emitTraitProfile(runtime, TRAIT.VICIOUS_REPRISAL, profile.id, event, {
+    preserveName: true,
+    effects: (effect) => effect === boon,
     attribution: (effect) => ({
       source: 'revenant',
       sourceId: TRAIT.VICIOUS_REPRISAL,
@@ -141,8 +140,7 @@ export function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEven
       skillId: profile.id,
       skillName: profile.name
     }),
-    skillWeaponFallback: 'Unequipped',
-    cause: event
+    skillWeaponFallback: 'Unequipped'
   });
 }
 

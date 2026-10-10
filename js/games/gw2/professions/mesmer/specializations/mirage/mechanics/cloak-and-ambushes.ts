@@ -1,7 +1,8 @@
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   buildMesmerConditions,
   buildMesmerPacket,
@@ -9,14 +10,13 @@ import {
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { buildMirageBoon } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
+import {
+  mirageAmbushAccepted,
+  mirageCloakGranted,
+  mirageCloneAmbushRequested
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
-import {
-  applyMirageAmbushTraits,
-  applyMirageCloakTraits,
-  applyMirageShatterTraits,
-  beginInfiniteHorizonAmbush
-} from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
@@ -36,8 +36,8 @@ import type { MesmerActivePrimaryWeapon, MesmerAmbushAttack } from '#gw2/profess
 
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/data/module-data.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
@@ -82,113 +82,15 @@ export function createMirageActionController({
     clones: readonly MesmerClone[] = professionCoreState(state).clones,
     delivery: EffectDelivery = {}
   ) => {
-    if (!beginInfiniteHorizonAmbush(state, at, clones.length, activePrimaryWeapon(), delivery)) return;
+    state.fireTrigger(mirageCloneAmbushRequested, {
+      at,
 
-    for (const clone of clones) {
-      const weapon = clone.weapon || activePrimaryWeapon();
-      const ambush = ambushAttacks[weapon];
-      if (!ambush) continue;
-      const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
-      // Keep catalog identity on summon packets so ownership, rather than a synthetic skill ID, separates actors.
-      const pseudo = {
-        id: ambush.id,
-        name: ambush.name,
-        weapon,
-        blade: false
-      };
-      // Explicit summon ownership keeps clone ambush packets independent of their display labels.
-      const impactAt = at + (ambush.clone.castTimeMs || 0) / 1000;
-      // Clone ambushes use the weapon's authored control and retain summon ownership.
-      const skill = state.helpers.skillsById.get(ambush.id);
-      for (const effect of skill?.effects || []) {
-        if (effect.type !== 'control') continue;
-        for (const application of materializeSkillEffectApplications({
-          skill: skill!,
-          effect,
-          start: at,
-          fullEnd: impactAt,
-          baseEvent: {
-            source: 'Clone',
-            sourceId: ambush.id,
-            skillId: ambush.id,
-            skillName: ambush.name,
-            actorType: 'summon',
-            summonKind: 'clone',
-            metadata: { cloneId: clone.id }
-          }
-        })) {
-          const packet = buildMesmerPacket({ ...application.event, summonKind: 'clone' });
-          state.effects.emit({
-            ...delivery,
-            kind: 'packet',
-            event: packet,
-            owner: mesmerPacketOwner(packet),
-            priority: Number(packet.priority ?? 0)
-          });
-        }
-      }
-
-      if (ambush.clone.type === 'strike')
-        buildMesmerStrikes(
-          state,
-          pseudo,
-          ambush.clone.ticks?.length ? at : impactAt,
-          {
-            ...(ambush.clone.ticks?.length
-              ? {
-                  ticks: ambush.clone.ticks,
-                  timingAnchor: 'castStart' as const,
-                  timingScale: 'fixed' as const
-                }
-              : {
-                  ...ambush.clone,
-                  name: undefined,
-                  summonKind: undefined
-                }),
-            source: 'Clone'
-          },
-          {
-            metadata: { cloneId: clone.id },
-            weaponStrength: attack.weaponStrength,
-            source: 'Clone',
-            actorType: 'summon',
-            summonKind: 'clone',
-            name: `${ambush.name} — Clone`
-          }
-        ).forEach((packet) => {
-          state.effects.emit({
-            ...delivery,
-            kind: 'packet',
-            event: packet,
-            owner: mesmerPacketOwner(packet),
-            priority: Number(packet.priority ?? 0)
-          });
-        });
-      for (const condition of ambush.clone.conditions || []) {
-        buildMesmerConditions(state, `${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
-          metadata: { cloneId: clone.id },
-          skillId: ambush.id,
-          actorType: 'summon',
-          summonKind: 'clone'
-        }).forEach((packet) => {
-          state.effects.emit({
-            ...delivery,
-            kind: 'packet',
-            event: packet,
-            owner: mesmerPacketOwner(packet),
-            priority: Number(packet.priority ?? 0)
-          });
-        });
-      }
-
-      for (const boon of ambush.clone.boons || []) {
-        state.effects.emit({
-          ...delivery,
-          kind: 'packet',
-          event: buildMirageBoon(impactAt, boon, `${ambush.name} — Clone`, 'summon')
-        });
-      }
-    }
+      weapon: activePrimaryWeapon(),
+      delivery,
+      clones: [...clones],
+      ambushAttacks,
+      cloneAttacks
+    });
   };
 
   // Refresh the exact ambush deadline without shortening an existing window or snapping it to a buff tick.
@@ -249,7 +151,7 @@ export function createMirageActionController({
       });
     }
 
-    applyMirageCloakTraits(state, at, source, duration, executeCloneAmbushes, delivery);
+    state.fireTrigger(mirageCloakGranted, { at, source, duration, delivery });
   };
 
   // Accepted ambushes consume their window and schedule only trait-owned consequences.
@@ -260,15 +162,10 @@ export function createMirageActionController({
     const ambush = ambushAttacks[weapon];
     if (!ambush || skill.id !== ambush.id) return;
     const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
-    applyMirageAmbushTraits(state, ambush, impactAt, delivery);
+    state.fireTrigger(mirageAmbushAccepted, { ambush, impactAt, delivery });
 
     mirageState.from(state).ambushUntil = 0;
     mirageState.from(state).ambushSource = '';
-  };
-
-  // Handles Mirage-only shatter effects after Core resolves the shared shatter packet and resource spend.
-  const handleMirageShatter = (skill: MesmerSkill, at: number, spent: number, delivery: EffectDelivery = {}) => {
-    applyMirageShatterTraits(state, skill, at, spent, grantAmbushWindow, createMirrors, grantMirageCloak, delivery);
   };
 
   // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.
@@ -323,7 +220,7 @@ export function createMirageActionController({
     executeCloneAmbushes,
     acceptPlayerAmbush,
     grantMirageCloak,
-    handleMirageShatter,
+    grantAmbushWindow,
     pickUpMirror
   };
 }
@@ -395,3 +292,123 @@ export const mirageEndurance: EndurancePolicy<MesmerRuntime> = {
   maximum: () => 100,
   regenerationRate: (_context, vigor) => (vigor ? 7.5 : 5)
 };
+
+/** Materialize admitted clone ambushes under their captured weapon and clone ownership. */
+export function executeMirageCloneAmbushPackets(
+  state: MesmerRuntime,
+  {
+    at,
+    clones,
+    weapon: activeWeapon,
+    delivery,
+    ambushAttacks,
+    cloneAttacks
+  }: TriggerPointInput<typeof mirageCloneAmbushRequested>
+): void {
+  for (const clone of clones) {
+    const weapon = clone.weapon || activeWeapon;
+    const ambush = ambushAttacks[weapon];
+    if (!ambush) continue;
+    const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
+    // Keep catalog identity on summon packets so ownership, rather than a synthetic skill ID, separates actors.
+    const pseudo = {
+      id: ambush.id,
+      name: ambush.name,
+      weapon,
+      blade: false
+    };
+    // Explicit summon ownership keeps clone ambush packets independent of their display labels.
+    const impactAt = at + (ambush.clone.castTimeMs || 0) / 1000;
+    // Clone ambushes use the weapon's authored control and retain summon ownership.
+    const skill = state.helpers.skillsById.get(ambush.id);
+    for (const effect of skill?.effects || []) {
+      if (effect.type !== 'control') continue;
+      for (const application of materializeSkillEffectApplications({
+        skill: skill!,
+        effect,
+        start: at,
+        fullEnd: impactAt,
+        baseEvent: {
+          source: 'Clone',
+          sourceId: ambush.id,
+          skillId: ambush.id,
+          skillName: ambush.name,
+          actorType: 'summon',
+          summonKind: 'clone',
+          metadata: { cloneId: clone.id }
+        }
+      })) {
+        const packet = buildMesmerPacket({ ...application.event, summonKind: 'clone' });
+        state.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      }
+    }
+
+    if (ambush.clone.type === 'strike')
+      buildMesmerStrikes(
+        state,
+        pseudo,
+        ambush.clone.ticks?.length ? at : impactAt,
+        {
+          ...(ambush.clone.ticks?.length
+            ? {
+                ticks: ambush.clone.ticks,
+                timingAnchor: 'castStart' as const,
+                timingScale: 'fixed' as const
+              }
+            : {
+                ...ambush.clone,
+                name: undefined,
+                summonKind: undefined
+              }),
+          source: 'Clone',
+          // Materialize clone strength as part of the strike so it cannot fall back to player weapon strength.
+          weaponStrength: attack.weaponStrength
+        },
+        {
+          metadata: { cloneId: clone.id },
+          source: 'Clone',
+          actorType: 'summon',
+          summonKind: 'clone',
+          name: `${ambush.name} — Clone`
+        }
+      ).forEach((packet) => {
+        state.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      });
+    for (const condition of ambush.clone.conditions || []) {
+      buildMesmerConditions(state, `${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
+        metadata: { cloneId: clone.id },
+        skillId: ambush.id,
+        actorType: 'summon',
+        summonKind: 'clone'
+      }).forEach((packet) => {
+        state.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      });
+    }
+
+    for (const boon of ambush.clone.boons || []) {
+      state.effects.emit({
+        ...delivery,
+        kind: 'packet',
+        event: buildMirageBoon(impactAt, boon, `${ambush.name} — Clone`, 'summon')
+      });
+    }
+  }
+}

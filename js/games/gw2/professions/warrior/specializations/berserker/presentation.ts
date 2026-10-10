@@ -43,6 +43,7 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
     const preview = createPreviewControls(context);
     preview.add({
       key: 'berserk',
+      scope: ['attributes', 'damage'],
       label: 'Berserk',
       kind: 'special',
       group: 'Other buffs',

@@ -7,12 +7,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
-import { grantLeechingVenomCharges } from '#gw2/professions/thief/core/traits/shadow-arts/leeching-venoms.js';
-import {
-  enterCloakedInShadow,
-  enterShadowsRejuvenation,
-  exitShadowsRejuvenation
-} from '#gw2/professions/thief/core/traits/shadow-arts/stealth.js';
+import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Stealth is active from its entry instant until its expiry, unless Revealed blocks it. */
@@ -44,11 +39,8 @@ export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, dura
   // Natural and forced exits use the same selected Hidden Killer linger.
   core.hiddenKillerUntil = core.stealthUntil + hiddenKillerLinger(runtime);
   if (!entering) return;
-  enterShadowsRejuvenation(runtime);
   // Entry grants use the same selected charge count, lifetime and cap as forced exits.
-  grantLeechingVenomCharges(runtime, at);
-
-  enterCloakedInShadow(runtime, skill, at);
+  runtime.fireTrigger(stealthEntered, { skill, at });
   // Quantized concurrent impacts reveal the new stealth even when an older field's packet ran first in the queue.
   const concurrent = core.lastStealthBreakingStrike;
   if (concurrent?.at === at) {
@@ -61,8 +53,7 @@ export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, dura
 function breakThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, at: number): boolean {
   const core = runtime.profession.core;
   if (!thiefStealthed(runtime, at)) return false;
-  exitShadowsRejuvenation(runtime);
-  grantLeechingVenomCharges(runtime, at);
+  runtime.fireTrigger(stealthExited, { skill, at });
 
   core.stealthStartedAt = at;
   core.stealthUntil = at;

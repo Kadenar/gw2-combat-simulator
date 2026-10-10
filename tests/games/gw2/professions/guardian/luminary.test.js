@@ -716,7 +716,9 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS]
   })(undefined, rotation);
-  const damage = (result, name) => result.resolvedEvents.find((event) => event.name === name);
+  // Buffs can retain their granting skill's label; this formula contract compares damage packets only.
+  const damage = (result, name) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name);
   const dazzling = damage(armaments, 'Dazzling Hammer');
   const shining = damage(armaments, 'Shining Spin');
   const defiantAfterDaze = createObservedProfessionSimulator(guardianProfession, {

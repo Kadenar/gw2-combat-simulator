@@ -1,10 +1,12 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 /**
  * Handles shared profession actions decorated by active modules.
  * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
- * Returns: consumeResources, currentResource, handleShatter, triggerShatterTraits.
+ * Resource transactions settle before ordered trait points and shatter markers.
  * Profession action controller
  */
 import type { MesmerDestroyClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
@@ -13,7 +15,6 @@ import type {
   MesmerResourceSpendDetails
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
 import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type {
   MesmerProfessionActionController,
@@ -22,8 +23,8 @@ import type {
 } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface ProfessionActionControllerOptions {
   readonly state: MesmerRuntime;
@@ -124,11 +125,6 @@ export function createProfessionActionController({
     state.resourceController.grant(kind, Math.max(0, spent || 0));
   };
 
-  // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
-  const triggerShatterTraits = (resolution: MesmerShatterResolution): void => {
-    triggerMesmerPostShatterTraits(state, shatterFor(resolution.skill.id), resolution);
-  };
-
   // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
   // resourcesSpent=null means consume resources now; a pre-computed value skips the consume.
   const handleShatter = (
@@ -173,7 +169,7 @@ export function createProfessionActionController({
       })
     };
     // The resolved profile is already available for this transaction; share it with post-shatter traits.
-    triggerMesmerPostShatterTraits(state, shatter, resolution);
+    state.fireTrigger(mesmerShatterResolved, { shatter, resolution });
     {
       const packet = buildMesmerPacket({
         type: 'marker',
@@ -199,7 +195,28 @@ export function createProfessionActionController({
     currentResource,
     handleShatter,
     reserveResources,
-    restoreReservedResources,
-    triggerShatterTraits
+    restoreReservedResources
   };
 }
+
+/** Preserve the accepted shatter-resolved boundary and its existing reward order. */
+export const mesmerShatterResolved = defineTriggerPoint<{
+  readonly shatter: MesmerShatter | undefined;
+  readonly resolution: MesmerShatterResolution;
+}>('mesmer.shatter-resolved', [TRAIT.MAIM_THE_DISILLUSIONED, TRAIT.RENDING_SHATTER, TRAIT.ILLUSIONARY_MEMBRANE]);
+
+/** Specialization rewards follow Core shatter materialization and its marker, using the captured committed spend. */
+export const mesmerShatterCompleted = defineTriggerPoint<{
+  readonly resolution: MesmerShatterResolution;
+}>('mesmer.shatter-completed', [
+  TRAIT.STRETCHED_TIME,
+  TRAIT.SEIZE_THE_MOMENT,
+  TRAIT.ILLUSIONARY_REVERSION,
+  TRAIT.DEADLY_BLADES,
+  TRAIT.INFINITE_FORGE,
+  TRAIT.RIDDLE_OF_SAND,
+  TRAIT.NOMADS_ENDURANCE,
+  TRAIT.PHANTOM_PAIN,
+  TRAIT.DESERT_DISTORTION,
+  TRAIT.DUNE_CLOAK
+]);

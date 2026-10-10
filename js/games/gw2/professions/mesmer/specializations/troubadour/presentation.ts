@@ -58,9 +58,12 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.damageBuff('Altered Chord', 'alteredChord', 'altered-chord');
 
     preview.trait('Fortissimo', {
       key: 'instruments',
+      scope: ['attributes', 'damage'],
       kind: 'special',
       max: 4,
       description: 'active instruments; all attributes'

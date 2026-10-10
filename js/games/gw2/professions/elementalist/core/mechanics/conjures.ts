@@ -4,9 +4,8 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { conjureEquipped } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { applyConjurerAura } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
@@ -17,7 +16,7 @@ export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<Ele
   state.conjurePickups[weapon] =
     cast.effectiveEnd +
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.conjurePickups), 'durationMultiplier');
-  applyConjurerAura(context, cast, skill, applyElementalistAura);
+  context.fireTrigger(conjureEquipped, { cast });
   finishConjureSwap(context, cast, skill);
 }
 

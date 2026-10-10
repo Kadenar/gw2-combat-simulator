@@ -12,12 +12,12 @@ for (const failure of ['missing', 'network']) {
     );
     await page.goto('/mesmer.html');
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+    await page.locator('#build-switcher').click();
     await page.getByRole('button', { name: /Save to My Builds/ }).click();
     const save = page.getByRole('dialog', { name: 'Save to My Builds' });
     await save.getByLabel('Build name').fill('Personal build');
     await save.getByRole('button', { name: 'Save', exact: true }).click();
-    await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+    await page.locator('#build-switcher').click();
     await page.getByRole('button', { name: /Load build/ }).click();
     const library = page.getByRole('dialog', { name: 'Build library', exact: true });
     await expect(library.locator('.template-filter-empty')).toBeVisible();
@@ -35,7 +35,7 @@ for (const failure of ['missing', 'network']) {
 test('My Builds saves new snapshots, overwrites, searches, loads, and deletes them', async ({ page }) => {
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.locator('#build-switcher').click();
   await page.getByRole('button', { name: /Load build/ }).click();
   const library = page.getByRole('dialog', { name: 'Build library', exact: true });
   await expect(library.getByRole('tab')).toHaveText(['Standard Templates', 'My Builds']);
@@ -51,13 +51,13 @@ test('My Builds saves new snapshots, overwrites, searches, loads, and deletes th
   expect((await library.boundingBox()).height).toBe(standardHeight);
   await library.getByRole('button', { name: 'Close build library' }).click();
 
-  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.locator('#build-switcher').click();
   await page.getByRole('button', { name: /Save to My Builds/ }).click();
   const save = page.getByRole('dialog', { name: 'Save to My Builds' });
   await save.getByLabel('Build name').fill('My Mirage');
   await save.getByLabel(/Category/).fill('Raids');
   await save.getByRole('button', { name: 'Save', exact: true }).click();
-  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.locator('#build-switcher').click();
   await page.getByRole('button', { name: /Load build/ }).click();
   await expect(library.locator('.my-build')).toHaveCount(1);
   await expect(library.locator('.my-build-group h4')).toHaveText('Raids');
@@ -67,13 +67,13 @@ test('My Builds saves new snapshots, overwrites, searches, loads, and deletes th
     window.professionApp.changed();
   });
   await library.getByRole('button', { name: 'Close build library' }).click();
-  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.locator('#build-switcher').click();
   await page.getByRole('button', { name: /Save to My Builds/ }).click();
   await save.getByLabel('Save as').selectOption({ label: 'Overwrite My Mirage' });
   await expect(save.getByLabel(/Category/)).toHaveValue('Raids');
   await save.getByLabel(/Category/).fill('Benchmarks');
   await save.getByRole('button', { name: 'Save', exact: true }).click();
-  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.locator('#build-switcher').click();
   await page.getByRole('button', { name: /Load build/ }).click();
   await search.fill('missing');
   await expect(library.locator('.my-build-empty')).toContainText('No builds found');
@@ -88,7 +88,7 @@ test('My Builds saves new snapshots, overwrites, searches, loads, and deletes th
   await library.getByRole('button', { name: 'My Mirage', exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2345);
 
-  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.locator('#build-switcher').click();
   await page.getByRole('button', { name: /Load build/ }).click();
   await search.fill('');
   page.once('dialog', (dialog) => dialog.accept());
@@ -117,7 +117,7 @@ test('templates load from the optimizer and Analysis toolbars', async ({ page })
   for (const view of ['Gear Optimizer', 'Analysis']) {
     const tab = page.getByRole('link', { name: view, exact: true });
     await tab.click();
-    await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+    await page.locator('#build-switcher').click();
     await page.getByRole('button', { name: 'Load build…', exact: true }).click();
     await expect(dialog).toBeVisible();
     await dialog.locator('.template-load-btn').click();
@@ -135,6 +135,7 @@ test('templates load from the optimizer and Analysis toolbars', async ({ page })
     await expect(page.locator('.build-tab')).toHaveCount(previousCount + 1);
     await expect(tab).toHaveAttribute('aria-current', 'page');
     await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+    await page.locator('#build-switcher').click();
     await page.locator('.build-tab').first().locator('[data-build-tab-action="select"]').click();
   }
 });

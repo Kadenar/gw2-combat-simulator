@@ -1,11 +1,14 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import {
+  revenantCastCompleted,
+  type RevenantCastCompletion
+} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns Life Attunement tuning and behavior at its established execution boundaries. */
 export const lifeAttunement = defineTrait({
@@ -27,6 +30,7 @@ export const lifeAttunement = defineTrait({
 
 /** Owns Serene Rejuvenation tuning and behavior at its established execution boundaries. */
 export const sereneRejuvenation = defineTrait({
+  triggers: [onTriggerPoint(revenantCastCompleted, { run: completeSereneRejuvenation })],
   id: TRAIT.SERENE_REJUVENATION,
   name: 'Serene Rejuvenation',
   balance: {
@@ -68,17 +72,18 @@ export const sereneRejuvenation = defineTrait({
 });
 
 /** Runs the trait at its original ordered mechanic boundary. */
-export function completeSereneRejuvenation(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+function completeSereneRejuvenation(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const skill = cast.skill;
-  if (!hasTrait(runtime, TRAIT.SERENE_REJUVENATION)) return;
   const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
   if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
   {
     const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.SERENE_REJUVENATION);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: invocationProfile,
-      effects: invocationProfile.effects?.filter((effect) => effect.metadata?.trigger === String(skillId)),
+    emitTraitProfile(runtime, TRAIT.SERENE_REJUVENATION, invocationProfile.id, undefined, {
+      preserveName: true,
+      effects: (effect) =>
+        (invocationProfile.effects?.filter((effect) => effect.metadata?.trigger === String(skillId)) ?? []).includes(
+          effect
+        ),
       attribution: (effect) => ({
         activationId: `legend-invocation:${TRAIT.SERENE_REJUVENATION}:${runtime.time}`,
         source: 'Trait',

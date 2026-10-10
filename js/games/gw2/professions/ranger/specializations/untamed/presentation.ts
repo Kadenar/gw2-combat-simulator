@@ -69,6 +69,15 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
     /** Ordinary weapon rows use the selected start state; ambush rows still perform their required transition. */
     previewControls(context) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      if (preview.has('Ferocious Symbiosis'))
+        preview.trait('Ferocious Symbiosis', {
+          key: 'ferociousSymbiosis',
+          kind: 'special',
+          scope: ['damage'],
+          max: preview.maximumStacks('Ferocious Symbiosis'),
+          description: 'Player damage stacks earned by pet attacks'
+        });
       preview.add({
         key: 'unleashed',
         label: 'Start unleashed',

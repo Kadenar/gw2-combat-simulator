@@ -128,6 +128,15 @@ export const antiquaryUi = Object.freeze({
   /** Expose Combat High's damage assumption only for builds that select the trait. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.add({
+      key: 'artifactMomentum',
+      label: 'Artifact damage bonus',
+      group: 'Mechanic',
+      kind: 'special',
+      scope: ['damage'],
+      description: 'Damage window after using an artifact'
+    });
     if (preview.has('Combat High'))
       preview.trait('Combat High', {
         key: 'combatHigh',

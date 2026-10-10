@@ -1,3 +1,4 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -289,6 +290,7 @@ test('Elemental Balance reports the same patched duration used for its active wi
       announce: (request) => events.push({ ...request.announcement, type: 'proc' })
     }).effects
   };
+  bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
   for (const at of [1, 2]) {
     onAcceptedEvent(context, { type: 'elementalist.attunement-enter', at, to: 'Fire' });
   }

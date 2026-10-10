@@ -1,17 +1,32 @@
-import { activeRefreshedStacks, type RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
+import {
+  activeRefreshedStacks,
+  grantRefreshedStacks,
+  type RefreshedStacks
+} from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
+import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
 import { grantAmbush } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {
   return readProfessionSpecializationState<UntamedModifierState>(context.runtime?.profession, 'Untamed') || {};
@@ -35,6 +50,28 @@ export const naturalFortitude = defineTrait({
 
 /** Owns Let Loose's live tuning and trait behavior. */
 export const letLoose = defineTrait({
+  triggers: [
+    {
+      on: 'castCommit',
+      run(runtime, cast) {
+        const state = untamedState.from(runtime);
+        if (
+          cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
+          runtime.combatActive &&
+          runtime.procs.claim(TRAIT.LET_LOOSE, 'ranger.untamed.letLoose', runtime.time)
+        ) {
+          // Let Loose claims its own interval, then rearms Unleashed Power independently.
+          runtime.procs.setDeadline('ranger.untamed.unleashedPower', 0);
+          if (state.rangerUnleashed) grantAmbush(runtime);
+        }
+      }
+    },
+
+    onTriggerPoint(untamedStrike, {
+      when: (_runtime, input: TriggerPointInput<typeof untamedStrike>) => input.event.actorType === 'player',
+      run: (runtime, input: TriggerPointInput<typeof untamedStrike>) => triggerLetLoose(runtime, input.event)
+    })
+  ],
   id: TRAIT.LET_LOOSE,
   name: 'Let Loose',
   balance: {
@@ -43,21 +80,6 @@ export const letLoose = defineTrait({
       { name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 },
       { name: 'might', type: 'boon', boon: 'might', duration: 10, stacks: 5 }
     ]
-  },
-  hooks: {
-    onCastCommit(runtime, cast) {
-      const state = untamedState.from(runtime);
-      if (
-        cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
-        runtime.combatActive &&
-        hasTrait(runtime, TRAIT.LET_LOOSE) &&
-        runtime.procs.claim(TRAIT.LET_LOOSE, 'ranger.untamed.letLoose', runtime.time)
-      ) {
-        // Let Loose claims its own interval, then rearms Unleashed Power independently.
-        runtime.procs.setDeadline('ranger.untamed.unleashedPower', 0);
-        if (state.rangerUnleashed) grantAmbush(runtime);
-      }
-    }
   }
 });
 
@@ -100,6 +122,11 @@ export const blindingOutburst = defineTrait({
 
 /** Owns Ferocious Symbiosis's live tuning and trait behavior. */
 export const ferociousSymbiosis = defineTrait({
+  triggers: [
+    onTriggerPoint(untamedStrike, {
+      run: (runtime, input: TriggerPointInput<typeof untamedStrike>) => triggerFerociousSymbiosis(runtime, input.event)
+    })
+  ],
   id: TRAIT.FEROCIOUS_SYMBIOSIS,
   name: 'Ferocious Symbiosis',
   balance: {
@@ -275,3 +302,75 @@ export const untamedTraits = [
   enhancingImpact,
   vowOfTheUntamed
 ];
+
+function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = untamedState.from(context);
+  const profile = requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS);
+  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
+  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  if (isPlayerStrike(event)) {
+    if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPet', event.at)) return;
+    // A player hit builds Pet stacks (cross-buff: player hits power the pet).
+    state.ferociousSymbiosisPet = grantRefreshedStacks(
+      state.ferociousSymbiosisPet,
+      1,
+      event.at,
+      event.at + duration,
+      maximumStacks,
+      'exclusive'
+    );
+  } else if (isPetStrike(event)) {
+    if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPlayer', event.at)) return;
+    // A pet hit builds Player stacks (cross-buff: pet hits power the player).
+    state.ferociousSymbiosisPlayer = grantRefreshedStacks(
+      state.ferociousSymbiosisPlayer,
+      1,
+      event.at,
+      event.at + duration,
+      maximumStacks,
+      'exclusive'
+    );
+  }
+}
+
+function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  if (
+    // Every supported weapon ambush can grant Let Loose on its first landed strike.
+    !AMBUSH_SKILL_IDS.has(Number(event.skillId)) ||
+    // activationId is absent on synthetic events; guard prevents double-counting.
+    !event.activationId
+  ) {
+    return;
+  }
+
+  // Each ambush activation grants boons exactly once even if the skill hits multiple times.
+  if (!claimActivation(untamedState.from(context).untamedActivationClaims, 'ranger.let-loose', event.activationId))
+    return;
+
+  // Expand each surviving boon once per accepted ambush, preserving the party audience.
+  emitTraitProfile(context, TRAIT.LET_LOOSE, TRAIT.LET_LOOSE, undefined, {
+    at: event.at,
+    durationContext: event,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.LET_LOOSE,
+      actorType: 'effect',
+      skillId: TRAIT.LET_LOOSE,
+      skillName: 'Let Loose',
+      triggeredBy: event.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      name: 'Let Loose - ' + packet.kind,
+      audience: {
+        recipients: 'party',
+        maximumRecipients: 5,
+        eligibleCompanionIds: context.profession.core.petActive ? [rangerPetCompanionId(context)] : []
+      }
+    }),
+    preserveName: true,
+    effects: (effect) => effect.type === 'boon'
+  });
+}
+
+const AMBUSH_SKILL_IDS = new Set<number>(UNTAMED_AMBUSH_SKILL_IDS);

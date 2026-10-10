@@ -1,3 +1,4 @@
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 /** Electric Enchantment owns its shared identity, charge lifecycle, combat payload, and damage preview. */
 import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -8,7 +9,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
-import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -80,52 +81,42 @@ function emitElectricEnchantment(
   event: SimulationEvent,
   emissionCast?: EffectDelivery['cast']
 ): void {
-  // The enchantment owns damage; the consuming skill remains available as its trigger.
+  // Charge admission is stateful; the profile owns both payloads and their authored strike rules.
+  const profile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
+  const strike = requireEffect(profile, 'strike', 'Galvanic Enchantment');
+  const burning = requireEffect(profile, 'condition', 'Burning');
   const attribution = {
     source: electricEnchantment.name,
     sourceId: electricEnchantment.sourceId,
-    skillId: event.skillId,
-    procType: 'profession' as const,
-    icon: electricEnchantment.icon,
     actorType: 'effect' as const,
     ownerActorType: 'player' as const,
-    skillName: electricEnchantment.name
+    skillName: electricEnchantment.name,
+    icon: electricEnchantment.icon
   };
-  const galvanicEnchantmentProfile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
-  const strike = requireEffect(galvanicEnchantmentProfile, 'strike', 'Galvanic Enchantment');
-  const burning = requireEffect(galvanicEnchantmentProfile, 'condition', 'Burning');
-  if (strike) {
-    context.effects.emit(
-      elementalistStrikeRequest(
-        context,
-        {
-          cause: event,
-          at: event.at,
-          ...attribution,
-          coefficient: Number(strike.coefficient),
-          skillWeapon: 'Unequipped'
-        },
-        emissionCast
-      )
-    );
-  }
-
-  if (burning) {
-    context.effects.emit(
-      elementalistConditionRequest(
-        {
-          cause: event,
-          at: event.at,
-          ...attribution,
-          condition: String(burning.condition),
-          stacks: Number(burning.stacks),
-          duration: Number(burning.duration)
-        },
-        emissionCast
-      )
-    );
-  }
-
+  if (strike)
+    emitTraitProfile(context, TRAIT.GALVANIC_ENCHANTMENT, TRAIT.GALVANIC_ENCHANTMENT, event, {
+      at: event.at,
+      fullEnd: event.at,
+      cast: emissionCast,
+      effect: { type: 'strike', name: 'Galvanic Enchantment' },
+      activationId: context.combat.allocateEffectActivation('elementalist.effect:'),
+      skillWeaponFallback: 'Unequipped',
+      attribution,
+      transform: (packet) => ({ ...packet, name: electricEnchantment.name, procType: 'profession' })
+    });
+  if (burning)
+    emitTraitProfile(context, TRAIT.GALVANIC_ENCHANTMENT, TRAIT.GALVANIC_ENCHANTMENT, event, {
+      at: event.at,
+      fullEnd: event.at,
+      cast: emissionCast,
+      effect: { type: 'condition', name: 'Burning' },
+      attribution,
+      transform: (packet) => ({
+        ...packet,
+        name: electricEnchantment.name + ' — ' + packet.condition,
+        procType: 'profession'
+      })
+    });
   if (strike || burning)
     announceElectricEnchantment(context, {
       at: event.at,

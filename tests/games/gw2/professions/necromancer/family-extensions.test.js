@@ -2,14 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import {
-  registerCreatureSummonReaction,
-  runCreatureSummonReactions,
-  registerNecromancerCreatureStrikeMultiplier,
-  necromancerCreatureStrikeMultiplier
-} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 /** Capture author runtime owners after the selected modules register their own callbacks. */
 function run(specialization, rotation, initialize) {
@@ -80,27 +78,40 @@ test('shroud observers see committed Core transitions and remain isolated across
   }
 });
 
-test('creature subscriptions and multiplier replacements affect only their owning run', () => {
-  const owners = [];
-  for (let index = 0; index < 2; index++) {
-    run('Core', [], (runtime) => owners.push(runtime));
-  }
-
-  const [first, second] = owners;
-  const summons = [];
-  registerCreatureSummonReaction(first, 'test.summon', (skill, at, count, activationId) => {
-    summons.push({ skillId: skill.id, at, count, activationId });
-  });
-  registerNecromancerCreatureStrikeMultiplier(first, 'test.multiplier', () => 2);
-  registerNecromancerCreatureStrikeMultiplier(second, 'test.multiplier', () => 3);
+// Summon points settle resource rewards before the explosion, with selection isolated per runtime.
+test('creature summon listeners preserve reward order, captured attribution, and selection isolation', () => {
   const skill = necromancerProfession.catalog.skillsByName.get('Summon Blood Fiend');
-  runCreatureSummonReactions(second, skill, 1, 1, 'other-run');
-  assert.deepEqual(summons, []);
-  runCreatureSummonReactions(first, skill, 2, 1, 'first-run');
-  assert.deepEqual(summons, [{ skillId: skill.id, at: 2, count: 1, activationId: 'first-run' }]);
-  assert.equal(necromancerCreatureStrikeMultiplier(first), 2);
-  assert.equal(necromancerCreatureStrikeMultiplier(second), 3);
-  registerNecromancerCreatureStrikeMultiplier(first, 'test.multiplier', () => 0);
-  assert.equal(necromancerCreatureStrikeMultiplier(first), 0);
-  assert.equal(necromancerCreatureStrikeMultiplier(second), 3);
+  for (const selected of [true, false]) {
+    const observed = [];
+    let lifeForce = 0;
+    const runtime = {
+      config: {
+        specialization: 'Ritualist',
+        selectedTraitIds: selected ? [TRAIT.BOON_OF_CREATION, TRAIT.EXPLOSIVE_GROWTH, TRAIT.SPIRITS_STRENGTH] : []
+      },
+      helpers: necromancerProfession.catalog,
+      resourceController: {
+        grant(_resource, amount) {
+          lifeForce += amount;
+        }
+      },
+      profession: { core: { lifeForce: { maximum: 100 } } },
+      effects: captureEffectEmissions({
+        submit(event) {
+          observed.push({ lifeForce, event });
+        }
+      }).effects
+    };
+    bindTriggerPoints(runtime, necromancerProfession, runtime.config);
+    runtime.fireTrigger(creatureSummoned, { skill, at: 2, count: 2, activationId: 'summon' });
+    assert.equal(lifeForce, selected ? 20 : 0);
+    assert.equal(observed.length, selected ? 1 : 0);
+    if (selected) {
+      assert.equal(observed[0].lifeForce, 20);
+      assert.equal(observed[0].event.activationId, 'summon:explosive-growth:2');
+      assert.equal(observed[0].event.parentSkillName, skill.name);
+    }
+
+    assert.equal(spiritsStrengthCreatureMultiplier(runtime), selected ? 1.5 : 1);
+  }
 });

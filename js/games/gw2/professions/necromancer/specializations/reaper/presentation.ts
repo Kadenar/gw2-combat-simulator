@@ -21,6 +21,17 @@ export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      if (preview.has('Cold Shoulder'))
+        preview.add({
+          key: 'condition:Chilled',
+          label: 'Target Chilled',
+          group: 'Target conditions',
+          kind: 'condition',
+          field: 'Chilled',
+          scope: ['damage'],
+          description: 'Cold Shoulder'
+        });
       preview.condition('Vulnerability', 'Decimate Defenses');
       return preview.controls;
     },

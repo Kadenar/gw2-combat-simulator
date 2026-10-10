@@ -86,6 +86,9 @@ export const chronomancerUi: MesmerUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.damageBuff('Time Bomb', 'timeBomb', 'time-bomb');
+    preview.condition('Slow', 'Time Catches Up');
 
     preview.boon('alacrity', 'Flow of Time');
     preview.buff('Danger Time', 'dangerTime', 'danger-time', 'Critical Damage');

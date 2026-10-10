@@ -14,7 +14,7 @@ export interface PreviewControl {
   label: string;
   group: string;
   description: string;
-  kind: 'boon' | 'buff' | 'condition' | 'queryTrait' | 'passive' | 'special';
+  kind: 'boon' | 'buff' | 'condition' | 'conditionCount' | 'queryTrait' | 'passive' | 'special';
   field?: string;
   /** Canonical identity for isolated passive toggles; labels remain display text. */
   skillId?: SkillId;
@@ -54,6 +54,10 @@ export interface ProfessionAttributePreviewPreparation extends ProfessionAttribu
   readonly config: Gw2Config;
   readonly professionState: unknown;
   readonly events: SimulationEvent[];
+  /** Seed an owner-selected buff in both the isolated store and its observation history. */
+  readonly addBuff: (kind: string, stacks: number, name: string) => void;
+  /** Suppress a selected skill's ready-state passive without removing it from the detached loadout. */
+  readonly setSkillOnCooldown: (skillId: SkillId) => void;
   readonly targetConditions: Record<string, number>;
   readonly queryOptions: { conditionDurations: boolean; skillWeapon?: string };
 }

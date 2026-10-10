@@ -7,8 +7,9 @@ import {
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { applyMeticulousSunCrystal } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
+import { antiquaryStruck } from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 
@@ -46,10 +47,10 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   });
 }
 
-function applyAntiquaryDamageReactions(context: ThiefResolverContext, event: ThiefResolverEvent): void {
+function applyAntiquaryDamageReactions(context: ThiefRuntime, event: ThiefResolverEvent): void {
   // Both Antiquary strike follow-ups apply immediately at the landed strike so
   // charge consumption and condition reactions share one causal timestamp.
-  applyMeticulousSunCrystal(context, event);
+  context.fireTrigger(antiquaryStruck, { cause: event });
   applyMistburnCharge(context, event);
 }
 

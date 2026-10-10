@@ -8,9 +8,11 @@ import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary
 // Artifact acceptance spends the old pool; traits surround the skill's intrinsic identity at commitment.
 const ARTIFACT_START: NonNullable<Skill['sideEffects']> = [
   { on: 'castStart', do: { type: 'thief.artifact-spend' } },
-  { on: 'castCommit', do: { type: 'thief.artifact-traits' } }
+  { on: 'castCommit', do: { type: 'thief.artifact-activated' } }
 ];
-const ARTIFACT_END: NonNullable<Skill['sideEffects']> = [{ on: 'castCommit', do: { type: 'thief.repeat-ransacker' } }];
+const ARTIFACT_END: NonNullable<Skill['sideEffects']> = [
+  { on: 'castCommit', do: { type: 'thief.artifact-completed' } }
+];
 
 // Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
 const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {

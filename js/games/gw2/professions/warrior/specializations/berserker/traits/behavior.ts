@@ -1,13 +1,14 @@
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -97,131 +98,57 @@ export function detonate(runtime: Runtime, payload: { activationId: string; skil
     }
   });
   if (strike)
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildResolverStrike({
-        ...fields,
+    emitTraitProfile(runtime, TRAIT.KING_OF_FIRES, TRAIT.KING_OF_FIRES, undefined, {
+      at: runtime.time,
+      fullEnd: runtime.time,
+      effect: { type: 'strike', name: 'Strike' },
+      attribution: {
+        activationId: `${payload.activationId}:king-of-fires:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.KING_OF_FIRES,
+        actorType: 'effect' as const,
+        ownerActorType: 'player' as const,
+        skillId: skill.id,
+        skillName: skill.name,
         name: 'King of Fires — Fire Aura Detonation',
-        coefficient: effectNumber(profile, strike, 'coefficient'),
-        canTriggerCriticalTraits: true,
         skillWeapon: ''
-      })
+      },
+      transform: (packet) => ({ ...packet, canTriggerCriticalTraits: true })
     });
   if (burning) {
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildResolverCondition({
-        ...fields,
-        name: 'King of Fires — Burning',
-        condition: 'Burning',
-        stacks: effectNumber(profile, burning, 'stacks'),
-        duration: effectNumber(profile, burning, 'duration')
-      })
+    emitTraitProfile(runtime, TRAIT.KING_OF_FIRES, TRAIT.KING_OF_FIRES, undefined, {
+      at: runtime.time,
+      fullEnd: runtime.time,
+      effect: { type: 'condition', name: 'Burning' },
+      attribution: {
+        activationId: `${payload.activationId}:king-of-fires:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.KING_OF_FIRES,
+        actorType: 'effect' as const,
+        ownerActorType: 'player' as const,
+        skillId: skill.id,
+        skillName: skill.name,
+        name: 'King of Fires — Burning'
+      }
     });
   }
 }
 
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
-/** Entry rewards retain their intrinsic and selected eligibility. */
-export function berserkEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_OF_AGGRESSION);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: profile,
-      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.BURST_OF_AGGRESSION,
-        actorType: 'effect',
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name
-      },
-      transform: (event) => ({
-        ...event,
-        name: profile.name,
-        duration: event.duration,
-        audience: { recipients: 'self' }
-      })
-    });
-  }
-
-  if (hasTrait(runtime, TRAIT.BLOODY_ROAR)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODY_ROAR);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: profile,
-      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.BLOODY_ROAR,
-        actorType: 'effect',
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name
-      },
-      transform: (event) => ({
-        ...event,
-        name: profile.name,
-        duration: event.duration,
-        audience: { recipients: 'self' }
-      })
-    });
-  }
+/** Query Smash Brawler's extension before the mode owner publishes its deadline. */
+export function smashBrawlerBerserkExtension(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): number {
+  return cast.skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER)
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER),
+        cast.skill.id === ID.DECAPITATE ? 'minimumStacks' : 'resourceGain'
+      )
+    : 0;
 }
 
-/** Return trait extension before the mode owner publishes its new deadline. */
-export function berserkTraitExtension(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): number {
-  const skill = cast.skill;
-  let extension = 0;
-  if (skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER))
-    extension += balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER),
-      skill.id === ID.DECAPITATE ? 'minimumStacks' : 'resourceGain'
-    );
-  if (skill.categories?.includes('Rage')) {
-    if (skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE))
-      extension += balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, TRAIT.LAST_BLAZE),
-        'durationMultiplier'
-      );
-  }
-
-  return extension;
-}
-
-/** Completion observes the updated mode before granting heat and scheduling aura detonation. */
-export function berserkerCompletionTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEAT_THE_SOUL);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: profile,
-      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.HEAT_THE_SOUL,
-        actorType: 'effect',
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name
-      },
-      transform: (event) => ({
-        ...event,
-        name: profile.name,
-        duration:
-          event.kind === 'quickness' && cast.skill.id === ID.DECAPITATE
-            ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER), 'resourceGain')
-            : event.duration,
-        audience: { recipients: 'party' }
-      })
-    });
-  }
-
-  if (isBerserkerSkill(cast.skill) && hasTrait(runtime, TRAIT.KING_OF_FIRES)) {
-    berserkerState.from(runtime).completedActivations[cast.id] = runtime.time;
-    runtime.schedule(DETONATE, runtime.time, { activationId: cast.id, skillId: cast.skill.id }, undefined, 5);
-  }
+/** Query Last Blaze's Rage extension without mutating the active mode. */
+export function lastBlazeBerserkExtension(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): number {
+  return cast.skill.categories?.includes('Rage') && cast.skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.LAST_BLAZE), 'durationMultiplier')
+    : 0;
 }

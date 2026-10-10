@@ -29,11 +29,13 @@ import {
   consumeElementalistEtching,
   openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
+import {
+  elementalistCastCompleted,
+  elementalistDodgeCompleted
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { pistolSideEffectHandlers } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
-import { applyGenericPostCast } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,
@@ -94,10 +96,10 @@ export function elementalistOnCastCommit(
   completeElementalistSpearProgression(context, skill);
   shareAttunementVariantRecharge(context, skill);
   // The runtime has already paid the committed dodge's declared endurance cost.
-  if (Number(skill.id) === SHARED_SKILL_IDS.DODGE) triggerEvasiveArcana(context, cast, skill);
+  if (Number(skill.id) === SHARED_SKILL_IDS.DODGE) context.fireTrigger(elementalistDodgeCompleted, { cast });
   completeArcaneEcho(context, cast, skill);
   // Cross-skill traits observe the state settled by the skill declarations and shared observers.
-  applyGenericPostCast(context, cast, skill);
+  context.fireTrigger(elementalistCastCompleted, { cast });
 }
 
 /** Skill declarations own these commit triggers; handlers retain aura and companion lifetime bookkeeping. */

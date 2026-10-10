@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
@@ -28,6 +30,12 @@ function astralForceMaximum(catalog: Readonly<CanonicalCatalog<RangerSkill>>, co
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    /** Expose held combat bonuses without changing the saved build or simulation. */
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.damageBuff('Natural Balance', 'naturalBalance', 'natural-balance');
+      return preview.controls;
+    },
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       if (skill.id === ID.CELESTIAL_AVATAR || skill.id === ID.RELEASE_CELESTIAL_AVATAR)

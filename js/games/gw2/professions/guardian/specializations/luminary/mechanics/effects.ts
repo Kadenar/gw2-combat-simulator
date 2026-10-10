@@ -10,7 +10,11 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { emitJusticeIsBlind, justiceIsBlindEligible } from '#gw2/professions/guardian/core/traits/radiance/behavior.js';
+import { justiceBlinding } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  lightAuraGranting,
+  luminaryCastStarted
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import {
@@ -18,11 +22,6 @@ import {
   LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID
 } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import {
-  reactToSovereignAura,
-  restoreLuminaryArmaments,
-  startSovereignOfLight
-} from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
@@ -40,8 +39,26 @@ export function grantLuminaryAura(runtime: Runtime, event: Gw2ResolverEvent): vo
     duration = effectNumber(profile, aura, 'duration');
   }
 
-  reactToSovereignAura(runtime, event);
+  runtime.fireTrigger(lightAuraGranting, { cause: event });
   luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, duration);
+}
+
+/** Imported armaments already own their final duration and remain valid without current trait selection. */
+function restoreLuminaryArmaments(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, duration: number): boolean {
+  const empowered = cast.skill.id === INITIAL.empoweredArmaments;
+  if (!empowered && cast.skill.id !== INITIAL.radiantHammer) return false;
+  if (empowered) luminaryState.from(runtime).empoweredArmamentsUntil = gw2EffectExpiresAt(runtime.time, duration);
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...guardianCastCause(runtime, cast),
+      duration,
+      stacks: 1,
+      kind: empowered ? 'guardian-empowered-armaments' : 'guardian-radiant-armaments',
+      ...(!empowered ? { metadata: { radiantWeapon: 'hammer' } } : {})
+    }
+  });
+  return true;
 }
 
 /** Imported boundary state is an explicit input, applied once without restoring subsequent live state. */
@@ -68,11 +85,13 @@ export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast<Guardia
   const skill = cast.skill;
   const event = guardianCastCause(runtime, cast);
   const hostile = { ...event, offTarget: cast.command.offTarget === true };
-  const sovereignForgeAura = startSovereignOfLight(runtime, cast);
-  const justiceBlind = justiceIsBlindEligible(runtime, skill);
-  if (skill.id === LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID || sovereignForgeAura || justiceBlind)
+  // Sovereign of Light schedules detonation before this cast's replacement aura.
+  runtime.fireTrigger(luminaryCastStarted, { cast });
+  if (skill.id === LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID)
     runtime.schedule(AURA_GRANT, cast.start, hostile, undefined, -10);
-  if (justiceBlind) emitJusticeIsBlind(runtime, hostile, skill);
+  // Announce the accepted virtue independently of selection; the trait owns both aura and Blind admission.
+  if (skill.categories?.includes('Virtue') && skill.slot === 'Profession_1')
+    runtime.fireTrigger(justiceBlinding, { cause: hostile, skill, auraTask: AURA_GRANT });
 }
 
 /** Count only accepted strikes in the half-open window, excluding gear and summoned actors. */

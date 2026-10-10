@@ -2,12 +2,13 @@ import { daredevilBuffPolicies } from '#gw2/professions/thief/specializations/da
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  armWeakeningStrikes,
-  grantEnduranceThief,
-  refundStaffMaster,
-  weakeningStrike
-} from '#gw2/professions/thief/specializations/daredevil/traits/behavior.js';
-import { openDodgeWindow, queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/traits/dodges.js';
+  daredevilCastCompleted,
+  daredevilCastStarted,
+  daredevilDodged,
+  daredevilStruck,
+  physicalSkillStarted
+} from '#gw2/professions/thief/specializations/daredevil/mechanics/boundaries.js';
+import { queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -28,14 +29,13 @@ const DAREDEVIL_COMPLETE = 'thief.daredevil-complete';
 
 /** After the dodge's own packets, the dodge opens its window and Weakening Strikes arms the next landed strike. */
 function completeDaredevilDodge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  openDodgeWindow(runtime, cast);
-  armWeakeningStrikes(runtime, cast);
+  runtime.fireTrigger(daredevilDodged, { cast });
 }
 
 function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (cast.skill.id === SHARED_SKILL_IDS.DODGE) completeDaredevilDodge(runtime, cast);
   // Endurance Thief follows Core's steal resources.
-  grantEnduranceThief(runtime, cast);
+  runtime.fireTrigger(daredevilCastCompleted, { cast });
 }
 
 /** Daredevil hooks: the larger endurance pool, selected dodges, trait refunds, and Palm Strike. */
@@ -46,6 +46,11 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       storeThiefStolenSkillChoices(runtime, THIEF_STOLEN_SKILL_IDS);
   },
   buffPolicies: daredevilBuffPolicies,
+  sideEffectHandlers: {
+    'thief.physical-skill'(runtime, context) {
+      runtime.fireTrigger(physicalSkillStarted, { context });
+    }
+  },
   // Daredevil replaces only the capacity while retaining Core's pool and regeneration.
   endurance: {
     ...thiefEndurance,
@@ -69,15 +74,16 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill;
 
-    // Staff Master refunds endurance per initiative spent on staff skills.
-    refundStaffMaster(runtime, cast);
+    runtime.fireTrigger(daredevilCastStarted, { cast });
     if (skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
   },
   onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, DAREDEVIL_COMPLETE, cast);
   },
   reactions: {
-    'damage.resolved': weakeningStrike
+    'damage.resolved'(runtime, event) {
+      runtime.fireTrigger(daredevilStruck, { cause: event });
+    }
   },
   tasks: {
     [DAREDEVIL_COMPLETE](runtime, data) {

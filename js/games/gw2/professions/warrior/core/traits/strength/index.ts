@@ -1,3 +1,4 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -7,7 +8,9 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -15,6 +18,13 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import {
+  burstCompleted,
+  burstFirstHit,
+  castStarting,
+  critical,
+  dragonSlashCompleted
+} from '#gw2/professions/warrior/core/mechanics/combat.js';
 import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {
   warriorActiveBuffStacks,
@@ -46,6 +56,16 @@ export const restorativeStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const berserkersPower = defineTrait({
+  triggers: [
+    onTriggerPoint(dragonSlashCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof dragonSlashCompleted>) =>
+        berserkersPowerDragonSlash(runtime, input.cast, input.adrenalineSpent)
+    }),
+    onTriggerPoint(burstFirstHit, {
+      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) =>
+        berserkersPowerBurst(runtime, input.event, input.skill)
+    })
+  ],
   id: TRAIT.BERSERKERS_POWER,
   name: "Berserker's Power",
   balance: {
@@ -106,6 +126,11 @@ export const recklessDodge = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const braveStride = defineTrait({
+  triggers: [
+    onTriggerPoint(burstCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof burstCompleted>) => braveStrideCommit(runtime, input.cast)
+    })
+  ],
   id: TRAIT.BRAVE_STRIDE,
   name: 'Brave Stride',
   balance: {
@@ -116,6 +141,12 @@ export const braveStride = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const peakPerformance = defineTrait({
+  triggers: [
+    { on: 'buff.applied', requiresSelection: false, run: peakPerformanceBuff },
+    onTriggerPoint(castStarting, {
+      run: (runtime, input: TriggerPointInput<typeof castStarting>) => peakPerformanceStart(runtime, input.cast)
+    })
+  ],
   id: TRAIT.PEAK_PERFORMANCE,
   name: 'Peak Performance',
   balance: {
@@ -184,6 +215,7 @@ export const aggressiveOnslaught = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const buildingMomentum = defineTrait({
+  triggers: [onTriggerPoint(burstFirstHit, { run: (runtime) => buildingMomentumBurst(runtime) })],
   id: TRAIT.BUILDING_MOMENTUM,
   name: 'Building Momentum',
   balance: {
@@ -213,6 +245,12 @@ export const pinnacleOfStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const forcefulGreatsword = defineTrait({
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        forcefulGreatswordCritical(runtime, input.event, input.opportunity)
+    })
+  ],
   id: TRAIT.FORCEFUL_GREATSWORD,
   name: 'Forceful Greatsword',
   balance: {
@@ -299,7 +337,7 @@ export const greatFortitude = defineTrait({
 
 type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
-export function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2ResolverEvent): void {
+function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2ResolverEvent): void {
   if (Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE || event.kind !== 'peak-performance') return;
   context.effects.emit({
     kind: 'announcement',
@@ -344,9 +382,9 @@ export function modifyWarriorStrengthAttributes(
   }
 }
 
-export function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
-  if (!skill.categories?.includes('Physical') || !hasTrait(runtime, TRAIT.PEAK_PERFORMANCE)) return;
+  if (!skill.categories?.includes('Physical')) return;
   let at = cast.effectiveEnd;
   if (skill.id === ID.KICK) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
@@ -360,10 +398,7 @@ export function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.PEAK_PERFORMANCE);
     const selectedEffect = requireEffect(traitProfile, 'buff', 'peak-performance');
     if (selectedEffect)
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: [selectedEffect],
+      emitTraitProfile(runtime, TRAIT.PEAK_PERFORMANCE, TRAIT.PEAK_PERFORMANCE, undefined, {
         at: at,
         attribution: {
           source: 'Trait',
@@ -373,14 +408,15 @@ export function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<
           skillName: cast.skill.name,
           activationId: cast.id
         },
-        transform: (event) => ({ ...event, name: 'Peak Performance', priority: 0 })
+        transform: (event) => ({ ...event, name: 'Peak Performance', priority: 0 }),
+        effects: (candidate) => candidate === selectedEffect
       });
   }
 }
 
-export function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
-  if (hasTrait(runtime, TRAIT.BRAVE_STRIDE) && skill.movementSkill) {
+  if (skill.movementSkill) {
     grantWarriorResource(
       runtime,
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE), 'resourceGain')
@@ -389,10 +425,7 @@ export function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<War
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE);
       const selectedEffect = requireEffect(traitProfile, 'boon', 'stability');
       if (selectedEffect)
-        runtime.effects.emit({
-          kind: 'profile',
-          profile: traitProfile,
-          effects: [selectedEffect],
+        emitTraitProfile(runtime, TRAIT.BRAVE_STRIDE, TRAIT.BRAVE_STRIDE, undefined, {
           at: runtime.time,
           attribution: {
             source: 'Trait',
@@ -402,32 +435,25 @@ export function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<War
             skillName: cast.skill.name,
             activationId: cast.id
           },
-          transform: (event) => ({ ...event, name: 'Brave Stride', priority: 0 })
+          transform: (event) => ({ ...event, name: 'Brave Stride', priority: 0 }),
+          effects: (candidate) => candidate === selectedEffect
         });
     }
   }
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function buildingMomentumBurst(runtime: WarriorRuntime): void {
-  if (hasTrait(runtime, TRAIT.BUILDING_MOMENTUM))
-    runtime.endurance.grant(
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BUILDING_MOMENTUM), 'resourceGain')
-    );
+function buildingMomentumBurst(runtime: WarriorRuntime): void {
+  runtime.endurance.grant(
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BUILDING_MOMENTUM), 'resourceGain')
+  );
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent, skill: WarriorSkill): void {
-  if (
-    !skill.dragonSlash &&
-    hasTrait(runtime, TRAIT.BERSERKERS_POWER) &&
-    Number(event.metadata?.warriorAdrenalineSpent) > 0
-  ) {
+function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent, skill: WarriorSkill): void {
+  if (!skill.dragonSlash && Number(event.metadata?.warriorAdrenalineSpent) > 0) {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: traitProfile,
-      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+    emitTraitProfile(runtime, TRAIT.BERSERKERS_POWER, TRAIT.BERSERKERS_POWER, event, {
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.BERSERKERS_POWER,
@@ -435,24 +461,24 @@ export function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2Resolver
         skillId: event.skillId,
         skillName: event.skillName
       },
-      cause: event,
       transform: (packet) => ({
         ...packet,
         priority: 5,
         name: traitProfile.name,
         stacks: Number(event.metadata?.warriorBurstTier) + 1
-      })
+      }),
+      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
     });
   }
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function forcefulGreatswordCritical(
+function forcefulGreatswordCritical(
   runtime: WarriorRuntime,
   event: Gw2ResolverEvent,
   opportunity: ReturnType<typeof criticalOpportunity>
 ): void {
-  if (hasTrait(runtime, TRAIT.FORCEFUL_GREATSWORD)) {
+  {
     const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
     const chance = balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
@@ -467,10 +493,7 @@ export function forcefulGreatswordCritical(
     });
     if (proc) {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD);
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      emitTraitProfile(runtime, TRAIT.FORCEFUL_GREATSWORD, TRAIT.FORCEFUL_GREATSWORD, event, {
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.FORCEFUL_GREATSWORD,
@@ -478,13 +501,13 @@ export function forcefulGreatswordCritical(
           skillId: event.skillId,
           skillName: event.skillName
         },
-        cause: event,
         transform: (packet) => ({
           ...packet,
           priority: 5,
           name: traitProfile.name,
           stacks: proc.quantity * Number(packet.stacks)
-        })
+        }),
+        effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
       });
     }
   }
@@ -505,18 +528,15 @@ export function convertBerserkPower(
 }
 
 /** Dragon Slash grants the charge-converted reward at completion. */
-export function berserkersPowerDragonSlash(
+function berserkersPowerDragonSlash(
   runtime: WarriorRuntime,
   cast: RuntimeCast<WarriorSkill>,
   adrenalineSpent: number
 ): void {
   {
-    if (hasTrait(runtime, TRAIT.BERSERKERS_POWER)) {
+    {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: traitProfile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'buff'),
+      emitTraitProfile(runtime, TRAIT.BERSERKERS_POWER, TRAIT.BERSERKERS_POWER, undefined, {
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.BERSERKERS_POWER,
@@ -525,7 +545,8 @@ export function berserkersPowerDragonSlash(
           skillName: cast.skill.name,
           activationId: cast.id
         },
-        transform: (event) => ({ ...event, name: traitProfile.name, stacks: adrenalineSpent / 10 + 1, priority: 5 })
+        transform: (event) => ({ ...event, name: traitProfile.name, stacks: adrenalineSpent / 10 + 1, priority: 5 }),
+        effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
       });
     }
   }

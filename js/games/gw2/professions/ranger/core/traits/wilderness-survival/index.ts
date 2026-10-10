@@ -1,20 +1,39 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+
+import {
+  beastSkillUsed,
+  castCompleted,
+  strike,
+  strikeEffectsApplied
+} from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Owns Child of Earth's live tuning and trait behavior. */
 export const childOfEarth = defineTrait({
+  triggers: [
+    onTriggerPoint(castCompleted, {
+      when: (_runtime, input: TriggerPointInput<typeof castCompleted>) => input.skill.type === 'Heal',
+      run: (runtime, input: TriggerPointInput<typeof castCompleted>) => triggerChildOfEarth(runtime, input.skill)
+    })
+  ],
   id: TRAIT.CHILD_OF_EARTH,
   name: 'Child of Earth',
   balance: {
@@ -39,6 +58,18 @@ export const childOfEarth = defineTrait({
 
 /** Owns Poison Master's live tuning and trait behavior. */
 export const poisonMaster = defineTrait({
+  lifetime: { eventHandlers: { 'ranger.beast-skill-used': handleRangerBeastSkillUsed } },
+  triggers: [
+    onTriggerPoint(strike, {
+      requiresSelection: false,
+      run: (runtime, input: TriggerPointInput<typeof strike>) => triggerPoisonMaster(runtime, input.event)
+    }),
+    onTriggerPoint(beastSkillUsed, {
+      when: (_runtime, input: TriggerPointInput<typeof beastSkillUsed>) => input.poisonMaster,
+      run: (runtime, input: TriggerPointInput<typeof beastSkillUsed>) =>
+        applyPoisonMasterBeastSkill(runtime, input.skill)
+    })
+  ],
   id: TRAIT.POISON_MASTER,
   name: 'Poison Master',
   balance: {
@@ -59,6 +90,12 @@ export const poisonMaster = defineTrait({
 
 /** Owns Arachnophobia's live tuning and trait behavior. */
 export const arachnophobia = defineTrait({
+  triggers: [
+    onTriggerPoint(strikeEffectsApplied, {
+      run: (runtime, input: TriggerPointInput<typeof strikeEffectsApplied>) =>
+        triggerArachnophobia(runtime, input.event)
+    })
+  ],
   id: TRAIT.ARACHNOPHOBIA,
   name: 'Arachnophobia',
   balance: {
@@ -179,11 +216,10 @@ export const survivalInstincts = defineTrait({
 
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
 
+// This trait owns Lesser Muddy Terrain's field delivery, including independently scheduled pulses.
 // On an eligible heal, claim Lesser Muddy Terrain's recharge and emit the initial
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
-export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
-  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH)) return;
-
+function triggerChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.CHILD_OF_EARTH);
   const immobilized = requireEffect(profile, 'condition', 'Immobilized');
   // Pulse conditions keep their own identities, so removing one never rebinds another.
@@ -195,47 +231,107 @@ export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): vo
   if (!context.procs.claim(TRAIT.CHILD_OF_EARTH, 'ranger.core.childOfEarth', context.time)) return;
   const at = context.time;
   if (immobilized)
-    context.effects.emit({
-      kind: 'packet',
-      event: buildRangerPacket(
-        {
-          at,
-          source: 'Trait',
-          actorType: 'effect',
-          skillId: TRAIT.CHILD_OF_EARTH,
-          skillName: 'Child of Earth',
-          name: 'Lesser Muddy Terrain - Immobilized',
-          condition: String(immobilized.condition),
-          duration: effectNumber(profile, immobilized, 'duration'),
-          stacks: effectNumber(profile, immobilized, 'stacks'),
-          triggeredBy: skill.name
-        },
-        'condition'
-      )
+    emitTraitProfile(context, TRAIT.CHILD_OF_EARTH, TRAIT.CHILD_OF_EARTH, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'condition', name: 'Immobilized' },
+      attribution: {
+        source: 'Trait',
+        actorType: 'effect',
+        skillId: TRAIT.CHILD_OF_EARTH,
+        skillName: 'Child of Earth',
+        name: 'Lesser Muddy Terrain - Immobilized',
+        triggeredBy: skill.name,
+        sourceId: TRAIT.CHILD_OF_EARTH
+      }
     });
   const applications = balanceProfileNumber(profile, 'maximumStacks');
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   for (let application = 0; application < applications; application += 1) {
-    for (const effect of pulses) {
-      const condition = String(effect.condition);
-      context.effects.emit({
-        kind: 'packet',
-        event: buildRangerPacket(
-          {
-            at: at + application * interval,
-            source: 'Trait',
-            actorType: 'effect',
-            skillId: TRAIT.CHILD_OF_EARTH,
-            skillName: 'Child of Earth',
-            name: `Lesser Muddy Terrain - ${condition}`,
-            condition,
-            duration: effectNumber(profile, effect, 'duration'),
-            stacks: effectNumber(profile, effect, 'stacks'),
-            triggeredBy: skill.name
-          },
-          'condition'
-        )
-      });
+    // The field owns its pulse count and cadence; the selected effects own each condition application.
+    emitTraitProfile(context, TRAIT.CHILD_OF_EARTH, TRAIT.CHILD_OF_EARTH, undefined, {
+      at: at + application * interval,
+      effects: (effect) => pulses.includes(effect as (typeof pulses)[number]),
+      attribution: { skillId: TRAIT.CHILD_OF_EARTH, skillName: 'Child of Earth', triggeredBy: skill.name },
+      transform: (packet) => ({ ...packet, name: 'Lesser Muddy Terrain - ' + packet.condition })
+    });
+  }
+}
+
+/** Applies the trait at the accepted Beast-skill boundary. */
+function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill): void {
+  const notBeforeCombat =
+    !context.hasExplicitCombatStart || (context.combatStartTime != null && context.time >= context.combatStartTime);
+  if (notBeforeCombat) {
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'ranger.beast-skill-used',
+        at: context.time,
+        source: 'Trait',
+        sourceId: TRAIT.POISON_MASTER,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: skill.name
+      }
+    });
+  }
+}
+
+function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = professionCoreState(context);
+  if (!state.poisonMasterPetAttackReady || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
+    return;
+  }
+
+  const profile = requireBalanceProfileFromContext(context, TRAIT.POISON_MASTER);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
+  if (!poison) return;
+  state.poisonMasterPetAttackReady = false;
+  emitTraitProfile(context, TRAIT.POISON_MASTER, TRAIT.POISON_MASTER, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'condition', name: 'Poisoned' },
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.POISON_MASTER,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: TRAIT.POISON_MASTER,
+      skillName: 'Poison Master',
+      name: 'Poison Master - Poisoned',
+      triggeredBy: event.skillName
     }
+  });
+}
+
+function triggerArachnophobia(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  if (!isPetStrike(event) || (event.skillId !== ID.SPIT && event.skillId !== ID.TWIN_DARTS)) return;
+  // Split the per-attack duration across Twin Darts while preserving each packet's authored condition and pet ownership.
+  const divisor = event.skillId === ID.TWIN_DARTS ? Number(event.totalHits || 2) : 1;
+  emitTraitProfile(context, TRAIT.ARACHNOPHOBIA, TRAIT.ARACHNOPHOBIA, undefined, {
+    at: event.at,
+    effect: { type: 'condition', name: 'Torment' },
+    attribution: {
+      source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
+      actorType: isPetStrike(event) ? 'summon' : 'effect',
+      ownerActorType: isPetStrike(event) ? undefined : 'player',
+      skillId: TRAIT.ARACHNOPHOBIA,
+      skillName: 'Arachnophobia',
+      triggeredBy: event.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      ...petDerivedConditionMetadata(context, event),
+      name: 'Arachnophobia - ' + packet.condition,
+      duration: Number(packet.duration) / divisor
+    })
+  });
+}
+
+function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: Gw2ResolverEvent): void {
+  if (hasTrait(context, TRAIT.POISON_MASTER)) {
+    professionCoreState(context).poisonMasterPetAttackReady = true;
   }
 }

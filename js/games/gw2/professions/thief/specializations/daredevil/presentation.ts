@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { thiefStealPaletteGroups } from '#gw2/professions/thief/core/presentation.js';
@@ -27,6 +29,13 @@ function daredevilStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 
 // Daredevil owns its profession palette contribution while reusing the base Thief steal and stolen-skill pool.
 export const daredevilUi = Object.freeze({
+  /** Expose held combat bonuses without changing the saved build or simulation. */
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    preview.damageBuff('Bounding Dodger', 'boundingDodger', 'bounding-dodger');
+    preview.damageBuff('Lotus Training', 'lotusTraining', 'lotus-training');
+    return preview.controls;
+  },
   // This module owns access to Daredevil's starting stolen-skill inventory.
   resourceViews: (context: ThiefUiContext) => [
     preStealResourceView(context.professionState?.storedStolenSkillCount || 0)

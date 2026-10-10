@@ -1,14 +1,16 @@
-import { virtuosoBuffPolicies } from '#gw2/professions/mesmer/specializations/virtuoso/effect-state.js';
-import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
-import { startInfiniteForge } from '#gw2/professions/mesmer/specializations/virtuoso/traits/behavior.js';
-import { resolveBladeCriticalTraits } from '#gw2/professions/mesmer/specializations/virtuoso/traits/behavior.js';
-import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import { virtuosoBuffPolicies } from '#gw2/professions/mesmer/specializations/virtuoso/effect-state.js';
+import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
+import {
+  virtuosoBladeCritical,
+  virtuosoInitialized
+} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/combat-boundaries.js';
+import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Blade resources follow committed spending, accepted Bleeding, and actual shared critical outcomes. */
 export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
@@ -23,7 +25,7 @@ export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
       recovery: () => 0
     }
   },
-  initialize: startInfiniteForge,
+  initialize: (runtime) => runtime.fireTrigger(virtuosoInitialized, { at: runtime.time }),
   availability: virtuosoAvailability,
   tasks: {
     'mesmer.blade-spend'(runtime, data) {
@@ -40,6 +42,6 @@ export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     }
   },
   reactions: {
-    'damage.resolved': resolveBladeCriticalTraits
+    'damage.resolved': (runtime, event, details) => runtime.fireTrigger(virtuosoBladeCritical, { event, details })
   }
 };

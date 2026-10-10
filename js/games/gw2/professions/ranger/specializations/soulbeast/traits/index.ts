@@ -1,14 +1,28 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+
+import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { rangerBuffRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { beastmodeChanged } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
+import type {
+  RangerModifierContext,
+  RangerResolverContext,
+  RangerRuntime,
+  RangerSkill
+} from '#gw2/professions/ranger/types.js';
 
 function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
   // Registration gates selection; the remaining condition compares player and target health.
@@ -17,6 +31,11 @@ function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
 export const unstoppableUnion = defineTrait({
+  triggers: [
+    onTriggerPoint(beastmodeChanged, {
+      run: (runtime, input: TriggerPointInput<typeof beastmodeChanged>) => applyUnstoppableUnion(runtime, input.skill)
+    })
+  ],
   id: TRAIT.UNSTOPPABLE_UNION,
   name: 'Unstoppable Union',
   balance: {
@@ -35,6 +54,11 @@ export const leaderOfThePack = defineTrait({
 
 /** Owns Live Fast's live tuning and trait behavior. */
 export const liveFast = defineTrait({
+  triggers: [
+    onTriggerPoint(mergedBeastHit, {
+      run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) => triggerMergedLiveFast(runtime, input.event)
+    })
+  ],
   id: TRAIT.LIVE_FAST,
   name: 'Live Fast',
   balance: {
@@ -219,3 +243,34 @@ export const soulbeastTraits = [
   essenceOfSpeed,
   furiousStrength
 ];
+
+/** Runs once on the accepted first hit of the merged Beast ability. */
+function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.LIVE_FAST);
+    const fury = requireEffect(profile, 'boon', 'fury');
+    const quickness = requireEffect(profile, 'boon', 'quickness');
+    if (fury) context.effects.emit(rangerBuffRequest(event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST));
+    if (quickness) context.effects.emit(rangerBuffRequest(event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST));
+  }
+}
+
+// Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.
+function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void {
+  const profile = requireBalanceProfileFromContext(context, TRAIT.UNSTOPPABLE_UNION);
+  const effect = requireEffect(profile, 'boon', 'protection');
+  if (!effect) return;
+  emitTraitProfile(context, TRAIT.UNSTOPPABLE_UNION, TRAIT.UNSTOPPABLE_UNION, undefined, {
+    at: context.time,
+    fullEnd: context.time,
+    effect: { type: 'boon', name: 'protection' },
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.UNSTOPPABLE_UNION,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: 'Unstoppable Union',
+      name: 'Unstoppable Union'
+    }
+  });
+}

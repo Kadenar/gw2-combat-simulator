@@ -1,17 +1,12 @@
-import {
-  beginFamiliarCast,
-  captureIgniteTier,
-  modifyFamiliarEffects
-} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
-import { evokerBuffPolicies } from '#gw2/professions/elementalist/specializations/evoker/effect-state.js';
-import { initializeSpecializedElements } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
+import { evokerBuffPolicies } from '#gw2/professions/elementalist/specializations/evoker/effect-state.js';
 import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { availability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
 import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { electricEnchantmentDamageEffect } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import {
   applyCalcifyProtection,
   onAcceptedEvent
@@ -25,13 +20,20 @@ import {
   scheduleEvokerSkillCommit
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import {
-  flushPendingWeaponChargeGains,
+  empoweredChargePolicy,
   familiarChargePolicy,
-  empoweredChargePolicy
+  flushPendingWeaponChargeGains
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
+import {
+  evokerCastSettled,
+  evokerInitialized
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
+import {
+  beginFamiliarCast,
+  captureIgniteTier,
+  modifyFamiliarEffects
+} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { electricEnchantmentDamageEffect } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
@@ -41,7 +43,7 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
   damageEffects: [electricEnchantmentDamageEffect],
 
   initialize(runtime) {
-    initializeSpecializedElements(runtime);
+    runtime.fireTrigger(evokerInitialized, { at: runtime.time });
     registerElementalistEliteEvents(runtime, onAcceptedEvent);
     registerElementalistAttunementTransition(runtime, (context, cast) => {
       completeEvokerAttunement(context, cast, cast.skill);
@@ -98,8 +100,8 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
     'elementalist.evoker.finish-commit'(runtime, data) {
       const { cast } = data as SkillTaskData<ElementalistSkill>;
       {
-        finishEvokerCast(runtime, cast, cast.skill);
-        applyAltruisticAspect(runtime, cast, cast.skill);
+        finishEvokerCast(runtime, cast);
+        runtime.fireTrigger(evokerCastSettled, { cast });
       }
 
       delete evokerState.from(runtime).cancelledFamiliarActivations[cast.id];

@@ -1,27 +1,22 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import {
-  gladiatorSharedWisdom,
-  hexEaterSharedWisdom,
-  twinMoonSharedWisdom,
-  beguilingHazeSharedWisdom
-} from '#gw2/professions/revenant/specializations/conduit/traits/shared-wisdom.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { conditionEffectTicks, impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
 } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { impactEffects, conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { twinMoonSharedWisdom } from '#gw2/professions/revenant/specializations/conduit/traits/shared-wisdom.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // The accepted main/follow-up identity survives charge consumption and variant selection.
 const hazeMainCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
@@ -148,7 +143,10 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
     },
     { when: () => true, transform: selectBeguilingHaze }
   ],
-  sideEffects: [beguilingHazeSharedWisdom, { on: 'castCommit', do: { type: 'revenant.complete-haze' } }],
+  sideEffects: [
+    { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } },
+    { on: 'castCommit', do: { type: 'revenant.complete-haze' } }
+  ],
   // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
   shadowstepSkill: true,
   peithaImpactAnchor: 'castEnd',
@@ -281,7 +279,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         on: 'castCommit',
         do: { type: 'revenant.hex-eater-cleanse' }
       },
-      hexEaterSharedWisdom
+      { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }
     ],
     // Keep each projectile's strike and Torment on the same fixed impact tick.
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -317,7 +315,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     cooldown: 5,
     energyCost: 10,
     // Shared Wisdom grants only this skill's Stability on a successful cast, using the live trait profile.
-    sideEffects: [gladiatorSharedWisdom],
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }],
     // Explicit impact timing lets the ordinary scheduler retain the packets when the animation is cancelled.
     effects: impactEffects({ atMs: 40, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

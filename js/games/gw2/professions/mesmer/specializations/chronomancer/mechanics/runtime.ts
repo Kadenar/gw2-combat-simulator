@@ -18,7 +18,6 @@ export function createChronomancerMechanics(context: MesmerRuntime) {
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
     refreshAmmo: context.cooldownController.refreshAmmo,
     consumeResources: actions.consumeResources,
-    triggerShatterTraits: actions.triggerShatterTraits,
     durationPerSource: balanceProfileNumber(continuumSplitProfile, 'durationPerTier'),
     bonusDuration: masterOfFragmentationDuration(context),
     scheduleExpiry: (at) => context.schedule('mesmer.continuum-expire', at, at, undefined, -30)

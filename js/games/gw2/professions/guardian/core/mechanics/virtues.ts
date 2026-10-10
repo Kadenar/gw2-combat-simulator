@@ -13,7 +13,9 @@ import {
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type {
   GuardianResolverContext,
   GuardianResolverEvent,
@@ -28,6 +30,45 @@ import type {
  */
 
 type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
+
+/** An accepted virtue activation; each owner has already admitted its own readiness and replacement rules. */
+export interface VirtueActivation {
+  readonly cast: RuntimeCast<GuardianSkill>;
+  readonly virtue: GuardianVirtue;
+}
+
+/** Every accepted virtue activation, Core or elite, grants the shared virtue rewards in this order. */
+export const virtueActivated = defineTriggerPoint<VirtueActivation>('guardian.virtue-activated', [
+  GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
+  GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
+  GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
+  GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE
+]);
+
+/** An accepted Justice activation; Dragonhunter's deferred spear supplies only the cast identity. */
+export interface JusticeActivation {
+  readonly cast: { readonly id: string; readonly skill: Pick<GuardianSkill, 'id' | 'name'> };
+}
+
+/**
+ * Justice has its own point because Dragonhunter grants Furious Focus later than the shared virtue rewards; the other
+ * owners fire it right after virtue activation.
+ */
+export const justiceActivated = defineTriggerPoint<JusticeActivation>('guardian.justice-activated', [
+  GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS
+]);
+
+/** A hostile Justice activation supplies the mechanic's aura delivery task; the trait admits both rewards. */
+export interface JusticeBlinding {
+  readonly cause: GuardianResolverEvent;
+  readonly skill: GuardianSkill;
+  readonly auraTask: string;
+}
+
+/** Luminary fires this Core point so the Core trait keeps its own Blind payload. */
+export const justiceBlinding = defineTriggerPoint<JusticeBlinding>('guardian.justice-blinding', [
+  GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND
+]);
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
 /** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */

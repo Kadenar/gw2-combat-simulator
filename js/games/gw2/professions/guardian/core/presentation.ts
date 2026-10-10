@@ -130,6 +130,9 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      preview.damageBuff('Inspiring Virtue', 'inspiringVirtue', 'guardian-inspiring-virtue');
+      preview.boon('aegis', 'Unscathed Contender');
       // Seed the native symbol stack pool so all weapon rows can show an established damage window.
       if (preview.has('Symbolic Avenger'))
         preview.trait('Symbolic Avenger', {
@@ -141,8 +144,8 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
           description: 'Starting symbol-earned damage stacks'
         });
 
-      preview.boon('resolution', 'Righteous Instincts');
-      preview.condition('Burning', 'Radiant Power');
+      preview.boon('resolution', 'Righteous Instincts', 'Retribution');
+      preview.condition('Burning', 'Radiant Power', 'Fiery Wrath');
       preview.passives(ID.BANE_SIGNET, ID.SIGNET_OF_WRATH);
       return preview.controls;
     },

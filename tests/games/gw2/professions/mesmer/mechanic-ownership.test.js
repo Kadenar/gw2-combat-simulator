@@ -1,3 +1,4 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -22,6 +23,7 @@ function fixture() {
     schedule: (type, at, data, owner) => scheduled.push({ type, at, data, owner }),
     cancelOwner: (owner) => cancelled.push(owner.id)
   };
+  bindTriggerPoints(context, mesmerProfession, config);
   return { context, cancelled, scheduled };
 }
 

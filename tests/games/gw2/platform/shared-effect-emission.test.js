@@ -1,3 +1,7 @@
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -229,4 +233,122 @@ test('queued effects snapshot nested payloads and return deeply frozen receipts'
   });
   assert.equal(result.events.find((event) => event.type === 'buff').resolvedAudience.recipientCount, 2);
   assert.equal(receipt.audience.maximumRecipients, 2);
+});
+
+// Expanding a trait profile inside a hit must settle each condition before the following listener queries it.
+test('reaction profile applications are visible before the emitting listener resumes', () => {
+  const trace = [];
+  resolveTestGw2Events({
+    events: [{ ...strike, at: 0 }],
+    endTime: 1,
+    professionReactions: {
+      'damage.resolved'(runtime, cause) {
+        runtime.effects.emit({
+          kind: 'profile',
+          cause,
+          settlement: 'reaction',
+          profile: {
+            id: 42,
+            name: 'Settled profile',
+            effects: [
+              { type: 'condition', condition: 'Poisoned', stacks: 1, duration: 2 },
+              { type: 'condition', condition: 'Weakness', stacks: 1, duration: 2 }
+            ]
+          },
+          attribution
+        });
+        assert.equal(runtime.combat.targetHasCondition('Poisoned', 0, runtime), true);
+        assert.equal(runtime.combat.targetHasCondition('Weakness', 0, runtime), true);
+        trace.push('caller');
+      },
+      'condition.applied'(_runtime, event) {
+        trace.push(event.condition);
+      }
+    }
+  });
+  assert.deepEqual(trace, ['Poisoned', 'Weakness', 'caller']);
+});
+
+// A named trait payload retains cast identity and effect-specific ownership in the immutable submitted receipt.
+test('trait profile selection validates named effects and preserves cast attribution in receipts', () => {
+  const submitted = [];
+  const profile = {
+    id: 42,
+    name: 'Fixture trait',
+    effects: [
+      { type: 'boon', name: 'Selected boon', boon: 'Fury', duration: 2, stacks: 1, actorType: 'player' },
+      { type: 'boon', name: 'Other boon', boon: 'Might', duration: 2, stacks: 1, actorType: 'effect' }
+    ]
+  };
+  const runtime = {
+    helpers: createCanonicalCatalog({ balanceProfiles: [{ ...profile, profileKind: 'trait' }] }),
+    effects: createEffectEmissionService({
+      expansionBudget: createEffectExpansionBudget(),
+      now: () => 2,
+      registerReaction: () => undefined,
+      submit(event, delivery) {
+        submitted.push({ event, delivery });
+        return event;
+      },
+      announce() {
+        throw new Error('No announcement expected');
+      }
+    })
+  };
+  const packets = emitTraitProfile(runtime, 42, 42, null, {
+    receipt: true,
+    cast: { activationId: 'cast:fixture' },
+    effect: { type: 'boon', name: 'Selected boon' },
+    preserveName: true,
+    attribution: (effect) => ({ actorType: effect.actorType, skillId: 42, skillName: profile.name, name: effect.name })
+  });
+  assert.equal(packets.length, 1);
+  assert.equal(packets[0].kind, 'fury');
+  assert.equal(packets[0].name, 'Selected boon');
+  assert.equal(packets[0].actorType, 'player');
+  assert.equal(packets[0].activationId, 'cast:fixture');
+  assert.equal(submitted[0].delivery.cast.activationId, 'cast:fixture');
+  assert.equal(submitted[0].delivery.cause, null);
+  assert.ok(Object.isFrozen(packets));
+  assert.ok(Object.isFrozen(packets[0]));
+  assert.throws(
+    () => emitTraitProfile(runtime, 42, 42, undefined, { effect: { type: 'boon', name: 'Misspelled boon' } }),
+    /unknown effect key/
+  );
+  assert.equal(submitted.length, 1);
+});
+
+// Cancelling a mechanic removes its pending trait payload without cancelling independently granted effects.
+test('trait profiles retain mechanic cancellation ownership independently of cast identity', () => {
+  const helpers = createCanonicalCatalog({
+    balanceProfiles: [
+      {
+        id: 42,
+        name: 'Owned trait',
+        profileKind: 'trait',
+        effects: [{ type: 'boon', boon: 'Might', duration: 2, stacks: 1 }]
+      }
+    ]
+  });
+  const receipts = [];
+  const profession = defineTestProfession({
+    id: 'owned-trait-profile',
+    name: 'Owned trait profile',
+    hooks: {
+      initialize(runtime) {
+        const owner = { id: 'trait-work', generation: 0 };
+        const context = { effects: runtime.effects, helpers };
+        const cast = { activationId: 'shared-cast', skillId: 42 };
+        receipts.push(...emitTraitProfile(context, 42, 42, undefined, { receipt: true, at: 1, cast, owner }));
+        receipts.push(...emitTraitProfile(context, 42, 42, undefined, { receipt: true, at: 1, cast }));
+        runtime.cancelOwner(owner);
+      }
+    }
+  });
+  const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 1100 }] });
+  const grants = result.events.filter((event) => event.type === 'buff' && event.sourceId === 42);
+  assert.equal(receipts.length, 2);
+  assert.equal(grants.length, 1);
+  assert.equal(grants[0].eventOrder, receipts[1].eventOrder);
+  assert.equal(grants[0].activationId, 'shared-cast');
 });

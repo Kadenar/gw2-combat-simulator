@@ -1,14 +1,19 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
-import { grantRenegadeInvocationFervor } from '#gw2/professions/revenant/core/traits/invocation/behavior.js';
+import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import {
   renegadeBuffPolicies,
   renegadeEffectStates
 } from '#gw2/professions/revenant/specializations/renegade/effect-state.js';
+import {
+  renegadeBoonApplied,
+  renegadeCastCompleted,
+  renegadeStruck
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/boundaries.js';
 import {
   activeKallasFervorStacks,
   bandTogetherReady
@@ -26,17 +31,20 @@ import {
   razorclawsRage
 } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import {
-  ashenDemeanor,
-  criticalTraits,
-  fervorProfile,
-  furyTraits,
-  grantKallasFervor
-} from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
+import { fervorProfile } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
 export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  /** Hold the selected preview state while evaluating detached damage queries. */
+  prepareDamageState(runtime, _skill, inputs) {
+    const state = renegadeState.from(runtime);
+    state.kallasFervor = Array.from({ length: Number(inputs.kallasFervor ?? 0) }, () => ({
+      at: runtime.time,
+      expiresAt: Infinity
+    }));
+    if ('fullEndurance' in inputs) runtime.profession.core.endurance.value = inputs.fullEndurance ? 100 : 0;
+  },
   buffPolicies: renegadeBuffPolicies,
   observeEffects: renegadeEffectStates,
   initialize(runtime) {
@@ -57,7 +65,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     'revenant.heroic-command'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       heroicCommand(runtime, context.cast);
     },
     'revenant.begin-band-together'(runtime, context) {
@@ -66,7 +74,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     'revenant.arm-razorclaw'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Elite completion follows Core trait publication, including any immediate boon reactions.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       const selected = bandTogether.get(context.cast);
       if (!selected) return;
       razorclawsRage(runtime, context.cast, runtime.helpers.skillsById.get(selected.profileSkillId) ?? context.skill);
@@ -74,19 +82,19 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     'revenant.complete-band-together'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       completeBandTogether(runtime, context.cast);
     },
     'revenant.soulcleave-allies'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       grantSoulcleaveAllies(runtime);
     }
   },
   onCastCommit(runtime, cast) {
-    ashenDemeanor(runtime, cast);
-    if (cast.skill.id === ID.SWAP_LEGENDS) grantRenegadeInvocationFervor(runtime, grantKallasFervor);
+    runtime.fireTrigger(renegadeCastCompleted, { cast });
+    if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked, { at: runtime.time });
   },
   // Only Bombardment's first resolved hit emits Vindication's control packet.
 
@@ -104,10 +112,15 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     },
     'damage.resolved'(runtime, event, details) {
       if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-      criticalTraits(runtime, event, (details as { hitContext?: Gw2HitResolutionContext }).hitContext);
+      runtime.fireTrigger(renegadeStruck, {
+        cause: event,
+        hit: (details as { hitContext?: Gw2HitResolutionContext }).hitContext
+      });
       razorclawProc(runtime, event);
       soulcleavePlayer(runtime, event);
     },
-    'buff.applied': furyTraits
+    'buff.applied'(runtime, event) {
+      runtime.fireTrigger(renegadeBoonApplied, { cause: event });
+    }
   }
 };

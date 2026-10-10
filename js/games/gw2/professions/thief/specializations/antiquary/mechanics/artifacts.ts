@@ -6,27 +6,18 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import {
-  improvisationArtifactUses,
-  reduceUtilityRecharges
-} from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
-import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
-import { applyKleptomaniac } from '#gw2/professions/thief/core/traits/trickery/steal.js';
+import { improvisationArtifactUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
+import { artifactsPilfered } from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_ARTIFACT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import {
-  applyEnterprisingAristocrat,
-  applyExhilaratingEphemera,
-  applyPossessiveHoarder,
-  grantCombatHigh,
-  grantScoundrelsLuck,
   prodigiousPincherReady,
   prolificPlundererUses
 } from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
-import { applyMeticulousChakShield } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import { stealAccepted, stealCompleted } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 
 /** The slot each accepted artifact cast spent, which selects its Possessive Hoarder family boon. */
 export const artifactSlotsUsed = new WeakMap<RuntimeCast<ThiefSkill>, ThiefArtifactSlot | undefined>();
@@ -59,10 +50,7 @@ export function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initia
   const state = antiquaryState.from(runtime);
   // Every pilfer starts fresh, including Swipe and Scuffle; excess spending never carries to a second pilfer.
   state.initiativeSpentSincePilfer = 0;
-  if (source !== 'swipe') return;
-  grantScoundrelsLuck(runtime);
-  grantCombatHigh(runtime);
-  reduceUtilityRecharges(runtime);
+  runtime.fireTrigger(artifactsPilfered, { source });
 }
 
 /**
@@ -77,16 +65,6 @@ export function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   );
   state.artifactUsesRemaining = Math.max(0, state.artifactUsesRemaining - 1);
   state.artifactSlots = state.artifactSlots.filter((value) => value.skillId !== cast.skill.id);
-}
-
-/** Notify family traits before the skill grants its identity window and invokes Repeat Ransacker. */
-export function notifyArtifactTraits(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const slot = artifactSlotsUsed.get(cast);
-  applyEnterprisingAristocrat(runtime);
-  applyExhilaratingEphemera(runtime);
-
-  applyPossessiveHoarder(runtime, cast, slot);
-  applyMeticulousChakShield(runtime, cast);
 }
 
 /** Gross initiative spending feeds Prodigious Pincher; each live Chak Shield charge refunds one paid weapon use. */
@@ -105,9 +83,10 @@ export function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCas
 
 /** Swipe alone grants its steal package and swipe-only pilfer policies. */
 export function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  emitThiefStealTraits(runtime, cast);
+  runtime.fireTrigger(stealAccepted, { cast });
   pilferArtifacts(runtime, 'swipe');
-  applyKleptomaniac(runtime);
+  // Swipe's pilfer also reaches Core Improvisation before Kleptomaniac.
+  runtime.fireTrigger(stealCompleted, { at: runtime.time, swipe: true });
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */

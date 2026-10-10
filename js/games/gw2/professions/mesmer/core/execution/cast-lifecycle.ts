@@ -2,12 +2,12 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { methodOfMadnessDamage, triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/chaos/index.js';
+import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {
+  completeMesmerShatter,
   createMesmerActions,
   createMesmerSkillEffects,
-  dispatchShatterResolved,
   mesmerShatterDefinition
 } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -82,7 +82,7 @@ export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<Me
     details.reservedShatterResources ? cast.fullEnd : context.time,
     delivery
   );
-  if (resolution) dispatchShatterResolved(context, resolution);
+  if (resolution) completeMesmerShatter(context, resolution);
 }
 
 /** Commits skill effects and resources, restoring interrupted reservations and clearing cast-local state. */
@@ -127,7 +127,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
       );
     }
 
-    triggerMethodOfMadness({ state: context }, skill, at, methodOfMadnessDamage(context), delivery);
+    context.fireTrigger(mesmerHealCompleted, { skill, at, delivery });
   } finally {
     context.profession.core.castDetails.delete(cast.id);
   }

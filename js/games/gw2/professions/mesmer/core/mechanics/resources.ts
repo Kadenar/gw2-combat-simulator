@@ -1,6 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type {
   MesmerClone,
   MesmerCloneAttackScheduler,
@@ -14,7 +15,7 @@ import type {
   MesmerResourceCause,
   MesmerResourceDefinition
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerActivePrimaryWeapon, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
@@ -100,7 +101,12 @@ export function createIllusionRewardController({
     }
 
     if (cause.kind !== 'initial') {
-      triggerCompoundingPower(state, at, gained, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
+      state.fireTrigger(mesmerIllusionsGained, {
+        at,
+        count: gained,
+        sourceSkill: reason,
+        detail: `${gained} stack${gained === 1 ? '' : 's'}`
+      });
     }
 
     const resourceTraitId = Number(cause.traitId);
@@ -139,3 +145,12 @@ export function createIllusionRewardController({
     queueResources
   };
 }
+
+/** Only actual capped resource gains and committed phantasm summons grant Compounding Power stacks. */
+export const mesmerIllusionsGained = defineTriggerPoint<{
+  readonly at: number;
+  readonly count: number;
+  readonly sourceSkill: string;
+  readonly detail: string;
+  readonly delivery?: EffectDelivery;
+}>('mesmer.illusions-gained', [TRAIT.COMPOUNDING_POWER]);

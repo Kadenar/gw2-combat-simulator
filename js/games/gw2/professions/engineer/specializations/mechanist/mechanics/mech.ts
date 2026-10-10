@@ -5,10 +5,8 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
-import {
-  jadeCannonsAttack,
-  triggerMechFighter
-} from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import { jadeCannonsAttack } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -21,6 +19,11 @@ import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/me
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+
+/** Initialization without deferred combat, or explicit combat entry, admits trait-owned background work. */
+export const mechanistCombatReady = defineTriggerPoint<Record<string, never>>('engineer.mechanist-combat-ready', [
+  TRAIT.MECH_CORE_BARRIER_ENGINE
+]);
 
 // Mech strikes use the mech's native damage packet rather than the engineer's
 // equipped weapon strength. The skill-specific native weapon profile is
@@ -198,7 +201,18 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
 
 /** Builds the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
 
-/** Applies post-cast mech lane recovery and Mechanist trait procs for the completed skill. */
+/** A completed player cast while Mechanist is selected, after mech lane recovery is reserved. */
+export interface MechanistCastCompletion {
+  readonly skill: EngineerSkill;
+  readonly at: number;
+}
+
+/** Weapon casts request Rocket Punch only after the command's recovery is reserved on the mech lane. */
+export const mechanistCastCompleted = defineTriggerPoint<MechanistCastCompletion>('engineer.mechanist-cast-completed', [
+  TRAIT.MECH_FIGHTER
+]);
+
+/** Applies post-cast mech lane recovery, then completes the cast for Mechanist traits. */
 export function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill): void {
   if (context.config.specialization !== 'Mechanist') return;
   const state = mechanistState.from(context);
@@ -212,7 +226,7 @@ export function completeEngineerMechCast(context: EngineerRuntime, skill: Engine
     state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, busyUntil);
   }
 
-  triggerMechFighter(context, skill);
+  context.fireTrigger(mechanistCastCompleted, { skill, at });
 }
 
 /** Starts the autonomous mech attack loop when the specialization begins with an active mech. */

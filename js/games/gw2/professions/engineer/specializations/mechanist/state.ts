@@ -19,6 +19,8 @@ interface EngineerMechState {
 }
 
 export interface MechanistState {
+  /** Trait startup admits one barrier loop; its task owns recurrence independently of the attack lane. */
+  barrierEngineStarted: boolean;
   mech: EngineerMechState;
 }
 
@@ -42,6 +44,7 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
 export function createMechanistState(config: EngineerConfig = {}): MechanistState {
   const traits = selectedEngineerTraits(config);
   return {
+    barrierEngineStarted: false,
     mech: {
       enabled: true,
       active: true,

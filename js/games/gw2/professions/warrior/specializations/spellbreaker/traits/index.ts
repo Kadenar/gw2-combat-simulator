@@ -1,12 +1,37 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import {
+  spellbreakerControlAccepted,
+  spellbreakerStrike
+} from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
+import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
+import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerStateAt } from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const attackersInsight = defineTrait({
+  triggers: [
+    onTriggerPoint(spellbreakerControlAccepted, {
+      run: (runtime, input: TriggerPointInput<typeof spellbreakerControlAccepted>) =>
+        reactToSpellbreakerControl(runtime, input.event)
+    })
+  ],
   id: TRAIT.ATTACKERS_INSIGHT,
   name: "Attacker's Insight",
   balance: {
@@ -18,6 +43,12 @@ export const attackersInsight = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const magebaneTether = defineTrait({
+  triggers: [
+    onTriggerPoint(spellbreakerStrike, {
+      run: (runtime, input: TriggerPointInput<typeof spellbreakerStrike>) =>
+        reactToSpellbreakerDamage(runtime, input.event)
+    })
+  ],
   id: TRAIT.MAGEBANE_TETHER,
   name: 'Magebane Tether',
   balance: {
@@ -111,3 +142,76 @@ export const warriorSpellbreakerTraits = [
   pureStrike,
   sunAndMoonStyle
 ] as const;
+
+function reactToSpellbreakerControl(context: Runtime, event: Gw2ResolverEvent): void {
+  if (event.actorType === 'player') {
+    gainAttackersInsight(
+      context,
+      spellbreakerState.from(context),
+      event.at,
+      attackerInsightApplications(context, event)
+    );
+  }
+}
+
+// Trigger resolver-side Magebane Tether only from a qualifying player burst hit
+// and record the proc when its cooldown admits a new window.
+function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEvent): void {
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) {
+    return;
+  }
+
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
+  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event.at)) {
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Magebane Tether',
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: '15% strike damage for 8 seconds'
+      }
+    });
+  }
+}
+
+function gainAttackersInsight(
+  context: Runtime,
+  state: { attackerInsightExpiries: number[] },
+  at: number,
+  applications = 1
+): void {
+  const attackersInsightProfile = requireBalanceProfileFromContext(context, TRAIT.ATTACKERS_INSIGHT);
+  const effect = requireEffect(attackersInsightProfile, 'buff', 'attackers-insight');
+  // Removed packets do not open their associated state or schedule follow-ups.
+  if (!effect) return;
+  // Keep the newest grants; a disabled cap or expired grant cannot add live stacks.
+  state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
+    at,
+    expiresAt: canonicalTime(at + effectNumber(attackersInsightProfile, effect, 'duration')),
+    count: Math.max(1, Math.trunc(applications)),
+    maximumStacks: balanceProfileNumber(attackersInsightProfile, 'maximumStacks'),
+    retain: 'newest-grant'
+  });
+}
+
+function attackerInsightApplications(context: Runtime, event: Gw2ResolverEvent): number {
+  // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
+  return ID.KICK == Number(event.skillId) && context.config.target?.defiant === true ? 2 : 1;
+}
+
+function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, at: number): boolean {
+  const key = 'warrior.spellbreaker.magebaneTether';
+  // Shared player recharge owns readiness; the tether still waits for its GW2 action tick.
+  if (at < gw2CooldownReadyAt(context.procs.deadline(key))) return false;
+
+  const magebaneTetherProfile = requireBalanceProfileFromContext(context, TRAIT.MAGEBANE_TETHER);
+  const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether');
+  // A removed tether must not activate its damage window.
+  if (!effect || !context.procs.claim(TRAIT.MAGEBANE_TETHER, key, at)) return false;
+  state.magebaneTetherUntil = canonicalTime(at + effectNumber(magebaneTetherProfile, effect, 'duration'));
+  return true;
+}
+
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;

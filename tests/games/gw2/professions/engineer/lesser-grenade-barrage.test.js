@@ -8,6 +8,7 @@ import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.j
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { grenadier } from '#gw2/professions/engineer/core/traits/explosives/index.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -17,6 +18,11 @@ import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runt
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const barrageId = ID.LESSER_GRENADE_BARRAGE;
+// Grenadier's compiled commit trigger, applied directly to an observed runtime's mechanic capabilities.
+const grenadierCommit = compileProfessionRules({
+  traitTriggers: grenadier.triggers.map((rule) => ({ ...rule, trait: grenadier.id }))
+}).onCastCommit;
+const commitHeal = (runtime, skill) => grenadierCommit(runtime.mechanics, { skill });
 const heal = engineerProfession.catalog.skillsById.get(ID.HEALING_TURRET);
 const config = {
   specialization: 'Core',
@@ -37,17 +43,17 @@ test('Grenadier respects the barrage skill recharge and shared cooldown resets',
   runtime.cooldownController.startRecharge(skill, runtime.time);
   assert.equal(runtime.cooldownController.readyAt(barrageId), 7.4);
   runtime.time = 2;
-  grenadier.hooks.onCastCommit(runtime, { skill: heal });
+  commitHeal(runtime, heal);
   assert.equal(runtime.cooldownController.readyAt(barrageId), 7.4);
 
   runtime.time = 7.4;
-  grenadier.hooks.onCastCommit(runtime, { skill: heal });
+  commitHeal(runtime, heal);
   assert.equal(runtime.cooldownController.readyAt(barrageId), 13.8);
   assert.equal(runtime.cooldownController.isOnCooldown(barrageId), true);
 
   runtime.cooldownController.resetAll();
   runtime.time = 8;
-  grenadier.hooks.onCastCommit(runtime, { skill: heal });
+  commitHeal(runtime, heal);
   assert.equal(runtime.cooldownController.readyAt(barrageId), 14.4);
 });
 
@@ -171,6 +177,6 @@ test('Grenadier gates the barrage by trait selection and healing skill', () => {
 
   const native = engineerProfession.runtimeFor(config);
   const runtime = observedRuntime(observeGw2Runtime({ profession: native, config, rotation: [] }));
-  grenadier.hooks.onCastCommit(runtime, { skill: native.catalog.skillsById.get(ID.GRENADE) });
+  commitHeal(runtime, native.catalog.skillsById.get(ID.GRENADE));
   assert.equal(runtime.cooldownController.hasCooldown(barrageId), false);
 });

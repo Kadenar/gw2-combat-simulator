@@ -1,20 +1,18 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/core/events.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import {
-  applyShrike,
-  perilousSkiesAvailability
-} from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
+import { perilousSkiesAvailability } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Player attacks and player-owned effect projectiles trigger Mistral and Shrike; pet projectiles stay excluded. */
@@ -27,7 +25,7 @@ export function reactToGaleshotMissile(context: RangerRuntime, event: Gw2Resolve
   )
     return;
   applyMistral(context, event);
-  applyShrike(context, event);
+  context.fireTrigger(missileResolved, { event });
 }
 
 /** Path of Scars keeps the outgoing contact's enhancement on its return, without extending other projectiles' window. */
@@ -135,3 +133,8 @@ export function galeshotCastAvailability(
 
   return { ready: true };
 }
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const missileResolved = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>('ranger.missile-resolved', [
+  TRAIT.SHRIKE
+]);

@@ -203,7 +203,7 @@ export function renderMyBuilds(container: HTMLElement, builds: readonly MyBuild[
         <span>Try a different search.</span>`
       : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14l-7.5-4L3 20V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h5M10.5 6.5v5"></path></svg>
         <strong>No saved builds yet</strong>
-        <span>Use “Save to My Builds” from a build tab's menu to add one.</span>`;
+        <span>Use “Save to My Builds” in the build menu to add one.</span>`;
     empty.hidden = visible > 0;
   }
 }

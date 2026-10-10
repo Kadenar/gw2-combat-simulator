@@ -1,11 +1,10 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
@@ -24,36 +23,6 @@ export function modifyParagonAttributes(context: Gw2ModifierContext, attributes:
   };
 }
 
-/** Swaps reward resources only after committed bursts consume pending echoes. */
-export function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  if (
-    cast.skill.inputCategory === 'weapon-swap' &&
-    hasTrait(runtime, TRAIT.INSPIRING_IMPLEMENTS) &&
-    runtime.procs.claim(TRAIT.INSPIRING_IMPLEMENTS, 'warrior.paragon.inspiringImplements', runtime.time)
-  ) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.INSPIRING_IMPLEMENTS);
-    runtime.resourceController.grant('adrenaline', balanceProfileNumber(profile, 'resourceGain'));
-    runtime.resourceController.grant('motivation', balanceProfileNumber(profile, 'minimumStacks'));
-  }
-}
-
-/** Chant entry reduces the other chants only after opening packets and refrain scheduling. */
-export function applyFeverishPulse(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  if (!hasTrait(runtime, TRAIT.FEVERISH_PULSE)) return;
-  const feverish = requireBalanceProfileFromContext(runtime, TRAIT.FEVERISH_PULSE);
-  for (const id of CHANTS) {
-    const skill = runtime.helpers.skillsById.get(id);
-    if (skill && id !== cast.skill.id)
-      runtime.cooldownController.reduceSkillRecharge(
-        skill,
-        balanceProfileNumber(feverish, 'rechargeReduction'),
-        runtime.time
-      );
-  }
-}
-
-const CHANTS = [ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM];
-
 /** Enduring Refrain scales Might only; other packets retain their original stacks. */
 export function enduringRefrainMultiplier(runtime: Runtime): number {
   return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
@@ -66,15 +35,6 @@ export function enduringRefrainMotivation(runtime: Runtime): number {
   return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ENDURING_REFRAIN), 'resourceGain')
     : 0;
-}
-
-/** Only Motivation actually spent earns adrenaline. */
-export function applyInvigoratingTempo(runtime: Runtime, spent: number): void {
-  if (hasTrait(runtime, TRAIT.INVIGORATING_TEMPO))
-    runtime.resourceController.grant(
-      'adrenaline',
-      spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INVIGORATING_TEMPO), 'resourceGain')
-    );
 }
 
 /** Echo counts are fixed at command admission and survive later trait changes. */

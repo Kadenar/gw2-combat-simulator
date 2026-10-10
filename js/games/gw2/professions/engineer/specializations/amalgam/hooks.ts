@@ -5,14 +5,24 @@ import { amalgamCastAvailability } from '#gw2/professions/engineer/specializatio
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import {
   activatePlasmaticState,
+  amalgamMorphed,
   evolveAmalgam,
   scheduleThornsRetaliation
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
-import { activateAmalgamMorph } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 
 /** Form grants occur at their commitment timestamp; only accepted control can reduce Evolve recharge. */
 export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
+  /** Hold selected bonuses throughout isolated damage queries without casting Morph or Evolve. */
+  prepareDamageState(runtime, _skill, inputs) {
+    const state = amalgamState.from(runtime);
+    state.willingHostUntil = inputs.willingHost ? Infinity : 0;
+    state.evolvedUntil = inputs.evolved ? Infinity : 0;
+    state.titanicUntil = inputs.titanic ? Infinity : 0;
+    state.plasmaticStateUntil = inputs.plasmaticState ? Infinity : 0;
+  },
   availability: amalgamCastAvailability,
   sideEffectHandlers: {
     'engineer.schedule-evolve'(runtime, context) {
@@ -46,7 +56,12 @@ export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
       scheduleThornsRetaliation(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill, runtime.time);
     },
     'engineer.morph-traits'(runtime, data) {
-      activateAmalgamMorph(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
+      const { skill } = (data as SkillTaskData<EngineerSkill>).cast;
+      runtime.fireTrigger(amalgamMorphed, {
+        skill,
+        morphKind: AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id),
+        at: runtime.time
+      });
     }
   },
   reactions: { 'damage.resolved': amalgamResolverEventReactions.damage }

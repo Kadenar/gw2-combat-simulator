@@ -1,3 +1,5 @@
+import { setNecromancerCreatureStrikeScaling } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -20,8 +22,8 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
 import {
   initializeRitualistSpiritLifecycle,
-  startRitualistSpirits,
-  ritualistSpiritTasks
+  ritualistSpiritTasks,
+  startRitualistSpirits
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
 import {
   RITUALIST_BALANCE_PROFILE_IDS as DAMAGE_PROFILE,
@@ -32,10 +34,7 @@ import {
   ritualistSpiritActions
 } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-actions.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import {
-  initializeRitualistSummonTraits,
-  lingeringSpiritsActive
-} from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
+import { lingeringSpiritsActive } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Ritualist uses the shared Core resource owner and actual creature callbacks, with specialization-owned lifetimes. */
@@ -114,7 +113,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
   onCombatStart: startRitualistSpirits,
   initialize(runtime) {
     initializeRitualistSpiritLifecycle(runtime);
-    initializeRitualistSummonTraits(runtime);
+    setNecromancerCreatureStrikeScaling(runtime, () => spiritsStrengthCreatureMultiplier(runtime.queries));
   },
   availability(runtime, skill) {
     const key = INNERVATE.get(skill.id);

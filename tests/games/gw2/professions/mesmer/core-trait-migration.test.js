@@ -1,7 +1,7 @@
+import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
-import { triggerMesmerControlTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
-import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -42,7 +42,7 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     context.state.procs = createProcRegistry(() => context.state);
     context.state.procs.setDeadline(TRAIT.MASTER_FENCER, 2);
     const opportunity = (at, didCrit = true) =>
-      triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
+      criticalOpportunity(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
     opportunity(1);
     context.state.traits.add(TRAIT.MASTER_FENCER);
     opportunity(1);
@@ -181,18 +181,21 @@ test('Ineptitude emission observes the committed Chaotic Interruption recharge',
         readyAt -= amount;
       }
     },
-    effects: {
-      emit(request) {
-        if (request.kind !== 'packet' || request.event.sourceId !== TRAIT.INEPTITUDE) return;
-        assert.equal(readyAt, 5);
-        assert.equal(context.procs.deadline(TRAIT.CHAOTIC_INTERRUPTION), 2);
-        assert.equal(context.procs.deadline('mesmer.core.ineptitude'), 4);
-        observed = true;
+    effects: captureEffectEmissions({
+      submit(event) {
+        if (event.sourceId === TRAIT.INEPTITUDE) {
+          assert.equal(readyAt, 5);
+          assert.equal(context.procs.deadline(TRAIT.CHAOTIC_INTERRUPTION), 2);
+          assert.equal(context.procs.deadline('mesmer.core.ineptitude'), 4);
+          observed = true;
+        }
+
+        return event;
       }
-    }
+    }).effects
   };
   context.procs = createProcRegistry(() => context);
-  triggerMesmerControlTraits(context, { type: 'control', at: 1, skillName: 'test control' });
+  controlOpportunity(context, { type: 'control', at: 1, skillName: 'test control' });
   assert.ok(observed);
 });
 
@@ -263,7 +266,7 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
   }).effects;
 
   // Canonical summon ownership prevents an illusion hit from also counting as a player hit.
-  triggerMesmerCriticalTraits(
+  criticalOpportunity(
     context,
     {
       type: 'damage',
@@ -413,3 +416,14 @@ test('Bountiful Blades uses live packets with the base projectile impact delay',
     }
   }
 });
+
+/** Focused fixtures enter through the same compiled selected listeners as combat. */
+function criticalOpportunity({ state }, event, chance) {
+  bindTriggerPoints(state, mesmerProfession);
+  state.fireTrigger(mesmerCritical, { event, chance });
+}
+
+function controlOpportunity(runtime, event) {
+  bindTriggerPoints(runtime, mesmerProfession);
+  runtime.fireTrigger(mesmerControlAccepted, { event });
+}

@@ -1,24 +1,35 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import {
+  guardianBuffApplied,
+  guardianCastCompleted,
+  type GuardianBuffApplication,
+  type GuardianCastCompletion
+} from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
   activeWeapon,
   guardianBoonActive,
   isOneHandedWeapon
 } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { justiceBlinding, type JusticeBlinding } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -35,7 +46,13 @@ export const healersResolution = defineTrait({
   balance: {
     internalCooldown: 20,
     effects: [{ type: 'boon', name: 'resolution', boon: 'resolution', duration: 8, stacks: 1 }]
-  }
+  },
+  triggers: [
+    onTriggerPoint(guardianCastCompleted, {
+      when: (_runtime, { cast }: GuardianCastCompletion) => cast.skill.type === 'Heal',
+      run: grantHealersResolution
+    })
+  ]
 });
 
 /** Owns Righteous Instincts's live tuning and trait behavior. */
@@ -59,7 +76,14 @@ export const righteousInstincts = defineTrait({
     }
   ],
   // Hoisted handlers keep trait declarations first without changing task priorities or initialization order.
-  hooks: { tasks: { [RESOLUTION_EXPIRY]: expireRighteousResolution, [MIGHT]: pulseRighteousMight } }
+  triggers: [
+    onTriggerPoint(guardianBuffApplied, {
+      when: (_runtime, { cause }: GuardianBuffApplication) =>
+        cause.kind === 'resolution' && cause.resolvedAudience?.includesSelf === true,
+      run: (runtime: Runtime, { cause }: GuardianBuffApplication) => startRighteousInstincts(runtime, cause)
+    })
+  ],
+  lifetime: { tasks: { [RESOLUTION_EXPIRY]: expireRighteousResolution, [MIGHT]: pulseRighteousMight } }
 });
 
 /** Owns Right-Hand Strength's live tuning and trait behavior. */
@@ -159,6 +183,15 @@ export const radiantPower = defineTrait({
 
 /** Owns Radiant Fire's live tuning and trait behavior. */
 export const radiantFire = defineTrait({
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => skill.weapon === 'Torch',
+      multiplier: { profile: TRAIT.RADIANT_FIRE, field: 'rechargeMultiplier' }
+    }
+  ],
+
+  hooks: { maximumAmmo: radiantFireMaximumAmmo },
+
   id: TRAIT.RADIANT_FIRE,
   name: 'Radiant Fire',
   balance: {
@@ -234,7 +267,8 @@ export const justiceIsBlind = defineTrait({
         name: 'Blind'
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(justiceBlinding, { run: blindFromJustice })]
 });
 
 /** Owns Retribution's live tuning and trait behavior. */
@@ -291,22 +325,20 @@ function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boolean {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
   const effect = requireEffect(profile, 'boon', 'might');
   if (!effect) return false;
-  runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'buff',
-      at: runtime.time,
+  emitTraitProfile(runtime, TRAIT.RIGHTEOUS_INSTINCTS, TRAIT.RIGHTEOUS_INSTINCTS, undefined, {
+    at: runtime.time,
+    fullEnd: runtime.time,
+    effect: { type: 'boon', name: 'might' },
+    attribution: {
       source: 'Trait',
       sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
       actorType: 'player',
       skillId: TRAIT.RIGHTEOUS_INSTINCTS,
       skillName: profile.name,
-      activationId: event.activationId,
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      kind: 'might',
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks')
-    }
+      activationId: event.activationId
+    },
+    preserveName: true,
+    transform: (packet) => ({ ...packet, causalOrder: event.causalOrder ?? event.eventOrder })
   });
   {
     runtime.effects.emit({
@@ -326,13 +358,7 @@ function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boolean {
 }
 
 /** A new self Resolution window starts one cadence; additional applications extend its pool without duplicating ticks. */
-export function reactToRighteousInstinctsBuff(runtime: Runtime, event: Gw2ResolverEvent): void {
-  if (
-    event.kind !== 'resolution' ||
-    event.resolvedAudience?.includesSelf !== true ||
-    !hasTrait(runtime, TRAIT.RIGHTEOUS_INSTINCTS)
-  )
-    return;
+function startRighteousInstincts(runtime: Runtime, event: Gw2ResolverEvent): void {
   const state = runtime.profession.core;
   const active = state.resolutionUntil > runtime.time;
   state.resolutionUntil = resolutionDeadline(runtime);
@@ -376,4 +402,48 @@ function pulseRighteousMight(runtime: Runtime, data: unknown): void {
     'pulseInterval'
   );
   if (interval > 0) runtime.schedule(MIGHT, canonicalTime(runtime.time + interval), data, undefined, -10);
+}
+
+/** A committed heal claims Resolution's interval only when its selected boon can emit. */
+function grantHealersResolution(runtime: Runtime, { cast }: GuardianCastCompletion): void {
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEALERS_RESOLUTION);
+  // A removed boon leaves this heal's claim ready.
+  if (
+    !requireEffect(profile, 'boon', 'resolution') ||
+    !runtime.procs.claim(TRAIT.HEALERS_RESOLUTION, 'guardian.core.healersResolution', runtime.time)
+  )
+    return;
+  const cause = guardianCastCause(runtime, cast);
+  emitTraitProfile(runtime, TRAIT.HEALERS_RESOLUTION, TRAIT.HEALERS_RESOLUTION, cause, {
+    at: runtime.time,
+    effect: { type: 'boon', name: 'resolution' },
+    attribution: { source: cause.source, actorType: cause.actorType }
+  });
+}
+
+/** Admit the companion aura before Blind; removing Blind does not remove the independent aura reward. */
+function blindFromJustice(runtime: Runtime, { cause: event, skill, auraTask }: JusticeBlinding): void {
+  // The independent aura is admitted before Blind; removal of the latter never cancels the former.
+  runtime.schedule(auraTask, event.at, event, undefined, -10);
+  emitTraitProfile(runtime, TRAIT.JUSTICE_IS_BLIND, TRAIT.JUSTICE_IS_BLIND, event, {
+    at: event.at,
+    effect: { type: 'condition', name: 'Blind' },
+    attribution: {
+      source: event.source,
+      skillId: TRAIT.JUSTICE_IS_BLIND,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillName: 'Justice is Blind',
+      triggeredBy: skill.name,
+      offTarget: event.offTarget
+    },
+    transform: (packet) => ({ ...packet, causalOrder: event.causalOrder ?? event.eventOrder, name: event.name })
+  });
+}
+
+/** Selected Radiant Fire raises Zealot's Flame capacity without reducing a larger authored capacity. */
+function radiantFireMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
+  return skill.id === ID.ZEALOTS_FLAME && context.hasTrait(TRAIT.RADIANT_FIRE)
+    ? Math.max(maximum, balanceProfileNumber(context.requireBalanceProfile(TRAIT.RADIANT_FIRE), 'maximumStacks'))
+    : maximum;
 }

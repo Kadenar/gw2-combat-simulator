@@ -1,9 +1,10 @@
+import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { reactToUntamedDamage } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
+
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -52,12 +53,14 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
   const runtime = observedRuntime(runRanger([], { ...config, selectedTraitIds: [TRAIT.FEROCIOUS_SYMBIOSIS] }));
   const state = untamedState.from(runtime);
   const hit = (at, pet = false) =>
-    reactToUntamedDamage(runtime, {
-      type: 'damage',
-      at,
-      coefficient: 1,
-      source: pet ? 'ranger-pet' : 'ranger',
-      actorType: pet ? 'summon' : 'player'
+    runtime.fireTrigger(untamedStrike, {
+      event: {
+        type: 'damage',
+        at,
+        coefficient: 1,
+        source: pet ? 'ranger-pet' : 'ranger',
+        actorType: pet ? 'summon' : 'player'
+      }
     });
   for (const pet of [false, true]) {
     hit(1, pet);

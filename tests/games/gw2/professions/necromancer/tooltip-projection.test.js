@@ -1,7 +1,8 @@
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
-import { applyDhuumfire } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
+import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
@@ -253,7 +254,7 @@ test('Dhuumfire removal leaves the cooldown unclaimed and unrelated conditions o
       }
     }
   };
-  applyDhuumfire(
+  dhuumfireOpportunity(
     runtime,
     { type: 'damage', at: 0, skillName: 'Fixture', metadata: { dhuumfireDuration: 4, dhuumfireInterval: 2 } },
     5,
@@ -296,7 +297,7 @@ test('Dhuumfire metadata precedence and zero-cooldown behavior survive projectio
     [undefined, 5],
     [undefined, undefined]
   ]) {
-    applyDhuumfire(runtime, { type: 'damage', at: 0, skillName: 'Fixture', metadata }, skillDuration, true);
+    dhuumfireOpportunity(runtime, { type: 'damage', at: 0, skillName: 'Fixture', metadata }, skillDuration, true);
   }
 
   assert.deepEqual(
@@ -362,3 +363,15 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
     assert.ok(attacks.every(({ coefficient }) => coefficient === (patched ? 6 : 3.7)));
   }
 });
+
+/** Projection contracts use the selected trait's registered strike listener. */
+function dhuumfireOpportunity(runtime, event, dhuumfireDuration, shroudSkillOne) {
+  bindTriggerPoints(runtime, necromancerProfession, runtime.config);
+  runtime.fireTrigger(necromancerStrike, {
+    event: { coefficient: 1, ...event },
+    details: {},
+    firstHit: true,
+    dhuumfireDuration,
+    shroudSkillOne
+  });
+}

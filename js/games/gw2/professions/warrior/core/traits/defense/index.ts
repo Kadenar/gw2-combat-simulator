@@ -1,10 +1,13 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { burstFirstHit, controlAccepted } from '#gw2/professions/warrior/core/mechanics/combat.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
@@ -12,6 +15,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 
 /** Owns this trait's tuning and selected contributions. */
 export const mercilessHammer = defineTrait({
+  triggers: [onTriggerPoint(controlAccepted, { run: (runtime) => mercilessHammerControl(runtime) })],
   id: TRAIT.MERCILESS_HAMMER,
   name: 'Merciless Hammer',
   balance: {
@@ -70,6 +74,11 @@ export const stalwartStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const cullTheWeak = defineTrait({
+  triggers: [
+    onTriggerPoint(burstFirstHit, {
+      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => cullTheWeakBurst(runtime, input.event)
+    })
+  ],
   id: TRAIT.CULL_THE_WEAK,
   name: 'Cull the Weak',
   balance: {
@@ -110,22 +119,18 @@ export const thickSkin = defineTrait({
 type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function mercilessHammerControl(runtime: WarriorRuntime): void {
-  if (hasTrait(runtime, TRAIT.MERCILESS_HAMMER))
-    grantWarriorResource(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MERCILESS_HAMMER), 'resourceGain')
-    );
+function mercilessHammerControl(runtime: WarriorRuntime): void {
+  grantWarriorResource(
+    runtime,
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MERCILESS_HAMMER), 'resourceGain')
+  );
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function cullTheWeakBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (hasTrait(runtime, TRAIT.CULL_THE_WEAK) && runtime.procs.claim(TRAIT.CULL_THE_WEAK)) {
+function cullTheWeakBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  if (runtime.procs.claim(TRAIT.CULL_THE_WEAK)) {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.CULL_THE_WEAK);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: traitProfile,
-      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+    emitTraitProfile(runtime, TRAIT.CULL_THE_WEAK, TRAIT.CULL_THE_WEAK, event, {
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.CULL_THE_WEAK,
@@ -133,8 +138,8 @@ export function cullTheWeakBurst(runtime: WarriorRuntime, event: Gw2ResolverEven
         skillId: event.skillId,
         skillName: event.skillName
       },
-      cause: event,
-      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) })
+      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) }),
+      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
     });
   }
 }

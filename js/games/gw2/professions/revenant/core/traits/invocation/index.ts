@@ -1,10 +1,24 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import {
+  eliteLegendInvoked,
+  invocationFervorGranted,
+  legendInvoked
+} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { REVENANT_CORE_CALL_BY_LEGEND } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/family-state.js';
 
 /** Owns Charged Mists tuning and behavior at its established execution boundaries. */
@@ -70,6 +84,7 @@ export const incensedResponse = defineTrait({
 
 /** Owns Invoker's Rage tuning and behavior at its established execution boundaries. */
 export const invokersRage = defineTrait({
+  triggers: [onTriggerPoint(legendInvoked, { run: invokeInvokersRage })],
   id: TRAIT.INVOKERS_RAGE,
   name: "Invoker's Rage",
   balance: {
@@ -101,10 +116,23 @@ export const roilingMists = defineTrait({
 });
 
 /** Owns Song of the Mists tuning and behavior at its established execution boundaries. */
-export const songOfTheMists = defineTrait({ id: TRAIT.SONG_OF_THE_MISTS, name: 'Song of the Mists' });
+export const songOfTheMists = defineTrait({
+  triggers: [
+    onTriggerPoint(eliteLegendInvoked, {
+      run(runtime) {
+        grantRenegadeInvocationFervor(runtime);
+        grantAllianceInvocationEndurance(runtime);
+      }
+    }),
+    onTriggerPoint(legendInvoked, { run: invokeSongOfTheMists })
+  ],
+  id: TRAIT.SONG_OF_THE_MISTS,
+  name: 'Song of the Mists'
+});
 
 /** Owns Spirit Boon tuning and behavior at its established execution boundaries. */
 export const spiritBoon = defineTrait({
+  triggers: [onTriggerPoint(legendInvoked, { run: invokeSpiritBoon })],
   id: TRAIT.SPIRIT_BOON,
   name: 'Spirit Boon',
   profiles: [
@@ -203,3 +231,102 @@ export const spiritBoon = defineTrait({
     }
   ]
 });
+
+/** Runs the trait at its original ordered mechanic boundary. */
+function invokeInvokersRage(runtime: RevenantRuntime): void {
+  {
+    const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.INVOKERS_RAGE);
+    emitTraitProfile(runtime, TRAIT.INVOKERS_RAGE, invocationProfile.id, undefined, {
+      preserveName: true,
+      effects: (effect) => (invocationProfile.effects ?? []).includes(effect),
+      attribution: (effect) => ({
+        activationId: `legend-invocation:${TRAIT.INVOKERS_RAGE}:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.INVOKERS_RAGE,
+        actorType: effect.actorType || 'player',
+        skillId: invocationProfile.id,
+        skillName: invocationProfile.name
+      }),
+      skillWeaponFallback: 'Unequipped'
+    });
+  }
+}
+
+/** Runs the trait at its original ordered mechanic boundary. */
+function invokeSpiritBoon(runtime: RevenantRuntime): void {
+  const core = runtime.profession.core;
+  const legendId =
+    core.activeLegendId === LEGEND.ENTITY
+      ? core.selectedLegendIds.find((id) => id !== LEGEND.ENTITY)
+      : core.activeLegendId;
+  const elite = legendId ? REVENANT_ELITE_INVOCATIONS[legendId] : undefined;
+  const matchesLegend = (effect: SkillEffect) => elite != null || effect.metadata?.legendId === legendId;
+  if (legendId) {
+    const invocationProfile = requireBalanceProfileFromContext(runtime, elite?.spiritBoon ?? TRAIT.SPIRIT_BOON);
+    emitTraitProfile(runtime, TRAIT.SPIRIT_BOON, invocationProfile.id, undefined, {
+      preserveName: true,
+      effects: (effect) => (invocationProfile.effects?.filter(matchesLegend) ?? []).includes(effect),
+      attribution: (effect) => ({
+        activationId: `legend-invocation:${TRAIT.SPIRIT_BOON}:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.SPIRIT_BOON,
+        actorType: effect.actorType || 'player',
+        skillId: invocationProfile.id,
+        skillName: invocationProfile.name
+      }),
+      skillWeaponFallback: 'Unequipped'
+    });
+  }
+}
+
+/** Runs the trait at its original ordered mechanic boundary. */
+function invokeSongOfTheMists(runtime: RevenantRuntime): void {
+  const core = runtime.profession.core;
+  const legendId =
+    core.activeLegendId === LEGEND.ENTITY
+      ? core.selectedLegendIds.find((id) => id !== LEGEND.ENTITY)
+      : core.activeLegendId;
+  const elite = legendId ? REVENANT_ELITE_INVOCATIONS[legendId] : undefined;
+
+  if (legendId) {
+    // Calls share catalog mechanics while retaining the invocation trait as their triggering source.
+    const song = runtime.helpers.skillsById.get(elite?.song ?? REVENANT_CORE_CALL_BY_LEGEND[legendId]);
+    if (song)
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: song,
+        cause: null,
+        effects: song.effects ?? [],
+        attribution: (effect) => ({
+          activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`,
+          source: 'revenant',
+          sourceId: TRAIT.SONG_OF_THE_MISTS,
+          actorType: effect.actorType || 'player',
+          skillId: song.id,
+          skillName: song.name
+        }),
+        skillWeaponFallback: 'Unequipped'
+      });
+  }
+}
+
+/** Core emits the invocation packets; Kalla additionally grants two Fervor stacks for Song of the Mists. */
+function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
+  if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.combatStartedAt()) return;
+  const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_RENEGADE);
+  if (!song) return;
+  for (let index = 0; index < 2; index += 1)
+    runtime.fireTrigger(invocationFervorGranted, {
+      sourceId: TRAIT.SONG_OF_THE_MISTS,
+      sourceName: song.name,
+      at: runtime.time
+    });
+}
+
+/** Core emits the invocation packets; Alliance additionally restores the Song skill's authored endurance. */
+function grantAllianceInvocationEndurance(runtime: RevenantRuntime): void {
+  if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !runtime.combatStartedAt()) return;
+  const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
+  if (!song) return;
+  runtime.endurance.grant(song.resourceGain || 0);
+}

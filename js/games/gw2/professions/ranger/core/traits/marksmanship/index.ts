@@ -1,15 +1,41 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+
+import {
+  beastSkillUsed,
+  buffApplied,
+  openingStrikeConsumed,
+  petSwapped,
+  strike
+} from '#gw2/professions/ranger/core/mechanics/combat.js';
+import {
+  isPetStrike,
+  isPlayerStrike,
+  targetHealthFraction
+} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { rangerPetEvent, rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
   const core = readProfessionCoreState<{
@@ -27,6 +53,11 @@ function targetVulnerable(context: Gw2ModifierContext): boolean {
 
 /** Owns Wolfsong's live tuning and trait behavior. */
 export const wolfsong = defineTrait({
+  triggers: [
+    onTriggerPoint(beastSkillUsed, {
+      run: (runtime, input: TriggerPointInput<typeof beastSkillUsed>) => applyWolfsong(runtime, input.skill)
+    })
+  ],
   id: TRAIT.WOLFSONG,
   name: 'Wolfsong',
   balance: {
@@ -54,6 +85,11 @@ export const wolfsong = defineTrait({
 
 /** Owns Clarion Bond's live tuning and trait behavior. */
 export const clarionBond = defineTrait({
+  triggers: [
+    onTriggerPoint(petSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof petSwapped>) => applyClarionBond(runtime, input.skill)
+    })
+  ],
   id: TRAIT.CLARION_BOND,
   name: 'Clarion Bond',
   balance: {
@@ -71,6 +107,11 @@ export const clarionBond = defineTrait({
 
 /** Owns Opening Strike's live tuning and trait behavior. */
 export const openingStrike = defineTrait({
+  triggers: [
+    onTriggerPoint(strike, {
+      run: (runtime, input: TriggerPointInput<typeof strike>) => consumeOpeningStrike(runtime, input.event)
+    })
+  ],
   id: TRAIT.OPENING_STRIKE,
   name: 'Opening Strike',
   balance: {
@@ -88,6 +129,11 @@ export const openingStrike = defineTrait({
 
 /** Owns Alpha Focus's live tuning and trait behavior. */
 export const alphaFocus = defineTrait({
+  triggers: [
+    onTriggerPoint(openingStrikeConsumed, {
+      run: (runtime, input: TriggerPointInput<typeof openingStrikeConsumed>) => applyAlphaFocus(runtime, input.event)
+    })
+  ],
   id: TRAIT.ALPHA_FOCUS,
   name: 'Alpha Focus',
   balance: {
@@ -97,6 +143,11 @@ export const alphaFocus = defineTrait({
 
 /** Owns Hunter's Gaze's live tuning and trait behavior. */
 export const huntersGaze = defineTrait({
+  triggers: [
+    onTriggerPoint(strike, {
+      run: (runtime, input: TriggerPointInput<typeof strike>) => triggerHuntersGaze(runtime, input.event)
+    })
+  ],
   id: TRAIT.HUNTERS_GAZE,
   name: "Hunter's Gaze",
   balance: {
@@ -196,6 +247,11 @@ export const farsighted = defineTrait({
 
 /** Owns Remorseless's live tuning and trait behavior. */
 export const remorseless = defineTrait({
+  triggers: [
+    onTriggerPoint(buffApplied, {
+      run: (runtime, input: TriggerPointInput<typeof buffApplied>) => reactToRangerCoreBuff(runtime, input.event)
+    })
+  ],
   id: TRAIT.REMORSELESS,
   name: 'Remorseless',
   modifierRules: [
@@ -233,3 +289,210 @@ export const predatorsOnslaught = defineTrait({
     }
   ]
 });
+
+/** Completes the lesser warhorn package after the pet swap. */
+function applyClarionBond(context: RangerRuntime, skill: RangerSkill): void {
+  const at = context.time;
+  if (context.procs.claim(TRAIT.CLARION_BOND, 'ranger.core.clarionBond', context.time)) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.CLARION_BOND);
+    // The blast finisher is part of the lesser warhorn package, so the cooldown survives removed boons.
+    emitTraitProfile(context, TRAIT.CLARION_BOND, TRAIT.CLARION_BOND, undefined, {
+      at,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.CLARION_BOND,
+        actorType: 'effect',
+        skillId: TRAIT.CLARION_BOND,
+        skillName: 'Clarion Bond',
+        triggeredBy: skill.name
+      },
+      transform: (event) => ({
+        ...event,
+        name: 'Clarion Bond - ' + event.kind,
+        boon: event.kind,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }),
+      preserveName: true,
+      effects: (effect) => effect.type === 'boon'
+    });
+
+    const weakness = requireEffect(profile, 'condition', 'Weakness');
+    if (weakness)
+      emitTraitProfile(context, TRAIT.CLARION_BOND, TRAIT.CLARION_BOND, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'condition', name: 'Weakness' },
+        attribution: {
+          source: 'Trait',
+          actorType: 'effect',
+          skillId: TRAIT.CLARION_BOND,
+          skillName: 'Clarion Bond',
+          name: 'Lesser Call of the Wild - Weakness',
+          triggeredBy: skill.name,
+          sourceId: TRAIT.CLARION_BOND
+        }
+      });
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'proc',
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.CLARION_BOND,
+        actorType: 'effect',
+        skillId: TRAIT.CLARION_BOND,
+        skillName: 'Clarion Bond',
+        name: 'Lesser Call of the Wild - Blast Finisher',
+        triggeredBy: skill.name,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      }
+    });
+  }
+}
+
+/** Applies the trait at the accepted Beast-skill boundary. */
+function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
+  if (rangerPetByName(professionCoreState(context).activePet).family === 'canine') {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.WOLFSONG);
+    const effect = requireEffect(profile, 'condition', 'Vulnerability');
+    if (effect)
+      emitTraitProfile(context, TRAIT.WOLFSONG, TRAIT.WOLFSONG, undefined, {
+        at: context.time,
+        fullEnd: context.time,
+        effect: { type: 'condition', name: 'Vulnerability' },
+        attribution: {
+          source: 'Trait',
+          actorType: 'effect',
+          skillId: TRAIT.WOLFSONG,
+          skillName: 'Wolfsong',
+          name: 'Wolfsong - Vulnerability',
+          triggeredBy: skill.name,
+          sourceId: TRAIT.WOLFSONG
+        }
+      });
+  }
+}
+
+// Spend the player or pet Opening Strike independently on its first qualifying
+// hit and attach Vulnerability plus Alpha Focus when selected.
+function consumeOpeningStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = professionCoreState(context);
+  const player = isPlayerStrike(event);
+  const pet = isPetStrike(event);
+  if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
+  const ready = player ? state.playerOpeningStrikeReady : state.petOpeningStrikeReady;
+  if (!ready) return;
+  const openingStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.OPENING_STRIKE);
+  const openingStrike = requireEffect(openingStrikeProfile, 'condition', 'Vulnerability');
+  const alphaFocusProfile = hasTrait(context, TRAIT.ALPHA_FOCUS)
+    ? requireBalanceProfileFromContext(context, TRAIT.ALPHA_FOCUS)
+    : undefined;
+  const alphaFocus = alphaFocusProfile && requireEffect(alphaFocusProfile, 'condition', 'Crippled');
+  // Readiness is spent by a delivered opener; with every opener packet removed it stays armed.
+  if (!openingStrike && !alphaFocus) return;
+  if (player) state.playerOpeningStrikeReady = false;
+  else state.petOpeningStrikeReady = false;
+  if (openingStrike)
+    emitTraitProfile(context, TRAIT.OPENING_STRIKE, TRAIT.OPENING_STRIKE, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Vulnerability' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.OPENING_STRIKE,
+        actorType: 'effect',
+        skillId: TRAIT.OPENING_STRIKE,
+        skillName: 'Opening Strike',
+        name: 'Opening Strike - Vulnerability',
+        triggeredBy: event.skillName
+      }
+    });
+  context.fireTrigger(openingStrikeConsumed, { event });
+}
+
+// Convert the target's current health tier into ICD-bound Might stacks on a
+// qualifying player strike, using the resolver's cumulative damage state.
+function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  if (!isPlayerStrike(event)) return;
+  const health = targetHealthFraction(context);
+  const profile = requireBalanceProfileFromContext(context, TRAIT.HUNTERS_GAZE);
+  const might = requireEffect(profile, 'boon', 'might');
+  // The cooldown and proc record exist only for the might packet.
+  if (!might) return;
+  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
+  const stacks =
+    health < 0.25
+      ? maximumStacks
+      : health < 0.5
+        ? Math.max(0, maximumStacks - 1)
+        : health < 0.75
+          ? Math.max(0, maximumStacks - 2)
+          : 0;
+  // Target health must yield actual Might stacks before this hit claims the interval.
+  if (!stacks || !context.procs.claim(TRAIT.HUNTERS_GAZE, 'ranger.core.huntersGaze', event.at)) return;
+  context.effects.emit({
+    attribution: { source: 'Trait', sourceId: TRAIT.HUNTERS_GAZE, actorType: 'effect' },
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: "Hunter's Gaze",
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: `${stacks} might`,
+      icon: context.helpers.skillsById.get(TRAIT.HUNTERS_GAZE)?.icon || ''
+    }
+  });
+  emitTraitProfile(context, TRAIT.HUNTERS_GAZE, TRAIT.HUNTERS_GAZE, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'boon', name: 'might' },
+    durationContext: event,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.HUNTERS_GAZE,
+      actorType: 'effect',
+      skillId: TRAIT.HUNTERS_GAZE,
+      skillName: "Hunter's Gaze",
+      name: "Hunter's Gaze - Might",
+      triggeredBy: event.skillName
+    },
+    transform: (packet) => ({ ...packet, stacks: stacks })
+  });
+}
+
+function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const kind = (event.kind || '').toLowerCase();
+  if (kind === 'fury' && event.resolvedAudience?.includesSelf) {
+    const state = professionCoreState(context);
+    state.playerOpeningStrikeReady = true;
+    state.petOpeningStrikeReady = true;
+  }
+}
+
+/** The consumed opener grants Alpha Focus only through its selected owner. */
+function applyAlphaFocus(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  // A consumed pet opener retains its companion's attributes and lifetime identity.
+  emitTraitProfile(context, TRAIT.ALPHA_FOCUS, TRAIT.ALPHA_FOCUS, undefined, {
+    at: event.at,
+    effect: { type: 'condition', name: 'Crippled' },
+    attribution: {
+      source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
+      actorType: isPetStrike(event) ? 'summon' : 'effect',
+      ownerActorType: isPetStrike(event) ? undefined : 'player',
+      skillId: TRAIT.ALPHA_FOCUS,
+      skillName: 'Alpha Focus',
+      triggeredBy: event.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      ...petDerivedConditionMetadata(context, event),
+      name: 'Alpha Focus - ' + packet.condition
+    })
+  });
+}

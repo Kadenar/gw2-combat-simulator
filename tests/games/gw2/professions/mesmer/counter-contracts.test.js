@@ -1,3 +1,4 @@
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -6,12 +7,17 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import { bloodsong } from '#gw2/professions/mesmer/specializations/virtuoso/traits/index.js';
 
+// Compile the producer so selection precedes counter changes in these minimal fixtures.
+const bloodsongReaction = compileProfessionRules({
+  traitTriggers: bloodsong.triggers.map((rule) => ({ ...rule, trait: bloodsong.id }))
+}).reactions['condition.applied'];
+
 // Observe the real deferred resource boundary, including progress changed by a nested reaction during a reward.
 test('Bloodsong resets every fifth application before rewarding, including at full blades', () => {
   const state = virtuosoState.create();
   state.blades.value = 5;
   const observations = [];
-  const react = bloodsong.hooks.reactions['condition.applied'];
+  const react = bloodsongReaction;
   let nested = false;
   const runtime = {
     helpers: mesmerCatalog,
@@ -61,10 +67,10 @@ test('Bloodsong accumulates without rewards for nonpositive thresholds', () => {
       profession: { specialization: { kind: 'Virtuoso', state } },
       schedule: () => assert.fail('Disabled threshold must not queue a reward')
     };
-    bloodsong.hooks.reactions['condition.applied'](runtime, { condition: 'Bleeding', stacks: 1 });
+    bloodsongReaction(runtime, { condition: 'Bleeding', stacks: 1 });
     assert.equal(state.bloodsongProgress, 1);
     runtime.traits.clear();
-    bloodsong.hooks.reactions['condition.applied'](runtime, { condition: 'Bleeding', stacks: 1 });
+    bloodsongReaction(runtime, { condition: 'Bleeding', stacks: 1 });
     assert.equal(state.bloodsongProgress, 1);
   }
 });

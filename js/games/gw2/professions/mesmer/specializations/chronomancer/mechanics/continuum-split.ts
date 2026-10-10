@@ -1,22 +1,25 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { replaceAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
+import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
+import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
 
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 interface ContinuumControllerOptions {
   readonly state: MesmerRuntime;
@@ -28,7 +31,6 @@ interface ContinuumControllerOptions {
   readonly unaffectedCooldownIds: ReadonlySet<SkillId>;
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;
-  readonly triggerShatterTraits: (resolution: MesmerShatterResolution) => void;
   readonly durationPerSource: number;
   readonly bonusDuration?: number;
   readonly scheduleExpiry?: ((at: number) => unknown) | null;
@@ -40,7 +42,6 @@ export function createContinuumController({
   unaffectedCooldownIds,
   refreshAmmo,
   consumeResources,
-  triggerShatterTraits,
   durationPerSource,
   bonusDuration = 0,
   scheduleExpiry = null
@@ -112,7 +113,12 @@ export function createContinuumController({
       traitHits: [{ at, count: spent + 1 }],
       delivery: {}
     };
-    triggerShatterTraits(resolution);
+    // Split has committed its checkpoint and captured spend before Core shatter rewards settle.
+    const definition = mesmerShatterDefinition(state, skill.id);
+    state.fireTrigger(mesmerShatterResolved, {
+      resolution,
+      shatter: definition ? mesmerProfiledShatter(state, definition) : undefined
+    });
     {
       const packet = buildMesmerPacket({
         type: 'marker',

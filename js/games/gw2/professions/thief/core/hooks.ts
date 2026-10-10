@@ -58,14 +58,16 @@ import {
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { activateVenom, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
-import { completeThiefCastTraits, reactThiefCoreCondition } from '#gw2/professions/thief/core/traits/dispatch.js';
-import { completeThiefStealthAttack } from '#gw2/professions/thief/core/traits/shadow-arts/stealth.js';
-import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
 import {
-  completeThiefWeaponSwap,
-  modifyThiefLifeSiphon,
-  startThiefDodge
-} from '#gw2/professions/thief/core/traits/trickery/behavior.js';
+  signetCompleted,
+  stealAccepted,
+  stealthAttackCompleted,
+  thiefCastCompleted,
+  thiefConditionApplied,
+  thiefDodgeStarted,
+  thiefWeaponSwapped
+} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import {
   leadAttacksRechargeReduction,
   sleightOfHandRechargeReduction
@@ -143,13 +145,18 @@ function thiefRechargeWork(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
 const THIEF_CORE_COMPLETE = 'thief.core-complete';
 
 /** Shared swap and completion traits retain their post-packet order after intrinsic skill actions commit. */
-function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, initiativeCost: number): void {
   const skill = cast.skill;
   const committed = !cast.cancelled;
   pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
-  if (committed && skill.stealthAttack) completeThiefStealthAttack(runtime, cast);
-  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) completeThiefWeaponSwap(runtime);
-  completeThiefCastTraits(runtime, cast, committed);
+  if (committed && skill.stealthAttack) runtime.fireTrigger(stealthAttackCompleted, { cast });
+  // Swapping weapons stands up before swap rewards.
+  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
+    setThiefKneeling(runtime, false);
+    runtime.fireTrigger(thiefWeaponSwapped, { at: runtime.time });
+  }
+
+  if (committed) runtime.fireTrigger(thiefCastCompleted, { cast, initiativeCost });
 }
 
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
@@ -157,6 +164,12 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   /** Seed non-expiring Lead Attacks stacks for an isolated damage occurrence. */
   prepareDamageState(runtime, _skill, inputs) {
+    // Off and Active suppress the passive; the active bonus is supplied by the preview's native buff.
+    if ('assassinsSignet' in inputs)
+      runtime.profession.core.assassinsSignetPassiveDisabledUntil = inputs.assassinsSignet === 'passive' ? 0 : Infinity;
+    // These detached windows must be available even when Lead Attacks is not selected.
+    runtime.profession.core.revealedUntil = inputs.revealed ? Infinity : 0;
+    runtime.profession.core.stealthUntil = inputs.stealth ? Infinity : 0;
     if (!hasTrait(runtime, TRAIT.LEAD_ATTACKS)) return;
     const stacks = Number(inputs.leadAttacks ?? 0);
     const maximum = balanceProfileNumber(
@@ -186,6 +199,10 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   observeEffects: thiefEffectStates,
   sideEffectHandlers: {
     'thief.assassins-signet': activateAssassinsSignet,
+    // Signet rewards follow a completed activation, ahead of the skill's other completion actions.
+    'thief.signet-completed'(runtime, context) {
+      if (context.kind === 'cast') runtime.fireTrigger(signetCompleted, { cast: context.cast });
+    },
     'thief.kneel': (runtime) => setThiefKneeling(runtime, true),
     'thief.stand': (runtime) => setThiefKneeling(runtime, false),
     'thief.recall-axes': scheduleThiefAxeRecall,
@@ -194,7 +211,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.steal'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Preserve the shared trait notification before acquisition and Kleptomaniac.
-      emitThiefStealTraits(runtime, context.cast);
+      runtime.fireTrigger(stealAccepted, { cast: context.cast });
       completeThiefSteal(runtime, THIEF_STOLEN_SKILL_IDS);
     },
     'thief.prepare-trap'(runtime, context) {
@@ -230,12 +247,15 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
-    if (skill.id === SHARED_SKILL_IDS.DODGE) startThiefDodge(runtime, cast);
+    if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(thiefDodgeStarted, { cast });
     if (skill.stealthAttack) beginThiefStealthAttack(runtime, cast);
   },
   modifyEffects: selectThiefStealth,
   onCastCommit(runtime, cast) {
-    deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast);
+    // Capture the accepted cost before the deferred task resolves its skill from the live catalog.
+    deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast, {
+      initiativeCost: Math.max(0, cast.skill.initiativeCost || 0)
+    });
   },
   onAutoattackChainTransition: transitionThiefScepterChain,
   reactions: {
@@ -246,7 +266,9 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       reactThiefStealthBreakingStrike(runtime, event);
       reactThiefCoreDamage(runtime, event, details);
     },
-    'condition.applied': reactThiefCoreCondition
+    'condition.applied'(runtime, event) {
+      runtime.fireTrigger(thiefConditionApplied, { cause: event });
+    }
   },
   tasks: {
     'thief.recall-axes'(runtime, data) {
@@ -255,8 +277,8 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,
     [THIEF_CORE_COMPLETE](runtime, data) {
-      const { cast } = data as { cast: RuntimeCast<ThiefSkill> };
-      completeThiefCast(runtime, cast);
+      const { cast, initiativeCost } = data as { cast: RuntimeCast<ThiefSkill>; initiativeCost: number };
+      completeThiefCast(runtime, cast, initiativeCost);
     },
     [THIEF_SCEPTER_CHAIN_EXPIRY]: expireThiefScepterChain
   }

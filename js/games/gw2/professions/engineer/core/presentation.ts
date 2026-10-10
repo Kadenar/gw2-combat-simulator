@@ -168,6 +168,10 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      preview.damageBuff('Thermal Vision', 'thermalVision', 'thermal-vision');
+      preview.damageBuff('Kinetic Battery', 'kineticBattery', 'kinetic-battery');
+      preview.boon('vigor', 'Excessive Energy');
 
       preview.boon('regeneration', 'Energy Amplifier');
       preview.buff('Explosive Temper', 'explosiveTemper', 'explosive-temper', 'Ferocity', true);

@@ -1,119 +1,94 @@
 /* Owns build templates, equipment, attributes, traits, and skill-selection layouts. */
 
-/* Build tabs share one editor and contain their own overflow at every viewport width. */
+/* One switcher holds every open build, so the strip keeps the same width at any build count. */
 .build-workspace-tabs {
   /* Span a full row below navigation and help. */
   width: 100%;
   display: flex;
-  /* Align to the tab tops so a horizontal scrollbar cannot shift the adjacent buttons. */
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   min-width: 0;
   margin-bottom: 8px;
 }
 
-.build-tab-list {
+.build-switcher {
   display: flex;
+  /* Long names truncate inside the control instead of pushing the file actions off the row. */
   flex: 0 1 auto;
-  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-  padding: 2px;
+  max-width: 440px;
+  min-height: 44px;
+  padding: 4px 10px 4px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-panel-alt);
+  color: var(--text-bright);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.build-tab {
-  position: relative;
-  display: flex;
-  flex: 0 0 auto;
-  min-width: 128px;
-  /* Truncate long labels inside the available strip width while keeping the dropdown visible. */
-  max-width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--bg-panel);
-}
-
-.build-tab.is-active {
-  /* Keep the active outline the same thickness on all four sides. */
+/* The trigger stays highlighted while its list of builds is open. */
+.build-switcher:hover,
+.build-switcher:has(+ :popover-open) {
   border-color: var(--accent);
 }
 
-.build-tab button {
+.build-switcher > svg {
+  flex: 0 0 auto;
+}
+
+.build-switcher-text {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  padding: 9px 10px;
-  border: 0;
-  color: var(--text-dim);
-  background: transparent;
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-  white-space: nowrap;
+}
+
+.build-switcher-name,
+.build-switcher-count {
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.build-tab > button {
-  width: 100%;
-  /* Cap the label before intrinsic sizing so the list reserves only the visible tab width. */
-  max-width: calc(240px - 30px - 2px);
-  text-align: left;
+/* Whole-pixel line boxes keep the sticky header, and everything laid out below it, on the pixel grid. */
+.build-switcher-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 18px;
 }
 
-.build-tab.is-active button,
-.build-tab button:hover {
-  color: var(--text-bright);
+.build-switcher-count {
+  color: var(--text-dim);
+  font-size: 0.6875rem;
+  line-height: 15px;
 }
 
-.build-tab button:focus-visible,
-.build-tab-new:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-/* Each tab reserves a visible dropdown trigger so its label and actions never overlap. */
-.build-tab .build-tab-menu-trigger {
-  flex: 0 0 30px;
-  width: 30px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-}
-
-.build-tab-menu-trigger:hover,
-.build-tab-new:hover {
-  color: var(--text-bright);
-  background: var(--border);
-}
-
-.build-tab-new {
-  flex-shrink: 0;
-}
-
-.build-tab-new,
-.build-tab-actions {
-  margin-top: 2px;
-}
-
-.build-tab-actions {
+.build-toolbar-actions {
   display: flex;
   flex-shrink: 0;
   gap: 8px;
   margin-left: auto;
 }
 
-.build-toolbar-io {
-  display: flex;
-  gap: 8px;
-}
-
+/* Only colors animate: a height that eased between breakpoints would move the sticky header and the editor below it. */
 .build-workspace-tabs .btn {
   min-height: 36px;
+  transition-property: background-color, border-color, color;
 }
 
-.build-actions-label,
-#build-actions-trigger {
-  display: none;
+/* Starting a build is the strip's primary action, so it carries the profession accent over the shared button look. */
+.build-workspace-tabs .build-tab-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border-light));
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* The native top layer keeps menus clear of editor overflow and supplies light dismissal. */
@@ -131,6 +106,13 @@
   background: var(--bg-panel);
   color: var(--text-bright);
   box-shadow: 0 8px 24px #0006;
+}
+
+/* Template names carry weapons and variants, so the list grows to fit them before it truncates. */
+.build-switcher-menu {
+  width: max-content;
+  min-width: 300px;
+  max-width: min(460px, calc(100vw - 16px));
 }
 
 .build-toolbar-menu button {
@@ -153,6 +135,7 @@
 }
 
 .build-toolbar-menu button:focus-visible,
+.build-switcher:focus-visible,
 .build-workspace-tabs .btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
@@ -163,23 +146,167 @@
   cursor: default;
 }
 
-.build-toolbar-menu hr,
-.build-menu-io:not(:empty) {
+.build-toolbar-menu hr {
   margin: 4px 0;
   border: 0;
   border-bottom: 1px solid var(--border);
 }
 
-/* Keep tab controls reachable on phones while file actions collapse into the overflow menu. */
-@media (max-width: 600px) {
-  .build-actions-label,
-  #build-actions-trigger {
-    display: inline-block;
-  }
+.build-menu-heading {
+  padding: 10px 10px 6px;
+  color: var(--text-dim);
+  font-size: 0.6875rem;
+}
 
-  .build-toolbar-io {
-    display: none;
-  }
+/* A long list of builds scrolls inside the menu, leaving the build actions below it in view. */
+.build-tab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 228px;
+  overflow-y: auto;
+}
+
+.build-tab {
+  display: flex;
+  flex: 0 0 auto;
+  border-radius: 3px;
+}
+
+.build-tab.is-active,
+.build-tab:has(.build-tab-close[aria-expanded='true']) {
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+.build-tab > [data-build-tab-action='select'] {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.build-tab.is-active > [data-build-tab-action='select'] {
+  font-weight: 600;
+}
+
+.build-tab > [data-build-tab-action='select'] > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Every row reserves the check's width so names line up whether or not the build is current. */
+.build-tab-check {
+  flex: 0 0 auto;
+  color: var(--accent);
+  visibility: hidden;
+}
+
+.build-tab.is-active .build-tab-check {
+  visibility: visible;
+}
+
+.build-tab > .build-tab-close {
+  display: grid;
+  flex: 0 0 34px;
+  place-items: center;
+  width: 34px;
+  padding: 0;
+  color: var(--text-dim);
+}
+
+.build-tab > .build-tab-close:hover:not(:disabled) {
+  color: var(--text-bright);
+}
+
+/* A nested top-layer confirmation stays beside the build list without inheriting its full-width menu rows. */
+.build-close-confirmation {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: 300px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--menu-surface);
+  color: var(--text);
+  box-shadow: 0 8px 28px #0008;
+}
+
+.build-close-confirmation h2 {
+  margin: 0 0 10px;
+  color: var(--text-bright);
+  font-size: 0.875rem;
+}
+
+#build-close-name {
+  margin-bottom: 8px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+#build-close-description {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.build-close-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.build-close-actions > button {
+  width: auto;
+  border: 1px solid var(--border-light);
+  text-align: center;
+}
+
+.build-close-actions > [data-close-confirm] {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border-light));
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--text-bright);
+}
+
+/* Full-width icon rows keep actions easy to scan; separators distinguish loading and resetting from edits. */
+.build-switcher-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+
+.build-switcher-actions > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.build-switcher-actions > button > svg {
+  flex: 0 0 16px;
+  color: var(--text-dim);
+}
+
+.build-switcher-actions > button > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.build-switcher-actions > hr {
+  margin: 8px 4px;
+}
+
+.build-switcher-actions > .build-action-reset,
+.build-switcher-actions > .build-action-reset > svg {
+  color: var(--accent);
 }
 
 .build-tab-notice {
@@ -189,14 +316,42 @@
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 360px) {
-  .build-actions-label {
-    display: none;
-  }
-}
-
 .build-workspace-tabs:has(.build-tab-notice:not([hidden])) {
   flex-wrap: wrap;
+}
+
+/* Narrow headers keep the build and DPS together above the full-width action row. */
+@media (max-width: 600px) {
+  .build-workspace-tabs {
+    flex-wrap: wrap;
+  }
+
+  .build-switcher {
+    flex: 1 1 0;
+    max-width: none;
+  }
+
+  .header-dps {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-width: 88px;
+    padding: 5px 8px;
+  }
+
+  .header-dps-value {
+    font-size: 18px;
+  }
+
+  .build-toolbar-actions {
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+
+  .build-toolbar-actions .btn {
+    flex: 1 1 0;
+    min-height: 44px;
+  }
 }
 
 /* Keep name inputs consistent, with native modal focus and room on small screens. */

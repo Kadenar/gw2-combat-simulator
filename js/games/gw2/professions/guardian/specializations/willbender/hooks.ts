@@ -15,13 +15,17 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import {
-  applyGuardianVirtueActivationTraits,
-  permeatingWrathThreshold
-} from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
-import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
+  justiceActivated,
+  refreshGuardianVirtues,
+  virtueActivated
+} from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  willbenderVirtueOpened,
+  willbenderVirtueTriggered
+} from '#gw2/professions/guardian/specializations/willbender/activations.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
   willbenderBuffPolicies,
@@ -34,14 +38,7 @@ import {
   willbenderVirtueActions
 } from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import {
-  applyWillbenderActivationTraits,
-  applyWillbenderTriggerTraits,
-  gainLethalTempo,
-  lethalTempoParameters,
-  triggerPhoenixProtocol,
-  willbenderVirtueWindowProfile
-} from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
+import { willbenderVirtueWindowProfile } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -79,7 +76,7 @@ function activate(runtime: Runtime, data: unknown): void {
         audience: { recipients: 'self' }
       }
     });
-  applyWillbenderActivationTraits(runtime, cause, virtue);
+  runtime.fireTrigger(willbenderVirtueOpened, { cause, virtue });
 }
 
 /** Same-virtue fields overlap; a different virtue retires all pending work from the prior flame group. */
@@ -137,7 +134,7 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
     state.virtueHitCounts[virtue] = progress.value;
     if (!progress.reached) continue;
     state.triggeredVirtueEffects++;
-    applyWillbenderTriggerTraits(runtime, event);
+    runtime.fireTrigger(willbenderVirtueTriggered, { cause: event, virtue });
     if (virtue === 'justice') {
       const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.justice);
       const burn = requireEffect(profile, 'condition', 'Burning (active)');
@@ -195,8 +192,6 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
           });
         }
       }
-
-    triggerPhoenixProtocol(runtime, event, virtue);
   }
 }
 
@@ -204,16 +199,7 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
 export const willbenderHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   buffPolicies: willbenderBuffPolicies,
   observeEffects: willbenderEffectStates,
-  /** Initial Tempo uses its normal grant function, retaining the selected cap and subsequent refresh behavior. */
-  initialize(runtime) {
-    const parameters = lethalTempoParameters(runtime);
-    if (!parameters) return;
-    for (const buff of runtime.config.initialBuffs ?? []) {
-      if (buff.kind !== 'lethal-tempo') continue;
-      for (let i = 0; i < Math.min(buff.stacks, parameters.maximumStacks); i++)
-        gainLethalTempo(willbenderState.from(runtime), runtime.time, { ...parameters, duration: buff.duration });
-    }
-  },
+
   sideEffectHandlers: willbenderVirtueActions,
   availability(runtime, skill) {
     return skill.id === ID.REPOSE && !skillFlipReady(runtime.profession.core.availableFlips[ID.REPOSE], runtime.time)
@@ -232,8 +218,8 @@ export const willbenderHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> 
     if (virtue) {
       refreshGuardianVirtues(runtime);
       if (readyVirtues.has(cast)) {
-        applyGuardianVirtueActivationTraits(runtime, cast, virtue);
-        if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
+        runtime.fireTrigger(virtueActivated, { cast, virtue });
+        if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
       }
     }
   },

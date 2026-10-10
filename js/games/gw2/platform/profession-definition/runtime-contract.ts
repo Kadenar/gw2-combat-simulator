@@ -20,14 +20,18 @@ import type {
   SelectedContentContext,
   TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
+import type { RechargeRule, TraitTrigger, TriggerListener } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-/** Hook registration is selected before execution; isolated payloads do not install activation triggers. */
+/**
+ * Select compiled activation producers before execution. Disabling them retains value policies and handlers for
+ * explicitly admitted payloads. Traits register new rewards through compiled triggers; their explicit lifetime
+ * handlers and value policies remain available when activation discovery is disabled.
+ */
 export interface ProfessionRuntimeOptions {
   readonly traitTriggers?: boolean;
 }
@@ -54,6 +58,8 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   readonly skillSelectionCatalog?: CanonicalCatalog<TSkill>;
   readonly rechargeRules?: readonly RechargeRule<T, TSkill>[];
   readonly traitTriggers?: readonly TraitTrigger<T, TSkill>[];
+  /** Selected trait listeners for each trigger point, in each point's declared order; empty for isolated payloads. */
+  readonly triggerListeners?: ReadonlyMap<string, readonly TriggerListener<T, TSkill>[]>;
   createState(config: Gw2Config): T;
   projectPlanningState?(input: Gw2PlanningStateInput<T>): unknown;
   initialize?(runtime: MechanicContext<T, TSkill>): void;

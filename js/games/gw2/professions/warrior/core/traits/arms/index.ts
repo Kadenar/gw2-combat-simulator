@@ -1,20 +1,29 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
+
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   procChanceFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  burstFirstHit,
+  controlAccepted,
+  critical,
+  immobilized,
+  strikeResourcesGranted
+} from '#gw2/professions/warrior/core/mechanics/combat.js';
 import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {
   warriorActiveBuffStacks,
@@ -41,6 +50,10 @@ export const signetMastery = defineTrait({
     ]
   },
   triggers: [
+    onTriggerPoint(strikeResourcesGranted, {
+      run: (runtime, input: TriggerPointInput<typeof strikeResourcesGranted>) =>
+        signetMasteryDamage(runtime, input.event)
+    }),
     {
       order: 7,
 
@@ -55,6 +68,11 @@ export const signetMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstPrecision = defineTrait({
+  triggers: [
+    onTriggerPoint(burstFirstHit, {
+      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => burstPrecisionHit(runtime, input.event)
+    })
+  ],
   id: TRAIT.BURST_PRECISION,
   name: 'Burst Precision',
   balance: {
@@ -80,6 +98,12 @@ export const burstPrecision = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const bloodlust = defineTrait({
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        bloodlustCritical(runtime, input.event, input.opportunity, input.firstBurst)
+    })
+  ],
   id: TRAIT.BLOODLUST,
   name: 'Bloodlust',
   balance: {
@@ -109,6 +133,12 @@ export const bloodlust = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const furious = defineTrait({
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        furiousCritical(runtime, input.event, input.opportunity, input.firstBurst)
+    })
+  ],
   id: TRAIT.FURIOUS,
   name: 'Furious',
   balance: {
@@ -121,6 +151,12 @@ export const furious = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const sunderingBurst = defineTrait({
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        sunderingBurstCritical(runtime, input.event, input.opportunity, input.firstBurst)
+    })
+  ],
   id: TRAIT.SUNDERING_BURST,
   name: 'Sundering Burst',
   balance: {
@@ -134,6 +170,14 @@ export const sunderingBurst = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const opportunist = defineTrait({
+  triggers: [
+    onTriggerPoint(immobilized, {
+      run: (runtime, input: TriggerPointInput<typeof immobilized>) => triggerOpportunist(runtime, input.event)
+    }),
+    onTriggerPoint(controlAccepted, {
+      run: (runtime, input: TriggerPointInput<typeof controlAccepted>) => triggerOpportunist(runtime, input.event)
+    })
+  ],
   id: TRAIT.OPPORTUNIST,
   name: 'Opportunist',
   balance: {
@@ -311,41 +355,28 @@ export const dualWielding = defineTrait({
 type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 // Trigger Lesser Signet of Might after the first eligible below-half-health strike at that strike's exact timestamp.
-export function signetMasteryDamage(
+function signetMasteryDamage(
   context: MechanicContext<WarriorRuntimeState, WarriorSkill>,
   event: Gw2ResolverEvent
 ): void {
-  if (
-    event.actorType !== 'player' ||
-    !((event.coefficient || 0) > 0) ||
-    !context.combat.targetHealthBelow(0.5) ||
-    !hasTrait(context, TRAIT.SIGNET_MASTERY)
-  ) {
+  if (event.actorType !== 'player' || !((event.coefficient || 0) > 0) || !context.combat.targetHealthBelow(0.5)) {
     return;
   }
 
-  const signetMastery = requireBalanceProfileFromContext(context, TRAIT.SIGNET_MASTERY);
   // Reserve this trait's own deadline before emitting its effects.
   if (!context.procs.claim(TRAIT.SIGNET_MASTERY)) return;
-  for (const effect of signetMastery.effects || []) {
-    const kind = String(effect.boon || effect.kind || '');
-    context.effects.emit({
-      kind: 'packet',
-      durationContext: event,
-      event: buildResolverBuff({
-        at: event.at,
-        priority: 5,
-        source: 'Trait',
-        sourceId: TRAIT.SIGNET_MASTERY,
-        actorType: 'effect',
-        skillId: TRAIT.SIGNET_MASTERY,
-        skillName: 'Lesser Signet of Might',
-        kind,
-        stacks: effectNumber(signetMastery, effect, 'stacks'),
-        duration: effectNumber(signetMastery, effect, 'duration')
-      })
-    });
-  }
+  // The claim owns the whole lesser signet; the shared emitter expands its current buff package.
+  emitTraitProfile(context, TRAIT.SIGNET_MASTERY, TRAIT.SIGNET_MASTERY, undefined, {
+    at: event.at,
+    durationContext: event,
+    effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
+    attribution: {
+      priority: 5,
+      skillId: TRAIT.SIGNET_MASTERY,
+      skillName: 'Lesser Signet of Might',
+      name: 'Lesser Signet of Might'
+    }
+  });
 
   context.effects.emit({
     kind: 'announcement',
@@ -404,18 +435,15 @@ export function claimTrait(runtime: WarriorRuntime, trait: number): boolean {
   return hasTrait(runtime, trait) && runtime.procs.claim(trait);
 }
 
-export function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !claimTrait(runtime, TRAIT.OPPORTUNIST)) return;
+function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  if (event.actorType !== 'player' || !runtime.procs.claim(TRAIT.OPPORTUNIST)) return;
   grantWarriorResource(
     runtime,
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.OPPORTUNIST), 'resourceGain')
   );
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.OPPORTUNIST);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: traitProfile,
-      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+    emitTraitProfile(runtime, TRAIT.OPPORTUNIST, TRAIT.OPPORTUNIST, event, {
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.OPPORTUNIST,
@@ -423,14 +451,14 @@ export function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEv
         skillId: event.skillId,
         skillName: event.skillName
       },
-      cause: event,
-      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) })
+      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) }),
+      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
     });
   }
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   const attribution = {
     at: runtime.time,
     priority: 5,
@@ -440,7 +468,7 @@ export function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEve
     skillName: event.skillName,
     stacks: 1
   };
-  if (hasTrait(runtime, TRAIT.BURST_PRECISION)) {
+  {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_PRECISION);
     runtime.effects.emit({
       kind: 'packet',
@@ -460,15 +488,14 @@ export function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEve
   }
 }
 
-/** Apply line-owned rewards at the shared reaction boundary. */
-export function armsCriticalRewards(
+/** Resolve this trait's reward from the shared critical opportunity. */
+function bloodlustCritical(
   runtime: WarriorRuntime,
   event: Gw2ResolverEvent,
   opportunity: ReturnType<typeof criticalOpportunity>,
-  firstBurst: boolean
+  _firstBurst: boolean
 ): void {
-  const criticals = opportunity.sampledCriticals;
-  if (hasTrait(runtime, TRAIT.BLOODLUST)) {
+  {
     const proc = advanceCriticalProc(opportunity, {
       id: 'warrior.core.bloodlust',
       at: runtime.time,
@@ -480,11 +507,7 @@ export function armsCriticalRewards(
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
       const bleeding = requireEffect(profile, 'condition', 'Bleeding');
       if (bleeding) {
-        const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
-        runtime.effects.emit({
-          kind: 'profile',
-          profile: traitProfile,
-          effects: [bleeding],
+        emitTraitProfile(runtime, TRAIT.BLOODLUST, TRAIT.BLOODLUST, event, {
           attribution: {
             source: 'Trait',
             sourceId: TRAIT.BLOODLUST,
@@ -492,7 +515,6 @@ export function armsCriticalRewards(
             skillId: event.skillId,
             skillName: event.skillName
           },
-          cause: event,
           transform: (packet) => ({
             ...packet,
             priority: 5,
@@ -501,23 +523,30 @@ export function armsCriticalRewards(
             skillName: 'Bloodlust',
             triggeredBy: event.skillName,
             metadata: { procCount: proc.quantity }
-          })
+          }),
+          effects: (candidate) => candidate === bleeding
         });
       }
     }
   }
+}
 
-  if (criticals > 0 && hasTrait(runtime, TRAIT.FURIOUS)) {
+/** Resolve this trait's reward from the shared critical opportunity. */
+function furiousCritical(
+  runtime: WarriorRuntime,
+  event: Gw2ResolverEvent,
+  opportunity: ReturnType<typeof criticalOpportunity>,
+  _firstBurst: boolean
+): void {
+  const criticals = opportunity.sampledCriticals;
+  if (criticals > 0) {
     grantWarriorResource(
       runtime,
       criticals * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS), 'resourceGain')
     );
     {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS);
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      emitTraitProfile(runtime, TRAIT.FURIOUS, TRAIT.FURIOUS, event, {
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.FURIOUS,
@@ -525,26 +554,31 @@ export function armsCriticalRewards(
           skillId: event.skillId,
           skillName: event.skillName
         },
-        cause: event,
         transform: (packet) => ({
           ...packet,
           priority: 5,
           name: traitProfile.name,
           stacks: criticals * Number(packet.stacks)
-        })
+        }),
+        effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
       });
     }
   }
+}
 
-  if (firstBurst && claimTrait(runtime, TRAIT.SUNDERING_BURST)) {
+/** Resolve this trait's reward from the shared critical opportunity. */
+function sunderingBurstCritical(
+  runtime: WarriorRuntime,
+  event: Gw2ResolverEvent,
+  opportunity: ReturnType<typeof criticalOpportunity>,
+  firstBurst: boolean
+): void {
+  const criticals = opportunity.sampledCriticals;
+  if (firstBurst && runtime.procs.claim(TRAIT.SUNDERING_BURST)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_BURST);
     const effect = requireEffect(profile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst');
     if (effect) {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_BURST);
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: [effect],
+      emitTraitProfile(runtime, TRAIT.SUNDERING_BURST, TRAIT.SUNDERING_BURST, event, {
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.SUNDERING_BURST,
@@ -552,13 +586,13 @@ export function armsCriticalRewards(
           skillId: event.skillId,
           skillName: event.skillName
         },
-        cause: event,
         transform: (packet) => ({
           ...packet,
           priority: 5,
           stacks: 1 * Number(packet.stacks),
           name: 'Sundering Burst — Vulnerability'
-        })
+        }),
+        effects: (candidate) => candidate === effect
       });
     }
   }

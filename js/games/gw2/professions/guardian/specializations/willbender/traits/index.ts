@@ -1,15 +1,66 @@
-import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
+import { battlePresenceSharesBoons } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import {
+  willbenderVirtueOpened,
+  willbenderVirtueTriggered,
+  type WillbenderVirtueBoundary
+} from '#gw2/professions/guardian/specializations/willbender/activations.js';
+import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import { lethalTempoStacks } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
+import {
+  lethalTempoParameters,
+  lethalTempoStacks
+} from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Intrinsic virtue grants share an inclusive stack lifetime and the outgoing additive damage bucket. */
 export const lethalTempo = defineTrait({
   id: TRAIT.LETHAL_TEMPO,
   name: 'Lethal Tempo',
+  // Both virtue boundaries grant and report the same inclusive stack window; the minor is intrinsic to Willbender.
+  triggers: [
+    onTriggerPoint(willbenderVirtueOpened, {
+      requiresSelection: false,
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
+    }),
+    onTriggerPoint(willbenderVirtueTriggered, {
+      requiresSelection: false,
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
+    })
+  ],
+  hooks: {
+    /** Initial Tempo uses its normal grant function, retaining the selected cap and subsequent refresh behavior. */
+    initialize(runtime) {
+      const parameters = lethalTempoParameters(runtime);
+      if (!parameters) return;
+      for (const buff of runtime.config.initialBuffs ?? []) {
+        if (buff.kind !== 'lethal-tempo') continue;
+        for (let i = 0; i < Math.min(buff.stacks, parameters.maximumStacks); i++)
+          gainLethalTempo(willbenderState.from(runtime), runtime.time, { ...parameters, duration: buff.duration });
+      }
+    }
+  },
   balance: {
     maximumStacks: 5,
     effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 1, duration: 6 }]
@@ -75,7 +126,17 @@ export const restorativeVirtues = defineTrait({
     rechargeReduction: 0.28,
     effects: [{ type: 'boon', name: 'vigor', boon: 'vigor', stacks: 1, duration: 3 }]
   },
-  hooks: {
+  triggers: [
+    onTriggerPoint(willbenderVirtueOpened, {
+      when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+        grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, 'vigor', cause, () => ({ recipients: 'self' }))
+    }),
+    onTriggerPoint(willbenderVirtueTriggered, {
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) => reduceWeapons(runtime, cause)
+    })
+  ],
+  lifetime: {
     onCastStart(runtime, cast) {
       if (cast.cancelled) return;
       if (cast.skill.type === 'Weapon')
@@ -104,7 +165,18 @@ export const holyReckoning = defineTrait({
       { type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 15, audience: { recipients: 'party' } },
       { type: 'boon', name: 'fury', boon: 'fury', stacks: 1, duration: 3, audience: { recipients: 'self' } }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(willbenderVirtueOpened, {
+      when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'justice',
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, 'fury', cause, () => ({ recipients: 'self' }))
+    }),
+    onTriggerPoint(willbenderVirtueTriggered, {
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, 'might', cause, () => ({ recipients: 'party' }))
+    })
+  ]
 });
 
 /** Resolve grants distinct Alacrity packets whose authored recipients can be widened by Battle Presence. */
@@ -124,7 +196,20 @@ export const phoenixProtocol = defineTrait({
         audience: { recipients: 'self' }
       }
     ]
-  }
+  },
+  // Activation and completed cycles honor the same authored sharing policy.
+  triggers: [
+    onTriggerPoint(willbenderVirtueOpened, {
+      when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, 'alacrity', cause, phoenixAudience(runtime))
+    }),
+    onTriggerPoint(willbenderVirtueTriggered, {
+      when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
+      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, 'alacrity (triggered)', cause, phoenixAudience(runtime))
+    })
+  ]
 });
 
 /** Only tagged flame strikes receive the multiplier; the panel bonus remains eligible for conversions. */
@@ -202,3 +287,147 @@ export const willbenderTraits = [
   conceitedCurate,
   searingPact
 ];
+
+type BoonAudience = { readonly recipients?: string } | undefined;
+
+/** Grants one surviving profile boon on the virtue boundary's cause, under the trait's own identity. */
+function grantVirtueBoon(
+  runtime: Runtime,
+  trait: number,
+  name: string,
+  cause: Gw2ResolverEvent,
+  audience: (authored: BoonAudience) => BoonAudience
+): void {
+  const profile = requireBalanceProfileFromContext(runtime, trait);
+  const effect = requireEffect(profile, 'boon', name);
+  if (!effect) return;
+  emitTraitProfile(runtime, trait, profile.id, undefined, {
+    preserveName: true,
+    effects: (candidate) => candidate === effect,
+    attribution: {
+      source: 'guardian',
+      sourceId: trait,
+      actorType: 'player',
+      skillId: trait,
+      skillName: profile.name,
+      activationId: cause.activationId,
+      triggeredBy: cause.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      duration: packet.duration,
+      name: profile.name + ' — ' + name,
+      causalOrder: cause.causalOrder ?? cause.eventOrder,
+      audience: audience(packet.audience) as typeof packet.audience
+    })
+  });
+}
+
+/** Authored sharing survives without Battle Presence; the trait can still share self-only live effects. */
+function phoenixAudience(runtime: Runtime): (authored: BoonAudience) => BoonAudience {
+  return (authored) => (battlePresenceSharesBoons(runtime) ? { ...authored, recipients: 'party' } : authored);
+}
+
+function gainLethalTempo(
+  state: GuardianWillbenderState,
+  at: number,
+  { maximumStacks, duration }: NonNullable<ReturnType<typeof lethalTempoParameters>>
+): number {
+  // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
+  at = canonicalTime(at);
+  state.lethalTempo = grantRefreshedStacks(
+    state.lethalTempo,
+    1,
+    at,
+    gw2EffectExpiresAt(at, duration),
+    maximumStacks,
+    'inclusive'
+  );
+  return state.lethalTempo.stacks;
+}
+
+/** Both virtue boundaries grant and report the same inclusive stack window. */
+function tempo(runtime: Runtime, event: Gw2ResolverEvent): void {
+  const parameters = lethalTempoParameters(runtime);
+  if (!parameters) return;
+  const stacks = gainLethalTempo(willbenderState.from(runtime), runtime.time, parameters);
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'guardian',
+      sourceId: TRAIT.LETHAL_TEMPO,
+      actorType: 'player',
+      skillId: TRAIT.LETHAL_TEMPO,
+      skillName: 'Lethal Tempo',
+      name: 'Lethal Tempo',
+      kind: 'lethal-tempo',
+      stacks,
+      duration: parameters.duration,
+      activationId: event.activationId,
+      causalOrder: event.causalOrder ?? event.eventOrder,
+      triggeredBy: event.skillName
+    }
+  });
+  {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Lethal Tempo',
+        at: runtime.time,
+        sourceSkill: event.skillName,
+        detail: `${stacks}/${parameters.maximumStacks} stacks`,
+        icon: guardianTraitIcon(TRAIT.LETHAL_TEMPO)
+      }
+    });
+  }
+}
+
+/** Earned base work applies to equipped weapon cooldowns and reservations before speed conversion. */
+function reduceWeapons(runtime: Runtime, cause: Gw2ResolverEvent): void {
+  const state = willbenderState.from(runtime);
+  const names = new Set(gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean));
+  const matches = (skill: Skill) => skill.type === 'Weapon' && (!names.size || names.has(String(skill.weapon)));
+  const amount = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.RESTORATIVE_VIRTUES),
+    'rechargeReduction'
+  );
+  let reduction = 0;
+  for (const id of new Set([
+    ...runtime.cooldownController.cooldownSkillIds(),
+    ...runtime.cooldownController.ammoSkillIds()
+  ])) {
+    const skill = runtime.helpers.skillsById.get(id)!;
+    if (matches(skill)) reduction += runtime.cooldownController.reduceSkillRecharge(skill, amount, runtime.time);
+  }
+
+  for (const [id, cast] of Object.entries(state.weaponCastRecharge)) {
+    const skill = runtime.helpers.skillsById.get(cast.skillId)!;
+    if (!matches(skill)) continue;
+    const pending = state.pendingWeaponCooldownReduction[id] ?? 0;
+    const available = runtime.cooldownController.remaining(
+      skill,
+      { startedAt: cast.rechargeStart, work: cast.rechargeWork },
+      runtime.time
+    );
+    const gain = Math.min(amount, Math.max(0, available - pending));
+    state.pendingWeaponCooldownReduction[id] = pending + gain;
+    reduction += gain / runtime.cooldownController.rate(skill);
+  }
+
+  if (reduction > 0) {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Restorative Virtues',
+        at: runtime.time,
+        sourceSkill: cause.skillName,
+        detail: `${Number(reduction.toFixed(3))}s weapon recharge`,
+        icon: guardianTraitIcon(TRAIT.RESTORATIVE_VIRTUES)
+      }
+    });
+  }
+}

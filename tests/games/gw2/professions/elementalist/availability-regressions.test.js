@@ -1,9 +1,10 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
@@ -162,6 +163,7 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
       effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects,
       emitProcedural: (event) => events.push(event)
     };
+    bindTriggerPoints(context, elementalistProfession, { specialization: 'Weaver' });
     if (armed) weaverHooks.tasks['elementalist.weaver.arm-fervent-stance'](context);
     context.time = at;
     weaverHooks.onCastCommit(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });

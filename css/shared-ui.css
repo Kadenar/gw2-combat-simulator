@@ -335,8 +335,10 @@ a.simulator-view-tab:focus-visible {
 
 /* Keep the primary result readable and profession-themed while the user scrolls or switches simulator views. */
 .header-dps {
-  display: flex;
+  /* Reserve the result's width while long build names yield space beside it. */
   flex-shrink: 0;
+  min-height: 44px;
+  display: flex;
   min-width: 116px;
   padding: 7px 10px;
   align-items: center;

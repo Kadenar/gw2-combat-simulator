@@ -1,9 +1,10 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
@@ -11,15 +12,19 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+import {
+  elementalistCastCompleted,
+  type ElementalistCastCompleted
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Water definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const soothingIce = defineTrait({
   id: TRAIT.SOOTHING_ICE,
+  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applySoothingIce })],
   name: 'Soothing Ice',
   balance: {
     internalCooldown: 15,
@@ -80,14 +85,10 @@ export const piercingShards = defineTrait({
 });
 
 /** Applies Soothing Ice's Frost Aura and regeneration from an eligible healing skill. */
-export function applySoothingIce(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill,
-  applyAura: ElementalistAuraApplier
-): void {
+function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
+  const skill = cast.skill;
   const at = cast.effectiveEnd;
-  if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.SOOTHING_ICE)) {
+  if (skill.type !== 'Heal') {
     return;
   }
 
@@ -97,7 +98,7 @@ export function applySoothingIce(
     return;
   const soothingIceFrostAura = requireEffect(soothingIceProfile, 'buff', 'Frost Aura');
   if (soothingIceFrostAura) {
-    applyAura(context, {
+    applyElementalistAura(context, {
       at,
       aura: String(soothingIceFrostAura.kind),
       duration: soothingIceFrostAura.duration,
@@ -106,19 +107,22 @@ export function applySoothingIce(
     });
   }
 
-  context.effects.emit(
-    elementalistProfiledBuffRequest(
-      context,
-      at,
-      TRAIT.SOOTHING_ICE,
-      'Regeneration',
-      'Soothing Ice',
-      skill.id,
-      undefined,
-      undefined,
-      { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-    )
-  );
+  emitTraitProfile(context, TRAIT.SOOTHING_ICE, TRAIT.SOOTHING_ICE, undefined, {
+    at: at,
+    fullEnd: at,
+    effect: { type: 'boon', name: 'Regeneration' },
+    skillId: skill.id,
+    skillName: 'Soothing Ice',
+    cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+    priority: 0,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.SOOTHING_ICE,
+      actorType: 'player',
+      name: 'Soothing Ice',
+      priority: 0
+    }
+  });
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */

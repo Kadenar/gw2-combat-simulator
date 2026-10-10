@@ -6,7 +6,7 @@ const launchers = [
   ['#btn-import-build', '.build-file-import-dialog'],
   ['#btn-import-rotation', '.rotation-import-dialog[data-rotation-import-destination="current"]'],
   ['.rotation-hotkey-button', '.rotation-hotkey-dialog'],
-  ['.build-tab-menu-trigger', '.build-rename-dialog']
+  ['#build-switcher', '.build-rename-dialog']
 ];
 
 // A viewport notification can arrive after native close() but before its queued close event.
@@ -54,7 +54,7 @@ test('shared modals dismiss consistently and return focus to their launcher', as
       await trigger.focus();
       await trigger.click();
       if (dialogSelector === '.build-rename-dialog')
-        await page.locator('#build-tab-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+        await page.locator('#build-switcher-menu').getByRole('button', { name: 'Rename', exact: true }).click();
       await expect(dialog).toBeVisible();
       expect(
         await dialog.evaluate((element) => element.matches(':modal') && element.contains(document.activeElement))
@@ -100,7 +100,7 @@ test('shared modals stay visible in a scrolled iframe and release viewport track
     const hostScroll = await page.evaluate(() => scrollY);
     await trigger.click();
     if (dialogSelector === '.build-rename-dialog')
-      await frame.locator('#build-tab-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+      await frame.locator('#build-switcher-menu').getByRole('button', { name: 'Rename', exact: true }).click();
     await expect(dialog).toBeVisible();
     expect(await page.evaluate(() => scrollY)).toBe(hostScroll);
     const expectWithinHost = async () => {

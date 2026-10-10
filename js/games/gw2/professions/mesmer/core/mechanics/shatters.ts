@@ -1,3 +1,5 @@
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 import {
   buildMesmerConditions,
@@ -9,8 +11,8 @@ import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
-import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */
@@ -77,7 +79,7 @@ export function resolveCloneShatter(
       });
 
     const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
-    const confusion = cloneShatterConfusion(applyCryOfPain(context, baseConfusion), sources);
+    const confusion = cloneShatterConfusion(cryOfPainConfusion(context, baseConfusion), sources);
     if (confusion)
       buildMesmerConditions(context, skill.name, at, confusion, 'Player', '', {
         skillId: skill.id,
@@ -92,7 +94,7 @@ export function resolveCloneShatter(
         });
       });
 
-    triggerBlindingDissipation(context, skill.name, at, sources, delivery);
+    context.fireTrigger(cloneShatterMaterialized, { skillName: skill.name, at, count: sources, delivery });
   } else if (shatter.kind === 'defense') {
     // An authored zero still hits; a removed packet cannot trigger hit traits.
     if (strike)
@@ -142,3 +144,11 @@ export function resolveCloneShatter(
 
   return shatter.strikes[spent] || shatter.kind === 'control' ? [{ at, count: sources }] : [];
 }
+
+/** Preserve the accepted clone-shatter-materialized boundary and its existing reward order. */
+export const cloneShatterMaterialized = defineTriggerPoint<{
+  readonly skillName: string;
+  readonly at: number;
+  readonly count: number;
+  readonly delivery: EffectDelivery;
+}>('mesmer.clone-shatter-materialized', [TRAIT.BLINDING_DISSIPATION]);

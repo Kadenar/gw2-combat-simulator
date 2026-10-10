@@ -1,11 +1,21 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
+import {
+  rangerInitialized,
+  beastSkillUsed,
+  buffApplied,
+  castCompleted,
+  criticalResolved,
+  dodged,
+  isBeastSkill,
+  petSwapped,
+  weaponSwapped
+} from '#gw2/professions/ranger/core/mechanics/combat.js';
 import {
   grantMaulAttackOfOpportunity,
   reactToRangerGreatswordDamage
@@ -43,18 +53,8 @@ import {
   consumeSpearOpportunity,
   synchronizeSpearRecharge
 } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
-import { applyRangerPetSwapTraits, completeRangerTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
-import { reactToRangerCoreBuff } from '#gw2/professions/ranger/core/traits/marksmanship/opening-strike.js';
-import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/skirmishing/index.js';
-import {
-  applyRangerDodgeTraits,
-  applyRangerWeaponSwapTraits
-} from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
-import { handleRangerBeastSkillUsed } from '#gw2/professions/ranger/core/traits/wilderness-survival/poison.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-
-const critical = criticalProcHandler(rangerCoreCriticalReactions);
 
 /** Commit and cancellation both synchronize the recharge already started by the runtime. */
 function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
@@ -135,7 +135,10 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       prepareGw2BuffCompanionCandidates(event, state.petActive ? [rangerPetCompanionId(runtime)] : [])
     );
   },
-  initialize: startRangerPet,
+  initialize(runtime) {
+    runtime.fireTrigger(rangerInitialized, {});
+    startRangerPet(runtime);
+  },
   onCombatStart(runtime) {
     startRangerPet(runtime);
     releaseFrostTrap(runtime);
@@ -146,18 +149,19 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
   onCastStart(runtime, cast) {
     beginRangerPetCommand(runtime, cast);
-    if (cast.skill.evades) applyRangerDodgeTraits(runtime);
+    if (cast.skill.evades) runtime.fireTrigger(dodged, { at: runtime.time });
   },
   // Cancelled variants still synchronize their shared weapon recharge.
   onCastCancel: completeWeapon,
   onCastCommit(runtime, cast) {
     completeWeapon(runtime, cast);
     const skill = cast.skill;
-    if (skill.id === ID.PET_SWAP) applyRangerPetSwapTraits(runtime, skill);
+    if (skill.id === ID.PET_SWAP) runtime.fireTrigger(petSwapped, { skill, at: runtime.time });
 
-    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) applyRangerWeaponSwapTraits(runtime, skill);
-    if (skill.id === SHARED_SKILL_IDS.DODGE) applyRangerDodgeTraits(runtime);
-    completeRangerTraits(runtime, skill);
+    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) runtime.fireTrigger(weaponSwapped, { skill, at: runtime.time });
+    if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(dodged, { at: runtime.time });
+    runtime.fireTrigger(castCompleted, { skill, at: runtime.time });
+    if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill, at: runtime.time, poisonMaster: true });
   },
   // Autonomous pet attacks keep running during combat but cannot prolong the player's isolated damage preview.
   backgroundTasks: Object.keys(rangerPetTasks),
@@ -171,15 +175,14 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
   eventHandlers: {
     // This is an executed transition fact for presentation; the completion owner already changed the pet.
-    'ranger.pet-swapped': OBSERVABLE_EVENT_HANDLER,
-    'ranger.beast-skill-used': handleRangerBeastSkillUsed
+    'ranger.pet-swapped': OBSERVABLE_EVENT_HANDLER
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
       consumeParalyzingVenom(runtime, event);
       reactToRangerGreatswordDamage(runtime, event);
       reactToRangerCoreDamage(runtime, event);
-      critical(runtime, event, details);
+      runtime.fireTrigger(criticalResolved, { event, details });
       const state = runtime.profession.core;
       if ((event.actorType === 'player' || event.ownerActorType === 'player') && state.stealthUntil > runtime.time) {
         state.stealthUntil = runtime.time;
@@ -187,7 +190,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       }
     },
     'buff.applied'(runtime, event) {
-      reactToRangerCoreBuff(runtime, event);
+      runtime.fireTrigger(buffApplied, { event });
       const state = runtime.profession.core;
       // Only the currently active pet can arm its next-hit venom; stale launched buffs cannot arm a replacement.
       if (

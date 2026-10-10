@@ -18,6 +18,139 @@ import test from 'node:test';
 
 const tuning = (context, field) => balanceProfileNumber(requireBalanceProfileFromContext(context, 101), field);
 const metadata = { id: 101, name: 'Fixture Trait' };
+
+// Producer slots cannot be hidden among retained policies, even by JavaScript callers or object spreads.
+test('trait authoring rejects obsolete producer hooks and unsupported lifetime registrations', () => {
+  for (const key of [
+    'onCombatStart',
+    'onCastStart',
+    'onCastCommit',
+    'onCastCancel',
+    'onCooldownReset',
+    'onAutoattackChainTransition',
+    'reactions',
+    'tasks',
+    'eventHandlers',
+    'sideEffectHandlers',
+    'rechargeWork',
+    'rechargeStart',
+    'castDetail'
+  ]) {
+    assert.throws(() => defineTrait({ ...metadata, hooks: { [key]: () => undefined } }), /Unsupported trait hook/);
+  }
+
+  for (const key of ['initialize', 'onCombatStart', 'onCastCancel', 'sideEffectHandlers', 'traitTriggers']) {
+    assert.throws(
+      () => defineTrait({ ...metadata, lifetime: { [key]: () => undefined } }),
+      /Unsupported trait lifetime hook/
+    );
+  }
+
+  for (const stage of [
+    'condition.applied',
+    'condition-tick.resolved',
+    'control.resolved',
+    'combo.resolved',
+    'misspelled'
+  ]) {
+    assert.throws(
+      () => defineTrait({ ...metadata, lifetime: { reactions: { [stage]: () => undefined } } }),
+      /Unsupported trait lifetime reaction/
+    );
+  }
+
+  assert.throws(() => defineTrait({ ...metadata, lifetime: [] }), /lifetime must be an object/);
+  assert.throws(() => defineTrait({ ...metadata, lifetime: { tasks: { bad: 1 } } }), /must contain handlers/);
+});
+
+test('trait initialization imports supplied state without activation capabilities in either runtime mode', () => {
+  const importer = defineTrait({
+    ...metadata,
+    hooks: {
+      initialize(context) {
+        assert.equal(context.effects, undefined);
+        assert.equal(context.schedule, undefined);
+        assert.equal(context.procs, undefined);
+        assert.equal(context.fireTrigger, undefined);
+        assert.equal(context.resourceController, undefined);
+        context.profession.core.count = context.config.initialCount;
+      }
+    }
+  });
+  const family = familyWith(moduleWith([importer]));
+  for (const traitTriggers of [true, false]) {
+    const result = family.runtimeFor({}, { traitTriggers });
+    const state = result.createState({});
+    result.initialize({
+      profession: state,
+      config: { initialCount: 3 },
+      time: 0,
+      helpers: result.catalog,
+      traits: new Set(),
+      effects: {
+        emit() {
+          assert.fail('Producer capability leaked');
+        }
+      }
+    });
+    assert.equal(state.core.count, 3);
+  }
+});
+
+test('trait value transforms receive query capabilities while profession hooks retain their mechanic context', () => {
+  const queries = { time: 2 };
+  const calls = [];
+  const policy = defineTrait({
+    ...metadata,
+    hooks: {
+      prepareEvent(context, event) {
+        assert.equal(context, queries);
+        calls.push('trait packet');
+        return event;
+      },
+      modifyEffects(context, _cast, effects) {
+        assert.equal(context, queries);
+        calls.push('trait effects');
+        return effects;
+      }
+    }
+  });
+  const context = { queries, effects: { emit() {} }, schedule() {} };
+  const family = familyWith(
+    moduleWith([policy], {
+      hooks: {
+        prepareEvent(runtime, event) {
+          assert.equal(runtime, context);
+          calls.push('mechanic packet');
+          return event;
+        },
+        modifyEffects(runtime, _cast, effects) {
+          assert.equal(runtime, context);
+          calls.push('mechanic effects');
+          return effects;
+        }
+      }
+    })
+  );
+  for (const traitTriggers of [true, false]) {
+    const runtime = family.runtimeFor({}, { traitTriggers });
+    const event = { type: 'damage', at: 2 };
+    assert.equal(runtime.prepareEvent(context, event), event);
+    const effects = [];
+    assert.equal(runtime.modifyEffects(context, {}, effects), effects);
+  }
+
+  assert.deepEqual(calls, [
+    'trait packet',
+    'mechanic packet',
+    'trait effects',
+    'mechanic effects',
+    'trait packet',
+    'mechanic packet',
+    'trait effects',
+    'mechanic effects'
+  ]);
+});
 const skill = {
   id: 1,
   name: 'Strike',
@@ -374,9 +507,13 @@ test('hook notifications, transforms, decisions, reactions, and lifetime retain 
     id: 101,
     name: 'First',
     hooks: {
-      ...contribution('trait'),
+      modifyEffects: contribution('trait').modifyEffects,
       prepareEvent: (_runtime, event) => (event.cancelled ? null : { ...event, amount: 2 }),
-      availability: () => ({ ready: false, retryAt: 2 }),
+      availability: () => ({ ready: false, retryAt: 2 })
+    },
+    lifetime: {
+      onCastCommit: contribution('trait').onCastCommit,
+      reactions: contribution('trait').reactions,
       tasks: {
         'trait.expire': (runtime) => {
           runtime.profession.core.count = 0;
@@ -414,7 +551,7 @@ test('hook notifications, transforms, decisions, reactions, and lifetime retain 
   assert.equal(context.profession.core.count, 0);
 });
 
-test('stateful critical hooks retain per-run state, actor gates, and the existing ICD boundary', () => {
+test('compiled critical admission retains per-run state, actor gates, and the existing ICD boundary', () => {
   const proc = criticalProcHandler({
     id: 'fixture.critical',
     when: (runtime) => hasTrait(runtime, 101),
@@ -431,7 +568,11 @@ test('stateful critical hooks retain per-run state, actor gates, and the existin
   });
   const family = familyWith(
     moduleWith([
-      defineTrait({ ...metadata, balance: { internalCooldown: 2 }, hooks: { reactions: { 'damage.resolved': proc } } })
+      defineTrait({
+        ...metadata,
+        balance: { internalCooldown: 2 },
+        triggers: [{ on: 'damage.resolved', run: proc }]
+      })
     ])
   );
   const runtime = family.runtimeFor({});
@@ -502,7 +643,7 @@ test('composition rejects duplicate ownership and invalid declarative references
 
   assert.throws(
     () =>
-      moduleWith([defineTrait({ ...metadata, hooks: { tasks: { same: task } } })], {
+      moduleWith([defineTrait({ ...metadata, lifetime: { tasks: { same: task } } })], {
         hooks: { tasks: { same: task } }
       }),
     /Duplicate hook tasks/
@@ -510,7 +651,7 @@ test('composition rejects duplicate ownership and invalid declarative references
   assert.throws(
     () =>
       familyWith(
-        moduleWith([defineTrait({ ...metadata, hooks: { tasks: { same: task } } })]),
+        moduleWith([defineTrait({ ...metadata, lifetime: { tasks: { same: task } } })]),
         defineNativeModule({ id: 'Elite', data: {}, state: { create: () => ({}) }, hooks: { tasks: { same: task } } })
       ).runtimeFor({ specialization: 'Elite' }),
     /Duplicate hook tasks/

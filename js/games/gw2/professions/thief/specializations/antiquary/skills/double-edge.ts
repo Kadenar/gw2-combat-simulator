@@ -1,11 +1,18 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { consumeScoundrelsLuck } from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
 import type { ThiefDoubleEdgeOutcome, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Accepted Canach coin initiative, held by cast identity until commitment or cancellation. */
 export const coinInitiative = new WeakMap<RuntimeCast<ThiefSkill>, number>();
+
+/** Spend an already-earned Luck charge without requiring current selection. */
+function consumeScoundrelsLuck(runtime: ThiefRuntime): boolean {
+  const state = antiquaryState.from(runtime);
+  if (!(state.scoundrelsLuck > 0)) return false;
+  state.scoundrelsLuck -= 1;
+  return true;
+}
 
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): ThiefDoubleEdgeOutcome {

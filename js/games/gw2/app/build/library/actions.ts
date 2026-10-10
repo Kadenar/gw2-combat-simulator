@@ -4,7 +4,7 @@ import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#
 import { addBuildTab, captureBuildDestination, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
-import { buildSignature, templateTileContent } from '#gw2/app/build/library/model.js';
+import { buildSignature } from '#gw2/app/build/library/model.js';
 import { updateTemplateSelection } from '#gw2/app/build/library/view.js';
 import type { MyBuild } from '#gw2/app/build/library/storage.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
@@ -82,19 +82,19 @@ export async function loadTemplateAction(
   const buttons = container?.querySelectorAll<HTMLButtonElement>('button[data-template-index]') || [button];
   // A selection dismisses the picker immediately; progress stays in the editor while assets load.
   for (const control of buttons) control.disabled = true;
+  // The manifest label already names the weapons and variant, so progress and the loaded build share one name.
+  const name = [preset.section, preset.label].filter(Boolean).join(' · ');
   if (loading) {
-    loading.textContent = `Loading ${[preset.section, preset.label].filter(Boolean).join(' · ')}…`;
+    loading.textContent = `Loading ${name}…`;
     loading.hidden = false;
   }
 
   container?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
-  const focusTarget = typeof document === 'undefined' ? null : document.activeElement;
   // Keep the old rotation out of view through both asset loading and the template's first simulation.
   const rotationLoading = { revision: app.buildRevision, fetching: true };
   app.templateRotationLoading = rotationLoading;
   if (container) renderTimeline(app);
   try {
-    const name = [preset.section, preset.label, templateTileContent(preset).weapons].filter(Boolean).join(' · ');
     if (action === 'rotation') {
       if (!preset.rotation) {
         throw new Error('Rotation asset missing.');
@@ -170,12 +170,6 @@ export async function loadTemplateAction(
   } finally {
     for (const control of buttons) control.disabled = false;
     if (loading) loading.hidden = true;
-    // Loading can replace the tab trigger that received focus when the picker closed.
-    if (focusTarget && !focusTarget.isConnected && document.activeElement === document.body) {
-      document
-        .querySelector<HTMLButtonElement>('.build-tab.is-active .build-tab-menu-trigger')
-        ?.focus({ preventScroll: true });
-    }
   }
 }
 

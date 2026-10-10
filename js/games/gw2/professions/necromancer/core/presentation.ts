@@ -204,6 +204,17 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      if (context.weapons.includes('Dagger'))
+        preview.add({
+          key: 'condition:Bleeding',
+          label: 'Target Bleeding',
+          group: 'Target conditions',
+          kind: 'condition',
+          field: 'Bleeding',
+          scope: ['damage'],
+          description: 'Life Siphon damage bonus'
+        });
       preview.trait('Soul Barbs', {
         key: 'soulBarbs',
         kind: 'buff',
@@ -214,6 +225,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
 
       preview.trait('Deadly Strength', {
         key: 'carapace',
+        scope: ['attributes', 'damage'],
         kind: 'special',
         max: 30,
         description: "Death's Carapace stacks"

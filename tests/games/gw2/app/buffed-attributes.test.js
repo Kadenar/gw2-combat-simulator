@@ -57,6 +57,27 @@ function previewApp(name, traitNames = [], specialization = null) {
 const stats = (app, input = {}) => calculateBuffedAttributes(app, input).attributes;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, actual + ' != ' + expected);
 
+// Titanic augments selected Might; Evolve scales its static pool independently of temporary boon attributes.
+test('Amalgam previews Titanic Might scaling and both Evolve variants without changing the build', () => {
+  for (const doubleHelix of [false, true]) {
+    const app = previewApp('engineer', doubleHelix ? ['Double Helix'] : [], 'Amalgam');
+    const saved = structuredClone({ build: app.build, attributes: app.attributeData });
+    const pool = app.adapter.simulationConfig(app).amalgamEvolveAttributePool;
+    const base = stats(app);
+    for (const might of [0, 10, 25]) {
+      const titanic = stats(app, { might, titanic: 1 });
+      const evolved = stats(app, { might, titanic: 1, evolved: 1 });
+      for (const name of ['Power', 'Condition Damage']) {
+        assert.equal(titanic[name].final, base[name].final + might * 35);
+        assert.equal(evolved[name].final, titanic[name].final + Math.round(pool[name] * (doubleHelix ? 0.2 : 0.1)));
+      }
+    }
+
+    assert.deepEqual(stats(app), base);
+    assert.deepEqual({ build: app.build, attributes: app.attributeData }, saved);
+  }
+});
+
 test('attribute controls require selected trait stack caps from the active catalog', () => {
   const app = previewApp('mesmer', ["Fencer's Finesse"]);
   const traitId = app.attributeData.activeTraits.find((trait) => trait.name === "Fencer's Finesse").id;

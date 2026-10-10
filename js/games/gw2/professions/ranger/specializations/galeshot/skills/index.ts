@@ -6,7 +6,7 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
@@ -370,7 +370,7 @@ export function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: bool
       'weapon_set'
     )
   });
-  applyRangerWeaponSwapTraits(runtime, skill);
+  runtime.fireTrigger(weaponSwapped, { skill: skill, at: runtime.time });
 }
 
 /** Piercing Gales reads live vulnerability in addition to the ordinary platform multiplier. */

@@ -1,3 +1,4 @@
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -8,7 +9,8 @@ import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/profession
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/behavior.js';
+import { kineticAccelerators } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
@@ -293,8 +295,9 @@ test('Kinetic Accelerators grants setup boons from precombat combos', () => {
 });
 
 test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () => {
-  const boons = [];
+  const { events: boons, effects } = captureEffectEmissions();
   const context = {
+    effects,
     procs: createProcRegistry(() => context),
     catalog: engineerCatalog,
     config: {
@@ -316,7 +319,11 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
     finisherType
   });
 
-  const observe = (context, event) => boons.push(...kineticAcceleratorBoons(context, event));
+  // Invoke the canonical compiled producer so selection precedes cooldown admission.
+  context.queries = context;
+  const observe = compileProfessionRules({
+    traitTriggers: kineticAccelerators.triggers.map((trigger) => ({ ...trigger, trait: kineticAccelerators.id }))
+  }).reactions['combo.resolved'];
 
   observe(context, combo('Whirl', 1));
   observe(context, combo('Whirl', 2));

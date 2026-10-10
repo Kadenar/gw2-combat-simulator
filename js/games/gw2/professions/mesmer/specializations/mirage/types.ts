@@ -12,6 +12,6 @@ export interface MesmerMirageController {
   executeCloneAmbushes(at: number, clones?: readonly MesmerClone[], delivery?: EffectDelivery): void;
   acceptPlayerAmbush(skill: MesmerSkill, at: number, castStart?: number, delivery?: EffectDelivery): void;
   grantMirageCloak(at: number, source: string, options?: MesmerMirageCloakOptions, delivery?: EffectDelivery): void;
-  handleMirageShatter(skill: MesmerSkill, at: number, spent: number, delivery?: EffectDelivery): void;
+  grantAmbushWindow(at: number, source: string, duration?: number, delivery?: EffectDelivery): void;
   pickUpMirror(at: number, skill: MesmerSkill): boolean;
 }

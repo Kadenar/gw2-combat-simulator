@@ -1,3 +1,9 @@
+import {
+  necromancerStrike,
+  necromancerConditionApplied
+} from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import { scourgeConditionApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/combat-boundaries.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -7,7 +13,8 @@ import { createElementalistCoreState } from '#gw2/professions/elementalist/core/
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { applyViciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import { viciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { hematicFocus } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
@@ -16,18 +23,12 @@ import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
+import { mesmerControlAccepted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
-import { applyVampiricPresence } from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
-import {
-  reactToNecromancerCoreCondition,
-  reactToNecromancerCoreDamage
-} from '#gw2/professions/necromancer/core/traits/reactions.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { scourgeResolverEventReactions } from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
@@ -161,10 +162,10 @@ for (const [key, trait] of [
 
 // Keep map claims behind local eligibility, with Dhuumfire's explicit zero-interval bypass intact.
 for (const [key, trait, invoke, literalDuration] of [
-  ['siphonedPower', NECROMANCER_TRAIT_IDS.SIPHONED_POWER, reactToNecromancerCoreDamage],
-  ['chillOfDeath', NECROMANCER_TRAIT_IDS.CHILL_OF_DEATH, reactToNecromancerCoreDamage],
-  ['chillingDarkness', NECROMANCER_TRAIT_IDS.CHILLING_DARKNESS, reactToNecromancerCoreCondition],
-  ['dhuumfire', NECROMANCER_TRAIT_IDS.DHUUMFIRE, reactToNecromancerCoreDamage]
+  ['siphonedPower', NECROMANCER_TRAIT_IDS.SIPHONED_POWER, strikeOpportunity],
+  ['chillOfDeath', NECROMANCER_TRAIT_IDS.CHILL_OF_DEATH, strikeOpportunity],
+  ['chillingDarkness', NECROMANCER_TRAIT_IDS.CHILLING_DARKNESS, conditionOpportunity],
+  ['dhuumfire', NECROMANCER_TRAIT_IDS.DHUUMFIRE, strikeOpportunity]
 ]) {
   test(`Necromancer ${key} preserves scoped claims and exact boundaries`, () => {
     for (const duration of literalDuration == null ? [2, 0] : [literalDuration]) {
@@ -279,11 +280,15 @@ test('Elementalist control traits stay blocked at the exact ICD boundary', () =>
   context.procs.setDeadline('elementalist.catalyst.viciousEmpowerment', READY_AT);
   const event = { type: 'control', actorType: 'player', at: READY_AT, skillName: 'Boundary Control' };
 
-  applyViciousEmpowerment(context, event);
+  // Exercise the selected compiled producer rather than an obsolete private hook.
+  const reaction = compileProfessionRules({
+    traitTriggers: viciousEmpowerment.triggers.map((rule) => ({ ...rule, trait: viciousEmpowerment.id }))
+  }).reactions['control.resolved'];
+  reaction(context, event);
   assert.equal(context.procs.deadline('elementalist.catalyst.viciousEmpowerment'), READY_AT);
   assert.equal(procs.length, 0);
 
-  applyViciousEmpowerment(context, { ...event, at: AFTER_READY_AT });
+  reaction(context, { ...event, at: AFTER_READY_AT });
   assert.ok(context.procs.deadline('elementalist.catalyst.viciousEmpowerment') > AFTER_READY_AT);
   assert.equal(procs.length, 1);
 });
@@ -295,11 +300,14 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   context.procs.setDeadline('hematicFocus', READY_AT);
   const event = { type: 'condition', condition: 'Bleeding', actorType: 'player', at: READY_AT };
 
-  hematicFocus.hooks.reactions['condition.applied'](context, event);
+  const reaction = compileProfessionRules({
+    traitTriggers: hematicFocus.triggers.map((rule) => ({ ...rule, trait: hematicFocus.id }))
+  }).reactions['condition.applied'];
+  reaction(context, event);
   assert.equal(context.procs.snapshot()['hematicFocus'], READY_AT);
   assert.equal(context.queue.length, 0);
 
-  hematicFocus.hooks.reactions['condition.applied'](context, { ...event, at: AFTER_READY_AT });
+  reaction(context, { ...event, at: AFTER_READY_AT });
   assert.ok(context.procs.snapshot()['hematicFocus'] > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
@@ -567,7 +575,7 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
         effects: [],
         removedEffectKeys: [JSON.stringify(['condition', 'Confusion'])]
       });
-      triggerIneptitudeFromInterrupt(context, event);
+      mesmerControlOpportunity(context, event);
       assert.deepEqual({ ...context.procs.snapshot() }, {});
       assert.equal(conditions.length, 0);
       context.catalog = catalog;
@@ -575,16 +583,16 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
         submit(condition) {
           conditions.push(condition);
           assert.equal(context.procs.snapshot()[key], defiant ? condition.at + duration : undefined);
-          if (defiant && conditions.length === 1) triggerIneptitudeFromInterrupt(context, event);
+          if (defiant && conditions.length === 1) mesmerControlOpportunity(context, event);
           return condition;
         }
       }).effects;
 
-      triggerIneptitudeFromInterrupt(context, event);
+      mesmerControlOpportunity(context, event);
       assert.equal(conditions.length, 1);
-      triggerIneptitudeFromInterrupt(context, { ...event, at: 1 + duration });
+      mesmerControlOpportunity(context, { ...event, at: 1 + duration });
       assert.equal(conditions.length, defiant ? 1 : 2);
-      triggerIneptitudeFromInterrupt(context, { ...event, at: 1 + duration + 0.000001 });
+      mesmerControlOpportunity(context, { ...event, at: 1 + duration + 0.000001 });
       assert.equal(conditions.length, defiant ? 2 : 3);
     }
   }
@@ -606,23 +614,23 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
     effects: [],
     removedEffectKeys: [JSON.stringify(['condition', 'Burning'])]
   });
-  scourgeResolverEventReactions.condition(context, event);
+  scourgeConditionOpportunity(context, event);
   assert.deepEqual({ ...context.procs.snapshot() }, {});
   context.catalog = catalog;
   context.effects = captureEffectEmissions({
     submit(condition) {
       assert.equal(context.procs.deadline(key), condition.at + 2);
       conditions.push(condition);
-      if (conditions.length === 1) scourgeResolverEventReactions.condition(context, event);
+      if (conditions.length === 1) scourgeConditionOpportunity(context, event);
       return condition;
     }
   }).effects;
 
-  scourgeResolverEventReactions.condition(context, event);
+  scourgeConditionOpportunity(context, event);
   assert.equal(conditions.length, 1);
-  scourgeResolverEventReactions.condition(context, { ...event, at: 3 });
+  scourgeConditionOpportunity(context, { ...event, at: 3 });
   assert.equal(conditions.length, 1);
-  scourgeResolverEventReactions.condition(context, { ...event, at: 3.000001 });
+  scourgeConditionOpportunity(context, { ...event, at: 3.000001 });
   assert.equal(conditions.length, 2);
 });
 
@@ -642,11 +650,11 @@ test('Vampiric Presence preserves player and companion cooldown scopes', () => {
   });
   // Hit after the first Vampiric Aura pulse so only cooldown scoping decides the claims.
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: 5 };
-  applyVampiricPresence(context, event);
-  applyVampiricPresence(context, { ...event, actorType: 'summon', summonKind: 'spirit' });
+  strikeOpportunity(context, event);
+  strikeOpportunity(context, { ...event, actorType: 'summon', summonKind: 'spirit' });
   assert.equal(context.queue.length, 1);
   for (const index of [0, 1, 0]) {
-    applyVampiricPresence(context, { ...event, actorType: 'summon', summonOwner: `minion:fixture:${index}` });
+    strikeOpportunity(context, { ...event, actorType: 'summon', summonOwner: `minion:fixture:${index}` });
   }
 
   assert.equal(context.queue.length, 3);
@@ -674,13 +682,13 @@ test('Vampiric Presence waits for its first aura pulse and accepts a hit on its 
   const cooldown = balanceProfileNumber(profile, 'cooldown');
   const firstPulse = balanceProfileNumber(profile, 'auraPulseInterval') / 2;
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse - 0.001 };
-  applyVampiricPresence(context, event);
+  strikeOpportunity(context, event);
   assert.equal(context.queue.length, 0, 'no siphon before the first aura pulse');
   assert.deepEqual({ ...context.procs.snapshot() }, {}, 'a gated hit spends no cooldown');
-  applyVampiricPresence(context, { ...event, at: firstPulse });
-  applyVampiricPresence(context, { ...event, at: firstPulse + cooldown - 0.001 });
+  strikeOpportunity(context, { ...event, at: firstPulse });
+  strikeOpportunity(context, { ...event, at: firstPulse + cooldown - 0.001 });
   assert.equal(context.queue.length, 1, 'a hit before the deadline stays on cooldown');
-  applyVampiricPresence(context, { ...event, at: firstPulse + cooldown });
+  strikeOpportunity(context, { ...event, at: firstPulse + cooldown });
   assert.equal(context.queue.length, 2, 'a hit on the deadline procs');
 });
 
@@ -697,10 +705,10 @@ test('Vampiric Presence uses the shroud packet for player and minion hits while 
     config: { allies: { count: 0 } }
   });
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: 5 };
-  applyVampiricPresence(context, event);
-  applyVampiricPresence(context, { ...event, actorType: 'summon', summonOwner: 'minion:fixture:0' });
+  strikeOpportunity(context, event);
+  strikeOpportunity(context, { ...event, actorType: 'summon', summonOwner: 'minion:fixture:0' });
   core.activeShroud = 'lich';
-  applyVampiricPresence(context, { ...event, at: 6 });
+  strikeOpportunity(context, { ...event, at: 6 });
   assert.deepEqual(
     context.events.map((siphon) => siphon.flatStrikeBase),
     [129, 129, 65],
@@ -721,13 +729,13 @@ test('Vampiric Aura pulses relative to an explicit combat start', () => {
   const firstPulse = 10 + balanceProfileNumber(profile, 'auraPulseInterval') / 2;
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: firstPulse };
   context.combatStartPending = true;
-  applyVampiricPresence(context, event);
+  strikeOpportunity(context, event);
   assert.equal(context.queue.length, 0, 'pending setup has no aura');
   context.combatStartPending = false;
   context.combatStartTime = 10;
-  applyVampiricPresence(context, { ...event, at: firstPulse - 0.001 });
+  strikeOpportunity(context, { ...event, at: firstPulse - 0.001 });
   assert.equal(context.queue.length, 0, 'the first pulse follows the explicit start');
-  applyVampiricPresence(context, event);
+  strikeOpportunity(context, event);
   assert.equal(context.queue.length, 1);
 });
 
@@ -752,3 +760,30 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
   assert.ok(runtime.procs.deadline('thief.specter.darkSentry:1') > 1.000001);
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:2'), secondDeadline);
 });
+
+/** Fixtures fire the compiled selected listeners, including their shared ordering and admission gates. */
+function strikeOpportunity(runtime, event) {
+  bindTriggerPoints(runtime, necromancerProfession, runtime.config);
+  runtime.fireTrigger(necromancerStrike, {
+    event: { coefficient: 1, ...event },
+    details: {},
+    firstHit: Number(event.hitIndex || 1) === 1,
+    shroudSkillOne: event.metadata?.necromancerShroudSkillOne === true
+  });
+}
+
+function conditionOpportunity(runtime, event) {
+  bindTriggerPoints(runtime, necromancerProfession, runtime.config);
+  runtime.fireTrigger(necromancerConditionApplied, { event });
+}
+
+function scourgeConditionOpportunity(runtime, event) {
+  bindTriggerPoints(runtime, necromancerProfession, { ...runtime.config, specialization: 'Scourge' });
+  runtime.fireTrigger(scourgeConditionApplied, { event });
+}
+
+/** The control point retains Chaos-before-Dueling ordering and compiler-owned selection in this fixture. */
+function mesmerControlOpportunity(runtime, event) {
+  bindTriggerPoints(runtime, mesmerProfession);
+  runtime.fireTrigger(mesmerControlAccepted, { event });
+}

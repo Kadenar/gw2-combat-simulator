@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import {
   mesmerMechanicPaletteGroups,
@@ -28,6 +30,13 @@ function mirageEffectPresentations(_context: MesmerUiContext): ProfessionEffectP
 }
 
 export const mirageUi: MesmerUiSlice = Object.freeze({
+  /** Expose held combat bonuses without changing the saved build or simulation. */
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    preview.damageBuff('Phantom Pain', 'phantomPain', 'phantom-pain', true);
+    preview.boon('vigor', "Nomad's Endurance");
+    return preview.controls;
+  },
   effectPresentations: mirageEffectPresentations,
   // Mirage's dodge and mirror precede shared actions, preserving the shell's order for everything else.
   paletteActionSkills: (_context, skills) => {

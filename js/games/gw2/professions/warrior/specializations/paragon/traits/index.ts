@@ -1,15 +1,32 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { paragonCombatStarted } from '#gw2/professions/warrior/specializations/paragon/hooks.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import {
+  chantActivated,
+  motivationSpent,
+  paragonCastCompleted
+} from '#gw2/professions/warrior/specializations/paragon/hooks.js';
 import { startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import { paragonState, type ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const inspiringImplements = defineTrait({
+  triggers: [
+    onTriggerPoint(paragonCastCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof paragonCastCompleted>) =>
+        applyInspiringImplements(runtime, input.cast)
+    })
+  ],
   id: TRAIT.INSPIRING_IMPLEMENTS,
   name: 'Inspiring Implements',
   balance: {
@@ -38,6 +55,11 @@ export const inspiringImplements = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const invigoratingTempo = defineTrait({
+  triggers: [
+    onTriggerPoint(motivationSpent, {
+      run: (runtime, input: TriggerPointInput<typeof motivationSpent>) => applyInvigoratingTempo(runtime, input.spent)
+    })
+  ],
   id: TRAIT.INVIGORATING_TEMPO,
   name: 'Invigorating Tempo',
   balance: {
@@ -64,6 +86,9 @@ export const feverishPulse = defineTrait({
     effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', stacks: 1, duration: 6 }]
   },
   triggers: [
+    onTriggerPoint(chantActivated, {
+      run: (runtime, input: TriggerPointInput<typeof chantActivated>) => applyFeverishPulse(runtime, input.cast)
+    }),
     {
       order: 0,
 
@@ -86,21 +111,23 @@ export const feverishPulse = defineTrait({
 export const callToAction = defineTrait({
   id: TRAIT.CALL_TO_ACTION,
   name: 'Call to Action',
-  hooks: {
-    onCombatStart(runtime) {
-      const state = paragonState.from(runtime);
-      if (state.callToActionActivated || !hasTrait(runtime, TRAIT.CALL_TO_ACTION)) return;
-      state.callToActionActivated = true;
-      runtime.resourceController.grant(
-        'motivation',
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CALL_TO_ACTION), 'resourceGain')
-      );
-      if (state.activeRefrainId == null) {
-        state.activeRefrainId = ID.CHANT_OF_ACTION;
-        startRefrain(runtime);
+  triggers: [
+    onTriggerPoint(paragonCombatStarted, {
+      run(runtime) {
+        const state = paragonState.from(runtime);
+        if (state.callToActionActivated) return;
+        state.callToActionActivated = true;
+        runtime.resourceController.grant(
+          'motivation',
+          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CALL_TO_ACTION), 'resourceGain')
+        );
+        if (state.activeRefrainId == null) {
+          state.activeRefrainId = ID.CHANT_OF_ACTION;
+          startRefrain(runtime);
+        }
       }
-    }
-  },
+    })
+  ],
   balance: {
     resourceGain: 4
   }
@@ -110,21 +137,24 @@ export const callToAction = defineTrait({
 export const rallyTheValiant = defineTrait({
   id: TRAIT.RALLY_THE_VALIANT,
   name: 'Rally the Valiant',
-  hooks: {
-    onCastStart(runtime, cast) {
-      if (cast.cancelled) return;
-      if (
-        cast.skill.burst &&
-        !cast.skill.categories?.includes('Chant') &&
-        hasTrait(runtime, TRAIT.RALLY_THE_VALIANT) &&
-        paragonState.from(runtime).activeRefrainId != null
-      )
-        runtime.resourceController.grant(
-          'motivation',
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RALLY_THE_VALIANT), 'resourceGain')
-        );
+  triggers: [
+    {
+      on: 'castStart',
+      run(runtime, cast) {
+        if (cast.cancelled) return;
+        if (
+          cast.skill.burst &&
+          !cast.skill.categories?.includes('Chant') &&
+          hasTrait(runtime, TRAIT.RALLY_THE_VALIANT) &&
+          paragonState.from(runtime).activeRefrainId != null
+        )
+          runtime.resourceController.grant(
+            'motivation',
+            balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RALLY_THE_VALIANT), 'resourceGain')
+          );
+      }
     }
-  },
+  ],
   balance: {
     resourceGain: 4
   }
@@ -231,3 +261,41 @@ export const warriorParagonTraits = [
   strengtheningStanzas,
   briskPacing
 ] as const;
+
+/** Only Motivation actually spent earns adrenaline. */
+function applyInvigoratingTempo(runtime: Runtime, spent: number): void {
+  runtime.resourceController.grant(
+    'adrenaline',
+    spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INVIGORATING_TEMPO), 'resourceGain')
+  );
+}
+
+/** Chant entry reduces the other chants only after opening packets and refrain scheduling. */
+function applyFeverishPulse(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+  const feverish = requireBalanceProfileFromContext(runtime, TRAIT.FEVERISH_PULSE);
+  for (const id of CHANTS) {
+    const skill = runtime.helpers.skillsById.get(id);
+    if (skill && id !== cast.skill.id)
+      runtime.cooldownController.reduceSkillRecharge(
+        skill,
+        balanceProfileNumber(feverish, 'rechargeReduction'),
+        runtime.time
+      );
+  }
+}
+
+/** Swaps reward resources only after committed bursts consume pending echoes. */
+function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+  if (
+    cast.skill.inputCategory === 'weapon-swap' &&
+    runtime.procs.claim(TRAIT.INSPIRING_IMPLEMENTS, 'warrior.paragon.inspiringImplements', runtime.time)
+  ) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.INSPIRING_IMPLEMENTS);
+    runtime.resourceController.grant('adrenaline', balanceProfileNumber(profile, 'resourceGain'));
+    runtime.resourceController.grant('motivation', balanceProfileNumber(profile, 'minimumStacks'));
+  }
+}
+
+const CHANTS = [ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM];
+
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;

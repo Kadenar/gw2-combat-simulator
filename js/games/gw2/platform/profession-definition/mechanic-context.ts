@@ -15,6 +15,7 @@ import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 
 /** Preserve a family's concrete state and skill identities when a shared helper only reads mechanic facts. */
 export type MechanicQueriesOf<TContext extends { profession: object; helpers: CanonicalCatalog }> =
@@ -108,4 +109,6 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
     priority?: number
   ): void;
   cancelOwner(owner: WorkOwner): void;
+  /** Run the selected traits listening to a mechanic-owned boundary, synchronously and in the point's order. */
+  fireTrigger<TInput extends object>(point: TriggerPoint<TInput>, input: NoInfer<TInput>): void;
 }

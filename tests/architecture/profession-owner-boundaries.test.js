@@ -19,8 +19,7 @@ const boundaries = {
     'core/mechanics/resources.ts',
     'core/traits/soul-reaping/procs.ts',
     'core/traits/soul-reaping/modifiers.ts',
-    'core/traits/soul-reaping/life-force.ts',
-    'core/traits/soul-reaping/shroud.ts',
+    'core/mechanics/passives.ts',
     'specializations/ritualist/skills/spirit-actions.ts'
   ],
   ranger: [
@@ -28,11 +27,7 @@ const boundaries = {
     'core/traits/skirmishing/attributes.ts',
     'core/traits/wilderness-survival/attributes.ts',
     'core/traits/nature-magic/index.ts',
-    'core/traits/marksmanship/opening-strike.ts',
-    'core/traits/skirmishing/movement.ts',
-    'core/traits/marksmanship/beast-skills.ts',
-    'core/traits/nature-magic/beast-skills.ts',
-    'core/traits/wilderness-survival/poison.ts',
+    'core/mechanics/combat.ts',
     'core/traits/skirmishing/index.ts',
     'specializations/soulbeast/skills/stance-skills.ts'
   ],

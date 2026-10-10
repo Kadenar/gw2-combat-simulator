@@ -7,11 +7,16 @@ import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-p
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
   guardianVirtueForSlot,
+  justiceActivated,
   reactToJusticeHitWithOptions,
-  refreshGuardianVirtues
+  refreshGuardianVirtues,
+  virtueActivated
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
-import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
+import {
+  luminaryVirtueCompleted,
+  radiantWeaponDrawn,
+  radiantWeaponEquipped
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
   luminaryBuffPolicies,
@@ -43,11 +48,7 @@ import {
 import { luminaryStanceActions } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
 import { luminaryVirtueActions } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import {
-  completeLuminaryEquipTraits,
-  completeMasterAtArms,
-  startRadiantArmaments
-} from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
+
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -154,18 +155,18 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
       if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
     }
 
-    startRadiantArmaments(runtime, cast);
+    if (cast.skill.radiantWeapon && cast.skill.flipParentId == null) runtime.fireTrigger(radiantWeaponDrawn, { cast });
   },
   onCastCommit(runtime, cast) {
     if (!VIRTUES.includes(Number(cast.skill.id))) return;
     const virtue = guardianVirtueForSlot(cast.skill.slot)!;
     refreshGuardianVirtues(runtime);
     if (readyVirtues.has(cast)) {
-      applyGuardianVirtueActivationTraits(runtime, cast, virtue);
-      if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
+      runtime.fireTrigger(virtueActivated, { cast, virtue });
+      if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
     }
 
-    completeMasterAtArms(runtime, cast);
+    runtime.fireTrigger(luminaryVirtueCompleted, { cast });
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
@@ -186,7 +187,9 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
     [EXIT](runtime, data) {
       if (luminaryState.from(runtime).forgeActivationId === data) exitForge(runtime);
     },
-    [EQUIP]: completeLuminaryEquipTraits,
+    // Delayed equip rewards retain boon, armament, then recharge ordering.
+    [EQUIP]: (runtime, data) =>
+      runtime.fireTrigger(radiantWeaponEquipped, { cast: (data as { cast: RuntimeCast<GuardianSkill> }).cast }),
     [HAMMER]: hammerImpact,
     [BLADE_IMMOBILIZE](runtime, data) {
       const { cast } = data as { cast: RuntimeCast<GuardianSkill> };

@@ -62,8 +62,8 @@ test('rotation DPS summary mounts directly after the timeline', () => {
 
 test('header DPS mounts once and tracks the latest result', () => {
   const elements = new Map();
-  const headerActions = {
-    prepend(node) {
+  const buildMenu = {
+    after(node) {
       elements.set(node.id, node);
     }
   };
@@ -87,7 +87,7 @@ test('header DPS mounts once and tracks the latest result', () => {
     createElement: () => element(),
     getElementById: (id) => elements.get(id) || null,
     querySelector: (selector) => {
-      return selector === 'body[data-profession] #app > header .community-actions' ? headerActions : null;
+      return selector === '#build-switcher-menu' ? buildMenu : null;
     }
   };
 

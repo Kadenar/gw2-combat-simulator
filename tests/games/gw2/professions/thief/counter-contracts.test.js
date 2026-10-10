@@ -28,6 +28,7 @@ test('Prodigious Pincher retains precombat gross spending, checks after Chak ref
           const original = runtime.mechanics.resourceController.grant;
           // Observe that the refund sees gross progress before the pilfer replaces artifacts and clears the cycle.
           const context = {
+            ...runtime.mechanics,
             helpers: runtime.mechanics.helpers,
             traits: runtime.mechanics.traits,
             profession: runtime.mechanics.profession,

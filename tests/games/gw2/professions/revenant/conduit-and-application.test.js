@@ -360,6 +360,25 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
   }
 });
 
+// Numinous Gift is Conduit's intrinsic minor, so its boons do not depend on the trait being listed in the build.
+test('Cosmic Wisdom grants Numinous Gift boons whether or not the minor trait is listed', () => {
+  const boons = (selectedTraitIds) => {
+    const result = simulate('Conduit', ['Phase Traversal', 'Release Potential: Assassin', 'Cosmic Wisdom'], {
+      selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+      startingLegend: LEGEND.ASSASSIN,
+      initialEnergy: 100,
+      selectedTraitIds
+    });
+    assert.deepEqual(result.warnings, []);
+    return result.events
+      .filter((event) => event.type === 'buff' && event.skillName === 'Cosmic Wisdom' && event.kind !== 'cosmic-wisdom')
+      .map((event) => event.kind);
+  };
+
+  assert.deepEqual(boons([]), ['might', 'fury', 'quickness']);
+  assert.deepEqual(boons([TRAIT.NUMINOUS_GIFT]), boons([]));
+});
+
 // Check base boon grants and form-dependent resources/recharge using isolated Demon casts.
 test('Pain Absorption grants its base boons and changes cost and recharge only in Mesmer form', () => {
   const config = {

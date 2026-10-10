@@ -13,11 +13,15 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { heraldBuffPolicies } from '#gw2/professions/revenant/specializations/herald/effect-state.js';
+import {
+  facetConsumed,
+  heraldUpkeepSettled
+} from '#gw2/professions/revenant/specializations/herald/mechanics/boundaries.js';
 import {
   FACET_PULSE,
   heraldFacetPassiveActive,
@@ -25,17 +29,9 @@ import {
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import {
-  COMPASSION,
-  compassionPulse,
-  coreValueExtension,
-  ECHO_EXPIRY,
-  echoExpiry,
-  retainDraconicEcho,
-  syncCompassion
-} from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
+import { coreValueExtension } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, canonicalInterval } from '#kernel/core/clock.js';
+import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 
 function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const { skillId } = data as { skillId: SkillId };
@@ -104,7 +100,7 @@ function completeConsume(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSki
   const { facet, wasActive } = consumed;
   // Parent ownership makes Facet of Nature's cooldown shared by every legend-specific True Nature.
   if (cast.rechargeWork > 0) runtime.cooldownController.startRecharge(facet, runtime.time, cast.rechargeWork);
-  retainDraconicEcho(runtime, facet, wasActive);
+  runtime.fireTrigger(facetConsumed, { facet, wasActive, at: runtime.time });
 }
 
 /** True Nature (Dragon) extends boons when its authored proc lands; Core Value adds its patched extension. */
@@ -199,13 +195,17 @@ export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     return { ready: true };
   },
   // Facet actions finish before the observer evaluates the resulting aggregate upkeep.
-  onCastCancel: syncCompassion,
-  onCastCommit: syncCompassion,
+  onCastCancel(runtime) {
+    runtime.fireTrigger(heraldUpkeepSettled, { at: runtime.time });
+  },
+  onCastCommit(runtime) {
+    runtime.fireTrigger(heraldUpkeepSettled, { at: runtime.time });
+  },
   sideEffectHandlers: {
     'revenant.start-facet'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       startFacet(runtime, context.skill);
     },
     'revenant.start-consume'(runtime, context) {
@@ -214,7 +214,7 @@ export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     'revenant.complete-consume'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       completeConsume(runtime, context.cast);
     },
     'revenant.true-nature-dragon'(runtime, context) {
@@ -227,8 +227,6 @@ export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Sustained boon pulses are ambient; facet consumption and its damage keep their own queued effects.
   backgroundTasks: [FACET_PULSE],
   tasks: {
-    [FACET_PULSE]: facetPulse,
-    [ECHO_EXPIRY]: echoExpiry,
-    [COMPASSION]: compassionPulse
+    [FACET_PULSE]: facetPulse
   }
 };

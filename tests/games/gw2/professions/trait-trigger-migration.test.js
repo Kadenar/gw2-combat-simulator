@@ -1,16 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
-// Shade Step belongs to commitment; Dawn's boon must precede its independent barrier.
-test('Shade Step grants only the committed skill boon before the intrinsic barrier', () => {
-  for (const [skillId, kind] of [
-    [ID.GRASPING_SHADOWS, 'alacrity'],
-    [ID.DAWNS_REPOSE, 'protection'],
-    [ID.MIND_SHOCK, 'aegis']
-  ]) {
+const shadestepRewards = [
+  [ID.GRASPING_SHADOWS, 'alacrity'],
+  [ID.DAWNS_REPOSE, 'protection'],
+  [ID.MIND_SHOCK, 'aegis']
+];
+
+// Each committed skill grants its own boon; Dawn's intrinsic barrier has no ordering dependency on protection.
+test('Shade Step grants only the committed skill boon with the accepted action identity', () => {
+  for (const [skillId, kind] of shadestepRewards) {
     const result = runThief([ID.ENTER_SHADOW_SHROUD, skillId, { type: 'wait', durationMs: 1000 }], {
       specialization: 'Specter',
       initialShadowForce: 100,
@@ -23,40 +27,82 @@ test('Shade Step grants only the committed skill boon before the intrinsic barri
       rewards.map((event) => event.kind),
       [kind]
     );
-    if (skillId === ID.DAWNS_REPOSE) {
-      const barrierIndex = result.events.findIndex((event) => event.skillId === skillId && event.kind === 'barrier');
-      assert.ok(barrierIndex > result.events.indexOf(rewards[0]), 'Shade Step precedes the barrier');
-    }
-
     const action = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
     assert.equal(rewards[0].at, action.endsAt);
     assert.equal(rewards[0].activationId, action.activationId);
+    assert.equal(rewards[0].source, 'Trait');
+    assert.equal(rewards[0].actorType, 'player');
+    assert.equal(rewards[0].skillId, skillId);
+    assert.equal(rewards[0].skillName, action.skillName);
+    assert.equal(rewards[0].name, `Shade Step - ${kind}`);
+    assert.equal(rewards[0].audience.recipients, 'party');
     assert.equal(rewards[0].resolvedAudience.recipientCount, 3);
   }
 });
 
-// Removing the selected effect cannot substitute a sibling boon or suppress Dawn's independent barrier.
-test('Shade Step respects trait selection and a removed boon while preserving completion mechanics', () => {
-  for (const selectedTraitIds of [[], [TRAIT.SHADESTEP]]) {
-    const result = runThief(
-      [ID.ENTER_SHADOW_SHROUD, ID.DAWNS_REPOSE, { type: 'wait', durationMs: 1000 }],
-      { specialization: 'Specter', initialShadowForce: 100, selectedTraitIds },
-      {
-        catalog: (catalog) =>
-          selectedTraitIds.length
-            ? withProfile(catalog, TRAIT.SHADESTEP, {
-                effects: catalog.balanceProfilesById
-                  .get(TRAIT.SHADESTEP)
-                  .effects.filter((effect) => effect.name !== 'protection')
-              })
-            : catalog
+// Selection, isolation, and patch removal gate each reward without suppressing intrinsic skill behavior.
+for (const [skillId, kind] of shadestepRewards) {
+  test(`Shade Step ${kind} respects selection, trigger isolation, and removed payloads`, () => {
+    for (const selected of [false, true]) {
+      for (const traitTriggers of [false, true]) {
+        for (const removed of [false, true]) {
+          const result = runThief(
+            [ID.ENTER_SHADOW_SHROUD, skillId, { type: 'wait', durationMs: 1000 }],
+            {
+              specialization: 'Specter',
+              initialShadowForce: 100,
+              selectedTraitIds: selected ? [TRAIT.SHADESTEP] : [],
+              allies: { count: 2, strikesPerSecond: 0 }
+            },
+            {
+              profession: {
+                ...thiefProfession,
+                runtimeFor: (config) => thiefProfession.runtimeFor(config, { traitTriggers })
+              },
+              catalog: (catalog) =>
+                removed
+                  ? applyBalanceProfilePatch(catalog, {
+                      balanceProfiles: { [TRAIT.SHADESTEP]: { removeEffects: [{ type: 'boon', name: kind }] } }
+                    })
+                  : catalog
+            }
+          );
+          assert.deepEqual(result.warnings, []);
+          const rewards = result.events.filter((event) => event.sourceId === TRAIT.SHADESTEP);
+          assert.deepEqual(
+            rewards.map((event) => event.kind),
+            selected && traitTriggers && !removed ? [kind] : []
+          );
+          if (skillId === ID.DAWNS_REPOSE) {
+            const barrier = result.events.find((event) => event.skillId === skillId && event.kind === 'barrier');
+            assert.ok(barrier, 'Completion grants the intrinsic barrier independently of Shadestep');
+            assert.equal(barrier.resolvedAudience.recipientCount, 3);
+          }
+        }
       }
-    );
-    assert.deepEqual(result.warnings, []);
-    assert.equal(
-      result.events.some((event) => event.sourceId === TRAIT.SHADESTEP),
-      false
-    );
-    assert.ok(result.events.some((event) => event.skillId === ID.DAWNS_REPOSE && event.kind === 'barrier'));
-  }
+    }
+  });
+}
+
+// Trait activation is independent of barrier payload lookup, so removing the barrier cannot suppress protection.
+test('Shade Step protection survives removal of the independent Dawn barrier', () => {
+  const result = runThief(
+    [ID.ENTER_SHADOW_SHROUD, ID.DAWNS_REPOSE, { type: 'wait', durationMs: 1000 }],
+    { specialization: 'Specter', initialShadowForce: 100, selectedTraitIds: [TRAIT.SHADESTEP] },
+    {
+      catalog: (catalog) =>
+        applyBalanceProfilePatch(catalog, {
+          balanceProfiles: { [PROFILE.dawnsReposeBarrier]: { removeEffects: [{ type: 'buff', name: 'barrier' }] } }
+        })
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some((event) => event.skillId === ID.DAWNS_REPOSE && event.kind === 'barrier'),
+    false
+  );
+  assert.deepEqual(
+    result.events.filter((event) => event.sourceId === TRAIT.SHADESTEP).map((event) => event.kind),
+    ['protection']
+  );
 });

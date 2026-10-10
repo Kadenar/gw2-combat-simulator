@@ -10,7 +10,6 @@
 import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#browser/page/embed.js';
 import { mountGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
 import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/preferences.js';
-import { mountHeaderDps } from '#browser/shell/header-dps.js';
 import { mountRotationWorkspace } from '#browser/shell/rotation-workspace.js';
 import { mountSimulatorTutorial } from '#gw2/app/page/tutorial.js';
 import { mountSimulatorNavigation } from '#gw2/app/page/navigation.js';
@@ -229,7 +228,6 @@ function bindProfessionSelector(root: Document = document): void {
   mountRotationTimelineSize(root);
   mountCommunityActions(root);
   mountSimulatorTutorial(root);
-  mountHeaderDps(root);
   mountSimulatorNavigation(root);
   mountStickyHeader(root);
   renderProfessionCards(root);

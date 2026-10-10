@@ -1,3 +1,5 @@
+import { missileResolved } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { galeshotControlAccepted } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -6,10 +8,7 @@ import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import {
-  applyShrike,
-  reactToGaleshotControl
-} from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { scheduleWindForce } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
 
@@ -162,11 +161,13 @@ test('Shrike resets hit progress and preserves arrow cadence even when its strik
             run(runtime) {
               const current = galeshotState.from(runtime);
               current.missileHits = 13;
-              applyShrike(runtime.mechanics, {
-                type: 'damage',
-                at: runtime.time,
-                actorType: 'player',
-                skillName: 'Projectile fixture'
+              runtime.mechanics.fireTrigger(missileResolved, {
+                event: {
+                  type: 'damage',
+                  at: runtime.time,
+                  actorType: 'player',
+                  skillName: 'Projectile fixture'
+                }
               });
               assert.equal(current.missileHits, 0);
               assert.equal(runtime.resourceController.value('arrows'), 8);
@@ -204,7 +205,9 @@ test('Thrill of the Catch grants patched arrows only for eligible controls outsi
       ].map(([at, actorType]) => ({
         at,
         run(runtime) {
-          reactToGaleshotControl(runtime.mechanics, { type: 'control', at, actorType, controlKind: 'daze' });
+          runtime.mechanics.fireTrigger(galeshotControlAccepted, {
+            event: { type: 'control', at, actorType, controlKind: 'daze' }
+          });
           readings.push(runtime.resourceController.value('arrows'));
         }
       }))

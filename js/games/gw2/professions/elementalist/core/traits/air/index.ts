@@ -1,3 +1,5 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
@@ -5,33 +7,54 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+
 import {
-  elementalistAnnouncement,
-  elementalistProfiledBuffRequest,
-  elementalistProfiledConditionRequest
-} from '#gw2/professions/elementalist/core/mechanics/effects.js';
+  attunementChanged,
+  attunementInvoked,
+  attunementReentered,
+  type ElementalistAttunementChanged,
+  type ElementalistEntry
+} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { combatStarted, elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  auraAccepted,
+  controlAccepted,
+  elementalistCastCompleted,
+  elementalistDamageResolved,
+  elementalistEventPreparing,
+  type ElementalistCastCompleted,
+  type ElementalistDamageResolved,
+  type ElementalistReaction
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/state.js';
+import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
+import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistModifierContext,
-  ElementalistRuntime,
-  ElementalistSkill
+  ElementalistResolverContext,
+  ElementalistRuntime
 } from '#gw2/professions/elementalist/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const zephyrsSpeed = defineTrait({
@@ -58,9 +81,29 @@ export const zephyrsSpeed = defineTrait({
 
 export const freshAir = defineTrait({
   id: TRAIT.FRESH_AIR,
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      when: (_runtime: unknown, input: ElementalistAttunementChanged) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
+        applyFreshAirAttunementEntry(runtime, input.at, input.skill, input.previous, input.emissionCast)
+    }),
+    onTriggerPoint(attunementReentered, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) =>
+        applyFreshAirSyntheticEntry(runtime, input.at, input.skill, input.emissionCast)
+    }),
+    onTriggerPoint(elementalistDamageResolved, {
+      run: (runtime: ElementalistRuntime, { cause, details }: ElementalistDamageResolved) =>
+        applyFreshAirCritical(runtime, cause, details.hitContext!.critical)
+    }),
+    onTriggerPoint(elementalistEventPreparing, {
+      run: (runtime: ElementalistRuntime, { event }: { readonly event: SimulationEventBase }) =>
+        observeFreshAirCandidate(runtime, event)
+    })
+  ],
   name: 'Fresh Air',
   // Record the accepted proc once before the active elite observes its transition.
-  hooks: { eventHandlers: { 'elementalist.fresh-air': observeElementalistTransition } },
+  lifetime: { eventHandlers: { 'elementalist.fresh-air': observeElementalistTransition } },
   balance: {
     attributeBonus: 250,
     effects: [{ name: 'fresh-air', type: 'buff', kind: 'fresh-air', stacks: 1, duration: 5 }]
@@ -68,6 +111,11 @@ export const freshAir = defineTrait({
 });
 
 export const zephyrsBoon = defineTrait({
+  triggers: [
+    onTriggerPoint(auraAccepted, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyResolverZephyrsBoon(runtime, cause)
+    })
+  ],
   id: TRAIT.ZEPHYRS_BOON,
   name: "Zephyr's Boon",
   balance: {
@@ -79,6 +127,18 @@ export const zephyrsBoon = defineTrait({
 });
 
 export const oneWithAir = defineTrait({
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) =>
+        applyOneWithAir(runtime, input.at, input.skill, input.emissionCast)
+    }),
+    onTriggerPoint(attunementReentered, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) =>
+        applyOneWithAir(runtime, input.at, input.skill, input.emissionCast)
+    })
+  ],
   id: TRAIT.ONE_WITH_AIR,
   name: 'One with Air',
   balance: {
@@ -103,6 +163,15 @@ export const ferociousWinds = defineTrait({
 });
 
 export const electricDischarge = defineTrait({
+  // Alternate mechanic boundaries share one entry handler; only one boundary fires for each entry.
+  triggers: [attunementChanged, attunementInvoked, attunementReentered].map((on) =>
+    onTriggerPoint(on, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
+        triggerElectricDischarge(runtime, input.at, input.skill.id, input.emissionCast);
+      }
+    })
+  ),
   id: TRAIT.ELECTRIC_DISCHARGE,
   name: 'Electric Discharge',
   balance: {
@@ -133,6 +202,19 @@ export const electricDischarge = defineTrait({
 
 export const inscription = defineTrait({
   id: TRAIT.INSCRIPTION,
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) =>
+        applyInscriptionAirEntry(runtime, input.at, input.skill, input.emissionCast)
+    }),
+    onTriggerPoint(attunementReentered, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) =>
+        applyInscriptionAirEntry(runtime, input.at, input.skill, input.emissionCast)
+    }),
+    onTriggerPoint(elementalistCastCompleted, { run: applyInscriptionPostCast })
+  ],
   name: 'Inscription',
   balance: {
     effects: [
@@ -147,6 +229,12 @@ export const inscription = defineTrait({
 
 export const ragingStorm = defineTrait({
   id: TRAIT.RAGING_STORM,
+  triggers: [
+    onTriggerPoint(elementalistDamageResolved, {
+      run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
+        ragingStormCritical(runtime, cause, details)
+    })
+  ],
   name: 'Raging Storm',
   balance: {
     internalCooldown: 8,
@@ -168,6 +256,11 @@ export const aeromancersTraining = defineTrait({
 });
 
 export const lightningRod = defineTrait({
+  triggers: [
+    onTriggerPoint(controlAccepted, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyLightningRod(runtime, cause)
+    })
+  ],
   id: TRAIT.LIGHTNING_ROD,
   name: 'Lightning Rod',
   balance: {
@@ -209,70 +302,61 @@ export const boltToTheHeart = defineTrait({
 });
 
 /** Grants Inscription's current-attunement boon after a completed Glyph cast. */
-export function applyInscriptionPostCast(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
-): void {
-  if (!hasTrait(context, TRAIT.INSCRIPTION) || skill.skillFamily !== 'Glyph') return;
+function applyInscriptionPostCast(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
+  const skill = cast.skill;
+  if (skill.skillFamily !== 'Glyph') return;
   const state = professionCoreState(context);
-  context.effects.emit(
-    elementalistProfiledBuffRequest(
-      context,
-      cast.effectiveEnd,
-      TRAIT.INSCRIPTION,
-      state.primaryAttunement,
-      skill.name,
-      skill.id,
-      undefined,
-      undefined,
-      { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-    )
-  );
+  emitTraitProfile(context, TRAIT.INSCRIPTION, TRAIT.INSCRIPTION, undefined, {
+    at: cast.effectiveEnd,
+    fullEnd: cast.effectiveEnd,
+    effect: { type: 'boon', name: state.primaryAttunement },
+    skillId: skill.id,
+    skillName: skill.name,
+    cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+    priority: 0,
+    attribution: { source: 'Trait', sourceId: TRAIT.INSCRIPTION, actorType: 'player', name: skill.name, priority: 0 }
+  });
 }
 
 /** Materializes Lightning Rod from a classified player control event. */
-export function applyLightningRod(
+function applyLightningRod(
   context: ElementalistRuntime,
   event: SimulationEvent,
   emissionCast?: EffectDelivery['cast']
 ): void {
-  if (!hasTrait(context, TRAIT.LIGHTNING_ROD)) return;
   const sourceId = event.skillId ?? event.sourceId;
   const lightningRodProfile = requireBalanceProfileFromContext(context, TRAIT.LIGHTNING_ROD);
   const lightningRodStrike = requireEffect(lightningRodProfile, 'strike', 'Lightning Rod');
   if (lightningRodStrike) {
-    context.effects.emit(
-      elementalistStrikeRequest(
-        context,
-        {
-          cause: event,
-          at: event.at,
-          source: 'Lightning Rod',
-          sourceId,
-          actorType: 'effect',
-          ownerActorType: 'player',
-          skillName: 'Lightning Rod',
-          coefficient: effectNumber(lightningRodProfile, lightningRodStrike, 'coefficient'),
-          skillWeapon: 'Unequipped'
-        },
-        emissionCast
-      )
-    );
+    emitTraitProfile(context, TRAIT.LIGHTNING_ROD, TRAIT.LIGHTNING_ROD, event, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'strike', name: 'Lightning Rod' },
+      cast: emissionCast,
+      skillWeaponFallback: 'Unequipped',
+      attribution: {
+        source: 'Lightning Rod',
+        sourceId: sourceId,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillName: 'Lightning Rod',
+        skillId: sourceId,
+        name: 'Lightning Rod',
+        activationId: context.combat.allocateEffectActivation('elementalist.effect:')
+      }
+    });
   }
 
   const conditionEmitted =
-    context.effects.emit({
-      ...elementalistProfiledConditionRequest(
-        context,
-        event.at,
-        TRAIT.LIGHTNING_ROD,
-        'Lightning Rod',
-        'Lightning Rod',
-        sourceId,
-        undefined,
-        emissionCast
-      ),
+    emitTraitProfile(context, TRAIT.LIGHTNING_ROD, TRAIT.LIGHTNING_ROD, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Lightning Rod' },
+      skillId: sourceId,
+      skillName: 'Lightning Rod',
+      cast: emissionCast,
+      attribution: { source: 'Lightning Rod', sourceId: sourceId, actorType: 'player', triggeredBy: '' },
+      transform: (event) => ({ ...event, name: 'Lightning Rod' + ' \u2014 ' + event.condition }),
       receipt: true
     }).length > 0;
   if (lightningRodStrike || conditionEmitted)
@@ -287,44 +371,22 @@ export function applyLightningRod(
     );
 }
 
-/** Accepted auras select the current trait profile before shared boon-duration scaling. */
-function zephyrsBoonEffects(context: unknown) {
-  return ['Fury', 'Swiftness'].flatMap((name) => {
-    const zephyrsBoonProfile = requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON);
-    const effect = requireEffect(zephyrsBoonProfile, 'boon', name);
-    if (!effect) return [];
-    return [
-      {
-        kind: String(effect.boon).toLowerCase(),
-        stacks: Number(effect.stacks),
-        duration: effect.duration
-      }
-    ];
-  });
-}
-
 /** Grants resolver-side Zephyr's Boon effects for one classified aura event. */
-export function applyResolverZephyrsBoon(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  if (!hasTrait(context, TRAIT.ZEPHYRS_BOON)) return;
-  for (const boon of zephyrsBoonEffects(context)) {
-    context.effects.emit({
-      kind: 'packet',
-      durationContext: event,
-      event: {
-        type: 'buff',
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.ZEPHYRS_BOON,
-        actorType: 'player',
-        skillName: requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON).name,
-        kind: boon.kind.toLowerCase(),
-        stacks: boon.stacks,
-        duration: boon.duration,
-        triggeredBy: resolverSourceSkill(event),
-        priority: Number(event.priority || 0)
-      }
-    });
-  }
+function applyResolverZephyrsBoon(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
+  // The profile owns both aura boons; one emission preserves their authored order and live duration policy.
+  emitTraitProfile(context, TRAIT.ZEPHYRS_BOON, TRAIT.ZEPHYRS_BOON, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    durationContext: event,
+    effects: (effect) => effect.type === 'boon',
+    attribution: {
+      actorType: 'player',
+      skillName: requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON).name,
+      triggeredBy: resolverSourceSkill(event),
+      priority: Number(event.priority || 0)
+    },
+    transform: (packet) => ({ ...packet, name: requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON).name })
+  });
 }
 
 /** Preserve the live air attribute pass at its original position in the Core modifier pipeline. */
@@ -362,4 +424,210 @@ export function aeromancersTrainingRecharge(
           'rechargeMultiplier'
         )
     : duration;
+}
+
+/** Materializes Raging Storm after its registered critical-hit reaction succeeds. */
+function applyRagingStorm(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
+  const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
+  const fury = requireEffect(ragingStormProfile, 'boon', 'Fury');
+  if (fury) {
+    emitTraitProfile(context, TRAIT.RAGING_STORM, TRAIT.RAGING_STORM, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'boon', name: 'Fury' },
+      durationContext: event,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.RAGING_STORM,
+        actorType: 'player',
+        skillName: requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM).name,
+        triggeredBy: resolverSourceSkill(event),
+        priority: Number(event.priority || 0)
+      },
+      transform: (packet) => ({ ...packet, name: requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM).name })
+    });
+  }
+}
+
+/** Only an accepted player critical hit can reset Air's actual recharge. */
+function applyFreshAirCritical(
+  context: ElementalistRuntime,
+  event: Gw2ResolverEvent,
+  critical: { chance: number; didCrit?: boolean }
+): void {
+  if (
+    event.actorType !== 'player' ||
+    !(Number(event.coefficient) > 0) ||
+    context.profession.core.primaryAttunement === 'Air' ||
+    !critical.didCrit
+  )
+    return;
+  if ((context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
+    setElementalistAttunementReadyAt(context, 'Air', event.at);
+  context.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: {
+      type: 'elementalist.fresh-air',
+      at: event.at,
+      source: 'Fresh Air',
+      sourceId: 'Fresh Air',
+      actorType: 'effect',
+      skillName: 'Fresh Air',
+      sourceSkill: event.skillName
+    }
+  });
+}
+
+/** Only Fresh Air records future player strike wakes; this never predicts their critical result. */
+function observeFreshAirCandidate(runtime: ElementalistRuntime, event: SimulationEventBase): void {
+  if (
+    event.type === 'damage' &&
+    event.actorType === 'player' &&
+    Number(event.coefficient) > 0 &&
+    canonicalTime(event.at) > runtime.time
+  ) {
+    // Only Fresh Air needs strike wakes; retire elapsed times as new work arrives.
+    const core = runtime.profession.core;
+    core.freshAirCandidates = core.freshAirCandidates.filter((at) => at > runtime.time);
+    core.freshAirCandidates.push(canonicalTime(event.at));
+  }
+}
+
+/** Keep ragingStorm's critical sampling and timer with its effect owner; the trigger point fixes cross-trait order. */
+const ragingStormCritical = criticalProcHandler<
+  ElementalistResolverContext,
+  Gw2ResolverEvent,
+  NativeResolvedDamageDetails
+>({
+  id: 'elementalist.raging-storm',
+  when: (_context, event, details) => criticalTraitEligible(event, details),
+  internalCooldown: {
+    duration: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM), 'internalCooldown'),
+    readyAt: (context) => context.procs.deadline('ragingStorm') || 0,
+    setReadyAt: (context, readyAt) => {
+      context.procs.setDeadline('ragingStorm', readyAt);
+    }
+  },
+  handler: applyRagingStorm
+});
+
+/** Emits Electric Discharge from a qualifying Air-attunement transition. */
+function triggerElectricDischarge(
+  context: ElementalistRuntime,
+  at: number,
+  sourceId: Skill['id'],
+  emissionCast?: EffectDelivery['cast']
+): void {
+  if (!combatStarted(context, at)) return;
+  emitElectricDischarge(context, at, sourceId, emissionCast);
+}
+
+/** Opens Fresh Air's ferocity window when an attunement transition newly enters Air. */
+function applyFreshAirAttunementEntry(
+  context: ElementalistRuntime,
+  at: number,
+  skill: Skill,
+  previous: string,
+  emissionCast?: EffectDelivery['cast']
+): void {
+  if (previous === 'Air') return;
+  const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
+  const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
+  if (freshAir) {
+    emitTraitProfile(context, TRAIT.FRESH_AIR, TRAIT.FRESH_AIR, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'buff', name: 'fresh-air' },
+      cast: emissionCast,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.FRESH_AIR,
+        actorType: 'player',
+        skillName: skill.name,
+        priority: -10,
+        skillId: skill.id,
+        name: skill.name
+      },
+      transform: (packet) => ({ ...packet, kind: 'fresh-air' })
+    });
+  }
+}
+
+/** Reads Superspeed as a buff so profile overrides apply without boon-duration scaling. */
+function applyOneWithAir(
+  context: ElementalistRuntime,
+  at: number,
+  skill: Skill,
+  emissionCast?: EffectDelivery['cast']
+): void {
+  const oneWithAirProfile = requireBalanceProfileFromContext(context, TRAIT.ONE_WITH_AIR);
+  const superspeed = requireEffect(oneWithAirProfile, 'buff', 'Superspeed');
+  if (superspeed) {
+    emitTraitProfile(context, TRAIT.ONE_WITH_AIR, TRAIT.ONE_WITH_AIR, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'buff', name: 'Superspeed' },
+      cast: emissionCast,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.ONE_WITH_AIR,
+        actorType: 'player',
+        skillName: skill.name,
+        skillId: skill.id,
+        name: skill.name
+      }
+    });
+  }
+}
+
+/** Grants Inscription's dedicated Resistance effect after entering Air. */
+function applyInscriptionAirEntry(
+  context: ElementalistRuntime,
+  at: number,
+  skill: Skill,
+  emissionCast?: EffectDelivery['cast']
+): void {
+  {
+    emitTraitProfile(context, TRAIT.INSCRIPTION, TRAIT.INSCRIPTION, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'boon', name: 'Air Entry' },
+      skillId: skill.id,
+      skillName: skill.name,
+      cast: emissionCast,
+      priority: 0,
+      attribution: { source: 'Trait', sourceId: TRAIT.INSCRIPTION, actorType: 'player', name: skill.name, priority: 0 }
+    });
+  }
+}
+
+/** A familiar-triggered Air entry refreshes Fresh Air without requiring a preceding different element. */
+function applyFreshAirSyntheticEntry(
+  context: ElementalistRuntime,
+  at: number,
+  skill: Skill,
+  emissionCast?: EffectDelivery['cast']
+): void {
+  {
+    const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
+    const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
+    if (freshAir) {
+      emitTraitProfile(context, TRAIT.FRESH_AIR, TRAIT.FRESH_AIR, undefined, {
+        at: at,
+        fullEnd: at,
+        effect: { type: 'buff', name: 'fresh-air' },
+        cast: emissionCast,
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.FRESH_AIR,
+          actorType: 'player',
+          skillName: skill.name,
+          skillId: skill.id,
+          name: skill.name
+        }
+      });
+    }
+  }
 }

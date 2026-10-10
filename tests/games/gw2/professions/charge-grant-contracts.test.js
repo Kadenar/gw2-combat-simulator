@@ -1,20 +1,17 @@
+import { overflowingThirst } from '#gw2/professions/necromancer/core/traits/blood-magic/index.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { applyElementalistResolvedDamage } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { triggerShatteringStone } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { consumeSolarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
 import { solarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
 import { necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
-import {
-  applyOverflowingThirstDamage,
-  reactToTasteForBloodGrant
-} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
@@ -78,12 +75,12 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
 test('Taste for Blood spends insertion-ordered batches independently with application-time and expiry guards', () => {
   const context = contextFor(necromancerProfession, 'Core', [NECROMANCER.OVERFLOWING_THIRST]);
   const audience = { includesSelf: true, alliedPlayerCount: 1, companionIds: ['minion:test'] };
-  reactToTasteForBloodGrant(context, { at: 1, stacks: 2, duration: 10, resolvedAudience: audience });
-  reactToTasteForBloodGrant(context, { at: 2, stacks: 1, duration: 3, resolvedAudience: audience });
+  grantTasteForBlood(context, { at: 1, stacks: 2, duration: 10, resolvedAudience: audience });
+  grantTasteForBlood(context, { at: 2, stacks: 1, duration: 3, resolvedAudience: audience });
   const pools = context.profession.core.tasteForBloodGrants;
   const original = pools.self[0];
   const hit = (at, actorType = 'player', summonOwner) =>
-    applyOverflowingThirstDamage(context, { at, actorType, summonOwner, skillName: 'Test strike' });
+    spendTasteForBlood(context, { at, actorType, summonOwner, skillName: 'Test strike' });
   hit(0);
   assert.deepEqual(
     pools.self.map((grant) => grant.charges),
@@ -129,7 +126,7 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
   assert.equal(context.events.length, count);
   const expired = pools.self[0];
   // Appending prunes the closed batch without refreshing other recipients' grants.
-  reactToTasteForBloodGrant(context, { at: 5, stacks: 1, duration: 2, resolvedAudience: { includesSelf: true } });
+  grantTasteForBlood(context, { at: 5, stacks: 1, duration: 2, resolvedAudience: { includesSelf: true } });
   assert.equal(pools.self.includes(expired), false);
   assert.equal(expired.expiresAt, 5, 'pruning leaves the captured expiry unchanged');
   assert.deepEqual(
@@ -146,8 +143,8 @@ test('Taste for Blood preserves charges when its authored strike is removed', ()
   context.catalog = applyBalanceProfilePatch(context.catalog, {
     balanceProfiles: { [NECROMANCER.OVERFLOWING_THIRST]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
   });
-  reactToTasteForBloodGrant(context, { at: 1, stacks: 2, duration: 5, resolvedAudience: { includesSelf: true } });
-  applyOverflowingThirstDamage(context, { at: 2, actorType: 'player' });
+  grantTasteForBlood(context, { at: 1, stacks: 2, duration: 5, resolvedAudience: { includesSelf: true } });
+  spendTasteForBlood(context, { at: 2, actorType: 'player' });
   assert.equal(context.profession.core.tasteForBloodGrants.self[0].charges, 2);
   assert.deepEqual(context.events, []);
 });
@@ -196,19 +193,19 @@ test('Shattering Stone replaces self grants and spends player or effect hits bef
     { actorType: 'summon', coefficient: 1 },
     { actorType: 'player', coefficient: 0 }
   ]) {
-    applyElementalistResolvedDamage(context, { at: 2, ...event });
+    triggerShatteringStone(context, { at: 2, ...event });
   }
 
   assert.equal(core.shatteringStone.charges, 2);
-  applyElementalistResolvedDamage(context, { at: 2, actorType: 'effect', coefficient: 1 });
+  triggerShatteringStone(context, { at: 2, actorType: 'effect', coefficient: 1 });
   assert.equal(core.shatteringStone.charges, 1);
   assert.equal(context.events[0].condition, 'Bleeding');
   assert.equal(context.events[0].at, 2);
   applyShatteringStoneBuff(context, { ...grant, at: 2 });
   assert.equal(core.shatteringStone.charges, 2);
   assert.equal(core.shatteringStone.expiresAt, 4);
-  applyElementalistResolvedDamage(context, { at: 3, actorType: 'player', coefficient: 1 });
-  applyElementalistResolvedDamage(context, { at: 4, actorType: 'player', coefficient: 1 });
+  triggerShatteringStone(context, { at: 3, actorType: 'player', coefficient: 1 });
+  triggerShatteringStone(context, { at: 4, actorType: 'player', coefficient: 1 });
   assert.equal(core.shatteringStone.charges, 1);
 });
 
@@ -247,6 +244,8 @@ test('Poisonous Strikes shares one inclusive-expiry grant across pet and Beastmo
 test('Blood Thirst grants merged players twelve seconds, replaces remaining charges, and respects strike eligibility', () => {
   // The intentional player duration applies in Beastmode, where player strikes consume the pet's charges.
   const context = contextFor(rangerProfession, 'Soulbeast');
+  // Grant and hit boundaries dispatch through the selected profession listeners.
+  bindTriggerPoints(context, rangerProfession, context.config);
   context.profession.specialization.state.beastmodeActive = true;
   const core = context.profession.core;
   const skill = context.catalog.skillsById.get(RANGER.CRIPPLING_SHOT);
@@ -297,20 +296,27 @@ test('Blood Thirst grants merged players twelve seconds, replaces remaining char
 test('Solar Focusing Lens keeps not-before eligibility and live spending', () => {
   const context = contextFor(engineerProfession, 'Holosmith', [ENGINEER.SOLAR_FOCUSING_LENS]);
   const state = context.profession.specialization.state;
-  const grant = solarFocusingLens.hooks.eventHandlers['engineer.solar-focusing-lens'];
+  const grant = solarFocusingLens.lifetime.eventHandlers['engineer.solar-focusing-lens'];
   grant(context, { at: 1.001, stacks: 2, duration: 1 });
   assert.equal(state.solarFocusingLens.expiresAt, 2.04);
   const hit = { at: 1, actorType: 'player', coefficient: 1 };
-  assert.equal(consumeSolarFocusingLens(context, hit), undefined);
-  assert.equal(consumeSolarFocusingLens(context, { ...hit, at: 1.1, actorType: 'effect' }), undefined);
+  assert.equal(solarFocusingLens.lifetime.reactions['damage.resolving'](context, hit), undefined);
+  assert.equal(
+    solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 1.1, actorType: 'effect' }),
+    undefined
+  );
   assert.equal(state.solarFocusingLens.charges, 2);
-  assert.deepEqual(consumeSolarFocusingLens(context, { ...hit, at: 1.001 }), { solarFocusingLens: true });
+  assert.deepEqual(solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 1.001 }), {
+    solarFocusingLens: true
+  });
   assert.equal(state.solarFocusingLens.charges, 1);
   assert.equal(state.solarFocusingLens.expiresAt, 2.04);
   grant(context, { at: 2.001, stacks: 2, duration: 1 });
   assert.equal(state.solarFocusingLens.charges, 2);
-  assert.deepEqual(consumeSolarFocusingLens(context, { ...hit, at: 3.04 }), { solarFocusingLens: true });
-  assert.equal(consumeSolarFocusingLens(context, { ...hit, at: 3.040001 }), undefined);
+  assert.deepEqual(solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 3.04 }), {
+    solarFocusingLens: true
+  });
+  assert.equal(solarFocusingLens.lifetime.reactions['damage.resolving'](context, { ...hit, at: 3.040001 }), undefined);
   assert.equal(state.solarFocusingLens.charges, 1);
 });
 
@@ -414,3 +420,12 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   const inactive = projectObservedState(thiefProfession, { ...core.state });
   assert.equal(Object.hasOwn(inactive, 'mistburn'), false);
 });
+
+/** Explicitly admitted charges use retained delivery hooks independently of new cast admission. */
+function grantTasteForBlood(runtime, event) {
+  overflowingThirst.lifetime.reactions['buff.applied'](runtime, { ...event, kind: 'taste-for-blood' });
+}
+
+function spendTasteForBlood(runtime, event) {
+  overflowingThirst.lifetime.reactions['damage.resolved'](runtime, { coefficient: 1, ...event });
+}

@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { engineerToolbeltSkillIds, uniqueSkillIds } from '#gw2/professions/engineer/core/presentation.js';
@@ -11,6 +13,14 @@ function scrapperProfessionSkills(catalog: Readonly<CanonicalCatalog<EngineerSki
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindScrapperUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
+    /** Expose held combat bonuses without changing the saved build or simulation. */
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.boon('stability', 'Object in Motion');
+      preview.boon('swiftness', 'Object in Motion');
+      preview.damageBuff('Object in Motion', 'superspeed', 'superspeed');
+      return preview.controls;
+    },
     paletteGroups: (context: EngineerUiContext) => [
       {
         id: 'engineer-profession',

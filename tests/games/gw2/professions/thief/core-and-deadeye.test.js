@@ -29,7 +29,7 @@ import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { grantSilentScope } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -178,7 +178,9 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
     const grant = () => {
       if (deadeye) {
         state.malice.value = 5;
-        grantSilentScope(context, { skill: runtime.helpers.skillsById.get(SHARED_SKILL_IDS.DODGE) });
+        context.fireTrigger(deadeyeCastCompleted, {
+          cast: { skill: runtime.helpers.skillsById.get(SHARED_SKILL_IDS.DODGE) }
+        });
       } else antiquaryHooks.sideEffectHandlers['thief.guitar'](context);
     };
 

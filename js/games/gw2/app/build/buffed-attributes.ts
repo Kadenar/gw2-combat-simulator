@@ -18,6 +18,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */
 export function calculateBuffedAttributes(
@@ -155,14 +156,22 @@ function calculatePreview(
     const field = control.field || control.key;
     if (control.kind === 'buff') addBuff(field, count, control.label);
     if (control.kind === 'condition') targetConditions[field] = count;
+    // Share anonymous condition-count inputs with damage previews while keeping named conditions independent.
+    if (control.kind === 'conditionCount')
+      for (let index = 0; index < count; index++) targetConditions[`preview-condition-${index}`] = 1;
   }
 
   const queryOptions: ProfessionAttributePreviewPreparation['queryOptions'] = { conditionDurations: false };
+  const previewCooldowns = new Set<SkillId>();
   app.profession.ui.prepareAttributePreview({
     ...context,
     config: queryConfig,
     professionState,
     events,
+    addBuff,
+    setSkillOnCooldown: (skillId) => {
+      previewCooldowns.add(skillId);
+    },
     targetConditions,
     queryOptions
   });
@@ -179,8 +188,8 @@ function calculatePreview(
     profession,
     config: queryConfig,
     events,
-    // Attribute previews have no executed casts, so equipped skills keep their ready-state passives.
-    skillOnCooldown: () => false,
+    // Owner-selected recharge states suppress passives without executing a cast or altering the saved build.
+    skillOnCooldown: (skillId) => previewCooldowns.has(skillId),
     attributePreviewPlayerHealthFraction: playerHealth
   });
   // Seed an isolated active stack window so both displayed and conjure durations use the relic's combat formula.

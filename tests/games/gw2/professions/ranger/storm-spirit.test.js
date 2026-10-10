@@ -40,8 +40,8 @@ test('Storm Spirit invokes Call Lightning independently of the active pet lifeti
   }
 });
 
-// Moving damage to a child must preserve measurement of the parent summon in the isolated evaluator.
-test('Storm Spirit damage previews include Call Lightning and the selected repeat', () => {
+// Isolated skill execution retains the intrinsic child slam while suppressing new trait-repeat admission.
+test('Storm Spirit damage previews include Call Lightning without admitting a trait repeat', () => {
   const measure = (selectedTraitIds) =>
     evaluateSkillDamage(
       {
@@ -64,7 +64,7 @@ test('Storm Spirit damage previews include Call Lightning and the selected repea
   assert.equal(base.status, 'measured');
   assert.equal(repeated.status, 'measured');
   assert.ok(base.measurement.total > 0);
-  assert.ok(repeated.measurement.total > base.measurement.total);
+  assert.equal(repeated.measurement.total, base.measurement.total);
 });
 
 // Both slams read the canonical child profile, including removal, while the parent retains its rewards.

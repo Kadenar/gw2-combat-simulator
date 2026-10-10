@@ -1,9 +1,9 @@
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { applyUnstoppableUnion } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /**
  * Owns Soulbeast mode-toggle and pet-swap action fragments.
@@ -42,5 +42,11 @@ export const SOULBEAST_BEASTMODE_SKILL_MECHANICS: Readonly<Record<number, Partia
 export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boolean): void {
   soulbeastState.from(runtime).beastmodeActive = active;
   setRangerPetActive(runtime, !active);
-  applyUnstoppableUnion(runtime, skill);
+  runtime.fireTrigger(beastmodeChanged, { skill, at: runtime.time });
 }
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
+  'ranger.beastmode-changed',
+  [TRAIT.UNSTOPPABLE_UNION]
+);

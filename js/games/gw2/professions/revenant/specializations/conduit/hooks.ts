@@ -1,10 +1,11 @@
+import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
@@ -19,6 +20,10 @@ import {
   conduitAffinityPolicy,
   gainAffinity
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import {
+  entityBoonCompleted,
+  entityCastCompleted
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/boundaries.js';
 import { FORM_EXPIRY } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
   cosmicWisdom,
@@ -51,13 +56,20 @@ import {
   enhancedLegendRecharge,
   kineticInsightRecharge
 } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
-import { completionSharedWisdom } from '#gw2/professions/revenant/specializations/conduit/traits/shared-wisdom.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
 
 export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  /** Hold the selected preview state while evaluating detached damage queries. */
+  prepareDamageState(runtime, _skill, inputs) {
+    const state = conduitState.from(runtime);
+    state.cosmicWisdomUntil = inputs.cosmicWisdom ? Infinity : 0;
+    state.conduitForm = inputs.cosmicWisdom
+      ? REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || ''
+      : '';
+  },
   resources: { affinity: conduitAffinityPolicy },
   buffPolicies: conduitBuffPolicies,
   // Passive affinity accrual does not extend damage observation; damaging dagger upkeep remains bounded normally.
@@ -134,7 +146,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
     dervishCasts.delete(cast);
     // Shared Wisdom Swiftness belongs only to Entity legend skills.
-    if (skill.legendId === LEGEND.ENTITY) completionSharedWisdom(runtime, cast, 'entity-skill');
+    if (skill.legendId === LEGEND.ENTITY) runtime.fireTrigger(entityCastCompleted, { cast });
 
     if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
     if (isRevenantUpkeep(skill) && activeRevenantUpkeep(runtime, skill.id, runtime.time)) {
@@ -145,10 +157,13 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     }
   },
   sideEffectHandlers: {
+    'revenant.entity-boon-completed'(runtime, context) {
+      if (context.kind === 'cast') runtime.fireTrigger(entityBoonCompleted, { cast: context.cast });
+    },
     'revenant.complete-haze'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Shared Wisdom is already published; Core traits precede the shared-ammo transition.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       completeBeguilingHaze(runtime, context.cast);
     },
     'revenant.hex-eater-cleanse'(runtime, context) {
@@ -161,7 +176,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     'revenant.cosmic-wisdom'(runtime, context) {
       if (context.kind !== 'cast') return;
       // Core cast traits must see the pre-form attributes before Cosmic Wisdom opens its form.
-      completeRevenantCastTraits(runtime, context.cast);
+      completeRevenantCast(runtime, context.cast);
       cosmicWisdom(runtime, context.cast);
     },
     'revenant.entity-hit-affinity'(runtime, context) {

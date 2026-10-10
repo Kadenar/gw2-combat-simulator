@@ -1,3 +1,5 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -16,6 +18,7 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
   const skill = { id: 980000, name: 'Signet', cooldown: 10 };
   const skillsById = new Map([[skill.id, skill]]);
   const state = {
+    traits: new Set(),
     time: 0,
     helpers: { skillsById },
     profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
@@ -28,6 +31,7 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
       { start, end, rate: gw2RechargeRate(skill, chronomancerHooks.playerAlacrityRechargeRate) }
     ]
   });
+  bindTriggerPoints(state, mesmerProfession, { specialization: 'Chronomancer' });
   state.effects = captureEffectEmissions().effects;
   const continuum = createContinuumController({
     state,
@@ -35,7 +39,6 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
     unaffectedCooldownIds: new Set(),
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
-    triggerShatterTraits: () => {},
     durationPerSource: 3
   });
   cooldown.startRecharge(skill, 0);

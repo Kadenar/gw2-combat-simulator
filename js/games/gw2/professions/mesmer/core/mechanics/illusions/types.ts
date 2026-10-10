@@ -1,10 +1,9 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { StrikeTick, StrikeEffect } from '#gw2/platform/effects/types.js';
 
-import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 export interface MesmerClone {
   id: number;
@@ -78,10 +77,6 @@ export interface MesmerIllusionRewards {
     cause?: MesmerResourceCause
   ): void;
   queueResources: MesmerQueueResources;
-}
-
-export interface MesmerCriticalTraitDispatcher {
-  process(event: SimulationEvent, chance: number): void;
 }
 
 export interface MesmerCloneAttackStep {

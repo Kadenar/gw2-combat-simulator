@@ -1,13 +1,23 @@
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { rangerInitialized } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { avatarExited } from '#gw2/professions/ranger/specializations/druid/hooks.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 function naturalBalanceActive(context: Gw2ModifierContext): boolean {
   // Registration gates selection; only the Druid's own packets receive the active buff bonus.
@@ -24,16 +34,21 @@ export const naturalMender = defineTrait({
     pulseInterval: 3,
     resourceGain: 8
   },
-  hooks: {
-    initialize(runtime) {
-      const interval = hasTrait(runtime, TRAIT.NATURAL_MENDER)
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_MENDER), 'pulseInterval')
-        : 0;
-      if (interval > 0) {
-        druidState.from(runtime).naturalMenderAt = gw2CooldownReadyAt(interval);
-        runtime.schedule('ranger.natural-mender', druidState.from(runtime).naturalMenderAt, interval, undefined, -1);
+  triggers: [
+    onTriggerPoint(rangerInitialized, {
+      run(runtime) {
+        const interval = balanceProfileNumber(
+          requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_MENDER),
+          'pulseInterval'
+        );
+        if (interval > 0) {
+          druidState.from(runtime).naturalMenderAt = gw2CooldownReadyAt(interval);
+          runtime.schedule('ranger.natural-mender', druidState.from(runtime).naturalMenderAt, interval, undefined, -1);
+        }
       }
-    },
+    })
+  ],
+  lifetime: {
     tasks: {
       'ranger.natural-mender'(runtime, data) {
         const deadline = Number(data);
@@ -52,6 +67,7 @@ export const naturalMender = defineTrait({
 
 /** Owns Natural Balance's live tuning and trait behavior. */
 export const naturalBalance = defineTrait({
+  triggers: [onTriggerPoint(avatarExited, { run: (runtime) => applyNaturalBalance(runtime) })],
   id: TRAIT.NATURAL_BALANCE,
   name: 'Natural Balance',
   balance: {
@@ -165,3 +181,25 @@ export const bloodMoon = defineTrait({
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 export const druidTraits = [naturalMender, naturalBalance, graceOfTheLand, eclipse, bloodMoon];
+
+/** Fires at the Avatar transition before chain reset and swap reactions. */
+function applyNaturalBalance(runtime: RangerRuntime): void {
+  {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_BALANCE);
+    const effect = requireEffect(profile, 'buff', 'natural-balance');
+    if (effect)
+      emitTraitProfile(runtime, TRAIT.NATURAL_BALANCE, TRAIT.NATURAL_BALANCE, undefined, {
+        at: runtime.time,
+        fullEnd: runtime.time,
+        effect: { type: 'buff', name: 'natural-balance' },
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.NATURAL_BALANCE,
+          skillId: TRAIT.NATURAL_BALANCE,
+          skillName: 'Natural Balance',
+          actorType: 'player',
+          name: 'Natural Balance'
+        }
+      });
+  }
+}

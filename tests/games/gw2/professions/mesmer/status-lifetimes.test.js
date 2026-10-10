@@ -13,9 +13,10 @@ import {
   mesmerAmbushAttacks
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import {
-  initializeMirageTraits,
-  reactToMirageResourceGain
-} from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
+  mirageInitialized,
+  mirageResourcesGained
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -71,7 +72,8 @@ function lifetimeContext(traits = []) {
   context.history = events;
   context.schedule = () => {};
 
-  initializeMirageTraits(context);
+  bindTriggerPoints(context, mesmerProfession, config);
+  context.fireTrigger(mirageInitialized, {});
   return context;
 }
 
@@ -356,15 +358,13 @@ test('Infinite Horizon clone gains include exact cloak expiry but reject later g
   const state = context.profession.specialization.state;
   const ambushes = () => context.events.filter((event) => event.type === 'damage' && event.metadata?.cloneId === 1);
   const gain = (at) =>
-    reactToMirageResourceGain(
-      context,
-      {
+    context.fireTrigger(mirageResourcesGained, {
+      gain: {
         at,
         cause: { traitId: TRAIT.DECEPTIVE_EVASION },
         createdClones: [{ id: 1, weapon: 'Sword', createdAt: 0 }]
-      },
-      controller.executeCloneAmbushes
-    );
+      }
+    });
   gain(0);
   assert.equal(ambushes().length, 0);
   controller.grantMirageCloak(0.1 + 0.201, 'test');

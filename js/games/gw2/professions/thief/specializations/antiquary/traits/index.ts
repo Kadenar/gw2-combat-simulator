@@ -1,18 +1,41 @@
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import type {
+  AntiquaryStrike,
+  ArtifactActivation
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
+import {
+  antiquaryStruck,
+  artifactActivated,
+  artifactCompleted,
+  artifactsPilfered,
+  type ArtifactPilfer
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import {
   METICULOUS_ARTIFACT_STRIKE_IDS,
   meticulousArtifactStrikeFactor
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
+import type { ThiefResolverContext } from '#gw2/professions/thief/types.js';
 
 /**
  * Card Swap is the only source of Reshuffle, so the skill is denied whenever the trait is not selected. Its condition
@@ -33,6 +56,12 @@ export const cardSwap = defineTrait({
 export const combatHigh = defineTrait({
   id: TRAIT.COMBAT_HIGH,
   name: 'Combat High',
+  triggers: [
+    onTriggerPoint(artifactsPilfered, {
+      when: (_runtime, { source }: ArtifactPilfer) => source === 'swipe',
+      run: grantCombatHigh
+    })
+  ],
   modifierRules: [
     {
       order: 401,
@@ -76,6 +105,7 @@ export const combatHigh = defineTrait({
 export const enterprisingAristocrat = defineTrait({
   id: TRAIT.ENTERPRISING_ARISTOCRAT,
   name: 'Enterprising Aristocrat',
+  triggers: [onTriggerPoint(artifactActivated, { run: applyEnterprisingAristocrat })],
   balance: { resourceGain: 2 }
 });
 
@@ -83,6 +113,7 @@ export const enterprisingAristocrat = defineTrait({
 export const exhilaratingEphemera = defineTrait({
   id: TRAIT.EXHILARATING_EPHEMERA,
   name: 'Exhilarating Ephemera',
+  triggers: [onTriggerPoint(artifactActivated, { run: applyExhilaratingEphemera })],
   modifierRules: [
     {
       order: 400,
@@ -106,6 +137,10 @@ export const exhilaratingEphemera = defineTrait({
 export const meticulousCustodian = defineTrait({
   id: TRAIT.METICULOUS_CUSTODIAN,
   name: 'Meticulous Custodian',
+  triggers: [
+    onTriggerPoint(artifactActivated, { run: applyMeticulousChakShield }),
+    onTriggerPoint(antiquaryStruck, { run: applyMeticulousSunCrystal })
+  ],
   hooks: {
     modifyEffects(runtime, cast, effects) {
       if (cast.skill.id !== ID.SUMMON_KRYPTIS_TURRET || !hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) return effects;
@@ -222,6 +257,7 @@ export const meticulousCustodian = defineTrait({
 export const possessiveHoarder = defineTrait({
   id: TRAIT.POSSESSIVE_HOARDER,
   name: 'Possessive Hoarder',
+  triggers: [onTriggerPoint(artifactActivated, { run: applyPossessiveHoarder })],
   balance: {
     effects: [
       { type: 'boon', name: 'might', boon: 'might', stacks: 10, duration: 12 },
@@ -251,6 +287,7 @@ export const prolificPlunderer = defineTrait({
 export const repeatRansacker = defineTrait({
   id: TRAIT.REPEAT_RANSACKER,
   name: 'Repeat Ransacker',
+  triggers: [onTriggerPoint(artifactCompleted, { run: applyRepeatRansacker })],
   balance: {
     rechargeReduction: 2
   }
@@ -260,6 +297,12 @@ export const repeatRansacker = defineTrait({
 export const scoundrelsLuck = defineTrait({
   id: TRAIT.SCOUNDRELS_LUCK,
   name: "Scoundrel's Luck",
+  triggers: [
+    onTriggerPoint(artifactsPilfered, {
+      when: (_runtime, { source }: ArtifactPilfer) => source === 'swipe',
+      run: grantScoundrelsLuck
+    })
+  ],
   balance: {
     maximumStacks: 1,
     internalCooldown: 20
@@ -279,3 +322,134 @@ export const antiquaryTraits = Object.freeze([
   meticulousCustodian,
   cardSwap
 ]);
+
+/** Combat High replaces its stacks with staggered expiries, losing one stack per interval. */
+function grantCombatHigh(runtime: ThiefRuntime): void {
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.COMBAT_HIGH);
+  const maximum = Math.max(0, Math.trunc(balanceProfileNumber(profile, 'maximumStacks')));
+  const interval = balanceProfileNumber(profile, 'pulseInterval');
+  const expiresAt = runtime.time + balanceProfileNumber(profile, 'durationMultiplier');
+  antiquaryState.from(runtime).combatHighExpirations =
+    interval > 0
+      ? purgeExpiredStacks(
+          Array.from({ length: maximum }, (_, index) => expiresAt - index * interval),
+          runtime.time
+        )
+      : [];
+}
+
+/** Applies enterprising aristocrat at the original artifact boundary. */
+function applyEnterprisingAristocrat(runtime: ThiefRuntime): void {
+  const initiativeGain = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.ENTERPRISING_ARISTOCRAT),
+    'resourceGain'
+  );
+  if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+}
+
+/** Applies exhilarating ephemera at the original artifact boundary. */
+function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
+  const state = antiquaryState.from(runtime);
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXHILARATING_EPHEMERA);
+  const remaining = Math.max(0, (state.antiquaryDamageUntil || 0) - runtime.time);
+  state.antiquaryDamageUntil =
+    runtime.time +
+    Math.min(
+      balanceProfileNumber(profile, 'maximumStacks'),
+      remaining + balanceProfileNumber(profile, 'durationMultiplier')
+    );
+}
+
+/** Possessive Hoarder shares the artifact family's boon and Alacrity with the caster's five-player party. */
+function applyPossessiveHoarder(runtime: ThiefRuntime, { cast, slot }: ArtifactActivation): void {
+  // Artifact family chooses its boon, then Alacrity; each selected component remains independently removable.
+  const names = [
+    ...(slot?.kind === 'offensive' ? ['might'] : []),
+    ...(slot?.kind === 'defensive' ? ['protection'] : []),
+    'alacrity'
+  ];
+  for (const name of names)
+    emitTraitProfile(runtime, TRAIT.POSSESSIVE_HOARDER, TRAIT.POSSESSIVE_HOARDER, undefined, {
+      at: runtime.time,
+      activationId: cast.id,
+      effect: { type: 'boon', name },
+      attribution: {
+        source: 'thief',
+        sourceId: 'Possessive Hoarder',
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        name: 'Possessive Hoarder',
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      transform: (packet) => ({ ...packet, boon: packet.kind, fixedDuration: false })
+    });
+}
+
+/** Repeat Ransacker follows the artifact identity grant. */
+function applyRepeatRansacker(runtime: ThiefRuntime): void {
+  const swipe = runtime.helpers.skillsById.get(ID.SKRITT_SWIPE);
+  if (swipe)
+    runtime.cooldownController.reduceSkillRecharge(
+      swipe,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.REPEAT_RANSACKER), 'rechargeReduction'),
+      runtime.time
+    );
+}
+
+/** Scoundrel's Luck refreshes to its cap only when its internal cooldown is ready, so charges never bank. */
+function grantScoundrelsLuck(runtime: ThiefRuntime): void {
+  const state = antiquaryState.from(runtime);
+  if (!runtime.procs.claim(TRAIT.SCOUNDRELS_LUCK, 'thief.antiquary.scoundrelsLuck', runtime.time)) return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SCOUNDRELS_LUCK);
+  state.scoundrelsLuck = balanceProfileNumber(profile, 'maximumStacks');
+}
+
+/** Applies meticulous custodian at the original artifact boundary. */
+function applyMeticulousChakShield(runtime: ThiefRuntime, { cast }: ArtifactActivation): void {
+  // Only this committed artifact receives the strike component, under its own skill identity.
+  if (cast.skill.id !== ID.CHAK_SHIELD) return;
+  emitTraitProfile(runtime, TRAIT.METICULOUS_CUSTODIAN, TRAIT.METICULOUS_CUSTODIAN, undefined, {
+    at: runtime.time,
+    activationId: cast.id,
+    effect: { type: 'strike', name: 'Meticulous Custodian' },
+    attribution: {
+      source: 'thief',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      name: 'Chak Shield'
+    }
+  });
+}
+
+// Add Meticulous Custodian's Burning only to the Sun Crystal strike packet,
+// excluding its declarative condition-only packets.
+function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event }: AntiquaryStrike): void {
+  if (
+    event.actorType !== 'player' ||
+    event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
+    event.coefficient == null // condition-only packets have no coefficient; burning fires on the strike hit
+  )
+    return;
+  const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);
+  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning');
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!burning) return;
+  emitTraitProfile(context, PROFILE.sunCrystalMeticulous, PROFILE.sunCrystalMeticulous, undefined, {
+    at: event.at,
+    fullEnd: event.at,
+    effect: { type: 'condition', name: 'Burning' },
+    settlement: 'reaction',
+    attribution: {
+      source: 'thief',
+      sourceId: ID.ZEPHYRITE_SUN_CRYSTAL,
+      actorType: 'player',
+      skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
+      skillName: 'Zephyrite Sun Crystal',
+      name: 'Zephyrite Sun Crystal - Meticulous Burning',
+      triggeredBy: event.skillName
+    }
+  });
+}

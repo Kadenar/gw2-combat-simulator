@@ -2,13 +2,12 @@ import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechan
 import { beforeElementalStrike } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
 import { completeElementalistGlyphCast } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { applyWrittenInStone } from '#gw2/professions/elementalist/core/traits/earth/index.js';
+import { elementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { applyEpitomeCombo } from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
 import { armElementalLightningJolt } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -127,13 +126,15 @@ test('profession aura sources adjust duration once and record one accepted appli
       'Tempest',
       [TRAIT.WRITTEN_IN_STONE],
       (runtime) =>
-        applyWrittenInStone(runtime.mechanics, { effectiveEnd: runtime.time }, signet, applyElementalistAura),
+        runtime.mechanics.fireTrigger(elementalistCastCompleted, {
+          cast: { effectiveEnd: runtime.time, skill: signet }
+        }),
       8
     ],
     [
       'Catalyst',
       [TRAIT.ELEMENTAL_EPITOME],
-      (runtime) => applyEpitomeCombo(runtime.mechanics, { type: 'combo', at: runtime.time, sourceId: 1 }),
+      (runtime) => runtime.mechanics.combat.react('combo.resolved', { type: 'combo', at: runtime.time, sourceId: 1 }),
       8
     ]
   ]) {

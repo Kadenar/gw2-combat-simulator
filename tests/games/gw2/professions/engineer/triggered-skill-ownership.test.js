@@ -5,7 +5,14 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { explosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/index.js';
+
+// Explosive Entrance's compiled strike trigger, applied to an observed runtime's mechanic capabilities.
+const explosiveEntranceStrike = (runtime, event) =>
+  compileProfessionRules({
+    traitTriggers: explosiveEntrance.triggers.map((rule) => ({ ...rule, trait: explosiveEntrance.id }))
+  }).reactions['damage.resolved'](runtime, event, {});
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -142,7 +149,7 @@ for (const entry of cases) {
 
     if (entry.trait === TRAIT.AIM_ASSISTED_ROCKET) {
       assert.equal(runtime.profession.core.aimAssistedRocketCount, (entry.initialCount ?? 0) + 1);
-      assert.ok(runtime.procs.deadline('aimAssistedRocket') > 0);
+      assert.ok(runtime.procs.deadline(TRAIT.AIM_ASSISTED_ROCKET) > 0);
     }
   });
 }
@@ -156,7 +163,7 @@ test('Explosive Entrance reads patched skill recharge and reserves it before ree
   const result = observeGw2Runtime({ profession: { ...native, catalog }, config, rotation: [] });
   const runtime = observedRuntime(result);
   const invoke = () =>
-    explosiveEntrance.hooks.reactions['damage.resolved'](runtime, {
+    explosiveEntranceStrike(runtime.mechanics, {
       type: 'damage',
       at: runtime.time,
       actorType: 'player',
@@ -185,7 +192,7 @@ test('Explosive Entrance reads patched skill recharge and reserves it before ree
   runtime.time = 2.600001;
   invoke();
   assert.equal(emitted, 1);
-  explosiveEntrance.hooks.eventHandlers['engineer.dodge'](runtime);
+  explosiveEntrance.lifetime.eventHandlers['engineer.dodge'](runtime);
   invoke();
   assert.equal(emitted, 1);
   runtime.cooldownController.resetAll();

@@ -1,32 +1,34 @@
-import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
-import { harbingerBuffPolicies } from '#gw2/professions/necromancer/specializations/harbinger/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { BLIGHT_MAXIMUM_STACKS } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { harbingerBuffPolicies } from '#gw2/professions/necromancer/specializations/harbinger/effect-state.js';
+import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
+import {
+  harbingerBlightConsumed,
+  harbingerElixirLaunched,
+  harbingerShroudEntered,
+  harbingerStrike
+} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/combat-boundaries.js';
 import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import {
   addBlight,
+  BLIGHT_MAXIMUM_STACKS,
   consumeBlight,
   harbingerState,
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import {
-  applyBolsteringBrew,
-  applyCascadingCorruption,
-  applyHarbingerEntryTraits,
+  alchemicVigorLifeForceCostMultiplier,
   doomApproachesBlightProfile,
   doomApproachesControl,
-  harbingerResolverEventReactions,
-  initializeAlchemicVigor,
   twistedMedicineAudience
 } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
 import type {
@@ -80,7 +82,7 @@ function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
   const cost = balanceProfileNumber(profile, 'blightCost');
   const empowered = state.blight >= cost;
   const consumed = empowered ? consumeBlight(state, cost, runtime.time) : 0;
-  applyCascadingCorruption(runtime, cast, consumed);
+  runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed, at: runtime.time, activationId: cast.id });
 
   publishBlight(runtime);
   return empowered;
@@ -90,7 +92,7 @@ function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
 function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, impactAt: number): void {
   const empowered = spendBlight(runtime, cast);
   const blight = harbingerState.from(runtime).blight;
-  applyBolsteringBrew(runtime, cast);
+  runtime.fireTrigger(harbingerElixirLaunched, { cast, at: runtime.time, activationId: cast.id });
 
   runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
 }
@@ -140,13 +142,13 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
     ];
   },
   initialize(runtime) {
-    initializeAlchemicVigor(runtime);
+    runtime.profession.core.lifeForceCostMultiplier = alchemicVigorLifeForceCostMultiplier(runtime);
 
     registerNecromancerShroudLifecycle(runtime, 'harbinger.shroud', {
       onEnter(skill) {
         if (skill.shroudEntry !== 'harbinger') return;
         harbingerState.from(runtime).nextBlightAt = Math.floor(runtime.time) + 1;
-        applyHarbingerEntryTraits(runtime, skill);
+        runtime.fireTrigger(harbingerShroudEntered, { skill, at: runtime.time });
         refreshBlight(runtime);
       },
       onExit() {
@@ -228,5 +230,5 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
       });
     }
   },
-  reactions: { 'damage.resolved': harbingerResolverEventReactions.damage }
+  reactions: { 'damage.resolved': (runtime, event) => runtime.fireTrigger(harbingerStrike, { event }) }
 };

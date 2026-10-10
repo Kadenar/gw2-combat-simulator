@@ -82,7 +82,27 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
-    preview.trait('Brutal Momentum', { key: 'fullEndurance', kind: 'special', description: 'Full endurance' });
+    preview.add({
+      key: 'kallasFervor',
+      label: "Kalla's Fervor",
+      group: 'Mechanic',
+      kind: 'special',
+      scope: ['damage'],
+      max: balanceProfileNumber(
+        requireBalanceProfileFromContext(
+          context,
+          preview.has('Lasting Legacy') ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
+        ),
+        'maximumStacks'
+      ),
+      description: 'Active Fervor stacks'
+    });
+    preview.trait('Brutal Momentum', {
+      key: 'fullEndurance',
+      kind: 'special',
+      scope: ['attributes', 'damage'],
+      description: 'Full endurance'
+    });
     return preview.controls;
   },
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

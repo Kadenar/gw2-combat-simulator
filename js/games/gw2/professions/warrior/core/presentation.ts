@@ -1,4 +1,7 @@
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
@@ -210,6 +213,11 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.boon('swiftness', "Warrior's Sprint");
+    preview.boon('stability', 'Stalwart Strength');
+    preview.condition('Weakness', 'Cull the Weak');
+    preview.condition('Crippled', 'Leg Specialist');
     // Starting adrenaline selects the real burst tier; Bladesworn's charge ladder owns its separate Flow setup.
     if (!['Bladesworn', 'Spellbreaker'].includes(context.specialization))
       preview.add({
@@ -256,13 +264,32 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         description: 'Defiant-target critical bonuses'
       });
     preview.condition('Bleeding', 'Deep Strikes');
-    preview.passives(ID.SIGNET_OF_MIGHT, ID.SIGNET_OF_FURY);
+    preview.passives(ID.SIGNET_OF_MIGHT);
+    // The active Precision/Ferocity window replaces the ready-state Precision passive.
+    if (preview.skills.has(ID.SIGNET_OF_FURY))
+      preview.add({
+        key: 'signetOfFury',
+        label: 'Signet of Fury',
+        group: 'Other buffs',
+        kind: 'special',
+        scope: ['attributes', 'damage'],
+        options: ['off', 'passive', 'active'],
+        optionLabels: { off: 'Off', passive: 'Passive', active: 'Active' },
+        initial: 'passive',
+        description: 'Passive Precision, active Precision and Ferocity, or neither'
+      });
     return preview.controls;
   },
 
   /** Seed the native adrenaline owner without editing the build. */
   prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
     values.adrenaline == null ? {} : { initialResource: Number(values.adrenaline) },
+  /** Reconcile the equipped passive with the selected signet state in the isolated attribute query. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    if ('signetOfFury' in context.values && context.values.signetOfFury !== 'passive')
+      context.setSkillOnCooldown(ID.SIGNET_OF_FURY);
+    if (context.values.signetOfFury === 'active') context.addBuff('signet-of-fury-active', 1, 'Signet of Fury');
+  },
 
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {

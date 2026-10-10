@@ -1,5 +1,8 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { applyDeadlyAmbition } from '#gw2/professions/thief/core/traits/deadly-arts/poison.js';
+import { thiefStruck } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
@@ -24,32 +27,37 @@ test('Deadly Ambition preserves component eligibility and its ID-less identity r
     helpers: runtime.helpers,
     effects: {
       emit(request) {
-        emitted.push(request);
-        applyDeadlyAmbition(context, event);
+        // Reentry must see the claim before the shared service delivers any profile packet.
+        captureEffectEmissions({ submit: (packet) => emitted.push(packet) }).effects.emit(request);
+        context.fireTrigger(thiefStruck, { cause: event, details: {} });
       }
     }
   };
-  applyDeadlyAmbition(context, { ...event, coefficient: 0 });
-  applyDeadlyAmbition(
-    {
-      ...context,
-      helpers: applyBalanceProfilePatch(runtime.helpers, {
-        balanceProfiles: { [TRAIT.DEADLY_AMBITION]: { removeEffects: [{ type: 'condition', name: 'Poisoned' }] } }
-      })
-    },
-    event
-  );
+  bindTriggerPoints(context, thiefProfession);
+  context.fireTrigger(thiefStruck, { cause: { ...event, coefficient: 0 }, details: {} });
+  bindTriggerContext({
+    ...context,
+    helpers: applyBalanceProfilePatch(runtime.helpers, {
+      balanceProfiles: { [TRAIT.DEADLY_AMBITION]: { removeEffects: [{ type: 'condition', name: 'Poisoned' }] } }
+    })
+  }).fireTrigger(thiefStruck, { cause: event, details: {} });
   assert.deepEqual(runtime.profession.core.activationClaims, {});
-  applyDeadlyAmbition(context, event);
-  applyDeadlyAmbition(context, event);
-  applyDeadlyAmbition(context, { ...event, at: 30 });
+  context.fireTrigger(thiefStruck, { cause: event, details: {} });
+  context.fireTrigger(thiefStruck, { cause: event, details: {} });
+  context.fireTrigger(thiefStruck, { cause: { ...event, at: 30 }, details: {} });
   assert.equal(emitted.length, 1);
-  assert.equal(emitted[0].event.condition, 'Poisoned');
+  assert.equal(emitted[0].condition, 'Poisoned');
 
-  context.effects.emit = (request) => emitted.push(request);
-  applyDeadlyAmbition(context, { ...event, activationId: undefined });
-  applyDeadlyAmbition(context, { ...event, activationId: undefined });
+  context.effects = captureEffectEmissions({ submit: (packet) => emitted.push(packet) }).effects;
+  context.fireTrigger(thiefStruck, { cause: { ...event, activationId: undefined }, details: {} });
+  context.fireTrigger(thiefStruck, { cause: { ...event, activationId: undefined }, details: {} });
   assert.equal(emitted.length, 2);
-  applyDeadlyAmbition(context, { ...event, activationId: undefined, at: 2 });
+  context.fireTrigger(thiefStruck, { cause: { ...event, activationId: undefined, at: 2 }, details: {} });
   assert.equal(emitted.length, 3);
 });
+
+/** Patch fixtures use the same selection and ordering as the real mechanic boundary. */
+function bindTriggerContext(context) {
+  bindTriggerPoints(context, thiefProfession);
+  return context;
+}

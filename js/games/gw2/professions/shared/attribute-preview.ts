@@ -43,8 +43,20 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
       if (has(name))
         trait(name, { key, kind: 'buff', field, description, max: stacked ? this.maximumStacks(name) : undefined });
     },
-    condition(name: string, required: string): void {
-      if (has(required))
+    /** Held damage windows use native buff stores, with caps from the selected trait's profile. */
+    damageBuff(name: string, key: string, field: string, stacked = false): void {
+      if (has(name))
+        trait(name, {
+          key,
+          kind: 'buff',
+          field,
+          scope: ['damage'],
+          max: stacked ? this.maximumStacks(name) : undefined,
+          description: 'Outgoing damage bonus active'
+        });
+    },
+    condition(name: string, ...required: string[]): void {
+      if (has(...required))
         add({
           key: `condition:${name}`,
           label: `Target ${name}`,
@@ -52,7 +64,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
           kind: 'condition',
           field: name,
           max: name === 'Vulnerability' ? 25 : undefined,
-          description: required
+          description: required.filter((name) => has(name)).join(', ')
         });
     },
     passives(...ids: SkillId[]): void {

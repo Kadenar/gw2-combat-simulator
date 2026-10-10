@@ -1,12 +1,10 @@
+import { fervorProfile } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceProfileNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import {
-  fervorProfile,
-  heroicCommandProfile
-} from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
+import { heroicCommandProfile } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Heroic Command refreshes every started Fervor stack and grants Might scaled by the active count. */

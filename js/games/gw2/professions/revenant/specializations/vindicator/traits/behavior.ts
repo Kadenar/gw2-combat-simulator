@@ -4,32 +4,12 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
-import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-
-/** Applies the trait at the mechanic's existing execution boundary. */
-export function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
-  if (hasTrait(runtime, TRAIT.ANGSIYANS_TRUST) && runtime.combatStartedAt())
-    runtime.resourceController.grant(
-      'energy',
-      Math.max(
-        0,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ANGSIYANS_TRUST), 'resourceGain')
-      )
-    );
-}
 
 export function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes };
@@ -48,45 +28,6 @@ export function modifyVindicatorAttributes(context: Gw2ModifierContext, attribut
   return modified;
 }
 
-/** Applies the trait at the mechanic's existing execution boundary. */
-export function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: RevenantSkill, activationId: string): void {
-  if (profile.id === ID.DEATH_DROP && hasTrait(runtime, TRAIT.FORERUNNER_OF_DEATH)) {
-    const forerunner = requireBalanceProfileFromContext(runtime, TRAIT.FORERUNNER_OF_DEATH);
-    const window = requireEffect(forerunner, 'buff', 'forerunner-of-death');
-    // The damage window is the buff, so a removed buff opens no window.
-    if (window) {
-      const duration = Math.max(0, effectNumber(forerunner, window, 'duration'));
-      // Renewal replaces the previous bonus even if the selected profile grants a shorter window.
-      runtime.combat.reviseBuffExpiry(
-        'forerunner-of-death',
-        (application) => application.at <= runtime.time && application.expiresAt > runtime.time,
-        () => runtime.time
-      );
-      runtime.effects.emit({
-        kind: 'packet',
-        settlement: 'reaction',
-        event: {
-          ...{
-            type: 'buff',
-            at: runtime.time,
-            source: 'revenant',
-            sourceId: TRAIT.FORERUNNER_OF_DEATH,
-            actorType: 'player',
-            skillId: TRAIT.FORERUNNER_OF_DEATH,
-            skillName: 'Forerunner of Death',
-            activationId,
-            name: 'Forerunner of Death',
-            kind: String(window.kind),
-            duration,
-            stacks: effectNumber(forerunner, window, 'stacks')
-          },
-          fixedDuration: true
-        }
-      });
-    }
-  }
-}
-
 /** Snapshots the pre-landing damage window before its renewal. */
 export function forerunnerOfDeathActive(runtime: RevenantRuntime): boolean {
   return runtime.combat.activeBuffStacks('forerunner-of-death', runtime.time, 1) > 0;
@@ -96,27 +37,6 @@ export function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
   const maximum = REVENANT_MAXIMUM_ENDURANCE;
   return !resourceAtLeast(state.endurance?.value ?? 0, maximum);
-}
-
-/** Applies the trait at the mechanic's existing execution boundary. */
-export function armReaversCurse(runtime: RevenantRuntime): void {
-  const state = vindicatorState.from(runtime);
-  if (hasTrait(runtime, TRAIT.REAVERS_CURSE)) {
-    const curse = requireBalanceProfileFromContext(runtime, TRAIT.REAVERS_CURSE);
-    const effect = requireEffect(curse, 'buff', 'reavers-curse');
-    // The armed window is the buff, so a removed buff arms nothing.
-    if (effect)
-      state.reaversCurseUntil = gw2EffectExpiresAt(runtime.time, Math.max(0, effectNumber(curse, effect, 'duration')));
-  }
-}
-
-/** Consumes a still-valid armed landing charge, including its exact expiry boundary. */
-export function consumeReaversCurse(runtime: RevenantRuntime): boolean {
-  const state = vindicatorState.from(runtime);
-  const reaversCurse =
-    hasTrait(runtime, TRAIT.REAVERS_CURSE) && state.reaversCurseUntil > 0 && state.reaversCurseUntil >= runtime.time;
-  if (reaversCurse) state.reaversCurseUntil = 0;
-  return reaversCurse;
 }
 
 /** Applies the consumed landing charge only when materializing a strike packet. */
@@ -133,19 +53,6 @@ export function reaversCurseMultiplier(runtime: RevenantRuntime, armed: boolean)
 export function saintsShieldDodge(runtime: Pick<RevenantRuntime, 'config' | 'traits'>) {
   return hasTrait(runtime, TRAIT.SAINT_OF_ZU_HELTZER) ? ID.SAINTS_SHIELD : undefined;
 }
-
-// Song supplies the traited replacement; the skill owner suppresses its baseline reward when this policy is selected.
-export const songOfArboreumRewards: readonly SkillSideEffect[] = [
-  {
-    on: 'castCommit',
-    when: (runtime) => hasTrait(runtime, TRAIT.SONG_OF_ARBOREUM),
-    do: {
-      type: 'resourceGrant',
-      resource: 'endurance',
-      amount: { profile: TRAIT.SONG_OF_ARBOREUM, field: 'resourceGain' }
-    }
-  }
-];
 
 /** Overrides the dodge landing only while this grandmaster is selected. */
 export function imperialImpactDodge(runtime: Pick<RevenantRuntime, 'config' | 'traits'>) {

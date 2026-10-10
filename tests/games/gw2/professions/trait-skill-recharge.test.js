@@ -17,24 +17,26 @@ import { NECROMANCER_TRAIT_IDS as D } from '#gw2/professions/necromancer/data/id
 import { RANGER_TRAIT_IDS as R } from '#gw2/professions/ranger/data/ids.js';
 import { THIEF_TRAIT_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { WARRIOR_TRAIT_IDS as W } from '#gw2/professions/warrior/data/ids.js';
-import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
+import { elementalistDodgeCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { explosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/index.js';
-import { triggerMechFighter } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+
+// Explosive Entrance's compiled strike trigger, applied to an observed runtime's mechanic capabilities.
+const explosiveEntranceStrike = (runtime, event) =>
+  compileProfessionRules({
+    traitTriggers: explosiveEntrance.triggers.map((rule) => ({ ...rule, trait: explosiveEntrance.id }))
+  }).reactions['damage.resolved'](runtime, event, {});
+import { mechanistCastCompleted } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { completeProtectorsRestoration } from '#gw2/professions/guardian/core/traits/honor/index.js';
-import { reactToZealDamage, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
-import { methodOfMadnessDamage, triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/chaos/index.js';
-import { applyChillOfDeath } from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
+import { justiceActivated } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { guardianCastCompleted, guardianStruck } from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
+import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
 import { maliciousSwarm } from '#gw2/professions/necromancer/core/traits/spite/index.js';
-import { applyClarionBond } from '#gw2/professions/ranger/core/traits/marksmanship/beast-skills.js';
-import { emitChildOfEarth } from '#gw2/professions/ranger/core/traits/wilderness-survival/index.js';
-import {
-  triggerGoForTheThroat,
-  triggerMergedGoForTheThroat
-} from '#gw2/professions/ranger/core/traits/beastmastery/pet-behavior.js';
+import { petSwapped, castCompleted, strike, mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
+
 import { burstOfAgility } from '#gw2/professions/thief/core/traits/trickery/index.js';
-import { signetMasteryDamage } from '#gw2/professions/warrior/core/traits/arms/index.js';
-import { reactToSpellbreakerDamage } from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
+import { strikeResourcesGranted } from '#gw2/professions/warrior/core/mechanics/combat.js';
+import { spellbreakerStrike } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
 import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -62,30 +64,36 @@ const cases = [
     M.METHOD_OF_MADNESS,
     M.METHOD_OF_MADNESS,
     28,
-    (r) => triggerMethodOfMadness({ state: r }, heal, r.time, methodOfMadnessDamage(r))
+    (r) => r.fireTrigger(mesmerHealCompleted, { skill: heal, at: r.time, delivery: {} })
   ],
   [
     guardianProfession,
     G.ZEALOTS_RESOLUTION,
     'guardian.core.zealotsResolution',
     30,
-    (r) => reactToZealDamage(r, hit(r), 1)
+    (r) => r.fireTrigger(guardianStruck, { cause: hit(r), damage: 1 })
   ],
   [
     guardianProfession,
     G.FURIOUS_FOCUS,
     'guardian.core.furiousFocus',
     10,
-    (r) => triggerGuardianFuriousFocus(r, cast(r))
+    (r) => r.fireTrigger(justiceActivated, { cast: cast(r) })
   ],
   [
     guardianProfession,
     G.PROTECTORS_RESTORATION,
     'guardian.core.protectorsRestoration',
     20,
-    (r) => completeProtectorsRestoration(r, cast(r))
+    (r) => r.fireTrigger(guardianCastCompleted, { cast: cast(r) })
   ],
-  [necromancerProfession, D.CHILL_OF_DEATH, 'chillOfDeath', 16, (r) => applyChillOfDeath(r, hit(r))],
+  [
+    necromancerProfession,
+    D.CHILL_OF_DEATH,
+    'chillOfDeath',
+    16,
+    (r) => r.fireTrigger(necromancerStrike, { event: hit(r), details: {}, firstHit: true, shroudSkillOne: false })
+  ],
   [
     necromancerProfession,
     D.MALICIOUS_SWARM,
@@ -93,8 +101,20 @@ const cases = [
     15,
     (r) => compiled(maliciousSwarm).onCastCommit(r.mechanics, cast(r))
   ],
-  [rangerProfession, R.CLARION_BOND, 'ranger.core.clarionBond', 15, (r) => applyClarionBond(r, heal)],
-  [rangerProfession, R.CHILD_OF_EARTH, 'ranger.core.childOfEarth', 20, (r) => emitChildOfEarth(r, heal)],
+  [
+    rangerProfession,
+    R.CLARION_BOND,
+    'ranger.core.clarionBond',
+    15,
+    (r) => r.fireTrigger(petSwapped, { skill: heal, at: r.time })
+  ],
+  [
+    rangerProfession,
+    R.CHILD_OF_EARTH,
+    'ranger.core.childOfEarth',
+    20,
+    (r) => r.fireTrigger(castCompleted, { skill: heal, at: r.time })
+  ],
   [
     rangerProfession,
     R.GO_FOR_THE_THROAT,
@@ -102,7 +122,7 @@ const cases = [
     10,
     (r) => {
       const skillId = r.profession.core.activePetSkillIds.at(-1);
-      triggerGoForTheThroat(r, { ...hit(r), actorType: 'summon', skillId });
+      r.fireTrigger(strike, { event: { ...hit(r), actorType: 'summon', skillId } });
     }
   ],
   [
@@ -110,7 +130,7 @@ const cases = [
     R.GO_FOR_THE_THROAT,
     'ranger.soulbeast.goForTheThroat',
     10,
-    (r) => triggerMergedGoForTheThroat(r, hit(r)),
+    (r) => r.fireTrigger(mergedBeastHit, { event: hit(r) }),
     'Soulbeast'
   ],
   [
@@ -120,7 +140,13 @@ const cases = [
     60,
     (r) => compiled(burstOfAgility).reactions['damage.resolved'](r.mechanics, hit(r), {})
   ],
-  [warriorProfession, W.SIGNET_MASTERY, W.SIGNET_MASTERY, 20, (r) => signetMasteryDamage(r, hit(r))],
+  [
+    warriorProfession,
+    W.SIGNET_MASTERY,
+    W.SIGNET_MASTERY,
+    20,
+    (r) => r.fireTrigger(strikeResourcesGranted, { event: hit(r) })
+  ],
   ...['Fire', 'Water', 'Air', 'Earth'].map((attunement) => [
     elementalistProfession,
     E.EVASIVE_ARCANA,
@@ -128,7 +154,7 @@ const cases = [
     10,
     (r) => {
       r.profession.core.primaryAttunement = attunement;
-      triggerEvasiveArcana(r, cast(r), heal);
+      r.fireTrigger(elementalistDodgeCompleted, { cast: cast(r) });
     }
   ])
 ];
@@ -189,7 +215,9 @@ test('Method of Madness uses Chronomancer recharge instead of ordinary Alacrity'
 test('Magebane Tether uses patched recharge and waits for the action tick after an off-tick deadline', () => {
   const runtime = fixture(warriorProfession, W.MAGEBANE_TETHER, 'Spellbreaker', { cooldown: 2.03 });
   const invoke = () =>
-    reactToSpellbreakerDamage(runtime, { ...hit(runtime), skillId: WARRIOR_SKILL_IDS.BREACHING_STRIKE });
+    runtime.fireTrigger(spellbreakerStrike, {
+      event: { ...hit(runtime), skillId: WARRIOR_SKILL_IDS.BREACHING_STRIKE }
+    });
   runtime.time = 1;
   invoke();
   const deadline = canonicalTime(1 + 2.03 / 1.25);
@@ -223,20 +251,20 @@ test('Evasive Arcana keeps independent attunement cooldowns', () => {
 test('Explosive Entrance dodge rearming preserves recharge and a blocked hit does not consume the charge', () => {
   const runtime = fixture(engineerProfession, N.EXPLOSIVE_ENTRANCE);
   runtime.time = 1;
-  explosiveEntrance.hooks.reactions['damage.resolved'](runtime, hit(runtime));
+  explosiveEntranceStrike(runtime.mechanics, hit(runtime));
   assert.equal(runtime.profession.core.explosiveEntranceFired, true);
   assert.equal(runtime.cooldownController.readyAt(ENGINEER_SKILL_IDS.EXPLOSIVE_ENTRANCE_TRAIT_SKILL), 1.2);
   // Lingering player damage can trigger shortly before an already-running dodge finishes.
-  explosiveEntrance.hooks.eventHandlers['engineer.dodge'](runtime);
+  explosiveEntrance.lifetime.eventHandlers['engineer.dodge'](runtime);
   for (const at of [1.1, 1.2]) {
     runtime.time = at;
-    explosiveEntrance.hooks.reactions['damage.resolved'](runtime, hit(runtime));
+    explosiveEntranceStrike(runtime.mechanics, hit(runtime));
     assert.equal(runtime.profession.core.explosiveEntranceFired, false);
     assert.equal(runtime.cooldownController.readyAt(ENGINEER_SKILL_IDS.EXPLOSIVE_ENTRANCE_TRAIT_SKILL), 1.2);
   }
 
   runtime.time = 1.201;
-  explosiveEntrance.hooks.reactions['damage.resolved'](runtime, hit(runtime));
+  explosiveEntranceStrike(runtime.mechanics, hit(runtime));
   assert.equal(runtime.profession.core.explosiveEntranceFired, true);
   assert.equal(runtime.cooldownController.readyAt(ENGINEER_SKILL_IDS.EXPLOSIVE_ENTRANCE_TRAIT_SKILL), 1.401);
 });
@@ -272,7 +300,7 @@ for (const recipient of ['player', 'engineer.mech', 'other-companion']) {
         timeline: [1, deadline - 0.001, deadline, deadline + 0.001].map((at) => ({
           at,
           run(runtime) {
-            triggerMechFighter(runtime, weapon);
+            runtime.fireTrigger(mechanistCastCompleted, { skill: weapon, at: runtime.time });
             assert.equal(runtime.procs.deadline('rocketPunch'), at > deadline ? canonicalTime(at + elapsed) : deadline);
           }
         }))

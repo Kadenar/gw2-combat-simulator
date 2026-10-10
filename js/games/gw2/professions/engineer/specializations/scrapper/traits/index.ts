@@ -1,22 +1,28 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import { type SimulationEvent } from '#gw2/platform/events/events.js';
+import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerSkill, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
-import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
-  applyKineticAcceleratorsCast,
-  reactToScrapperCombo,
-  triggerMassMomentum,
-  reactToScrapperDamage,
-  reactToAppliedForceBuff
-} from '#gw2/professions/engineer/specializations/scrapper/traits/behavior.js';
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+import { type EngineerResolverContext } from '#gw2/professions/engineer/types.js';
+
+import { EngineerSkill, type EngineerResolverEvent, type EngineerRuntime } from '#gw2/professions/engineer/types.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 
@@ -148,7 +154,15 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
       { name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 10 }
     ]
   },
-  hooks: { onCastCommit: applyKineticAcceleratorsCast, reactions: { 'combo.resolved': reactToScrapperCombo } },
+  // Both the selected Function Gyro finisher and accepted-combo rewards obey producer isolation.
+  triggers: [
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
+      run: applyKineticAcceleratorsCast
+    },
+    { on: 'combo.resolved', run: reactToScrapperCombo }
+  ],
   buildAttributes: traitAttributeEffects(TRAIT.KINETIC_ACCELERATORS, [
     {
       kind: 'conversion',
@@ -172,7 +186,14 @@ export const massMomentum = defineTrait<EngineerSkill>({
       { name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
     ]
   },
+  // Reactions may start a pulse loop; its admitted task retains live Stability and selection stop checks.
   triggers: [
+    { on: 'damage.resolved', when: (_runtime, event) => Number(event.coefficient) > 0, run: triggerMassMomentum },
+    {
+      on: 'buff.applied',
+      when: (_runtime, event) => (event.kind || '').toLowerCase() === 'stability',
+      run: triggerMassMomentum
+    },
     {
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
@@ -186,19 +207,13 @@ export const massMomentum = defineTrait<EngineerSkill>({
       }
     }
   ],
-  hooks: {
+  lifetime: {
     tasks: {
       'engineer.mass-momentum'(runtime, data) {
         const state = scrapperState.from(runtime);
         if (state.massMomentumAt !== runtime.time) return;
         state.massMomentumAt = Infinity;
         triggerMassMomentum(runtime, { ...(data as EngineerResolverEvent), at: runtime.time });
-      }
-    },
-    reactions: {
-      'damage.resolved': reactToScrapperDamage,
-      'buff.applied'(runtime, event) {
-        if ((event.kind || '').toLowerCase() === 'stability') triggerMassMomentum(runtime, event);
       }
     }
   }
@@ -215,7 +230,8 @@ export const appliedForce = defineTrait<EngineerSkill>({
     attributePerStack: 30,
     effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
   },
-  hooks: { reactions: { 'buff.applied': reactToAppliedForceBuff } }
+  // Threshold admission is selected before inspecting Might or claiming its cooldown.
+  triggers: [{ on: 'buff.applied', run: reactToAppliedForceBuff }]
 });
 
 /** Movement boons multiply Object in Motion's player-owned strike bonus. */
@@ -255,3 +271,180 @@ export const scrapperTraits = [
   exMachina,
   objectInMotion
 ];
+
+/** Keeps one pending Stability pulse and rechecks selection and live Stability before each grant. */
+function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
+  if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
+    return false;
+  const state = context.procs;
+  const massMomentumProfile = requireBalanceProfileFromContext(context, TRAIT.MASS_MOMENTUM);
+  if ((state.deadline('massMomentum') || 0) <= event.at) {
+    state.setDeadline('massMomentum', event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval'));
+    const massMomentumMight = requireEffect(massMomentumProfile, 'boon', 'might');
+    if (massMomentumMight) {
+      emitTraitProfile(context, TRAIT.MASS_MOMENTUM, TRAIT.MASS_MOMENTUM, undefined, {
+        at: event.at,
+        effect: { type: 'boon', name: 'might' },
+        durationContext: event,
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.MASS_MOMENTUM,
+          actorType: 'effect',
+          skillId: undefined,
+          activationId: undefined,
+          skillName: 'Mass Momentum',
+          triggeredBy: event.skillName
+        },
+        transform: (packet) => ({
+          ...packet,
+          applicationIndex: undefined,
+          totalApplications: undefined,
+          name: 'Mass Momentum',
+          stacks: Number(massMomentumMight.stacks),
+          duration: massMomentumMight.duration
+        })
+      });
+
+      context.effects.emit({
+        attribution: { source: 'Trait', sourceId: TRAIT.MASS_MOMENTUM, actorType: 'effect' },
+        kind: 'announcement',
+        cause: event,
+        announcement: { type: 'trait', name: 'Mass Momentum', at: event.at, sourceSkill: event.skillName, icon: '' }
+      });
+    }
+  }
+
+  const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
+  const next = Math.max(event.at + interval, state.deadline('massMomentum') || 0);
+  const live = scrapperState.from(context);
+  if (interval > 0 && live.massMomentumAt > next) {
+    live.massMomentumAt = next;
+    context.schedule('engineer.mass-momentum', next, event);
+  }
+}
+
+function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolverEvent): void {
+  const kind = (event.kind || '').toLowerCase();
+  // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
+  if (
+    kind === 'might' &&
+    activeBoonStacks(
+      context,
+      'might',
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE), 'maximumStacks'),
+      event.at
+    ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE), 'threshold')
+  ) {
+    // Reaching the threshold consumes the interval even if Stability is removed.
+    if (context.procs.claim(TRAIT.APPLIED_FORCE, 'appliedForce', event.at)) {
+      const appliedForceProfile = requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE);
+      const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
+      if (appliedForceStability) {
+        emitTraitProfile(context, TRAIT.APPLIED_FORCE, TRAIT.APPLIED_FORCE, undefined, {
+          at: event.at,
+          effect: { type: 'boon', name: 'stability' },
+          durationContext: event,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.APPLIED_FORCE,
+            actorType: 'effect',
+            skillId: undefined,
+            activationId: undefined,
+            skillName: 'Applied Force',
+            triggeredBy: event.skillName
+          },
+          transform: (packet) => ({
+            ...packet,
+            applicationIndex: undefined,
+            totalApplications: undefined,
+            name: 'Applied Force',
+            stacks: Number(appliedForceStability.stacks),
+            duration: appliedForceStability.duration
+          })
+        });
+
+        context.effects.emit({
+          attribution: { source: 'Trait', sourceId: TRAIT.APPLIED_FORCE, actorType: 'effect' },
+          kind: 'announcement',
+          cause: event,
+          announcement: { type: 'trait', name: 'Applied Force', at: event.at, sourceSkill: event.skillName, icon: '' }
+        });
+      }
+    }
+  }
+}
+
+function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
+  const skill = cast.skill;
+  // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
+  // The marker gives the shared combo materializer a trait-gated descriptor
+  // while preserving Function Gyro as the source of the resulting combo.
+  produceRuntimeCombos(context, context.helpers, {
+    type: 'action',
+    endsAt: context.time,
+    at: context.time,
+    source: 'engineer',
+    sourceId: skill.id,
+    actorType: 'player',
+    skillId: skill.id,
+    skillName: skill.name,
+    name: 'Kinetic Accelerators — Function Gyro blast finisher',
+    activationId: cast.id,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: 'Blast',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ]
+  });
+}
+
+function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverEvent): void {
+  if (!grantKineticAcceleratorBoons(context, event)) return;
+  context.effects.emit({
+    attribution: { source: 'Trait', sourceId: TRAIT.KINETIC_ACCELERATORS, actorType: 'effect' },
+    kind: 'announcement',
+    cause: event,
+    announcement: { type: 'trait', name: 'Kinetic Accelerators', at: event.at, sourceSkill: event.skillName, icon: '' }
+  });
+}
+
+/** Each accepted combo grants boons once, with a live Whirl-only internal cooldown. */
+function grantKineticAcceleratorBoons(context: EngineerResolverContext, event: SimulationEvent) {
+  if (event.type !== 'combo' || !['Blast', 'Leap', 'Whirl'].includes(String(event.finisherType))) return false;
+  if (event.finisherType === 'Whirl') {
+    // Only Whirl finishers claim an interval; Blast and Leap remain independent.
+    if (!context.procs.claim(TRAIT.KINETIC_ACCELERATORS, 'engineer.scrapper.kineticAcceleratorsWhirl', event.at))
+      return false;
+  }
+
+  let emitted = false;
+  for (const kind of ['quickness', 'might']) {
+    const receipts = emitTraitProfile(context, TRAIT.KINETIC_ACCELERATORS, TRAIT.KINETIC_ACCELERATORS, undefined, {
+      at: event.at,
+      effect: { type: 'boon', name: kind },
+      receipt: true,
+      durationContext: event,
+      attribution: {
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName,
+        activationId: event.activationId,
+        name: 'Kinetic Accelerators \u2014 ' + kind,
+        priority: Number(event.priority || 0),
+        audience: { recipients: 'party' }
+      },
+      transform: (packet) => ({
+        ...packet,
+        comboId: event.comboId,
+        applicationIndex: undefined,
+        totalApplications: undefined
+      })
+    });
+    emitted = receipts.length > 0 || emitted;
+  }
+
+  return emitted;
+}

@@ -8,6 +8,13 @@ import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.j
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import {
+  necromancerConditionApplied,
+  necromancerControlAccepted,
+  necromancerStrike,
+  necromancerStrikePreparing,
+  necromancerStrikeLifeForce
+} from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import {
   completeNecromancerCorruption,
   necromancerConditionTasks,
   resolveNecromancerSkillConditions,
@@ -38,15 +45,15 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/passives.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import {
+  emitSoulShard,
+  grantNecromancerSoulShards,
+  perforate,
+  soulShardTasks
+} from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
+import {
   necromancerSwordTasks,
   observeNecromancerAutoattackTransition
 } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
-import {
-  emitSoulShard,
-  grantNecromancerSoulShards,
-  soulShardTasks,
-  perforate
-} from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
@@ -55,19 +62,7 @@ import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
 } from '#gw2/professions/necromancer/core/state.js';
-import { reactToTasteForBloodGrant } from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import { lingeringCurseAvailability } from '#gw2/professions/necromancer/core/traits/curses/skill-variants.js';
-import { reactToNecromancerConditions } from '#gw2/professions/necromancer/core/traits/curses/procs.js';
-import {
-  reactToNecromancerCoreCondition,
-  reactToNecromancerCoreControl,
-  reactToNecromancerCoreDamage
-} from '#gw2/professions/necromancer/core/traits/reactions.js';
-import {
-  applyFearOfDeath,
-  soulMarksLifeForce
-} from '#gw2/professions/necromancer/core/traits/soul-reaping/life-force.js';
-import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
 import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
@@ -82,7 +77,9 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (!skill) return;
   if (event.actorType !== 'player') return;
   // Combine trait rewards before the shared conversion and pool refresh, ahead of condition transfers.
-  grantNecromancerLifeForce(runtime, soulMarksLifeForce(runtime, skill, event) + spitefulFortitudeLifeForce(runtime));
+  const reward = { skill, event, percent: 0 };
+  runtime.fireTrigger(necromancerStrikeLifeForce, reward);
+  grantNecromancerLifeForce(runtime, reward.percent);
 }
 
 const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
@@ -107,8 +104,10 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   ],
 
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-  prepareDamageState(runtime, skill, _inputs) {
+  prepareDamageState(runtime, skill, inputs) {
     if (skill?.shroud) runtime.profession.core.activeShroud = skill.shroud;
+    // Held Carapace affects both Power and Condition Damage without generating minion or kill events.
+    runtime.profession.core.carapaceExpiries = Array(Number(inputs.carapace ?? 0)).fill(Infinity);
   },
 
   buffPolicies: necromancerBuffPolicies,
@@ -269,20 +268,23 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     ...necromancerFormTasks
   },
   reactions: {
-    'buff.applied'(runtime, event) {
-      if (event.kind === 'taste-for-blood') reactToTasteForBloodGrant(runtime, event);
-    },
     'damage.resolved'(runtime, event, details) {
       damage(runtime, event);
-      reactToNecromancerConditions(runtime, event);
-      reactToNecromancerCoreDamage(runtime, event, details);
+      runtime.fireTrigger(necromancerStrikePreparing, { event });
+      const skill = event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId);
+      runtime.fireTrigger(necromancerStrike, {
+        event,
+        details,
+        firstHit: Number(event.hitIndex || 1) === 1,
+        shroudSkillOne: skill?.shroudSlot === 1 || event.metadata?.necromancerShroudSkillOne === true,
+        dhuumfireDuration: skill?.dhuumfireDuration
+      });
     },
     'condition.applied'(runtime, event) {
-      reactToNecromancerCoreCondition(runtime, event);
-      applyFearOfDeath(runtime, event);
+      runtime.fireTrigger(necromancerConditionApplied, { event });
     },
     'control.resolved'(runtime, event) {
-      reactToNecromancerCoreControl(runtime, event);
+      runtime.fireTrigger(necromancerControlAccepted, { event });
     }
   }
 };

@@ -1,17 +1,27 @@
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  burstFirstHit,
+  coreInitialized,
+  focusReset,
+  soldierFocusApplied,
+  weaponSwapped
+} from '#gw2/professions/warrior/core/mechanics/combat.js';
 import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { warriorActiveBoonCount } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -80,6 +90,11 @@ export const legSpecialist = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const marchingOrders = defineTrait({
+  triggers: [
+    onTriggerPoint(burstFirstHit, {
+      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => soldierFocusBurst(runtime, input.event)
+    })
+  ],
   id: TRAIT.MARCHING_ORDERS,
   name: 'Marching Orders',
   balance: {
@@ -90,6 +105,11 @@ export const marchingOrders = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const soldiersComfort = defineTrait({
+  triggers: [
+    onTriggerPoint(soldierFocusApplied, {
+      run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) => soldiersComfortFocus(runtime, input.event)
+    })
+  ],
   id: TRAIT.SOLDIERS_COMFORT,
   name: "Soldier's Comfort",
   balance: {
@@ -99,6 +119,13 @@ export const soldiersComfort = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const martialCadence = defineTrait({
+  triggers: [
+    onTriggerPoint(soldierFocusApplied, {
+      run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) => martialCadenceFocus(runtime, input.event)
+    }),
+    onTriggerPoint(focusReset, { run: (runtime) => resetSoldierFocus(runtime) }),
+    onTriggerPoint(weaponSwapped, { run: (runtime) => resetSoldierFocus(runtime) })
+  ],
   id: TRAIT.MARTIAL_CADENCE,
   name: 'Martial Cadence',
   balance: {
@@ -108,13 +135,14 @@ export const martialCadence = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const empowerAllies = defineTrait({
+  triggers: [onTriggerPoint(coreInitialized, { run: (runtime) => initializeEmpowerAllies(runtime) })],
   id: TRAIT.EMPOWER_ALLIES,
   name: 'Empower Allies',
   balance: {
     pulseInterval: 10,
     effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 10 }]
   },
-  hooks: { tasks: { [EMPOWER_PULSE]: empowerPulse } }
+  lifetime: { tasks: { [EMPOWER_PULSE]: empowerPulse } }
 });
 
 /** Owns this trait's tuning and selected contributions. */
@@ -197,39 +225,36 @@ export function empowerPulse(runtime: WarriorRuntime): void {
   if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) return;
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: traitProfile,
-      effects: [might],
-      attribution: { source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
-      cause: { sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
-      transform: (packet) => ({
-        ...packet,
-        name: traitProfile.name,
-        stacks: 1 * Number(packet.stacks),
-        priority: 0,
-        audience: { recipients: 'party' }
-      })
-    });
+    emitTraitProfile(
+      runtime,
+      TRAIT.EMPOWER_ALLIES,
+      TRAIT.EMPOWER_ALLIES,
+      { sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+      {
+        attribution: { source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+        transform: (packet) => ({
+          ...packet,
+          name: traitProfile.name,
+          stacks: 1 * Number(packet.stacks),
+          priority: 0,
+          audience: { recipients: 'party' }
+        }),
+        effects: (candidate) => candidate === might
+      }
+    );
   }
 
   runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function soldierFocusBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (
-    hasTrait(runtime, TRAIT.MARCHING_ORDERS) &&
-    runtime.procs.claim(TRAIT.MARCHING_ORDERS, 'warrior.core.soldierFocus', runtime.time)
-  ) {
+function soldierFocusBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  if (runtime.procs.claim(TRAIT.MARCHING_ORDERS, 'warrior.core.soldierFocus', runtime.time)) {
     // All Soldier's Focus rewards share the claim; Martial Cadence still owns its explicit swap resets.
     const audience = { recipients: 'party' as const };
     {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.MARCHING_ORDERS);
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      emitTraitProfile(runtime, TRAIT.MARCHING_ORDERS, TRAIT.MARCHING_ORDERS, event, {
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.MARCHING_ORDERS,
@@ -237,73 +262,77 @@ export function soldierFocusBurst(runtime: WarriorRuntime, event: Gw2ResolverEve
           skillId: event.skillId,
           skillName: event.skillName
         },
-        cause: event,
         transform: (packet) => ({
           ...packet,
           priority: 5,
           name: traitProfile.name,
           stacks: 1 * Number(packet.stacks),
           audience
-        })
+        }),
+        effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
       });
     }
 
-    if (hasTrait(runtime, TRAIT.SOLDIERS_COMFORT)) {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.SOLDIERS_COMFORT);
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.SOLDIERS_COMFORT,
-          actorType: 'effect',
-          skillId: event.skillId,
-          skillName: event.skillName
-        },
-        cause: event,
-        transform: (packet) => ({
-          ...packet,
-          priority: 5,
-          name: traitProfile.name,
-          stacks: 1 * Number(packet.stacks),
-          audience
-        })
-      });
-    }
-
-    if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.MARTIAL_CADENCE);
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: traitProfile,
-        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.MARTIAL_CADENCE,
-          actorType: 'effect',
-          skillId: event.skillId,
-          skillName: event.skillName
-        },
-        cause: event,
-        transform: (packet) => ({
-          ...packet,
-          priority: 5,
-          name: traitProfile.name,
-          stacks: 1 * Number(packet.stacks),
-          audience
-        })
-      });
-    }
+    runtime.fireTrigger(soldierFocusApplied, { event });
   }
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
-export function resetSoldierFocus(runtime: WarriorRuntime): void {
-  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.procs.setDeadline('warrior.core.soldierFocus', runtime.time);
+function resetSoldierFocus(runtime: WarriorRuntime): void {
+  runtime.procs.setDeadline('warrior.core.soldierFocus', runtime.time);
 }
 
 /** Arm the first selected pulse after the Core pool is initialized. */
-export function initializeEmpowerAllies(runtime: WarriorRuntime): void {
-  if (hasTrait(runtime, TRAIT.EMPOWER_ALLIES)) runtime.schedule(EMPOWER_PULSE, 0, null, undefined, -210);
+function initializeEmpowerAllies(runtime: WarriorRuntime): void {
+  runtime.schedule(EMPOWER_PULSE, 0, null, undefined, -210);
+}
+
+/** Grant the selected follow-up only after Focus consumed its shared proc. */
+function soldiersComfortFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  const audience = { recipients: 'party' as const };
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.SOLDIERS_COMFORT);
+    emitTraitProfile(runtime, TRAIT.SOLDIERS_COMFORT, TRAIT.SOLDIERS_COMFORT, event, {
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.SOLDIERS_COMFORT,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      transform: (packet) => ({
+        ...packet,
+        priority: 5,
+        name: traitProfile.name,
+        stacks: 1 * Number(packet.stacks),
+        audience
+      }),
+      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
+    });
+  }
+}
+
+/** Grant the selected follow-up only after Focus consumed its shared proc. */
+function martialCadenceFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  const audience = { recipients: 'party' as const };
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.MARTIAL_CADENCE);
+    emitTraitProfile(runtime, TRAIT.MARTIAL_CADENCE, TRAIT.MARTIAL_CADENCE, event, {
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.MARTIAL_CADENCE,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      transform: (packet) => ({
+        ...packet,
+        priority: 5,
+        name: traitProfile.name,
+        stacks: 1 * Number(packet.stacks),
+        audience
+      }),
+      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
+    });
+  }
 }

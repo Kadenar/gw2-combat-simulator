@@ -35,7 +35,7 @@ function assertIndependentLoading(entry) {
 
 test('Mirage controller and trait execution load without family construction cycles', () => {
   assertIndependentLoading('specializations/mirage/mechanics/runtime.ts');
-  assertIndependentLoading('specializations/mirage/traits/behavior.ts');
+  assertIndependentLoading('specializations/mirage/traits/index.ts');
 });
 
 test('consolidated Core trait owners load independently of family construction and cross-line dispatch', () => {

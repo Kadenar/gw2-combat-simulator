@@ -1,18 +1,9 @@
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Meticulous Custodian boosts the base strike coefficient of each artifact to its "enhanced" value; factors below are enhanced/base
 export const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
@@ -60,26 +51,6 @@ export function artifactWindow(runtime: ThiefRuntime): {
   return { windows, duration };
 }
 
-/** Applies meticulous custodian at the original artifact boundary. */
-export function applyMeticulousChakShield(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const skill = cast.skill;
-  if (skill.id === ID.CHAK_SHIELD && hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN);
-    const strike = requireEffect(profile, 'strike', 'Meticulous Custodian');
-    if (strike)
-      buildThiefStrikes(null, {
-        at: runtime.time,
-        sourceId: skill.id,
-        skillId: skill.id,
-        skillName: skill.name,
-        activationId: cast.id,
-        name: 'Chak Shield',
-        coefficient: effectNumber(profile, strike, 'coefficient'),
-        hits: effectNumber(profile, strike, 'hits')
-      }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
-  }
-}
-
 /** Resolve the selected Surfer packet profile at every occurrence, as before migration. */
 export function forgedSurferProfile(runtime: ThiefRuntime) {
   return requireBalanceProfileFromContext(
@@ -92,38 +63,4 @@ export function forgedSurferProfile(runtime: ThiefRuntime) {
 export function meticulousKryptisDuration(runtime: ThiefRuntime): number {
   const windows = requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows);
   return balanceProfileNumber(windows, hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'threshold' : 'minimumStacks');
-}
-
-// Add Meticulous Custodian's Burning only to the Sun Crystal strike packet,
-// excluding its declarative condition-only packets.
-export function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (
-    event.actorType !== 'player' ||
-    event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
-    event.coefficient == null || // condition-only packets have no coefficient; burning fires on the strike hit
-    !hasTrait(context.traits, TRAIT.METICULOUS_CUSTODIAN)
-  )
-    return;
-  const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);
-  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!burning) return;
-  context.effects.emit({
-    kind: 'packet',
-    settlement: 'reaction',
-    event: buildResolverCondition({
-      at: event.at,
-      source: 'thief',
-      sourceId: ID.ZEPHYRITE_SUN_CRYSTAL,
-      actorType: 'player',
-      skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
-      skillName: 'Zephyrite Sun Crystal',
-      name: 'Zephyrite Sun Crystal - Meticulous Burning',
-      // Preserve trait provenance so the already-enhanced duration is not multiplied again.
-      triggeredBy: event.skillName,
-      condition: String(burning.condition),
-      stacks: effectNumber(sunCrystalMeticulousProfile, burning, 'stacks'),
-      duration: effectNumber(sunCrystalMeticulousProfile, burning, 'duration')
-    })
-  });
 }

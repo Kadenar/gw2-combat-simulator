@@ -1,6 +1,8 @@
-import { galeshotBuffPolicies } from '#gw2/professions/ranger/specializations/galeshot/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { galeshotBuffPolicies } from '#gw2/professions/ranger/specializations/galeshot/effect-state.js';
 import {
   galeshotCastAvailability,
   reactToGaleshotMissile
@@ -12,15 +14,9 @@ import {
 } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
 import {
   galeshotArrows,
-  galeshotWindForce,
-  galeshotState
+  galeshotState,
+  galeshotWindForce
 } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import {
-  applyGaleshotCycloneBowTraits,
-  completeGaleshotSkill,
-  reactToGaleshotControl,
-  reactToGaleshotPet
-} from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
 import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Arrow spending is immediate; Wind Force and completion traits become visible only at their own queue boundary. */
@@ -54,9 +50,9 @@ export const galeshotHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   onCastCommit(runtime, cast) {
     const state = galeshotState.from(runtime);
     const skill = cast.skill;
-    if (skill.cycloneBowSkill) applyGaleshotCycloneBowTraits(runtime, skill);
+    if (skill.cycloneBowSkill) runtime.fireTrigger(cycloneBowCompleted, { skill, at: runtime.time });
     if (skill.id === ID.PET_SWAP) state.wutheringWindReady = false;
-    completeGaleshotSkill(runtime, skill);
+    runtime.fireTrigger(galeshotCastCompleted, { skill, at: runtime.time });
   },
   tasks: {
     // Scheduled rewards survive bar dismissal; only their original cast gate decides whether to enqueue them.
@@ -67,8 +63,34 @@ export const galeshotHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   reactions: {
     'damage.resolved'(runtime, event) {
       reactToGaleshotMissile(runtime, event);
-      reactToGaleshotPet(runtime, event);
+      runtime.fireTrigger(galeshotPetStrike, { event });
     },
-    'control.resolved': reactToGaleshotControl
+    'control.resolved'(runtime, event) {
+      runtime.fireTrigger(galeshotControlAccepted, { event });
+    }
   }
 };
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const galeshotPetStrike = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
+  'ranger.galeshot-pet-strike',
+  [TRAIT.WUTHERING_WIND]
+);
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const galeshotControlAccepted = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
+  'ranger.galeshot-control-accepted',
+  [TRAIT.THRILL_OF_THE_CATCH]
+);
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const galeshotCastCompleted = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
+  'ranger.galeshot-cast-completed',
+  [TRAIT.FLOCK_TOGETHER]
+);
+
+/** Hawkeye grants its damage window and Bluster primes its pet strike before Cloudburst party boons. */
+export const cycloneBowCompleted = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
+  'ranger.cyclone-bow-completed',
+  [TRAIT.GALE_FORCE, TRAIT.WUTHERING_WIND, TRAIT.CLOUDBURST]
+);

@@ -14,7 +14,8 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { applyGalvanicEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/index.js';
+import { evokerCastCompleted } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
 const config = { specialization: 'Evoker', selectedTraitIds: [] };
@@ -65,7 +66,8 @@ test('skill and trait providers share grant announcements while retaining patche
     if (task) evokerHooks.tasks[task](context, { cast });
     else {
       context.traits.add(TRAIT.GALVANIC_ENCHANTMENT);
-      applyGalvanicEnchantment(context, cast, skill);
+      bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
+      context.fireTrigger(evokerCastCompleted, { cast });
     }
   }
 

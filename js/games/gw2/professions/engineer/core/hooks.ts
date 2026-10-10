@@ -1,5 +1,6 @@
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
@@ -18,16 +19,7 @@ import {
   engineerTurretTasks
 } from '#gw2/professions/engineer/core/mechanics/turrets.js';
 import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
-import {
-  emitAimAssistedRocket,
-  emitExplosiveEntrance,
-  emitEngineerTriggeredSkill,
-  emitLesserGrenadeBarrage
-} from '#gw2/professions/engineer/core/skills/trait-skills.js';
-import {
-  notifyToolbeltActivation,
-  notifyDodgeActivation
-} from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { dodgeAccepted, notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -48,23 +40,13 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
         skillName: skill.name
       }
     });
-    notifyToolbeltActivation(runtime, detonation, runtime.time);
+    notifyToolbeltActivation(runtime, detonation, activationId);
   }
 }
 
 export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
+  // Imperative trait invocations keep explicit occurrences; declarative invocations register automatically.
   damageEffects: [
-    {
-      id: 'engineer.lesser-grenade-barrage',
-      name: 'Lesser Grenade Barrage',
-      source: 'Trait',
-      ownerId: TRAIT.GRENADIER,
-      unit: 'occurrence',
-      sourceIds: [ID.LESSER_GRENADE_BARRAGE],
-      emit(runtime) {
-        emitLesserGrenadeBarrage(runtime, { id: TRAIT.GRENADIER, name: 'Grenadier' }, runtime.time);
-      }
-    },
     {
       id: 'engineer.explosive-entrance',
       name: 'Explosive Entrance',
@@ -73,19 +55,15 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
       unit: 'occurrence',
       sourceIds: [ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL],
       emit(runtime) {
-        emitExplosiveEntrance(runtime, damageInputEvent(runtime));
-      }
-    },
-    {
-      id: 'engineer.static-discharge',
-      name: 'Static Discharge',
-      source: 'Trait',
-      ownerId: TRAIT.STATIC_DISCHARGE,
-      unit: 'occurrence',
-      sourceIds: [ID.STATIC_DISCHARGE_TRAIT_SKILL],
-      // Isolated damage uses the same skill payload and critical modifier as a toolbelt-triggered discharge.
-      emit(runtime) {
-        emitEngineerTriggeredSkill(runtime, ID.STATIC_DISCHARGE_TRAIT_SKILL, damageInputEvent(runtime));
+        invokeTraitSkill(
+          runtime,
+          TRAIT.EXPLOSIVE_ENTRANCE,
+          ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL,
+          damageInputEvent(runtime),
+          {
+            announce: true
+          }
+        );
       }
     },
     ...([false, true] as const).map((orbital) => ({
@@ -96,7 +74,13 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
       unit: 'occurrence' as const,
       sourceIds: [orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL],
       emit(runtime: EngineerRuntime) {
-        emitAimAssistedRocket(runtime, damageInputEvent(runtime), orbital);
+        invokeTraitSkill(
+          runtime,
+          TRAIT.AIM_ASSISTED_ROCKET,
+          orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
+          damageInputEvent(runtime),
+          { announce: true }
+        );
       }
     }))
   ],
@@ -137,7 +121,7 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
     'engineer.mine-field'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
       if (runtime.combatStartPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
-      else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);
+      else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, context.cast.id);
     },
     // Both sword finishers declare the reward while live cooldown selection and proc reporting share one owner.
     'engineer.sword-recharge'(runtime, context, action) {
@@ -159,16 +143,16 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   onCombatStart: detonatePrecastMines,
   modifyEffects: engineerSpearEffects,
   onCastStart(runtime, cast) {
-    if (cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, runtime.time);
+    if (cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, cast.id);
     if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
     buildEngineerPackets('engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill).forEach((packet) =>
       runtime.effects.emit({ kind: 'packet', event: packet })
     );
-    notifyDodgeActivation(runtime, cast);
+    runtime.fireTrigger(dodgeAccepted, { cast });
   },
   onCastCommit(runtime, cast) {
     // Independent commands notify at acceptance; ordinary toolbelt casts notify only on completion.
-    if (!cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, runtime.time);
+    if (!cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, cast.id);
   },
   tasks: { ...engineerSpearTasks, ...engineerTurretTasks },
   eventHandlers: {

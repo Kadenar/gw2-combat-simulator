@@ -1,3 +1,5 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
@@ -52,6 +54,33 @@ function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotI
 }
 
 export const paragonUi: WarriorUiSlice = Object.freeze({
+  /** Preview the held motivation tier and refrain without starting combat pulses. */
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    preview.add({
+      key: 'motivation',
+      label: 'Motivation',
+      group: 'Mechanic',
+      kind: 'special',
+      scope: ['damage'],
+      max: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
+      description: 'Current motivation'
+    });
+    preview.add({
+      key: 'refrain',
+      label: 'Active refrain',
+      group: 'Mechanic',
+      kind: 'special',
+      scope: ['damage'],
+      options: ['', ...CHANTS.map(String)],
+      optionLabels: Object.fromEntries([
+        ['', 'None'],
+        ...CHANTS.map((id) => [String(id), context.catalog.skillsById.get(id)!.name])
+      ]),
+      description: 'Currently chanted refrain'
+    });
+    return preview.controls;
+  },
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {
     return warriorBurstPaletteOverride(context, skill);

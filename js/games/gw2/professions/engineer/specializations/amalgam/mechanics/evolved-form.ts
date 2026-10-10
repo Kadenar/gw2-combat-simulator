@@ -11,8 +11,37 @@ import {
   type AmalgamMorphKind
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { applyAmalgamEvolveTraits } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
+import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+
+/** A committed Morph; its protocol kind is captured from the accepted skill. */
+export interface AmalgamMorph {
+  readonly skill: EngineerSkill;
+  readonly morphKind: AmalgamMorphKind | undefined;
+  readonly at: number;
+}
+
+/** The committed Morph tail: Willing Host, then protection, then the protocol strain, then New Genes boons. */
+export const amalgamMorphed = defineTriggerPoint<AmalgamMorph>('engineer.amalgam-morphed', [
+  TRAIT.WILLING_HOST,
+  TRAIT.HARDENED_CHROME,
+  TRAIT.SILVER_LINING,
+  TRAIT.NEW_GENES
+]);
+
+/** An accepted Evolve, fired after Evolve has granted its own strains. */
+export interface AmalgamEvolution {
+  readonly at: number;
+}
+
+/** Symbiotic Synergy silently resets Morph recharge before Hardened Chrome grants its longer protection. */
+export const amalgamEvolved = defineTriggerPoint<AmalgamEvolution>('engineer.amalgam-evolved', [
+  TRAIT.SYMBIOTIC_SYNERGY,
+  TRAIT.HARDENED_CHROME
+]);
 
 /** Resolves the equipped protocol IDs to unique stable Morph kinds for strain application. */
 function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
@@ -71,5 +100,8 @@ export function evolveAmalgam(context: EngineerRuntime): void {
   const evolveProfile = requireBalanceProfileFromContext(context, PROFILE.evolve);
   state.evolvedUntil = at + balanceProfileNumber(evolveProfile, 'durationMultiplier');
 
-  applyAmalgamEvolveTraits(context, selected);
+  // Silver Lining moves strains to Morph; otherwise Evolve grants every selected protocol's strain itself.
+  if (!hasTrait(context.traits, TRAIT.SILVER_LINING))
+    for (const morphKind of selected) applyAmalgamStrain(context, morphKind, at);
+  context.fireTrigger(amalgamEvolved, { at });
 }

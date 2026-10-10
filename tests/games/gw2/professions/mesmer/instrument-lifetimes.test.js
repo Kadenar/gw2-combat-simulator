@@ -1,3 +1,5 @@
+import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -20,8 +22,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Keep real profiles and instrument handlers while isolating windows from cast speed, random damage, and cooldowns.
-function instrumentContext() {
-  const config = { specialization: 'Troubadour', selectedTraitIds: [TRAIT.FORTISSIMO] };
+function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
+  const config = { specialization: 'Troubadour', selectedTraitIds: traits };
   const profession = mesmerProfession.resolveProfession(config);
   const events = [];
   const state = {
@@ -87,6 +89,8 @@ function instrumentContext() {
     { resources: troubadourHooks.resources }
   );
   context.resourceController.initialize();
+  // Direct mechanic fixtures use the profession's compiled, ordered listeners.
+  bindTriggerPoints(context, mesmerProfession, config);
   return context;
 }
 
@@ -321,6 +325,25 @@ test('delayed performance packets survive instrument expiry without retaining it
   assert.equal(result.planningState.profession.activeInstruments.length, 0);
   assert.equal(
     troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when({ events: result.events, time: delayed.at }),
+    false
+  );
+});
+
+// Rewards use the accepted instrument snapshot even after the mechanic's live state changes.
+test('Crescendo rewards use the captured last instrument', () => {
+  const context = instrumentContext([TRAIT.ALTERED_CHORD]);
+  context.profession.specialization.state.lastInstrument = 'Lute';
+  const skill = context.catalog.skillsById.get(ID.CRESCENDO);
+  context.fireTrigger(troubadourCrescendoResolved, {
+    skill,
+    at: 1,
+    damageAt: 1,
+    delivery: {},
+    lastInstrument: 'Flute'
+  });
+  assert.ok(context.events.some((event) => event.type === 'condition' && event.condition === 'Confusion'));
+  assert.equal(
+    context.events.some((event) => event.type === 'buff' && event.kind === 'altered-chord'),
     false
   );
 });

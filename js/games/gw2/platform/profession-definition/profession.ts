@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
@@ -49,7 +50,16 @@ import type {
 } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import {
+  assertTraitTrigger,
+  compileProfessionRules,
+  compileTriggerPoints,
+  validateTriggerPoints,
+  type TraitTrigger
+} from '#gw2/platform/profession-definition/trigger-rules.js';
+import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
 import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 
@@ -174,7 +184,50 @@ export function defineNativeModule<
   const hooks = traits.length
     ? {
         ...composeRuntimeHooks<never, TSkill>([
-          ...traits.flatMap((trait) => (trait.hooks ? [trait.hooks] : [])),
+          // Value policies and explicitly admitted lifetime work retain the trait's module position under isolation.
+          ...traits.flatMap((trait) => {
+            const initialize = trait.hooks?.initialize;
+            const prepareEvent = trait.hooks?.prepareEvent;
+            const modifyEffects = trait.hooks?.modifyEffects;
+            const policies = {
+              ...trait.hooks,
+              // Value transforms receive observation capabilities only; admitted mutable work is declared separately.
+              ...(prepareEvent
+                ? {
+                    prepareEvent: (
+                      runtime: MechanicContext<never, TSkill>,
+                      event: Parameters<typeof prepareEvent>[1]
+                    ) => prepareEvent(runtime.queries, event)
+                  }
+                : {}),
+              ...(modifyEffects
+                ? {
+                    modifyEffects: (
+                      runtime: MechanicContext<never, TSkill>,
+                      cast: Parameters<typeof modifyEffects>[1],
+                      effects: Parameters<typeof modifyEffects>[2]
+                    ) => modifyEffects(runtime.queries, cast, effects)
+                  }
+                : {}),
+              ...(initialize
+                ? {
+                    // Supplied-state import cannot start effects, tasks, proc claims or resources through this context.
+                    initialize: (runtime: MechanicContext<never, TSkill>) =>
+                      initialize(
+                        Object.freeze({
+                          profession: runtime.profession,
+                          config: runtime.config,
+                          helpers: runtime.helpers,
+                          traits: runtime.traits,
+                          time: runtime.time
+                        })
+                      )
+                  }
+                : {})
+            };
+            // Traits without retained handlers add no callbacks to the per-event composition loops.
+            return [...(trait.hooks ? [policies] : []), ...(trait.lifetime ? [trait.lifetime] : [])];
+          }),
           definition.hooks ?? {}
         ]),
         traitTriggers: [
@@ -270,6 +323,35 @@ function composeModuleModifiers(
   return result;
 }
 
+/**
+ * A declarative invocation is measurable as a trait-owned occurrence of the invoked skill, exactly like a trait-owned
+ * profile, so it needs no hand-written damage adapter.
+ */
+function invokedDamageEffects<T extends object, TSkill extends Skill>(
+  triggers: readonly TraitTrigger<T, TSkill>[],
+  catalog: CanonicalCatalog<TSkill>
+): DamageEffectDefinition[] {
+  const declared = new Map<string, DamageEffectDefinition>();
+  for (const rule of triggers) {
+    const skill = rule.invoke == null ? undefined : catalog.skillsById.get(rule.invoke);
+    const id = `trait-skill.${rule.trait}.${rule.invoke}`;
+    if (!skill || declared.has(id)) continue;
+    declared.set(id, {
+      id,
+      name: skill.name,
+      source: 'Trait',
+      ownerId: rule.trait,
+      unit: 'occurrence',
+      sourceIds: [skill.id],
+      emit(runtime) {
+        invokeTraitSkill(runtime, rule.trait, skill.id, damageInputEvent(runtime), { announce: rule.announce });
+      }
+    });
+  }
+
+  return [...declared.values()];
+}
+
 /** Creates fresh Core/elite state while rejecting invalid fragments and conflicting field ownership. */
 function composeStateFragments(
   modules: readonly Pick<AnyNativeModule, 'id' | 'state'>[],
@@ -344,9 +426,14 @@ export function defineNativeProfession<
         profile
       ])
     );
-    for (const trigger of module.hooks?.traitTriggers ?? [])
-      if (!profiles.has(trigger.emit))
+    for (const trigger of module.hooks?.traitTriggers ?? []) {
+      assertTraitTrigger(trigger, `${module.id} trait ${trigger.trait}`);
+      if (trigger.emit != null && !profiles.has(trigger.emit))
         throw new TypeError(`Unknown trait trigger profile ${trigger.emit} in ${module.id}.`);
+      if (trigger.invoke != null && !assembly.catalog.skillsById.has(trigger.invoke))
+        throw new TypeError(`Unknown trait trigger skill ${trigger.invoke} in ${module.id}.`);
+    }
+
     for (const rule of module.hooks?.rechargeRules ?? [])
       if (typeof rule.multiplier === 'object') {
         const { profile, field } = rule.multiplier;
@@ -354,6 +441,9 @@ export function defineNativeProfession<
           throw new TypeError(`Invalid recharge profile reference ${profile}.${field} in ${module.id}.`);
       }
   }
+
+  // Order lists may name Core and elite traits, so completeness is proven across every module, selected or not.
+  validateTriggerPoints(modules.flatMap((module) => module.hooks?.traitTriggers ?? []));
 
   const core = modules[0];
   const specializations = new Map(modules.slice(1).map((module) => [module.id, module]));
@@ -432,6 +522,12 @@ export function defineNativeProfession<
     const composed = composeRuntimeHooks(hooks);
     const runtime: RuntimeProfession<State, TSkill> = {
       ...composed,
+      // Isolated payload runtimes keep invoked-skill previews but fire no trait listeners.
+      damageEffects: [
+        ...(composed.damageEffects ?? []),
+        ...invokedDamageEffects(composed.traitTriggers ?? [], source.catalog)
+      ],
+      triggerListeners: traitTriggers ? compileTriggerPoints(composed.traitTriggers ?? []) : new Map(),
       id: definition.id,
       canSwapWeaponSetsInCombat: source.canSwapWeaponSetsInCombat,
       catalog: source.catalog,

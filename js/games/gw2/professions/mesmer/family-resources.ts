@@ -4,8 +4,7 @@ import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusio
 import { createIllusionRewardController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/skills/weapons/clone-attacks.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
-import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
-import { reactToMirageResourceGain } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
+import { mirageResourcesGained } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -37,9 +36,9 @@ export function createMesmerIllusionRewards(context: MesmerRuntime) {
     destroyClone: (clone) => destroyClone(context, clone),
     onGain: (gain) => {
       if (context.profession.specialization.kind === 'Mirage')
-        reactToMirageResourceGain(context, gain, (at, clones) =>
-          createMirageMechanics(context).executeCloneAmbushes(at, clones)
-        );
+        context.fireTrigger(mirageResourcesGained, {
+          gain
+        });
     },
     scheduleResourceTask(candidate, delivery = {}) {
       // An unbounded delivery belongs to an already committed actor; finite cutoffs remain exact.

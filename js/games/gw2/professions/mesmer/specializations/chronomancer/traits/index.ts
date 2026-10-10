@@ -1,13 +1,31 @@
-import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import {
+  mesmerPhantasmPreparing,
+  type MesmerPhantasmAdmission
+} from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { observeChronomancerEvent } from '#gw2/professions/mesmer/specializations/chronomancer/traits/behavior.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
 
 /** Danger Time retains its active profile, selection, and original execution boundary. */
@@ -29,7 +47,7 @@ export const dangerTime = defineTrait<MesmerSkill>({
         ['player', 'summon'].includes(gw2EventActorType(context.event)) && buffActive(context, 'danger-time')
     }
   ],
-  hooks: { reactions: { 'control.resolved': observeChronomancerEvent } }
+  triggers: [{ on: 'control.resolved', run: observeChronomancerEvent }]
 });
 
 /** Delayed Reactions retains its active profile, selection, and original execution boundary. */
@@ -66,6 +84,22 @@ export const flowOfTime = defineTrait<MesmerSkill>({
 export const chronophantasma = defineTrait<MesmerSkill>({
   id: TRAIT.CHRONOPHANTASMA,
   name: 'Chronophantasma',
+  // Admit repeat work once for this batch; the illusion owner retains its conversion and delivery lifetime.
+  triggers: [
+    onTriggerPoint(mesmerPhantasmPreparing, {
+      run(runtime, admission: MesmerPhantasmAdmission) {
+        admission.repeat = {
+          label: 'Chronophantasma',
+          traitId: TRAIT.CHRONOPHANTASMA,
+          traitName: 'Chronophantasma',
+          damageMultiplier: balanceProfileNumber(
+            requireBalanceProfileFromContext(runtime, TRAIT.CHRONOPHANTASMA),
+            'damageMultiplier'
+          )
+        };
+      }
+    })
+  ],
   balance: {
     damageMultiplier: 1.05
   }
@@ -92,6 +126,12 @@ export const timeCatchesUp = defineTrait<MesmerSkill>({
 
 /** Illusionary Reversion retains its active profile, selection, and original execution boundary. */
 export const illusionaryReversion = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerShatterCompleted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
+        resolveIllusionaryReversion(runtime, input.resolution)
+    })
+  ],
   id: TRAIT.ILLUSIONARY_REVERSION,
   name: 'Illusionary Reversion',
   balance: {
@@ -102,6 +142,12 @@ export const illusionaryReversion = defineTrait<MesmerSkill>({
 
 /** Stretched Time retains its active profile, selection, and original execution boundary. */
 export const stretchedTime = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerShatterCompleted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
+        triggerShatterBoon(runtime, input.resolution, TRAIT.STRETCHED_TIME, 'alacrity')
+    })
+  ],
   id: TRAIT.STRETCHED_TIME,
   name: 'Stretched Time',
   balance: {
@@ -121,6 +167,12 @@ export const stretchedTime = defineTrait<MesmerSkill>({
 
 /** Seize the Moment retains its active profile, selection, and original execution boundary. */
 export const seizeTheMoment = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerShatterCompleted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
+        triggerShatterBoon(runtime, input.resolution, TRAIT.SEIZE_THE_MOMENT, 'quickness')
+    })
+  ],
   id: TRAIT.SEIZE_THE_MOMENT,
   name: 'Seize the Moment',
   balance: {
@@ -158,7 +210,7 @@ export const timeBomb = defineTrait<MesmerSkill>({
       when: (context) => isGw2PlayerActorEvent(context.event) && buffActive(context, 'time-bomb')
     }
   ],
-  hooks: { onCastCommit: completeChronomancerTimeBomb }
+  triggers: [{ on: 'castCommit', run: completeChronomancerTimeBomb }]
 });
 
 /** Collect Chronomancer owners without moving shared Continuum or illusion state. */
@@ -173,3 +225,129 @@ export const chronomancerTraits = [
   timeCatchesUp,
   delayedReactions
 ];
+
+// Materialize one Chronomancer shatter boon with clone-scaled duration and
+// profile-owned recipient metadata.
+function triggerShatterBoon(
+  context: MesmerRuntime,
+  resolution: MesmerShatterResolution,
+  traitId: number,
+  effectName: 'alacrity' | 'quickness'
+): void {
+  const profile = requireBalanceProfileFromContext(context, traitId);
+  if (!requireEffect(profile, 'boon', effectName)) return;
+  const traitSource = {
+    source: 'Trait',
+    sourceId: traitId,
+    actorType: 'player' as const,
+    skillId: traitId,
+    skillName: profile.name
+  };
+  const proc = context.effects.emit({
+    receipt: true,
+    ...resolution.delivery,
+    kind: 'announcement',
+    log: true,
+    attribution: { ...traitSource, actorType: 'effect' },
+    announcement: {
+      type: 'trait',
+      name: profile.name,
+      at: resolution.at,
+      sourceSkill: resolution.skill.name,
+      detail: ''
+    }
+  });
+  // The shared emitter scales the captured clone reward while preserving the existing boon identity and audience.
+  emitTraitProfile(context, traitId, traitId, proc, {
+    ...resolution.delivery,
+    at: resolution.at,
+    effect: { type: 'boon', name: effectName },
+    attribution: traitSource,
+    transform: (event) => ({
+      type: 'buff',
+      at: resolution.at,
+      name: profile.name,
+      ...traitSource,
+      sourceSkill: resolution.skill.name,
+      kind: event.kind,
+      stacks: event.stacks,
+      audience: event.audience,
+      duration: Number(event.duration) + (resolution.spent + 1) * balanceProfileNumber(profile, 'durationPerTier')
+    })
+  });
+}
+
+/** Refunds one clone only when a Chronomancer shatter commits the configured full-clone threshold. */
+function resolveIllusionaryReversion(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
+  if (
+    resolution.spent !==
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION), 'threshold')
+  ) {
+    return;
+  }
+
+  const illusionaryReversionProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION);
+  createMesmerIllusionRewards(context).queueResources(
+    resolution.at,
+    balanceProfileNumber(illusionaryReversionProfile, 'resourceGain'),
+    mesmerActivePrimaryWeapon(context),
+    'Illusionary Reversion',
+    {
+      traitId: TRAIT.ILLUSIONARY_REVERSION,
+      traitName: 'Illusionary Reversion'
+    }
+  );
+}
+
+/** Arms Danger Time from Chronomancer control packets and Delayed Reactions. */
+function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent): void {
+  if (event.type !== 'control') return;
+
+  const skillId = Number(event.skillId);
+  if (skillId !== ID.TIME_SINK && !hasTrait(context, TRAIT.DELAYED_REACTIONS)) {
+    return;
+  }
+
+  const skillName = event.skillName || event.name || 'Control effect';
+  const dangerTimeProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
+  {
+    const grants: readonly MesmerEventExtra[] = [
+      {
+        kind: 'danger-time',
+        stacks: 1,
+        duration: balanceProfileNumber(dangerTimeProfile, 'durationMultiplier'),
+        sourceSkill: skillName
+      }
+    ];
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
+    const traitSource = {
+      source: 'Trait',
+      sourceId: TRAIT.DANGER_TIME,
+      actorType: 'player' as const,
+      skillId: TRAIT.DANGER_TIME,
+      skillName: traitProfile.name
+    };
+    {
+      const proc = context.effects.emit({
+        receipt: true,
+        kind: 'announcement',
+        log: true,
+        attribution: { ...traitSource, actorType: 'effect' },
+        announcement: { type: 'trait', name: traitProfile.name, at: event.at, sourceSkill: skillName, detail: '' }
+      });
+      for (const grant of grants)
+        context.effects.emit({
+          kind: 'packet',
+          cause: proc,
+          event: {
+            ...grant,
+            ...traitSource,
+            type: 'buff',
+            at: event.at,
+            name: traitProfile.name,
+            sourceSkill: skillName
+          }
+        });
+    }
+  }
+}

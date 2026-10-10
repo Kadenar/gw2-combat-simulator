@@ -41,6 +41,7 @@ import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js'
 import { projectRuntimeResult } from '#gw2/platform/results/project-runtime.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform/simulation/bind-mechanic-context.js';
+import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -330,6 +331,11 @@ export function runRuntime<T extends object>(
           (event.kind === 'internal' ? (event.owner as RuntimeWork['owner']) : deliveryOwner.owner(event))
             ?.generation === owner.generation
       );
+    },
+    fireTrigger(point: TriggerPoint, input: object) {
+      // Listeners settle before the firing mechanic continues; isolated payload runtimes compile none.
+      const listeners = profession.triggerListeners?.get(point.id);
+      if (listeners) for (const listener of listeners) listener(runtime.mechanics, input);
     }
     // Services bind to this identity immediately below, before any initialization hook can observe it.
   }) as unknown as Gw2Runtime<T>;

@@ -9,7 +9,8 @@ import {
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { DARK_SENTRY } from '#gw2/professions/thief/specializations/specter/traits/behavior.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Dawn's Repose includes the caster; only allied recipients can trigger Dark Sentry. */
@@ -45,7 +46,13 @@ export function grantBarrier(
       fixedDuration: true
     })
   });
-  runtime.schedule(DARK_SENTRY, runtime.time, {
+  runtime.fireTrigger(alliedBarrierGranted, {
     allyIndices: Array.from({ length: recipients - Number(affectsSelf) }, (_, index) => index + 1)
   });
 }
+
+/** Capture actual allied recipients after barrier delivery before the trait admits per-ally venom work. */
+export const alliedBarrierGranted = defineTriggerPoint<{ readonly allyIndices: readonly number[] }>(
+  'thief.allied-barrier-granted',
+  [TRAIT.DARK_SENTRY]
+);

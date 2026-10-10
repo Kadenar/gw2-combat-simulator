@@ -2,7 +2,8 @@ import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
   berserkerBuffPolicies,
   berserkerEffectStates
@@ -16,9 +17,8 @@ import {
   publishBerserk
 } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import {
-  berserkEntryTraits,
-  berserkerCompletionTraits,
-  berserkTraitExtension
+  lastBlazeBerserkExtension,
+  smashBrawlerBerserkExtension
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
@@ -29,12 +29,16 @@ function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
   const state = berserkerState.from(runtime);
   const skill = cast.skill;
   if (skill.id === ID.BERSERK) {
-    berserkEntryTraits(runtime, cast);
+    runtime.fireTrigger(berserkEntered, { cast });
     return;
   }
 
-  if (!state.berserkActive) return;
-  const extension = (berserkExtensions.get(cast) ?? 0) + berserkTraitExtension(runtime, cast);
+  // An unbounded preview window is already held open and must not schedule a finite extension.
+  if (!state.berserkActive || !Number.isFinite(state.berserkUntil)) return;
+  const extension =
+    (berserkExtensions.get(cast) ?? 0) +
+    smashBrawlerBerserkExtension(runtime, cast) +
+    lastBlazeBerserkExtension(runtime, cast);
 
   if (extension > 0) {
     state.berserkUntil = gw2EffectExpiresAt(state.berserkUntil, extension);
@@ -48,8 +52,11 @@ export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   buffPolicies: berserkerBuffPolicies,
   observeEffects: berserkerEffectStates,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-  prepareDamageState(runtime, skill, _inputs) {
-    if (skill?.primalBurst) berserkerState.from(runtime).berserkUntil = Infinity;
+  prepareDamageState(runtime, skill, inputs) {
+    // Primal bursts require Berserk; ordinary attacks can inspect either form without a prerequisite cast.
+    const state = berserkerState.from(runtime);
+    state.berserkActive = Boolean(skill?.primalBurst || inputs.berserk);
+    state.berserkUntil = state.berserkActive ? Infinity : 0;
   },
 
   availability(runtime, skill) {
@@ -76,7 +83,7 @@ export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   },
   onCastCommit(runtime, cast) {
     completeBerserk(runtime, cast);
-    berserkerCompletionTraits(runtime, cast);
+    runtime.fireTrigger(berserkerCastCompleted, { cast });
   },
   tasks: {
     [BERSERK_EXPIRE](runtime, deadline) {
@@ -88,3 +95,15 @@ export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     }
   }
 };
+
+/** Accepted Berserk entry grants the intrinsic boon before the selected entry reward. */
+export const berserkEntered = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>(
+  'warrior.berserk-entered',
+  [TRAIT.BURST_OF_AGGRESSION, TRAIT.BLOODY_ROAR]
+);
+
+/** Completion observes the new mode deadline before boon and aura reactions. */
+export const berserkerCastCompleted = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>(
+  'warrior.berserker-cast-completed',
+  [TRAIT.HEAT_THE_SOUL, TRAIT.KING_OF_FIRES]
+);

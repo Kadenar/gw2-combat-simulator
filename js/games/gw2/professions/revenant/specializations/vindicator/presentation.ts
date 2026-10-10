@@ -107,6 +107,8 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+    // Expose held combat bonuses to isolated damage calculations.
+    preview.damageBuff('Forerunner of Death', 'forerunnerOfDeath', 'forerunner-of-death');
     preview.playerHealth(['Empire Divided']);
     return preview.controls;
   },

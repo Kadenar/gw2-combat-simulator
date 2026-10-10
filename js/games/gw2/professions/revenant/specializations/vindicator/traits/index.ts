@@ -1,13 +1,31 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import {
+  energyMeldCompleted,
+  energyMeldEnduranceGranted,
+  vindicatorLanded
+} from '#gw2/professions/revenant/specializations/vindicator/mechanics/boundaries.js';
+import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { enduranceNotFull } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns Angsiyan's Trust tuning and behavior at its established execution boundaries. */
 export const angsiyansTrust = defineTrait({
+  triggers: [onTriggerPoint(energyMeldCompleted, { run: grantAngsiyansTrustEnergy })],
   id: TRAIT.ANGSIYANS_TRUST,
   name: "Angsiyan's Trust",
   balance: { resourceGain: 25, effects: [] }
@@ -25,6 +43,12 @@ export const empireDivided = defineTrait({
 
 /** Owns Forerunner of Death tuning and behavior at its established execution boundaries. */
 export const forerunnerOfDeath = defineTrait({
+  triggers: [
+    onTriggerPoint(vindicatorLanded, {
+      run: (runtime, input: TriggerPointInput<typeof vindicatorLanded>) =>
+        renewForerunnerOfDeath(runtime, input.profile, input.activationId)
+    })
+  ],
   id: TRAIT.FORERUNNER_OF_DEATH,
   name: 'Forerunner of Death',
   balance: {
@@ -76,6 +100,7 @@ export const leviathanStrength = defineTrait({
 
 /** Owns Reaver's Curse tuning and behavior at its established execution boundaries. */
 export const reaversCurse = defineTrait({
+  triggers: [onTriggerPoint(energyMeldCompleted, { run: armReaversCurse })],
   id: TRAIT.REAVERS_CURSE,
   name: "Reaver's Curse",
   balance: {
@@ -123,6 +148,13 @@ export const songOfArboreum = defineTrait({
     ]
   },
   triggers: [
+    onTriggerPoint(energyMeldEnduranceGranted, {
+      run(runtime) {
+        runtime.endurance.grant(
+          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SONG_OF_ARBOREUM), 'resourceGain')
+        );
+      }
+    }),
     {
       emit: TRAIT.SONG_OF_ARBOREUM,
       on: 'castCommit',
@@ -150,3 +182,66 @@ export const traitDefinitions = [
   saintOfZuHeltzer,
   vassalsOfTheEmpire
 ];
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
+  if (runtime.combatStartedAt())
+    runtime.resourceController.grant(
+      'energy',
+      Math.max(
+        0,
+        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ANGSIYANS_TRUST), 'resourceGain')
+      )
+    );
+}
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function armReaversCurse(runtime: RevenantRuntime): void {
+  const state = vindicatorState.from(runtime);
+  {
+    const curse = requireBalanceProfileFromContext(runtime, TRAIT.REAVERS_CURSE);
+    const effect = requireEffect(curse, 'buff', 'reavers-curse');
+    // The armed window is the buff, so a removed buff arms nothing.
+    if (effect)
+      state.reaversCurseUntil = gw2EffectExpiresAt(runtime.time, Math.max(0, effectNumber(curse, effect, 'duration')));
+  }
+}
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: RevenantSkill, activationId: string): void {
+  if (profile.id === ID.DEATH_DROP) {
+    const forerunner = requireBalanceProfileFromContext(runtime, TRAIT.FORERUNNER_OF_DEATH);
+    const window = requireEffect(forerunner, 'buff', 'forerunner-of-death');
+    // The damage window is the buff, so a removed buff opens no window.
+    if (window) {
+      const duration = Math.max(0, effectNumber(forerunner, window, 'duration'));
+      // Renewal replaces the previous bonus even if the selected profile grants a shorter window.
+      runtime.combat.reviseBuffExpiry(
+        'forerunner-of-death',
+        (application) => application.at <= runtime.time && application.expiresAt > runtime.time,
+        () => runtime.time
+      );
+      runtime.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: {
+          ...{
+            type: 'buff',
+            at: runtime.time,
+            source: 'revenant',
+            sourceId: TRAIT.FORERUNNER_OF_DEATH,
+            actorType: 'player',
+            skillId: TRAIT.FORERUNNER_OF_DEATH,
+            skillName: 'Forerunner of Death',
+            activationId,
+            name: 'Forerunner of Death',
+            kind: String(window.kind),
+            duration,
+            stacks: effectNumber(forerunner, window, 'stacks')
+          },
+          fixedDuration: true
+        }
+      });
+    }
+  }
+}

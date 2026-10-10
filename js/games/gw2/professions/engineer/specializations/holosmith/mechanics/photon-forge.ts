@@ -18,16 +18,14 @@ import {
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import {
-  emitPhotonicBlastingModuleEffects,
   enhancedCapacityMaximumHeat,
-  initializeEnhancedCapacityMight,
   lightDensityHeatPerSecond,
   photonicOverheatTiming,
-  preservesPhotonicHeat,
-  triggerInstantEnhancedCapacityMight
+  preservesPhotonicHeat
 } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
-import { grantSolarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type {
   EngineerConfig,
   EngineerRuntime,
@@ -41,6 +39,38 @@ interface PhotonForgeHeatPayload {
   readonly amount: number;
   readonly persistsOutsideForge: boolean;
 }
+
+/** A Forge transition; overheat captures the delayed module blast before overheat state changes. */
+export interface PhotonForgeTransition {
+  readonly transition: 'entry' | 'exit' | 'overheat';
+  readonly at: number;
+  readonly blastAt?: number;
+}
+
+/** Lens charges are granted at every Forge transition, before an overheat's delayed module blast is queued. */
+export const photonForgeTransitioned = defineTriggerPoint<PhotonForgeTransition>('engineer.photon-forge-transitioned', [
+  TRAIT.SOLAR_FOCUSING_LENS,
+  TRAIT.PHOTONIC_BLASTING_MODULE
+]);
+
+/** A heat increase, with the heat held before it. */
+export interface HeatGain {
+  readonly at: number;
+  readonly previousHeat: number;
+}
+
+/** Crossing the Enhanced Capacity threshold starts its Might cadence immediately. */
+export const heatGained = defineTriggerPoint<HeatGain>('engineer.heat-gained', [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]);
+
+/** Configured heat at the start of a run. */
+export interface HeatInitialization {
+  readonly at: number;
+}
+
+/** Preheated runs seed the Enhanced Capacity cadence before passive cooling begins. */
+export const heatInitialized = defineTriggerPoint<HeatInitialization>('engineer.heat-initialized', [
+  TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+]);
 
 const PHOTON_FORGE_PASSIVE_HEAT_TASK = 'engineer.photon-forge-passive-heat';
 const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penalty';
@@ -125,8 +155,7 @@ function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): vo
   // Publish maximum heat at the overheat timestamp. The module blast and its
   // Solar Focusing Lens charges become active after the observed delay.
 
-  grantSolarFocusingLens(context, blast ? effectAt : at, 'maximumStacks');
-  if (blast) emitPhotonicBlastingModuleEffects(context, effectAt);
+  context.fireTrigger(photonForgeTransitioned, { transition: 'overheat', at, blastAt: blast?.at });
 }
 
 /** Restarts passive heat processing one cadence tick after a Forge state transition. */
@@ -141,7 +170,7 @@ function initializePhotonForgeHeat(context: EngineerRuntime<HolosmithSkill>): vo
   const state = holosmithState.from(context);
   // The policy has already clamped initialHeat against the trait-selected capacity.
   state.forgeExitedAt = state.heat.value > 0 ? context.time : null;
-  initializeEnhancedCapacityMight(context);
+  context.fireTrigger(heatInitialized, { at: context.time });
 
   // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
   if (state.heat.value > 0 && state.forgeExitedAt != null) {
@@ -164,7 +193,7 @@ function applyPassiveHeat(context: EngineerRuntime<HolosmithSkill>, at: number):
 
     // Preserve Forge's nine-decimal accumulation while the shared controller enforces capacity.
     context.resourceController.replace('heat', Math.round((previousHeat + passiveHeatPerTick(context)) * 1e9) / 1e9);
-    triggerInstantEnhancedCapacityMight(context, at, previousHeat);
+    context.fireTrigger(heatGained, { at, previousHeat });
   } else {
     context.resourceController.replace(
       'heat',
@@ -197,7 +226,7 @@ function enterPhotonForge(context: EngineerRuntime<HolosmithSkill>, skill: Engin
   // Photon Forge's kit lockout behaves as recharge, so route its six-second
   // base duration through the shared recharge rules that apply Alacrity.
   state.kitLockoutUntil = at + baseKitLockout / context.cooldownController.rate(skill);
-  grantSolarFocusingLens(context, at, 'minimumStacks');
+  context.fireTrigger(photonForgeTransitioned, { transition: 'entry', at });
   emitEngineerBarSwap(context, skill, at);
   reportHeat(context, 'enter-forge');
 }
@@ -212,7 +241,7 @@ function leavePhotonForge(context: EngineerRuntime<HolosmithSkill>, skill: Engin
   if (!state.overheated) {
     state.forgeExitedAt = at;
     startPassiveHeatCadence(context, at);
-    grantSolarFocusingLens(context, at, 'minimumStacks');
+    context.fireTrigger(photonForgeTransitioned, { transition: 'exit', at });
   }
 
   if (state.heat.value === 0) state.overheated = false;
@@ -382,7 +411,7 @@ const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>[
     if (state.overheated || (!state.photonForgeActive && !payload.persistsOutsideForge)) return;
     const previous = state.heat.value;
     context.resourceController.grant('heat', payload.amount);
-    triggerInstantEnhancedCapacityMight(context, context.time, previous);
+    context.fireTrigger(heatGained, { at: context.time, previousHeat: previous });
     reportHeat(context, 'heat');
   },
   [PHOTON_FORGE_OVERHEAT_PENALTY_TASK](context, data) {

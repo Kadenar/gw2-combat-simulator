@@ -1,11 +1,11 @@
 /** Owns the live DPS status shared by standalone and embedded simulator headers. */
 const HEADER_DPS_PLACEHOLDER = '\u2014';
 
-/** Place DPS before the help links so the sticky header keeps the current result in view. */
+/** Keep DPS beside the active build so the sticky toolbar associates the result with its build. */
 export function mountHeaderDps(root: Document = document): HTMLOutputElement | null {
   const existing = root.getElementById('header-dps');
   if (existing) return existing as HTMLOutputElement;
-  const host = root.querySelector('body[data-profession] #app > header .community-actions');
+  const host = root.querySelector('#build-switcher-menu');
   if (!host) return null;
 
   const indicator = root.createElement('output');
@@ -23,7 +23,7 @@ export function mountHeaderDps(root: Document = document): HTMLOutputElement | n
   value.textContent = HEADER_DPS_PLACEHOLDER;
 
   indicator.append(label, value);
-  host.prepend(indicator);
+  host.after(indicator);
   return indicator;
 }
 

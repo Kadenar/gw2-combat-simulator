@@ -1,23 +1,52 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   balanceProfileNumber,
+  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
+import { energyCostAccepted } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
+import { affinityGranted, gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import {
+  entityBoonCompleted,
+  entityCastCompleted
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/boundaries.js';
+import { scheduleFormExpiry } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
+import {
+  conduitLegendReset,
+  conduitLegendSettled,
+  cosmicWisdomEntered,
+  cosmicWisdomEntering
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import {
   CONDUIT_BALANCE_PROFILE_IDS,
   CONDUIT_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { TWIN_MOON_SKILL_IDS } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
+import {
+  BEGUILING_HAZE_SKILL_IDS,
+  TWIN_MOON_SKILL_IDS
+} from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
+import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+
 import type { RevenantBuild } from '#gw2/professions/revenant/types.js';
 
 /** Owns Bolstered Bonds tuning and behavior at its established execution boundaries. */
@@ -57,10 +86,25 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
 });
 
 /** Owns Conductive Armaments tuning and behavior at its established execution boundaries. */
-export const conductiveArmaments = defineTrait({ id: TRAIT.CONDUCTIVE_ARMAMENTS, name: 'Conductive Armaments' });
+export const conductiveArmaments = defineTrait({
+  triggers: [
+    onTriggerPoint(energyCostAccepted, {
+      run: (runtime, input: TriggerPointInput<typeof energyCostAccepted>) =>
+        grantConductiveArmaments(runtime, input.cast.skill)
+    })
+  ],
+  id: TRAIT.CONDUCTIVE_ARMAMENTS,
+  name: 'Conductive Armaments'
+});
 
 /** Owns Enhanced Embodiment tuning and behavior at its established execution boundaries. */
 export const enhancedEmbodiment = defineTrait({
+  triggers: [
+    onTriggerPoint(conduitLegendReset, {
+      run: (runtime, input: TriggerPointInput<typeof conduitLegendReset>) =>
+        extendEnhancedEmbodiment(runtime, input.formActive)
+    })
+  ],
   id: TRAIT.ENHANCED_EMBODIMENT,
   name: 'Enhanced Embodiment',
   balance: {
@@ -80,13 +124,28 @@ export const enhancedEmbodiment = defineTrait({
 
 /** Owns Expanded Consciousness tuning and behavior at its established execution boundaries. */
 export const expandedConsciousness = defineTrait({
+  triggers: [
+    onTriggerPoint(affinityGranted, {
+      run: (runtime, input: TriggerPointInput<typeof affinityGranted>) =>
+        grantExpandedConsciousness(runtime, input.previous, input.maximum)
+    })
+  ],
   id: TRAIT.EXPANDED_CONSCIOUSNESS,
   name: 'Expanded Consciousness',
   balance: { id: CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness, resourceGain: 15, effects: [] }
 });
 
 /** Owns Found Purpose tuning and behavior at its established execution boundaries. */
-export const foundPurpose = defineTrait({ id: TRAIT.FOUND_PURPOSE, name: 'Found Purpose' });
+export const foundPurpose = defineTrait({
+  triggers: [
+    onTriggerPoint(conduitLegendSettled, {
+      run: (runtime, input: TriggerPointInput<typeof conduitLegendSettled>) =>
+        grantFoundPurpose(runtime, input.cast, input.combat)
+    })
+  ],
+  id: TRAIT.FOUND_PURPOSE,
+  name: 'Found Purpose'
+});
 
 /** Owns Kinetic Insight tuning and behavior at its established execution boundaries. */
 export const kineticInsight = defineTrait({
@@ -97,6 +156,12 @@ export const kineticInsight = defineTrait({
 
 /** Owns Lingering Determination tuning and behavior at its established execution boundaries. */
 export const lingeringDetermination = defineTrait({
+  triggers: [
+    onTriggerPoint(conduitLegendReset, {
+      run: (runtime, input: TriggerPointInput<typeof conduitLegendReset>) =>
+        grantLingeringDetermination(runtime, input.combat)
+    })
+  ],
   id: TRAIT.LINGERING_DETERMINATION,
   name: 'Lingering Determination',
   balance: { id: CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination, resourceGain: 2, effects: [] }
@@ -128,6 +193,9 @@ export const mistfire = defineTrait({
     ]
   },
   triggers: [
+    onTriggerPoint(cosmicWisdomEntering, {
+      run: (runtime, input: TriggerPointInput<typeof cosmicWisdomEntering>) => emitCosmicMistfire(runtime, input.cast)
+    }),
     {
       emit: PROFILE.mistfire,
       on: 'control.resolved',
@@ -149,6 +217,13 @@ export const mistfire = defineTrait({
 
 /** Owns Numinous Gift tuning and behavior at its established execution boundaries. */
 export const numinousGiftTrait = defineTrait({
+  triggers: [
+    onTriggerPoint(cosmicWisdomEntered, {
+      // Numinous Gift is Conduit's intrinsic minor: Cosmic Wisdom grants its boons whether or not the trait is listed.
+      requiresSelection: false,
+      run: (runtime, input: TriggerPointInput<typeof cosmicWisdomEntered>) => numinousGift(runtime, input.cast)
+    })
+  ],
   buildAttributes: (_common, { balanceContext, build, disabledTrait }) => ({
     traitDurations: getActiveTraits((build as RevenantBuild).specializations ?? []).some(
       (trait) => trait.id === TRAIT.YEARNING_EMPOWERMENT && trait.name !== disabledTrait
@@ -247,6 +322,15 @@ export const numinousGiftTrait = defineTrait({
 
 /** Owns Shared Wisdom tuning and behavior at its established execution boundaries. */
 export const sharedWisdom = defineTrait({
+  triggers: [
+    onTriggerPoint(entityBoonCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof entityBoonCompleted>) => grantEntitySkillBoon(runtime, input.cast)
+    }),
+    onTriggerPoint(entityCastCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof entityCastCompleted>) =>
+        completionSharedWisdom(runtime, input.cast, 'entity-skill')
+    })
+  ],
   id: TRAIT.SHARED_WISDOM,
   name: 'Shared Wisdom',
   balance: {
@@ -313,3 +397,137 @@ export const traitDefinitions = [
   foundPurpose,
   conductiveArmaments
 ];
+
+/** Weapon casts grant affinity after the mechanic has established a positive Energy cost. */
+function grantConductiveArmaments(runtime: RevenantRuntime, skill: RevenantSkill): void {
+  if (skill.type === 'Weapon') gainAffinity(runtime, 1);
+}
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean): void {
+  const state = conduitState.from(runtime);
+  if (formActive) {
+    const enhanced = requireBalanceProfileFromContext(runtime, PROFILE.enhancedEmbodiment);
+    const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
+    if (extension) {
+      state.cosmicWisdomUntil += Math.max(0, effectNumber(enhanced, extension, 'duration'));
+      scheduleFormExpiry(runtime);
+    }
+  }
+}
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function grantFoundPurpose(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, combat: boolean): void {
+  if (combat) numinousGift(runtime, cast, true);
+}
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function grantLingeringDetermination(runtime: RevenantRuntime, combat: boolean): void {
+  if (combat)
+    gainAffinity(
+      runtime,
+      Math.max(
+        0,
+        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.lingeringDetermination), 'resourceGain')
+      )
+    );
+}
+
+/** Applies the trait at the mechanic's existing execution boundary. */
+function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  {
+    emitTraitProfile(runtime, TRAIT.MISTFIRE, PROFILE.mistfire, undefined, {
+      effects: (effect) => effect.type === 'strike' || effect.type === 'condition',
+      attribution: {
+        source: 'revenant',
+        sourceId: TRAIT.MISTFIRE,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: TRAIT.MISTFIRE,
+        skillName: 'Mistfire',
+        activationId: cast.id
+      },
+      transform: (event) => ({
+        ...event,
+        name: event.type === 'damage' ? 'Mistfire' : 'Mistfire — Burning',
+        skillWeapon: 'Unequipped'
+      })
+    });
+  }
+}
+
+/** Reward a selected cap crossing once; further grants at full affinity cannot repeat the Energy gain. */
+function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, maximum: number): void {
+  if (previous < maximum && runtime.resourceController.value('affinity') === maximum)
+    runtime.resourceController.grant(
+      'energy',
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.expandedConsciousness), 'resourceGain')
+    );
+}
+
+/** Numinous Gift grants its base and equipped-legend boons to the caster or, with Found Purpose, to allies. */
+function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, allies = false): void {
+  if (runtime.config.specialization !== 'Conduit') return;
+
+  emitTraitProfile(runtime, TRAIT.NUMINOUS_GIFT, PROFILE.numinousGift, undefined, {
+    effects: (effect) =>
+      effect.type === 'boon' && (!effect.metadata?.legendId || hasLegend(runtime, effect.metadata.legendId)),
+    attribution: {
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({
+      ...event,
+      name: cast.skill.name + ' \u2014 ' + event.kind,
+      audience: { recipients: allies ? 'party' : 'self' }
+    })
+  });
+}
+
+function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
+  return runtime.profession.core.selectedLegendIds.includes(legendId);
+}
+
+/** One entity-specific Shared Wisdom boon accompanies the cast's completion. */
+function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, trigger: string): void {
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
+  const shared = requireEffect(profile, 'boon', trigger);
+  if (!shared) return;
+  emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, PROFILE.sharedWisdom, undefined, {
+    effects: (effect) => effect === shared,
+    at: cast.effectiveEnd,
+    attribution: {
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({ ...event, name: cast.skill.name + ' \u2014 ' + event.kind })
+  });
+}
+
+/** Retain each accepted Entity action's source identity while the trait owns its boon selection. */
+function grantEntitySkillBoon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const haze = BEGUILING_HAZE_SKILL_IDS.has(cast.skill.id);
+  const hex = cast.skill.id === ID.HEX_EATER_VORTEX;
+  const trigger = haze ? 'beguiling-haze' : hex ? 'hex-eater-vortex' : 'gladiators-defense';
+  emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, PROFILE.sharedWisdom, undefined, {
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    effects: (effect) => effect.type === 'boon' && effect.name === trigger,
+    // The profile's effect names are internal trigger keys, so the boon packet stays unlabelled.
+    preserveName: true,
+    attribution: {
+      source: 'revenant',
+      sourceId: haze ? TRAIT.SHARED_WISDOM : hex ? ID.HEX_EATER_VORTEX : ID.GLADIATORS_DEFENSE,
+      actorType: 'player'
+    }
+  });
+}

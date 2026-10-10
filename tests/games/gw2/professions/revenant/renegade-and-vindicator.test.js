@@ -26,7 +26,7 @@ import {
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { grantKallasFervor } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
+import { grantKallasFervor } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {

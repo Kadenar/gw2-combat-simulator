@@ -75,10 +75,10 @@ The main rule is:
 Traits use `defineTrait()` under their Core or elite `traits/` directory and register once through the module's
 `traitDefinitions`. Core `traits/<line>/index.ts` files own their definitions, and the Core `traits/index.ts` collects
 them in execution order. Each elite's `traits/index.ts` owns all its definitions and its registration array. Definitions
-own profiles, rules, triggers, hooks, and build effects. Small helpers stay beside the definitions when their callers
-can load them without a dependency cycle. Substantial behavior and helpers that need a separate dependency boundary live
-in supporting files within the same trait-line folder. Calling a helper externally does not by itself justify another
-file. Generated `data.traits` continues to own selection metadata.
+own profiles, rules, compiled triggers, value hooks, admitted lifetime handlers and build effects. Small helpers stay
+beside the definitions when their callers can load them without a dependency cycle. Substantial behavior and helpers
+that need a separate dependency boundary live in supporting files within the same trait-line folder. Calling a helper
+externally does not by itself justify another file. Generated `data.traits` continues to own selection metadata.
 
 Do not move profession-specific mechanics into shared platform code just because several files need them. Likewise, do
 not duplicate shared GW2 behavior inside individual professions.
@@ -299,6 +299,10 @@ are relative to `js/games/gw2/platform/`.
 | `execution/cast-execution.ts`                      | Readiness, acceptance, reservation identity and ownership, lockouts, and completion                               |
 | `resolver/effect-delivery.ts`                      | Admission, deferred preparation, target gates, and reaction settlement                                            |
 | `profession-definition/runtime-hooks.ts`           | Explicit mechanic contribution surface and ordered composition                                                    |
+| `profession-definition/traits.ts`                  | Trait authoring: compiled producers, restricted value hooks and explicit admitted lifetime handlers               |
+| `profession-definition/trigger-points.ts`          | Mechanic-owned boundary inputs and complete listener order                                                        |
+| `profession-definition/trigger-rules.ts`           | Typed `onTriggerPoint` registration, selection, isolation and ordered admission                                   |
+| `profession-definition/trait-emission.ts`          | Shared trait-profile and triggered-skill emission with causal attribution                                         |
 | `profession-definition/runtime-context.ts`         | Narrow author capabilities; selected content for effect ownership and read-only profession state for cast details |
 | `results/project-runtime.ts`                       | Projection of settled damage, score, and detailed results                                                         |
 | `execution/cast-effects.ts`                        | Effect variant selection and interruption filtering                                                               |
@@ -507,9 +511,10 @@ Traits:
 - Supporting files belong inside their trait-line folder. Each elite's `traits/` directory already represents one trait
   line, so it needs no redundant nested folder. Use descriptive names for substantial behavior or a necessary dependency
   boundary; do not create a separate file for every trait.
-- Shared queries and dispatch across lines stay directly under Core `traits/`. A line must not import its dispatcher.
-  Supporting files must not import their own `index.ts` when that index imports them. Consumers may import helpers
-  directly from a line's `index.ts` when the dependency graph remains acyclic.
+- Shared pure queries across lines stay directly under Core `traits/`. New trait producers use compiled triggers;
+  trait-only dispatch files and per-simulation listener registries are retired. Supporting files must not import their
+  own `index.ts` when that index imports them. Consumers may import helpers directly from a line's `index.ts` when the
+  dependency graph remains acyclic.
 
 Mechanics use GW2 concept names (`shatters.ts`, `continuum-split.ts`, `pets.ts`, `life-force.ts`, `attunements.ts`).
 Generic `rules.ts`, `handlers.ts`, and `resolver.ts` ownership files are retired. A cohesive `availability.ts` is fine
@@ -520,21 +525,44 @@ Shared strike and condition resolution stays in `js/games/gw2/platform/resolver/
 
 A skill owns its baseline effects, action handlers, and skill-specific lifecycle. Traits own the policy changes to those
 effects, including eligibility, replacement rewards, duration, and sharing. A skill may import a trait policy; untraited
-skill execution must not depend on a trait dispatcher. Put mixed skill/trait reaction sequences in a named mechanic
-dispatcher and preserve their established order. Trait-only dispatch can remain under `traits/`.
+skill execution must not depend on a trait dispatcher. A mechanic fires ordered trigger points around intrinsic work,
+capturing the accepted cast/cause and any pre-transition values its listeners require. Each point declares the complete
+listener order, including Core and elite listeners when needed. `fireTrigger` runs synchronously, so nested boundaries
+settle before the firing mechanic continues. The [trait ownership contract](trait-ownership/README.md) and
+[current inventory](trait-ownership/CURRENT-INVENTORY.md) document the completed migration and retained exceptions.
 
-Co-location means one clear behavior owner, not mandatory registration through `trait.hooks`. Trait definitions may
-supply modifiers, triggers, effect variants, or explicitly called helpers. Imperative callbacks must retain their own
-selection and lifetime checks. Trait modifier rules normally receive compiler selection gates, with an explicit
-`requiresSelection: false` exception for already-created effects. Imperative attribute modifiers stay under the module's
-modifier contract; `TraitHooks` does not expose `modifyAttributes`.
+New trait rewards, counters, armed states and recurring-loop startup register under `triggers`. Platform stages use
+`{ on: 'castCommit', ... }` or resolver stage names; mechanic points use `onTriggerPoint(point, reaction)` to bind the
+declared input type. Raw `{ on: point, ... }` registration is rejected. Each declaration chooses `emit`, `invoke` or
+`run`; the compiler checks selection before predicates and proc claims. Declarative point delivery requires a cause.
+Boundary inputs carry only their actual accepted identity, time and captured values, without a generic event envelope.
+
+`trait.hooks` contains supported value policies and supplied-state import. `prepareEvent` and `modifyEffects` receive
+query capabilities, while `initialize` receives only state, configuration, catalog, selection and time. New emission or
+scheduling is unavailable through those contexts. `trait.lifetime` contains admitted task/event delivery, cast
+capture/settlement, charge consumption through `reserveRecharge`, and retained aura/buff/damage reactions. It cannot
+register startup or arbitrary resolver stages. Existing work retains its own ownership, expiry and stopping rules; an
+explicit lifetime declaration does not authorize unrelated new rewards.
+
+`traitTriggers: false` removes all compiled stage/point producers, including implicit-minor declarations. Value rules,
+intrinsic mechanics, supplied state and explicitly admitted lifetime delivery remain available. Trait modifier rules
+normally receive compiler selection gates, with an explicit `requiresSelection: false` exception for already-created
+effects. Imperative attribute modifiers stay under the module's modifier contract; `TraitHooks` does not expose
+`modifyAttributes`.
 
 When an owner exports a complete `RuntimeHooks` contribution, register it with `composeRuntimeHooks` rather than copying
 selected fields or spreading whole hook objects. The composer preserves notification/transform ordering and rejects
 duplicate named task, event, and action handlers. Spreading handler maps before composition hides duplicate keys; use
 separate contributions when owners should remain independent. Retain explicit dispatch where callbacks must interleave.
-Trait hooks run before explicit module hooks, and Core runs before the selected elite, so moving a callback between
-those locations requires reviewing its phase and ordering.
+Trait value/lifetime contributions run before explicit module hooks, and Core runs before the selected elite. Compiled
+point listeners instead follow the mechanic's profession-wide order list. Moving a callback between those locations
+requires reviewing phase, selection and ordering. Profession-level hooks retain their full mechanic capabilities; the
+restricted trait API does not replace them.
+
+Ordinary trait profiles and triggered skills use `emitTraitProfile` or `invokeTraitSkill`, both backed by the shared
+materializer. Stateful choices and real custom delivery remain with their owner: finite charges, captured windows,
+copied boons, pet/summon ownership, field cadence and imperative preview variants. Do not rebuild ordinary profile
+fields or attribution in another local emitter.
 
 Substantial resource lifecycles belong in `mechanics/resources.ts` or a named mechanic, including capacity, recovery,
 depletion, and wake scheduling. A small self-contained policy can remain inline; no placeholder file is required.

@@ -1,23 +1,13 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { buildThiefBuff, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
-import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 
 /** Resolve Siphon's selected tuning without mutation: add Amplified Siphoning before multiplying by Improvisation. */
 export function siphonShadowForceGain(runtime: MechanicQueriesOf<ThiefRuntime>): number {
@@ -28,115 +18,8 @@ export function siphonShadowForceGain(runtime: MechanicQueriesOf<ThiefRuntime>):
   return (base + amplified) * improvisationShadowForceMultiplier(runtime);
 }
 
-export const DARK_SENTRY = 'thief.specter-dark-sentry';
-
 export const ROT_WALLOW_VENOM_ICON =
   'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
-
-/** Barrier on allies arms Dark Sentry's per-ally venom and its queued allied Torment. */
-export function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
-  const party = gw2AlliedPlayerAssumptions(runtime.config);
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_SENTRY);
-  const venom = requireEffect(profile, 'buff', 'rot-wallow-venom');
-  if (!venom) return;
-  // Claim only validated, distinct allies after confirming that venom can be granted.
-  const allies = [
-    ...new Set(
-      ((data as { allyIndices?: readonly number[] }).allyIndices ?? [])
-        .map(Number)
-        .filter((ally) => Number.isInteger(ally) && ally >= 1 && ally <= party.count)
-    )
-  ].filter((ally) => runtime.procs.claim(TRAIT.DARK_SENTRY, `thief.specter.darkSentry:${ally}`, runtime.time));
-  if (!allies.length) return;
-  const torment = requireEffect(profile, 'condition', 'Torment');
-  const venomDuration = effectNumber(profile, venom, 'duration');
-  runtime.effects.emit({
-    kind: 'packet',
-    event: buildThiefBuff(null, {
-      at: runtime.time,
-      source: 'Trait',
-      sourceId: TRAIT.DARK_SENTRY,
-      skillId: TRAIT.DARK_SENTRY,
-      skillName: 'Dark Sentry',
-      name: 'Rot Wallow Venom',
-      icon: ROT_WALLOW_VENOM_ICON,
-      kind: 'rot-wallow-venom',
-      duration: venomDuration,
-      stacks: effectNumber(profile, venom, 'stacks'),
-      audience: { recipients: 'party', affectsSelf: false, maximumRecipients: allies.length },
-      fixedDuration: true
-    })
-  });
-  if (!torment) return;
-  // Barrier grants stack per recipient; one shared strike consumes only one surviving batch.
-  runtime.alliedStrikes.registerRecipients(
-    (allyIndex) => ({
-      id: `rot-wallow:${runtime.time}:${allyIndex}`,
-      expiresAt: runtime.time + venomDuration,
-      inclusiveExpiry: true,
-      charges: effectNumber(profile, venom, 'stacks'),
-      consumptionGroup: 'rot-wallow',
-      trigger(proc) {
-        runtime.effects.emit({
-          kind: 'packet',
-          event: buildThiefCondition(null, {
-            at: proc.at,
-            source: 'Trait',
-            skillId: TRAIT.DARK_SENTRY,
-            skillName: 'Rot Wallow Venom',
-            name: `Rot Wallow Venom - Ally ${proc.allyIndex} Torment`,
-            icon: ROT_WALLOW_VENOM_ICON,
-            condition: String(torment.condition),
-            stacks: effectNumber(profile, torment, 'stacks'),
-            duration: effectNumber(profile, torment, 'duration'),
-            activationId: proc.activationId,
-            metadata: { triggeredByAlly: proc.allyIndex }
-          })
-        });
-      }
-    }),
-    { allyIndices: allies }
-  );
-}
-
-/**
- * Each applied player Torment grants Shadow Force outside the shroud and one life siphon per stack, whether or not
- * the shroud is active.
- */
-export function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
-  if (
-    application.condition !== 'Torment' ||
-    application.actorType !== 'player' ||
-    !hasTrait(runtime, TRAIT.LARCENOUS_TORMENT)
-  )
-    return;
-  const stacks = Math.max(0, Math.trunc(application.stacks || 0));
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.LARCENOUS_TORMENT);
-  const strike = requireEffect(profile, 'strike', 'Larcenous Torment');
-  if (strike)
-    for (let stack = 1; stack <= stacks; stack += 1)
-      runtime.effects.emit({
-        kind: 'packet',
-        cause: application,
-        event: buildResolverStrike({
-          at: runtime.time,
-          source: 'Trait',
-          sourceId: TRAIT.LARCENOUS_TORMENT,
-          actorType: 'effect',
-          ownerActorType: 'player',
-          skillId: TRAIT.LARCENOUS_TORMENT,
-          skillName: 'Larcenous Torment',
-          name: 'Larcenous Torment - Life Siphon',
-          flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-          flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-          canCrit: false,
-          damageKind: 'life-steal',
-          triggeredBy: application.skillName
-        })
-      });
-  if (!specterState.from(runtime).shadowShroudActive && stacks > 0)
-    runtime.resourceController.grant('shadowForce', stacks * balanceProfileNumber(profile, 'resourceGain'));
-}
 
 /** Reconcile this trait's live bonus at its original attribute phase. */
 export function applySecondOpinionAttributes(

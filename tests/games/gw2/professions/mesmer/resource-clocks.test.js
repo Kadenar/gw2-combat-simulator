@@ -1,3 +1,4 @@
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
@@ -29,6 +30,8 @@ function fixture(specialization, initialResource) {
     schedule: (type, at, data, owner) => scheduled.push({ type, at, data, owner }),
     cancelOwner: (owner) => cancelled.push(owner)
   };
+  // Resource callbacks use the same compiled trait ownership as simulations.
+  bindTriggerPoints(context, mesmerProfession, config);
   const capture = captureEffectEmissions({ now: () => context.time });
   context.effects = capture.effects;
   context.resourceController = createRuntimeResources(

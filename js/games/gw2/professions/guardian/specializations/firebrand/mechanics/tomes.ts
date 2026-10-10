@@ -12,6 +12,23 @@ import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
+import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { quickfireRetainsTomePassive } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
+
+/** The tome passive tracks the shared Justice hit counter; Quickfire keeps it through dormancy. */
+export function reactToTomeJusticeHit(
+  context: GuardianResolverContext,
+  event: GuardianResolverEvent,
+  dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
+): void {
+  reactToJusticeHitWithOptions(context, event, dependencies, {
+    retainsPassive: quickfireRetainsTomePassive(context),
+    skillId: GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
+    skillName: 'Tome of Justice',
+    // Tome passive Burning starts at one second; Amplified Wrath applies separately.
+    passiveBurnDuration: 1
+  });
+}
 
 /** Ashes of the Just consumes its live charges on accepted player strikes. */
 

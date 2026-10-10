@@ -164,11 +164,28 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      preview.add({
+        key: 'plasmaticState',
+        label: 'Plasmatic State',
+        group: 'Other buffs',
+        kind: 'special',
+        scope: ['damage'],
+        description: 'Plasmatic State damage bonus active'
+      });
 
+      // Damage-only bonuses stay out of the attribute panel; stat bonuses drive both isolated previews.
+      preview.trait('Willing Host', {
+        key: 'willingHost',
+        kind: 'special',
+        scope: ['damage'],
+        description: 'Strike and condition damage bonus after using a Morph skill'
+      });
       preview.add({
         key: 'evolved',
         label: 'Evolved',
         kind: 'special',
+        scope: ['attributes', 'damage'],
         group: 'Other buffs',
         description: 'All attributes; includes Double Helix'
       });
@@ -176,8 +193,9 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
         key: 'titanic',
         label: 'Titanic Strain',
         kind: 'special',
+        scope: ['attributes', 'damage'],
         group: 'Other buffs',
-        description: 'Additional attributes from Might'
+        description: 'Bonus Power / Condition Damage per selected Might stack; requires Might above 0'
       });
       return preview.controls;
     },

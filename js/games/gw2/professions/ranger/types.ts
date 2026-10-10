@@ -82,10 +82,11 @@ export interface RangerRuntimeState {
     | { kind: 'Galeshot'; state: GaleshotState };
 }
 
-export type RangerResolverContext = MechanicCombatContext & {
-  config: RangerConfig;
-  profession: RangerRuntimeState;
-};
+export type RangerResolverContext = MechanicCombatContext &
+  Pick<RangerRuntime, 'fireTrigger'> & {
+    config: RangerConfig;
+    profession: RangerRuntimeState;
+  };
 
 /** Live Ranger owners share one combat state and retain Ranger skill fields in casts and catalog lookups. */
 export type RangerRuntime = MechanicContext<RangerRuntimeState, RangerSkill> & { readonly config: RangerConfig };

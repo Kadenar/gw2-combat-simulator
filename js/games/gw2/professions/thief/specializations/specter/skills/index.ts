@@ -116,9 +116,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     shadowShroudSkill: true
   },
   [ID.DAWNS_REPOSE]: {
-    // Shade Step observes the completed shroud skill before its intrinsic barrier grants Dark Sentry.
+    // Successful completion grants the intrinsic barrier independently of trait rewards.
     sideEffects: [
-      { on: 'castCommit', when: (_runtime, cast) => !castWasInterrupted(cast), do: { type: 'thief.dawn-shade-step' } },
       { on: 'castCommit', when: (_runtime, cast) => !castWasInterrupted(cast), do: { type: 'thief.dawns-barrier' } }
     ],
 

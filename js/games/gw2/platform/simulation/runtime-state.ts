@@ -58,4 +58,5 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
     priority?: number
   ): void;
   cancelOwner(owner: WorkOwner): void;
+  fireTrigger: MechanicContext<T, TSkill>['fireTrigger'];
 }

@@ -59,6 +59,18 @@ export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Expose held combat bonuses to isolated damage calculations.
+      preview.damageBuff('Twice as Vicious', 'twiceAsVicious', 'twice-as-vicious');
+      if (preview.skills.has(ID.SIC_EM))
+        preview.add({
+          key: 'sicEm',
+          label: "Sic 'Em",
+          group: 'Other buffs',
+          kind: 'buff',
+          field: 'sic-em',
+          scope: ['damage'],
+          description: 'Merged damage bonus active'
+        });
       preview.add({
         key: 'merged',
         label: 'Beastmode',

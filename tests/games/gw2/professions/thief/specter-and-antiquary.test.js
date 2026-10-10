@@ -6,7 +6,8 @@ import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-regist
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
-import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts/leeching-venoms.js';
+import { thiefConditionApplied } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_ARTIFACT_IDS,
@@ -79,20 +80,19 @@ test('allied Leeching Venoms triggers only for the first packet of an allied ven
     [ID.CALTROPS, 1, 0, false]
   ]) {
     const queued = [];
-    applyAlliedLeechingVenoms(
-      {
-        // Required life-steal tuning comes from the canonical catalog.
-        catalog: thiefCatalog,
-        config: { selectedTraitIds: [TRAIT.LEECHING_VENOMS] },
-        traits: new Set([TRAIT.LEECHING_VENOMS]),
-        effects: { emit: ({ event }) => queued.push(event) }
-      },
-      {
+    bindTriggerContext({
+      // Required life-steal tuning comes from the canonical catalog.
+      catalog: thiefCatalog,
+      config: { selectedTraitIds: [TRAIT.LEECHING_VENOMS] },
+      traits: new Set([TRAIT.LEECHING_VENOMS]),
+      effects: { emit: ({ event }) => queued.push(event) }
+    }).fireTrigger(thiefConditionApplied, {
+      cause: {
         at: 1,
         skillId,
         metadata: { venomProcEffectIndex, ...(triggeredByAlly === undefined ? {} : { triggeredByAlly }) }
       }
-    );
+    });
     assert.equal(queued.length, Number(eligible));
   }
 });
@@ -1504,3 +1504,9 @@ test('Thief is a loadable native application', async () => {
   // The built document identifies the profession before the shared header mounts in the browser.
   assert.match(html, /<title>GW2 Combat Simulator — Thief<\/title>/);
 });
+
+/** Allied proc fixtures traverse the compiled condition boundary with only Leeching Venoms selected. */
+function bindTriggerContext(context) {
+  bindTriggerPoints(context, thiefProfession);
+  return context;
+}

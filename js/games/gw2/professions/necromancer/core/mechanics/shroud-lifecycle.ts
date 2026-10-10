@@ -6,7 +6,8 @@ interface NecromancerShroudLifecycle {
   readonly onDepletion?: () => void;
 }
 
-// Runtime ownership keeps selected-module subscriptions isolated between simulations.
+// This registry owns active specialization mechanics (Blight and spirit lifetimes), not trait listeners.
+// Those mechanics fire compiled trait points at their accepted boundaries. Runtime ownership isolates simulations.
 const shroudLifecycles = new WeakMap<NecromancerRuntime, Map<string, NecromancerShroudLifecycle>>();
 
 /** Registers specialization-owned shroud behavior while keeping Core unaware of active module identities. */

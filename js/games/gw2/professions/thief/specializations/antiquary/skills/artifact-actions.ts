@@ -8,7 +8,7 @@ import {
 import {
   allArtifactChoices,
   completeSkrittSwipe,
-  notifyArtifactTraits,
+  artifactSlotsUsed,
   spendArtifact
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
@@ -20,7 +20,10 @@ import {
 import { startForgedSurfer } from '#gw2/professions/thief/specializations/antiquary/skills/forged-surfer.js';
 import { completeSkrittScuffle } from '#gw2/professions/thief/specializations/antiquary/skills/skritt-scuffle.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { applyRepeatRansacker } from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
+import {
+  artifactActivated,
+  artifactCompleted
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
 import {
   artifactWindow,
   forgedSurferProfile,
@@ -34,10 +37,14 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.artifact-spend'(runtime, context) {
       if (context.kind === 'cast') spendArtifact(runtime, context.cast);
     },
-    'thief.artifact-traits'(runtime, context) {
-      if (context.kind === 'cast') notifyArtifactTraits(runtime, context.cast);
+    'thief.artifact-activated'(runtime, context) {
+      // Family rewards use the spent slot before the skill grants its identity window.
+      if (context.kind === 'cast')
+        runtime.fireTrigger(artifactActivated, { cast: context.cast, slot: artifactSlotsUsed.get(context.cast) });
     },
-    'thief.repeat-ransacker': applyRepeatRansacker,
+    'thief.artifact-completed'(runtime, context) {
+      if (context.kind === 'cast') runtime.fireTrigger(artifactCompleted, { cast: context.cast });
+    },
     'thief.skritt-swipe'(runtime, context) {
       if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);
     },

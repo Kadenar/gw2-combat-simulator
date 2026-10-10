@@ -1,42 +1,44 @@
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { type ActionContext } from '#gw2/platform/effects/actions.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
   catalystBuffPolicies,
   catalystEffectStates
 } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
-import { type ActionContext } from '#gw2/platform/effects/actions.js';
-import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
   applyCatalystResolvedDamage,
   applyShatteringIce
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import {
-  applyEnergizedElements,
+  catalystCombatStarted,
+  catalystTransitionObserved,
+  sphereDeployed
+} from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
+import {
   applySphereSpecialistDurations,
-  applySphereStartTraits,
   sphereSpecialistAllowsEnergy
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Owns sphere execution and energy accounting; trait owners run at their original mechanic boundaries. */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denyCast } from '#gw2/platform/execution/availability.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { catalystEnergyPolicy } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/resources.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { catalystEnergyPolicy } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/resources.js';
 
 // Resource policies initialize energy first; retain the actual attunement notification for trait rewards.
-function initialize(context: ElementalistRuntime, emissionCast?: EffectDelivery['cast']): void {
+function initialize(context: ElementalistRuntime): void {
   registerElementalistEliteEvents(context, (runtime, event) => {
-    applyEnergizedElements(runtime, event, emissionCast);
+    runtime.fireTrigger(catalystTransitionObserved, { event });
   });
 }
 
@@ -156,6 +158,10 @@ export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistS
   observeEffects: catalystEffectStates,
   resources: { catalystEnergy: catalystEnergyPolicy },
   initialize,
+  // Publish combat entry so selection and isolation govern admission of trait renewal loops.
+  onCombatStart(runtime) {
+    runtime.fireTrigger(catalystCombatStarted, {});
+  },
   availability,
   sideEffectHandlers: {
     'elementalist.catalyst.deploy-sphere'(runtime, context) {
@@ -187,7 +193,7 @@ export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistS
     // The commit action owns augment emission so cast-start materialization cannot freeze the sphere choice.
     if (cast.skill.sideEffects?.some((effect) => effect.do.type === 'elementalist.catalyst.augment-window')) return [];
     if (cast.skill.skillFamily !== 'Jade Sphere') return effects;
-    applySphereStartTraits(runtime, cast, cast.skill);
+    runtime.fireTrigger(sphereDeployed, { cast });
     return applySphereSpecialistDurations(runtime, effects);
   },
   reactions: {

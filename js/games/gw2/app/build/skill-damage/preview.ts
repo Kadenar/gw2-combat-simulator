@@ -1,3 +1,4 @@
+import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -37,6 +38,15 @@ export function createSkillDamagePreview(
     else delete conditions[control.field ?? control.key];
   }
 
+  // Anonymous types exercise count bonuses without activating named effects or exceeding the condition cap.
+  for (const control of controls.filter((control) => control.kind === 'conditionCount')) {
+    const count = Math.min(
+      Number(values[control.key]),
+      CANONICAL_TARGET_CONDITIONS.length - Object.keys(conditions).length
+    );
+    for (let index = 0; index < count; index++) conditions[`preview-condition-${index}`] = true;
+  }
+
   const disabledTraitIds = new Set(
     controls
       .filter((control) => control.kind === 'queryTrait' && !values[control.key])
@@ -67,7 +77,8 @@ export function createSkillDamagePreview(
     fixedBoonCount: Number(values.boonCount) || 0,
     ...(values.thornsStacks == null ? {} : { initialThornsStacks: Number(values.thornsStacks) }),
     selectedTraitIds: config.selectedTraitIds?.filter((id) => !disabledTraitIds.has(id)),
-    ...(initialBuffs.length ? { initialBuffs } : {}),
+    // Owners may expand a single control into several native buff windows, such as Perfect Weave.
+    initialBuffs: [...((patch.initialBuffs ?? []) as readonly Gw2InitialBuff[]), ...initialBuffs],
     target: {
       ...config.target,
       // An unbounded target keeps every occurrence on the supported target-health path without dying mid-measurement.

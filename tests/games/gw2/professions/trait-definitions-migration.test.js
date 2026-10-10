@@ -587,10 +587,12 @@ test('Persisting Flames patches transform packets before emission and display th
       event: { actorType: 'player' }
     };
     assert.equal(runtime.modifyComboFields(context, { skill }, skill.comboFields)[0].duration, 2 + extension);
-    const transformed = runtime.modifyEffects(context, { skill }, effects);
+    // Value transforms receive the fixture's query view, as they do through native mechanic composition.
+    const transformed = runtime.modifyEffects({ ...context, queries: context }, { skill }, effects);
     assert.equal(transformed.at(-1).ticks[0].atMs, 1000 * (1 + packets));
     assert.ok(Math.abs(runtime.modifyStrikeDamage(context, 100) - damage) < 1e-10);
-    assert.equal(runtime.modifyEffects({ ...context, config: { selectedTraitIds: [] } }, { skill }, effects), effects);
+    const unselected = { ...context, config: { selectedTraitIds: [] } };
+    assert.equal(runtime.modifyEffects({ ...unselected, queries: unselected }, { skill }, effects), effects);
   }
 
   const tooltip = describeSimulationTrait(

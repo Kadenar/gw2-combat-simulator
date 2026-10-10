@@ -1,3 +1,4 @@
+import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
 import { troubadourBuffPolicies } from '#gw2/professions/mesmer/specializations/troubadour/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -18,6 +19,22 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
 export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
+  /** Hold the selected preview state while evaluating detached damage queries. */
+  prepareDamageState(runtime, _skill, inputs) {
+    const state = troubadourState.from(runtime);
+    for (const instrument of ['Lute', 'Flute', 'Harp', 'Drum'].slice(0, Number(inputs.instruments ?? 0))) {
+      state.instruments[instrument] = Infinity;
+      runtime.observations.record({
+        type: 'mesmer.instrument',
+        at: runtime.time,
+        expiresAt: Infinity,
+        instrument,
+        source: 'Fortissimo',
+        sourceId: 'assumption.instruments',
+        actorType: 'player'
+      });
+    }
+  },
   buffPolicies: troubadourBuffPolicies,
   // Seed the selected pool before initialization; only earned gains trigger illusion rewards.
   resources: {
@@ -77,6 +94,9 @@ export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     }
   },
   tasks: {
+    'mesmer.troubadour.dodge'(runtime, data) {
+      runtime.fireTrigger(troubadourDodgeCompleted, data as { cast: RuntimeCast<MesmerSkill> });
+    },
     'mesmer.crescendo'(runtime, data) {
       const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
       resolveCrescendo(runtime, cast, cast.skill, cast.fullEnd, mesmerCastDelivery(cast, cast.skill));

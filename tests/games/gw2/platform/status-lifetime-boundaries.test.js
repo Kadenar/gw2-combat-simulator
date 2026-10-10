@@ -20,7 +20,6 @@ import { weaverHooks } from '#gw2/professions/elementalist/specializations/weave
 import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
 import { ENGINEER_TRAIT_IDS as HT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { consumeSolarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
 import { solarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
 import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
@@ -183,15 +182,18 @@ test('Electric Enchantment cannot consume hits before its grant, at its exact bo
 test('Solar Focusing Lens preserves inclusive expiry without early activation or a grace period', () => {
   for (const at of [0.000999, 0.001, 1.039999, 1.04, 1.040001]) {
     const context = contextFor(engineerProfession, 'Holosmith', [HT.SOLAR_FOCUSING_LENS]);
-    solarFocusingLens.hooks.eventHandlers['engineer.solar-focusing-lens'](context, {
+    solarFocusingLens.lifetime.eventHandlers['engineer.solar-focusing-lens'](context, {
       at: 0.001,
       duration: 1,
       stacks: 1
     });
     assert.equal(specialization(context).solarFocusingLens.expiresAt, 1.04);
     const hit = { actorType: 'player', coefficient: 1, at };
-    assert.equal(Boolean(consumeSolarFocusingLens(context, hit)), at >= 0.001 && at <= 1.04);
-    assert.equal(consumeSolarFocusingLens(context, hit), undefined);
+    assert.equal(
+      Boolean(solarFocusingLens.lifetime.reactions['damage.resolving'](context, hit)),
+      at >= 0.001 && at <= 1.04
+    );
+    assert.equal(solarFocusingLens.lifetime.reactions['damage.resolving'](context, hit), undefined);
   }
 });
 

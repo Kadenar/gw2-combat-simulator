@@ -3,7 +3,8 @@ import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
-import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/skirmishing/index.js';
+import { criticalResolved } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -466,30 +467,42 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   );
 });
 
-test('Sharpened Edges reads its patched player and pet critical proc chance', () => {
-  // The same declaration must pick up balance edits without retaining a literal chance.
-  const profile = { id: TRAIT.SHARPENED_EDGES, criticalChance: 0.33 };
-  const context = { catalog: { balanceProfilesById: new Map([[TRAIT.SHARPENED_EDGES, profile]]) } };
-  assert.equal(rangerCoreCriticalReactions.chanceOnCriticalHit(context), 0.33);
-  profile.criticalChance = 0.75;
-  assert.equal(rangerCoreCriticalReactions.chanceOnCriticalHit(context), 0.75);
-  assert.deepEqual(rangerCoreCriticalReactions.actorTypes, ['player', 'summon']);
-});
-
-test('Sharpened Edges rereads patched effects between proc batches', () => {
-  // One authored effect serves each batch, but the next invocation must see a replacement with the same ID.
-  const queued = [];
-  const context = { catalog: rangerCatalog, effects: { emit: ({ event }) => queued.push(event) } };
-  const hit = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
-  for (const duration of [3, 6]) {
+// Compiled critical listeners reread the selected profile and keep player/pet admission before secondary rolls.
+test('Sharpened Edges observes patched critical chance and packets through its selected trigger', () => {
+  const selectedTraitIds = [TRAIT.SHARPENED_EDGES],
+    queued = [],
+    chances = [];
+  const context = {
+    config: { selectedTraitIds },
+    catalog: rangerCatalog,
+    random: {
+      roll(chance) {
+        chances.push(chance);
+        return true;
+      }
+    },
+    // Capture actual materialized packets so the fixture preserves the shared emission contract.
+    effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
+  };
+  bindTriggerPoints(context, rangerProfession, context.config);
+  const details = { hitContext: { critical: { chance: 1, didCrit: true } } };
+  for (const [chance, duration] of [
+    [0.33, 3],
+    [0.75, 6]
+  ]) {
     context.catalog = withProfile(rangerCatalog, TRAIT.SHARPENED_EDGES, {
+      criticalChance: chance,
       effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration, stacks: 2 }]
     });
-    rangerCoreCriticalReactions.handler(context, hit, {}, { quantity: 2 });
-    assert.equal(queued.length, 2);
-    assert.ok(queued.every((event) => event.duration === duration && event.stacks === 2));
-    queued.length = 0;
+    const event = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
+    context.fireTrigger(criticalResolved, { event: { ...event, actorType: 'effect' }, details });
+    context.fireTrigger(criticalResolved, { event, details });
+    assert.equal(chances.at(-1), chance);
+    assert.equal(queued.at(-1).duration, duration);
+    assert.equal(queued.at(-1).stacks, 2);
   }
+
+  assert.deepEqual(chances, [0.33, 0.75]);
 });
 
 test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', () => {
@@ -836,3 +849,4 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
     [[0, 1], [2, 3], [4]]
   );
 });
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';

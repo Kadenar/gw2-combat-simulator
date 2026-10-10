@@ -24,16 +24,11 @@ export const necromancerFamilyUi: Partial<ProfessionUiContract> = {
     const namedConditions = Number(preview.has('Wicked Corruption')) + Number(preview.has('Decimate Defenses'));
     preview.trait('Target the Weak', {
       key: 'targetTheWeak',
-      kind: 'special',
+      kind: 'conditionCount',
       max: CANONICAL_TARGET_CONDITIONS.length - namedConditions,
       description: namedConditions ? 'Other condition types; Critical Chance' : 'Condition types; Critical Chance'
     });
 
     return preview.controls;
-  },
-  prepareAttributePreview(context) {
-    // Anonymous conditions count for Target the Weak without activating another trait's named condition.
-    for (let index = 0; index < Number(context.values.targetTheWeak || 0); index++)
-      context.targetConditions['preview-condition-' + index] = 1;
   }
 };

@@ -1,3 +1,4 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -8,18 +9,27 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { MesmerQueueResources } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import {
+  mesmerConditionApplied,
+  mesmerControlAccepted,
+  mesmerCritical,
+  mesmerEvaded,
+  mesmerStrikeResolved
+} from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { cloneShatterMaterialized } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import type {
   MesmerResolverContext,
   MesmerResolverEvent,
@@ -42,6 +52,12 @@ function superiorityComplexFactor(context: Gw2ModifierContext): number {
 
 /** Fencer's Finesse shares active tuning with its ordered imperative reactions. */
 export const fencersFinesse = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerStrikeResolved, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerStrikeResolved>) =>
+        applyFencersFinesse(runtime, input.event)
+    })
+  ],
   id: TRAIT.FENCERS_FINESSE,
   name: "Fencer's Finesse",
   balance: {
@@ -54,6 +70,18 @@ export const fencersFinesse = defineTrait<MesmerSkill>({
 
 /** Ineptitude shares active tuning with its ordered imperative reactions. */
 export const ineptitude = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerConditionApplied, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof mesmerConditionApplied>) =>
+        input.event.condition === 'Blindness',
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerConditionApplied>) =>
+        triggerIneptitudeFromBlind(runtime, input.event)
+    }),
+    onTriggerPoint(mesmerControlAccepted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerControlAccepted>) =>
+        triggerIneptitudeFromInterrupt(runtime, input.event)
+    })
+  ],
   id: TRAIT.INEPTITUDE,
   name: 'Ineptitude',
   balance: {
@@ -64,6 +92,12 @@ export const ineptitude = defineTrait<MesmerSkill>({
 
 /** Master Fencer shares active tuning with its ordered imperative reactions. */
 export const masterFencer = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerCritical, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerCritical>) =>
+        triggerMasterFencer(runtime, input.event, input.chance)
+    })
+  ],
   id: TRAIT.MASTER_FENCER,
   name: 'Master Fencer',
   balance: {
@@ -92,6 +126,12 @@ export const masterFencer = defineTrait<MesmerSkill>({
 
 /** Sharper Images shares active tuning with its ordered imperative reactions. */
 export const sharperImages = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerCritical, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerCritical>) =>
+        triggerSharperImages(runtime, input.event, input.chance)
+    })
+  ],
   id: TRAIT.SHARPER_IMAGES,
   name: 'Sharper Images',
   balance: {
@@ -142,6 +182,12 @@ export const superiorityComplex = defineTrait<MesmerSkill>({
 
 /** Blindness follows the native confusion shatter packets at their existing emission boundary. */
 export const blindingDissipation = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(cloneShatterMaterialized, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof cloneShatterMaterialized>) =>
+        triggerBlindingDissipation(runtime, input.skillName, input.at, input.count, input.delivery)
+    })
+  ],
   id: TRAIT.BLINDING_DISSIPATION,
   name: 'Blinding Dissipation',
   balance: {
@@ -150,7 +196,16 @@ export const blindingDissipation = defineTrait<MesmerSkill>({
 });
 
 /** Mirage invokes this reward only after its dodge has granted cloak. */
-export const deceptiveEvasion = defineTrait<MesmerSkill>({ id: TRAIT.DECEPTIVE_EVASION, name: 'Deceptive Evasion' });
+export const deceptiveEvasion = defineTrait<MesmerSkill>({
+  triggers: [
+    onTriggerPoint(mesmerEvaded, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerEvaded>) =>
+        triggerDeceptiveEvasion(runtime, input.at)
+    })
+  ],
+  id: TRAIT.DECEPTIVE_EVASION,
+  name: 'Deceptive Evasion'
+});
 
 /** Only the player's resolved critical hits grant Vigor; illusion critical hits never claim the cooldown. */
 export const criticalInfusion = defineTrait<MesmerSkill>({
@@ -183,14 +238,9 @@ export const virtuosoPhantasmalFuryRule: Gw2ModifierRule = {
   when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
 };
 
-export interface MesmerDuelingCriticalContext {
-  readonly state: MesmerRuntime;
-}
-
 // Attach Ineptitude's Confusion to a qualifying blindness application through
 // the resolver condition hook, preserving causal attribution.
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
-  if (!hasTrait(context, TRAIT.INEPTITUDE)) return;
   const count = Math.max(1, Math.trunc(event.count || 1));
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
   const effect = requireEffect(ineptitudeProfile, 'condition', 'Confusion');
@@ -207,26 +257,28 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
   });
   // Resolve Ineptitude immediately so nested condition hooks observe the
   // confusion application during the originating blind/control reaction, with explicit player attribution.
-  context.effects.emit({
-    kind: 'packet',
+  emitTraitProfile(context, TRAIT.INEPTITUDE, TRAIT.INEPTITUDE, undefined, {
+    at: event.at,
     settlement: 'reaction',
-    event: buildResolverCondition({
-      at: event.at,
-      name: `${event.skillName} — Ineptitude`,
-      skillName: event.skillName,
-      condition: String(effect.condition),
-      duration: Number(effect.duration),
-      stacks: Number(effect.stacks) * count,
-      source: 'Player',
-      sourceId: TRAIT.INEPTITUDE,
-      actorType: 'player'
-    })
+    effect: { type: 'condition', name: 'Confusion' },
+    transform: (payload) =>
+      buildResolverCondition({
+        at: event.at,
+        name: `${event.skillName} — Ineptitude`,
+        skillName: event.skillName,
+        condition: String(payload.condition),
+        duration: Number(payload.duration),
+        stacks: Number(payload.stacks) * count,
+        source: 'Player',
+        sourceId: TRAIT.INEPTITUDE,
+        actorType: 'player'
+      })
   });
 }
 
 /** Applies the interrupt half of Ineptitude with its defiant-target interval. */
-export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: MesmerResolverEvent): void {
-  if (!context.config.target?.activatingSkills || !hasTrait(context, TRAIT.INEPTITUDE)) return;
+function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: MesmerResolverEvent): void {
+  if (!context.config.target?.activatingSkills) return;
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
   // A removed Confusion packet owns no interrupt cooldown.
   if (!requireEffect(ineptitudeProfile, 'condition', 'Confusion')) return;
@@ -238,43 +290,41 @@ export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, e
 }
 
 /** Applies the direct-blind half of Ineptitude without an internal cooldown. */
-export function triggerIneptitudeFromBlind(context: MesmerResolverContext, event: MesmerResolverEvent): void {
+function triggerIneptitudeFromBlind(context: MesmerResolverContext, event: MesmerResolverEvent): void {
   applyIneptitudeConfusion(context, event, 'blind → confusion');
 }
 
 /** Emits Blinding Dissipation after the owning shatter has materialized its Confusion. */
-export function triggerBlindingDissipation(
+function triggerBlindingDissipation(
   context: MesmerRuntime,
   skillName: string,
   at: number,
   count: number,
   delivery: EffectDelivery = {}
 ): void {
-  if (!hasTrait(context, TRAIT.BLINDING_DISSIPATION)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.BLINDING_DISSIPATION);
   const effect = requireEffect(profile, 'condition', 'Blindness');
   if (!effect) return;
-  {
-    const packet = buildResolverCondition({
-      at,
-      skillName,
-      name: 'Blinding Dissipation',
-      source: 'Trait',
-      sourceId: TRAIT.BLINDING_DISSIPATION,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      condition: 'Blindness',
-      stacks: Number(effect.stacks) * count,
-      duration: Number(effect.duration)
-    });
-    context.effects.emit({
-      ...delivery,
-      kind: 'packet',
-      event: packet,
-      owner: mesmerPacketOwner(packet),
-      priority: 0
-    });
-  }
+  // Shatter Blindness keeps its effect actor while using the shared profile payload path.
+  emitTraitProfile(context, TRAIT.BLINDING_DISSIPATION, TRAIT.BLINDING_DISSIPATION, delivery.cause ?? undefined, {
+    ...delivery,
+    at,
+    priority: 0,
+    effect: { type: 'condition', name: 'Blindness' },
+    transform: (payload) =>
+      buildResolverCondition({
+        at,
+        skillName,
+        name: 'Blinding Dissipation',
+        source: 'Trait',
+        sourceId: TRAIT.BLINDING_DISSIPATION,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        condition: 'Blindness',
+        stacks: Number(payload.stacks) * count,
+        duration: Number(payload.duration)
+      })
+  });
 
   context.effects.emit({
     ...delivery,
@@ -285,78 +335,14 @@ export function triggerBlindingDissipation(
   });
 }
 
-/** Emits one Fencer's Finesse stack after each eligible resolved sword hit. */
-function emitFencersFinesseStacks(context: MesmerRuntime, skill: MesmerSkill, at: number, announce: boolean): void {
-  if (!hasTrait(context, TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword') {
-    return;
-  }
-
-  const fencersFinesseProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
-  // The profile supplies stack lifetime; the attribute modifier owns the cap.
-  const duration = balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier');
-  {
-    const grants: readonly MesmerEventExtra[] = [
-      {
-        // The triggering sword packet resolves before its same-time stack.
-        priority: 5,
-        kind: 'fencer',
-        stacks: 1,
-        duration
-      }
-    ];
-    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
-    const traitSource = {
-      source: 'Trait',
-      sourceId: TRAIT.FENCERS_FINESSE,
-      actorType: 'player' as const,
-      skillId: TRAIT.FENCERS_FINESSE,
-      skillName: traitProfile.name
-    };
-    const options: { detail?: string; announce?: boolean } = { announce };
-    if (grants.length) {
-      const proc =
-        options.announce !== false
-          ? context.effects.emit({
-              receipt: true,
-              kind: 'announcement',
-              log: true,
-              attribution: { ...traitSource, actorType: 'effect' },
-              announcement: {
-                type: 'trait',
-                name: traitProfile.name,
-                at: at,
-                sourceSkill: skill.name,
-                detail: options.detail ?? ''
-              }
-            })
-          : undefined;
-      for (const grant of grants)
-        context.effects.emit({
-          kind: 'packet',
-          cause: proc,
-          event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: skill.name }
-        });
-    }
-  }
-}
-
 /** Materializes Master Fencer before later critical-hit trait effects. */
-export function triggerMasterFencer(
-  context: MesmerDuelingCriticalContext,
-  event: SimulationEvent,
-  chance: number
-): void {
-  if (
-    !hasTrait(context.state, TRAIT.MASTER_FENCER) ||
-    !isGw2PlayerActorEvent(event) ||
-    !(Number(event.coefficient) > 0) ||
-    event.canCrit === false
-  ) {
+function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, chance: number): void {
+  if (!isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0) || event.canCrit === false) {
     return;
   }
 
   // One resolved owner supplies both fury effects and the ICD for this proc attempt.
-  const masterFencerProfile = requireBalanceProfileFromContext(context.state, TRAIT.MASTER_FENCER);
+  const masterFencerProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_FENCER);
   const furyEffects = ['Self Fury', 'Allied Fury'].flatMap((name) => {
     const effect = requireEffect(masterFencerProfile, 'boon', name);
     return effect ? [effect] : [];
@@ -373,7 +359,7 @@ export function triggerMasterFencer(
   if (!application) return;
 
   if (
-    !context.state.procs.claimCooldown(
+    !context.procs.claimCooldown(
       TRAIT.MASTER_FENCER,
       event.at,
       balanceProfileNumber(masterFencerProfile, 'internalCooldown')
@@ -381,7 +367,7 @@ export function triggerMasterFencer(
   )
     return;
   // Record one canonical proc as the cause of both grants so the log can summarize their resolved durations.
-  const proc = context.state.effects.emit({
+  const proc = context.effects.emit({
     receipt: true,
     kind: 'announcement',
     cause: event,
@@ -389,39 +375,34 @@ export function triggerMasterFencer(
     attribution: { source: 'Trait', sourceId: TRAIT.MASTER_FENCER, actorType: 'effect' },
     announcement: { type: 'trait', at: event.at, name: masterFencerProfile.name, sourceSkill: event.skillName }
   });
-  for (const effect of furyEffects) {
-    context.state.effects.emit({
-      kind: 'packet',
-      cause: proc,
-      event: {
-        type: 'buff',
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.MASTER_FENCER,
-        actorType: 'player',
-        skillId: TRAIT.MASTER_FENCER,
-        skillName: 'Master Fencer',
-        name: `Master Fencer — ${effect.audience?.recipients ?? 'self'} fury`,
-        kind: 'fury',
-        duration: effect.duration,
-        stacks: Number(effect.stacks),
-        audience: effect.audience
-      }
-    });
-  }
+  // Keep both recipient applications under one announcement while the profile owns their payloads.
+  emitTraitProfile(context, TRAIT.MASTER_FENCER, TRAIT.MASTER_FENCER, proc, {
+    at: event.at,
+    effects: (effect) => effect.type === 'boon' && furyEffects.includes(effect),
+    transform: (payload, effect) => ({
+      type: 'buff',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.MASTER_FENCER,
+      actorType: 'player',
+      skillId: TRAIT.MASTER_FENCER,
+      skillName: 'Master Fencer',
+      name: `Master Fencer — ${effect.audience?.recipients ?? 'self'} fury`,
+      kind: 'fury',
+      duration: payload.duration,
+      stacks: Number(payload.stacks),
+      audience: effect.audience
+    })
+  });
 }
 
 /** Materializes Sharper Images for clone and phantasm critical observations. */
-export function triggerSharperImages(
-  context: MesmerDuelingCriticalContext,
-  event: SimulationEvent,
-  chance: number
-): void {
-  if (!hasTrait(context.state, TRAIT.SHARPER_IMAGES) || !['clone', 'phantasm'].includes(event.summonKind || '')) {
+function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, chance: number): void {
+  if (!['clone', 'phantasm'].includes(event.summonKind || '')) {
     return;
   }
 
-  const sharperImagesProfile = requireBalanceProfileFromContext(context.state, TRAIT.SHARPER_IMAGES);
+  const sharperImagesProfile = requireBalanceProfileFromContext(context, TRAIT.SHARPER_IMAGES);
   const effect = requireEffect(sharperImagesProfile, 'condition', 'Bleeding');
   if (!effect) return;
   const application = advanceCriticalProc(
@@ -434,23 +415,23 @@ export function triggerSharperImages(
   if (!application) return;
   const procCount = application.quantity;
 
-  context.state.effects.emit({
-    kind: 'packet',
-    cause: event,
-    event: {
+  emitTraitProfile(context, TRAIT.SHARPER_IMAGES, TRAIT.SHARPER_IMAGES, event, {
+    at: event.at,
+    effect: { type: 'condition', name: 'Bleeding' },
+    transform: (payload) => ({
       type: 'condition',
       at: event.at,
       name: `${event.name} — Sharper Images`,
       skillName: event.skillName,
       condition: 'Bleeding',
-      duration: Number(effect.duration),
-      stacks: procCount * Number(effect.stacks),
+      duration: Number(payload.duration),
+      stacks: procCount * Number(payload.stacks),
       source: 'Player',
       sourceId: TRAIT.SHARPER_IMAGES,
       actorType: 'player'
-    }
+    })
   });
-  context.state.effects.emit({
+  context.effects.emit({
     kind: 'announcement',
     log: true,
     attribution: { source: 'Trait', sourceId: TRAIT.SHARPER_IMAGES, actorType: 'effect' },
@@ -482,19 +463,10 @@ export function fencersFinesseFerocity(
   return timedStacks(context, 'fencer', facts.duration, facts.maximum) * facts.perStack;
 }
 
-/** Resolve the sword reward after the shared critical observation and before later elite reactions. */
-export function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): void {
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
-  if (!skill) return;
-  if (event.summonKind !== 'clone')
-    emitFencersFinesseStacks(runtime, skill, event.at, Number(event.hitIndex ?? 1) === 1);
-}
-
 /** Queue the dodge reward through the caller's resource owner after Mirage grants cloak. */
-export function triggerDeceptiveEvasion(runtime: MesmerRuntime, queueResources: MesmerQueueResources): void {
-  if (!hasTrait(runtime, TRAIT.DECEPTIVE_EVASION)) return;
-  queueResources(
-    runtime.time,
+function triggerDeceptiveEvasion(runtime: MesmerRuntime, at: number): void {
+  createMesmerIllusionRewards(runtime).queueResources(
+    at,
     1,
     gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet === 1 ? 1 : 2) || '',
     'Deceptive Evasion',
@@ -514,12 +486,42 @@ export const fencersFinesseRecharge = compileRechargeRules<MesmerRuntimeState, M
   }
 ]);
 
-/** Master Fencer must resolve before Sharper Images observes the same critical hit. */
-export function triggerMesmerCriticalTraits(
-  context: MesmerDuelingCriticalContext,
-  event: SimulationEvent,
-  chance: number
-): void {
-  triggerMasterFencer(context, event, chance);
-  triggerSharperImages(context, event, chance);
+/** Sword strikes grant one live scalar-tuned stack after critical rewards; only the first hit announces the proc. */
+function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): void {
+  const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+  if (!skill || skill.weapon !== 'Sword' || event.summonKind === 'clone') return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FENCERS_FINESSE);
+  const traitSource = {
+    source: 'Trait',
+    sourceId: TRAIT.FENCERS_FINESSE,
+    actorType: 'player' as const,
+    skillId: TRAIT.FENCERS_FINESSE,
+    skillName: profile.name
+  };
+  const proc =
+    Number(event.hitIndex ?? 1) === 1
+      ? runtime.effects.emit({
+          receipt: true,
+          kind: 'announcement',
+          log: true,
+          attribution: { ...traitSource, actorType: 'effect' },
+          announcement: { type: 'trait', name: profile.name, at: event.at, sourceSkill: skill.name, detail: '' }
+        })
+      : undefined;
+  // Finesse is a runtime stack backed by scalar tuning, not a balance-profile payload.
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: proc,
+    event: {
+      priority: 5,
+      kind: 'fencer',
+      stacks: 1,
+      duration: balanceProfileNumber(profile, 'durationMultiplier'),
+      ...traitSource,
+      type: 'buff',
+      at: event.at,
+      name: profile.name,
+      sourceSkill: skill.name
+    }
+  });
 }

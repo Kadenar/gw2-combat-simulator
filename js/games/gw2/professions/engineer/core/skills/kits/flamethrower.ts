@@ -3,11 +3,24 @@ import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480];
+
+/** Air Blast's accepted Burning missile; the cause is the deferred missile event. */
+export interface AirBlastImpact {
+  readonly cause: EngineerResolverEvent;
+}
+
+/**
+ * The deferred missile is a projectile opportunity outside strike resolution, so it cannot reach the Aim-Assisted
+ * Rocket strike trigger and fires its own boundary instead.
+ */
+export const airBlastImpacted = defineTriggerPoint<AirBlastImpact>('engineer.air-blast-impacted', [
+  TRAIT.AIM_ASSISTED_ROCKET
+]);
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Flamethrower. */
 export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
@@ -201,7 +214,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
 });
 
 /** Air Blast's Burning missile exists only against a target still burning at impact; knockback resolves separately. */
-export function handleAirBlast(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+export function handleAirBlast(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (!context.combat.targetHasCondition('Burning', event.at)) return;
   // Materialize the deferred missile without importing unrelated proc or strike state from its trigger.
   context.effects.emit({
@@ -226,7 +239,7 @@ export function handleAirBlast(context: EngineerResolverContext, event: Engineer
       totalApplications: event.totalApplications
     })
   });
-  applyAimAssistedRocket(context, event);
+  context.fireTrigger(airBlastImpacted, { cause: event });
 }
 
 /** Flame Jet samples Burning on each impact and retains additive damage stacking. */

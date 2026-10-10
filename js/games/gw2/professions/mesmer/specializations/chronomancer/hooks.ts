@@ -1,8 +1,8 @@
-import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import { dispatchShatterResolved } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { completeMesmerShatter } from '#gw2/professions/mesmer/family-mechanics.js';
+import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
 import { chronomancerAvailability } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { createChronomancerMechanics } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/runtime.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -25,7 +25,7 @@ export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = 
       const resolution = createChronomancerMechanics(runtime).beginContinuumSplit(context.skill, runtime.time, {
         activationId: context.cast.id
       });
-      dispatchShatterResolved(runtime, resolution);
+      completeMesmerShatter(runtime, resolution);
     }
   },
   tasks: {

@@ -6,15 +6,24 @@ import {
 import { buildEngineerStrike } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { applyCarbolicComposition } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
-import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
-/** Applies damage-triggered Carbolic Composition and Rapacious Strain reactions. */
-function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+/** A positive strike resolved while Amalgam is selected; the cause is the resolved hit. */
+export interface AmalgamStrike {
+  readonly cause: EngineerResolverEvent;
+}
+
+/** Trait-owned Poison lands on an eligible hit before Rapacious Strain checks its own proc. */
+export const amalgamStruck = defineTriggerPoint<AmalgamStrike>('engineer.amalgam-struck', [TRAIT.CARBOLIC_COMPOSITION]);
+
+/** Applies damage-triggered trait rewards, then the Rapacious Strain reaction. */
+function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = context.procs;
-  applyCarbolicComposition(context, event);
+  context.fireTrigger(amalgamStruck, { cause: event });
 
   const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
   // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.

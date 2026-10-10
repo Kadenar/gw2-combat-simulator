@@ -1,8 +1,10 @@
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -11,6 +13,7 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -155,6 +158,10 @@ export const rendingShatter = defineTrait<MesmerSkill>({
     effects: [{ type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 1, duration: 8 }]
   },
   triggers: [
+    onTriggerPoint(mesmerShatterResolved, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterResolved>) =>
+        triggerRendingShatter(runtime, input.shatter, input.resolution)
+    }),
     {
       on: 'damage.resolved',
       emit: TRAIT.RENDING_SHATTER,
@@ -169,12 +176,12 @@ export const rendingShatter = defineTrait<MesmerSkill>({
 });
 
 /** Preserve shatter impact timing while counting each clone or spent blade only once, including defensive shatters. */
-export function triggerRendingShatter(
+function triggerRendingShatter(
   context: MesmerRuntime,
   shatter: MesmerShatter | undefined,
   resolution: MesmerShatterResolution
 ): void {
-  if (!hasTrait(context, TRAIT.RENDING_SHATTER) || !resolution.traitHits.length) return;
+  if (!resolution.traitHits.length) return;
   const effect = requireEffect(
     requireBalanceProfileFromContext(context, TRAIT.RENDING_SHATTER),
     'condition',

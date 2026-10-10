@@ -1,3 +1,4 @@
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -378,6 +379,14 @@ function renderWeaverWeaponPalette(
 
 /** The Weaver half of the Elementalist UI contract, registered by the module. */
 export const weaverUi: ElementalistUiSlice = Object.freeze({
+  /** Completed Weave Self grants both elemental damage windows, not only its display marker. */
+  prepareSkillDamagePreview({ values }: SkillDamagePreviewPreparation) {
+    return {
+      initialBuffs: values.perfectWeave
+        ? ['perfect weave', 'weave self air', 'weave self fire'].map((kind) => ({ kind, stacks: 1, duration: 3600 }))
+        : []
+    };
+  },
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
@@ -393,8 +402,7 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
       key: 'perfectWeave',
       label: 'Perfect Weave',
       group: 'Mechanic',
-      kind: 'buff',
-      field: 'perfect weave',
+      kind: 'special',
       scope: ['damage'],
       description: 'Completed Weave Self damage window active'
     });
