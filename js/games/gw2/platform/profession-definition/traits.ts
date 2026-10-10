@@ -104,19 +104,24 @@ type TraitAttributeDeclaration =
   | (Omit<FlatAttributeEffect, 'amount' | 'enabled'> & { readonly field: string })
   | (Omit<ConversionAttributeEffect, 'multiplier' | 'enabled'> & { readonly field: string });
 
-/** Resolve unconditional trait contributions from the active patch when attributes are evaluated. */
+/** Resolve constant declarations once per immutable balance profile; a different patch owns a different profile. */
 export function traitAttributeEffects(
   profileId: SkillId,
   declarations: readonly TraitAttributeDeclaration[]
 ): NonNullable<TraitDefinition['attributes']> {
+  const resolved = new WeakMap<BalanceProfile, Gw2AttributeContributions>();
   return ({ balanceContext }) => {
     const profile = requireBalanceProfileFromContext(balanceContext, profileId);
-    return {
+    const cached = resolved.get(profile);
+    if (cached) return cached;
+    const contributions: Gw2AttributeContributions = {
       attributeEffects: declarations.map(({ field, ...effect }) => {
         const value = balanceProfileNumber(profile, field);
         return effect.kind === 'flat' ? { ...effect, amount: value } : { ...effect, multiplier: value };
       })
     };
+    resolved.set(profile, contributions);
+    return contributions;
   };
 }
 

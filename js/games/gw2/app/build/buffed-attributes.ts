@@ -47,7 +47,7 @@ export function calculateSkillDamageAttributes(
     };
     const query = runtime.query;
     const stats = query.statsAt(at, event, runtime);
-    const critical = query.critical(event, at, runtime);
+    const critical = query.critical(event, at, runtime, stats);
     const set = (name: string, final: number): void => {
       const original = attributes[name] || derivedAttribute(0);
       attributes[name] = Object.assign({}, original, { final, conditional: final - original.final });
@@ -194,7 +194,7 @@ function calculatePreview(
     relic
   };
   const stats = query.statsAt(1, event, runtime);
-  const critical = query.critical(event, 1, runtime);
+  const critical = query.critical(event, 1, runtime, stats);
   const set = (name: string, final: number): void => {
     const original = data.attributes[name] || derivedAttribute(0);
     data.attributes[name] = Object.assign({}, original, { final, conditional: final - original.final });

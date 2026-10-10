@@ -31,12 +31,11 @@ export const mechanistAttributes: Gw2AttributeContributionCalculator = (context)
     { catalog: (context.catalog ?? context.profession?.catalog)!, modifierRulesById: new Map() }
   );
   const inheritedSource = applyAttributeContributions(
-    facts,
+    attributeSeed(facts.config ?? {}, facts.weaponSet).conversionPool,
     attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet).commonTotals,
-    (input) =>
-      engineerCoreTraits.flatMap((trait) =>
-        hasTrait(input, trait.id) && trait.attributes ? [trait.attributes(input)] : []
-      )
+    engineerCoreTraits.flatMap((trait) =>
+      hasTrait(facts, trait.id) && trait.attributes ? [trait.attributes(facts)] : []
+    )
   );
   const mech = engineerMechAttributes(context.config ?? {}, inheritedSource, context);
   if (selectedSignet(context, ID.SHIFT_SIGNET)) {

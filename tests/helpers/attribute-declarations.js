@@ -1,11 +1,13 @@
 import { applyAttributeContributions, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
 
 /** Isolate an owner's declarations while preserving patch context and the shared arithmetic stages. */
 export function evaluateAttributeDeclarations(context, initial, calculate) {
   const catalog = context.catalog ?? context.helpers ?? context.profession?.catalog;
+  const facts = attributeContext({ time: 0, ...context, catalog }, { catalog, modifierRulesById: new Map() });
   return applyAttributeContributions(
-    attributeContext({ time: 0, ...context, catalog }, { catalog, modifierRulesById: new Map() }),
+    attributeSeed(context.config ?? {}, facts.weaponSet).conversionPool,
     initial,
-    calculate
+    calculate(facts)
   );
 }

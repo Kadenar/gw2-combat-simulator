@@ -229,12 +229,14 @@ export function observationAttributeSets(
 ): readonly Gw2Stats[] {
   return [1, 2].map((weaponSet) =>
     applyAttributeContributions(
-      attributeContext(
-        { config: { ...config, startingWeaponSet: weaponSet }, time: 0 },
-        { catalog, modifierRulesById: new Map() }
-      ),
+      attributeSeed(config, weaponSet).conversionPool,
       attributeSeed(config, weaponSet).commonTotals,
-      calculate
+      calculate(
+        attributeContext(
+          { config: { ...config, startingWeaponSet: weaponSet }, time: 0 },
+          { catalog, modifierRulesById: new Map() }
+        )
+      )
     )
   );
 }

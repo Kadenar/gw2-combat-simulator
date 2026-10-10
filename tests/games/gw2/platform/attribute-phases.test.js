@@ -10,7 +10,7 @@ import {
   attributeContext,
   resolveAttributeContributions
 } from '#gw2/platform/builds/attribute-evaluation.js';
-import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeSeed, baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { bloodReactionSource } from '#gw2/professions/warrior/specializations/berserker/attribute-sources.js';
@@ -42,7 +42,7 @@ test('Might applies baseline and Notoriety together while unbuffed declarations 
   const contributions = probe.family.attributeContributions(probe.facts);
   assert.deepEqual(resolveAttributeContributions({}, contributions).attributes, {});
   const seed = probe.config.attributeInputs.weaponSets[0].commonTotals;
-  const build = applyAttributeContributions(probe.facts, seed, probe.family.attributeContributions);
+  const build = applyAttributeContributions(attributeSeed(probe.config).conversionPool, seed, contributions);
   assert.equal(build.conditionDamage, 0);
   const live = probe.query.statsAt(0);
   assert.equal(live.power, 2000);
@@ -132,7 +132,7 @@ test('accepted Insight remains until its exclusive expiry with no selected trait
 test('ordinary conversions, accumulated scaling, actor projection and final replacement have distinct inputs', () => {
   const probe = scenario('engineer', 'Core');
   const facts = { ...probe.facts, event: { type: 'condition', condition: 'Bleeding', actorType: 'player' } };
-  const declarations = () => [
+  const declarations = [
     {
       attributeEffects: [
         { kind: 'flat', to: 'Power', amount: 100, feedsConversions: false },
@@ -149,7 +149,11 @@ test('ordinary conversions, accumulated scaling, actor projection and final repl
     }
   ];
   const initial = { power: 1000, ferocity: 0 };
-  const ordinary = applyAttributeContributions(facts, applyMightAttributes(initial, 10, []), declarations);
+  const ordinary = applyAttributeContributions(
+    attributeSeed(probe.config).conversionPool,
+    applyMightAttributes(initial, 10, []),
+    declarations
+  );
   assert.equal(ordinary.power, 1800);
   assert.equal(ordinary.ferocity, 120);
   assert.equal(ordinary.boonDurationBonus, 10);

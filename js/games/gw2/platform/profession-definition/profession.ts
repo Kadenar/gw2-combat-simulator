@@ -458,25 +458,26 @@ export function defineNativeProfession<
   const build = normalizeProfessionBuild(definition.id, definition.build);
   let presentation: ProfessionUiContract | undefined;
   type State = NativeProfessionRuntimeState<TModules>;
+  // Registration removes traits without attribute work; live sampling still checks selection and retained grants.
+  const attributeModules = modules.map((module) => ({
+    id: module.id,
+    attributes: module.attributes,
+    traits: (module.traitDefinitions ?? []).filter((trait) => trait.attributes || trait.grantedAttributes)
+  }));
   // Every owner contributes once to both the panel and runtime; selection and patch resolution are shared.
   const calculateContributions: Gw2AttributeContributionCalculator = (input) => {
-    const selectedBalance = input.balanceContext;
-    const context = {
-      ...input,
-      balanceContext: selectedBalance,
-      profession: input.profession ?? { catalog: selectedBalance.catalog }
-    };
-    return modules.flatMap((module) => [
-      ...(module.id === 'Core' || module.id === context.config?.specialization
-        ? (module.attributes?.(context) ?? [])
-        : []),
-      ...(module.traitDefinitions ?? []).flatMap((trait) => [
-        ...(trait.attributes && hasTrait(context, trait.id) ? [trait.attributes(context)] : []),
-        ...((module.id === 'Core' || module.id === context.config?.specialization) && trait.grantedAttributes
-          ? [trait.grantedAttributes(context)]
-          : [])
-      ])
-    ]);
+    const context = input.profession ? input : { ...input, profession: { catalog: input.balanceContext.catalog } };
+    const contributions: import('#gw2/platform/builds/types.js').Gw2AttributeContributions[] = [];
+    for (const module of attributeModules) {
+      const active = module.id === 'Core' || module.id === context.config?.specialization;
+      if (active && module.attributes) contributions.push(...module.attributes(context));
+      for (const trait of module.traits) {
+        if (trait.attributes && hasTrait(context, trait.id)) contributions.push(trait.attributes(context));
+        if (active && trait.grantedAttributes) contributions.push(trait.grantedAttributes(context));
+      }
+    }
+
+    return contributions;
   };
 
   const selections = new Map<
@@ -518,8 +519,9 @@ export function defineNativeProfession<
           catalog: input.catalog ?? input.profession?.catalog ?? input.balanceContext.catalog
         }
       });
-    const queryContributions: Gw2AttributeContributionCalculator = (input) =>
-      input.attributeContributions ?? selectedContributions(input);
+    // Query phases consume the already sampled values; direct modifier callers sample their own live facts once.
+    const queryContributions = (input: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext) =>
+      input.attributeContributions ?? selectedContributions(attributeContext(input, balanceContext));
     const modifiers = composeModuleModifiers(selected);
     const ordinaryAttributes = {
       id: 'gw2.attribute-contributions',
@@ -529,12 +531,10 @@ export function defineNativeProfession<
         attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
       ) =>
         applyAttributeContributions(
-          attributeContext(context, {
-            ...balanceContext,
-            catalog: context.catalog ?? context.profession?.catalog ?? balanceContext.catalog
-          }),
+          attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet)
+            .conversionPool,
           attributes,
-          queryContributions
+          queryContributions(context)
         )
     };
     const source = defineProfession<State, TSkill>({
@@ -549,9 +549,9 @@ export function defineNativeProfession<
           composeStateFragments(selected, config, {
             balanceContext: selectedBalance,
             attributes: applyAttributeContributions(
-              attributeContext({ config, time: 0 }, selectedBalance),
+              attributeSeed(config).conversionPool,
               attributeSeed(config).commonTotals,
-              calculateContributions
+              calculateContributions(attributeContext({ config, time: 0 }, selectedBalance))
             )
           }) as State,
         ...(projectors.length
@@ -575,15 +575,7 @@ export function defineNativeProfession<
             handler: (
               context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
               attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
-            ) =>
-              applyFinalConditionAttributes(
-                attributeContext(context, {
-                  ...balanceContext,
-                  catalog: context.catalog ?? context.profession?.catalog ?? balanceContext.catalog
-                }),
-                attributes,
-                queryContributions
-              )
+            ) => applyFinalConditionAttributes(context, attributes, queryContributions(context))
           }
         ],
         modifyAttributes: [

@@ -1,6 +1,8 @@
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -175,6 +177,40 @@ function moduleWith(traits, options = {}) {
 function familyWith(core, ...elites) {
   return defineNativeProfession({ id: 'fixture', name: 'Fixture', modules: [core, ...elites] });
 }
+
+// Ordered attribute phases share one observation, but a later query at the same time observes changed state.
+test('attribute phases sample declarations once per query and refresh after a same-time state change', () => {
+  let bonus = 20;
+  let samples = 0;
+  const family = familyWith(
+    moduleWith([
+      defineTrait({
+        ...metadata,
+        attributes() {
+          samples++;
+          return {
+            attributeEffects: [{ kind: 'flat', to: 'Power', amount: bonus, feedsConversions: false }],
+            mightPerStack: { power: 2 },
+            finalCondition: { condition: 'Burning', powerMultiplier: 0.1 }
+          };
+        }
+      })
+    ])
+  );
+  const config = { selectedTraitIds: [101], attributeInputs: baseAttributeInputs(), boons: { might: 25 } };
+  const query = createGw2CombatQuery({ profession: family.runtimeFor(config), config });
+  const event = { type: 'condition', condition: 'Burning', actorType: 'player', at: 5 };
+  const first = query.statsAt(5, event);
+  assert.equal(samples, 1);
+  assert.equal(first.power, 1820);
+  assert.equal(first.conditionDamage, 182);
+  bonus = 40;
+  const second = query.statsAt(5, event);
+  assert.equal(samples, 2);
+  assert.equal(second.power, 1840);
+  assert.equal(second.conditionDamage, 184);
+  assert.equal(first.power, 1820);
+});
 
 // Exercise declarative effects through the same selection, preview, and provenance pipeline as custom contributions.
 const fixtureAttributeEffects = traitAttributeEffects(101, [

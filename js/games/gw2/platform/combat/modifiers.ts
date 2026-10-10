@@ -605,9 +605,27 @@ export function createModifierHooks({
   return Object.freeze(hooks) as Readonly<Gw2ModifierHooks>;
 }
 
-/** Compiles a family's merged rule list with the standard GW2 damage-bucket policies. */
-export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Readonly<Gw2ModifierHooks> {
-  return createModifierHooks({ rules });
+/** Native composition needs only authored scalar/attribute hooks; damage hooks also own equipment buckets. */
+export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Readonly<Partial<Gw2ModifierHooks>> {
+  const hooks: { -readonly [K in keyof Gw2ModifierHooks]?: Gw2ModifierHooks[K] } = {
+    ...createModifierHooks({ rules })
+  };
+  const targets = new Set(
+    rules.flatMap((rule) => (typeof rule.target === 'string' ? [rule.target] : [...rule.target]))
+  );
+  for (const target of TARGETS) {
+    if (
+      ATTRIBUTE_TARGETS.has(target) ||
+      target === MODIFIER_TARGET.STRIKE_DAMAGE ||
+      target === MODIFIER_TARGET.CONDITION_DAMAGE
+    )
+      continue;
+    const hook = HOOK_BY_TARGET[target];
+    if (hook && !targets.has(target)) delete hooks[hook];
+  }
+
+  if (![...ATTRIBUTE_TARGETS].some((target) => targets.has(target))) delete hooks.modifyAttributes;
+  return Object.freeze(hooks);
 }
 
 type Gw2ModifierTarget =

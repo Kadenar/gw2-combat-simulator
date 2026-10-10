@@ -29,9 +29,11 @@ function traitSet(value: unknown): ReadonlySet<string | number> | null {
 }
 
 function setIncludesTrait(traits: ReadonlySet<string | number>, traitId: SkillId): boolean {
+  // Runtime sets already use canonical IDs; convert representations only when that direct lookup misses.
+  if (traits.has(traitId)) return true;
   const key = String(traitId);
   const numeric = Number(key);
-  return traits.has(traitId) || traits.has(key) || (Number.isFinite(numeric) && traits.has(numeric));
+  return traits.has(key) || (Number.isFinite(numeric) && traits.has(numeric));
 }
 
 /**

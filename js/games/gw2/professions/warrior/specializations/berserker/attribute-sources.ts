@@ -14,14 +14,14 @@ export function bloodReactionSource(context: Gw2ModifierContext) {
     modifierRulesById: new Map()
   });
   return applyAttributeContributions(
-    facts,
+    attributeSeed(context.config ?? {}, facts.weaponSet).conversionPool,
     attributeSeed(context.config ?? {}, facts.weaponSet).commonTotals,
-    (input) => [
-      ...warriorPassiveAttributes(input),
+    [
+      ...warriorPassiveAttributes(facts),
       ...warriorCoreTraits.flatMap((trait) =>
         // Pinnacle's Might amplification is a live grant, excluded from Blood Reaction's owner source.
-        trait.id !== TRAIT.PINNACLE_OF_STRENGTH && hasTrait(input, trait.id) && trait.attributes
-          ? [trait.attributes(input)]
+        trait.id !== TRAIT.PINNACLE_OF_STRENGTH && hasTrait(facts, trait.id) && trait.attributes
+          ? [trait.attributes(facts)]
           : []
       )
     ]

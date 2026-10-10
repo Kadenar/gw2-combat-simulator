@@ -1,9 +1,9 @@
-import { ATTRIBUTE_NAMES, attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
 import { resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import type {
   Gw2AttributeContext,
-  Gw2AttributeContributionCalculator,
   Gw2AttributeContributions,
+  Gw2AttributeEffect,
   Gw2AttributeLoadout,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
@@ -15,6 +15,41 @@ import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
+const ATTRIBUTE_ENTRIES = Object.entries(ATTRIBUTE_NAMES) as [keyof typeof ATTRIBUTE_NAMES, string][];
+
+/** Live boon reads share prototype accessors rather than allocating nine descriptors for every sample. */
+class AttributeAssumptions {
+  readonly [key: string]: unknown;
+  constructor(private readonly context: Gw2ModifierContext) {}
+  get fury() {
+    return boonActive(this.context, 'fury');
+  }
+  get quickness() {
+    return boonActive(this.context, 'quickness');
+  }
+  get alacrity() {
+    return boonActive(this.context, 'alacrity');
+  }
+  get regeneration() {
+    return boonActive(this.context, 'regeneration');
+  }
+  get protection() {
+    return boonActive(this.context, 'protection');
+  }
+  get resolution() {
+    return boonActive(this.context, 'resolution');
+  }
+  get swiftness() {
+    return boonActive(this.context, 'swiftness');
+  }
+  get vigor() {
+    return boonActive(this.context, 'vigor');
+  }
+  get aegis() {
+    return boonActive(this.context, 'aegis');
+  }
+}
+
 /** Build and live queries supply the same read-only facts; declaration arithmetic never depends on preapplied totals. */
 export function attributeContext(
   context: Gw2ModifierContext,
@@ -22,17 +57,6 @@ export function attributeContext(
   loadout?: Gw2AttributeLoadout
 ): Gw2AttributeContext {
   const config = context.config ?? {};
-  const boons = [
-    'fury',
-    'quickness',
-    'alacrity',
-    'regeneration',
-    'protection',
-    'resolution',
-    'swiftness',
-    'vigor',
-    'aegis'
-  ];
   return {
     ...context,
     balanceContext,
@@ -41,10 +65,7 @@ export function attributeContext(
     loadout: loadout ?? {
       weapons: gw2ConfiguredWeaponSet(config, 1),
       alternateWeapons: gw2ConfiguredWeaponSet(config, 2),
-      assumptions: Object.defineProperties(
-        {},
-        Object.fromEntries(boons.map((boon) => [boon, { enumerable: true, get: () => boonActive(context, boon) }]))
-      ),
+      assumptions: new AttributeAssumptions(context),
       selectedLegends: (config as { selectedLegends?: readonly string[] }).selectedLegends ?? [],
       merged: false
     }
@@ -56,14 +77,17 @@ export function resolveAttributeContributions(
   pool: Readonly<Gw2NumericAttributes>,
   contributions: readonly Gw2AttributeContributions[]
 ) {
-  const attributes = resolveAttributeEffects(
-    pool,
-    contributions.flatMap((entry) => entry.attributeEffects ?? [])
-  );
+  const effects: Gw2AttributeEffect[] = [];
+  for (const entry of contributions) if (entry.attributeEffects) effects.push(...entry.attributeEffects);
+  const attributes = resolveAttributeEffects(pool, effects);
   const durations: Gw2NumericAttributes = {};
   for (const entry of contributions)
-    for (const [name, amount] of Object.entries(entry.traitDurations ?? {}))
+    for (const name in entry.traitDurations) {
+      if (!Object.hasOwn(entry.traitDurations, name)) continue;
+      const amount = entry.traitDurations[name];
       durations[name] = (durations[name] ?? 0) + amount;
+    }
+
   return {
     attributes,
     durations,
@@ -73,20 +97,14 @@ export function resolveAttributeContributions(
 
 /** Add ordinary declarations, then apply accumulated scaling and actor projections without altering source pools. */
 export function applyAttributeContributions(
-  context: Gw2AttributeContext,
+  pool: Readonly<Gw2NumericAttributes>,
   initial: Gw2Stats,
-  calculate: Gw2AttributeContributionCalculator
+  contributions: readonly Gw2AttributeContributions[]
 ): Gw2Stats {
   const result: Gw2MutableStats = { ...initial };
-  const contributions = calculate(context);
-  const resolved = resolveAttributeContributions(
-    attributeSeed(context.config ?? {}, context.weaponSet).conversionPool,
-    contributions
-  );
-  for (const [key, name] of Object.entries(ATTRIBUTE_NAMES))
-    if (resolved.attributes[name])
-      result[key as keyof typeof ATTRIBUTE_NAMES] =
-        (initial[key as keyof typeof ATTRIBUTE_NAMES] ?? 0) + (resolved.attributes[name] ?? 0);
+  const resolved = resolveAttributeContributions(pool, contributions);
+  for (const [key, name] of ATTRIBUTE_ENTRIES)
+    if (resolved.attributes[name]) result[key] = (initial[key] ?? 0) + (resolved.attributes[name] ?? 0);
   for (const [name, amount] of Object.entries(resolved.durations)) {
     if (name === 'Condition Duration') result.conditionDurationBonus = (result.conditionDurationBonus ?? 0) + amount;
     else if (name === 'Boon Duration') result.boonDurationBonus = (result.boonDurationBonus ?? 0) + amount;
@@ -111,21 +129,19 @@ export function applyAttributeContributions(
   const uncapped = contributions.reduce((sum, entry) => sum + (entry.uncappedBoonDuration ?? 0), 0);
   if (uncapped) result.uncappedBoonDurationBonus = (initial.uncappedBoonDurationBonus ?? 0) + uncapped;
   // Scaling consumes accumulated attributes; actor projections follow scaling regardless of declaration order.
-  for (const transform of contributions
-    .flatMap((entry) => entry.transforms ?? [])
-    .filter((entry) => entry.kind === 'scale')
-    .filter((entry) => entry.factor !== 1))
-    for (const key of Object.keys(ATTRIBUTE_NAMES) as (keyof typeof ATTRIBUTE_NAMES)[])
-      result[key] = (result[key] ?? 0) * transform.factor;
-  for (const transform of contributions
-    .flatMap((entry) => entry.transforms ?? [])
-    .filter((entry) => entry.kind === 'convert-current'))
-    result[transform.to] = (result[transform.to] ?? 0) + (result[transform.from] ?? 0) * transform.multiplier;
+  for (const entry of contributions)
+    for (const transform of entry.transforms ?? [])
+      if (transform.kind === 'scale' && transform.factor !== 1)
+        for (const [key] of ATTRIBUTE_ENTRIES) result[key] = (result[key] ?? 0) * transform.factor;
+  for (const entry of contributions)
+    for (const transform of entry.transforms ?? [])
+      if (transform.kind === 'convert-current')
+        result[transform.to] = (result[transform.to] ?? 0) + (result[transform.from] ?? 0) * transform.multiplier;
   let projected: Gw2Stats = result;
-  for (const transform of contributions
-    .flatMap((entry) => entry.transforms ?? [])
-    .filter((entry) => entry.kind === 'project'))
-    projected = transform.replace ? { ...transform.attributes } : { ...projected, ...transform.attributes };
+  for (const entry of contributions)
+    for (const transform of entry.transforms ?? [])
+      if (transform.kind === 'project')
+        projected = transform.replace ? { ...transform.attributes } : { ...projected, ...transform.attributes };
   return projected;
 }
 
@@ -154,13 +170,13 @@ export function applyMightAttributes(
 
 /** Condition replacements sample final Power only after relic and actor projection. */
 export function applyFinalConditionAttributes(
-  context: Gw2AttributeContext,
+  context: Gw2ModifierContext,
   initial: Gw2Stats,
-  calculate: Gw2AttributeContributionCalculator
+  contributions: readonly Gw2AttributeContributions[]
 ): Gw2Stats {
   if (!isGw2PlayerModifierOwnedEvent(context.event)) return initial;
   let result = initial;
-  for (const entry of calculate(context)) {
+  for (const entry of contributions) {
     if (entry.finalCondition && entry.finalCondition.condition === context.event?.condition)
       result = { ...result, conditionDamage: (result.power ?? 0) * entry.finalCondition.powerMultiplier };
   }

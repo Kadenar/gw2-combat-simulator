@@ -103,20 +103,21 @@ export function resolveAttributeEffects(
   commonConversionPool: Readonly<Gw2NumericAttributes>,
   effects: readonly Gw2AttributeEffect[]
 ): Gw2NumericAttributes {
-  const activeEffects = effects.filter((effect) => effect.enabled !== false);
   const traitStats: Gw2NumericAttributes = {};
-  const eligibleConversionPool = { ...commonConversionPool };
+  let eligibleConversionPool = commonConversionPool;
 
-  for (const effect of activeEffects) {
-    if (effect.kind !== 'flat') continue;
+  // Most declarations do not feed conversions; copy the source pool only when a flat grant changes it.
+  for (const effect of effects) {
+    if (effect.enabled === false || effect.kind !== 'flat') continue;
     addAttribute(traitStats, effect.to, effect.amount);
-    if (effect.feedsConversions) {
+    if (effect.feedsConversions && effect.amount) {
+      if (eligibleConversionPool === commonConversionPool) eligibleConversionPool = { ...commonConversionPool };
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
     }
   }
 
-  for (const effect of activeEffects) {
-    if (effect.kind !== 'conversion') continue;
+  for (const effect of effects) {
+    if (effect.enabled === false || effect.kind !== 'conversion') continue;
     const inputPool = effect.input === 'common' ? commonConversionPool : eligibleConversionPool;
     const rawAmount = (inputPool[effect.from] ?? 0) * effect.multiplier;
     const amount =

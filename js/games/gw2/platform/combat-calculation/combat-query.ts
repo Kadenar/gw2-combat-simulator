@@ -342,13 +342,11 @@ export function createGw2CombatQuery({
     if (event?.type === 'condition') event = conditionOwnerEvent(event);
     const activeWeaponSet = activeWeaponSetAt(time, runtime);
     const input = hookContext(time, { event, runtime });
-    const contributions =
-      activeProfession.attributeContributions?.(
-        attributeContext(input, {
-          catalog: activeProfession.catalog,
-          modifierRulesById: new Map()
-        })
-      ) ?? [];
+    const attributeFacts = attributeContext(input, {
+      catalog: activeProfession.catalog,
+      modifierRulesById: new Map()
+    });
+    const contributions = activeProfession.attributeContributions?.(attributeFacts) ?? [];
     const context = {
       ...input,
       attributeContributions: activeProfession.attributeContributions ? contributions : undefined
@@ -401,7 +399,13 @@ export function createGw2CombatQuery({
     mightStacksAt,
     furyActiveAt,
     vulnerabilityStacksAt,
-    critical(event: SimulationEvent, time: number, runtime: Gw2QueryRuntime | null = null) {
+    // Strike resolution supplies its same-event stats; standalone previews can sample them here.
+    critical(
+      event: SimulationEvent,
+      time: number,
+      runtime: Gw2QueryRuntime | null = null,
+      sampledStats?: Gw2ResolvedStats
+    ) {
       // Preserve the hit's boon fact even when forced critical chance replaces its presentation contributors.
       const furyActive = furyActiveAt(time, runtime, event);
       if (
@@ -412,7 +416,7 @@ export function createGw2CombatQuery({
         const summonFuryBonus = furyActive ? 0.25 : 0;
         const professionBonus =
           event.summonUsesProfessionModifiers === true
-            ? (statsAt(time, event, runtime).professionCriticalChanceBonus ?? 0) / 100
+            ? ((sampledStats ?? statsAt(time, event, runtime)).professionCriticalChanceBonus ?? 0) / 100
             : 0;
         const baseChance = Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus + professionBonus;
         const chance =
@@ -426,7 +430,7 @@ export function createGw2CombatQuery({
         };
       }
 
-      const stats = statsAt(time, event, runtime);
+      const stats = sampledStats ?? statsAt(time, event, runtime);
       let contributors: Gw2CriticalChanceContributor[] = [];
       const addContributor = (id: string, label: string, amount: number) => {
         if (Math.abs(amount) <= Number.EPSILON) return;
@@ -729,7 +733,12 @@ export interface Gw2CombatQuery {
   mightStacksAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): number;
   furyActiveAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): boolean;
   vulnerabilityStacksAt(time: number, runtime?: Gw2QueryRuntime | null): number;
-  critical(event: SimulationEvent, time: number, runtime?: Gw2QueryRuntime | null): Gw2CriticalResult;
+  critical(
+    event: SimulationEvent,
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+    sampledStats?: Gw2ResolvedStats
+  ): Gw2CriticalResult;
   /** An optional contributor sink receives every traced factor; it never changes the returned multiplier. */
   strikeMultiplier(
     event: SimulationEvent,

@@ -54,7 +54,8 @@ export function createGw2HitResolution({
   function resolveCritical(
     ctx: Gw2ResolverRuntime,
     event: Gw2ResolverEvent,
-    flatStrike: boolean
+    flatStrike: boolean,
+    stats: Gw2ResolvedStats
   ): Gw2HitResolutionContext['critical'] {
     if (event.canCrit === false || flatStrike) {
       return {
@@ -66,7 +67,7 @@ export function createGw2HitResolution({
       };
     }
 
-    const critical = ctx.query.critical(event, event.at, ctx);
+    const critical = ctx.query.critical(event, event.at, ctx, stats);
     critical.didCrit =
       typeof event.didCrit === 'boolean'
         ? event.didCrit
@@ -183,7 +184,7 @@ export function createGw2HitResolution({
       Number.isFinite(event.flatDamage) ||
       Number.isFinite(event.flatStrikeBase) ||
       Number.isFinite(event.flatStrikePowerCoeff);
-    const critical = resolveCritical(ctx, event, flatStrike);
+    const critical = resolveCritical(ctx, event, flatStrike, stats);
     const critEligible = !flatStrike && event.canCrit !== false;
     const strike = flatStrike
       ? resolveFlatStrike(ctx, event, stats)
