@@ -21,9 +21,10 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
-function lifetimeContext(traits = []) {
+function lifetimeContext(traits = [], rechargeRate = 1) {
   const config = { specialization: 'Mirage', primaryWeapon: 'Sword', selectedTraitIds: traits };
   const profession = mesmerProfession.resolveProfession(config);
   const events = [];
@@ -51,6 +52,7 @@ function lifetimeContext(traits = []) {
   context.cooldownController = createCooldownController({
     clock: context,
     rechargeDuration: () => 10,
+    rechargeIntervals: (_skill, start, end) => [{ start, end, rate: rechargeRate }],
     skillFor: (id) => context.catalog.skillsById.get(id)
   });
   context.helpers = context.catalog;
@@ -84,7 +86,7 @@ function complete(context, cast) {
   completeMimicCast(context, cast);
 }
 
-test('Mimic accepts utility starts through its exact deadline and consumes the reset once', () => {
+test('Mimic accepts utility starts through its exact deadline and consumes the reduction once', () => {
   for (const start of [10.300999, 10.301, 10.301001]) {
     const context = lifetimeContext();
     const core = context.profession.core;
@@ -105,8 +107,6 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     context.start = start;
     context.fullEnd = start + 1;
     context.cooldownController.setReadyAt(utility.id, 99);
-    context.cooldownController.ensureAmmo({ ...utility, ammo: 1 });
-    context.cooldownController.setAmmoLockout({ ...utility, ammo: 1 }, 99, 0);
     complete(context, {
       start: context.start,
       fullEnd: context.fullEnd,
@@ -118,7 +118,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       skill: utility
     });
     const consumed = start <= 10.301;
-    assert.equal(context.cooldownController.hasCooldown(utility.id), !consumed);
+    assert.equal(context.cooldownController.readyAt(utility.id), consumed ? canonicalTime(start + 2) : 99);
     assert.equal(core.mimic.charges, consumed ? 0 : 1);
     assert.equal(context.events.filter((event) => event.source === 'Mimic').length, consumed ? 1 : 0);
     context.cooldownController.setReadyAt(utility.id, 100);
@@ -133,6 +133,34 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       skill: utility
     });
     assert.equal(context.cooldownController.readyAt(utility.id), 100);
+  }
+});
+
+// Transfer original recharge once, preserving elapsed work and applying the owner's recharge rate to both skills.
+test('Mimic gives one second of base recharge and adds the original utility recharge to its remaining cooldown', () => {
+  for (const rate of [1, 1.25, 1.5]) {
+    const context = lifetimeContext([], rate);
+    const mimic = context.catalog.skillsById.get(ID.MIMIC);
+    const utility = { ...context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS), cooldown: 30 };
+    assert.equal(mimic.cooldown, 20);
+    context.cooldownController.startRecharge(mimic, 1, mimic.cooldown);
+    const originalReadyAt = context.cooldownController.readyAt(mimic.id);
+    complete(context, { skill: mimic, start: 0, fullEnd: 1 });
+
+    // The accepted utility may have adjusted recharge; Mimic inherits its original authored value.
+    context.cooldownController.startRecharge(utility, 5, 7);
+    complete(context, { skill: utility, start: 4, fullEnd: 5, rechargeWork: 7 });
+    assert.deepEqual(context.cooldownController.rechargeFor(utility.id), { startedAt: 5, work: 1 });
+    assert.equal(context.cooldownController.readyAt(utility.id), canonicalTime(5 + 1 / rate));
+    assert.deepEqual(context.cooldownController.rechargeFor(mimic.id), {
+      startedAt: 5,
+      work: 20 - 4 * rate + 30
+    });
+    assert.ok(Math.abs(context.cooldownController.readyAt(mimic.id) - originalReadyAt - 30 / rate) < 0.000002);
+
+    const extendedReadyAt = context.cooldownController.readyAt(mimic.id);
+    complete(context, { skill: utility, start: 6, fullEnd: 7 });
+    assert.equal(context.cooldownController.readyAt(mimic.id), extendedReadyAt);
   }
 });
 
@@ -200,8 +228,8 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
   assert.equal(core.mimic.expiresAt, 11.301);
 });
 
-// Resetting the skill's deadline clears its lockout but leaves independently recharging ammunition spent.
-test('Mimic resets cooldown and lockout without restoring ammunition', () => {
+// Shortening availability must leave independently recharging ammunition spent.
+test('Mimic does not restore ammunition or restart its count recharge', () => {
   const context = lifetimeContext();
   const mimic = context.catalog.skillsById.get(ID.MIMIC);
   const utility = { ...context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS), ammo: 2 };
@@ -212,8 +240,7 @@ test('Mimic resets cooldown and lockout without restoring ammunition', () => {
   const ammo = context.cooldownController.ensureAmmo(utility);
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.recharges.length, 1);
-  assert.equal(ammo.lockoutReadyAt, 0);
-  assert.equal(context.cooldownController.hasCooldown(utility.id), false);
+  assert.deepEqual(ammo.recharges, [{ startedAt: 2, work: 100 }]);
 });
 
 // Completion consumes the currently armed window, even if it was replaced after the utility started.
@@ -236,7 +263,7 @@ test('Mimic rearming during overlapping utilities rewards the first successful c
   complete(context, cast(utility, 2, 5, true));
   assert.equal(context.cooldownController.readyAt(utility.id), 99);
   complete(context, cast(utility, 2, 15));
-  assert.equal(context.cooldownController.hasCooldown(utility.id), false);
+  assert.equal(context.cooldownController.readyAt(utility.id), 16);
   context.cooldownController.setReadyAt(utility.id, 99);
   complete(context, cast(utility, 3, 16));
   assert.equal(context.cooldownController.readyAt(utility.id), 99);

@@ -5,8 +5,10 @@ import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
-const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([SHARED_SKILL_IDS.SWAP_WEAPONS]);
+// Mimic and weapon swap keep their live recharge progress through either Continuum exit.
+const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([SHARED_SKILL_IDS.SWAP_WEAPONS, ID.MIMIC]);
 
 /** Bind Continuum to its explicit checkpoint state and the recharge owner for this operation. */
 export function createChronomancerMechanics(context: MesmerRuntime) {

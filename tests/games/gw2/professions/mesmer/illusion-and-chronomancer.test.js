@@ -823,7 +823,8 @@ test('Mirror Blade resolves target-facing bounce damage as separate hits', () =>
   assert.ok(hits.every((event, index) => index === 0 || event.at > hits[index - 1].at));
 });
 
-test('Mimic resets the next utility skill within its ten-second window', () => {
+// A second utility must wait for Mimic's reduced recharge before the scheduler accepts it.
+test('Mimic allows the next utility to repeat after its reduced recharge', () => {
   const result = simulateMesmer(
     ['Mimic', 'Tale of the Tortured Mastermind', 'Tale of the Tortured Mastermind'],
     defaultSimulationConfig({
@@ -834,9 +835,10 @@ test('Mimic resets the next utility skill within its ten-second window', () => {
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[1].start, 640);
-  assert.equal(result.steps[2].start, 1040);
-  assert.ok(result.events.some((event) => event.type === 'proc' && event.source === 'Mimic'));
+  const proc = result.events.find((event) => event.type === 'proc' && event.source === 'Mimic');
+  assert.ok(proc);
+  const utilities = result.steps.filter((step) => step.skill === 'Tale of the Tortured Mastermind');
+  assert.equal(utilities[1].start, Math.round((proc.at + 1 / 1.25) * 1000));
 });
 
 // Endurance is granted when the well expires, after its support boons have been applied.

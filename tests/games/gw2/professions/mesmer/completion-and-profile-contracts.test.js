@@ -24,8 +24,9 @@ test('cancelled Ether preserves an established phantasm cooldown', () => {
 });
 
 // Mimic is armed by its successful completion, then claimed by the following completed utility.
-test('Mimic stays unarmed during its cast and resets the following utility on completion', () => {
+test('Mimic stays unarmed during its cast and reduces the following utility recharge on completion', () => {
   const states = [];
+  let utilityRecharge;
   const result = runMesmer(
     ['Mimic', 'Signet of Illusions'],
     {},
@@ -39,6 +40,8 @@ test('Mimic stays unarmed during its cast and resets the following utility on co
           onCastCommit(runtime, cast) {
             native.onCastCommit?.(runtime, cast);
             states.push(['complete', cast.skill.id, runtime.profession.core.mimic.charges]);
+            if (cast.skill.id === ID.SIGNET_OF_ILLUSIONS)
+              utilityRecharge = runtime.cooldownController.rechargeFor(cast.skill.id);
           }
         };
       }
@@ -51,7 +54,8 @@ test('Mimic stays unarmed during its cast and resets the following utility on co
     ['start', ID.SIGNET_OF_ILLUSIONS, 1],
     ['complete', ID.SIGNET_OF_ILLUSIONS, 0]
   ]);
-  assert.equal(result.planningState.cooldowns[ID.SIGNET_OF_ILLUSIONS], undefined);
+  assert.equal(utilityRecharge.work, 1);
+  assert.ok(result.planningState.cooldowns[ID.SIGNET_OF_ILLUSIONS].readyAt > utilityRecharge.startedAt * 1000);
 });
 
 test('cancelled Mimic cannot reset the next utility cooldown', () => {

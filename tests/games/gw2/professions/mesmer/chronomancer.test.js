@@ -7,11 +7,33 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { gw2RechargeRate } from '#gw2/platform/combat/recharge.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
+
+// Neither exit may erase Mimic used inside Split or rewind progress and utility surcharges from before it.
+test('manual and automatic Continuum exits preserve Mimic recharge and its utility surcharge', () => {
+  const config = { specialization: 'Chronomancer', initialResource: 3, selectedTraitIds: [] };
+  for (const prefix of [
+    ['Continuum Split', 'Mimic'],
+    ['Mimic', 'Continuum Split'],
+    ['Continuum Split', 'Mimic', 'Signet of Midnight'],
+    ['Mimic', 'Continuum Split', 'Signet of Midnight'],
+    ['Mimic', 'Signet of Midnight', 'Continuum Split']
+  ]) {
+    const before = simulateMesmer(prefix, config);
+    assert.deepEqual(before.warnings, []);
+    assert.ok(before.planningState.cooldowns[ID.MIMIC]);
+    for (const exit of [[{ name: '__wait', waitMs: 1000 }, 'Continuum Shift'], [{ name: '__wait', waitMs: 8000 }]]) {
+      const after = simulateMesmer([...prefix, ...exit], config);
+      assert.deepEqual(after.warnings, []);
+      assert.ok(after.events.some((event) => event.type === 'marker' && event.name === 'Continuum Shift'));
+      assert.equal(after.planningState.cooldowns[ID.MIMIC].readyAt, before.planningState.cooldowns[ID.MIMIC].readyAt);
+    }
+  }
+});
 
 // Rewound cooldowns keep their saved work at the permanent Chronomancer recharge rate.
 test('Continuum snapshots restore recharge work at the permanent Chronomancer rate', () => {

@@ -48,7 +48,8 @@ export interface CooldownController {
   ammoSkillIds(): IterableIterator<SkillId>;
   retireAmmo(skillId: SkillId): void;
   linkAmmo(sourceId: SkillId, targetId: SkillId): void;
-  clearAmmoLockout(skillId: SkillId): void;
+  /** Replace ordinary or between-charge recharge without restoring ammunition or restarting count recharge. */
+  replaceSkillRecharge(skill: Skill, work: number, at: number): void;
   /** Reserve additional rounds at acceptance without settling their future recharge anchor. */
   reserveAmmo(skill: Skill, count: number, recharge: RechargeProgress): number;
   /** Replace temporary charges while retaining the existing independent cast lockout. */

@@ -290,12 +290,14 @@ export function createCooldownController({
       const ammo = ammoPools.get(sourceId);
       if (ammo) ammoPools.set(targetId, ammo);
     },
-    clearAmmoLockout(id: SkillId) {
-      const ammo = ammoPools.get(id);
+    replaceSkillRecharge(skill: Skill, work: number, at: number) {
+      // Mechanics may replace availability recharge while the controller preserves spent charge queues.
+      const ammo = ammoPools.get(skill.id);
       if (ammo) {
         ammo.lockoutReadyAt = 0;
         delete ammo.lockoutProgress;
-      }
+        setAmmoLockout(skill, work, at);
+      } else startRecharge(skill, at, work);
     },
     reserveAmmo(skill: Skill, count: number, recharge: RechargeProgress) {
       const ammo = ammoPools.get(skill.id);

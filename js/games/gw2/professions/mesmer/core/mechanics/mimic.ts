@@ -7,6 +7,7 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 
 /** Successful completion claims the current grant against the utility's start, including exact expiry. */
 export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
@@ -24,10 +25,14 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
     return;
   }
 
-  // Mimic resets the independent cast lockout as well as the visible cooldown.
-  context.cooldownController.clearAmmoLockout(skill.id);
+  // Replace the utility's recharge with one base second without replenishing spent ammunition.
+  context.cooldownController.replaceSkillRecharge(skill, 1, at);
 
-  context.cooldownController.clear(skill.id);
+  // Add the utility's original recharge to Mimic while preserving work already earned on its base cooldown.
+  const mimic = context.helpers.skillsById.get(ID.MIMIC)!;
+  const progress = context.cooldownController.rechargeFor(ID.MIMIC);
+  const remaining = progress ? context.cooldownController.remaining(mimic, progress, at) : 0;
+  context.cooldownController.startRecharge(mimic, at, remaining + gw2BaseRecharge(skill));
   context.effects.emit({
     kind: 'announcement',
     log: true,
