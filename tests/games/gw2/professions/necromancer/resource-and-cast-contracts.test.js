@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -21,7 +22,7 @@ import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/ha
 const harbingerUi = bindHarbingerUi(necromancerCatalog);
 
 const baseConfig = {
-  stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 }),
   target: { armor: 2597, conditions: {} }
 };
 
@@ -105,7 +106,10 @@ test('Cascading Corruption delays its packets while Meltdown applies to the trig
   // The trigger uses its post-cost 15 stacks; the explosion includes the intervening two-stack shroud tick.
   const expectedDamage = (packet, blight) =>
     Math.floor(
-      ((baseConfig.stats.power * packet.resolvedWeaponStrength * packet.coefficient) / baseConfig.target.armor) *
+      ((baseConfig.attributeInputs.weaponSets[0].commonTotals.power *
+        packet.resolvedWeaponStrength *
+        packet.coefficient) /
+        baseConfig.target.armor) *
         (1 + 0.1 + blight * 0.01) *
         (1 + packet.criticalChance * (packet.criticalDamage - 1))
     );

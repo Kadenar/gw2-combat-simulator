@@ -234,25 +234,24 @@ test('Avatar re-entry survives its previous depletion task', () => {
   );
 });
 
-// Static player reconciliation and independent pet launch snapshots consume the same selected-and-ready value.
-test('Signet of the Wild preserves static provenance and pet launch snapshots', () => {
+// Player attribute declarations and independent pet launch snapshots consume the same selected-and-ready value.
+test('Signet of the Wild evaluates readiness and preserves pet launch snapshots', () => {
   // Exercise the composed attribute hooks, including their declared ordering, as the runtime does.
   const ranger = rangerProfession.runtimeFor({ specialization: 'Core' });
   const bonus = rangerCatalog.balanceProfilesById.get(PROFILE.signetOfTheWild).attributeBonus;
   for (const selected of [false, true]) {
-    for (const preapplied of [false, true]) {
+    {
       for (const ready of [false, true]) {
         const context = {
           catalog: rangerCatalog,
           config: {
             selectedSkillIds: selected ? [12491] : [],
-            selectedTraitIds: [],
-            attributeProvenance: { professionStaticRulesApplied: preapplied }
+            selectedTraitIds: []
           },
           time: 0,
           timeline: { skillOnCooldownAt: () => !ready }
         };
-        const result = ranger.modifyAttributes(context, { ferocity: preapplied && selected ? bonus : 0 });
+        const result = ranger.modifyAttributes(context, { ferocity: 0 });
         assert.equal(result.ferocity, selected && ready ? bonus : 0);
       }
     }

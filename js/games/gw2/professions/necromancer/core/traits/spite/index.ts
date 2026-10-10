@@ -1,7 +1,7 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { buffActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { buffActive, targetHealthBelow, activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -16,8 +16,8 @@ import {
 import {
   necromancerConditionApplied,
   necromancerStrike,
-  necromancerStrikePreparing,
-  necromancerStrikeLifeForce
+  necromancerStrikeLifeForce,
+  necromancerStrikePreparing
 } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
 import { shroudEntered } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -126,6 +126,24 @@ export const chillOfDeath = defineTrait({
 
 /** Owns Awaken the Pain tuning and behavior at its existing execution boundaries. */
 export const awakenThePain = defineTrait({
+  // The trait portion of Might follows the queried actor, with build assumptions before runtime exists.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.AWAKEN_THE_PAIN);
+    const might =
+      context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? activeBoonStacks(context, 'might');
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: might * balanceProfileNumber(profile, 'attributePerStack'),
+          feedsConversions: false,
+          enabled: true
+        }
+      ]
+    };
+  },
+
   triggers: [
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
@@ -162,7 +180,7 @@ export const spitefulFortitude = defineTrait({
   id: TRAIT.SPITEFUL_FORTITUDE,
   name: 'Spiteful Fortitude',
   balance: { threshold: 0.5, attributeConversion: 0.1, lifeForceGain: 1 },
-  buildAttributes: traitAttributeEffects(TRAIT.SPITEFUL_FORTITUDE, [
+  attributes: traitAttributeEffects(TRAIT.SPITEFUL_FORTITUDE, [
     {
       kind: 'conversion',
       from: 'Power',

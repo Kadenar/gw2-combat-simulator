@@ -1,3 +1,12 @@
+// Resolve baseline and adjusted Might together while leaving the source attributes immutable.
+function notorietyAttributes(context, attributes) {
+  const facts = attributeContext(context, { catalog: revenantCatalog, modifierRulesById: new Map() });
+  return applyMightAttributes(attributes, activeBoonStacks(context, 'might'), [notoriety.attributes(facts)]);
+}
+
+import { applyMightAttributes, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
+import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
@@ -79,31 +88,22 @@ test('Notoriety converts configured and live self Might with a combined cap', ()
     { at: 5, expiresAt: 10, stacks: 20, resolvedAudience: { includesSelf: true } }
   );
   const attributes = { power: 1000, conditionDamage: 1000 };
-  assert.deepEqual(revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
-    power: 1070,
-    conditionDamage: 930
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
+    power: 1280,
+    conditionDamage: 1140
   });
-  assert.deepEqual(
-    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, time: 5 }, attributes),
-    {
-      power: 1250,
-      conditionDamage: 750
-    }
-  );
-  assert.deepEqual(
-    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes),
-    {
-      power: 1040,
-      conditionDamage: 960
-    }
-  );
-  assert.deepEqual(
-    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, runtime: undefined }, attributes),
-    {
-      power: 1040,
-      conditionDamage: 960
-    }
-  );
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, time: 5 }, attributes), {
+    power: 2000,
+    conditionDamage: 1500
+  });
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes), {
+    power: 1160,
+    conditionDamage: 1080
+  });
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, runtime: undefined }, attributes), {
+    power: 1160,
+    conditionDamage: 1080
+  });
   assert.deepEqual(attributes, { power: 1000, conditionDamage: 1000 });
 });
 

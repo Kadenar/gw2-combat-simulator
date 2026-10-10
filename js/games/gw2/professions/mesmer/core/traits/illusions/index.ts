@@ -1,5 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -13,7 +11,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { compileRechargeRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -114,18 +112,7 @@ export const maliciousSorcery = defineTrait<MesmerSkill>({
   id: TRAIT.MALICIOUS_SORCERY,
   name: 'Malicious Sorcery',
   balance: { durationMultiplier: 0.25 },
-  modifierRules: [
-    {
-      id: 'mesmer.malicious-sorcery',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MALICIOUS_SORCERY), 'durationMultiplier'),
-      // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
-      when: (context) => context.condition === 'Confusion' && !professionStaticRulesApplied(context.config)
-    }
-  ],
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Confusion Duration':
         100 *

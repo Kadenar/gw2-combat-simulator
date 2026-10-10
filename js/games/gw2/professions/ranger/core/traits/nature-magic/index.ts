@@ -1,4 +1,6 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { wellspringPetAttributes } from '#gw2/professions/ranger/core/traits/nature-magic/attributes.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -20,7 +22,7 @@ import {
 import { beastSkillUsed, petSwapped, rangerInitialized } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { emitStormSpiritSlam, emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
-import { rangerActiveBoonCount, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -234,16 +236,19 @@ export const wellspring = defineTrait({
       })
     }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.WELLSPRING, [
-    {
-      kind: 'conversion',
-      from: 'Power',
-      to: 'Healing Power',
-      field: 'attributeConversion',
-      rounding: 'none',
-      input: 'common'
-    }
-  ])
+  attributes: (context) =>
+    rangerPetEvent(context)
+      ? wellspringPetAttributes(context)
+      : traitAttributeEffects(TRAIT.WELLSPRING, [
+          {
+            kind: 'conversion',
+            from: 'Power',
+            to: 'Healing Power',
+            field: 'attributeConversion',
+            rounding: 'none',
+            input: 'common'
+          }
+        ])(context)
 });
 
 /** Owns Windborne Notes's live tuning and trait behavior. */
@@ -319,7 +324,7 @@ export const lingeringMagic = defineTrait({
   balance: {
     attributeBonus: 240
   },
-  buildAttributes: traitAttributeEffects(TRAIT.LINGERING_MAGIC, [
+  attributes: traitAttributeEffects(TRAIT.LINGERING_MAGIC, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ])
 });

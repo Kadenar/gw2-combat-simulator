@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -48,13 +49,25 @@ test('Bleeding duration lookup ignores unrelated effects and requires present du
 
 test('proc duration inference uses base stats with per-weapon-set overrides', () => {
   // Expertise contributes one percent duration per 15 points; set overrides may explicitly remove that bonus.
-  const config = { stats: { expertise: 150 } };
-  assert.deepEqual(expectedConditionDurationsMs(6, 'Bleeding', config), [6600]);
+  const config = { attributeInputs: baseAttributeInputs({ expertise: 150 }) };
   assert.deepEqual(
-    expectedConditionDurationsMs(6, 'Bleeding', {
-      ...config,
-      weaponSetStats: [{ expertise: 0 }, { expertise: 300 }]
-    }),
+    expectedConditionDurationsMs(
+      6,
+      'Bleeding',
+      config,
+      config.attributeInputs.weaponSets.map((seed) => seed.commonTotals)
+    ),
+    [6600]
+  );
+  assert.deepEqual(
+    expectedConditionDurationsMs(
+      6,
+      'Bleeding',
+      {
+        ...config
+      },
+      [{ expertise: 0 }, { expertise: 300 }]
+    ),
     [6000, 7200]
   );
 });
@@ -157,6 +170,7 @@ const shrapnelProfile = {
 const serratedSteelProfile = {
   id: ENGINEER_TRAIT.SERRATED_STEEL,
   name: 'Serrated Steel',
+  durationMultiplier: 0.33,
   profileKind: 'trait',
   procChance: 0.33,
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
@@ -165,6 +179,7 @@ const serratedSteelProfile = {
 const barbedPrecisionProfile = {
   id: NECROMANCER_TRAIT.BARBED_PRECISION,
   name: 'Barbed Precision',
+  conditionDurationMultiplier: 1,
   profileKind: 'trait',
   criticalChance: 0.33,
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
@@ -214,7 +229,7 @@ test('matches Shrapnel only when expertise-scaled Bleeding and Crippled applicat
     catalog([shrapnelProfile]),
     {
       selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL],
-      stats: { expertise: 750 },
+      attributeInputs: baseAttributeInputs({ expertise: 750 }),
       sigilSets: [{}, {}]
     }
   );
@@ -241,7 +256,7 @@ test('counts raw EVTC names for explosions whose catalog effects receive their f
     catalog([shrapnelProfile]),
     {
       selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL],
-      stats: { expertise: 0 }
+      attributeInputs: baseAttributeInputs({ expertise: 0 })
     }
   );
 
@@ -286,7 +301,7 @@ test('matches profile-owned Serrated Steel duration against critical hits', () =
     ]),
     {
       selectedTraitIds: [ENGINEER_TRAIT.SERRATED_STEEL],
-      stats: { expertise: 0, conditionDurationBonuses: { Bleeding: 33 } },
+      attributeInputs: baseAttributeInputs({ expertise: 0 }),
       sigilSets: [{}]
     }
   );
@@ -316,7 +331,7 @@ test('matches expertise-scaled 3-second Barbed Precision applications against cr
     catalog([barbedPrecisionProfile]),
     {
       selectedTraitIds: [NECROMANCER_TRAIT.BARBED_PRECISION],
-      stats: { expertise: 500 },
+      attributeInputs: baseAttributeInputs({ expertise: 500 }),
       sigilSets: [{}]
     }
   );
@@ -336,8 +351,10 @@ test('matches expertise-scaled 3-second Barbed Precision applications against cr
 test('Barbed Precision includes profile-owned Sand Sage expertise on each weapon set', () => {
   const config = {
     selectedTraitIds: [NECROMANCER_TRAIT.BARBED_PRECISION, NECROMANCER_TRAIT.SAND_SAGE],
-    stats: { expertise: 500 },
-    weaponSetStats: [{ expertise: 0 }, {}]
+    attributeInputs: baseAttributeInputs(
+      { ...{ expertise: 500 }, ...{ expertise: 0 } },
+      { ...{ expertise: 500 }, ...{} }
+    )
   };
   const original = structuredClone(config);
   for (const bonus of [225, 450]) {
@@ -372,14 +389,14 @@ test('Barbed Precision caps Sand Sage duration and counts overlapping durations 
   const log = fixture([event(), condition(1_000, 736, 6_000)]);
   const config = {
     selectedTraitIds: [NECROMANCER_TRAIT.BARBED_PRECISION],
-    stats: { expertise: 1_300 }
+    attributeInputs: baseAttributeInputs({ expertise: 1_300 })
   };
   assert.equal(analyzeNecromancerBarbedPrecisionObservation(log, PLAYER, profiles, config).matchedApplications, 0);
   for (const expertise of [1_300, 1_500]) {
     const result = analyzeNecromancerBarbedPrecisionObservation(log, PLAYER, profiles, {
       ...config,
       selectedTraitIds: [...config.selectedTraitIds, NECROMANCER_TRAIT.SAND_SAGE],
-      stats: { expertise }
+      attributeInputs: baseAttributeInputs({ expertise })
     });
     assert.equal(result.matchedApplications, 1);
     assert.deepEqual(result.matchedDurationsMs, expertise === 1_300 ? [5_600, 6_000] : [6_000]);
@@ -419,7 +436,7 @@ test('pairs player-attributed Sharper Images applications across Signet of Midni
     {
       selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
       selectedSkillIds: [10234],
-      stats: { expertise: 750 }
+      attributeInputs: baseAttributeInputs({ expertise: 570 })
     }
   );
 
@@ -458,7 +475,7 @@ test('matches Sharpened Edges with separate player and equipped-pet expertise', 
     catalog([sharpenedEdgesProfile, arachnophobiaProfile]),
     {
       selectedTraitIds: [RANGER_TRAIT.SHARPENED_EDGES, RANGER_TRAIT.ARACHNOPHOBIA],
-      stats: { expertise: 750 }
+      attributeInputs: baseAttributeInputs({ expertise: 600 })
     }
   );
 
@@ -505,7 +522,7 @@ test('matches Sharpened Edges before and during Light on Your Feet', () => {
     catalog([sharpenedEdgesProfile]),
     {
       selectedTraitIds: [RANGER_TRAIT.SHARPENED_EDGES, RANGER_TRAIT.LIGHT_ON_YOUR_FEET],
-      stats: { expertise: 750 }
+      attributeInputs: baseAttributeInputs({ expertise: 750 })
     }
   );
 
@@ -532,7 +549,10 @@ test('Shrapnel observation uses patched durations and rejects obsolete-duration 
     condition(1200, 736, 6000),
     condition(1200, 721, 1000)
   ]);
-  const config = { selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL], stats: { expertise: 0 } };
+  const config = {
+    selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL],
+    attributeInputs: baseAttributeInputs({ expertise: 0 })
+  };
   const patched = {
     ...shrapnelProfile,
     effects: shrapnelProfile.effects.map((effect) => ({ ...effect, duration: effect.condition === 'Bleeding' ? 8 : 2 }))

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -186,10 +187,10 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',
     selectedTraitIds: [TRAIT.JAGGED_MIND],
-    stats: {
-      ...defaults.stats,
+    attributeInputs: baseAttributeInputs({
+      ...defaults.attributeInputs.weaponSets[0].commonTotals,
       precision: 3100
-    }
+    })
   });
   const consecutive = simulateMesmer(
     ['Flying Cutter', 'Flying Cutter', 'Flying Cutter', { name: '__wait', waitMs: 1500 }],
@@ -410,7 +411,7 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
       primaryWeapon: 'Rifle',
       secondaryWeapon: '',
       boons: { quickness: false, alacrity: false },
-      stats: { concentration: 0 }
+      attributeInputs: baseAttributeInputs({ concentration: 0 })
     })
   );
   const cast = result.steps[0];
@@ -441,7 +442,7 @@ test('Abstraction replaces boons with damage and conditions and blasts only its 
         primaryWeapon: 'Rifle',
         secondaryWeapon: '',
         boons: { quickness: false, alacrity: false },
-        stats: { concentration: 0, expertise: 0 },
+        attributeInputs: baseAttributeInputs({ concentration: 0, expertise: 0 }),
         target: { conditions: {} }
       })
     );

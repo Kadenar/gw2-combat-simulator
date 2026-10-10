@@ -23,9 +23,9 @@ export const stalwartDefender = defineTrait({
   id: TRAIT.STALWART_DEFENDER,
   name: 'Stalwart Defender',
   balance: { attributeBonus: 240 },
-  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+  attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const stalwartDefenderProfile = requireBalanceProfileFromContext(profileContext, TRAIT.STALWART_DEFENDER);
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const offHand = weapons[1] || '';
     return {
       attributeEffects: [

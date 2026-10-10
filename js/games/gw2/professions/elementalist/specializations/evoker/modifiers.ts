@@ -1,17 +1,10 @@
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { applyEnhancedPotencyAttributes } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
+
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
-/**
- * Evoker damage and attribute modifiers.
- *
- * Declarative rules evaluated per damage event, plus an attribute pass for the
- * bonuses that must land on ferocity and condition damage before those
- * attributes feed into scaling.
- */
+
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 
-/** Zap reads the profile's canonical buff window; trait rules come from registered definitions. */
 const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.zap',
@@ -23,11 +16,7 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-/**
- * Evoker's damage/attribute contributions: declarative modifier rules plus the
- * attribute pass that must run before crit and condition scaling are computed.
- */
+/** Zap retains its skill-owned rule; selected traits supply attribute contributions. */
 export const evokerModifiers = Object.freeze({
-  modifyAttributes: applyEnhancedPotencyAttributes,
   modifierRules: evokerModifierRules
 });

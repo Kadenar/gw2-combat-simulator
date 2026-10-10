@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -303,7 +304,7 @@ test('off-target casts retain their activation while hostile packets miss the ta
     profession: testProfession,
     rotation: [{ type: 'cast', skillId: 900001, offTarget: true }],
     config: {
-      stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }),
       target: { armor: 2597 },
       weaponStrength: 1000
     }
@@ -364,7 +365,7 @@ test('delayed-impact casts land hostile packets later without moving the cast or
         { type: 'wait', durationMs: 3000 }
       ],
       config: {
-        stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }),
         target: { armor: 2597 },
         weaponStrength: 1000
       }
@@ -399,12 +400,12 @@ test('test profession runs end to end without importing Mesmer', () => {
     ],
     config: {
       selectedTraitIds: ['fixture.power'],
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 1000,
         precision: 1000,
         ferocity: 0,
         conditionDamage: 0
-      },
+      }),
       target: { armor: 2597 },
       weaponStrength: 1000
     }
@@ -413,12 +414,12 @@ test('test profession runs end to end without importing Mesmer', () => {
     profession: testProfession,
     rotation: [{ type: 'cast', skillId: 900001 }],
     config: {
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 1000,
         precision: 1000,
         ferocity: 0,
         conditionDamage: 0
-      },
+      }),
       target: { armor: 2597 },
       weaponStrength: 1000
     }

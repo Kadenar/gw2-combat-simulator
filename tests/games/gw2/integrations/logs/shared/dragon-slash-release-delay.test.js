@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
@@ -63,7 +64,7 @@ for (const [duration, reload, expectedDelay] of [
           specialization: 'Bladesworn',
           initialResource: 100,
           selectedTraitIds: [],
-          stats: { power: 2000, precision: 1000 },
+          attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
           target: { armor: 2597 }
         }
       });

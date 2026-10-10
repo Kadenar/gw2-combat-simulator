@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -105,14 +106,14 @@ const baseConfig = Object.freeze({
   secondaryWeapon: 'Dagger',
   weaponSet2Primary: 'Pistol',
   weaponSet2Secondary: 'Pistol',
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     defiant: true,
@@ -139,7 +140,7 @@ test('Larcenous Torment uses flat Power scaling and only life-steal damage bonus
         selectedSkillIds: [],
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Dagger',
-        stats: { power, precision: 4000, ferocity: 1000 },
+        attributeInputs: baseAttributeInputs({ power, precision: 4000, ferocity: 1000 }),
         target: { armor, conditions: { Vulnerability: modified ? 25 : 0 } },
         selectedTraitIds: [
           TRAIT.LARCENOUS_TORMENT,
@@ -318,7 +319,7 @@ test('Specter percentage drain is independent of vitality and observation bounda
       const result = simulate(
         'Specter',
         ['Enter Shadow Shroud', ...waits.map((durationMs) => ({ type: 'wait', durationMs })), 'Exit Shadow Shroud'],
-        { initialShadowForce: 100, stats: { vitality } }
+        { initialShadowForce: 100, attributeInputs: baseAttributeInputs({ vitality }) }
       );
       assert.deepEqual(result.warnings, []);
       assert.equal(result.planningState.profession.shadowClock.value, 98);
@@ -385,10 +386,12 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
 
   assertFlooredDamageMultiplier(skillDamage(behind, 'Backstab'), skillDamage(front, 'Backstab'), 2);
 
-  const unmarked = simulate('Deadeye', ['Cloak and Dagger', 'Malicious Backstab'], { stats: { precision: 5000 } });
+  const unmarked = simulate('Deadeye', ['Cloak and Dagger', 'Malicious Backstab'], {
+    attributeInputs: baseAttributeInputs({ precision: 5000 })
+  });
   const marked = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Cloak and Dagger', 'Malicious Backstab'], {
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
-    stats: { precision: 5000 }
+    attributeInputs: baseAttributeInputs({ precision: 5000 })
   });
   assertFlooredDamageMultiplier(
     skillDamage(marked, 'Malicious Backstab'),
@@ -401,7 +404,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
     selectedSkillIds: [45508],
     primaryWeapon: 'Rifle',
     secondaryWeapon: '',
-    stats: { precision: 5000 }
+    attributeInputs: baseAttributeInputs({ precision: 5000 })
   };
   const unmarkedRifle = simulate(
     'Deadeye',
@@ -428,7 +431,7 @@ test('Revealed Training does not empower the stealth attack that reveals the thi
   const rotation = ['Cloak and Dagger', 'Backstab', 'Double Strike'];
   const config = {
     selectedSkillIds: [],
-    stats: { power: 2000, precision: 5000 }
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 5000 })
   };
   const baseline = simulate('Core', rotation, config);
   const trained = simulate('Core', rotation, {
@@ -782,12 +785,12 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
     primaryWeapon: 'Scepter',
     secondaryWeapon: 'Dagger',
     selectedTraitIds: [TRAIT.SECOND_OPINION, TRAIT.STRENGTH_OF_SHADOWS],
-    stats: {
+    attributeInputs: baseAttributeInputs({
       conditionDamage: 1000,
       healingPower: 100,
       vitality: 1000,
       expertise: 0
-    }
+    })
   };
   const query = createGw2CombatQuery({
     profession: resolveProfessionContract(thiefProfession, attributeConfig),
@@ -796,7 +799,7 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
   const stats = query.statsAt(0);
 
   assert.equal(stats.conditionDamage, 1180);
-  assert.equal(stats.healingPower, 170);
+  assert.equal(stats.healingPower, 100 + Math.round(1180 * 0.07));
   assert.equal(stats.expertise, 130);
 
   const allies = simulate('Specter', ['Enter Shadow Shroud', "Dawn's Repose", { name: '__wait', waitMs: 1000 }], {
@@ -1291,10 +1294,10 @@ test('Thieves Guild uses independent summon weapons and attack profiles', () => 
       .filter((entry) => entry.parentSkill === 'Thieves Guild')
       .reduce((total, entry) => total + Number(entry.conditionDamage || 0), 0);
   const lowPower = simulate('Daredevil', rotation, {
-    stats: { power: 1000, precision: 1000, ferocity: 0 }
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0 })
   });
   const highPower = simulate('Daredevil', rotation, {
-    stats: { power: 4000, precision: 3000, ferocity: 1500 }
+    attributeInputs: baseAttributeInputs({ power: 4000, precision: 3000, ferocity: 1500 })
   });
 
   assert.equal(summonStrikeDamage(lowPower), summonStrikeDamage(highPower));
@@ -1471,7 +1474,7 @@ test('Meticulous Kryptis Torment scales its base duration before the condition-d
       const result = runThief(['Skritt Swipe', 'Summon Kryptis Turret', { type: 'wait', durationMs: 2000 }], {
         specialization: 'Antiquary',
         selectedTraitIds,
-        stats: { expertise }
+        attributeInputs: baseAttributeInputs({ expertise })
       });
       return result.resolvedEvents.find(
         (event) => event.skillId === ID.SUMMON_KRYPTIS_TURRET && event.type === 'condition'

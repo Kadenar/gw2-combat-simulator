@@ -1,27 +1,6 @@
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { activeBuff, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { applyWellspringPetAttributes } from '#gw2/professions/ranger/core/traits/nature-magic/attributes.js';
-import { applyArachnophobiaPetAttributes } from '#gw2/professions/ranger/core/traits/wilderness-survival/attributes.js';
-import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
-
-/** Owns Ranger pet-audience attributes and rules so player modifier composition stays explicit. */
-
-/** Preserves the family bonus before Wellspring's independent-pet conversion. */
-export function modifyRangerPetAttributes(
-  context: RangerModifierContext,
-  result: { -readonly [Key in keyof Gw2ResolvedStats]: Gw2ResolvedStats[Key] },
-  staticRulesApplied: boolean
-): void {
-  if (!rangerPetEvent(context)) return;
-  const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
-    result[attribute] = (result[attribute] || 0) + amount;
-  };
-
-  applyArachnophobiaPetAttributes(context, adjust);
-  applyWellspringPetAttributes(context, result, adjust, staticRulesApplied);
-}
 
 export const rangerPetModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {

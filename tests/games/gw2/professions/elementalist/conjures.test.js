@@ -1,3 +1,4 @@
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
@@ -5,7 +6,7 @@ import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { modifyElementalistAttributes } from '#gw2/professions/elementalist/core/modifiers.js';
+import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
 
 const hammerOptions = {
   lines: [['Fire'], ['Air'], ['Arcane']],
@@ -152,15 +153,22 @@ test('Lightning Hammer attributes follow the wielder through utility hits, drop,
   const runtime = { profession: { core } };
   const attributes = { precision: 1000, ferocity: 0 };
   const context = { runtime, config: { selectedTraitIds: [] }, event: { skillName: 'Arcane Wave' }, time: 1 };
-  const baseline = modifyElementalistAttributes(context, attributes);
+  const baseline = evaluateAttributeDeclarations(context, attributes, elementalistSkillAttributes);
   // Attribute queries read the live equipped bundle and its expiry.
   Object.assign(core, { conjureEquipped: 'Lightning Hammer', conjureExpiresAt: 31 });
-  const held = modifyElementalistAttributes({ catalog: elementalistCatalog, ...context }, attributes);
+  const held = evaluateAttributeDeclarations(
+    { catalog: elementalistCatalog, ...context },
+    attributes,
+    elementalistSkillAttributes
+  );
   assert.equal(held.precision - baseline.precision, 180);
   assert.equal(held.ferocity - baseline.ferocity, 75);
-  assert.deepEqual(modifyElementalistAttributes({ ...context, time: 31 }, attributes), baseline);
+  assert.deepEqual(
+    evaluateAttributeDeclarations({ ...context, time: 31 }, attributes, elementalistSkillAttributes),
+    baseline
+  );
   Object.assign(core, { conjureEquipped: null, conjureExpiresAt: 0 });
-  assert.deepEqual(modifyElementalistAttributes(context, attributes), baseline);
+  assert.deepEqual(evaluateAttributeDeclarations(context, attributes, elementalistSkillAttributes), baseline);
 });
 
 test('Invoke Lightning uses linear per-hit falloff with the requested hitbox midpoint', () => {

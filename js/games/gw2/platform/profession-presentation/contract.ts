@@ -3,7 +3,6 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 const UI_CALLBACK_NAMES = Object.freeze([
   'previewControls',
-  'attributePreviewDisabledTrait',
   'prepareAttributePreview',
   'skillDamageGroups',
   'skillDamageState',
@@ -83,7 +82,6 @@ export function normalizeProfessionUi(
   const normalizedUi: ProfessionUiContract = {
     ...ui,
     previewControls: ui.previewControls || (() => []),
-    attributePreviewDisabledTrait: ui.attributePreviewDisabledTrait || (() => null),
     prepareAttributePreview: ui.prepareAttributePreview || (() => {}),
     // Professions without mechanic groups still list weapons and slot skills through the platform defaults.
     skillDamageGroups: ui.skillDamageGroups || (() => []),

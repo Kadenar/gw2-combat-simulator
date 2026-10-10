@@ -2,19 +2,7 @@
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-
-export type WarriorModifierAttributes = Gw2MutableStats & {
-  power: number;
-  precision: number;
-  ferocity: number;
-  conditionDamage: number;
-  expertise: number;
-  vitality: number;
-  healingPower: number;
-  concentration: number;
-};
 
 // Use canonical duration pools while retaining Warrior's config/live-only visibility contract.
 export function warriorBoonActive(context: Gw2ModifierContext, boon: string): boolean {
@@ -33,7 +21,7 @@ export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
 // Test both weapon hands at query time, including projected modifier-evaluation swaps.
 export function warriorWieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
   if (skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === weapon) return true;
-  const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
+  const weaponSet = Number(context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet) === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
   return (primary || '') === weapon || (secondary || '') === weapon;
 }

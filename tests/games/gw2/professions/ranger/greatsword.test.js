@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -17,7 +18,13 @@ const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Greatsword',
   selectedPet: 'Tiger',
   selectedTraitIds: [],
-  stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000, expertise: 0 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1000,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0
+  }),
   target: { armor: 2597, defiant: true, conditions: { Vulnerability: 25 } }
 });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
@@ -183,7 +190,7 @@ test('Only Soulbeast Maul grants 25% to the next player strike and expires after
     ]) {
       // Concentration must not extend this unique buff beyond its ten-second window.
       const result = simulate(specialization, [maulId, wait(delay), ID.SLASH_ID_12474, ID.SLICE], {
-        stats: { concentration: 1500 }
+        attributeInputs: baseAttributeInputs({ concentration: 1500 })
       });
       const maul = strike(result, maulId);
       const slash = strike(result, ID.SLASH_ID_12474);

@@ -1,10 +1,10 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { buffActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -33,9 +33,20 @@ export const angsiyansTrust = defineTrait({
 
 /** Owns Empire Divided tuning and behavior at its established execution boundaries. */
 export const empireDivided = defineTrait({
-  buildAttributes: traitAttributeEffects(TRAIT.EMPIRE_DIVIDED, [
-    { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: false }
-  ]),
+  attributes: (context) => {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPIRE_DIVIDED);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: playerHealthFraction(context) > balanceProfileNumber(profile, 'threshold')
+        }
+      ]
+    };
+  },
   id: TRAIT.EMPIRE_DIVIDED,
   name: 'Empire Divided',
   balance: { attributeBonus: 240, threshold: 0.5 }

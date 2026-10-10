@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
@@ -21,8 +22,7 @@ test('Signet of Fire precision follows recharge and resets unless Written in Sto
             { type: 'wait', durationMs: 15000 }
           ],
           {
-            stats: { precision: 1180 },
-            attributeProvenance: { professionStaticRulesApplied: true },
+            attributeInputs: baseAttributeInputs({ precision: 1000 }),
             selectedSkillIds: [5542],
             selectedTraitIds: traited ? [TRAIT.WRITTEN_IN_STONE] : []
           },

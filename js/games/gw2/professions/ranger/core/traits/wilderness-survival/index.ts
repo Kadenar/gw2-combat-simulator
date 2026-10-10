@@ -1,13 +1,14 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { activePetFamily, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
@@ -110,9 +111,24 @@ export const arachnophobia = defineTrait({
     weaponAttributeBonus: 225,
     effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]
   },
-  buildAttributes: traitAttributeEffects(TRAIT.ARACHNOPHOBIA, [
-    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: false }
-  ])
+  // Live pet queries may lack a snapshot; captured packet Expertise replaces this later.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.ARACHNOPHOBIA);
+    const familyBonus =
+      rangerPetEvent(context) && ['spider', 'devourer'].includes(activePetFamily(context))
+        ? balanceProfileNumber(profile, 'weaponAttributeBonus')
+        : 0;
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Expertise',
+          amount: balanceProfileNumber(profile, 'attributeBonus') + familyBonus,
+          feedsConversions: false
+        }
+      ]
+    };
+  }
 });
 
 /** Owns Carnivore's live tuning and trait behavior. */
@@ -182,9 +198,9 @@ export const ambidexterity = defineTrait({
       multiplier: { profile: TRAIT.AMBIDEXTERITY, field: 'rechargeMultiplier' }
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+  attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const profile = requireBalanceProfileFromContext(profileContext, TRAIT.AMBIDEXTERITY);
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
       attributeEffects: [
         {
@@ -192,7 +208,7 @@ export const ambidexterity = defineTrait({
           to: 'Condition Damage',
           amount: balanceProfileNumber(
             profile,
-            weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon))
+            weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon ?? ''))
               ? 'weaponAttributeBonus'
               : 'attributeBonus'
           ),

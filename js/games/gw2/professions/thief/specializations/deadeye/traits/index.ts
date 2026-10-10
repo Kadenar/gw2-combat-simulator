@@ -1,34 +1,61 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { skillForEvent, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import { STOLEN_SKILLS, stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
+  deadeyeCastCompleted,
   maliceGained,
   maliceSpent,
   markCompleted,
-  deadeyeCastCompleted,
   type DeadeyeCast,
   type DeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
-import { activeBoonCount } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import {
+  activeBoonCount,
+  STOLEN_SKILLS,
+  stolenSkillGrant
+} from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Owns Be Quick or Be Killed tuning and behavior at the existing execution boundaries. */
 export const beQuickOrBeKilled = defineTrait({
+  // Quickness controls both flat attributes in build and live evaluation.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BE_QUICK_OR_BE_KILLED);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: boonActive(context, 'quickness')
+        },
+        {
+          kind: 'flat',
+          to: 'Precision',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: boonActive(context, 'quickness')
+        }
+      ]
+    };
+  },
+
   triggers: [onTriggerPoint(markCompleted, { run: grantBeQuickOrBeKilled })],
   id: TRAIT.BE_QUICK_OR_BE_KILLED,
   name: 'Be Quick or Be Killed',
@@ -157,7 +184,7 @@ export const premeditation = defineTrait({
     maximumBoons: GW2_STANDARD_BOONS.length,
     attributeBonus: 180
   },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const premeditationProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.PREMEDITATION);
     return {
       attributeEffects: [
@@ -182,7 +209,7 @@ export const silentScope = defineTrait({
     durationMultiplier: 3,
     attributeBonus: 120
   },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const silentScopeProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.SILENT_SCOPE);
     return {
       attributeEffects: [

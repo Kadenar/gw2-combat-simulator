@@ -1,14 +1,15 @@
-import { pistolBalanceProfiles } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { elementalistCoreModifiers } from '#gw2/professions/elementalist/core/modifiers.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
+import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
 import {
   ELEMENTALIST_CORE_EXTRA_SKILLS,
   ELEMENTALIST_CORE_SKILL_MECHANICS
 } from '#gw2/professions/elementalist/core/skills/index.js';
+import { pistolBalanceProfiles } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   createElementalistCoreState,
   ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION
@@ -21,6 +22,7 @@ import { createElementalistModuleData } from '#gw2/professions/elementalist/data
  * that every Elementalist specialization builds on.
  */
 export const elementalistCoreModule = defineNativeModule({
+  attributes: elementalistSkillAttributes,
   canSwapWeaponSetsInCombat: false,
   id: 'Core',
   data: createElementalistModuleData('Core', {

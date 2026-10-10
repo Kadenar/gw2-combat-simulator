@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -37,7 +38,7 @@ function simulate(rotation, sigil) {
     startingLegend: 'LegendaryAssassin',
     initialEnergy: 50,
     sigilSets: [{ names: [sigil] }, { names: [] }],
-    stats: { power: 2000, precision: 1500, ferocity: 500, vitality: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1500, ferocity: 500, vitality: 1000 }),
     target: { armor: 2597, health: 4_000_000, conditions: {} }
   };
   return runGw2Runtime({ profession: revenantProfession.runtimeFor(config), config, rotation });

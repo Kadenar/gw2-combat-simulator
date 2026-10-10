@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   ELEMENTALIST_TRAIT_IDS as ELEMENTALIST,
@@ -53,7 +54,13 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
       const config = {
         specialization,
         selectedTraitIds: [trait],
-        stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
+        attributeInputs: baseAttributeInputs({
+          power: 1000,
+          precision: 1000,
+          ferocity: 0,
+          conditionDamage: 0,
+          expertise: 0
+        }),
         target: { armor: 2597, conditions: {} },
         randomness: { mode: 'expected', seed: 1 }
       };
@@ -142,7 +149,13 @@ for (const [name, profession, specialization, trait, skill, effect, configExtra]
       const config = {
         specialization,
         selectedTraitIds: [trait],
-        stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
+        attributeInputs: baseAttributeInputs({
+          power: 1000,
+          precision: 1000,
+          ferocity: 0,
+          conditionDamage: 0,
+          expertise: 0
+        }),
         target: { armor: 2597, conditions: {} },
         ...configExtra
       };

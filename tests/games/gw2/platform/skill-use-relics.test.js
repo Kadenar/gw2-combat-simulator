@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -359,7 +360,7 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
   const config = {
     relic: '',
     precastRelics: ['Director'],
-    stats: { expertise: 0 },
+    attributeInputs: baseAttributeInputs({ expertise: 0 }),
     target: { health: 0, conditions: {} }
   };
   const onTarget = simulateMesmer(rotation(false), config);

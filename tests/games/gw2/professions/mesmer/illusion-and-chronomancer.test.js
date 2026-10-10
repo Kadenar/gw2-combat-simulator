@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import {
   formatConcurrentTimelineBadge,
@@ -293,7 +294,7 @@ test('Chronomancer shatter boons use boon duration and include Continuum Split',
       specialization: 'Chronomancer',
       selectedTraitIds: [TRAIT.SEIZE_THE_MOMENT],
       initialResource: 1,
-      stats: { concentration: 750 },
+      attributeInputs: baseAttributeInputs({ concentration: 750 }),
       boons: { quickness: false, alacrity: false }
     })
   );
@@ -372,7 +373,7 @@ test('Flow of Time increases clone critical chance while alacrity is active', ()
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0,
-      stats: { precision: 1000 },
+      attributeInputs: baseAttributeInputs({ precision: 1000 }),
       boons: { fury: false, alacrity: true }
     })
   );
@@ -393,7 +394,7 @@ test('Phantasmal Fury increases phantasm critical chance', () => {
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0,
-      stats: { precision: 1000 },
+      attributeInputs: baseAttributeInputs({ precision: 1000 }),
       boons: { fury: false, alacrity: false }
     })
   );
@@ -414,7 +415,7 @@ test('illusions do not inherit the mesmer Fury boon', () => {
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0,
-      stats: { precision: 1000 },
+      attributeInputs: baseAttributeInputs({ precision: 1000 }),
       boons: { fury: true, alacrity: false }
     })
   );
@@ -433,12 +434,12 @@ test('clones do not inherit permanent Might while phantasms remain player-owned'
         primaryWeapon: 'Staff',
         secondaryWeapon: '',
         initialResource: 0,
-        stats: {
+        attributeInputs: baseAttributeInputs({
           power: 1000,
           precision: 1000,
           ferocity: 0,
           conditionDamage: 0
-        },
+        }),
         boons: {
           might,
           fury: false,
@@ -849,7 +850,7 @@ test('Well of Precognition grants support boons and restores endurance at field 
       specialization: 'Chronomancer',
       selectedSkillIds: [29526],
       boons: { quickness: false, alacrity: false },
-      stats: { concentration: 0 }
+      attributeInputs: baseAttributeInputs({ concentration: 0 })
     })
   );
   const cast = result.steps[0];

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -34,7 +35,7 @@ test('Thief critical boons read pre-hit Fury with same-time ordering and expiry'
       [wait(8500)],
       {
         selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER],
-        stats: { power: 1000, precision: 4000 }
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000 })
       },
       {
         initialize(runtime) {

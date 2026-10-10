@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -6,7 +7,13 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const simulate = createObservedProfessionSimulator(warriorProfession, {
-  stats: { power: 2000, precision: 1000, conditionDamage: 1000, expertise: 0, concentration: 0 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1000,
+    conditionDamage: 1000,
+    expertise: 0,
+    concentration: 0
+  }),
   target: { armor: 2597, health: 10000000, conditions: {} }
 });
 

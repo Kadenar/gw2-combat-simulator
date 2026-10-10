@@ -1,14 +1,12 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -17,11 +15,14 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/professions/revenant/core/state-queries.js';
+import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { energyCostAccepted } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
 import { affinityGranted, gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import {
@@ -47,13 +48,20 @@ import { conduitState } from '#gw2/professions/revenant/specializations/conduit/
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-import type { RevenantBuild } from '#gw2/professions/revenant/types.js';
-
 /** Owns Bolstered Bonds tuning and behavior at its established execution boundaries. */
 export const bolsteredBonds = defineTrait({
-  buildAttributes: (_common, { balanceContext, build }) => ({
+  attributes: (context) => ({
     attributeEffects: Object.entries(
-      bolsteredBondsBonuses(balanceContext, (build as RevenantBuild).selectedLegends)
+      bolsteredBondsBonuses(
+        context.balanceContext,
+        context.runtime ? revenantRuntimeCoreState(context).selectedLegendIds : context.loadout.selectedLegends,
+        (revenantRuntimeSpecializationState(context, 'Conduit').cosmicWisdomUntil ?? 0) > context.time
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context.balanceContext, TRAIT.BOLSTERED_BONDS),
+              'attributeMultiplier'
+            )
+          : 1
+      )
     ).map(([attribute, amount]) => ({
       kind: 'flat' as const,
       to: BUILD_ATTRIBUTE_NAMES[attribute as keyof typeof BUILD_ATTRIBUTE_NAMES],
@@ -224,16 +232,14 @@ export const numinousGiftTrait = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof cosmicWisdomEntered>) => numinousGift(runtime, input.cast)
     })
   ],
-  buildAttributes: (_common, { balanceContext, build, disabledTrait }) => ({
-    traitDurations: getActiveTraits((build as RevenantBuild).specializations ?? []).some(
-      (trait) => trait.id === TRAIT.YEARNING_EMPOWERMENT && trait.name !== disabledTrait
-    )
+  attributes: (context) => ({
+    traitDurations: hasTrait(context, TRAIT.YEARNING_EMPOWERMENT)
       ? Object.fromEntries(
           ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((condition) => [
             condition + ' Duration',
             100 *
               balanceProfileNumber(
-                requireBalanceProfileFromContext(balanceContext, CONDUIT_BALANCE_PROFILE_IDS.numinousGift),
+                requireBalanceProfileFromContext(context.balanceContext, CONDUIT_BALANCE_PROFILE_IDS.numinousGift),
                 'conditionDurationBonus'
               )
           ])
@@ -312,21 +318,6 @@ export const numinousGiftTrait = defineTrait({
         );
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
-    },
-    {
-      id: 'revenant.yearning-empowerment-numinous-gift',
-      order: 103,
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, 'revenant.conduit.numinous-gift'),
-          'conditionDurationBonus'
-        ),
-      when: (context) =>
-        isDamagingCondition(context.condition) &&
-        hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
-        !professionStaticRulesApplied(context.config)
     }
   ]
 });

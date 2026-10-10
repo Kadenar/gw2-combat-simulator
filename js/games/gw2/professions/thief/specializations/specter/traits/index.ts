@@ -1,12 +1,12 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { alliedBarrierGranted } from '#gw2/professions/thief/specializations/specter/skills/barrier.js';
-import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { alliedBarrierGranted } from '#gw2/professions/thief/specializations/specter/skills/barrier.js';
 
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -89,8 +89,8 @@ export const secondOpinion = defineTrait({
     attributePerStack: 90,
     attributeConversion: 0.07
   },
-  buildAttributes(_common, { build, weaponSet, balanceContext }) {
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+  attributes({ loadout, weaponSet, balanceContext }) {
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const secondOpinionProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.SECOND_OPINION);
     return {
       attributeEffects: [
@@ -176,7 +176,7 @@ export const strengthOfShadows = defineTrait({
     conditionDamageIncrease: 0.2,
     attributeConversion: 0.13
   },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const strengthOfShadowsProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.STRENGTH_OF_SHADOWS);
     return {
       attributeEffects: [

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import assert from 'node:assert/strict';
@@ -451,10 +452,10 @@ test('player boon sharing can exclude non-mech summons', () => {
     buffs: new Map([])
   };
   const config = {
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 1000,
       precision: 1000
-    },
+    }),
     boons: {
       might: 5,
       fury: false
@@ -564,12 +565,12 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
   const query = createGw2CombatQuery({
     profession: queryProfession,
     config: {
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 1000,
         precision: 1000,
         conditionDurationBonus: 25,
         conditionDurationBonuses: { Bleeding: 15 }
-      },
+      }),
       boons: { might: 25, fury: false },
       sharePlayerBoonsWithSummons: false
     },

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -14,7 +15,7 @@ function run(rotation, overrides = {}, source = warriorProfession, output = 'det
     primaryWeapon: 'Axe',
     initialResource: 30,
     selectedTraitIds: [],
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 },
     ...overrides
   };
@@ -122,7 +123,7 @@ test('King of Fires consumes one actual critical aura on completion and cannot r
   const config = {
     selectedSkillIds: [29941],
     selectedTraitIds: [TRAIT.KING_OF_FIRES],
-    stats: { power: 2000, precision: 0 }
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 0 })
   };
   const result = run(['Wild Blow'], config);
   assert.deepEqual(result.warnings, []);
@@ -144,7 +145,7 @@ test('a critical arriving after completed Berserker activation detonates without
   const config = {
     selectedSkillIds: [29941],
     selectedTraitIds: [TRAIT.KING_OF_FIRES],
-    stats: { power: 2000, precision: 0 }
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 0 })
   };
   const rotation = [{ name: 'Wild Blow', impactDelayMs: 1000 }, wait(2000)];
   const detailed = run(rotation, config);
@@ -164,7 +165,7 @@ test('combo Fire Aura can detonate during the critical-aura cooldown and an unus
     primaryWeapon: 'Longbow',
     selectedSkillIds: [29613],
     selectedTraitIds: [TRAIT.KING_OF_FIRES],
-    stats: { power: 2000, precision: 4000 }
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000 })
   };
   const result = run(['Berserk', 'Scorched Earth', 'Sundering Leap'], config);
   assert.deepEqual(result.warnings, []);

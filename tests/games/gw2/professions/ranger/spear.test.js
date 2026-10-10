@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -12,7 +13,7 @@ const simulate = createObservedProfessionSimulator(rangerProfession, {
   selectedPet: 'Pig',
   selectedTraitIds: [],
   boons: { quickness: true, alacrity: false },
-  stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 }),
   target: { armor: 2597, defiant: false, conditions: {} }
 });
 const wait = (durationMs) => ({ type: 'wait', durationMs });

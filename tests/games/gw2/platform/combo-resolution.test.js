@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -110,7 +111,7 @@ test('combo boon resolution samples changing live concentration instead of confi
   const result = resolveTestGw2Events({
     ...{ events, endTime: 4 },
     buffPolicies: [{ kind: 'concentration-fixture', maximumStacks: 1 }],
-    config: { target: {}, stats: { concentration: 0 } },
+    config: { target: {}, attributeInputs: baseAttributeInputs({ concentration: 0 }) },
     traits: new Set(),
     helpers,
     query: {

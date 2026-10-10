@@ -2,9 +2,9 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBuffStacks, targetHealthBelow, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
+
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -49,11 +49,7 @@ import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistModifierContext,
-  ElementalistResolverContext,
-  ElementalistRuntime
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
@@ -61,25 +57,34 @@ export const zephyrsSpeed = defineTrait({
   id: TRAIT.ZEPHYRS_SPEED,
   name: "Zephyr's Speed",
   balance: { criticalChance: 0.05 },
-  modifierRules: [
-    {
-      order: -4,
-      id: 'elementalist.zephyrs-speed-critical-chance',
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_SPEED), 'criticalChance'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
-    }
-  ],
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: (context) => ({
     traitCriticalChance:
-      100 *
-      balanceProfileNumber(requireBalanceProfileFromContext(balanceContext, TRAIT.ZEPHYRS_SPEED), 'criticalChance')
+      (!context.event || isGw2PlayerModifierOwnedEvent(context.event) ? 100 : 0) *
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context.balanceContext, TRAIT.ZEPHYRS_SPEED),
+        'criticalChance'
+      )
   })
 });
 
 export const freshAir = defineTrait({
+  // Read the accepted Fresh Air window without changing its lifetime.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.FRESH_AIR);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: activeBuffStacks(context, 'fresh-air', 1) > 0
+        }
+      ]
+    };
+  },
+
   id: TRAIT.FRESH_AIR,
   triggers: [
     onTriggerPoint(attunementChanged, {
@@ -150,7 +155,7 @@ export const ferociousWinds = defineTrait({
   id: TRAIT.FEROCIOUS_WINDS,
   name: 'Ferocious Winds',
   balance: { attributeConversion: 0.07 },
-  buildAttributes: traitAttributeEffects(TRAIT.FEROCIOUS_WINDS, [
+  attributes: traitAttributeEffects(TRAIT.FEROCIOUS_WINDS, [
     {
       kind: 'conversion',
       from: 'Precision',
@@ -228,6 +233,24 @@ export const inscription = defineTrait({
 });
 
 export const ragingStorm = defineTrait({
+  // Use actor-aware Fury in combat and configured Fury in the build panel.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.RAGING_STORM);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled:
+            context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, 'fury')
+        }
+      ]
+    };
+  },
+
   id: TRAIT.RAGING_STORM,
   triggers: [
     onTriggerPoint(elementalistDamageResolved, {
@@ -250,9 +273,30 @@ export const aeromancersTraining = defineTrait({
     attributeBonus: 150,
     rechargeMultiplier: 0.8
   },
-  buildAttributes: traitAttributeEffects(TRAIT.AEROMANCERS_TRAINING, [
-    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: false }
-  ])
+  // The attunement bonus is evaluated alongside ordinary trait contributions.
+  // Keep permanent Ferocity and the additional Air bonus in one selected declaration.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.AEROMANCERS_TRAINING);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: true
+        },
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: primaryAttunement(context) === 'Air'
+        }
+      ]
+    };
+  }
 });
 
 export const lightningRod = defineTrait({
@@ -398,28 +442,6 @@ function applyResolverZephyrsBoon(context: MechanicCombatContext, event: Gw2Reso
     },
     transform: (packet) => ({ ...packet, name: requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON).name })
   });
-}
-
-/** Preserve the live air attribute pass at its original position in the Core modifier pipeline. */
-export function applyAirTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
-  const primary = primaryAttunement(context);
-  if (hasTrait(context, TRAIT.FRESH_AIR) && activeBuffStacks(context, 'fresh-air', 1) > 0) {
-    const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
-    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(freshAirProfile, 'attributeBonus');
-  }
-
-  if (hasTrait(context, TRAIT.AEROMANCERS_TRAINING) && primary === 'Air') {
-    const aeromancersTrainingProfile = requireBalanceProfileFromContext(context, TRAIT.AEROMANCERS_TRAINING);
-    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(aeromancersTrainingProfile, 'attributeBonus');
-  }
-
-  if (
-    hasTrait(context, TRAIT.RAGING_STORM) &&
-    Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
-  ) {
-    const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
-    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(ragingStormProfile, 'attributeBonus');
-  }
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */

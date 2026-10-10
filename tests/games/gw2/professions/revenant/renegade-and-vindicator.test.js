@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
@@ -58,14 +59,14 @@ const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 
@@ -153,7 +154,7 @@ test('Ferocious Aggression increases food life steal only while Fury is active',
       {
         primaryWeapon: 'Hammer',
         food: 'Cilantro Lime Sous-Vide Steak',
-        stats: { precision: 3100 },
+        attributeInputs: baseAttributeInputs({ precision: 3100 }),
         selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION],
         boons: { fury }
       },
@@ -646,7 +647,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   const nourishment = simulate('Renegade', ['Citadel Bombardment', { type: 'wait', durationMs: 2100 }, 'Shattershot'], {
     ...config,
     food: 'Cilantro Lime Sous-Vide Steak',
-    stats: { precision: 3100 },
+    attributeInputs: baseAttributeInputs({ precision: 3100 }),
     selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY]
   })
     .resolvedEvents.filter((event) => event.skillName === 'Nourishment')
@@ -711,7 +712,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
     selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.ENDLESS_ENMITY, TRAIT.BLOOD_FURY],
     target: { defiant: false },
     boons: { fury: false },
-    stats: { precision: 4000 },
+    attributeInputs: baseAttributeInputs({ precision: 4000 }),
     initialEnergy: 100
   });
 
@@ -747,17 +748,14 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
       },
       1.2
     ),
-    1.7
+    1.45
   );
   assert.equal(
     revenantModifiers.modifyConditionDuration(
       {
         config: {
           specialization: 'Renegade',
-          selectedTraitIds: [TRAIT.PACT_OF_PAIN],
-          attributeProvenance: {
-            professionStaticRulesApplied: true
-          }
+          selectedTraitIds: [TRAIT.PACT_OF_PAIN]
         },
         condition: 'Torment',
         time: 1,
@@ -777,7 +775,7 @@ test('Renegade critical traits consume seeded critical outcomes', () => {
       selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.ENDLESS_ENMITY],
       target: { defiant: false },
       boons: { fury: false },
-      stats: { precision: 1945 },
+      attributeInputs: baseAttributeInputs({ precision: 1945 }),
       initialEnergy: 100,
       randomness: { mode: 'stochastic', seed }
     });
@@ -811,7 +809,10 @@ test('Brutal Momentum proc facts follow live endurance while preserving earlier 
     {
       specialization: 'Renegade',
       selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM],
-      stats: { ...baseConfig.stats, precision: 895 },
+      attributeInputs: baseAttributeInputs({
+        ...baseConfig.attributeInputs.weaponSets[0].commonTotals,
+        precision: 895
+      }),
       boons: {}
     },
     {
@@ -873,7 +874,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
       }),
       0.2
     ),
-    0.53
+    0.43000000000000005
   );
   assert.ok(
     Math.abs(
@@ -887,7 +888,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
           }
         }),
         0.2
-      ) - 0.3
+      ) - 0.2
     ) < 1e-9
   );
 });
@@ -1089,7 +1090,7 @@ test("Razorclaw models party procs with the Revenant's condition stats", () => {
       startingLegend: LEGEND.RENEGADE,
       initialEnergy: 100,
       allies: { count: 4, strikesPerSecond: 1 },
-      stats: { conditionDamage: 1500, expertise: 300 }
+      attributeInputs: baseAttributeInputs({ conditionDamage: 1500, expertise: 300 })
     },
     observationTail(5000)
   );
@@ -1192,10 +1193,10 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 100,
-    stats: {
+    attributeInputs: baseAttributeInputs({
       precision: 1000,
       criticalChanceBonus: 45
-    },
+    }),
     sigilSets: [
       { names: ['Air'], strike: 1, condition: 1 },
       { names: [], strike: 1, condition: 1 }

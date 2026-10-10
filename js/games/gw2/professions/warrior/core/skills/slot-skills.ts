@@ -2,17 +2,14 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import {
-  warriorActiveBuffStacks,
-  type WarriorModifierAttributes
-} from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -341,19 +338,17 @@ export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSki
   tasks: { [SIGNET_PULSE]: signetPulse }
 };
 
-// One passive descriptor feeds both baked build attributes and live cooldown subtraction.
+// One passive descriptor feeds build and live queries.
 const signetPassives = [
   { name: 'Signet of Might', id: ID.SIGNET_OF_MIGHT, attribute: 'power', label: 'Power' },
   { name: 'Signet of Fury', id: ID.SIGNET_OF_FURY, attribute: 'precision', label: 'Precision' }
 ] as const;
 
-/** Signet bonuses never feed build conversions, and baked passives are subtracted only while recharging. */
-export function signetBuildAttributes(
-  context: Parameters<typeof requireBalanceProfileFromContext>[0],
-  selected: (id: number) => boolean
-): readonly Gw2AttributeEffect[] {
+/** Signet bonuses never feed conversions and apply only while ready. */
+export function signetAttributeEffects(context: Gw2AttributeContext): readonly Gw2AttributeEffect[] {
+  if (!signetPassives.some(({ id }) => hasSelectedSkillId(context, id))) return [];
   const bonus = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.signetPassives),
+    requireBalanceProfileFromContext(context.balanceContext, PROFILE.signetPassives),
     'attributeBonus'
   );
   return signetPassives.map(({ id, label }) => ({
@@ -361,34 +356,17 @@ export function signetBuildAttributes(
     to: label,
     amount: bonus,
     feedsConversions: false,
-    enabled: selected(id)
+    enabled: hasSelectedSkillId(context, id) && !context.timeline?.skillOnCooldownAt(id, context.time)
   }));
 }
 
 /** Intrinsic active and passive attributes use live self status and selected signet recharge. */
-export function modifySignetAttributes(
-  context: Gw2ModifierContext,
-  result: WarriorModifierAttributes,
-  staticRulesApplied: boolean
-): void {
+export function signetActiveAttributeEffects(context: Gw2ModifierContext): readonly Gw2AttributeEffect[] {
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
     const signetOfFuryActiveProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFuryActive);
     const bonus = balanceProfileNumber(signetOfFuryActiveProfile, 'attributeBonus');
-    result.precision += bonus;
-    result.ferocity += bonus;
+    return ['Precision', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount: bonus, feedsConversions: false }));
   }
 
-  const activeSignets = signetPassives.filter(({ id }) => {
-    if (!hasSelectedSkillId(context, id)) return false;
-    const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
-    return staticRulesApplied ? onCooldown : !onCooldown;
-  });
-  if (activeSignets.length > 0) {
-    const signetPassivesProfile = requireBalanceProfileFromContext(context, PROFILE.signetPassives);
-    // Both eligible signets use the same passive bonus, read once before applying it.
-    const passiveBonus = balanceProfileNumber(signetPassivesProfile, 'attributeBonus');
-    for (const { attribute } of activeSignets) {
-      result[attribute] += (staticRulesApplied ? -1 : 1) * passiveBonus;
-    }
-  }
+  return [];
 }

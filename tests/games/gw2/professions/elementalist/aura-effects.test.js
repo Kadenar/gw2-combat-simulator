@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { auraAccepted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -36,7 +37,7 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
       for (const synthetic of [false, true]) {
         const events = [];
         const skill = { id: 1, name: 'Air entry' };
-        const config = { stats: { concentration: 750 } };
+        const config = { attributeInputs: baseAttributeInputs({ concentration: 750 }) };
         const context = observedRuntime(runElementalist([], { ...config, specialization: 'Evoker' }));
         Object.assign(context, {
           helpers: catalog,
@@ -99,7 +100,7 @@ test('Core and Tempest aura boons submit patched authored effects', () => {
       stacks: index + 2,
       duration: index + 7
     }));
-    const config = { stats: { concentration: 750 }, specialization: 'Tempest' };
+    const config = { attributeInputs: baseAttributeInputs({ concentration: 750 }), specialization: 'Tempest' };
     const context = observedRuntime(runElementalist([], config));
     const events = [];
     context.helpers = withProfile(elementalistCatalog, profileId, { effects });

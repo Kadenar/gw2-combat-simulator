@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -21,17 +22,17 @@ import test from 'node:test';
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(
   applyGuardianBuildAttributeRules,
-  guardianProfession.traitBuildAttributes
+  guardianProfession.attributeContributions
 );
 
 const config = {
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1000,
     ferocity: 0,
     conditionDamage: 1000,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597 }
 };
 
@@ -558,7 +559,7 @@ test('Inspired Virtue emits its base boon through the shared boon-duration polic
   const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE],
-    stats: { ...config.stats, concentration: 750 }
+    attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, concentration: 750 })
   })(undefined, ['Virtue of Courage']);
   const protection = result.events.find(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE

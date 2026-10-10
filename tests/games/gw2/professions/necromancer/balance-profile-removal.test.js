@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -27,7 +28,14 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     professions: { necromancer: { balanceProfiles } }
   });
   const result = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 2000, ferocity: 500, conditionDamage: 1200, expertise: 0, vitality: 1000 },
+    attributeInputs: baseAttributeInputs({
+      power: 2000,
+      precision: 2000,
+      ferocity: 500,
+      conditionDamage: 1200,
+      expertise: 0,
+      vitality: 1000
+    }),
     target: { armor: 2597, health: 1_000_000 }
   })(specialization, rotation, { patchId: 'necromancer-removal', ...config });
   assert.deepEqual(result.warnings, []);

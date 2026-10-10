@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -11,7 +12,7 @@ function run({ grants = [], end = 2, combatStartTime = 0, rate = 2, health = 0, 
     specialization: 'Core',
     selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
     allies: { count: 2, strikesPerSecond: rate },
-    stats: { power: 1000, precision: 1000, vitality: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
     target: { armor: 2597, health, conditions: {} }
   };
   const native = necromancerProfession.runtimeFor(config);

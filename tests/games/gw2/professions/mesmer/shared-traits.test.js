@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -258,10 +259,10 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
     ],
     defaultSimulationConfig({
       selectedTraitIds: [TRAIT.MASTER_FENCER],
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 2995
-      },
+      }),
       boons: {
         ...defaults.boons,
         fury: false,
@@ -309,10 +310,10 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
       specialization: 'Core',
       selectedTraitIds: [TRAIT.MASTER_FENCER],
       initialResource: 2,
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 2995
-      },
+      }),
       boons: {
         ...defaults.boons,
         fury: false
@@ -337,10 +338,10 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
     ['Flying Cutter'],
     defaultSimulationConfig({
       selectedTraitIds: [TRAIT.MASTER_FENCER],
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 2995
-      },
+      }),
       boons: {
         ...defaults.boons,
         fury: false
@@ -370,10 +371,10 @@ test('Sharper Images samples illusion criticals instead of accumulating expected
     initialResource: 0,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
-    stats: {
-      ...defaults.stats,
+    attributeInputs: baseAttributeInputs({
+      ...defaults.attributeInputs.weaponSets[0].commonTotals,
       precision: 1945
-    },
+    }),
     boons: {
       ...defaults.boons,
       fury: false
@@ -426,10 +427,10 @@ test('Sharper Images procs exactly on seeded critical illusion hits', () => {
       initialResource: 0,
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Pistol',
-      stats: {
+      attributeInputs: baseAttributeInputs({
         ...defaultSimulationConfig().stats,
         precision: 2050
-      },
+      }),
       boons: {
         ...defaultSimulationConfig().boons,
         fury: false
@@ -466,7 +467,7 @@ test('Mesmer allied boons prioritize players before active clones', () => {
       selectedTraitIds: [TRAIT.MASTER_FENCER],
       allies: { count: 2, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true,
-      stats: { precision: 10000 }
+      attributeInputs: baseAttributeInputs({ precision: 10000 })
     })
   );
   const alliedFury = result.events.find(

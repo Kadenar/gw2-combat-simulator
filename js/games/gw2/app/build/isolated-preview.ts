@@ -10,7 +10,6 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 export interface IsolatedPreview {
   readonly preview: ProfessionAppState;
   readonly context: ProfessionAttributePreviewInput;
-  readonly disabledTrait: string | null;
   readonly config: Gw2Config;
 }
 
@@ -45,13 +44,9 @@ export function createIsolatedPreview(
     }
   }
 
-  // Profession owners may suppress a static trait before rebuilding the isolated conversion pool.
+  // Common seeds remain independent of health; shared declarations evaluate the preview's health query later.
   const context = { ...attributePreviewContext(preview, weaponSet), values };
-  const disabledTrait = app.profession.ui.attributePreviewDisabledTrait(context);
-  app.adapter.recalculate(preview, disabledTrait);
-  const config = app.adapter.simulationConfig(
-    preview,
-    disabledTrait ? { type: 'Trait', id: `Trait:${disabledTrait}`, name: disabledTrait, label: disabledTrait } : null
-  );
-  return { preview, context, disabledTrait, config };
+  app.adapter.recalculate(preview);
+  const config = app.adapter.simulationConfig(preview);
+  return { preview, context, config };
 }

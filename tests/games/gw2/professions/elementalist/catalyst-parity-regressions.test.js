@@ -1,3 +1,7 @@
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -5,10 +9,7 @@ import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-de
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { applyCatalystResolvedDamage } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import {
-  catalystModifierRules,
-  catalystModifiers
-} from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
+import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyCatalystEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
@@ -64,7 +65,10 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
 
   assert.ok(conditionDamage.utility > 0);
   assert.ok(conditionDamage.traits > 0);
-  assert.equal(config.catalystEmpowermentPool.conditionDamage, conditionDamage.final);
+  assert.equal(
+    catalystAttributePool({ config, catalog: elementalistCatalog, time: 0 }).conditionDamage,
+    conditionDamage.final
+  );
 });
 
 // The field and enhanced burst share the projectile release clock.
@@ -228,19 +232,19 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
 
   assert.deepEqual(state.elementalEmpowermentExpiries, [22, 23, 24, 25, 26, 27, 28, 29, 30, 31]);
 
-  const attributes = catalystModifiers.modifyAttributes(
+  const attributes = evaluateAttributeDeclarations(
     {
       catalog: elementalistCatalog,
       traits: new Set([TRAIT.ELEMENTAL_EMPOWERMENT, TRAIT.EMPOWERED_EMPOWERMENT]),
       config: {
-        catalystEmpowermentPool: {
+        attributeInputs: baseAttributeInputs({
           power: 1000,
           precision: 1000,
           ferocity: 1000,
           conditionDamage: 1000,
           expertise: 1000,
           concentration: 1000
-        }
+        })
       },
       runtime: {
         combatStartTime: 0,
@@ -257,7 +261,8 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
       conditionDamage: 1500,
       expertise: 1500,
       concentration: 1500
-    }
+    },
+    (context) => [elementalEmpowermentAttributes(context)]
   );
 
   assert.deepEqual(attributes, {

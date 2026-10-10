@@ -1,14 +1,15 @@
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerCoreModifiers } from '#gw2/professions/engineer/core/modifiers.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-import { modifyNecromancerCoreAttributes } from '#gw2/professions/necromancer/core/modifiers.js';
+
 import { reaperModifierRules } from '#gw2/professions/necromancer/specializations/reaper/modifiers.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
@@ -75,7 +76,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   [
     'Engineer Sharpshooter',
     (event) => {
-      const attributes = engineerCoreModifiers.modifyConditionAttributes(
+      const attributes = engineerProfession.runtimeFor({}).modifyConditionAttributes(
         {
           catalog: engineerCatalog,
           time: 1,
@@ -104,7 +105,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   [
     'Necromancer core',
     (event) =>
-      modifyNecromancerCoreAttributes(
+      necromancerProfession.runtimeFor({}).modifyAttributes(
         {
           catalog: necromancerCatalog,
           time: 1,
@@ -189,10 +190,10 @@ test('actual-player skill modifiers do not follow modifier ownership', () => {
     false
   );
   assert.equal(
-    modifyNecromancerCoreAttributes(
-      { catalog: necromancerCatalog, time: 1, config: { selectedSkillIds: [10622] } },
-      { power: 0 }
-    ).power,
+    necromancerProfession
+      .runtimeFor({})
+      .modifyAttributes({ catalog: necromancerCatalog, time: 1, config: { selectedSkillIds: [10622] } }, { power: 0 })
+      .power,
     180,
     'eventless player attribute query'
   );

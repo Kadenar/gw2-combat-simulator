@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -11,7 +12,7 @@ function run(specialization, rotation, selectedTraitIds = [], initialize = () =>
     specialization,
     selectedTraitIds,
     initialResource: specialization === 'Bladesworn' ? 100 : 30,
-    stats: { power: 2000, precision: 4000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000 }),
     target: { armor: 2597 }
   };
   const profession = warriorProfession.runtimeFor(config);

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -42,7 +43,7 @@ function run(
     specialization: 'Reaper',
     initialResource: 10,
     selectedTraitIds: [],
-    stats: { power: 1000, precision: 3100, vitality: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 3100, vitality: 1000, ferocity: 0 }),
     target: { armor: 2597, health: 0, conditions: {} },
     randomness: { mode: 'deterministic', seed: 1729 },
     ...overrides

@@ -1,15 +1,13 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
@@ -39,19 +37,9 @@ export const lastRites = defineTrait({
   id: TRAIT.LAST_RITES,
   name: 'Last Rites',
   balance: { attributeBonus: 150 },
-  buildAttributes: traitAttributeEffects(TRAIT.LAST_RITES, [
+  attributes: traitAttributeEffects(TRAIT.LAST_RITES, [
     { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: true }
-  ]),
-  modifierRules: [
-    {
-      id: 'necromancer.last-rites-healing-power',
-      target: MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LAST_RITES), 'attributeBonus'),
-      when: (context) => !professionStaticRulesApplied(context.config)
-    }
-  ]
+  ])
 });
 
 /** Owns Vampiric tuning and behavior at its existing execution boundaries. */

@@ -1,12 +1,12 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
@@ -267,7 +267,7 @@ export const implacableFoe = defineTrait({
       }
     ]
   },
-  buildAttributes: traitAttributeEffects(TRAIT.IMPLACABLE_FOE, [
+  attributes: traitAttributeEffects(TRAIT.IMPLACABLE_FOE, [
     {
       kind: 'conversion',
       from: 'Vitality',
@@ -310,7 +310,7 @@ export const alchemicVigor = defineTrait({
   balance: {
     attributeBonus: 240
   },
-  buildAttributes: traitAttributeEffects(TRAIT.ALCHEMIC_VIGOR, [
+  attributes: traitAttributeEffects(TRAIT.ALCHEMIC_VIGOR, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -322,7 +322,7 @@ export const twistedMedicine = defineTrait({
   balance: {
     attributeConversion: 0.13
   },
-  buildAttributes: traitAttributeEffects(TRAIT.TWISTED_MEDICINE, [
+  attributes: traitAttributeEffects(TRAIT.TWISTED_MEDICINE, [
     {
       kind: 'conversion',
       from: 'Vitality',
@@ -376,7 +376,7 @@ export const darkGunslinger = defineTrait({
     attributeConversion: 0.1,
     rechargeMultiplier: 0.8
   },
-  buildAttributes: traitAttributeEffects(TRAIT.DARK_GUNSLINGER, [
+  attributes: traitAttributeEffects(TRAIT.DARK_GUNSLINGER, [
     {
       kind: 'conversion',
       from: 'Vitality',

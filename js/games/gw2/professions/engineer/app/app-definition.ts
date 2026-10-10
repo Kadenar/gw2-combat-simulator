@@ -3,11 +3,11 @@
 // the engine contract exported by ../profession.js.
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
+import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
-import type { EngineerCanonicalBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
+import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
 // Exposes Engineer only through the shared browser application contract.
 export const engineerAppAdapter = defineProfessionApp({
@@ -21,18 +21,9 @@ export const engineerAppAdapter = defineProfessionApp({
       initialResource: (app.build as EngineerCanonicalBuild).initialHeat
     }),
     // Supply specialization-only runtime fields without leaking inactive state into other builds.
-    buildConfigExtras: (app, { attributeData }) => {
+    buildConfigExtras: (app) => {
       const build = app.build as EngineerCanonicalBuild;
-      const evolveAttributePool = (attributeData as EngineerFinalizedAttributeResult).amalgamEvolveAttributePool;
-      const amalgam = build.specializations.some((specialization) => specialization.name === 'Amalgam');
       return {
-        ...(amalgam
-          ? {
-              amalgamEvolveAttributePool: {
-                ...evolveAttributePool
-              }
-            }
-          : {}),
         initialHeat: build.initialHeat,
         selectedMorphSkillIds: [...build.selectedMorphSkillIds]
       };

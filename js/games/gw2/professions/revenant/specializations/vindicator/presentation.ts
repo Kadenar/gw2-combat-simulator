@@ -1,20 +1,17 @@
-import type {
-  ProfessionAttributePreviewContext,
-  ProfessionAttributePreviewInput
-} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
-import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type {
   ProfessionPaletteActionIdentity,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
+import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.
@@ -111,10 +108,6 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
     preview.damageBuff('Forerunner of Death', 'forerunnerOfDeath', 'forerunner-of-death');
     preview.playerHealth(['Empire Divided']);
     return preview.controls;
-  },
-  attributePreviewDisabledTrait(context: ProfessionAttributePreviewInput) {
-    // Remove the full-health static Power before rebuilding conversions for a low-health preview.
-    return Number(context.values.playerHealth ?? 100) <= 50 ? 'Empire Divided' : null;
   },
 
   rotationStateSnapshot: vindicatorStateSnapshot,

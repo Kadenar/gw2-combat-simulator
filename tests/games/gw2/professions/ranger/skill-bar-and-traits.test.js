@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { inertContainer } from '#tests/helpers/dom.js';
@@ -14,8 +15,7 @@ import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { untamedModule } from '#gw2/professions/ranger/specializations/untamed/module.js';
-import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
+
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -26,7 +26,7 @@ import { describe, test } from 'node:test';
 // Attribute assertions use the same calculator composed into the Ranger adapter.
 const calculateAttributes = createCalculateAttributes(
   applyRangerBuildAttributeRules,
-  rangerProfession.traitBuildAttributes
+  rangerProfession.attributeContributions
 );
 
 const baseConfig = Object.freeze({
@@ -38,14 +38,14 @@ const baseConfig = Object.freeze({
   professionAssumptions: {
     targetDefiant: true
   },
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     defiant: true,
@@ -555,22 +555,21 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
   const untamedContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
-  const untamedAttributes = untamedModule.modifiers.modifyAttributes(
-    { catalog: rangerCatalog, ...untamedContext },
-    baseAttributes
-  );
+  const untamedAttributes = rangerProfession
+    .runtimeFor({ specialization: 'Untamed' })
+    .modifyAttributes({ catalog: rangerCatalog, ...untamedContext }, baseAttributes);
   // Attribute checks consume the composed runtime hook, including ordered skill-owned attribute replacements.
   const coreAttributes = rangerProfession
     .runtimeFor({ specialization: 'Core' })
-    .modifyAttributes(untamedContext, baseAttributes);
+    .modifyAttributes({ ...untamedContext, traits: new Set() }, baseAttributes);
 
   assert.equal(untamedAttributes.vitality, 1240);
   assert.equal(coreAttributes.vitality, 1000);
 
-  const soulbeastAttributes = soulbeastModifiers.modifyAttributes(
+  const soulbeastAttributes = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
     {
       catalog: rangerCatalog,
-      config: { selectedPet: 'Pig' },
+      config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
       traits: new Set([TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS]),
       runtime: {
         profession: {
@@ -1049,7 +1048,7 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   );
 
   const petTraitContext = {
-    config: { selectedPet: 'Forest Spider', stats: { power: 2000 } },
+    config: { selectedPet: 'Forest Spider', attributeInputs: baseAttributeInputs({ power: 2000 }) },
     traits: new Set([TRAIT.ARACHNOPHOBIA, TRAIT.LINGERING_MAGIC, TRAIT.WELLSPRING]),
     event: {
       actorType: 'summon',

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
@@ -39,7 +40,7 @@ test('proc overrides control every opted-in trait without bypassing selection or
         config: {
           specialization,
           ...extra,
-          stats: { power: 2000, precision, conditionDamage: 1200 },
+          attributeInputs: baseAttributeInputs({ power: 2000, precision, conditionDamage: 1200 }),
           target: { armor: 2597 },
           selectedTraitIds: selected ? [traitId] : [],
           randomness: { mode, seed: 1 },
@@ -92,7 +93,7 @@ test('Serrated Steel overrides preserve independent mech critical eligibility an
       config: {
         specialization: 'Mechanist',
         primaryWeapon: 'Pistol',
-        stats: { power: 2000, precision: 0, conditionDamage: 1200 },
+        attributeInputs: baseAttributeInputs({ power: 2000, precision: 0, conditionDamage: 1200 }),
         target: { armor: 2597 },
         selectedTraitIds: selected ? [profile.procRate.traitId] : [],
         randomness: { mode: 'deterministic', seed: 1 },
@@ -119,7 +120,7 @@ test('Burning Precision override preserves its internal cooldown', async () => {
       specialization: 'Core',
       primaryWeapon: 'Staff',
       startAttunement: 'Fire',
-      stats: { power: 2000, precision: 3000 },
+      attributeInputs: baseAttributeInputs({ power: 2000, precision: 3000 }),
       selectedTraitIds: [profile.procRate.traitId],
       procRateOverrides: { [profile.procRate.id]: 1 }
     }

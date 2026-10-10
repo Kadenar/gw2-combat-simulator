@@ -1,11 +1,11 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
@@ -30,8 +30,8 @@ import {
   type LuminaryCast,
   type RadiantVirtueArming
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
-import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
@@ -191,7 +191,7 @@ export const lightsGift = defineTrait({
   id: TRAIT.LIGHTS_GIFT,
   name: "Light's Gift",
   balance: { attributeBonus: 180 },
-  buildAttributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [
+  attributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
   ])
 });

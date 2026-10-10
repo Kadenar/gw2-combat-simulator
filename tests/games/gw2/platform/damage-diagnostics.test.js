@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
@@ -211,7 +212,7 @@ test('public diagnostics capture one execution and are suppressed in score outpu
     rotation: ['Hit'],
     config: {
       primaryWeapon: 'Axe',
-      stats: { power: 1000, precision: 1800, ferocity: 500 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1800, ferocity: 500 }),
       randomness: { mode: 'stochastic', seed: 72 }
     }
   };

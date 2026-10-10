@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -131,7 +132,10 @@ function chainState(result) {
 }
 
 // Live cases use canonical cast commitments even when target effects miss or reporting is disabled.
-const chainConfig = { stats: { power: 1000 }, target: { armor: 1000, health: 0, conditions: {} } };
+const chainConfig = {
+  attributeInputs: baseAttributeInputs({ power: 1000 }),
+  target: { armor: 1000, health: 0, conditions: {} }
+};
 const cast = (skillId, flags = {}) => ({ type: 'cast', skillId, ...flags });
 const runChain = (rotation, profession = chainProfession().runtimeFor(chainConfig), extra = {}) =>
   runGw2Runtime({ profession, config: chainConfig, rotation, ...extra });

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
@@ -16,7 +17,7 @@ import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/profession
 const base = {
   specialization: 'Reaper',
   initialResource: 0,
-  stats: { power: 1000, precision: 1000, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
 const cast = (skillId) => ({ type: 'cast', skillId });
@@ -499,7 +500,7 @@ test('Augury of Death requires shout completion and survives removal of the shou
     (event) => event.type === 'damage' && event.sourceId === TRAIT.AUGURY_OF_DEATH
   );
   // Melee range doubles both terms of the current 172 + 0.0125 * Power siphon.
-  assert.equal(siphon.damage, 2 * (172 + 0.0125 * config.stats.power));
+  assert.equal(siphon.damage, 2 * (172 + 0.0125 * config.attributeInputs.weaponSets[0].commonTotals.power));
   const cancelled = simulate([{ ...cast(ID.NOTHING_CAN_SAVE_YOU), interruptAfterMs: 40 }], config, { profession });
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.sourceId === TRAIT.AUGURY_OF_DEATH),
@@ -528,7 +529,11 @@ function withSelfConditions(config, applications, armed = false) {
 }
 
 test('live corruption excludes Expertise from self durations and expires the actual applications', () => {
-  const config = { ...base, stats: { ...base.stats, expertise: 1500 }, selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION] };
+  const config = {
+    ...base,
+    attributeInputs: baseAttributeInputs({ ...base.stats, expertise: 1500 }),
+    selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION]
+  };
   const rotation = [cast(ID.BLOOD_IS_POWER)];
   const result = simulate(rotation, config);
   const applications = result.planningState.profession.selfConditions;
@@ -1200,7 +1205,7 @@ test('shroud entry profiles retain conditions without their strike and deliver b
   const config = {
     ...base,
     initialResource: 100,
-    stats: { ...base.stats, concentration: 1500 },
+    attributeInputs: baseAttributeInputs({ ...base.stats, concentration: 1500 }),
     selectedTraitIds: [TRAIT.WEAKENING_SHROUD, TRAIT.AWAKEN_THE_PAIN]
   };
   const native = necromancerProfession.runtimeFor(config);

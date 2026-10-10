@@ -2,8 +2,6 @@ import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 
-import { applyElementalPolyphonyAttributes } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
-
 /** Weave Self retains its skill-owned damage windows; trait rules come from registered definitions. */
 export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -22,8 +20,7 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-/** Weaver modifiers: declarative dual-attunement rules plus the imperative attribute pass. */
+/** Weave Self damage remains skill-owned; selected traits supply attribute contributions. */
 export const weaverModifiers = {
-  modifyAttributes: applyElementalPolyphonyAttributes,
   modifierRules: weaverModifierRules
 };

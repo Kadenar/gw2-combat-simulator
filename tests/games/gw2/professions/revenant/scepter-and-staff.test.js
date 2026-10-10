@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
@@ -11,7 +12,7 @@ const simulate = createObservedProfessionSimulator(revenantProfession, {
   primaryWeapon: 'Scepter',
   secondaryWeapon: 'Sword',
   boons: { quickness: true },
-  stats: { power: 2000 },
+  attributeInputs: baseAttributeInputs({ power: 2000 }),
   target: { armor: 2597 }
 });
 const tail = { kind: 'tail', durationMs: 6000 };

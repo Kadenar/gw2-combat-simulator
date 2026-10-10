@@ -1,16 +1,11 @@
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import {
-  revenantRuntimeCoreState,
-  revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/state-queries.js';
+import { revenantRuntimeSpecializationState } from '#gw2/professions/revenant/core/state-queries.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
@@ -81,27 +76,6 @@ export function bolsteredBondsBonuses(
   }
 
   return bonuses;
-}
-
-export function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-  const modified = { ...attributes } as Record<string, number>;
-  if (context.config?.specialization !== 'Conduit') return modified;
-  const state = revenantRuntimeSpecializationState(context, 'Conduit');
-  const coreState = revenantRuntimeCoreState(context);
-  // Cosmic Wisdom doubles the Bolstered Bonds bonus; the build-time static pass already applied one copy,
-  // so at runtime we add only the extra copies: 2 (active) - 1 (already in build stats) = 1 extra during form,
-  // or 1 (inactive) - 1 (already in build stats) = 0 during non-form (effectively a no-op addition).
-  const cosmicMultiplier =
-    (state.cosmicWisdomUntil || 0) > context.time
-      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS), 'attributeMultiplier')
-      : 1;
-  const buildMultiplier = professionStaticRulesApplied(context.config) ? 1 : 0;
-  const bonuses = bolsteredBondsBonuses(context, coreState.selectedLegendIds, cosmicMultiplier - buildMultiplier);
-  for (const [attribute, bonus] of Object.entries(bonuses)) {
-    modified[attribute] = (modified[attribute] || 0) + (bonus || 0);
-  }
-
-  return modified;
 }
 
 /** Scales the already-selected base recharge at the original mechanic boundary. */

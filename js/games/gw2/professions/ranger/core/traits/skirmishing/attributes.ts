@@ -1,32 +1,11 @@
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
-
-/** Reconciles the live weapon bonus against the calculated weapon baseline. */
-export function stridersStrengthAttributeDelta(context: Gw2ModifierContext): number {
-  if (!hasTrait(context, TRAIT.STRIDERS_STRENGTH)) return 0;
-  const activeSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
-  const calculatedWeapon = context.config?.attributeProvenance?.calculatedPrimaryWeapon || '';
-  const profile = requireBalanceProfileFromContext(context, TRAIT.STRIDERS_STRENGTH);
-  return (
-    balanceProfileNumber(
-      profile,
-      gw2PrimaryWeapon(context.config, activeSet) === 'Sword' ? 'weaponAttributeBonus' : 'attributeBonus'
-    ) -
-    (professionStaticRulesApplied(context.config)
-      ? balanceProfileNumber(profile, calculatedWeapon === 'Sword' ? 'weaponAttributeBonus' : 'attributeBonus')
-      : 0)
-  );
-}
 
 // Apply skill-specific multipliers and convert flat shortbow extensions into
 // multipliers before general Expertise scaling.
@@ -82,49 +61,20 @@ export function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, m
   return result;
 }
 
-/** Applies the trait contribution at the shared attribute reconciliation boundary. */
-export function applyViciousQuarryAttributes(
-  context: Gw2ModifierContext,
-  adjust: (attribute: Gw2NumericStatKey, amount: number) => void,
-  staticRulesApplied: boolean
-): void {
-  if (hasTrait(context, TRAIT.VICIOUS_QUARRY)) {
-    const viciousQuarryProfile = requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY);
-    adjust(
-      'ferocity',
-      (Number(boonActive(context, 'fury')) - Number(staticRulesApplied && Boolean(context.config?.boons?.fury))) *
-        balanceProfileNumber(viciousQuarryProfile, 'attributeBonus')
-    );
-  }
-}
-
-/** Adds the trait's independent-pet attributes before packets snapshot them. */
-export function applyStridersStrengthPet(
+/** Declare independent pet bonuses at launch; family and selection cannot change an emitted snapshot. */
+export function skirmishingPetAttributes(
   context: RangerRuntime | RangerResolverContext,
-  attributes: {
-    -readonly [K in keyof ReturnType<typeof rangerPetBaseAttributes>]: ReturnType<typeof rangerPetBaseAttributes>[K];
-  }
-): void {
-  if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-    const stridersStrengthProfile = requireBalanceProfileFromContext(context, TRAIT.STRIDERS_STRENGTH);
-    attributes.power += balanceProfileNumber(stridersStrengthProfile, 'attributeBonus');
-  }
-}
-
-/** Adds the trait's independent-pet attributes before packets snapshot them. */
-export function applyFangAndClawPet(
-  context: RangerRuntime | RangerResolverContext,
-  attributes: {
-    -readonly [K in keyof ReturnType<typeof rangerPetBaseAttributes>]: ReturnType<typeof rangerPetBaseAttributes>[K];
-  },
-  petName: string
-): void {
-  if (
-    hasTrait(context, TRAIT.FANG_AND_CLAW) &&
-    ['feline', 'avian', 'drake'].includes(rangerPetByName(petName).family)
-  ) {
-    const fangAndClawProfile = requireBalanceProfileFromContext(context, TRAIT.FANG_AND_CLAW);
-    attributes.precision += balanceProfileNumber(fangAndClawProfile, 'attributeBonus');
-    attributes.ferocity += balanceProfileNumber(fangAndClawProfile, 'weaponAttributeBonus');
-  }
+  family: string
+): readonly Gw2AttributeEffect[] {
+  const declarations = [
+    [TRAIT.STRIDERS_STRENGTH, ['Power'], 'attributeBonus'],
+    [TRAIT.FANG_AND_CLAW, ['Precision'], 'attributeBonus'],
+    [TRAIT.FANG_AND_CLAW, ['Ferocity'], 'weaponAttributeBonus']
+  ] as const;
+  return declarations.flatMap(([id, attributes, field]) => {
+    if (!hasTrait(context, id)) return [];
+    if (id === TRAIT.FANG_AND_CLAW && !['feline', 'avian', 'drake'].includes(family)) return [];
+    const amount = balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
+    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: false }));
+  });
 }

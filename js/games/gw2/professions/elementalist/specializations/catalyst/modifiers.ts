@@ -1,8 +1,6 @@
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-
-import { applyElementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 
 /** Relentless Fire retains its skill-owned damage windows; trait rules come from registered definitions. */
 export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -24,6 +22,5 @@ export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 /** Catalyst modifiers: declarative buff-driven damage rules plus the Elemental Empowerment attribute conversion. */
 export const catalystModifiers = {
-  modifyAttributes: applyElementalEmpowermentAttributes,
   modifierRules: catalystModifierRules
 };

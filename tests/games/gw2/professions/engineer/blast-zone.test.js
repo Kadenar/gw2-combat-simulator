@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -7,7 +8,7 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 
 const simulate = createObservedProfessionSimulator(engineerProfession, {
   selectedTraitIds: [TRAIT.BLAST_ZONE],
-  stats: { concentration: 0 },
+  attributeInputs: baseAttributeInputs({ concentration: 0 }),
   target: { armor: 2597, conditions: {} }
 });
 const fireField = ['Bomb Kit', 'Fire Bomb', { type: 'wait', durationMs: 1000 }];

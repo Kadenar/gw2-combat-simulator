@@ -1,17 +1,14 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -43,7 +40,7 @@ import {
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianBuild, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
@@ -158,36 +155,14 @@ export const legendaryLore = defineTrait({
   ]
 });
 
-/** Quickness supplies panel attributes once; runtime rules reconcile actual boon uptime. */
+/** Quickness enables the same attribute contribution in preview and live queries. */
 export const imbuedHaste = defineTrait({
   id: TRAIT.IMBUED_HASTE,
   name: 'Imbued Haste',
   balance: {
     attributeBonus: 250
   },
-  modifierRules: [
-    {
-      id: 'guardian.firebrand.imbued-haste-attributes',
-      label: 'Imbued Haste',
-      target: [
-        MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
-        MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER,
-        MODIFIER_TARGET.ATTRIBUTE_VITALITY
-      ],
-      operation: 'add',
-      amount: (context) => {
-        const staticApplied = attributeProvenance(context.config).professionStaticRulesApplied;
-        const runtimeActive = guardianBoonActive(context, 'quickness');
-        const staticallyActive = staticApplied && Boolean(context.config?.boons?.quickness);
-        const imbuedHasteProfile = requireBalanceProfileFromContext(context, TRAIT.IMBUED_HASTE);
-        return (
-          (Number(runtimeActive) - Number(staticallyActive)) *
-          balanceProfileNumber(imbuedHasteProfile, 'attributeBonus')
-        );
-      }
-    }
-  ],
-  buildAttributes: (_common, { build, balanceContext }) => ({
+  attributes: ({ loadout, balanceContext }) => ({
     attributeEffects: (['Condition Damage', 'Healing Power', 'Vitality'] as const).map((to) => ({
       kind: 'flat' as const,
       to,
@@ -196,7 +171,7 @@ export const imbuedHaste = defineTrait({
         'attributeBonus'
       ),
       feedsConversions: true,
-      enabled: (build as GuardianBuild).assumptions?.quickness !== false
+      enabled: loadout.assumptions.quickness !== false
     }))
   })
 });

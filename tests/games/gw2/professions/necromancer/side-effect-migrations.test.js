@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -186,7 +187,12 @@ test('Haunt grants Gluttony-scaled life force only through its selected accepted
 test('Scourge declared costs retain vitality scaling and interrupted acceptance semantics', () => {
   for (const vitality of [1000, 2000]) {
     for (const initialResource of [0, 100]) {
-      const config = { specialization: 'Scourge', initialResource, stats: { vitality }, selectedTraitIds: [] };
+      const config = {
+        specialization: 'Scourge',
+        initialResource,
+        attributeInputs: baseAttributeInputs({ vitality }),
+        selectedTraitIds: []
+      };
       const native = necromancerProfession.runtimeFor(config);
       const result = observeGw2Runtime({
         config,

@@ -2,7 +2,10 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { soulbeastHooks } from '#gw2/professions/ranger/specializations/soulbeast/hooks.js';
-import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
+import {
+  soulbeastAttributes,
+  soulbeastModifiers
+} from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
 import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
 import { SOULBEAST_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';
@@ -15,6 +18,7 @@ import { soulbeastTraits } from '#gw2/professions/ranger/specializations/soulbea
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const soulbeastModule = defineNativeModule({
   id: 'Soulbeast',
+  attributes: soulbeastAttributes,
   traitDefinitions: soulbeastTraits,
   data: createRangerModuleData('Soulbeast', {
     skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS,

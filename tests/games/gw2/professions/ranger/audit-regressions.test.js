@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import {
   rangerPetCombatMetadata,
@@ -17,7 +18,14 @@ const config = {
   selectedTraitIds: [],
   boons: {},
   initialAstralForce: 100,
-  stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000, expertise: 0, concentration: 0 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1000,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    concentration: 0
+  }),
   target: { armor: 2597, defiant: true, conditions: {} }
 };
 const simulate = createObservedProfessionSimulator(rangerProfession, config);
@@ -37,7 +45,7 @@ test('Storm Spirit uses spirit power and weapon strength with Ranger critical st
     const result = simulate('Untamed', [ID.STORM_SPIRIT, wait(6500)], {
       initialUntamedState: 'Ranger',
       selectedTraitIds: [TRAIT.NATURES_VENGEANCE, ...(vow ? [TRAIT.VOW_OF_THE_UNTAMED] : [])],
-      stats: { power, precision, ferocity },
+      attributeInputs: baseAttributeInputs({ power, precision, ferocity }),
       boons: { might, fury: true },
       target: { conditions: { Vulnerability: 25 } }
     });
@@ -60,7 +68,7 @@ test('Storm Spirit uses spirit power and weapon strength with Ranger critical st
   for (const specialization of ['Core', 'Soulbeast']) {
     const result = simulate(specialization, [ID.STORM_SPIRIT, wait(1500)], {
       selectedTraitIds: [TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS],
-      stats: { power: 3000, precision: 2050, ferocity: 750 },
+      attributeInputs: baseAttributeInputs({ power: 3000, precision: 2050, ferocity: 750 }),
       boons: { might: 25, fury: true }
     });
     assert.deepEqual(result.warnings, []);
@@ -85,7 +93,10 @@ test('Resounding Timbre copies live boon pools and rejects other recipients and 
     {
       ...config,
       selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
-      stats: { ...config.stats, concentration: 1500 },
+      attributeInputs: baseAttributeInputs({
+        ...config.attributeInputs?.weaponSets[0].commonTotals,
+        concentration: 1500
+      }),
       boons: { protection: true }
     },
     {
@@ -504,7 +515,7 @@ test('We Heal As One snapshots distinct audiences, intensity stacks, and boon li
 test('merged We Heal As One copies only the player boons and applies concentration once', () => {
   const result = simulate('Soulbeast', [ID.WE_HEAL_AS_ONE], {
     boons: { might: 7, alacrity: true },
-    stats: { concentration: 750 }
+    attributeInputs: baseAttributeInputs({ concentration: 750 })
   });
   const applications = copied(result);
   assert.deepEqual(

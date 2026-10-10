@@ -1,4 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -7,6 +6,7 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -103,8 +103,8 @@ export const axeMastery = defineTrait({
     rechargeMultiplier: 0.8,
     resourceGain: 2
   },
-  buildAttributes(_common, context) {
-    const weapons = (context.weaponSet === 2 ? context.build.alternateWeapons : context.build.weapons) || [];
+  attributes(context) {
+    const weapons = context.weaponSet === 2 ? context.loadout.alternateWeapons : context.loadout.weapons;
     return {
       attributeEffects: [
         {

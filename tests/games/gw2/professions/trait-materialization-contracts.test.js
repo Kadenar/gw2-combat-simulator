@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -40,7 +41,7 @@ function simulate(family, trait, patch, { rotation = [combat, wait], event, conf
       specialization: 'Core',
       selectedTraitIds: [trait],
       boons: {},
-      stats: { power: 1000, precision: 1000, ferocity: 0, vitality: 1000 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0, vitality: 1000 }),
       target: { armor: 2597, health: 0, conditions: {} },
       ...config
     },

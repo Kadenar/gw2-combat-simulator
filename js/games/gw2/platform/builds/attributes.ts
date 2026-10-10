@@ -1,3 +1,4 @@
+import { attributeSeedFromCommon } from '#gw2/platform/builds/attribute-inputs.js';
 import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
@@ -441,6 +442,7 @@ export function finalizeBuildAttributes(
   // commonContext is an implementation handoff, not part of the public build.
   return {
     ...result,
+    attributeSeed: attributeSeedFromCommon(common),
     attributes,
     activeTraits
   };
@@ -458,7 +460,7 @@ export function finalizeBuildAttributes(
  */
 export function createCalculateAttributes(
   applyBuildAttributeRules: Gw2ApplyBuildAttributeRules,
-  traitBuildAttributes?: import('#gw2/platform/builds/types.js').Gw2TraitBuildAttributeCalculator
+  attributeContributions?: import('#gw2/platform/builds/types.js').Gw2AttributeContributionCalculator
 ): Gw2CalculateAttributes {
   return function calculateAttributes(
     build: Gw2Build,
@@ -479,7 +481,7 @@ export function createCalculateAttributes(
       weaponSet,
       disabledTrait,
       balanceContext,
-      traitBuildAttributes
+      attributeContributions
     });
   };
 }

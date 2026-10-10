@@ -181,21 +181,20 @@ test('legend swaps preserve extended Cosmic Wisdom and select Mesmer costs', () 
   assert.equal(revenantEnergyCost(runtime, runtime.helpers.skillsById.get(ID.EMPOWERING_MISERY)), 1);
 });
 
-// The fallback adds the patched bonus once; build-derived attributes already include it.
-test('Empire Divided runtime fallback reads its attribute profile', () => {
+// Ordinary declarations consume the patched profile once per query.
+test('Empire Divided shared declaration reads its attribute profile', () => {
   const catalog = applyBalanceProfilePatch(revenantCatalog, {
     balanceProfiles: { [TRAIT.EMPIRE_DIVIDED]: { fields: { attributeBonus: 321 } } }
   });
-  for (const applied of [false, true]) {
+  {
     const config = {
       specialization: 'Vindicator',
-      selectedTraitIds: [TRAIT.EMPIRE_DIVIDED],
-      attributeProvenance: { professionStaticRulesApplied: applied }
+      selectedTraitIds: [TRAIT.EMPIRE_DIVIDED]
     };
     const stats = revenantProfession
       .resolveProfession(config)
       .modifyAttributes({ catalog, config, time: 0 }, { power: 1000 });
-    assert.equal(stats.power, applied ? 1000 : 1321);
+    assert.equal(stats.power, 1321);
   }
 });
 

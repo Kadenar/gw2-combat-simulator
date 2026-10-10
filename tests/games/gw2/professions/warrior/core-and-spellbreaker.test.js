@@ -1,3 +1,9 @@
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
+import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -34,14 +40,14 @@ import { assertProfessionFamilyConformance } from '#tests/helpers/profession-fam
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     health: 3_970_000,
@@ -662,7 +668,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
   const result = simulate('Berserker', ['Berserk', 'Arc Divider', 'Outrage'], {
     initialResource: 30,
     selectedTraitIds: [TRAIT.SMASH_BRAWLER, TRAIT.BLOODY_ROAR],
-    stats: { precision: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 0 }),
     boons: { fury: false }
   });
 
@@ -687,7 +693,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
 
   assert.equal(arc.criticalChance, 0.4);
 
-  const attributes = berserkerModule.modifiers.modifyAttributes(
+  const attributes = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -700,7 +706,11 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }
+    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+    (context) => [
+      ...berserkerModule.attributes(context),
+      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
+    ]
   );
 
   assert.deepEqual(attributes, {
@@ -710,7 +720,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 390
   });
 
-  const bloodReactionOutsideBerserk = berserkerModule.modifiers.modifyAttributes(
+  const bloodReactionOutsideBerserk = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -723,7 +733,11 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }
+    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+    (context) => [
+      ...berserkerModule.attributes(context),
+      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
+    ]
   );
 
   assert.deepEqual(bloodReactionOutsideBerserk, {
@@ -733,7 +747,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 120
   });
 
-  const greatFortitude = berserkerModule.modifiers.modifyAttributes(
+  const greatFortitude = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.GREAT_FORTITUDE] },
@@ -752,7 +766,11 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
       ferocity: 100,
       conditionDamage: 0,
       vitality: 1000
-    }
+    },
+    (context) => [
+      ...berserkerModule.attributes(context),
+      ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
+    ]
   );
 
   assert.deepEqual(greatFortitude, {
@@ -767,7 +785,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     simulate('Berserker', ['Berserk', 'Arc Divider'], {
       initialResource: 30,
       selectedTraitIds,
-      stats: { precision: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0 }),
       boons: { fury: false }
     }).strikeDamage;
 
@@ -812,7 +830,7 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
   const traits = simulate('Berserker', ['Berserk', 'Wild Throw'], {
     initialResource: 30,
     selectedTraitIds: [TRAIT.LAST_BLAZE, TRAIT.HEAT_THE_SOUL, TRAIT.KING_OF_FIRES],
-    stats: { precision: 10000 }
+    attributeInputs: baseAttributeInputs({ precision: 10000 })
   });
 
   assert.equal(
@@ -1140,7 +1158,7 @@ test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gai
     simulate(specialization, ['Kill Shot'], {
       initialResource,
       primaryWeapon: 'Rifle',
-      stats: { precision: 0, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0, ferocity: 0 }),
       target: { defiant: false, conditions: {} },
       ...config
     });
@@ -1262,7 +1280,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     true
   );
 
-  const attributes = spellbreakerModule.modifiers.modifyAttributes(
+  const attributes = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       time: 10,
@@ -1277,7 +1295,8 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0 }
+    { power: 1000, precision: 1000, ferocity: 0 },
+    (context) => [attackersInsight.grantedAttributes(context)]
   );
 
   assert.deepEqual(attributes, {
@@ -1300,7 +1319,7 @@ test('Dagger autos use a 15% critical-damage factor', () => {
   const result = simulate('Spellbreaker', ['Precise Cut', 'Focused Slash', 'Keen Strike'], {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Mace',
-    stats: { precision: 10000, ferocity: 1000 }
+    attributeInputs: baseAttributeInputs({ precision: 10000, ferocity: 1000 })
   });
   assert.deepEqual(result.warnings, []);
   const criticalDamage = (id) =>
@@ -1314,7 +1333,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
   const strikeDamage = (selectedTraitIds, target = {}) =>
     simulate('Spellbreaker', ['Kick'], {
       selectedTraitIds,
-      stats: { precision: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0 }),
       target
     }).strikeDamage;
   const baseKick = strikeDamage([]);
@@ -1325,7 +1344,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
   const bullsChargeDamage = (selectedTraitIds) =>
     simulate('Spellbreaker', ["Bull's Charge"], {
       selectedTraitIds,
-      stats: { precision: 0 }
+      attributeInputs: baseAttributeInputs({ precision: 0 })
     }).strikeDamage;
 
   assertFlooredDamageMultiplier(bullsChargeDamage([TRAIT.PEAK_PERFORMANCE]), bullsChargeDamage([]), 1.15);
@@ -1361,7 +1380,7 @@ test('Warrior core damage traits use their correct modifier buckets', () => {
   const configuredKickDamage = (selectedTraitIds, overrides = {}) =>
     simulate('Core', ['Kick'], {
       selectedTraitIds,
-      stats: { precision: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0 }),
       boons: {
         swiftness: true,
         protection: true,
@@ -1384,7 +1403,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
     simulate('Core', ['Mace Smash'], {
       primaryWeapon: 'Mace',
       selectedTraitIds,
-      stats: { precision: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0 }),
       target: { defiant: true }
     }).strikeDamage;
 
@@ -1411,7 +1430,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
     simulate('Core', ['Kick', 'Mace Smash'], {
       primaryWeapon: 'Mace',
       selectedTraitIds,
-      stats: { precision: 0 }
+      attributeInputs: baseAttributeInputs({ precision: 0 })
     }).breakdown.find((entry) => entry.name === 'Mace Smash')?.strikeDamage || 0;
 
   assertFlooredDamageMultiplier(controlledStrikeDamage([TRAIT.STALWART_STRENGTH]), controlledStrikeDamage([]), 1.1);
@@ -1437,7 +1456,7 @@ test('Bloodlust uses seeded rolls in both simulation modes', () => {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Mace',
     selectedTraitIds: [TRAIT.BLOODLUST],
-    stats: { precision: 10000 }
+    attributeInputs: baseAttributeInputs({ precision: 10000 })
   };
   const bleedingStacks = (result) =>
     result.events
@@ -1470,7 +1489,7 @@ test('Bloodlust uses seeded rolls in both simulation modes', () => {
 test('precombat Kick cannot sample criticals or advance hit-dependent procs', () => {
   const result = simulate('Spellbreaker', ['Kick', '__combat_start'], {
     selectedTraitIds: [TRAIT.BLOODLUST],
-    stats: { precision: 10000 },
+    attributeInputs: baseAttributeInputs({ precision: 10000 }),
     randomness: { mode: 'stochastic', seed: 7 }
   });
   const kick = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.KICK);
@@ -1485,7 +1504,7 @@ test('precombat Kick cannot sample criticals or advance hit-dependent procs', ()
   const config = {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Mace',
-    stats: { precision: 1945 },
+    attributeInputs: baseAttributeInputs({ precision: 1945 }),
     randomness: { mode: 'deterministic', seed: 7 },
     sigilSets: [
       { names: ['Air'], strike: 1, condition: 1 },
@@ -1507,7 +1526,7 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
       selectedTraitIds,
       primaryWeapon,
       secondaryWeapon,
-      stats: { precision: 4000 },
+      attributeInputs: baseAttributeInputs({ precision: 4000 }),
       target: {}
     }).strikeDamage;
 

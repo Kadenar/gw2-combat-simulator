@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -10,7 +11,7 @@ function checkChilled({ conditions = {}, applications = [], at = 1, removedAt, e
   const config = {
     specialization: 'Reaper',
     selectedTraitIds: [TRAIT.COLD_SHOULDER, TRAIT.CHILLING_NOVA],
-    stats: { power: 2000, precision: 3000, ferocity: 0, expertise: 0 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 3000, ferocity: 0, expertise: 0 }),
     target: { armor: 2597, conditions }
   };
   const native = necromancerProfession.runtimeFor(config);

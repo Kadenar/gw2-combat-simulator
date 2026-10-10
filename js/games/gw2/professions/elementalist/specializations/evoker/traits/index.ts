@@ -1,8 +1,10 @@
+import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBuffStacks, targetConditionActive, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -182,6 +184,33 @@ export const galvanicEnchantment = defineTrait({
 
 /** Owns Enhanced Potency tuning at its existing execution boundaries. */
 export const enhancedPotency = defineTrait({
+  // Selection gates both elemental bonuses; live boons never become ordinary conversion inputs.
+  attributes(context) {
+    const config: ElementalistConfig | undefined = context.config;
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.ENHANCED_POTENCY);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled:
+            config?.evokerElement === 'Air' &&
+            (context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, 'fury'))
+        },
+        {
+          kind: 'flat',
+          to: 'Condition Damage',
+          amount: elementalistMightStacks(context) * balanceProfileNumber(profile, 'attributePerStack'),
+          feedsConversions: false,
+          enabled: config?.evokerElement === 'Fire'
+        }
+      ]
+    };
+  },
+
   id: TRAIT.ENHANCED_POTENCY,
   name: 'Enhanced Potency',
   balance: {

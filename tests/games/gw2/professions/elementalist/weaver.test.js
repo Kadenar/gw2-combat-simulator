@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -242,7 +243,7 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
       startAttunement: 'Fire',
       secondaryAttunement: 'Fire',
       selectedSkillIds: [40183],
-      stats: { power: 1000 },
+      attributeInputs: baseAttributeInputs({ power: 1000 }),
       target: { armor: 2597 }
     },
     { profession, observation: { kind: 'tail', durationMs: 1500 } }

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
@@ -44,7 +45,7 @@ for (const [name, run, rotation, config, base, coefficient] of [
         rotation,
         {
           ...config,
-          stats: { power, precision: 4000, ferocity: 1000 },
+          attributeInputs: baseAttributeInputs({ power, precision: 4000, ferocity: 1000 }),
           target: { armor, defiant: true, conditions: { Vulnerability: vulnerability } }
         },
         {
@@ -79,7 +80,7 @@ test('Vampiric Slash combines its siphon bonus with Lead Attacks', () => {
   const result = runThief(['Unsuspecting Strike', 'Vampiric Slash'], {
     primaryWeapon: 'Spear',
     selectedTraitIds: [THIEF.LEAD_ATTACKS],
-    stats: { power: 2000 }
+    attributeInputs: baseAttributeInputs({ power: 2000 })
   });
   assert.deepEqual(result.warnings, []);
   const siphon = result.resolvedEvents.find((event) => event.damageBreakdownName === 'Life Siphon - Vampiric Slash');

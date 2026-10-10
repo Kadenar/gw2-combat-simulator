@@ -1,4 +1,5 @@
-﻿import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -11,14 +12,14 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597, conditions: {} }
 });
 
@@ -150,7 +151,7 @@ const traitCases = [
     name: 'Serrated Steel',
     trait: TRAIT.SERRATED_STEEL,
     rotation: ['Grenade Kit', 'Grenade', 'Grenade', wait],
-    config: { stats: { precision: 4000 } },
+    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
     verify: (result) =>
       assert.ok(
         result.resolvedEvents.some(
@@ -163,14 +164,14 @@ const traitCases = [
     name: 'No Scope',
     trait: TRAIT.NO_SCOPE,
     rotation: ['Puncturing Jab', wait],
-    config: { stats: { precision: 4000 } },
+    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
     verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'No Scope'))
   },
   {
     name: 'Incendiary Powder',
     trait: TRAIT.INCENDIARY_POWDER,
     rotation: ['Puncturing Jab', wait],
-    config: { stats: { precision: 4000 } },
+    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
     verify: (result) =>
       assert.ok(
         result.resolvedEvents.some(

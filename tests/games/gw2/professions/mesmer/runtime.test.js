@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -10,7 +11,7 @@ test('retired clone packets cannot grant accepted critical conditions', () => {
     {
       specialization: 'Core',
       selectedTraitIds: [TRAIT.SHARPER_IMAGES],
-      stats: { precision: 4000 },
+      attributeInputs: baseAttributeInputs({ precision: 4000 }),
       target: { armor: 2597 }
     },
     {

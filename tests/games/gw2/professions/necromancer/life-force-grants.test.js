@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -12,7 +13,7 @@ import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 const base = {
   specialization: 'Core',
   initialResource: 0,
-  stats: { power: 1000, precision: 1000, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
 const cast = (skillId, extra = {}) => ({ type: 'cast', skillId, ...extra });

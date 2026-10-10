@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions, captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
@@ -721,7 +722,7 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
     ],
     config: {
       relic: 'Mistburn',
-      stats: { power: 1000, precision: 1000, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0 }),
       boons: { might: 8, fury: false }
     }
   });
@@ -887,7 +888,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
   });
   const config = {
     relic: 'Bloodstone',
-    stats: { power: 2000, precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 }),
     target: { armor: 2597, conditions: {} }
   };
   const threeBlasts = simulateGw2({

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -136,7 +137,14 @@ async function parity(
     observationPolicy,
     config: {
       specialization: 'Core',
-      stats: { power: 2000, precision: 3000, ferocity: 500, conditionDamage: 1000, expertise: 1500, vitality: 1000 },
+      attributeInputs: baseAttributeInputs({
+        power: 2000,
+        precision: 3000,
+        ferocity: 500,
+        conditionDamage: 1000,
+        expertise: 1500,
+        vitality: 1000
+      }),
       target: { armor: 2597, conditions: { Vulnerability: 25 } },
       ...config
     }

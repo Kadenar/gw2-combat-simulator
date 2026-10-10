@@ -1,3 +1,5 @@
+import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -5,7 +7,7 @@ import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/qu
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
   balanceProfileNumber,
@@ -38,12 +40,55 @@ export const elementalRefreshment = defineTrait({
   id: TRAIT.ELEMENTAL_REFRESHMENT,
   name: 'Elemental Refreshment',
   balance: { attributeBonus: 180 },
-  buildAttributes: traitAttributeEffects(TRAIT.ELEMENTAL_REFRESHMENT, [
+  attributes: traitAttributeEffects(TRAIT.ELEMENTAL_REFRESHMENT, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
   ])
 });
 
 export const elementalPolyphony = defineTrait({
+  // Each distinct active attunement contributes once, including configured hands before runtime exists.
+  attributes(context) {
+    const config: ElementalistConfig | undefined = context.config;
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.ELEMENTAL_POLYPHONY);
+    const active = new Set([primaryAttunement(context)]);
+    const secondary =
+      readProfessionSpecializationState<{ secondaryAttunement?: string }>(context.runtime?.profession, 'Weaver')
+        ?.secondaryAttunement ?? config?.secondaryAttunement;
+    if (typeof secondary === 'string') active.add(secondary);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: active.has('Fire')
+        },
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: active.has('Air')
+        },
+        {
+          kind: 'flat',
+          to: 'Healing Power',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: active.has('Water')
+        },
+        {
+          kind: 'flat',
+          to: 'Condition Damage',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: active.has('Earth')
+        }
+      ]
+    };
+  },
+
   id: TRAIT.ELEMENTAL_POLYPHONY,
   name: 'Elemental Polyphony',
   balance: {

@@ -198,7 +198,7 @@ export const gatheredFocus = defineTrait({
   balance: {
     attributeBonus: 240
   },
-  buildAttributes: traitAttributeEffects(TRAIT.GATHERED_FOCUS, [
+  attributes: traitAttributeEffects(TRAIT.GATHERED_FOCUS, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ])
 });

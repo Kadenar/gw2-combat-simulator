@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
@@ -235,21 +236,13 @@ test('Radiant Power shares patched attribute and critical-chance values across c
   build.specializations = [{ name: 'Radiance', traits: '2-3-3' }];
   const calculate = createCalculateAttributes(
     applyGuardianBuildAttributeRules,
-    guardianProfession.traitBuildAttributes
+    guardianProfession.attributeContributions
   );
   const all = calculate(build, [], 1, null, null, preview).attributes;
   const without = calculate(build, [], 1, 'Radiant Power', null, preview).attributes;
   assert.equal(all.Ferocity.final - without.Ferocity.final, 237);
   const context = { catalog: preview.catalog, config: { selectedTraitIds: [traits.RADIANT_POWER] }, time: 0 };
-  const ferocity = preview.modifierRulesById.get('guardian.radiant-power-ferocity');
-  assert.equal(ferocity.amount(context), 237);
-  assert.equal(
-    ferocity.amount({
-      ...context,
-      config: { ...context.config, attributeProvenance: { professionStaticRulesApplied: true } }
-    }),
-    0
-  );
+  assert.equal(guardianProfession.runtimeFor({}).modifyAttributes(context, { ferocity: 0 }).ferocity, 237);
   assert.equal(preview.modifierRulesById.get('guardian.radiant-power-critical-chance').amount(context), 0.17);
   const model = describeSimulationTrait(
     preview,
@@ -278,23 +271,19 @@ test('Carbolic Composition shares one patched duration bonus across consumers', 
   build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
   const calculated = createCalculateAttributes(
     applyEngineerBuildAttributeRules,
-    engineerProfession.traitBuildAttributes
+    engineerProfession.attributeContributions
   )(build, [], 1, null, null, preview);
   assert.equal(calculated.attributes['Poison Duration'].traits, 42);
-  const rule = preview.modifierRulesById.get('engineer.carbolic-composition-duration');
+
   const context = {
     catalog: preview.catalog,
     config: { selectedTraitIds: [traits.CARBOLIC_COMPOSITION] },
     condition: 'Poisoned'
   };
-  assert.equal(rule.amount(context), 0.42);
-  assert.equal(rule.when(context), true);
   assert.equal(
-    rule.when({
-      ...context,
-      config: { ...context.config, attributeProvenance: { professionStaticRulesApplied: true } }
-    }),
-    false
+    engineerProfession.runtimeFor({ specialization: 'Amalgam' }).modifyAttributes(context, {}).conditionDurationBonuses
+      .Poisoned,
+    42
   );
   const model = describeSimulationTrait(preview, { id: traits.CARBOLIC_COMPOSITION }, engineerTooltips);
   assert.equal(model.facts.find(({ name }) => name === 'Poison duration').detail, '+42%');
@@ -506,7 +495,7 @@ test('Dhuumfire tooltips show specialization durations and the Scourge cooldown'
   }
 
   const simulate = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 }
   });
   const result = simulate(
@@ -620,7 +609,7 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
 
   const build = createNecromancerBuildDefaults();
   build.specializations = [{ name: 'Soul Reaping', traits: '1-1-2' }];
-  const calculate = createCalculateAttributes(applyNecromancerBuildAttributeRules, profession.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyNecromancerBuildAttributeRules, profession.attributeContributions);
   const attributes = calculate(build, [], 1, null, null, preview);
   assert.equal(attributes.attributes['Critical Chance'].traits, 20);
 });
@@ -764,7 +753,7 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
     )
   );
   const simulate = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 }),
     target: { armor: 2597, conditions: { Chilled: true } }
   });
   const darkness = simulate('Core', ['Devouring Darkness'], {
@@ -823,7 +812,7 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
   const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.PLAGUE_SIGNET), necromancerTooltips);
   assert.equal(model.facts.find((entry) => entry.name === 'Conditions Transferred').detail, '1');
   const simulate = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 }),
     target: { armor: 2597 }
   });
   const result = simulate('Core', ['Blood Is Power', 'Plague Signet'], {
@@ -865,7 +854,7 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
   assert.match(tooltip.facts.find((fact) => fact.name === 'Poisoned').detail, /6s.*per trigger/);
   assert.equal(tooltip.facts.find((fact) => fact.name === 'Poisoned').stacks, 3);
   const simulate = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 }
   });
   const result = simulate('Soulbeast', ['Vulture Stance', 'Maul'], {
@@ -983,7 +972,7 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
     }
   });
   const simulate = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 }
   });
   for (const [patchId, stacks, duration] of [

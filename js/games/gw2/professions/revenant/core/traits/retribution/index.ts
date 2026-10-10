@@ -1,10 +1,10 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -77,7 +77,7 @@ export const enduringRecovery = defineTrait({
 
 /** Owns Versed in Stone tuning and behavior at its established execution boundaries. */
 export const versedInStone = defineTrait({
-  buildAttributes: traitAttributeEffects(TRAIT.VERSED_IN_STONE, [
+  attributes: traitAttributeEffects(TRAIT.VERSED_IN_STONE, [
     {
       kind: 'conversion',
       from: 'Toughness',
