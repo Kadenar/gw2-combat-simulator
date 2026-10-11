@@ -19,6 +19,18 @@ const tail = { kind: 'tail', durationMs: 6000 };
 const auraDamage = (result) =>
   result.events.filter((event) => event.type === 'damage' && event.skillId === ID.BLOSSOMING_AURA);
 
+test('Blossoming Aura divides its total pulsing coefficient across its strikes', () => {
+  // The tooltip describes total pulse damage; each strike must receive only its share.
+  const pulse = revenantCatalog.skillsById
+    .get(ID.BLOSSOMING_AURA)
+    .effects.find((effect) => effect.type === 'strike' && effect.name === 'Pulsing Damage');
+  assert.equal(
+    pulse.ticks.reduce((total, tick) => total + tick.coefficient, 0),
+    1.2
+  );
+  assert.ok(pulse.ticks.every((tick) => tick.coefficient === 0.3));
+});
+
 test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast speed', () => {
   // The lasting effect's cadence and cooldown are independent of the initial casting animation.
   for (const quickness of [false, true]) {

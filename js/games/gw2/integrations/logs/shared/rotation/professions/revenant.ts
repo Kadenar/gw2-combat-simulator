@@ -1,6 +1,7 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
 import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/renegade.js';
 import { reconstructVindicatorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/vindicator.js';
@@ -78,7 +79,7 @@ function normalizeGeneratedRevenantActions(
       (candidate) => candidate !== action && candidate.start > action.start && candidate.start < imminentSwap.start
     );
   });
-  return mergeCompositeActions(actionable, COMPOSITE_CASTS, (action, finish) => ({
+  const merged = mergeCompositeActions(actionable, COMPOSITE_CASTS, (action, finish) => ({
     ...action,
     end: finish.end,
     status: mergedActionStatus(action.status, finish.status),
@@ -86,6 +87,16 @@ function normalizeGeneratedRevenantActions(
     canonicalSkillId: action.rawSkillId,
     canonicalName: action.rawName
   }));
+  // A recorded Onslaught follow-up proves the input even when its dash animation is absent.
+  // Replay a completed hit through the full canonical skill; retain explicit cancellations.
+  return merged.map((action) => {
+    if (action.rawSkillId !== 62713) return action;
+    const canonical = { ...action, canonicalSkillId: 62895, canonicalName: "Phantom's Onslaught" };
+    const skill = recordedActionSkill(canonical, context);
+    return skill && (action.status === 'completed' || action.status === 'reduced')
+      ? { ...canonical, end: Math.max(action.end, action.start + referenceCastTimeMs(skill)) }
+      : canonical;
+  });
 }
 
 /** Normalizes report legend changes before mapping represented specialization actions. */

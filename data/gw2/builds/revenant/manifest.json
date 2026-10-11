@@ -287,9 +287,37 @@
         }
       },
       {
+        "label": "Power (Greatsword - Scepter/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-conduit-greatsword-scepter-sword.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-conduit-greatsword-scepter-sword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-scepter-sword",
+        "benchmarkDps": 42427,
+        "upToDate": true,
+        "benchmarkApm": 93.2,
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 42394,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 46120, "phase": 46120 },
+            "80-60": { "cumulative": 41514, "phase": 37767 },
+            "60-40": { "cumulative": 41573, "phase": 41693 },
+            "40-20": { "cumulative": 42222, "phase": 44227 },
+            "20-0": { "cumulative": 42394, "phase": 42394 }
+          }
+        },
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 47485, "phase": 47485 },
+          "80-60": { "cumulative": 41897, "phase": 37482 },
+          "60-40": { "cumulative": 41574, "phase": 40921 },
+          "40-20": { "cumulative": 42182, "phase": 44061 },
+          "20-0": { "cumulative": 42427, "phase": 42427 }
+        }
+      },
+      {
         "label": "Power Quickness Staff - Sword/Sword",
         "build": "data/gw2/builds/revenant/b-power-quick-conduit-staff-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-quick-conduit-staff-sword-sword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-conduit-staff-sword-sword",
         "benchmarkDps": 35517,
         "upToDate": true,
         "benchmarkApm": 58.5,
@@ -317,25 +345,25 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 39488,
+        "benchmarkDps": 39539,
         "upToDate": true,
         "benchmarkApm": 94,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38436, "phase": 38436 },
-          "80-60": { "cumulative": 39286, "phase": 40178 },
-          "60-40": { "cumulative": 39207, "phase": 39043 },
-          "40-20": { "cumulative": 39743, "phase": 41440 },
-          "20-0": { "cumulative": 39488, "phase": 39488 }
+          "100-80": { "cumulative": 38491, "phase": 38491 },
+          "80-60": { "cumulative": 39342, "phase": 40236 },
+          "60-40": { "cumulative": 39263, "phase": 39101 },
+          "40-20": { "cumulative": 39792, "phase": 41467 },
+          "20-0": { "cumulative": 39539, "phase": 39539 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40843,
+          "benchmarkDps": 40912,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 39282, "phase": 39282 },
-            "80-60": { "cumulative": 40301, "phase": 41345 },
-            "60-40": { "cumulative": 40703, "phase": 41548 },
-            "40-20": { "cumulative": 40909, "phase": 41549 },
-            "20-0": { "cumulative": 40843, "phase": 40587 }
+            "100-80": { "cumulative": 39358, "phase": 39358 },
+            "80-60": { "cumulative": 40356, "phase": 41379 },
+            "60-40": { "cumulative": 40766, "phase": 41628 },
+            "40-20": { "cumulative": 40976, "phase": 41629 },
+            "20-0": { "cumulative": 40912, "phase": 40664 }
           }
         }
       }

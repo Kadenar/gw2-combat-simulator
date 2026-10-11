@@ -141,8 +141,6 @@ describe('Power Conduit skill profiles', () => {
     assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
     assert.equal(skill("Phantom's Onslaught").rechargeAnchor, 'castStart');
     assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 40);
-    const alternateOnslaught = revenantCatalog.skillsById.get(SKILL.PHANTOMS_ONSLAUGHT_ID_62713);
-    assert.equal(alternateOnslaught.rechargeOffsetMs, 40);
     assert.equal(
       revenantCatalog.balanceProfilesById
         .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)

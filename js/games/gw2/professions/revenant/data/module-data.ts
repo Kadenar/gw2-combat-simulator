@@ -30,7 +30,7 @@ const flipParentById = createFlipParentMap(allDeclared);
 
 const normalize = (skill: RevenantSkill): RevenantSkill => ({
   ...skill,
-  simulatorExcluded: false,
+  // Leave exclusion to the owning mechanics; supplemental metadata must not re-enable generated hits.
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
     ? {
         patchAuthoringExcluded: true

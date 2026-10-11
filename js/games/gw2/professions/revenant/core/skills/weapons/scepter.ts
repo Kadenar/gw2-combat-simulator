@@ -30,7 +30,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'strike',
         ticks: Array.from({ length: 4 }, (_, index) => ({
           atMs: 480 + index * 1000,
-          coefficient: 4.8 / 4
+          coefficient: 1.2 / 4
         })),
         name: 'Pulsing Damage',
         actorType: 'player',

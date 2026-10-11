@@ -1,6 +1,5 @@
 /** Owns Core Revenant supplemental skill identities that have no narrower catalog family. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -37,8 +36,14 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ]
   },
-  // Preserve the follow-up ID while keeping the combined cast's mechanics owned by Greatsword.
-  [ID.PHANTOMS_ONSLAUGHT_ID_62713]: REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS[ID.PHANTOMS_ONSLAUGHT],
+  // The log's hit identity is not a second player input; import resolves it to the Greatsword activation.
+  [ID.PHANTOMS_ONSLAUGHT_ID_62713]: {
+    simulatorExcluded: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: []
+  },
   [ID.OTHERWORLDLY_ATTRACTION_ALLY]: {
     castTimeMs: 0,
     cooldown: 5,

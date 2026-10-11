@@ -39,6 +39,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     shadowstepSkill: true,
     peithaImpactDelayMs: 560,
     castTimeMs: 720,
+    interruptCommitMs: 680,
     cooldown: 15,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: 420,
