@@ -35,6 +35,10 @@ export interface EiInstantRule {
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
   readonly gainedBuff?: number;
+  /** Buff-gain finders distinguish shared buff identities using EI's strict duration tolerance. */
+  readonly appliedDuration?: number;
+  /** Require exactly this many nearby self-applications of the signal buff, with the declared duration. */
+  readonly selfAppliedBuffs?: { readonly count: number; readonly durationMs: number };
   /** Require a nearby remove-all event for this buff, without restricting its actor, as EI's checker does. */
   readonly relatedBuffRemoval?: number;
   /** Buff-give checkers may distinguish self trait grants by duration while accepting grants to other agents. */
@@ -1838,6 +1842,25 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     kind: 'damage',
     rule: 'ScourgeHelper.DamageCastFinder(GarishPillarSkill)'
   },
+  // EI ScourgeHelper identifies the two F5 variants by duration, not damage or the selected simulator trait.
+  {
+    profession: 'necromancer',
+    specialization: 'scourge',
+    skillId: 44663,
+    signal: 40052,
+    kind: 'buff-gain',
+    appliedDuration: 6000,
+    rule: 'ScourgeHelper.BuffGainCastFinder(DesertShroud)'
+  },
+  {
+    profession: 'necromancer',
+    specialization: 'scourge',
+    skillId: 54870,
+    signal: 40052,
+    kind: 'buff-gain',
+    appliedDuration: 3500,
+    rule: 'ScourgeHelper.BuffGainCastFinder(SandstormShroudSkill)'
+  },
   {
     profession: 'necromancer',
     specialization: 'scourge',
@@ -3527,6 +3550,16 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     rule: 'BladeswornHelper.DamageCastFinder(UnseenSword)',
     minBuild: 119939,
     origin: 'trait'
+  },
+  // EI BladeswornHelper requires the paired self-grants; generic Positive Flow alone cannot prove this utility cast.
+  {
+    profession: 'warrior',
+    specialization: 'bladesworn',
+    skillId: 62967,
+    signal: 62836,
+    kind: 'buff-gain',
+    selfAppliedBuffs: { count: 2, durationMs: 8000 },
+    rule: 'BladeswornHelper.BuffGainCastFinder(FlowStabilizer)'
   },
   {
     profession: 'warrior',

@@ -134,7 +134,7 @@ Run focused tests from the repository root after compiling the modules:
 
 ```powershell
 npm run build:modules
-node --test tests/games/gw2/integrations/logs
+node --test "tests/games/gw2/integrations/logs/**/*.test.js"
 npm run typecheck
 ```
 

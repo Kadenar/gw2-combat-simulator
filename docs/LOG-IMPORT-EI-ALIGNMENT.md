@@ -145,8 +145,20 @@ The following evidence and replay rules need particular care:
 - **Distortion** follows the pinned
   [MesmerHelper](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Mesmer/MesmerHelper.cs)
   effect rule and `HasGainedBuff` checker: its shared visual requires a Distortion buff application on the same caster
-  within 10 ms. Core and Mirage are eligible on all builds; Chronomancer requires build 135242 or later. Other unported
-  shatter finders remain excluded.
+  within strictly less than 10 ms. Core and Mirage are eligible on all builds; Chronomancer requires build 135242 or
+  later. **Cry of Frustration and Diversion** are implemented in `ei-minions.ts` for Core and Mirage: a matching
+  same-caster clone visual at the same position within that window excludes the candidate shatter. Their absence from
+  `ei-rules.ts` is not a coverage gap.
+- **Desert Shroud / Sandstorm Shroud** follow the pinned
+  [ScourgeHelper](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Necromancer/ScourgeHelper.cs)
+  buff-gain rules: buff `40052` identifies skill `44663` at 6000 ms applied duration or skill `54870` at 3500 ms, each
+  with a strict 10 ms duration tolerance. Initial snapshots and extensions cannot supply a cast.
+- **Flow Stabilizer** follows the pinned
+  [BladeswornHelper](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Warrior/BladeswornHelper.cs)
+  buff-gain checker: a non-initial Positive Flow (`62836`) application must have exactly two self-applied 8000 ms
+  applications on its recipient within a strict 10 ms window. Duration tolerance is also strictly less than 10 ms.
+  Initial applications may corroborate that count, but cannot establish the cast alone. The shared sliding 50 ms window
+  collapses qualifying packets into one skill `62967` cast. Other Positive Flow sources do not justify guessing a cast.
 - **Jurisdiction** charge/release: both import paths collapse recorded level-one charge/release segments into the
   existing single activation, retaining their combined duration. The accompanying detonation is already represented by
   that activation. Unpaired releases remain unsupported rather than creating an absent charge. Tome entry/stow

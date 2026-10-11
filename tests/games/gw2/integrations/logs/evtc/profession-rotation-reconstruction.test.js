@@ -89,7 +89,7 @@ test('packet evidence distinguishes empty, partial, and explicitly timed matches
   }
 });
 
-test('Mesmer shatter loading rejects matching clone visuals using packed ground coordinates', () => {
+test('Cry of Frustration and Diversion reject same-caster clone visuals and unavailable specializations', () => {
   const mapping = (skillId, guid) =>
     event({
       stateChange: 46,
@@ -97,17 +97,29 @@ test('Mesmer shatter loading rejects matching clone visuals using packed ground 
       source: Buffer.from(guid, 'hex').readBigUInt64LE(0),
       target: Buffer.from(guid, 'hex').readBigUInt64LE(8)
     });
-  const mappings = [mapping(77, '52F65A4D9970954BA849CB57A46A65A8'), mapping(78, '5FA6527231BB8041AC783396142C6200')];
   // The packed coordinates are valid even when orientation bytes happen to encode a float NaN.
   const visual = event({ time: 100, stateChange: 60, skillId: 77, target: 0x00030002ffffn, value: 0x7fc00000 });
-  const find = (extra = [], overrides = {}) =>
-    eiMesmerShatters(context('mesmer', 'mirage', [...mappings, { ...visual, ...overrides }, ...extra]));
-  assert.equal(find()[0]?.rawSkillId, 10190);
-  assert.deepEqual(find([{ ...visual, skillId: 78 }]), []);
-  assert.equal(find([{ ...visual, skillId: 78, target: visual.target + (1n << 32n) }])[0]?.rawSkillId, 10190);
-  assert.equal(find([{ ...visual, skillId: 78, time: 110 }])[0]?.rawSkillId, 10190);
-  assert.deepEqual(find([], { source: 0x9999n }), []);
-  assert.deepEqual(eiMesmerShatters(context('mesmer', 'virtuoso', [...mappings, visual])), []);
+  for (const [guid, skillId] of [
+    ['52F65A4D9970954BA849CB57A46A65A8', 10190],
+    ['916D8385083F144EBAA5BEEDE21FD47A', 10287]
+  ]) {
+    const mappings = [mapping(77, guid), mapping(78, '5FA6527231BB8041AC783396142C6200')];
+    for (const specialization of ['core', 'mirage']) {
+      const find = (extra = [], overrides = {}) =>
+        eiMesmerShatters(context('mesmer', specialization, [...mappings, { ...visual, ...overrides }, ...extra]));
+      assert.equal(find()[0]?.rawSkillId, skillId);
+      assert.deepEqual(find([{ ...visual, skillId: 78 }]), []);
+      assert.deepEqual(find([{ ...visual, skillId: 78, time: 109 }]), []);
+      assert.equal(find([{ ...visual, skillId: 78, target: visual.target + (1n << 32n) }])[0]?.rawSkillId, skillId);
+      assert.equal(find([{ ...visual, skillId: 78, time: 110 }])[0]?.rawSkillId, skillId);
+      assert.equal(find([{ ...visual, skillId: 78, source: 0x9999n }])[0]?.rawSkillId, skillId);
+      assert.deepEqual(find([], { source: 0x9999n }), []);
+    }
+
+    for (const specialization of ['chronomancer', 'virtuoso', 'troubadour']) {
+      assert.deepEqual(eiMesmerShatters(context('mesmer', specialization, [...mappings, visual])), []);
+    }
+  }
 });
 
 test('Phase Retreat loading requires a matching teleport and newly owned staff clone', () => {
@@ -533,7 +545,7 @@ test('Distortion effect inference requires matching buff evidence and respects s
       [effect, { ...buff, time: 110 }],
       [effect, { ...buff, target: 0x9999n }],
       [{ ...effect, source: 0x9999n }, buff],
-      [effect, { ...buff, stateChange: 70 }]
+      [effect, { ...buff, ...(arcdpsBuild === '20260430' ? { offcycle: 1 } : { stateChange: 70 }) }]
     ]) {
       assert.deepEqual(find('chronomancer', 135242, evidence), []);
     }

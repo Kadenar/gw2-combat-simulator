@@ -20,6 +20,13 @@ extensions. Effect namespaces remain separate; secondary effects and effect-avai
 declared. Stable nested minion ownership is supported; ambiguous reused instances or changing masters are rejected
 pending time-aware ownership.
 
+Scourge's Desert Shroud and Sandstorm Shroud use the same buff (`40052`), distinguished by applied duration: 6000 ms and
+3500 ms respectively, with EI's strict 10 ms tolerance. Bladesworn's Flow Stabilizer requires exactly two nearby
+self-applied Positive Flow grants of 8000 ms. Both use ordinary buff-gain evidence and sliding duplicate suppression;
+see the
+[alignment contract](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits) for
+the complete predicates. Legacy offcycle extensions and modern buff-change records are not fresh applications.
+
 Thousand Needles uses EI's generic hostile circle plus both same-source needle effects 280 ms later. Missing either
 secondary effect leaves the cast unproven.
 

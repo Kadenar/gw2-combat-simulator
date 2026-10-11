@@ -6,10 +6,11 @@ Mesmer shatters and Phase Retreat live in [ei-minions.ts](../../ei-minions.ts).
 
 Core and Mirage shatters use the pinned
 [MesmerHelper](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Mesmer/MesmerHelper.cs)
-effect finders. Same-position clone visuals are excluded within 10 ms, with modern ground positions decoded from their
-packed signed coordinates. Mind Wrack uses nearby credited damage to distinguish its ammo identity and rejects
-Distortion buff evidence. Phase Retreat requires its teleport effect and an owned staff clone first observed within 30
-ms, without the Illusionary Leap buff removal that identifies Swap.
+effect finders in `ei-minions.ts`, including Cry of Frustration and Diversion. Same-caster, same-position clone visuals
+are excluded within strictly less than 10 ms, with modern ground positions decoded from their packed signed coordinates.
+Mind Wrack uses nearby credited damage to distinguish its ammo identity and rejects Distortion buff evidence. Phase
+Retreat requires its teleport effect and an owned staff clone first observed within 30 ms, without the Illusionary Leap
+buff removal that identifies Swap.
 
 EI's synthetic Mirage Cloak ID (`-17`) represents cloak gains from multiple sources. Replay retains a coincident shatter
 or Deception without adding a dodge, converts a cloak accompanied by player-owned Mirage Mirror damage into Pick Up

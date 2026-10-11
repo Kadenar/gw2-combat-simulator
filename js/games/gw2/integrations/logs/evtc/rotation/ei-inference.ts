@@ -63,7 +63,7 @@ function transformWeaverAttunements(
       id,
       (eventsBySkill.get(id) ?? []).filter(({ event, eventIndex }) => {
         const application = isBuffApply(log, event, true);
-        const extension = modern ? event.stateChange === 70 : application && event.offcycle > 0;
+        const extension = modern ? event.stateChange === 70 : isLegacyBuffApplication(event) && event.offcycle > 0;
         const removal = modern
           ? [71, 72].includes(event.stateChange)
           : event.stateChange === 0 && event.activation === 0 && event.buffRemove !== 0;
@@ -136,17 +136,25 @@ function transformWeaverAttunements(
   }
 }
 
+/** Legacy application records include offcycle extensions; Weaver still uses those as grouping anchors. */
+function isLegacyBuffApplication(event: ParsedEvtcEvent): boolean {
+  return (
+    event.stateChange === 0 &&
+    event.buff !== 0 &&
+    event.buffDamage === 0 &&
+    event.value > 0 &&
+    event.activation === 0 &&
+    event.buffRemove === 0
+  );
+}
+
 /** EI BuffGainCastFinder excludes snapshots and extensions; custom animated finders opt into snapshots explicitly. */
 export function isBuffApply(log: ParsedEvtc, event: ParsedEvtcEvent, initial = false): boolean {
+  const modern = Number(log.header.arcdpsBuild) >= 20260501;
+  // EI CombatEventFactory classifies legacy offcycle records as extensions, never BuffApplyEvent evidence.
+  if (!modern && event.offcycle > 0) return false;
   if (event.stateChange === 18) return initial;
-  return Number(log.header.arcdpsBuild) >= 20260501
-    ? event.stateChange === 69
-    : event.stateChange === 0 &&
-        event.buff !== 0 &&
-        event.buffDamage === 0 &&
-        event.value > 0 &&
-        event.activation === 0 &&
-        event.buffRemove === 0;
+  return modern ? event.stateChange === 69 : isLegacyBuffApplication(event);
 }
 
 export function isBuffRemoveAll(log: ParsedEvtc, event: ParsedEvtcEvent): boolean {
@@ -280,6 +288,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
       !(r.disableWithEffects && hasEffects)
   );
   for (const rule of rules) {
+    const selfAppliedBuffs = rule.selfAppliedBuffs;
     const finalOwner = rule.minions || rule.kind === 'buff-give' || rule.kind === 'minion-command';
     const owns = (address: bigint): boolean =>
       (finalOwner ? (owners.get(address) ?? address) : address) === playerAddress;
@@ -334,7 +343,20 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
               matches = event.stateChange === 57 && owns(event.source);
               break;
             case 'buff-gain':
-              matches = isBuffApply(log, event) && owns(event.target);
+              matches =
+                isBuffApply(log, event) &&
+                owns(event.target) &&
+                (rule.appliedDuration == null || Math.abs(event.value - rule.appliedDuration) < 10) &&
+                // EI's related-event checker counts self-applied BuffApplyEvents, including initial corroboration.
+                (selfAppliedBuffs == null ||
+                  (eventsBySkill.get(Number(rule.signal)) ?? []).filter(
+                    ({ event: other }) =>
+                      isBuffApply(log, other, true) &&
+                      other.target === event.target &&
+                      other.source === event.target &&
+                      Math.abs(other.time - event.time) < 10 &&
+                      Math.abs(other.value - selfAppliedBuffs.durationMs) < 10
+                  ).length === selfAppliedBuffs.count);
               break;
             case 'buff-give':
               // Compare the actual source/recipient before final-master attribution, as EI's checker does.
