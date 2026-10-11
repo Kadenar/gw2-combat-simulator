@@ -19,10 +19,12 @@ contributions. Runtime callers import supporting behavior directly from `traits/
 selected-patch tuning and effect-removal behavior; numeric trait IDs are used directly rather than repeated profile
 aliases.
 
-The build finalizer retains only equipped signet passives and effective selection. Native `traitBuildAttributes`
-contributions join those effects before the shared conversion and finalization phases, including disabled-trait
-previews. Runtime resource clocks, stealth and Revealed, Mark/malice, shroud state, artifact slots, and applied windows
-remain on their existing shared state.
+Build and live queries use `thiefProfession.attributeContributions`. The Core module registers equipped signet passives
+from `core/skills/attribute-passives.ts`; trait definitions supply selected bonuses and conversions. The build adapter
+supplies effective selection and the active balance context to the shared evaluator, including disabled-trait previews.
+Both paths start from equipment attribute seeds. Preparedness owns its initiative capacity, which initial state and live
+resource queries read from the active trait profile. Runtime resource clocks, stealth and Revealed, Mark/malice, shroud
+state, artifact slots, and applied windows remain with their mechanics.
 
 Ordered mechanic trigger points invoke definition-local handlers: stealth breaks before Unrelenting Strikes and No
 Quarter; Core steals notify trait owners before acquisition and initiative; dodge packets resolve before their new
@@ -31,8 +33,9 @@ barrier before Dark Sentry's task and resolves Amplified Siphoning before Improv
 artifact-grant ordering, Sun Crystal before Mistburn, and applied charge/window lifetimes after selection changes. The
 mixed strike sequence lives in `core/mechanics/reactions.ts`. Core steal rewards, poison, critical boons, stealth, and
 venoms live inside their owning trait-line folders; `core/mechanics/steal.ts` fires the ordered steal boundary declared
-in `core/mechanics/boundaries.ts`. Daredevil dodge transformations and Antiquary artifact transformations retain their
-own behavior files.
+in `core/mechanics/boundaries.ts`. Daredevil's trait-selected dodge transformations live in `traits/index.ts`; Antiquary
+retains artifact helpers in its `traits/` directory. Specter's `skills/siphon.ts` owns the Shadow Force calculation,
+while the Dark Sentry definition owns its Rot Wallow Venom delivery and icon.
 
 ## Implemented systems
 

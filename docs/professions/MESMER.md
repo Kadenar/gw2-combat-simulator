@@ -21,7 +21,7 @@ resources, and Continuum actions select registered `mesmer.*` handler strategies
 are labels only — routing, resource causes, flips, trait decisions, and timing all key off IDs, and legacy name
 rotations are resolved at the build-migration boundary.
 
-All 66 implemented traits have one native definition: 29 Core, nine Chronomancer, ten Mirage, eight Virtuoso, and ten
+All 69 implemented traits have one native definition: 33 Core, nine Chronomancer, nine Mirage, eight Virtuoso, and ten
 Troubadour. Core definitions and helpers live in `traits/<line>/index.ts` for Chaos, Domination, Dueling, Inspiration,
 and Illusions; the Core index collects them in registration order. Each elite owns its definitions and registration
 array in `traits/index.ts`. Owners supply profiles, modifiers, build callbacks, triggers, recharge rules, hooks, and
@@ -42,9 +42,12 @@ Mind and its existing Bloodsong thresholds. Its modifier collector installs the 
 at the original elite boundary. Troubadour keeps instrument snapshots and player/afterimage emission in mechanics;
 owners implement Crescendo, Syncopate, Harmonize, dodge, and note decisions.
 
-Build callbacks consume active patch values. Runtime attributes retain build provenance and the existing per-query
-fixed-value cache while reading live stacks. Intrinsic Harmonize and Symphonic Resonance preserve their existing
-selection-independent behavior. Generated identity metadata remains in `data/`.
+Build and live queries share `mesmerProfession.attributeContributions`, combining module declarations and selected trait
+attributes from equipment attribute seeds. The shared evaluator resolves each declaration's conversion inputs.
+Profile-only helper declarations cache immutable results by balance-profile object; simulation queries retain their
+selected declarations while live callbacks read current stacks and boons. Detached previews select afresh and use their
+requested patch context. Intrinsic Harmonize and Symphonic Resonance preserve their selection-independent behavior.
+Generated identity metadata remains in `data/`.
 
 ## Implemented systems
 

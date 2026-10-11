@@ -38,20 +38,22 @@ until entry; weapon/slot skills are disabled while a transformed bar is active.
 
 ## Trait ownership
 
-All implemented traits have registered `defineTrait` owners: 47 Core, 10 Reaper, 9 Scourge, 11 Harbinger, and 7
-Ritualist (84 total). Core groups definitions in `traits/<line>/index.ts`; each elite groups its definitions under its
+All implemented traits have registered `defineTrait` owners: 50 Core, 10 Reaper, 9 Scourge, 11 Harbinger, and 7
+Ritualist (87 total). Core groups definitions in `traits/<line>/index.ts`; each elite groups its definitions under its
 own `traits/` directory. Core `traits/index.ts` collects line definitions; each elite `traits/index.ts` owns its
-definitions and registration array. Core supporting files live inside their line: Spite behavior, Blood Magic
-life-steal, Curses `procs.ts`/`modifiers.ts`/`skill-variants.ts`, and Death Magic carapace. Soul Reaping groups attack
-procs and the shared Dhuumfire tooltip projection in `procs.ts`, attribute/siphon bonuses in `modifiers.ts`, resource
-rewards in `life-force.ts`, and entry/exit rewards in `shroud.ts`. Scourge supplies its cast attribution to the shared
-Core Soul Barbs grant instead of requiring a specialization-specific helper in Core. Its `resource-queries.ts` remains
-independent of active handlers so resource accounting cannot import its callers. Reactions and shroud-entry dispatch
-stay at the shared Core `traits/` level; elite support stays beside its definitions. Native modules expand their
-profiles, modifier rules, triggers, recharge rules, hooks, and build contributions once. Build calculators compose
-`necromancerProfession.traitBuildAttributes`; the profession build wrapper retains the skill-owned Signet of Spite
-passive. `core/initial-state.ts` supplies canonical default trait tuning to state construction without making runtime
-state depend on definitions. Generated trait metadata and existing balance-profile identities remain unchanged.
+definitions and registration array. Blood Magic life-steal and Curses procs/modifiers live in their line's `index.ts`;
+Curses retains `skill-variants.ts` for weapon effect selection. Spite retains `behavior.ts`, and Death Magic retains
+`carapace.ts` for grants and shared stack queries. Soul Reaping keeps attack procs and the Dhuumfire tooltip projection
+in `procs.ts`, siphon queries in `modifiers.ts`, and resource and shroud rewards in `index.ts`. Scourge supplies its
+cast attribution to the shared Core Soul Barbs grant instead of requiring a specialization-specific helper in Core. Soul
+Reaping's `resource-queries.ts` remains independent of active handlers so resource accounting cannot import its callers.
+Reactions and shroud-entry dispatch stay in Core mechanics and dispatch to the owning trait lines; elite support stays
+beside its definitions. Native modules expand profiles, modifier rules, triggers, recharge rules, hooks, and attribute
+contributions once. `necromancerProfession.attributeContributions` combines module and selected trait declarations for
+both build and live queries. The Core module registers Signet of Spite through `core/skills/attribute-passives.ts`; the
+build wrapper supplies selection and tuning to the shared evaluator. `core/initial-state.ts` receives prepared
+attributes and the active balance context when constructing resource state. Generated trait metadata and existing
+balance-profile identities remain unchanged.
 
 Explicit calls into trait helpers retain the boundaries that matter for state and ordering:
 
@@ -59,8 +61,9 @@ Explicit calls into trait helpers retain the boundaries that matter for state an
   Post-entry effects run after specialization callbacks and resource refresh; automatic exits also refresh Soul Barbs.
 - Resolved strikes preserve siphon, target-health, Dhuumfire, critical-proc, and recipient-pool ordering. Minion
   multipliers and successful life-force grants call their trait owners before shared resource accounting.
-- Attribute dispatchers preserve flat bonuses before conversions and reconcile already-calculated build attributes. Soul
-  Battery, Spiteful Fortitude, and Vital Persistence also own the maximum-health-derived resource contributions.
+- Attribute queries start from equipment seeds and apply native contributions through the shared conversion rules.
+  Carapace grants and queries use Flesh of the Master's active stack cap; Deadly Strength owns the conversion from those
+  stacks. Soul Battery, Spiteful Fortitude, and Vital Persistence own the maximum-health-derived resource contributions.
 - Scourge keeps shade replacement, expiry, barrier scheduling, and resource spending in mechanics. Trait helpers observe
   the actual barrier or shade event; shroud-like casts call the shared Core trait owners.
 - Harbinger keeps Blight accrual, expiry, spending, and snapshots in mechanics. Cascading Corruption observes consumed

@@ -32,13 +32,18 @@ order. Each elite owns its definitions and registration array in `traits/index.t
 Untamed, and 8 Galeshot definitions. Owners contain trait balance profiles, modifiers, triggers, recharge rules, and
 build contributions. Runtime callers import named Core trait helpers for opening strikes, Beast skills, movement,
 critical procs, poison, attributes, and companion attributes inside their owning trait-line folders. Small helpers such
-as Lingering Magic's companion Concentration stay in the line's `index.ts`. Elite trait helpers remain beside their
-definitions. Pet identity and attribute snapshots live separately from scheduling in `core/mechanics/pet-attributes.ts`;
-the signet passive query does not load slot-skill execution. Soulbeast hooks and modifiers assemble merged-pet
-contributions before manifest registration. Ordered mechanic trigger points deliver completion and swap boundaries to
-definition-local handlers. Profile consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only
-skill and mechanic packages. Build calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives
-and Soulbeast archetype attributes.
+as Lingering Magic's companion Concentration and Wellspring's pet conversion stay in the line's `index.ts`. Wellspring's
+player declaration retains its profile cache while pet queries read captured or live Power. Elite trait helpers remain
+beside their definitions. Pet identity and attribute snapshots live separately from scheduling in
+`core/mechanics/pet-attributes.ts`; the signet passive query does not load slot-skill execution. Soulbeast hooks and
+modifiers assemble merged-pet contributions before manifest registration. Ordered mechanic trigger points deliver
+completion and swap boundaries to definition-local handlers. Profile consumers use `RANGER_TRAIT_IDS` directly; module
+`profiles.ts` files retain only skill and mechanic packages. Build and live queries use
+`rangerProfession.attributeContributions`, combining selected trait declarations with module-owned skill passives and
+Soulbeast archetype attributes. The shared evaluator applies these contributions to equipment attribute seeds.
+Skirmishing owns Trapper's Expertise and Light on Your Feet's base-duration rules; `core/skills/weapons/shortbow.ts`
+owns the intrinsic shortbow extension. The two shortbow extensions add seconds to the same base before ordinary duration
+scaling.
 
 Commanded pet recharge captures the accepting companion's incarnation and retains it through shared cooldown projection.
 Received Alacrity is integrated only from that companion's grants and extensions, ending at retirement while preserving
@@ -55,13 +60,13 @@ The following execution boundaries remain explicit to preserve ordering and acto
   task, including recovery after Avatar expiration.
 - Soulbeast mechanics own merge state, archetype reconciliation, stance scheduling, and first Beast-ability-hit
   tracking. Core Beastmastery owners supply merged attribute/proc helpers. Bestial Rage remains at the Soulbeast control
-  boundary after Twice as Vicious; the merged Loud Whistle and Lesser Sic 'Em modifiers remain installed at Soulbeast's
-  modifier boundary. Applied buff rules do not gain a new selection gate.
+  boundary after Twice as Vicious. Core Beastmastery definitions own the merged Loud Whistle and Lesser Sic 'Em
+  modifiers with Soulbeast eligibility; the elite module registers the skill-owned Sic 'Em command bonus. Applied buff
+  rules retain their granted lifetime without a new selection gate.
 - Untamed mechanics own unleash and ambush windows. Let Loose owns swap eligibility and its independent proc interval,
-  then calls the mechanical ambush grant. Untamed owns Natural Fortitude's definition and runtime attribute callback.
-  The `modifyNaturalFortitudeAttributes` helper adds its selected Vitality bonus to baseline stats while preserving
-  precomputed build stats without double counting. Its owner also supplies the unconditional ambush life-steal packets,
-  while skill declarations retain their first-hit timing and patch identity.
+  then calls the mechanical ambush grant. Natural Fortitude declares its selected Vitality bonus in its trait
+  definition, using the same attribute contribution in build and live queries. Its owner also supplies the unconditional
+  ambush life-steal packets, while skill declarations retain their first-hit timing and patch identity.
 - Galeshot mechanics own arrows, Wind Force, Cyclone Bow, and Mistral. Trait owners handle Shrike projectile counting,
   Wuthering Wind pet charges, control refunds, bow completion rewards, and Perilous Skies availability. Cloudburst's
   authored reset remains in the triggering skill's commit-side-effect phase.

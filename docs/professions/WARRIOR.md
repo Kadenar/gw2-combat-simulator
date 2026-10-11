@@ -19,8 +19,10 @@ Native modules register 77 trait owners: Core 43, Berserker 9, Spellbreaker 6, B
 trait-line `traits/<line>/index.ts` files own profiles, modifier rules, triggers, recharge rules, build contributions,
 and trait decisions; Core `traits/index.ts` collects line declarations, while each elite `traits/index.ts` owns its
 definitions and registration array. `traits/behavior.ts` contains runtime helpers; Core keeps its shared modifier
-queries in `traits/modifier-queries.ts`. Consumers use numeric trait IDs. Build calculations combine the skill-owned
-signet callback with `warriorProfession.traitBuildAttributes`; callbacks read the active balance context.
+queries in `traits/modifier-queries.ts`. Consumers use numeric trait IDs. Build and live queries share
+`warriorProfession.attributeContributions`: the Core module registers skill-owned passive and active signet attributes,
+while trait definitions register their own contributions. The shared evaluator reads the active balance context and
+equipment attribute seeds, then resolves bonuses and conversions from their declared inputs.
 
 Versatile Power remains in `core/traits/discipline/index.ts`. Recharge order -1 keeps it before weapon rules and the
 imperative weapon-swap cap. Explicit modifier orders preserve the former Strength/Tactics/Defense/Arms and skill-rule
@@ -30,8 +32,8 @@ Retained imperative boundaries preserve shared observations and granted lifetime
 
 - Core claims the first surviving burst hit once and computes one critical opportunity. It calls trait owners in the
   original order before ordinary strike adrenaline. Soldier's Focus retains one shared claim; Martial Cadence owns its
-  swap reset. Attribute owners receive the original mutable pools so live Might, signets, and Berserk conversions keep
-  their established inputs.
+  swap reset. Attribute declarations distinguish common, conversion-eligible, and live inputs for Might, signets, and
+  Berserk. Spellbreaker's Insight owns its accepted-stack attributes through its definition's `grantedAttributes`.
 - Berserker mechanics publish mode extension after owner calculations; completion rewards and aura detonation keep their
   causal timing. King of Fires owns aura acquisition, the live deadline, and queued detonation.
 - Bladesworn mechanics retain Flow ticks, charge capture, bar transitions, and ammunition spending. Trait owners retain

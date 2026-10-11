@@ -46,14 +46,17 @@ work. Energy and Endurance policies live in `mechanics/resources.ts`. Renegade's
 behavior lives with skills. Conduit separates form transitions, Affinity policy/gains, and form attack/release skills.
 Its cap reward and Herald's Draconic Echo duration remain trait policies called at the existing mechanic boundary.
 Herald's Draconic Echo duration helper is co-located in `traits/index.ts`; `mechanics/facets.ts` owns facet scheduling
-and eligibility, and `modifiers.ts` assembles passive attributes. Conduit's cap rewards live in `traits/index.ts` and
-listen to the Affinity mechanic's ordered grant boundary. Elite substantial helpers can still use `traits/behavior.ts`.
-`family-state.ts` supplies elite Song of the Mists skill IDs without loading their runtime behavior; Spirit Boon's
-legend effects belong to its Core definition. Renegade and Vindicator compose their attribute callbacks directly in
-`module.ts`.
+and eligibility, and `attributes.ts` declares facet passive attributes. Conduit's cap rewards live in `traits/index.ts`
+and listen to the Affinity mechanic's ordered grant boundary. Elite substantial helpers can still use
+`traits/behavior.ts`. `family-state.ts` supplies elite Song of the Mists skill IDs without loading their runtime
+behavior; Spirit Boon's legend effects belong to its Core definition. Renegade and Vindicator declare trait attributes
+in their definitions. Brutal Momentum's definition owns both its baseline critical chance and the additional
+full-endurance modifier. Renegade's Fervor query is private to `traits/index.ts`; Heroic Command and Orders from Above
+select their trait-dependent payloads beside their skill implementations.
 
-The build finalizer composes `revenantProfession.traitBuildAttributes`; static contributions and live adjustments retain
-their existing provenance. Spirit Boon's legend-specific profiles now belong to its single Core definition; their stable
+Build and live queries use `revenantProfession.attributeContributions`, which combines module-owned skill/mechanic
+attributes with selected trait declarations. The shared evaluator starts from equipment attribute seeds and reads active
+patch tuning and live facts. Spirit Boon's legend-specific profiles belong to its single Core definition; their stable
 profile IDs remain patch targets.
 
 Ordered mechanic trigger points preserve execution order where definition-local trait handlers interleave mechanics:

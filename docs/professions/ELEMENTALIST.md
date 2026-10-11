@@ -17,8 +17,8 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
   but contain Core plus only the selected specialization.
 - `profession.ts` composes the build codec, modules, autoattack-chain transition policy, family UI, and catalog options
   into the stable profession contract. The browser adapter applies active patch-preview decoration separately.
-- `core/module.ts` registers Core through `defineNativeModule()`. Its `data`, `state`, `hooks`, `modifiers`,
-  `traitDefinitions`, and `presentation` sections are the Core ownership boundary.
+- `core/module.ts` registers Core through `defineNativeModule()`. Its `data`, `state`, `attributes`, `hooks`,
+  `modifiers`, `traitDefinitions`, and `presentation` sections are the Core ownership boundary.
 - `specializations/<name>/module.ts` registers each elite specialization through the same ownership sections. Elite
   state and behavior stay inside the active specialization slice rather than leaking into Core.
 - `data/module-data.ts` joins owner-authored skill mechanics to generated GW2 API identity metadata, applies
@@ -44,9 +44,15 @@ line definitions in registration order; mechanic trigger points order definition
 behavior lives inside the owning line's folder: Air and Earth use `attunement-entry.ts`, Arcane keeps swap handlers in
 `arcane/index.ts`, and Fire uses `attunement-transition.ts` for entry and exit effects. Lines also own
 `critical-procs.ts` where needed; only shared hit eligibility stays in `core/traits/critical-eligibility.ts`. Elite
-support stays beside its definitions. Live attribute passes and critical procs retain explicit calls so resource and
-reaction order stay unchanged. Shared state still owns ICDs, Fresh Air wakes, Bountiful Power progress, and timed buff
-applications.
+support stays beside its definitions. Critical procs retain ordered calls at their mechanic boundaries. Shared state
+owns ICDs, Fresh Air wakes, Bountiful Power progress, and timed buff applications.
+
+`elementalistProfession.attributeContributions` supplies the same module and selected trait declarations to build and
+live queries. Core skill attributes are registered from `core/skills/attributes.ts`. The shared evaluator starts from
+equipment attribute seeds; declarations select conversion inputs and read live attunements, boons, and stacks.
+Profile-only helper declarations cache immutable contributions by balance-profile object, and simulation queries retain
+their selected declarations. Live callbacks still evaluate changing combat facts, while detached previews select traits
+afresh and use the requested patch context.
 
 Tempest keeps overload availability, lockouts, Lightning Jolt, and scheduler work in mechanics. Its trait helpers own
 hit-derived alacrity, completion auras, shout rewards, and aura windows. The shared overload profile retains its

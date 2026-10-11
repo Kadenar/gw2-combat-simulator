@@ -15,7 +15,7 @@ export interface AmalgamState {
   berserkerUntil: number;
 }
 
-// Amalgam owns its public protocol state and the inactive compatibility values.
+// Amalgam owns its public protocol state
 export const AMALGAM_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   selectedMorphSkillIds: [],
   evolvedUntil: 0,
