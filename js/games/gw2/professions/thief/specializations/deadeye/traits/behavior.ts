@@ -1,26 +1,13 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { boonActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
+import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-
-/** Reconcile this trait's live bonus at its original attribute phase. */
-export function applyBeQuickOrBeKilledAttributes(
-  context: Gw2ModifierContext,
-  result: { -readonly [K in keyof Gw2ResolvedStats]: Gw2ResolvedStats[K] }
-): void {
-  if (hasTrait(context, TRAIT.BE_QUICK_OR_BE_KILLED) && boonActive(context, 'quickness')) {
-    const beQuickOrBeKilledProfile = requireBalanceProfileFromContext(context, TRAIT.BE_QUICK_OR_BE_KILLED);
-    const bonus = balanceProfileNumber(beQuickOrBeKilledProfile, 'attributeBonus');
-    result.power += bonus;
-    result.precision += bonus;
-  }
-}
 
 /** Fire for Effect replaces Deadeye's stolen-skill choice pool with Steal Time. */
 export function stolenSkillGrant(runtime: ThiefRuntime): {
@@ -54,26 +41,4 @@ export function initialMalice(runtime: ThiefRuntime): number {
 
 export function activeBoonCount(context: Gw2ModifierContext): number {
   return countActiveBoons(context);
-}
-
-/** Reconcile this trait's live bonus at its original attribute phase. */
-export function applyPremeditationAttributes(
-  context: Gw2ModifierContext,
-  result: { -readonly [K in keyof Gw2ResolvedStats]: Gw2ResolvedStats[K] }
-): void {
-  if (hasTrait(context, TRAIT.PREMEDITATION)) {
-    const premeditationProfile = requireBalanceProfileFromContext(context, TRAIT.PREMEDITATION);
-    result.concentration += balanceProfileNumber(premeditationProfile, 'attributeBonus');
-  }
-}
-
-/** Reconcile this trait's live bonus at its original attribute phase. */
-export function applySilentScopeAttributes(
-  context: Gw2ModifierContext,
-  result: { -readonly [K in keyof Gw2ResolvedStats]: Gw2ResolvedStats[K] }
-): void {
-  if (hasTrait(context, TRAIT.SILENT_SCOPE)) {
-    const silentScopeProfile = requireBalanceProfileFromContext(context, TRAIT.SILENT_SCOPE);
-    result.precision += balanceProfileNumber(silentScopeProfile, 'attributeBonus');
-  }
 }

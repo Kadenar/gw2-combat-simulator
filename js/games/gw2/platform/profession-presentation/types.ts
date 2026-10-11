@@ -1,12 +1,11 @@
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
   PreviewControl,
   ProfessionAttributePreviewContext,
-  ProfessionAttributePreviewInput,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
   SkillDamageConfigPatch,
   SkillDamageGroup,
@@ -17,12 +16,12 @@ import type {
 /** Defines application presentation callbacks independently of the executable profession runtime. */
 import type { Gw2BuildResources, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { CastCommand, RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { EffectSource } from '#gw2/platform/results/effect-report.js';
+import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Profession-owned application identity; shared charts align and clip its simulation timestamp. */
 export interface ProfessionChartApplication {
@@ -405,7 +404,6 @@ export type ProfessionUiCallbackContext<TProfessionState = unknown> = Profession
 export interface ProfessionUiContract<TProfessionState = unknown> {
   /** Conditional inputs for both isolated previews; each control's scope selects its panels. */
   readonly previewControls: (context: ProfessionAttributePreviewContext) => PreviewControl[];
-  readonly attributePreviewDisabledTrait: (context: ProfessionAttributePreviewInput) => string | null;
   readonly prepareAttributePreview: (context: ProfessionAttributePreviewPreparation) => void;
   /** Mechanic groups for the skill damage preview; weapons and slot skills are grouped by the platform. */
   readonly skillDamageGroups: (context: SkillDamagePreviewContext) => SkillDamageGroup[];

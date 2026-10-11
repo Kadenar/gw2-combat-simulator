@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { playerHealthFraction, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import assert from 'node:assert/strict';
@@ -199,7 +200,11 @@ test('Peitha isolated damage completes its delayed payload without special trigg
         inputs: { impactDelayMs: 2000 }
       })
     ],
-    { relic: 'Peitha', stats: { conditionDamage: 1000 }, target: { health: 0, conditions: {} } }
+    {
+      relic: 'Peitha',
+      attributeInputs: baseAttributeInputs({ conditionDamage: 1000 }),
+      target: { health: 0, conditions: {} }
+    }
   );
   assert.equal(row.status, 'measured');
   assert.ok(row.measurement.conditionDamage > 0);
@@ -224,16 +229,26 @@ test('measured zero, invalid inputs, and unsupported content remain distinct', (
 test('each occurrence has fresh state and caches include damage inputs and configuration', () => {
   const profession = fixture([{ type: 'strike', coefficient: 1 }]);
   const cache = new Map();
-  const [alone] = evaluate(profession, [occurrence(991001)], { stats: { power: 1000 } }, cache);
+  const [alone] = evaluate(
+    profession,
+    [occurrence(991001)],
+    { attributeInputs: baseAttributeInputs({ power: 1000 }) },
+    cache
+  );
   const rows = evaluate(
     profession,
     [occurrence(991001), occurrence(991001, { id: 'second' })],
-    { stats: { power: 1000 } },
+    { attributeInputs: baseAttributeInputs({ power: 1000 }) },
     cache
   );
   assert.equal(rows[0].measurement.total, alone.measurement.total);
   assert.equal(rows[1].measurement.total, alone.measurement.total);
-  const [stronger] = evaluate(profession, [occurrence(991001)], { stats: { power: 2000 } }, cache);
+  const [stronger] = evaluate(
+    profession,
+    [occurrence(991001)],
+    { attributeInputs: baseAttributeInputs({ power: 2000 }) },
+    cache
+  );
   assert.ok(stronger.measurement.total > alone.measurement.total);
 });
 
@@ -307,7 +322,11 @@ test('strike breakdown marks changing critical and attribute inputs while preser
         audience: { recipients: 'self' }
       }
     ]);
-    const config = { stats: { power: 1000 }, target: { armor: 1000 }, criticalDamageMode: 'averaged' };
+    const config = {
+      attributeInputs: baseAttributeInputs({ power: 1000 }),
+      target: { armor: 1000 },
+      criticalDamageMode: 'averaged'
+    };
     const [row] = evaluate(profession, [occurrence(991001)], config);
     assert.equal(row.status, 'measured');
     assert.equal(row.measurement.strikeBreakdown.variesAcrossHits, true);

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -95,7 +96,7 @@ for (const [precision, expected] of [
       [{ type: 'wait', durationMs: 500 }],
       {
         specialization: 'Deadeye',
-        stats: { precision },
+        attributeInputs: baseAttributeInputs({ precision }),
         randomness: { mode: 'stochastic', seed: 1 }
       },
       {
@@ -138,7 +139,7 @@ test('Maleficent Seven rewards once per cycle through capped grants and maliciou
     {
       specialization: 'Deadeye',
       initialInitiative: 0,
-      stats: { precision: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 0 }),
       selectedTraitIds: [TRAIT.MALEFICENT_SEVEN, TRAIT.MALICIOUS_INTENT]
     },
     {

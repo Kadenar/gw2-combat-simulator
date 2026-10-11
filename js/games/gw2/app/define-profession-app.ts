@@ -18,12 +18,12 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2Build, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
  * Creates an offhand selector that prefers one weapon when it is available.
@@ -65,7 +65,7 @@ export function defineProfessionApp<
 }): Readonly<Gw2AppAdapter> {
   // Apply previews before capturing catalogs and runtime behavior so every browser adapter uses the same patch.
   const profession = withActivePatchPreview(nativeProfession);
-  const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules, profession.traitBuildAttributes);
+  const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules, profession.attributeContributions);
   const runtimeApi = createProfessionRuntime({
     profession,
     calculateAttributes,

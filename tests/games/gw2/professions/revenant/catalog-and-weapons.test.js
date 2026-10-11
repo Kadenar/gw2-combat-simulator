@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
@@ -33,21 +34,21 @@ import { test } from 'node:test';
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(
   applyRevenantBuildAttributeRules,
-  revenantProfession.traitBuildAttributes
+  revenantProfession.attributeContributions
 );
 
 const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 

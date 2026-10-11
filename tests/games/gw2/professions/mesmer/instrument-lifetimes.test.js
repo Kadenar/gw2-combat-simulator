@@ -1,3 +1,4 @@
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -11,10 +12,10 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
-import { troubadourModifierRules } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
+import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { applyTroubadourAttributes } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
+import { fortissimo } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -134,8 +135,11 @@ test('instrument commitment, damage bonuses, projection, and UI share exact excl
       .find((item) => item.id === 'playing-instruments');
     assert.equal(Boolean(view), active);
     const query = modifierContext(context, at);
-    assert.equal(troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when(query), active);
-    assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, active ? 104 : 100);
+    assert.equal(luteModifiers.find((rule) => rule.id === 'mesmer.lute').when(query), active);
+    assert.equal(
+      evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
+      active ? 104 : 100
+    );
     assert.equal(state.instruments.Lute, 5.301, 'Projection does not mutate the stored deadline');
   }
 });
@@ -148,8 +152,11 @@ test('shorter instrument replays replace their own window without reviving old b
   const state = context.profession.specialization.state;
   assert.deepEqual(state.instruments, { Lute: 7.301, Flute: 21.301 });
   const query = modifierContext(context, 7.301);
-  assert.equal(troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when(query), false);
-  assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, 104);
+  assert.equal(luteModifiers.find((rule) => rule.id === 'mesmer.lute').when(query), false);
+  assert.equal(
+    evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
+    104
+  );
   context.time = 7.301;
   assert.deepEqual(
     projectObservedState(mesmerProfession, context).activeInstruments.map(({ name }) => name),
@@ -174,7 +181,7 @@ test('instrument damage queries respect commitment order at the same timestamp',
   const context = instrumentContext();
   play(context, ID.LIVELY_LUTE, 0.301);
   const instrument = context.events.find((event) => event.type === 'mesmer.instrument');
-  const rule = troubadourModifierRules.find((entry) => entry.id === 'mesmer.lute');
+  const rule = luteModifiers.find((entry) => entry.id === 'mesmer.lute');
   assert.equal(rule.when(modifierContext(context, 0.301, { eventOrder: instrument.eventOrder - 1 })), false);
   assert.equal(rule.when(modifierContext(context, 0.301, { eventOrder: instrument.eventOrder + 1 })), true);
 });
@@ -324,7 +331,7 @@ test('delayed performance packets survive instrument expiry without retaining it
   assert.ok(delayed?.damage > 0);
   assert.equal(result.planningState.profession.activeInstruments.length, 0);
   assert.equal(
-    troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when({ events: result.events, time: delayed.at }),
+    luteModifiers.find((rule) => rule.id === 'mesmer.lute').when({ events: result.events, time: delayed.at }),
     false
   );
 });

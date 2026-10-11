@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { performance } from 'node:perf_hooks';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -7,7 +8,7 @@ import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurren
 const base = {
   randomness: { mode: 'expected', seed: 123 },
   selectedTraitIds: [],
-  stats: { power: 2000, precision: 2000, ferocity: 500, conditionDamage: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 2000, ferocity: 500, conditionDamage: 1000 }),
   target: { armor: 2597 }
 };
 const wait = (durationMs) => ({ type: 'wait', durationMs });

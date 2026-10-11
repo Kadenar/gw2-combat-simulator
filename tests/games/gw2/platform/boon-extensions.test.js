@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import {
@@ -255,7 +256,7 @@ test('No Quarter cannot consume Fury authored after its hit at the same timestam
     {
       specialization: 'Core',
       selectedTraitIds: [THIEF_TRAIT_IDS.NO_QUARTER],
-      stats: { precision: 2995 }
+      attributeInputs: baseAttributeInputs({ precision: 2995 })
     },
     {
       initialize(runtime) {
@@ -389,7 +390,10 @@ for (const enabled of [false, true]) {
   });
   const result = runRevenant(
     enabled ? heraldExtensionAt(1, 2500) : [{ type: 'wait', durationMs: 3500 }],
-    { ...HERALD_CONFIG, stats: { power: 1000, precision: 2470, ferocity: 0, conditionDamage: 0 } },
+    {
+      ...HERALD_CONFIG,
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 2470, ferocity: 0, conditionDamage: 0 })
+    },
     {
       initialize(runtime) {
         runtime.effects.emit({
@@ -417,7 +421,7 @@ for (const name of ['Thief', 'Ranger'])
       const config = {
         specialization: name === 'Thief' ? 'Deadeye' : 'Soulbeast',
         selectedTraitIds: name === 'Thief' && enabled ? [THIEF_TRAIT_IDS.NO_QUARTER] : [],
-        stats: { power: 1000, precision: 2470, ferocity: 0 },
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 2470, ferocity: 0 }),
         target: { armor: 2597 }
       };
       const run = name === 'Thief' ? runThief : runRanger;
@@ -463,7 +467,7 @@ test('critical boon grants affect later same-time hits exactly once', () => {
           THIEF_TRAIT_IDS.ASSASSINS_FURY
         ],
         randomness: { mode, seed: 42 },
-        stats: { power: 1000, precision: 2470, ferocity: 0 }
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 2470, ferocity: 0 })
       },
       {
         initialize(runtime) {

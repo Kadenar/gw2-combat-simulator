@@ -15,12 +15,13 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 
 // Exercise the declared acceptance/completion phases independently of summon packet calibration.
-function fixture() {
+// Trait selection is fixed here because a build's traits never change once its runtime is in use.
+function fixture(traits = []) {
   const config = { specialization: 'Renegade' };
   const native = revenantProfession.runtimeFor(config);
   const runtime = {
     config,
-    traits: new Set(),
+    traits: new Set(traits),
     time: 1,
     combatStartedAt: () => null,
     profession: native.createState(config),
@@ -88,9 +89,8 @@ test('only mapped skills are eligible, readiness is read-only, and acceptance ex
 });
 
 test('acceptance spends and records the enhanced profile before rewards and preserves it across later grants', () => {
-  const { runtime, state, cast, apply, emitted } = fixture();
+  const { runtime, state, cast, apply, emitted } = fixture([TRAIT.ALL_FOR_ONE]);
   state.bandTogether = grantCharges(1, 2);
-  runtime.traits.add(TRAIT.ALL_FOR_ONE);
   const accepted = cast(ID.ICERAZORS_IRE);
   let rewards = 0;
   runtime.resourceController = {

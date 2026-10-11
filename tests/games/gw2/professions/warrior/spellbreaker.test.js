@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -13,7 +14,7 @@ function run(rotation, overrides = {}, source = warriorProfession, output = 'det
     primaryWeapon: 'Dagger',
     initialResource: 30,
     selectedTraitIds: [],
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 },
     ...overrides
   };

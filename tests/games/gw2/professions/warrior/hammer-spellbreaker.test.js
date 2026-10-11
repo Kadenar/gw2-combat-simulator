@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
@@ -71,14 +72,14 @@ test('Magebane Tether ignores Alacrity gained or lost during its recharge', () =
 });
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 0,
     ferocity: 500,
     conditionDamage: 0,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     health: 4_000_000,

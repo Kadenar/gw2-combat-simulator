@@ -6,7 +6,7 @@ export const attributeTrait = defineTrait<ElementalistSkill>({
   id: 1,
   name: 'Typed attributes',
   balance: { bonus: 20, conversion: 0.1 },
-  buildAttributes: traitAttributeEffects(1, [
+  attributes: traitAttributeEffects(1, [
     { kind: 'flat', to: 'Power', field: 'bonus', feedsConversions: true },
     {
       kind: 'conversion',

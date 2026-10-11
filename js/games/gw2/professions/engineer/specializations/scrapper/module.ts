@@ -5,8 +5,6 @@ import { bindScrapperUi } from '#gw2/professions/engineer/specializations/scrapp
 import { SCRAPPER_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/scrapper/skills/index.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 
-import { applyAppliedForceAttributes } from '#gw2/professions/engineer/specializations/scrapper/traits/behavior.js';
-
 export const scrapperModule = defineNativeModule({
   id: 'Scrapper',
   traitDefinitions: scrapperTraits,
@@ -15,6 +13,6 @@ export const scrapperModule = defineNativeModule({
   }),
   // Scrapper traits share the live state with their actual combo and boon reactions.
   state: { create: scrapperState.create },
-  modifiers: { modifyAttributes: applyAppliedForceAttributes },
+
   presentation: bindScrapperUi
 });

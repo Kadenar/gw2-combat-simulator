@@ -1,9 +1,9 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
+import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -11,6 +11,7 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -25,11 +26,8 @@ import {
   critical,
   dragonSlashCompleted
 } from '#gw2/professions/warrior/core/mechanics/combat.js';
-import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import {
-  warriorActiveBuffStacks,
-  warriorWieldingWeapon
-} from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+
+import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorResolverContext, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -228,6 +226,24 @@ export const buildingMomentum = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const pinnacleOfStrength = defineTrait({
+  // Might adds temporary Power without entering ordinary conversions or Blood Reaction.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.PINNACLE_OF_STRENGTH);
+    const might =
+      context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? activeBoonStacks(context, 'might');
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: might * balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: true
+        }
+      ]
+    };
+  },
+
   id: TRAIT.PINNACLE_OF_STRENGTH,
   name: 'Pinnacle of Strength',
   balance: {
@@ -265,8 +281,8 @@ export const forcefulGreatsword = defineTrait({
     weaponProcChanceMultiplier: 2,
     effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
   },
-  buildAttributes(_common, context) {
-    const weapons = (context.weaponSet === 2 ? context.build.alternateWeapons : context.build.weapons) || [];
+  attributes(context) {
+    const weapons = context.weaponSet === 2 ? context.loadout.alternateWeapons : context.loadout.weapons;
     return {
       attributeEffects: [
         {
@@ -307,7 +323,7 @@ export const greatFortitude = defineTrait({
   balance: {
     attributeConversion: 0.1
   },
-  buildAttributes(_common, context) {
+  attributes(context) {
     return {
       attributeEffects: [
         {
@@ -353,37 +369,6 @@ function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2Resolver
       detail: '+10% strike damage for 6 seconds'
     }
   });
-}
-
-// Resolve Strength-owned attributes without hiding their formulas in the cross-line composer.
-export function modifyWarriorStrengthAttributes(
-  context: Gw2ModifierContext,
-  result: WarriorModifierAttributes,
-  staticRulesApplied: boolean,
-  gearPower: number
-): void {
-  if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
-    const pinnacleOfStrengthProfile = requireBalanceProfileFromContext(context, TRAIT.PINNACLE_OF_STRENGTH);
-    result.power +=
-      (context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
-      balanceProfileNumber(pinnacleOfStrengthProfile, 'attributeBonus');
-  }
-
-  if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
-    const forcefulGreatswordProfile = requireBalanceProfileFromContext(context, TRAIT.FORCEFUL_GREATSWORD);
-    result.power +=
-      balanceProfileNumber(forcefulGreatswordProfile, 'attributeBonus') +
-      Number(warriorWieldingWeapon(context, 'Greatsword')) *
-        balanceProfileNumber(forcefulGreatswordProfile, 'weaponAttributeBonus');
-  }
-
-  if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
-    const greatFortitudeProfile = requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE);
-    // Static builds already bake this gear-only conversion; live Might and signets must not feed it.
-    const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
-    result.vitality += gearPower * conversion;
-    result.ferocity += gearPower * conversion;
-  }
 }
 
 function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
@@ -528,18 +513,16 @@ function forcefulGreatswordCritical(
   }
 }
 
-/** Berserk's live power pool participates in Great Fortitude's conversion. */
-export function convertBerserkPower(
+/** Only Berserk's authored Power increment joins Great Fortitude, never arbitrary live Power. */
+export function berserkFortitudeEffects(
   context: Gw2ModifierContext,
-  result: Gw2MutableStats & { ferocity: number },
   powerBonus: number
-): void {
-  if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
-    const greatFortitudeProfile = requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE);
-    const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
-    result.vitality = (result.vitality || 0) + powerBonus * conversion;
-    result.ferocity += powerBonus * conversion;
-  }
+): readonly Gw2AttributeEffect[] {
+  if (!hasTrait(context, TRAIT.GREAT_FORTITUDE)) return [];
+  const amount =
+    powerBonus *
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE), 'attributeConversion');
+  return ['Vitality', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount, feedsConversions: false }));
 }
 
 /** Dragon Slash grants the charge-converted reward at completion. */

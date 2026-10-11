@@ -1,17 +1,17 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  mesmerPhantasmPreparing,
-  type MesmerPhantasmAdmission
-} from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  mesmerPhantasmPreparing,
+  type MesmerPhantasmAdmission
+} from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -24,8 +24,8 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
 
 /** Danger Time retains its active profile, selection, and original execution boundary. */
@@ -60,20 +60,9 @@ export const flowOfTime = defineTrait<MesmerSkill>({
   balance: {
     criticalChance: 0.15
   },
-  modifierRules: [
-    {
-      id: 'mesmer.flow-of-time-critical-chance',
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLOW_OF_TIME), 'criticalChance'),
-      when: (context) =>
-        Boolean(context.config?.boons?.alacrity) && ['player', 'summon'].includes(gw2EventActorType(context.event))
-    }
-  ],
-  buildAttributes: (_common, { balanceContext, build }) => ({
+  attributes: ({ balanceContext, loadout, event }) => ({
     traitCriticalChance:
-      build.assumptions?.alacrity !== false
+      loadout.assumptions.alacrity !== false && (!event || ['player', 'summon'].includes(gw2EventActorType(event)))
         ? 100 *
           balanceProfileNumber(requireBalanceProfileFromContext(balanceContext, TRAIT.FLOW_OF_TIME), 'criticalChance')
         : 0

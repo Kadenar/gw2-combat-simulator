@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -74,7 +75,7 @@ test('Signet Mastery target-health eligibility and same-time cooldown reservatio
       specialization: 'Core',
       selectedTraitIds: [TRAIT.SIGNET_MASTERY],
       target: { health: 1000000000, startingHealthFraction, armor: 2597 },
-      stats: { power: 1000, precision: 1000 }
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000 })
     };
     const result = observeGw2Runtime({
       profession: warriorProfession.runtimeFor(config),

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
@@ -41,7 +42,11 @@ function run(
 ) {
   return observeGw2Runtime({
     output,
-    config: { stats: { power: 1000, precision: 1000 }, target: { armor: 1000, conditions: {} }, ...config },
+    config: {
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000 }),
+      target: { armor: 1000, conditions: {} },
+      ...config
+    },
     rotation,
     profession: {
       // Use the canonical list so fixtures retain every required modifier as the contract evolves.

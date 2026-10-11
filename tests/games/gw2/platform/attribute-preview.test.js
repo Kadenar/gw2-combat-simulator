@@ -5,9 +5,8 @@ import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/con
 
 // All preview phases must select the same Core/elite/family owners, without initializing sibling state.
 test('attribute preview controls, build adjustments, and preparation select the active owners', () => {
-  const slice = (key, disabledTrait = null) => ({
+  const slice = (key) => ({
     previewControls: () => [{ key, kind: 'special' }],
-    attributePreviewDisabledTrait: () => disabledTrait,
     prepareAttributePreview: (context) => context.events.push(key)
   });
   const ui = normalizeProfessionUi(
@@ -20,21 +19,20 @@ test('attribute preview controls, build adjustments, and preparation select the 
         ]
       },
       core: slice('core'),
-      specializations: { First: slice('first', 'First Trait'), Second: slice('second', 'Second Trait') },
+      specializations: { First: slice('first'), Second: slice('second') },
       family: slice('family')
     })
   );
-  for (const [specialization, owners, disabledTrait] of [
-    ['Core', ['core', 'family'], null],
-    ['First', ['core', 'first', 'family'], 'First Trait'],
-    ['Second', ['core', 'second', 'family'], 'Second Trait']
+  for (const [specialization, owners] of [
+    ['Core', ['core', 'family']],
+    ['First', ['core', 'first', 'family']],
+    ['Second', ['core', 'second', 'family']]
   ]) {
     const context = { specialization, events: [] };
     assert.deepEqual(
       ui.previewControls(context).map(({ key }) => key),
       owners
     );
-    assert.equal(ui.attributePreviewDisabledTrait(context), disabledTrait);
     ui.prepareAttributePreview(context);
     assert.deepEqual(context.events, owners);
   }
@@ -56,8 +54,7 @@ test('attribute preview hooks normalize to no-ops and validate callback declarat
   const ui = normalizeProfessionUi('fixture');
   const context = Object.freeze({});
   assert.deepEqual(ui.previewControls(context), []);
-  assert.equal(ui.attributePreviewDisabledTrait(context), null);
   assert.equal(ui.prepareAttributePreview(context), undefined);
-  for (const name of ['previewControls', 'attributePreviewDisabledTrait', 'prepareAttributePreview'])
+  for (const name of ['previewControls', 'prepareAttributePreview'])
     assert.throws(() => normalizeProfessionUi('fixture', { [name]: [] }), /must be a function/);
 });

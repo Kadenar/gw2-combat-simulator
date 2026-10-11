@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -18,7 +19,10 @@ const attributes = Object.freeze({
 });
 
 // Native recurrence and interrupted packets must observe the same caller-owned endpoint.
-const simulateNecromancer = createObservedProfessionSimulator(necromancerProfession, { stats: attributes, target });
+const simulateNecromancer = createObservedProfessionSimulator(necromancerProfession, {
+  attributeInputs: baseAttributeInputs(attributes),
+  target
+});
 
 test('native wells and uncommitted interrupted effects obey caller observation', () => {
   const well = simulateNecromancer(
@@ -98,7 +102,7 @@ test('native upkeep recurrence terminates at starvation inside a finite tail', (
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 50,
-    stats: attributes,
+    attributeInputs: baseAttributeInputs(attributes),
     target
   })('Core', ['Impossible Odds'], {}, { kind: 'tail', durationMs: 50_000 });
 

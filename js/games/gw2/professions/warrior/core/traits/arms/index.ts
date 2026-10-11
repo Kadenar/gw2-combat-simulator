@@ -1,9 +1,8 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -24,7 +23,6 @@ import {
   immobilized,
   strikeResourcesGranted
 } from '#gw2/professions/warrior/core/mechanics/combat.js';
-import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {
   warriorActiveBuffStacks,
   warriorBoonActive,
@@ -36,6 +34,25 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 
 /** Owns this trait's tuning and selected contributions. */
 export const signetMastery = defineTrait({
+  // Read live signet stacks without adding their Ferocity to ordinary conversion inputs.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SIGNET_MASTERY);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount:
+            warriorActiveBuffStacks(context, 'signet-mastery', balanceProfileNumber(profile, 'maximumStacks')) *
+            balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: true
+        }
+      ]
+    };
+  },
+
   id: TRAIT.SIGNET_MASTERY,
   name: 'Signet Mastery',
   balance: {
@@ -69,6 +86,23 @@ export const signetMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstPrecision = defineTrait({
+  // The accepted Burst Precision window controls its flat Ferocity.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BURST_PRECISION);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
+        }
+      ]
+    };
+  },
+
   triggers: [
     onTriggerPoint(burstFirstHit, {
       run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => burstPrecisionHit(runtime, input.event)
@@ -119,7 +153,7 @@ export const bloodlust = defineTrait({
     procChance: 0.33,
     effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
   },
-  buildAttributes(_common, context) {
+  attributes(context) {
     return {
       traitDurations: {
         'Bleeding Duration':
@@ -135,6 +169,23 @@ export const bloodlust = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const furious = defineTrait({
+  // Count only accepted self stacks; deselection stops future grants, not existing ones.
+  grantedAttributes(context) {
+    if (!context.runtime && !context.timeline) return {};
+    const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Condition Damage',
+          feedsConversions: false,
+          amount:
+            warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(profile, 'maximumStacks')) *
+            balanceProfileNumber(profile, 'attributeBonus')
+        }
+      ]
+    };
+  },
   triggers: [
     onTriggerPoint(critical, {
       run: (runtime, input: TriggerPointInput<typeof critical>) =>
@@ -242,7 +293,7 @@ export const deepStrikes = defineTrait({
       when: (context) => targetConditionActive(context, 'Bleeding')
     }
   ],
-  buildAttributes(_common, context) {
+  attributes(context) {
     return {
       attributeEffects: [
         {
@@ -253,7 +304,7 @@ export const deepStrikes = defineTrait({
             'attributeBonus'
           ),
           feedsConversions: false,
-          enabled: Boolean(context.build.assumptions?.fury)
+          enabled: Boolean(context.loadout.assumptions.fury)
         }
       ]
     };
@@ -285,7 +336,7 @@ export const woundingPrecision = defineTrait({
   id: TRAIT.WOUNDING_PRECISION,
   name: 'Wounding Precision',
   balance: { attributeConversion: 0.07 },
-  buildAttributes(_common, context) {
+  attributes(context) {
     return {
       attributeEffects: [
         {
@@ -313,18 +364,25 @@ export const blademaster = defineTrait({
     rechargeMultiplier: 0.8,
     attributeBonus: 120
   },
-  buildAttributes(_common, context) {
+  // Declare both the permanent Expertise and weapon-dependent Condition Damage together.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BLADEMASTER);
+
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.BLADEMASTER),
-            'attributeBonus'
-          ),
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false,
           enabled: true
+        },
+        {
+          kind: 'flat',
+          to: 'Condition Damage',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: warriorWieldingWeapon(context, 'Sword')
         }
       ]
     };
@@ -397,46 +455,6 @@ function signetMasteryDamage(
       icon: context.helpers.skillsById.get(ID.SIGNET_OF_MIGHT)?.icon || ''
     }
   });
-}
-
-// Resolve Arms-owned attributes, including live signet state and critical-proc stacks.
-export function modifyWarriorArmsAttributes(
-  context: Gw2ModifierContext,
-  result: WarriorModifierAttributes,
-  staticRulesApplied: boolean
-): void {
-  const signetMasteryProfile = requireBalanceProfileFromContext(context, TRAIT.SIGNET_MASTERY);
-  const signetStacks = warriorActiveBuffStacks(
-    context,
-    'signet-mastery',
-    balanceProfileNumber(signetMasteryProfile, 'maximumStacks')
-  );
-  if (hasTrait(context, TRAIT.SIGNET_MASTERY)) {
-    result.ferocity += signetStacks * balanceProfileNumber(signetMasteryProfile, 'attributeBonus');
-  }
-
-  if (
-    hasTrait(context, TRAIT.DEEP_STRIKES) &&
-    warriorBoonActive(context, 'fury') &&
-    !(staticRulesApplied && Boolean(context.config?.boons?.fury))
-  ) {
-    const deepStrikesProfile = requireBalanceProfileFromContext(context, TRAIT.DEEP_STRIKES);
-    result.conditionDamage += balanceProfileNumber(deepStrikesProfile, 'attributeBonus');
-  }
-
-  if (hasTrait(context, TRAIT.BLADEMASTER) && warriorWieldingWeapon(context, 'Sword')) {
-    const blademasterProfile = requireBalanceProfileFromContext(context, TRAIT.BLADEMASTER);
-    result.conditionDamage += balanceProfileNumber(blademasterProfile, 'attributeBonus');
-  }
-
-  const furiousProfile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS);
-  result.conditionDamage +=
-    warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(furiousProfile, 'maximumStacks')) *
-    balanceProfileNumber(furiousProfile, 'attributeBonus');
-  if (hasTrait(context, TRAIT.BURST_PRECISION) && warriorActiveBuffStacks(context, 'burst-precision', 1) > 0) {
-    const burstPrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.BURST_PRECISION);
-    result.ferocity += balanceProfileNumber(burstPrecisionProfile, 'attributeBonus');
-  }
 }
 
 function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {

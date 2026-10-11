@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -331,10 +332,10 @@ test('Signet of Midnight expertise is inactive while recharging', () => {
       selectedSkillIds: [10234],
       primaryWeapon: 'Scepter',
       secondaryWeapon: '',
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         expertise: 0
-      },
+      }),
       boons: {
         ...defaults.boons,
         quickness: false,
@@ -363,10 +364,10 @@ test('Continuum Shift restores Signet of Midnight passive expertise', () => {
       primaryWeapon: 'Scepter',
       secondaryWeapon: '',
       initialResource: 3,
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         expertise: 0
-      },
+      }),
       boons: {
         ...defaults.boons,
         quickness: false,
@@ -606,10 +607,10 @@ test('Virtuoso Deadly Blades vulnerability triggers Relic of Aristocracy', () =>
       selectedTraitIds: [TRAIT.DEADLY_BLADES],
       relic: 'Aristocracy',
       initialResource: 0,
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 4000
-      }
+      })
     })
   );
   const vulnerability = result.events.filter(

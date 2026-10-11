@@ -38,7 +38,7 @@ const core = defineNativeModule({
           runtime.profession.core.coreValue += cast.skill.id === 1 ? 1 : 0;
         }
       },
-      buildAttributes: (_common, { balanceContext }) => ({
+      attributes: ({ balanceContext }) => ({
         attributeEffects: [
           {
             kind: 'flat',

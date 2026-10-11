@@ -1,6 +1,8 @@
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -15,7 +17,10 @@ export interface ProfessionConfig {
 
 /** State construction and projection; executable resource policies belong to runtime hooks. */
 export interface ProfessionResourceDefinition<TProfessionState extends object = object> {
-  readonly createState?: (config: Readonly<ProfessionConfig>) => TProfessionState;
+  readonly createState?: (
+    config: Readonly<ProfessionConfig>,
+    balanceContext?: ProfessionBalanceContext
+  ) => TProfessionState;
   readonly projectPlanningState?: unknown;
 }
 
@@ -59,6 +64,8 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
   readonly id: string;
   readonly name: string;
   readonly catalog?: CanonicalCatalog<TSkill>;
+  /** Runtime owners construct attribute facts with their selected balance context. */
+  readonly attributeContributions?: (context: Gw2ModifierContext) => readonly Gw2AttributeContributions[];
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
   readonly modifiers?: ProfessionModifierDefinition;
 }
@@ -77,13 +84,17 @@ export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
 export interface NormalizedProfessionContract<TProfessionState extends object = object, TSkill extends Skill = Skill> {
+  readonly attributeContributions?: (context: Gw2ModifierContext) => readonly Gw2AttributeContributions[];
   readonly canSwapWeaponSetsInCombat: boolean;
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog<TSkill>;
-  readonly createState: (config: Readonly<ProfessionConfig>) => TProfessionState;
+  readonly createState: (
+    config: Readonly<ProfessionConfig>,
+    balanceContext?: ProfessionBalanceContext
+  ) => TProfessionState;
   readonly projectPlanningState: (...args: never[]) => unknown;
   readonly modifyAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) => Gw2Stats;
   /** Condition-specific replacements run after all profession and equipment attribute bonuses. */

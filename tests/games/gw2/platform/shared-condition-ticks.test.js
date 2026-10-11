@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -116,6 +117,50 @@ function resolve(
   });
 }
 
+// Sibling stacks share attribute inputs only within one observation; distinct sources, owners and weights stay separate.
+test('condition attribute samples share a packet batch and refresh with each observation', () => {
+  for (const output of ['score', 'detailed']) {
+    const samples = [];
+    resolve(
+      [
+        condition(0, { sourceId: 'first', stacks: 2.5, duration: 2 }),
+        condition(0, { sourceId: 'second', stacks: 2, duration: 2 }),
+        condition(0, {
+          sourceId: 'pet',
+          stacks: 2,
+          duration: 2,
+          actorType: 'summon',
+          independentConditionOwner: true,
+          summonOwner: 'pet'
+        })
+      ],
+      {
+        output,
+        end: 2,
+        query: {
+          statsAt: (at, event) => {
+            if (at > 0) samples.push({ at, source: event.sourceId, weight: event.stacks });
+            return { power: 1000, conditionDamage: at * 100 + (event.sourceId === 'pet' ? 500 : 0) };
+          }
+        }
+      }
+    );
+    for (const at of [1, 2]) {
+      assert.deepEqual(
+        samples.filter((sample) => sample.at === at).map(({ source, weight }) => [source, weight]),
+        [
+          ['first', 1],
+          ['first', 0.5],
+          ['second', 1],
+          ['pet', 1]
+        ]
+      );
+    }
+
+    assert.equal(samples.length, 8);
+  }
+});
+
 function applications(result) {
   return result.resolvedEvents.filter(({ type }) => type === 'condition');
 }
@@ -232,6 +277,69 @@ test('condition sampling restarts after an idle gap and preserves an unpaid hori
   }
 });
 
+// Expiry samples are found by instant, so one pass must reach every owner and condition ending there.
+test('one expiry instant samples every owner ending there and skips removed applications', () => {
+  for (const output of ['detailed', 'score']) {
+    const samples = [];
+    let removed;
+    resolve(
+      [
+        condition(0, { sourceId: 'bleed', duration: 0.4 }),
+        condition(0, { sourceId: 'burn', name: 'Burn', condition: 'Burning', duration: 0.4 }),
+        condition(0, { sourceId: 'removed', duration: 0.6 }),
+        condition(0, { sourceId: 'long', duration: 0.7 }),
+        condition(0.1, {
+          sourceId: 'pet',
+          duration: 0.3,
+          actorType: 'summon',
+          independentConditionOwner: true,
+          summonOwner: 'pet'
+        }),
+        {
+          type: 'buff',
+          at: 0.2,
+          source: 'Player',
+          sourceId: 'remove',
+          actorType: 'player',
+          kind: 'might',
+          duration: 1,
+          stacks: 1
+        }
+      ],
+      {
+        output,
+        end: 1,
+        query: {
+          conditionMultiplier: (_name, at, application) => {
+            samples.push([at, application.sourceId]);
+            return 1;
+          }
+        },
+        reactions: {
+          'condition.applied': (_ctx, event) => {
+            if (event.sourceId === 'removed') removed = event;
+          },
+          'buff.applied': () => {
+            removed.removedAt = 0.2;
+          }
+        }
+      }
+    );
+    // Order inside one pass is not a contract; its membership and the sequence of instants are.
+    assert.deepEqual(
+      samples
+        .filter(([at]) => at === 0.4)
+        .map(([, source]) => source)
+        .sort(),
+      ['bleed', 'burn', 'pet']
+    );
+    assert.deepEqual(
+      samples.filter(([at]) => at !== 0.4),
+      [[0.7, 'long']]
+    );
+  }
+});
+
 // Traits may add a damage formula while ordinary and ambient Fear remain harmless.
 test('a trait damage formula makes Fear damaging in detailed and score output', () => {
   for (const output of ['detailed', 'score']) {
@@ -277,7 +385,10 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
     });
     const combat = createGw2CombatQuery({
       profession,
-      config: { target: { conditions: {} }, stats: { power: 1000, conditionDamage: 0, expertise: 1500 } }
+      config: {
+        target: { conditions: {} },
+        attributeInputs: baseAttributeInputs({ power: 1000, conditionDamage: 0, expertise: 1500 })
+      }
     });
     const result = resolve(
       [

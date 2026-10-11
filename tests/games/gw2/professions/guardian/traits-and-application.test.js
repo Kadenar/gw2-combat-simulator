@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
@@ -27,17 +28,17 @@ const guardianCoreUi = bindGuardianCoreUi(guardianCatalog);
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(
   applyGuardianBuildAttributeRules,
-  guardianProfession.traitBuildAttributes
+  guardianProfession.attributeContributions
 );
 
 const config = {
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1000,
     ferocity: 0,
     conditionDamage: 1000,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597 }
 };
 
@@ -53,7 +54,11 @@ test('Empowering Might requires player critical strikes and shares the one-secon
       [{ type: 'wait', durationMs: 2500 }],
       {
         selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.EMPOWERING_MIGHT] : [],
-        stats: { ...config.stats, precision, concentration },
+        attributeInputs: baseAttributeInputs({
+          ...config.attributeInputs?.weaponSets[0].commonTotals,
+          precision,
+          concentration
+        }),
         allies: { count: 4 }
       },
       {
@@ -237,7 +242,7 @@ test("Zealot's Resolution requires the enemy to be below its threshold before th
     createObservedProfessionSimulator(guardianProfession, {
       ...config,
       primaryWeapon: 'Mace',
-      stats: { ...config.stats, power: 4000 },
+      attributeInputs: baseAttributeInputs({ ...config.attributeInputs.weaponSets[0].commonTotals, power: 4000 }),
       target: { ...config.target, health: 4000, startingHealthFraction },
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
     })(undefined, rotation);
@@ -345,7 +350,10 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
   assert.equal(observedRuntime(utility).procs.deadline('guardian.core.healersResolution'), 0);
   const untraited = runGuardian(['Shelter']);
   assert.equal(observedRuntime(untraited).procs.deadline('guardian.core.healersResolution'), 0);
-  const scaled = runGuardian(['Shelter'], { ...settings, stats: { concentration: 750 } });
+  const scaled = runGuardian(['Shelter'], {
+    ...settings,
+    attributeInputs: baseAttributeInputs({ concentration: 750 })
+  });
   assert.equal(
     scaled.events.find((event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION)
       .duration,
@@ -390,7 +398,10 @@ test("Protector's Restoration pulses Protection and symbol damage while its Ligh
     createObservedProfessionSimulator(guardianProfession, {
       ...config,
       primaryWeapon: 'Hammer',
-      stats: { ...config.stats, concentration: 750 },
+      attributeInputs: baseAttributeInputs({
+        ...config.attributeInputs.weaponSets[0].commonTotals,
+        concentration: 750
+      }),
       boons: { alacrity: true },
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]
     })(undefined, ['Shelter', { type: 'wait', durationMs: waitMs }, 'Mighty Blow', { type: 'wait', durationMs: 3000 }]);
@@ -442,7 +453,9 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
     Math.abs(
       first(retribution).criticalChance -
         0.25 -
-        (config.stats.precision > 895 ? (config.stats.precision - 895) / 2100 : 0)
+        (config.attributeInputs.weaponSets[0].commonTotals.precision > 895
+          ? (config.attributeInputs.weaponSets[0].commonTotals.precision - 895) / 2100
+          : 0)
     ) < 1e-9
   );
   assert.equal(
@@ -491,7 +504,11 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
   };
 
   guardianAppAdapter.recalculate(app);
-  assert.equal(guardianAppAdapter.simulationConfig(app).stats.conditionDurationBonuses.Burning, 20);
+  assert.equal(
+    guardianAppAdapter.simulationConfig(app).attributeInputs.weaponSets[0].commonTotals.conditionDurationBonuses
+      .Burning,
+    0
+  );
 });
 
 test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () => {

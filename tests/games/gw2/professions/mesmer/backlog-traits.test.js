@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -9,7 +10,7 @@ const config = {
   specialization: 'Core',
   primaryWeapon: 'Sword',
   initialResource: 0,
-  stats: { power: 2000, precision: 3000, expertise: 0, concentration: 0 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 3000, expertise: 0, concentration: 0 }),
   boons: { might: 0, fury: false, quickness: false, alacrity: false, vigor: false },
   target: { armor: 2597, conditions: {} }
 };
@@ -112,7 +113,11 @@ test('Critical Infusion grants scaled Vigor only on player critical hits', () =>
       {
         ...config,
         selectedTraitIds: [TRAIT.CRITICAL_INFUSION],
-        stats: { ...config.stats, precision, concentration: 750 }
+        attributeInputs: baseAttributeInputs({
+          ...config.attributeInputs?.weaponSets[0].commonTotals,
+          precision,
+          concentration: 750
+        })
       },
       {
         initialize(runtime) {

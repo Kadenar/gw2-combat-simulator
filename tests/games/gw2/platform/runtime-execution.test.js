@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -198,7 +199,7 @@ test('ammunition capacity uses per-run state and selected balance profiles at th
 });
 
 const config = {
-  stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 }),
   target: { armor: 1000, health: 0, conditions: {} },
   randomness: { mode: 'expected', seed: 123 },
   selectedTraitIds: ['test.trait']

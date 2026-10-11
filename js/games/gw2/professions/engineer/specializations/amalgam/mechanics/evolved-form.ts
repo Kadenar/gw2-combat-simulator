@@ -1,3 +1,6 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { activeEngineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -105,3 +108,17 @@ export function evolveAmalgam(context: EngineerRuntime): void {
     for (const morphKind of selected) applyAmalgamStrain(context, morphKind, at);
   context.fireTrigger(amalgamEvolved, { at });
 }
+
+/** Plasmatic State strengthens eligible player packets while its accepted strain is active. */
+export const plasmaticStateModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    order: 1,
+    id: 'engineer.plasmatic-state',
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'damage-additive',
+    amount: 0.07,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
+  }
+]);

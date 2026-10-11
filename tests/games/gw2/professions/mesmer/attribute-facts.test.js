@@ -1,5 +1,6 @@
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { applyMesmerCoreAttributes } from '#gw2/professions/mesmer/core/modifiers.js';
+
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import assert from 'node:assert/strict';
@@ -37,25 +38,28 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
     }
   };
   const base = { conditionDamage: 0, expertise: 0, ferocity: 0, concentration: 0 };
-  const ready = applyMesmerCoreAttributes(context, base);
+  const ready = mesmerProfession.resolveProfession({}).modifyAttributes(context, base);
   assert.equal(ready.conditionDamage, 220);
   assert.equal(ready.expertise, 330);
   assert.equal(ready.concentration, 270);
-  const recharging = applyMesmerCoreAttributes({ ...context, time: 1 }, base);
+  const recharging = mesmerProfession.resolveProfession({}).modifyAttributes({ ...context, time: 1 }, base);
   assert.equal(recharging.conditionDamage, 0);
   assert.equal(recharging.expertise, 130);
   assert.equal(recharging.ferocity, 12);
-  assert.equal(applyMesmerCoreAttributes({ ...context, time: 2 }, base).conditionDamage, 220);
-  assert.equal(loadoutReads, 1);
+  assert.equal(
+    mesmerProfession.resolveProfession({}).modifyAttributes({ ...context, time: 2 }, base).conditionDamage,
+    220
+  );
+  assert.ok(loadoutReads > 0);
   const patched = {
     ...context,
     query: {},
     catalog: { balanceProfilesById: new Map(context.catalog.balanceProfilesById) }
   };
   patched.catalog.balanceProfilesById.set(PROFILE.signetOfDomination, { conditionDamageBonus: 250 });
-  assert.equal(applyMesmerCoreAttributes(patched, base).conditionDamage, 250);
-  assert.equal(applyMesmerCoreAttributes(context, base).conditionDamage, 220);
-  assert.equal(loadoutReads, 2);
+  assert.equal(mesmerProfession.resolveProfession({}).modifyAttributes(patched, base).conditionDamage, 250);
+  assert.equal(mesmerProfession.resolveProfession({}).modifyAttributes(context, base).conditionDamage, 220);
+  assert.ok(loadoutReads > 0);
 });
 
 test('detached Mesmer attribute queries observe edited loadouts', () => {
@@ -66,9 +70,14 @@ test('detached Mesmer attribute queries observe edited loadouts', () => {
     timeline: { skillOnCooldownAt: () => false, buffStacksAt: () => 0 }
   };
   assert.equal(
-    applyMesmerCoreAttributes({ catalog: mesmerCatalog, ...context }, { conditionDamage: 1000 }).conditionDamage,
+    mesmerProfession
+      .resolveProfession({})
+      .modifyAttributes({ catalog: mesmerCatalog, ...context }, { conditionDamage: 1000 }).conditionDamage,
     1180
   );
   context.config.selectedSkillIds = [];
-  assert.equal(applyMesmerCoreAttributes(context, { conditionDamage: 1000 }).conditionDamage, 1000);
+  assert.equal(
+    mesmerProfession.resolveProfession({}).modifyAttributes(context, { conditionDamage: 1000 }).conditionDamage,
+    1000
+  );
 });

@@ -1,18 +1,15 @@
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2AttributeBreakdown, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
-import { createAttributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
-import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
-import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
-import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
-import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
-import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
-import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
+import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
+import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
+import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 /** Keep baseline and modifier comparisons stable while preserving all other simulation settings. */
 export function deterministicSimulationConfig(config: Gw2Config): Gw2Config {
@@ -49,70 +46,16 @@ export function createGw2SimulationConfig({
     .map((setNumber) => weaponSigilsForSet(app.build, setNumber))
     .map((names) => (disabled?.type === 'Sigil' ? names.filter((name) => name !== disabled.name) : names))
     .map(aggregateSigilSet);
-  const statsFromAttributes = (data: ProfessionAttributeData): Gw2Stats => {
-    const breakdown = (name: string): Partial<Gw2AttributeBreakdown> => data.attributes[name] || {};
-    const attr = (name: string): number => breakdown(name).final || 0;
-    const displayedConditionDuration = breakdown('Condition Duration');
-    const conditionDurationBonuses: Record<string, number> = Object.fromEntries(
-      ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment']
-        .map((name): [string, number] => {
-          const duration = breakdown(`${name} Duration`);
-          // Sigil duration is applied by the combat query for the active weapon set.
-          const bonus = Number(duration.final || 0) - Number(duration.sigils || 0);
-          return [name === 'Poison' ? 'Poisoned' : name, Math.max(0, bonus)];
-        })
-        .filter(([, bonus]) => bonus > 0)
-    );
-    const displayedBoonDuration = breakdown('Boon Duration');
-    const boonDurationBonuses: Record<string, number> = Object.fromEntries(
-      ['Quickness', 'Might', 'Fury']
-        .map((name): [string, number] => [
-          name,
-          Math.max(
-            0,
-            Number(breakdown(`${name} Duration`).final || 0) - Number(breakdown(`${name} Duration`).sigils || 0)
-          )
-        ])
-        .filter(([, bonus]) => bonus > 0)
-    );
-    return {
-      power: attr('Power'),
-      precision: attr('Precision'),
-      ferocity: attr('Ferocity'),
-      conditionDamage: attr('Condition Damage'),
-      expertise: attr('Expertise'),
-      concentration: attr('Concentration'),
-      boonDurationBonus: Math.max(
-        0,
-        Number(displayedBoonDuration.final || 0) -
-          attr('Concentration') / 15 -
-          Number(displayedBoonDuration.sigils || 0)
-      ),
-      boonDurationBonuses,
-      vitality: attr('Vitality'),
-      criticalChanceBonus: 0,
-      conditionDurationBonus: Math.max(
-        0,
-        Number(displayedConditionDuration.final || 0) -
-          attr('Expertise') / 15 -
-          Number(displayedConditionDuration.sigils || 0)
-      ),
-      conditionDurationBonuses
-    };
-  };
-
-  const fallbackStats = statsFromAttributes(attributeData);
-  const weaponSetStats =
+  // Only common equipment seeds cross the worker boundary; profession bonuses are evaluated by the selected runtime.
+  const seeds =
     attributeDataByWeaponSet?.length === 2
-      ? attributeDataByWeaponSet.map(statsFromAttributes)
-      : [fallbackStats, fallbackStats];
+      ? attributeDataByWeaponSet.map((data) => data.attributeSeed)
+      : [attributeData.attributeSeed, attributeData.attributeSeed];
+  const attributeInputs = { weaponSets: [seeds[0], seeds[1]] as const };
   const professionAssumptionControls = assumptionControlsForSpecialization(
     app.adapter?.assumptionControls || [],
     specialization
   );
-  const calculatedWeaponSet = app.build.startingWeaponSet === 2 ? 2 : 1;
-  const calculatedPrimaryWeapon =
-    (calculatedWeaponSet === 2 ? app.build.alternateWeapons : app.build.weapons)?.[0] || '';
 
   return {
     patchId: app.patchId || 'current',
@@ -134,19 +77,13 @@ export function createGw2SimulationConfig({
     weaponSet2Primary: app.build.alternateWeapons[0],
     weaponSet2Secondary: app.build.alternateWeapons[1],
     startingWeaponSet: app.build.startingWeaponSet === 2 ? 2 : 1,
-    attributeProvenance: createAttributeProvenance({
-      professionStaticRulesApplied: true,
-      calculatedWeaponSet,
-      calculatedPrimaryWeapon
-    }),
     initialResource,
     randomness: simulationRandomnessFromAssumptions(assumptions),
     criticalDamageMode: normalizeCriticalDamageMode(assumptions.criticalDamageMode),
     professionAssumptions: Object.fromEntries(
       professionAssumptionControls.map((control) => [control.key, assumptions[control.key] ?? control.defaultValue])
     ),
-    stats: weaponSetStats[calculatedWeaponSet - 1] || fallbackStats,
-    weaponSetStats,
+    attributeInputs,
     sigilSets,
     relic: disabled?.type === 'Relic' ? '' : app.build.relic,
     // Temporary relic selections travel with every simulation of this build, including optimizer candidates.

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -34,7 +35,7 @@ test('Thief critical boons read pre-hit Fury with same-time ordering and expiry'
       [wait(8500)],
       {
         selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER],
-        stats: { power: 1000, precision: 4000 }
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000 })
       },
       {
         initialize(runtime) {
@@ -207,14 +208,20 @@ for (const [name, traitId, invoke, output] of [
 ]) {
   test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {
     for (const duration of [2, 0]) {
-      const { context } = traitContext([]);
       const profiles = new Map(thiefCatalog.balanceProfilesById);
       profiles.set(traitId, { ...profiles.get(traitId), internalCooldown: duration });
-      context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
-      context.procs.setDeadline('unrelated', 99);
-      invoke(context);
-      assert.deepEqual({ ...context.procs.snapshot() }, { unrelated: 99 });
-      context.traits = new Set([traitId]);
+      // Each build owns its context and claim registry, because selection never changes once a context is in use.
+      const prepare = (selectedTraitIds) => {
+        const { context } = traitContext(selectedTraitIds);
+        context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
+        context.procs.setDeadline('unrelated', 99);
+        return context;
+      };
+
+      const unselected = prepare([]);
+      invoke(unselected);
+      assert.deepEqual({ ...unselected.procs.snapshot() }, { unrelated: 99 });
+      const context = prepare([traitId]);
       const owner = output === 'queue' ? context.queue : context;
       const method = output === 'queue' ? 'enqueue' : output;
       const original = owner[method].bind(owner);

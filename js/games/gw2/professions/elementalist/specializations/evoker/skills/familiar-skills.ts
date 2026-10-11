@@ -1,3 +1,6 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 /**
  * Owns Evoker familiar basic and empowered skill fragments.
@@ -486,3 +489,15 @@ export function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeC
     emitResource(context, cast, skill, state);
   }
 }
+
+/** Zap grants its strike bonus only to the Air familiar configuration during its buff. */
+export const zapModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'elementalist.zap',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.03,
+    when: (context: ElementalistModifierContext) =>
+      context.config?.evokerElement === 'Air' && activeBuffStacks(context, 'zap buff', 1) > 0
+  }
+]);

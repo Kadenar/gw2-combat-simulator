@@ -1,3 +1,5 @@
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
@@ -26,7 +28,7 @@ import test from 'node:test';
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calcAttributes = createCalculateAttributes(
   applyMesmerBuildAttributeRules,
-  mesmerAppAdapter.profession.traitBuildAttributes
+  mesmerAppAdapter.profession.attributeContributions
 );
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
 const replaceBuild = (saved) => replaceBuildFor(saved, mesmerAppAdapter);
@@ -42,7 +44,11 @@ test('config preparation calculates each affected weapon set once and reuses the
     // Distinct set values expose accidentally selecting the first set for displayed-attribute hooks.
     calculateAttributes(_build, _skills, weaponSet) {
       calculatedSets.push(weaponSet);
-      return { attributes: { Power: { final: weaponSet * 100 } }, activeTraits: [{ id: weaponSet }] };
+      return {
+        attributeSeed: baseAttributeInputs({ power: weaponSet * 100 }).weaponSets[0],
+        attributes: { Power: { final: weaponSet * 100 } },
+        activeTraits: [{ id: weaponSet }]
+      };
     },
     buildConfigExtras(_app, { attributeData }) {
       hookAttributes = attributeData;
@@ -58,7 +64,7 @@ test('config preparation calculates each affected weapon set once and reuses the
     const config = runtime.simulationConfig(app, { id: `${type}:Test`, type, name: 'Test', label: 'Test' });
     assert.deepEqual(calculatedSets, [1, 2]);
     assert.deepEqual(
-      config.weaponSetStats.map((stats) => stats.power),
+      config.attributeInputs.weaponSets.map((seed) => seed.commonTotals).map((stats) => stats.power),
       [100, 200]
     );
     assert.equal(hookAttributes.attributes.Power.final, 200);
@@ -474,8 +480,12 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
     attributeData: calcAttributes(build, [])
   });
 
-  assert.equal(config.stats.conditionDurationBonus, 15);
-  assert.deepEqual(config.stats.conditionDurationBonuses, {});
+  assert.equal(config.attributeInputs.weaponSets[0].commonTotals.conditionDurationBonus, 15);
+  assert.ok(
+    Object.values(config.attributeInputs.weaponSets[0].commonTotals.conditionDurationBonuses).every(
+      (value) => value === 0
+    )
+  );
   assert.equal(config.sigilSets[0].conditionDurationBonuses.Torment, 20);
 });
 
@@ -487,7 +497,14 @@ test('Mesmer runtime includes Malicious Sorcery once through panel-derived stats
   const config = mesmerAppAdapter.simulationConfig({ build, attributeData });
 
   assert.equal(attributeData.attributes['Confusion Duration'].traits, 25);
-  assert.equal(config.stats.conditionDurationBonuses.Confusion, 25);
+  assert.equal(config.attributeInputs.weaponSets[0].commonTotals.conditionDurationBonuses.Confusion, 0);
+  const query = createGw2CombatQuery({
+    profession: mesmerAppAdapter.profession.runtimeFor(config),
+    config,
+    skillOnCooldown: () => false,
+    events: []
+  });
+  assert.equal(query.statsAt(0).conditionDurationBonuses.Confusion, 25);
 });
 
 test('simulation config exposes the selected target skill activation rate', () => {
@@ -586,8 +603,14 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
     .find(({ id }) => id === `Food:${build.food}`);
 
   assert.equal(comparison.config.food, '');
-  assert.ok(comparison.config.stats.power < request.baseConfig.stats.power);
-  assert.ok(comparison.config.stats.precision < request.baseConfig.stats.precision);
+  assert.ok(
+    comparison.config.attributeInputs.weaponSets[0].commonTotals.power <
+      request.baseConfig.attributeInputs.weaponSets[0].commonTotals.power
+  );
+  assert.ok(
+    comparison.config.attributeInputs.weaponSets[0].commonTotals.precision <
+      request.baseConfig.attributeInputs.weaponSets[0].commonTotals.precision
+  );
   assert.ok(contribution.dpsIncrease > 0);
 });
 

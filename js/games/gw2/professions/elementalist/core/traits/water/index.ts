@@ -1,4 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -6,6 +5,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -47,7 +47,7 @@ export const soothingPower = defineTrait({
   id: TRAIT.SOOTHING_POWER,
   name: 'Soothing Power',
   balance: { attributeBonus: 300 },
-  buildAttributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [
+  attributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
   ])
 });

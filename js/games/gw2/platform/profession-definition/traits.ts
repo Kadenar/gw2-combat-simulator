@@ -1,23 +1,17 @@
-import type {
-  Gw2AttributeEffect,
-  Gw2BuildAttributeContributions,
-  Gw2BuildAttributeRuleContext,
-  Gw2CommonAttributeResult
-} from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContext, Gw2AttributeContributions, Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeModuleHooks } from '#gw2/platform/profession-definition/module-types.js';
 import {
   assertTraitTrigger,
   type RechargeRule,
   type TraitTrigger
 } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 // Keep the existing discriminated trigger signatures while supplying selection ownership once.
 type OwnedTrigger<T> = T extends { readonly trait: SkillId } ? Omit<T, 'trait'> : never;
@@ -98,10 +92,9 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
   readonly rechargeRules?: readonly Omit<RechargeRule<never, TSkill>, 'trait'>[];
   readonly hooks?: TraitHooks<TSkill>;
   readonly lifetime?: TraitLifetimeHooks<TSkill>;
-  readonly buildAttributes?: (
-    common: Gw2CommonAttributeResult,
-    context: Gw2BuildAttributeRuleContext & { readonly balanceContext: ProfessionBalanceContext }
-  ) => Gw2BuildAttributeContributions;
+  readonly attributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
+  /** Accepted grants belong to the recipient until expiry, independently of the recipient's selected traits. */
+  readonly grantedAttributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
 }
 
 type FlatAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'flat' }>;
@@ -111,20 +104,56 @@ type TraitAttributeDeclaration =
   | (Omit<FlatAttributeEffect, 'amount' | 'enabled'> & { readonly field: string })
   | (Omit<ConversionAttributeEffect, 'multiplier' | 'enabled'> & { readonly field: string });
 
-/** Resolve unconditional trait contributions from the active patch when attributes are evaluated. */
+const profileOnlyAttributes = new WeakSet<NonNullable<TraitDefinition['attributes']>>();
+
+/** Resolve profile-only declarations once per query; live declarations keep their original evaluator. */
+export function prepareTraitAttributes(
+  contribute: NonNullable<TraitDefinition['attributes']>,
+  context: Gw2AttributeContext
+): NonNullable<TraitDefinition['attributes']> | Gw2AttributeContributions {
+  if (!context.query || !profileOnlyAttributes.has(contribute)) return contribute;
+  return contribute(context);
+}
+
+/** Resolve constant declarations once per immutable balance profile; a different patch owns a different profile. */
 export function traitAttributeEffects(
   profileId: SkillId,
   declarations: readonly TraitAttributeDeclaration[]
-): NonNullable<TraitDefinition['buildAttributes']> {
-  return (_common, { balanceContext }) => {
+): NonNullable<TraitDefinition['attributes']> {
+  return traitAttributeBonuses(profileId, (profile) => ({
+    attributeEffects: declarations.map(({ field, ...effect }) => {
+      const value = balanceProfileNumber(profile, field);
+      return effect.kind === 'flat' ? { ...effect, amount: value } : { ...effect, multiplier: value };
+    })
+  }));
+}
+
+/** Share immutable profile-only bonuses; live selection and combat conditions stay in the caller. */
+export function traitAttributeBonuses(
+  profileId: SkillId,
+  resolve: (
+    profile: BalanceProfile
+  ) => Pick<Gw2AttributeContributions, 'attributeEffects' | 'traitDurations' | 'traitCriticalChance'>
+): NonNullable<TraitDefinition['attributes']> {
+  const resolved = new WeakMap<BalanceProfile, Gw2AttributeContributions>();
+  const contribute: NonNullable<TraitDefinition['attributes']> = ({ balanceContext }) => {
     const profile = requireBalanceProfileFromContext(balanceContext, profileId);
-    return {
-      attributeEffects: declarations.map(({ field, ...effect }) => {
-        const value = balanceProfileNumber(profile, field);
-        return effect.kind === 'flat' ? { ...effect, amount: value } : { ...effect, multiplier: value };
-      })
-    };
+    const cached = resolved.get(profile);
+    if (cached) return cached;
+    const contributions = resolve(profile);
+    if (contributions.attributeEffects) {
+      for (const effect of contributions.attributeEffects) Object.freeze(effect);
+      Object.freeze(contributions.attributeEffects);
+    }
+
+    if (contributions.traitDurations) Object.freeze(contributions.traitDurations);
+    Object.freeze(contributions);
+    resolved.set(profile, contributions);
+    return contributions;
   };
+
+  profileOnlyAttributes.add(contribute);
+  return contribute;
 }
 
 /** Reject misspelled behavior fields before they can silently disappear during module expansion. */
@@ -157,7 +186,8 @@ export function defineTrait<TSkill extends Skill>(
         'rechargeRules',
         'hooks',
         'lifetime',
-        'buildAttributes'
+        'attributes',
+        'grantedAttributes'
       ].includes(key)
     )
       throw new TypeError(`Unsupported trait definition field: ${key}.`);
@@ -208,7 +238,8 @@ export function defineTrait<TSkill extends Skill>(
     }
   }
 
-  if (definition.buildAttributes != null && typeof definition.buildAttributes !== 'function')
-    throw new TypeError(`Trait ${definition.id}.buildAttributes must be a function.`);
+  for (const key of ['attributes', 'grantedAttributes'] as const)
+    if (definition[key] != null && typeof definition[key] !== 'function')
+      throw new TypeError(`Trait ${definition.id}.${key} must be a function.`);
   return Object.freeze({ ...definition });
 }

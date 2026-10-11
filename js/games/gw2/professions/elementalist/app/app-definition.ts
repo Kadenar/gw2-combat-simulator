@@ -4,36 +4,9 @@ import { applyElementalistBuildAttributeRules } from '#gw2/professions/elemental
 import { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
+import type { ProfessionSkillAvailabilityContext } from '#gw2/app/build/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '#gw2/app/build/types.js';
-import type { CatalystEmpowermentPool, ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
-
-// Elemental Empowerment scales these six attributes, and only from the build's own
-// sources - buffs applied during the fight must not compound into the bonus.
-const CATALYST_EMPOWERMENT_ATTRIBUTES = Object.freeze({
-  power: 'Power',
-  precision: 'Precision',
-  ferocity: 'Ferocity',
-  conditionDamage: 'Condition Damage',
-  expertise: 'Expertise',
-  concentration: 'Concentration'
-} satisfies Readonly<Record<keyof CatalystEmpowermentPool, string>>);
-const CATALYST_EMPOWERMENT_SOURCES = Object.freeze(['base', 'gear', 'runes', 'infusions', 'food'] as const);
-
-// Sums each scaled attribute across the build-time sources into the pool the Catalyst
-// module reads out of the run config.
-function catalystEmpowermentPool(attributeData: ProfessionAttributeData): CatalystEmpowermentPool {
-  return Object.fromEntries(
-    Object.entries(CATALYST_EMPOWERMENT_ATTRIBUTES).map(([key, name]) => {
-      const attribute = attributeData.attributes[name] || {};
-      const direct = CATALYST_EMPOWERMENT_SOURCES.reduce((total, source) => total + (attribute[source] || 0), 0);
-      // EVTC condition ticks show that build-time trait and utility Condition Damage
-      // participates in Elemental Empowerment, while skill passives remain excluded.
-      const derived = key === 'conditionDamage' ? (attribute.utility || 0) + (attribute.traits || 0) : 0;
-      return [key, direct + derived];
-    })
-  ) as unknown as CatalystEmpowermentPool;
-}
+import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 
 function build(app: { build: unknown }): ElementalistCanonicalBuild {
   return app.build as ElementalistCanonicalBuild;
@@ -61,14 +34,8 @@ export const elementalistAppAdapter = defineProfessionApp({
   applyBuildAttributeRules: applyElementalistBuildAttributeRules,
   toApplicationBuild,
   runtime: {
-    buildConfigExtras: (app, { attributeData }) => {
-      const catalyst = build(app).specializations.some((specialization) => specialization.name === 'Catalyst');
+    buildConfigExtras: (app) => {
       return {
-        ...(catalyst
-          ? {
-              catalystEmpowermentPool: catalystEmpowermentPool(attributeData)
-            }
-          : {}),
         startAttunement: build(app).startAttunement,
         secondaryAttunement: build(app).secondaryAttunement,
         initialCatalystEnergy: build(app).initialCatalystEnergy,

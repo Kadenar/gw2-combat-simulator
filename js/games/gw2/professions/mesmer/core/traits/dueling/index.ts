@@ -1,4 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -12,7 +11,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { compileRechargeRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -52,6 +51,20 @@ function superiorityComplexFactor(context: Gw2ModifierContext): number {
 
 /** Fencer's Finesse shares active tuning with its ordered imperative reactions. */
 export const fencersFinesse = defineTrait<MesmerSkill>({
+  // Accepted self grants retain their expiry independently of current trait selection.
+  grantedAttributes: (context) =>
+    !context.runtime && !context.timeline && !context.events
+      ? {}
+      : {
+          attributeEffects: [
+            {
+              kind: 'flat',
+              to: 'Ferocity',
+              amount: fencersFinesseFerocity(context, prepareFencersFinesse(context)),
+              feedsConversions: false
+            }
+          ]
+        },
   triggers: [
     onTriggerPoint(mesmerStrikeResolved, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerStrikeResolved>) =>

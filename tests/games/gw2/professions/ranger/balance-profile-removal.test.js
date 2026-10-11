@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -89,7 +90,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     initialAstralForce: 100,
     selectedPet: 'Jacaranda',
     selectedPet2: 'Carrion Devourer',
-    stats: { power: 2000, precision: 1500, ferocity: 0, conditionDamage: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1500, ferocity: 0, conditionDamage: 1000 }),
     target: { armor: 2597, health: 1_000_000 }
   })(specialization, rotation, { patchId: 'ranger-removal', ...config });
   assert.deepEqual(result.warnings, []);

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
@@ -110,7 +111,7 @@ test('profile and computed grants use one submission contract', () => {
   const result = simulateGw2({
     profession,
     rotation: [{ type: 'wait', durationMs: 1100 }],
-    config: { stats: { concentration: 750 } }
+    config: { attributeInputs: baseAttributeInputs({ concentration: 750 }) }
   });
   const grants = result.events.filter((e) => e.type === 'buff');
   assert.deepEqual(

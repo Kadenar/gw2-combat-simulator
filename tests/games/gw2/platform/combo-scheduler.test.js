@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
@@ -40,7 +41,7 @@ const boundaryHit = {
   skillName: 'Boundary hit'
 };
 const boundaryConfig = {
-  stats: { power: 1000, precision: 2785, conditionDamage: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 2785, conditionDamage: 1000 }),
   target: { armor: 2597, conditions: {} }
 };
 
@@ -234,7 +235,7 @@ test('combo outcomes settle before their originating damage packet', () => {
     rotation: [{ type: 'wait', durationMs: 2000 }],
     damageDiagnostics: true,
     config: {
-      stats: { power: 1000, precision: 0, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 0, ferocity: 0 }),
       target: { armor: 2597, conditions: {} }
     }
   });
@@ -316,7 +317,7 @@ test('combo boons use profession duration modifiers at the combo time with finis
   ]) {
     const config = {
       startingWeaponSet,
-      weaponSetStats: [{ concentration: 0 }, { concentration: 300 }],
+      attributeInputs: baseAttributeInputs({ ...{}, ...{ concentration: 0 } }, { ...{}, ...{ concentration: 300 } }),
       sigilSets: [{}, { boonDurationBonus: 10 }]
     };
     const predicted = simulateGw2({ profession, config, rotation: rotation });
@@ -491,7 +492,7 @@ test('pet fields retain their caster while combo conditions retain the finisher 
   const result = simulateGw2({
     profession,
     rotation: [{ type: 'wait', durationMs: 5000 }],
-    config: { stats: { conditionDamage: 2000 }, target: { armor: 2597, conditions: {} } }
+    config: { attributeInputs: baseAttributeInputs({ conditionDamage: 2000 }), target: { armor: 2597, conditions: {} } }
   });
   const field = result.events.find((event) => event.type === 'combo_field');
   assert.equal(field.ownerActorType, 'summon');

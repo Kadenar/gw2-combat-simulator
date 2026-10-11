@@ -1,7 +1,8 @@
+import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
-import { troubadourModifiers } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
+
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import {
@@ -28,7 +29,8 @@ export const troubadourModule = defineNativeModule({
     create: troubadourState.create,
     project: projectTroubadourPlanningState
   },
-  modifiers: troubadourModifiers,
+  // Register the skill/mechanic-owned rules alongside trait declarations.
+  modifiers: luteModifiers,
   hooks: troubadourHooks,
   presentation: troubadourUi
 });

@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
@@ -96,3 +98,21 @@ export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCas
     state.hammerOrbActivationIds[element] = null;
   }
 }
+
+/** Live hammer orb windows supply the shared damage and critical-chance bonuses. */
+export const hammerOrbModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'elementalist.hammer-fire-orb',
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'damage-additive',
+    amount: 0.05,
+    when: (context) => activeBuffStacks(context, 'hammer fire orb', 1) > 0
+  },
+  {
+    id: 'elementalist.hammer-air-orb',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 0.15,
+    when: (context) => activeBuffStacks(context, 'hammer air orb', 1) > 0
+  }
+]);

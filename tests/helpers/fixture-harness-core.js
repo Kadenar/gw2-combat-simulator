@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 // Supply fresh sandbox defaults without loading application or simulation modules.
 export function defaultSimulationConfig(overrides = {}) {
   return {
@@ -7,14 +8,14 @@ export function defaultSimulationConfig(overrides = {}) {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',
     initialResource: 5,
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 3000,
       precision: 2200,
       ferocity: 1400,
       conditionDamage: 1000,
       expertise: 500,
       vitality: 1000
-    },
+    }),
     boons: {
       might: 25,
       fury: true,

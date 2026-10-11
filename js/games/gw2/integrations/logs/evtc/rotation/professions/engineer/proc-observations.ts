@@ -1,23 +1,25 @@
-import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
-import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
-import { normalizedName as normalized } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRIPPLED_SKILL_ID,
   analyzeCriticalBleedingProcObservation,
   bleedingDuration,
   countPairedApplications,
-  type CriticalBleedingProcObservation,
   expectedConditionDurationsMs,
   hasSelectedTrait,
   isOutgoingStrike,
   matchingConditionApplications,
+  observationAttributeSets,
   primaryStrikeTarget,
-  traitBalanceProfile
+  traitBalanceProfile,
+  type CriticalBleedingProcObservation
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
+import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import { normalizedName as normalized } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
   // Generated rockets receive their explosion flag in the resolver and remain eligible for Shrapnel.
@@ -105,11 +107,17 @@ export function analyzeEngineerShrapnelObservation(
   const crippledEffect = profile.effects?.find(
     (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'crippled'
   );
-  const matchedBleedingDurationsMs = expectedConditionDurationsMs(bleedingDuration(profile), 'Bleeding', config);
+  const matchedBleedingDurationsMs = expectedConditionDurationsMs(
+    bleedingDuration(profile),
+    'Bleeding',
+    config,
+    observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
+  );
   const matchedCrippledDurationsMs = expectedConditionDurationsMs(
     crippledEffect ? effectNumber(profile, crippledEffect, 'duration') : 0,
     'Crippled',
-    config
+    config,
+    observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
   );
   if (!matchedBleedingDurationsMs.length || !matchedCrippledDurationsMs.length) return null;
   const bleeding = matchingConditionApplications(
@@ -153,6 +161,7 @@ export function analyzeEngineerSerratedSteelObservation(
     catalog,
     config,
     TRAIT.SERRATED_STEEL,
-    'Serrated Steel'
+    'Serrated Steel',
+    observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
   );
 }

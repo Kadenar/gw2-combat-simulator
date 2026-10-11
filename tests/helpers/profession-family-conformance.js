@@ -97,8 +97,16 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     assert.equal(family.runtimeFor(config), runtime, `${family.id}/${name}`);
     assert.equal(runtime.id, family.id);
     const state = runtime.createState(config);
-    const expectedCoreState = core.state.create(config);
-    const expectedSpecializationState = specialization ? specialization.state.create(config) : {};
+    const expectedCoreState = core.state.create(config, {
+      attributes: { vitality: 1000 },
+      balanceContext: { catalog: family.catalog, modifierRulesById: new Map() }
+    });
+    const expectedSpecializationState = specialization
+      ? specialization.state.create(config, {
+          attributes: { vitality: 1000 },
+          balanceContext: { catalog: family.catalog, modifierRulesById: new Map() }
+        })
+      : {};
 
     // Resource capacities are initialized by the runtime after the raw state factory.
     assert.deepEqual(Object.keys(state).sort(), ['core', 'specialization']);

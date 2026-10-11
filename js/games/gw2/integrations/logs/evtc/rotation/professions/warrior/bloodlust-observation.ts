@@ -1,11 +1,13 @@
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import {
   analyzeCriticalBleedingProcObservation,
+  observationAttributeSets,
   type CriticalBleedingProcObservation
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
+import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 /**
  * Compares ArcDPS critical-result packets with duration-matched Bleeding applications.
@@ -17,5 +19,13 @@ export function analyzeWarriorBloodlustObservation(
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
 ): CriticalBleedingProcObservation | null {
-  return analyzeCriticalBleedingProcObservation(log, playerAddress, catalog, config, TRAIT.BLOODLUST, 'Bloodlust');
+  return analyzeCriticalBleedingProcObservation(
+    log,
+    playerAddress,
+    catalog,
+    config,
+    TRAIT.BLOODLUST,
+    'Bloodlust',
+    observationAttributeSets(config, catalog, warriorProfession.attributeContributions)
+  );
 }

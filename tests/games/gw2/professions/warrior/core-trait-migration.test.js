@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -36,7 +37,7 @@ for (const [key, trait, trigger, literalDuration] of [
           primaryWeapon: 'Axe',
           weaponSet2Primary: 'Mace',
           target: { health: 1000000, startingHealthFraction: 0.4, armor: 2597 },
-          stats: { power: 2000, precision: 4000 }
+          attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000 })
         };
         const native = warriorProfession.runtimeFor(config);
         const profiles = new Map(native.catalog.balanceProfilesById);
@@ -142,7 +143,7 @@ test('Heightened Focus grants Quickness and recharges bursts only below half tar
       initialResource: 30,
       primaryWeapon: 'Rifle',
       target: { health: 1000000, startingHealthFraction, armor: 2597 },
-      stats: { power: 2000, precision: 1500 }
+      attributeInputs: baseAttributeInputs({ power: 2000, precision: 1500 })
     };
     const native = warriorProfession.runtimeFor(config);
     const result = observeGw2Runtime({
@@ -168,14 +169,14 @@ test('Heightened Focus grants Quickness and recharges bursts only below half tar
 });
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597, health: 3_970_000, defiant: true, conditions: {} }
 });
 
@@ -309,7 +310,7 @@ const traitCases = [
     name: 'Bloodlust',
     trait: TRAIT.BLOODLUST,
     rotation: ['Precise Cut', 'Focused Slash', 'Keen Strike', 'Precise Cut'],
-    config: { primaryWeapon: 'Dagger', stats: { precision: 10_000 } },
+    config: { primaryWeapon: 'Dagger', attributeInputs: baseAttributeInputs({ precision: 10_000 }) },
     verify: (result) => assert.ok(result.events.some((event) => event.sourceId === TRAIT.BLOODLUST))
   },
   {
@@ -346,7 +347,7 @@ const traitCases = [
     name: 'Furious',
     trait: TRAIT.FURIOUS,
     rotation: ['Throw Axe'],
-    config: { stats: { precision: 10_000 } },
+    config: { attributeInputs: baseAttributeInputs({ precision: 10_000 }) },
     verify: (result) => assert.ok(result.events.some((event) => event.kind === 'furious-surge'))
   },
   {

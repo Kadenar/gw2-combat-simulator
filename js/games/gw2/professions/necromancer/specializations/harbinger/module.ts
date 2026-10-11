@@ -1,7 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
-import { harbingerModifiers } from '#gw2/professions/necromancer/specializations/harbinger/modifiers.js';
 import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/index.js';
@@ -21,6 +20,5 @@ export const harbingerModule = defineNativeModule({
   // One state factory supplies the live combat owner.
   state: { create: harbingerState.create, project: projectHarbingerPlanningState },
   hooks: harbingerHooks,
-  modifiers: harbingerModifiers,
   presentation: bindHarbingerUi
 });

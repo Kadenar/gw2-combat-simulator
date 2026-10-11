@@ -1,15 +1,12 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -36,7 +33,7 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
     expertiseBonus: 100,
     concentrationBonus: 250
   },
-  buildAttributes: (_common, { balanceContext, build }) => {
+  attributes: ({ balanceContext, loadout }) => {
     const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.CHAOTIC_PERSISTENCE);
     return {
       attributeEffects: [
@@ -45,14 +42,14 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'expertiseBonus'),
           feedsConversions: false,
-          enabled: build.assumptions?.regeneration !== false
+          enabled: loadout.assumptions.regeneration !== false
         },
         {
           kind: 'flat',
           to: 'Concentration',
           amount: balanceProfileNumber(profile, 'concentrationBonus'),
           feedsConversions: false,
-          enabled: build.assumptions?.regeneration !== false
+          enabled: loadout.assumptions.regeneration !== false
         }
       ]
     };
@@ -279,28 +276,4 @@ function triggerMethodOfMadness(
 /** Compile the selected storm before the shared runtime begins processing casts. */
 export function methodOfMadnessDamage(context: unknown): MesmerTraitDamage {
   return mesmerProfiledTraitDamage(context, { requiresCooldown: true }, TRAIT.METHOD_OF_MADNESS);
-}
-
-/** Selection and fixed profile values share the parent attribute-query cache. */
-export function prepareChaoticPersistence(context: Gw2ModifierContext) {
-  const selected = hasTrait(context, TRAIT.CHAOTIC_PERSISTENCE);
-  return {
-    expertise: selected
-      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_PERSISTENCE), 'expertiseBonus')
-      : 0,
-    concentration: selected
-      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_PERSISTENCE), 'concentrationBonus')
-      : 0
-  };
-}
-
-/** Reconcile assumed Regeneration against its live state without applying the build bonus twice. */
-export function chaoticPersistenceAttributes(
-  context: Gw2ModifierContext,
-  facts: ReturnType<typeof prepareChaoticPersistence>
-) {
-  const delta =
-    Number(boonActive(context, 'regeneration')) -
-    Number(professionStaticRulesApplied(context.config) && Boolean(context.config?.boons?.regeneration));
-  return { expertise: delta * facts.expertise, concentration: delta * facts.concentration };
 }

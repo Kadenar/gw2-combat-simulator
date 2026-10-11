@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -14,14 +15,14 @@ import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-defi
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 2000,
     ferocity: 500,
     conditionDamage: 1200,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: {
@@ -798,7 +799,7 @@ test('requested Harbinger damage traits apply at their per-hit triggers', () => 
 test('Barbed Precision samples its secondary chance on guaranteed critical hits', () => {
   const result = simulate('Harbinger', ['Weeping Shots', { type: 'wait', durationMs: 4100 }], {
     primaryWeapon: 'Pistol',
-    stats: { precision: 4000 },
+    attributeInputs: baseAttributeInputs({ precision: 4000 }),
     selectedTraitIds: [TRAIT.BARBED_PRECISION]
   });
   const applications = result.resolvedEvents.filter(
@@ -818,7 +819,7 @@ test('Barbed Precision excludes minion strikes but includes Ritualist spirit str
   });
   const spirit = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 12_000 }], {
     initialResource: 100,
-    stats: { precision: 4000 },
+    attributeInputs: baseAttributeInputs({ precision: 4000 }),
     selectedTraitIds: [TRAIT.BARBED_PRECISION]
   });
   const applications = (result) =>
@@ -1067,7 +1068,7 @@ test('Soul Barbs and Dark Gunslinger change their documented outputs', () => {
     (event) => event.skillId === ID.VILE_BLAST && event.condition === 'Poisoned'
   );
 
-  assert.equal(gunslingerPoison.effectiveDuration, 6.496);
+  assert.equal(gunslingerPoison.effectiveDuration, 6.4);
 });
 
 test('Lesser Chilblains owns its strike and poison damage attribution', () => {
@@ -1342,7 +1343,7 @@ test('signet passives and Soul Battery are profession-owned resources', () => {
 test('the Power Harbinger trait set uses current critical and resource rules', () => {
   const runShroudStrike = (selectedTraitIds) =>
     simulate('Harbinger', ['Harbinger Shroud', 'Tainted Bolts'], {
-      stats: { precision: 4000 },
+      attributeInputs: baseAttributeInputs({ precision: 4000 }),
       selectedTraitIds,
       target: {
         ...baseConfig.target,
@@ -1397,7 +1398,7 @@ test('critical sigils follow the active weapon set', () => {
       secondaryWeapon: 'Torch',
       weaponSet2Primary: 'Scepter',
       weaponSet2Secondary: 'Dagger',
-      stats: { precision: 4000 },
+      attributeInputs: baseAttributeInputs({ precision: 4000 }),
       sigilSets: [
         { names: ['Torment'], strike: 1, condition: 1 },
         { names: ['Earth'], strike: 1, condition: 1 }

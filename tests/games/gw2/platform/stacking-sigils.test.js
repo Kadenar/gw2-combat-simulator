@@ -53,7 +53,11 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       const field = { Bloodlust: 'power', Corruption: 'conditionDamage', Cruelty: 'ferocity', Stars: 'precision' }[
         sigil
       ];
-      for (const set of [0, 1]) assert.ok(baseline.weaponSetStats[set][field] > without.weaponSetStats[set][field]);
+      for (const set of [0, 1])
+        assert.ok(
+          baseline.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[set][field] >
+            without.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[set][field]
+        );
     }
 
     const stars = calculateCommonAttributes(build);

@@ -1,10 +1,11 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength/index.js';
+
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import {
@@ -16,7 +17,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const simulate = createObservedProfessionSimulator(warriorProfession, {
-  stats: { power: 2000, precision: 4000, ferocity: 0, conditionDamage: 0, expertise: 0, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 4000,
+    ferocity: 0,
+    conditionDamage: 0,
+    expertise: 0,
+    vitality: 1000
+  }),
   target: { armor: 2597, health: 1_000_000 }
 });
 
@@ -155,7 +163,7 @@ test('Axe Mastery adds adrenaline only to critical axe hits, including burst and
   ]) {
     const result = simulate('Core', [skill], {
       primaryWeapon,
-      stats: { precision },
+      attributeInputs: baseAttributeInputs({ precision }),
       selectedTraitIds: [TRAIT.AXE_MASTERY]
     });
     assert.deepEqual(result.warnings, []);
@@ -179,7 +187,7 @@ test('Forceful Greatsword uses active weapon probability, isolated progress and 
     primaryWeapon: 'Greatsword',
     weaponSet2Primary: 'Axe',
     selectedTraitIds: [TRAIT.FORCEFUL_GREATSWORD],
-    stats: { concentration: 1500 }
+    attributeInputs: baseAttributeInputs({ precision: 4000, concentration: 1500 })
   };
   const result = simulate('Core', ['Greatsword Swing', 'Swap Weapons', 'Chop', 'Double Chop'], config);
   assert.deepEqual(result.warnings, []);
@@ -194,7 +202,10 @@ test('Forceful Greatsword uses active weapon probability, isolated progress and 
     might.some((event) => event.skillId === ID.DOUBLE_CHOP),
     true
   );
-  const noncritical = simulate('Core', ['Greatsword Swing'], { ...config, stats: { precision: 0 } });
+  const noncritical = simulate('Core', ['Greatsword Swing'], {
+    ...config,
+    attributeInputs: baseAttributeInputs({ precision: 0 })
+  });
   assert.equal(
     noncritical.events.some((event) => event.sourceId === TRAIT.FORCEFUL_GREATSWORD),
     false
@@ -202,7 +213,10 @@ test('Forceful Greatsword uses active weapon probability, isolated progress and 
 });
 
 test('mixed Warrior weapon sets keep static bonuses and conversion inputs separate', () => {
-  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules, warriorProfession.traitBuildAttributes);
+  const calculate = createCalculateAttributes(
+    applyWarriorBuildAttributeRules,
+    warriorProfession.attributeContributions
+  );
   const build = createWarriorBuildDefaults();
   build.weapons = ['Axe', 'Axe'];
   build.alternateWeapons = ['Greatsword', ''];
@@ -220,27 +234,16 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
     const withoutAxe = calculate(build, [], weaponSet, 'Axe Mastery').attributes;
     assert.equal(all.Power.final - withoutForceful.Power.final, power);
     assert.equal(all.Ferocity.final - withoutAxe.Ferocity.final, ferocity);
-    const attributes = { power: all.Power.final, vitality: 1000, ferocity: all.Ferocity.final };
-    const before = { ...attributes };
-    modifyWarriorStrengthAttributes(
-      {
-        catalog: warriorCatalog,
-        config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Greatsword' },
-        runtime: { activeWeaponSet: weaponSet },
-        traits: new Set([TRAIT.FORCEFUL_GREATSWORD]),
-        time: 0
-      },
-      attributes,
-      true
-    );
-    assert.deepEqual(attributes, before, 'static provenance avoids applying weapon bonuses twice');
   }
 });
 
 // Healing Power remains a build attribute even though shout healing is not simulated.
 test('Vigorous Shouts converts Power to Healing Power once in builds and raw runtime stats', () => {
   const build = { specializations: [{ name: 'Tactics', traits: '1-1-2' }] };
-  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules, warriorProfession.traitBuildAttributes);
+  const calculate = createCalculateAttributes(
+    applyWarriorBuildAttributeRules,
+    warriorProfession.attributeContributions
+  );
   const preview = calculate(build).attributes;
   assert.equal(
     preview['Healing Power'].final - calculate(build, [], 1, 'Vigorous Shouts').attributes['Healing Power'].final,
@@ -250,18 +253,15 @@ test('Vigorous Shouts converts Power to Healing Power once in builds and raw run
   const seed = { power: 2000, healingPower: 50 };
   const context = {
     catalog: runtime.catalog,
-    config: { stats: seed, selectedTraitIds: [TRAIT.VIGOROUS_SHOUTS] },
+    config: { attributeInputs: baseAttributeInputs(seed), selectedTraitIds: [TRAIT.VIGOROUS_SHOUTS] },
     time: 0
   };
   assert.equal(runtime.modifyAttributes(context, seed).healingPower, 310);
-  assert.equal(runtime.modifyAttributes({ ...context, config: { stats: seed } }, seed).healingPower, 50);
   assert.equal(
-    runtime.modifyAttributes(
-      { ...context, config: { ...context.config, attributeProvenance: { professionStaticRulesApplied: true } } },
-      { ...seed, healingPower: 310 }
-    ).healingPower,
-    310
+    runtime.modifyAttributes({ ...context, config: { attributeInputs: baseAttributeInputs(seed) } }, seed).healingPower,
+    50
   );
+  assert.equal(runtime.modifyAttributes({ ...context, config: { ...context.config } }, seed).healingPower, 310);
   const tooltip = warriorTooltips.traits[TRAIT.VIGOROUS_SHOUTS](
     { catalog: warriorCatalog },
     { id: TRAIT.VIGOROUS_SHOUTS, name: 'Vigorous Shouts' }
@@ -326,7 +326,11 @@ test('endurance integration and Dodge readiness follow actual pooled Vigor windo
 
 // The critical reward reads live profile tuning and stays absent when its packet is removed.
 test('Keen Strike critical Might is patchable and removable', () => {
-  const config = { specialization: 'Spellbreaker', primaryWeapon: 'Dagger', stats: { precision: 4000 } };
+  const config = {
+    specialization: 'Spellbreaker',
+    primaryWeapon: 'Dagger',
+    attributeInputs: baseAttributeInputs({ precision: 4000 })
+  };
   const native = warriorProfession.runtimeFor(config);
   for (const removed of [false, true]) {
     const catalog = applyBalanceProfilePatch(native.catalog, {

@@ -1,4 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
@@ -6,6 +5,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -147,7 +147,7 @@ export const forceOfWill = defineTrait({
   id: TRAIT.FORCE_OF_WILL,
   name: 'Force of Will',
   balance: { attributeBonus: 300 },
-  buildAttributes: traitAttributeEffects(TRAIT.FORCE_OF_WILL, [
+  attributes: traitAttributeEffects(TRAIT.FORCE_OF_WILL, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -157,7 +157,7 @@ export const honorableStaff = defineTrait({
   id: TRAIT.HONORABLE_STAFF,
   name: 'Honorable Staff',
   balance: { attributeBonus: 120 },
-  buildAttributes: traitAttributeEffects(TRAIT.HONORABLE_STAFF, [
+  attributes: traitAttributeEffects(TRAIT.HONORABLE_STAFF, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ])
 });

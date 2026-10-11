@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -293,7 +294,10 @@ test('neutral strike construction preserves the flat siphon formula and no-crit 
     damageKind: 'life-steal'
   });
   const result = resolveTestGw2Events({
-    config: { stats: { power: 2000, precision: 4000, ferocity: 1500 }, target: { armor: 9000 } },
+    config: {
+      attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000, ferocity: 1500 }),
+      target: { armor: 9000 }
+    },
     traits: new Set(),
     ...{ events: [siphon], endTime: 2 }
   });

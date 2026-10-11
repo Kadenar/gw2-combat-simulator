@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { skillFlipReady, armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
@@ -14,7 +15,7 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 
 const simulate = createObservedProfessionSimulator(engineerProfession, {
   primaryWeapon: 'Spear',
-  stats: { power: 2000, conditionDamage: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 2000, conditionDamage: 1000 }),
   target: { armor: 2597, conditions: {} }
 });
 const artilleryEvents = (result) => result.resolvedEvents.filter((event) => event.sourceId === ID.ELECTRIC_ARTILLERY);

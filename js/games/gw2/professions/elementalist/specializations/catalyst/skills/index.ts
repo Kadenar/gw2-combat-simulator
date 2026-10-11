@@ -1,6 +1,8 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 /**
- * Owns Catalyst Jade Sphere and augment skill catalog fragments only.
+ * Owns Catalyst Jade Sphere and augment skill fragments, including their buff modifiers.
  * Energy, sphere, and empowerment state lives under `mechanics/`.
  */
 import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/professions/elementalist/specializations/catalyst/skills/jade-sphere-effects.js';
@@ -215,3 +217,21 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     ]
   }
 });
+
+/** Relentless Fire grants strike and condition bonuses for its accepted buff window. */
+export const relentlessFireModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'elementalist.relentless-fire',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    amount: 0.1,
+    when: (context) => activeBuffStacks(context, 'relentless fire', 1) > 0
+  },
+  {
+    id: 'elementalist.relentless-fire-condition',
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: 'damage-additive',
+    amount: 0.1,
+    when: (context) => activeBuffStacks(context, 'relentless fire', 1) > 0
+  }
+]);

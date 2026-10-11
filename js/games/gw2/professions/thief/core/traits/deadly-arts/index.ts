@@ -1,17 +1,15 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { skillForEvent, targetConditionCount, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
+
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -46,8 +44,8 @@ export const daggerTraining = defineTrait({
   id: TRAIT.DAGGER_TRAINING,
   name: 'Dagger Training',
   balance: { attributeBonus: 80, weaponAttributeBonus: 160 },
-  buildAttributes(_common, { build, weaponSet, balanceContext }) {
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+  attributes({ loadout, weaponSet, balanceContext }) {
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const daggerTrainingProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.DAGGER_TRAINING);
     return {
       attributeEffects: [
@@ -75,7 +73,7 @@ export const deadlyAmbition = defineTrait({
     playerStacks: 2,
     effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]
   },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const deadlyAmbitionProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.DEADLY_AMBITION);
     return {
       attributeEffects: [
@@ -243,23 +241,13 @@ export const potentPoison = defineTrait({
           'conditionDamageMultiplier'
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Poisoned'
-    },
-    {
-      order: 12,
-      id: 'thief.potent-poison-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POTENT_POISON), 'conditionDurationBonus'),
-      // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
-      when: (context) => context.event?.condition === 'Poisoned' && !professionStaticRulesApplied(context.config)
     }
   ],
   balance: {
     conditionDamageMultiplier: 1.33,
     conditionDurationBonus: 0.33
   },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.POTENT_POISON);
     return { traitDurations: { 'Poison Duration': 100 * balanceProfileNumber(profile, 'conditionDurationBonus') } };
   }
@@ -273,15 +261,29 @@ export const revealedTraining = defineTrait({
     attributeBonus: 80,
     attributePerStack: 120
   },
-  buildAttributes(_common, { balanceContext }) {
-    const revealedTrainingProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.REVEALED_TRAINING);
+  // Keep the permanent bonus and live Revealed bonus under the same selected trait.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.REVEALED_TRAINING);
+    const state = thiefRuntimeState(context);
+    // The revealing stealth attack is excluded; a recalled Salvo is a subsequent hit.
+    const revealingAttack =
+      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.stealthAttack &&
+      context.event?.metadata?.recallSkillId == null;
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(revealedTrainingProfile, 'attributeBonus'),
-          feedsConversions: false
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: true
+        },
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount: balanceProfileNumber(profile, 'attributePerStack'),
+          feedsConversions: false,
+          enabled: (state.revealedUntil || 0) > context.time && !revealingAttack
         }
       ]
     };
@@ -298,30 +300,6 @@ export const serpentsTouch = defineTrait({
     effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 2, duration: 10 }]
   }
 });
-
-/** Reconcile this trait's live bonus at its original attribute phase. */
-export function applyRevealedTrainingAttributes(
-  context: Gw2ModifierContext,
-  result: { -readonly [K in keyof Gw2ResolvedStats]: Gw2ResolvedStats[K] }
-): void {
-  const state = thiefRuntimeState(context);
-  const staticRulesApplied = professionStaticRulesApplied(context.config);
-  if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
-    if (!staticRulesApplied) {
-      const revealedTrainingProfile = requireBalanceProfileFromContext(context, TRAIT.REVEALED_TRAINING);
-      result.power += balanceProfileNumber(revealedTrainingProfile, 'attributeBonus');
-    }
-
-    // A recalled Salvo is a later recall hit, not the stealth attack that applied Revealed.
-    const revealingAttack =
-      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.stealthAttack &&
-      context.event?.metadata?.recallSkillId == null;
-    if ((state.revealedUntil || 0) > context.time && !revealingAttack) {
-      const revealedTrainingProfile = requireBalanceProfileFromContext(context, TRAIT.REVEALED_TRAINING);
-      result.power += balanceProfileNumber(revealedTrainingProfile, 'attributePerStack');
-    }
-  }
-}
 
 function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EVEN_THE_ODDS);

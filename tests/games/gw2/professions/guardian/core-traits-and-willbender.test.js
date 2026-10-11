@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
@@ -9,23 +10,23 @@ import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/p
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 const config = {
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1000,
     ferocity: 0,
     conditionDamage: 1000,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597 }
 };
 
 test('Guardian player strikes trigger shared player-owned sigils', () => {
   const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
-    stats: {
-      ...config.stats,
+    attributeInputs: baseAttributeInputs({
+      ...config.attributeInputs?.weaponSets[0].commonTotals,
       precision: 3100
-    },
+    }),
     boons: { fury: true },
     sigilSets: [
       { names: ['Air'], strike: 1, condition: 1 },
@@ -289,7 +290,13 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     flameStrikes.every((event) => event.coefficient === 0.22),
     true
   );
-  assert.ok(Math.abs(firstFlameDamage(powerFlames) / firstFlameDamage(plainFlames) - 3) < 1e-9);
+  assert.ok(
+    Math.abs(
+      firstFlameDamage(powerFlames) -
+        (firstFlameDamage(plainFlames) * 3 * (config.attributeInputs.weaponSets[0].commonTotals.power + 120)) /
+          config.attributeInputs.weaponSets[0].commonTotals.power
+    ) <= 2
+  );
   assert.equal(
     searingFlames.resolvedEvents.filter(
       (event) =>
@@ -814,7 +821,10 @@ for (const [name, recharge, boons, duration] of [
         ...config,
         selectedSkillIds: [guardianCatalog.skillsByName.get(name).id],
         boons: { alacrity },
-        stats: { ...config.stats, concentration: alacrity ? 750 : 0 },
+        attributeInputs: baseAttributeInputs({
+          ...config.attributeInputs.weaponSets[0].commonTotals,
+          concentration: alacrity ? 750 : 0
+        }),
         allies: { count: 4 }
       })(undefined, [name, name, name]);
       const rate = 1.25;

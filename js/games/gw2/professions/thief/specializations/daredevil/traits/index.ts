@@ -1,12 +1,12 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
-import { selectedDodgeProfile } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
+import { selectedDodgeProfile } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
@@ -173,7 +173,7 @@ export const maraudersResilience = defineTrait({
   id: TRAIT.MARAUDERS_RESILIENCE,
   name: "Marauder's Resilience",
   balance: { attributeConversion: 0.07 },
-  buildAttributes(_common, { balanceContext }) {
+  attributes({ balanceContext }) {
     const maraudersResilienceProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.MARAUDERS_RESILIENCE);
     return {
       attributeEffects: [
@@ -203,8 +203,8 @@ export const staffMaster = defineTrait({
     weaponAttributeBonus: 240,
     resourceGain: 2
   },
-  buildAttributes(_common, { build, weaponSet, balanceContext }) {
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+  attributes({ loadout, weaponSet, balanceContext }) {
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const staffMasterProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.STAFF_MASTER);
     return {
       attributeEffects: [

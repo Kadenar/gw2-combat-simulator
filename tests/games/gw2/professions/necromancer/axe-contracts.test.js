@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -11,7 +12,7 @@ const baseConfig = {
   selectedTraitIds: [],
   initialResource: 0,
   boons: { quickness: false, alacrity: false },
-  stats: { power: 2000, precision: 1000, expertise: 0, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, expertise: 0, vitality: 1000 }),
   target: { armor: 2597, health: 1000000000, conditions: {} }
 };
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
@@ -19,7 +20,7 @@ const config = {
   boons: {},
   primaryWeapon: 'Greatsword',
   initialArrows: 0,
-  stats: { power: 2000, precision: 1000, ferocity: 0 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 }),
   target: { armor: 2597, conditions: {} }
 };
 // Bind real owner operations for this focused mechanic fixture.

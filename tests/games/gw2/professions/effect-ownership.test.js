@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
@@ -105,7 +106,7 @@ test('Zap emits the canonical buff consumed by its policy and damage modifier', 
     }
   });
   const simulate = createObservedProfessionSimulator(preview, {
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597, health: 1_000_000 },
     startAttunement: 'Air',
     evokerElement: 'Air',

@@ -11,8 +11,8 @@ import {
   necromancerConditionApplied,
   necromancerControlAccepted,
   necromancerStrike,
-  necromancerStrikePreparing,
-  necromancerStrikeLifeForce
+  necromancerStrikeLifeForce,
+  necromancerStrikePreparing
 } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
 import {
   completeNecromancerCorruption,
@@ -192,7 +192,17 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     }
   },
   initialize(runtime) {
-    runtime.profession.core.lifeForceCostMultiplier = necromancerLifeForceCostMultiplier(runtime.config, runtime);
+    runtime.profession.core.lifeForceCostMultiplier = necromancerLifeForceCostMultiplier(
+      runtime.config,
+      runtime,
+      runtime.combat.statsAt(runtime.time, {
+        type: 'action',
+        at: runtime.time,
+        actorType: 'player',
+        source: 'Player',
+        sourceId: 'resource-initialization'
+      }).vitality
+    );
     initializeNecromancerPassives(runtime);
   },
   onCombatStart(runtime) {

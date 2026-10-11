@@ -7,7 +7,6 @@ import { virtuosoUi } from '#gw2/professions/mesmer/specializations/virtuoso/pre
 import { VIRTUOSO_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import { projectVirtuosoPlanningState, virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
-import { applyVirtuosoTraitAttributes } from '#gw2/professions/mesmer/specializations/virtuoso/traits/behavior.js';
 import { virtuosoTraits } from '#gw2/professions/mesmer/specializations/virtuoso/traits/index.js';
 
 export const virtuosoModule = defineNativeModule({
@@ -25,7 +24,7 @@ export const virtuosoModule = defineNativeModule({
     project: projectVirtuosoPlanningState
   },
   traitDefinitions: virtuosoTraits,
-  modifiers: { modifyAttributes: applyVirtuosoTraitAttributes, modifierRules: [virtuosoPhantasmalFuryRule] },
+  modifiers: { modifierRules: [virtuosoPhantasmalFuryRule] },
   hooks: virtuosoHooks,
   presentation: virtuosoUi
 });

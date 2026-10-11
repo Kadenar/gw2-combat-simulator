@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -42,14 +43,14 @@ const baseConfig = Object.freeze({
   secondaryWeapon: 'Dagger',
   weaponSet2Primary: 'Pistol',
   weaponSet2Secondary: 'Pistol',
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     defiant: true,
@@ -920,7 +921,7 @@ test('Deadeye stolen skills use the PvE damage formula and apply One in the Cham
       runThief([ID.DEADEYES_MARK, skillId], {
         specialization: 'Deadeye',
         selectedTraitIds,
-        stats: { power: 2000, precision: 1000, ferocity: 0, criticalChanceBonus: -100 },
+        attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, criticalChanceBonus: -100 }),
         target: { armor: 1000, conditions: {} }
       }).resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
     const base = strike([]);
@@ -1271,7 +1272,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
     selectedSkillIds: [],
-    stats: { power: 2000, precision: 5000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 5000, ferocity: 0 }),
     target: { armor: 2597, defiant: true, health: 1_000_000 },
     boons: { fury: false }
   };
@@ -1313,7 +1314,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
   );
 
   const modifierConfig = {
-    stats: { power: 2000, precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 }),
     target: { armor: 2597, defiant: true, health: 1_000_000 }
   };
   const strike = (selectedTraitIds, target = modifierConfig.target) =>
@@ -1342,7 +1343,11 @@ test('Thief modifiers follow stable skill and packet IDs after display labels ch
   // The siphon's live Vulnerability bonus follows its packet ID after renaming.
   const vampiric = runThief(
     ['Unsuspecting Strike', 'Vampiric Slash'],
-    { primaryWeapon: 'Spear', stats: { power: 2000 }, target: { conditions: { Vulnerability: 1 } } },
+    {
+      primaryWeapon: 'Spear',
+      attributeInputs: baseAttributeInputs({ power: 2000 }),
+      target: { conditions: { Vulnerability: 1 } }
+    },
     {
       catalog: (catalog) =>
         withSkill(catalog, ID.VAMPIRIC_SLASH, {
@@ -1427,7 +1432,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   const deadeyeTraits = [TRAIT.MALICIOUS_INTENT, TRAIT.ONE_IN_THE_CHAMBER, TRAIT.FIRE_FOR_EFFECT];
   const result = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom'], {
     selectedTraitIds: deadeyeTraits,
-    stats: { precision: 5000 }
+    attributeInputs: baseAttributeInputs({ precision: 5000 })
   });
 
   assert.equal(result.warnings.length, 0);
@@ -1441,7 +1446,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
   const consumed = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Cloak and Dagger', 'Malicious Backstab'], {
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
-    stats: { precision: 5000 }
+    attributeInputs: baseAttributeInputs({ precision: 5000 })
   });
 
   assert.equal(consumed.warnings.length, 0);
@@ -1463,7 +1468,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
   const stolen = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Steal Time'], {
     selectedTraitIds: deadeyeTraits,
-    stats: { precision: 5000 }
+    attributeInputs: baseAttributeInputs({ precision: 5000 })
   });
 
   assert.equal(stolen.warnings.length, 0);
@@ -1489,7 +1494,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   const mercy = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Mercy', "Deadeye's Mark"], {
     selectedTraitIds: deadeyeTraits,
     selectedSkillIds: [41372],
-    stats: { precision: 5000 }
+    attributeInputs: baseAttributeInputs({ precision: 5000 })
   });
 
   assert.equal(mercy.warnings.length, 0);
@@ -1547,7 +1552,7 @@ test('Malicious Intent grants malice after a stealth attack consumes its existin
     ...baseConfig,
     specialization: 'Deadeye',
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT, TRAIT.MALEFICENT_SEVEN],
-    stats: { ...baseConfig.stats, precision: 5000 }
+    attributeInputs: baseAttributeInputs({ ...baseConfig.attributeInputs.weaponSets[0].commonTotals, precision: 5000 })
   };
   const hit = runThief(rotation, config).resolvedEvents.find(
     (event) => event.skillName === 'Malicious Backstab' && event.type === 'damage'
@@ -1575,7 +1580,7 @@ test('Malicious Intent grants malice after a stealth attack consumes its existin
 test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const criticalConfig = {
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
-    stats: { precision: 5000 },
+    attributeInputs: baseAttributeInputs({ precision: 5000 }),
     randomness: { mode: 'stochastic', seed: 1 }
   };
   const criticalBurst = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom'], criticalConfig);
@@ -1588,7 +1593,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   assert.equal(criticalBurst.planningState.profession.malice.value, 4);
 
   const noncriticalBurst = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom'], {
-    stats: { precision: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 0 }),
     randomness: { mode: 'stochastic', seed: 1 }
   });
 
@@ -1651,7 +1656,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   assert.deepEqual(afterImpact, [2]);
 
   const remarked = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', "Deadeye's Mark"], {
-    stats: { precision: 5000 },
+    attributeInputs: baseAttributeInputs({ precision: 5000 }),
     randomness: { mode: 'stochastic', seed: 1 }
   });
 
@@ -1664,7 +1669,9 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
       .damage;
   const assertMultiplier = (withEffect, withoutEffect, skill, multiplier) =>
     assertFlooredDamageMultiplier(skillDamage(withEffect, skill), skillDamage(withoutEffect, skill), multiplier);
-  const fullCrit = { stats: { precision: 5000 } };
+  const fullCrit = {
+    attributeInputs: baseAttributeInputs({ ...baseConfig.attributeInputs.weaponSets[0].commonTotals, precision: 5000 })
+  };
 
   const plainFlare = simulate('Deadeye', ['Shadow Flare'], {
     ...fullCrit,

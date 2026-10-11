@@ -2,22 +2,12 @@ import type { Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
-
-export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-  const result = { ...attributes } as Gw2MutableStats & { ferocity: number };
-  if (hasTrait(context, TRAIT.GUNS_AND_GLORY) && runtimeBuffActive(context, 'guns-and-glory')) {
-    const gunsAndGloryProfile = requireBalanceProfileFromContext(context, TRAIT.GUNS_AND_GLORY);
-    result.ferocity += balanceProfileNumber(gunsAndGloryProfile, 'attributeBonus');
-  }
-
-  return result;
-}
 
 // Trait windows count only live self applications, never an ally's or companion's copy.
 export function runtimeBuffActive(context: Gw2ModifierContext, kind: string): boolean {

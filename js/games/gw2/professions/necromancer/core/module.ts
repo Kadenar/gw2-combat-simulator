@@ -1,8 +1,11 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';
-import { necromancerCoreModifiers } from '#gw2/professions/necromancer/core/modifiers.js';
+import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
+import { ghastlyClawsVulnerabilityModifier } from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
+import { lifeSiphonBleedingModifier } from '#gw2/professions/necromancer/core/skills/weapons/dagger.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
+import { necromancerPassiveAttributes } from '#gw2/professions/necromancer/core/skills/attribute-passives.js';
 import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
   NECROMANCER_CORE_EXTRA_SKILLS
@@ -11,9 +14,9 @@ import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/co
 import { necromancerCoreTraits } from '#gw2/professions/necromancer/core/traits/index.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
 
 export const necromancerCoreModule = defineNativeModule({
+  attributes: necromancerPassiveAttributes,
   traitDefinitions: necromancerCoreTraits,
   id: 'Core',
   data: createNecromancerModuleData('Core', {
@@ -30,6 +33,10 @@ export const necromancerCoreModule = defineNativeModule({
     project: projectNecromancerPlanningState
   },
   hooks: necromancerCoreHooks,
-  modifiers: necromancerCoreModifiers,
+  // Skill rules retain their ordering; selected traits own their damage and duration rules.
+  modifiers: [
+    { ...lifeSiphonBleedingModifier, order: -20 },
+    { ...ghastlyClawsVulnerabilityModifier, order: 108 }
+  ],
   presentation: bindNecromancerCoreUi
 });

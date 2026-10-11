@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -18,15 +19,14 @@ for (const panelCalculated of [false, true]) {
         TRAIT.SERRATED_STEEL,
         TRAIT.INCENDIARY_POWDER
       ],
-      attributeProvenance: { professionStaticRulesApplied: panelCalculated },
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 2000,
         precision: 1000,
         conditionDamage: 3000,
         expertise: 300,
         conditionDurationBonus: 10,
         conditionDurationBonuses: panelCalculated ? { Bleeding: 33, Burning: 33 } : {}
-      },
+      }),
       boons: { might: 25 },
       target: { conditions: {} }
     });

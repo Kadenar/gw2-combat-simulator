@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -50,7 +51,7 @@ function simulate(
     {
       ...config,
       selectedTraitIds: traits,
-      stats: { ...config.stats, ...stats }
+      attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, ...stats })
     },
     { profession: elementalistProfession, initialize }
   );
@@ -97,7 +98,7 @@ const traitCases = [
     traits: [TRAIT.FRESH_AIR],
     rotation: ['Fire Attunement', 'Flame Uprising', 'Ring of Fire'],
     startAttunement: 'Air',
-    stats: criticalStats,
+    attributeInputs: baseAttributeInputs(criticalStats),
     verify: (result) => assert.ok(result.events.some((event) => event.type === 'elementalist.fresh-air'))
   },
   {
@@ -113,7 +114,7 @@ const traitCases = [
     traits: [TRAIT.RAGING_STORM],
     rotation: criticalRotation,
     startAttunement: 'Air',
-    stats: criticalStats,
+    attributeInputs: baseAttributeInputs(criticalStats),
     verify: (result) =>
       assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.sourceId === TRAIT.RAGING_STORM))
   },
@@ -179,7 +180,7 @@ const traitCases = [
     traits: [TRAIT.ARCANE_PRECISION],
     rotation: criticalRotation,
     startAttunement: 'Air',
-    stats: criticalStats,
+    attributeInputs: baseAttributeInputs(criticalStats),
     verify: (result) =>
       assert.ok(hasEvent(result, (event) => event.type === 'condition' && event.source === 'Arcane Precision'))
   },
@@ -188,7 +189,7 @@ const traitCases = [
     traits: [TRAIT.RENEWING_STAMINA],
     rotation: criticalRotation,
     startAttunement: 'Air',
-    stats: criticalStats,
+    attributeInputs: baseAttributeInputs(criticalStats),
     verify: (result) =>
       assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.sourceId === TRAIT.RENEWING_STAMINA))
   },
@@ -282,7 +283,7 @@ const traitCases = [
     traits: [TRAIT.BURNING_PRECISION],
     rotation: criticalRotation,
     startAttunement: 'Air',
-    stats: criticalStats,
+    attributeInputs: baseAttributeInputs(criticalStats),
     verify: (result) =>
       assert.ok(hasEvent(result, (event) => event.type === 'condition' && event.source === 'Burning Precision'))
   },
@@ -322,7 +323,7 @@ test('Elementalist critical reactions emit effects in registration order', () =>
   simulate(['Charged Strike'], {
     traits: [TRAIT.RAGING_STORM, TRAIT.ARCANE_PRECISION, TRAIT.RENEWING_STAMINA, TRAIT.BURNING_PRECISION],
     startAttunement: 'Air',
-    stats: criticalStats,
+    attributeInputs: baseAttributeInputs(criticalStats),
     initialize(runtime) {
       runtime.random = { ...runtime.random, roll: () => true };
       const emit = runtime.effects.emit.bind(runtime.effects);

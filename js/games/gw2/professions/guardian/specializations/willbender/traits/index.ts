@@ -1,4 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
@@ -8,6 +7,7 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -246,7 +246,7 @@ export const powerForPower = defineTrait({
       when: (context) => Boolean(context.event?.willbenderFlames)
     }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [
+  attributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [
     { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -256,7 +256,7 @@ export const conceitedCurate = defineTrait({
   id: TRAIT.CONCEITED_CURATE,
   name: 'Conceited Curate',
   balance: { attributeBonus: 180 },
-  buildAttributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [
+  attributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
   ])
 });
@@ -289,7 +289,7 @@ export const searingPact = defineTrait({
       }
     }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.SEARING_PACT, [
+  attributes: traitAttributeEffects(TRAIT.SEARING_PACT, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: true }
   ])
 });

@@ -163,7 +163,7 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
     },
     { on: 'combo.resolved', run: reactToScrapperCombo }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.KINETIC_ACCELERATORS, [
+  attributes: traitAttributeEffects(TRAIT.KINETIC_ACCELERATORS, [
     {
       kind: 'conversion',
       from: 'Power',
@@ -221,6 +221,24 @@ export const massMomentum = defineTrait<EngineerSkill>({
 
 /** Owns Applied Force tuning and its existing gameplay boundaries. */
 export const appliedForce = defineTrait<EngineerSkill>({
+  // Apply the trait portion of Might once for both build assumptions and live boons.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.APPLIED_FORCE);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Power',
+          amount:
+            modifierBoonStacks(context, 'might', balanceProfileNumber(profile, 'maximumStacks')) *
+            balanceProfileNumber(profile, 'attributePerStack'),
+          feedsConversions: false,
+          enabled: true
+        }
+      ]
+    };
+  },
   id: TRAIT.APPLIED_FORCE,
   name: 'Applied Force',
   balance: {

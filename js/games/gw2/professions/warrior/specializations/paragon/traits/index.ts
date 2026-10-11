@@ -1,5 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { paragonCombatStarted } from '#gw2/professions/warrior/specializations/paragon/hooks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -8,12 +6,14 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
   chantActivated,
   motivationSpent,
-  paragonCastCompleted
+  paragonCastCompleted,
+  paragonCombatStarted
 } from '#gw2/professions/warrior/specializations/paragon/hooks.js';
 import { startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import { paragonState, type ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
@@ -35,7 +35,7 @@ export const inspiringImplements = defineTrait({
     resourceGain: 5,
     minimumStacks: 2
   },
-  buildAttributes(_common, context) {
+  attributes(context) {
     return {
       attributeEffects: [
         {

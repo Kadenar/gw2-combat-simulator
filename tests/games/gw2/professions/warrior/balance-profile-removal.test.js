@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -25,7 +26,7 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
     professions: { warrior: { balanceProfiles, skills } }
   });
   const result = createObservedProfessionSimulator(profession, {
-    stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000 }),
     target: { armor: 2597, health: 1_000_000, defiant: true }
   })(specialization, rotation, { patchId: 'warrior-removal', ...config });
   assert.deepEqual(result.warnings, []);
@@ -65,7 +66,12 @@ test('Sundering Burst removal cannot substitute its surviving critical variant',
       },
       'Core',
       [ID.EVISCERATE],
-      { initialResource: 30, primaryWeapon: 'Axe', selectedTraitIds: [TRAIT.SUNDERING_BURST], stats: { precision } }
+      {
+        initialResource: 30,
+        primaryWeapon: 'Axe',
+        selectedTraitIds: [TRAIT.SUNDERING_BURST],
+        attributeInputs: baseAttributeInputs({ precision })
+      }
     );
     const hit = result.events.find((event) => event.type === 'damage');
     const proc = result.events.find((event) => event.sourceId === TRAIT.SUNDERING_BURST);
@@ -160,7 +166,7 @@ test('removed King of Fires strike preserves Burning and consumes the aura', () 
   const result = run({ [TRAIT.KING_OF_FIRES]: remove('strike', 'Strike') }, 'Berserker', ['Chop', ID.BERSERK], {
     primaryWeapon: 'Axe',
     initialResource: 30,
-    stats: { precision: 10000 },
+    attributeInputs: baseAttributeInputs({ precision: 10000 }),
     selectedTraitIds: [TRAIT.KING_OF_FIRES]
   });
   assert.equal(
@@ -353,7 +359,7 @@ test('Eviscerate variants use captured adrenaline after the live pool changes', 
     primaryWeapon: 'Axe',
     initialResource: 20,
     selectedTraitIds: [],
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 }
   };
   const native = warriorProfession.runtimeFor(config);

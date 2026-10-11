@@ -1,3 +1,4 @@
+import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -40,7 +41,7 @@ test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain inde
     const values = { ...baseValues, ...bonuses };
     const { request } = createSkillDamagePlan(app, controls, values);
     const strip = calculateSkillDamageAttributes(app, values, controls).attributes;
-    const pool = request.config.amalgamEvolveAttributePool;
+    const pool = attributeSourcePool(request.config, 'common');
     for (const name of ['Power', 'Condition Damage'])
       assert.equal(
         strip[name].final,

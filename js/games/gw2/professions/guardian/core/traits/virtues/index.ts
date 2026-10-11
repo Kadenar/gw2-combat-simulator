@@ -1,5 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -10,6 +8,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
@@ -199,24 +198,7 @@ export const powerOfTheVirtuous = defineTrait({
     attributeConversion: 0.07,
     rechargeMultiplier: 0.85
   },
-  modifierRules: [
-    {
-      order: -16,
-      id: 'guardian.power-of-the-virtuous-condition-damage',
-      label: 'Power of the Virtuous',
-      target: MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
-      operation: 'add',
-      amount: (context) =>
-        attributeProvenance(context.config).professionStaticRulesApplied
-          ? 0
-          : (context.config?.stats?.vitality || 0) *
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS),
-              'attributeConversion'
-            )
-    }
-  ],
-  buildAttributes: traitAttributeEffects(GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, [
+  attributes: traitAttributeEffects(GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, [
     {
       kind: 'conversion',
       from: 'Vitality',

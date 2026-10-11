@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -6,7 +7,13 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 const config = {
-  stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1000,
+    ferocity: 0,
+    conditionDamage: 1000,
+    vitality: 1000
+  }),
   target: { armor: 2597 },
   primaryWeapon: 'Scepter'
 };
@@ -76,14 +83,13 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
   }
 });
 
-test('Bane Signet Power follows recharge and Perfect Inscriptions for raw and precomputed attributes', () => {
-  for (const staticApplied of [false, true]) {
+test('Bane Signet Power follows recharge and Perfect Inscriptions from canonical attribute seeds', () => {
+  {
     for (const traited of [false, true]) {
       const bonus = 180 * (traited ? 1.2 : 1);
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
-        stats: { ...config.stats, power: 2000 + (staticApplied ? bonus : 0) },
-        attributeProvenance: { professionStaticRulesApplied: staticApplied },
+        attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, power: 2000 }),
         selectedSkillIds: [9093],
         selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS] : []
       })(undefined, [

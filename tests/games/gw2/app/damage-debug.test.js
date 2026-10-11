@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';
@@ -32,7 +33,10 @@ const request = () => ({
   gameId: 'gw2',
   contentId: profession.id,
   rotation: [{ type: 'wait', durationMs: 1000 }],
-  baseConfig: { stats: { power: 1500, precision: 1700 }, randomness: { mode: 'stochastic', seed: 42 } },
+  baseConfig: {
+    attributeInputs: baseAttributeInputs({ power: 1500, precision: 1700 }),
+    randomness: { mode: 'stochastic', seed: 42 }
+  },
   selectedPatchId: 'current'
 });
 
@@ -51,11 +55,11 @@ test('baseline debug capture preserves seeded combat and snapshots export inputs
 
   // Later editor mutations cannot pair old hit calculations with new run inputs.
   input.rotation[0].durationMs = 9000;
-  input.baseConfig.stats.power = 9000;
+  input.baseConfig.attributeInputs.weaponSets[0].commonTotals.power = 9000;
   input.baseConfig.randomness.seed = 99;
   const exported = JSON.parse(JSON.stringify(damageDebugPayload(captured)));
   assert.equal(exported.rotation[0].durationMs, 1000);
-  assert.equal(exported.config.stats.power, 1500);
+  assert.equal(exported.config.attributeInputs.weaponSets[0].commonTotals.power, 1500);
   assert.equal(exported.config.randomness.seed, 42);
   assert.equal(exported.config.patchId, 'current');
   assert.deepEqual(exported.observationPolicy, { kind: 'rotation' });

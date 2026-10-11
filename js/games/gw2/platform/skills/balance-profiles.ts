@@ -108,15 +108,20 @@ export function requireEffect<TType extends SkillEffect['type']>(
 
 /** Validate a surviving effect's field without looking up its owner again; the owner supplies diagnostics. */
 export function effectNumber(owner: Skill | BalanceProfile, effect: SkillEffect, field: string): number {
+  // Valid hot-path reads need no diagnostic strings; retain the full owner context when validation fails.
+  const value = effect[field];
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
   return requireBalanceNumber(
-    effect[field],
+    value,
     `${effectOwnerLabel(owner)} effect=${effect.type}/${effect.name ?? '<unnamed>'} field=${field}`
   );
 }
 
 /** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
 export function balanceProfileNumber(profile: BalanceProfile, field: string): number {
-  return requireBalanceNumber(profile[field], ownerDataLabel(profile, `profile=${profile.id} field=${field}`));
+  const value = profile[field];
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  return requireBalanceNumber(value, ownerDataLabel(profile, `profile=${profile.id} field=${field}`));
 }
 
 /** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */

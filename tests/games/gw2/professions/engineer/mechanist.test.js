@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
@@ -18,14 +19,14 @@ const mechanistRechargeWork = engineerProfession.runtimeFor({ specialization: 'M
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: { Vulnerability: 25 }
@@ -327,6 +328,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         config: {
           specialization: 'Mechanist',
           selectedSkillIds: [63111],
+          attributeInputs: baseAttributeInputs(uncapped),
           boons: { might: 25 }
         },
         event: {
@@ -345,15 +347,12 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
   assert.equal(copiedMightAfterCaps.conditionDamage, 1500);
 
   const firearms = simulate('Mechanist', ['Spark Revolver', { type: 'wait', durationMs: 1500 }], {
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2811,
       precision: 1960,
       ferocity: 1480
-    },
+    }),
     boons: { fury: true },
-    attributeProvenance: {
-      professionStaticRulesApplied: true
-    },
     selectedTraitIds: [
       TRAIT.HEMATIC_FOCUS,
       TRAIT.NO_SCOPE,
@@ -368,7 +367,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
   );
 
   assert.ok(Math.abs(mechStrike.criticalChance - 0.9576190476190476) < 1e-12);
-  assert.ok(Math.abs(mechStrike.criticalDamage - 1.9433333333333334) < 1e-12);
+  assert.ok(Math.abs(mechStrike.criticalDamage - (1.5 + (1480 * 0.5) / 1500)) < 1e-12);
 });
 
 test('Mechanist arm traits alter mech hits and their command skills', () => {
@@ -436,7 +435,7 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
 
   const jadeCannons = simulate('Mechanist', ['Spark Revolver', { type: 'wait', durationMs: 2300 }], {
     selectedTraitIds: [TRAIT.MECH_ARMS_JADE_CANNONS, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS, TRAIT.MECH_CORE_J_DRIVE],
-    stats: { precision: 4000 },
+    attributeInputs: baseAttributeInputs({ precision: 4000 }),
     target: { conditions: {} }
   });
   const spark = jadeCannons.resolvedEvents.filter(
@@ -491,7 +490,7 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
       TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
       TRAIT.MECH_CORE_J_DRIVE
     ],
-    stats: { precision: 4000 },
+    attributeInputs: baseAttributeInputs({ precision: 4000 }),
     target: { conditions: {} }
   });
   // Firearms procs caused by the mech must stay on its independent condition owner.

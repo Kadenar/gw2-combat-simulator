@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -23,7 +24,13 @@ function run(events, { endTime = 10, config = {}, query = {}, ...options } = {})
     endTime,
     config: {
       relic: 'Agony',
-      stats: { power: 1000, precision: 4000, ferocity: 2000, conditionDamage: 1000, expertise: 0 },
+      attributeInputs: baseAttributeInputs({
+        power: 1000,
+        precision: 4000,
+        ferocity: 2000,
+        conditionDamage: 1000,
+        expertise: 0
+      }),
       target: { armor: 2597, defiant: true, conditions: {} },
       ...config
     },

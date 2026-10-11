@@ -2,7 +2,6 @@ import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/share
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { applyInfernoAttributes } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -349,7 +348,7 @@ test('Inferno tooltip derives its Power rate from the canonical Burning formula'
       'Core'
     );
     assert.equal(model.facts.find(({ name }) => name === 'Burning damage per second per power').detail, String(rate));
-    const attributes = applyInfernoAttributes(
+    const attributes = elementalistProfession.runtimeFor({}).modifyConditionAttributes(
       {
         catalog: context.catalog,
         config: { selectedTraitIds: [TRAIT.INFERNO] },

@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 /**
  * Owns Weaver stance, profession, heal, and elite skill fragments.
  * Dual-weapon fragments remain under `skills/weapons/`.
@@ -155,3 +157,21 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     ])
   }
 });
+
+/** Weave Self buffs later attacks while its elemental windows remain active. */
+export const weaveSelfModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'elementalist.weave-self-air',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    amount: 0.1,
+    when: (context) => activeBuffStacks(context, 'weave self air', 1) > 0
+  },
+  {
+    id: 'elementalist.weave-self-fire',
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: 'damage-additive',
+    amount: 0.2,
+    when: (context) => activeBuffStacks(context, 'weave self fire', 1) > 0
+  }
+]);

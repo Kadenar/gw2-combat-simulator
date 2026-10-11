@@ -1,5 +1,5 @@
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
@@ -9,7 +9,6 @@ import {
   VINDICATOR_PUBLIC_STATE_PROJECTION,
   vindicatorState
 } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import { modifyVindicatorAttributes } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/vindicator/traits/index.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
@@ -22,7 +21,7 @@ export const vindicatorModule = defineNativeModule({
   }),
   state: { create: vindicatorState.create, project: createPublicStateProjector(VINDICATOR_PUBLIC_STATE_PROJECTION) },
   // Compose the trait callback directly; this owner has no additional modifier rules.
-  modifiers: { modifyAttributes: modifyVindicatorAttributes },
+  modifiers: {},
   hooks: vindicatorHooks,
   presentation: vindicatorUi
 });

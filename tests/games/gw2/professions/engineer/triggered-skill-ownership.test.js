@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
@@ -54,7 +55,7 @@ const configFor = (entry) => ({
   primaryWeapon: 'Spear',
   selectedTraitIds: [entry.trait],
   selectedSkillIds: [ID.HEALING_TURRET, ID.GRENADE_KIT],
-  stats: { power: 2000, precision: 4000, ferocity: 500 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000, ferocity: 500 }),
   target: { armor: 2597 }
 });
 const setup = (entry) => (runtime) => {

@@ -1,45 +1,56 @@
+import {
+  applyAttributeContributions,
+  applyFinalConditionAttributes,
+  attributeContext
+} from '#gw2/platform/builds/attribute-evaluation.js';
+import { attributeSeed } from '#gw2/platform/builds/attribute-inputs.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
-import type { Gw2Build, Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2AttributeContext,
+  Gw2AttributeContributionCalculator,
+  Gw2AttributeContributions,
+  Gw2Build
+} from '#gw2/platform/builds/types.js';
 import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import {
-  MODIFIER_HOOK_NAMES,
-  assertDefinition,
-  defineProfession
-} from '#gw2/platform/profession-definition/compile-contract.js';
-import type {
-  NormalizedProfessionContract,
-  ProfessionHook,
-  ProfessionModifierDefinition
-} from '#gw2/platform/profession-definition/types.js';
 import {
   denyCast,
   selectedSlotSkillAvailability,
   weaponSetSwapAvailability
 } from '#gw2/platform/execution/availability.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
-import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import {
+  MODIFIER_HOOK_NAMES,
+  assertDefinition,
+  defineProfession
+} from '#gw2/platform/profession-definition/compile-contract.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type {
   ProfessionRuntimeOptions,
   RuntimeProfession
 } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
+import type {
+  NormalizedProfessionContract,
+  ProfessionConfig,
+  ProfessionHook,
+  ProfessionModifierDefinition
+} from '#gw2/platform/profession-definition/types.js';
+import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import {
   assembleNativeRuntimeCatalog,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { defineTraitProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import type {
   AnyNativeModule,
   NativeModule,
@@ -48,8 +59,10 @@ import type {
   NativeProfessionDefinition,
   NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
+import { defineTraitProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
 import {
   assertTraitTrigger,
   compileProfessionRules,
@@ -57,10 +70,8 @@ import {
   validateTriggerPoints,
   type TraitTrigger
 } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
-import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
@@ -82,6 +93,7 @@ const NATIVE_MODULE_FIELDS = Object.freeze([
   'hooks',
   'presentation',
   'traitDefinitions',
+  'attributes',
   'canSwapWeaponSetsInCombat'
 ]);
 
@@ -355,10 +367,11 @@ function invokedDamageEffects<T extends object, TSkill extends Skill>(
 /** Creates fresh Core/elite state while rejecting invalid fragments and conflicting field ownership. */
 function composeStateFragments(
   modules: readonly Pick<AnyNativeModule, 'id' | 'state'>[],
-  config: Readonly<ProfessionConfig>
+  config: Readonly<ProfessionConfig>,
+  preparation: Parameters<AnyNativeModule['state']['create']>[1]
 ): object {
   const fragments = modules.map((module) => {
-    const fragment = module.state.create(config) || {};
+    const fragment = module.state.create(config, preparation) || {};
     if (typeof fragment !== 'object' || Array.isArray(fragment)) {
       throw new TypeError(`${module.id} state factory must return an object.`);
     }
@@ -450,6 +463,50 @@ export function defineNativeProfession<
   const build = normalizeProfessionBuild(definition.id, definition.build);
   let presentation: ProfessionUiContract | undefined;
   type State = NativeProfessionRuntimeState<TModules>;
+  // Registration removes traits without attribute work before each query selects its callbacks and retained grants.
+  const attributeModules = modules.map((module) => ({
+    id: module.id,
+    attributes: module.attributes,
+    traits: (module.traitDefinitions ?? []).filter((trait) => trait.attributes || trait.grantedAttributes)
+  }));
+  // A simulation query has fixed traits. Detached previews select afresh; live values are always evaluated anew.
+  const selectedByQuery = new WeakMap<object, ReturnType<typeof selectAttributeModules>>();
+  function selectAttributeModules(context: Gw2AttributeContext) {
+    return attributeModules
+      .map((module) => {
+        const active = module.id === 'Core' || module.id === context.config?.specialization;
+        const traits: Array<ReturnType<typeof prepareTraitAttributes>> = [];
+        for (const trait of module.traits) {
+          if (trait.attributes && hasTrait(context, trait.id))
+            traits.push(prepareTraitAttributes(trait.attributes, context));
+          if (active && trait.grantedAttributes) traits.push(trait.grantedAttributes);
+        }
+
+        return { attributes: active ? module.attributes : undefined, traits };
+      })
+      .filter((module) => module.attributes || module.traits.length);
+  }
+
+  // Every owner contributes once to both the panel and runtime; selection and patch resolution are shared.
+  const calculateContributions: Gw2AttributeContributionCalculator = (input) => {
+    const context = input.profession ? input : { ...input, profession: { catalog: input.balanceContext.catalog } };
+    let selected = context.query && selectedByQuery.get(context.query);
+    if (!selected) {
+      selected = selectAttributeModules(context);
+      if (context.query) selectedByQuery.set(context.query, selected);
+    }
+
+    const contributions: Gw2AttributeContributions[] = [];
+    for (const module of selected) {
+      if (module.attributes) contributions.push(...module.attributes(context));
+      // Constants are already resolved; only declarations with live inputs need another evaluation.
+      for (const contribute of module.traits)
+        contributions.push(typeof contribute === 'function' ? contribute(context) : contribute);
+    }
+
+    return contributions;
+  };
+
   const selections = new Map<
     string,
     {
@@ -473,14 +530,63 @@ export function defineNativeProfession<
     const projectors = selected.flatMap((module) =>
       module.state.project ? [module.state.project as (input: unknown) => object] : []
     );
+    const catalog = assembleNativeRuntimeCatalog(selected.map((module) => assembly.fragments.get(module.id)!));
+    const balanceContext = {
+      catalog,
+      modifierRulesById: new Map(
+        selected.flatMap((module) => module.modifiers.modifierRules ?? []).map((rule) => [rule.id, rule])
+      )
+    };
+    // Runtime owners build attribute facts once, directly against the selected patch's immutable balance context.
+    const attributeBalanceContexts = new WeakMap<Readonly<CanonicalCatalog>, Gw2AttributeContext['balanceContext']>([
+      [catalog, balanceContext]
+    ]);
+    const selectedContributions: NonNullable<NormalizedProfessionContract['attributeContributions']> = (input) => {
+      const selectedCatalog = input.catalog ?? input.profession?.catalog ?? catalog;
+      let selectedBalance = attributeBalanceContexts.get(selectedCatalog);
+      if (!selectedBalance) {
+        selectedBalance = { ...balanceContext, catalog: selectedCatalog };
+        attributeBalanceContexts.set(selectedCatalog, selectedBalance);
+      }
+
+      return calculateContributions(attributeContext(input, selectedBalance));
+    };
+
+    // Query phases consume the already sampled values; direct modifier callers sample their own live facts once.
+    const queryContributions = (input: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext) =>
+      input.attributeContributions ?? selectedContributions(input);
+    const modifiers = composeModuleModifiers(selected);
+    const ordinaryAttributes = {
+      id: 'gw2.attribute-contributions',
+      order: -10000,
+      handler: (
+        context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
+        attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
+      ) =>
+        applyAttributeContributions(
+          attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet)
+            .conversionPool,
+          attributes,
+          queryContributions(context)
+        )
+    };
     const source = defineProfession<State, TSkill>({
       id: definition.id,
       name: definition.name,
+      attributeContributions: selectedContributions,
       canSwapWeaponSetsInCombat: elite?.canSwapWeaponSetsInCombat ?? core.canSwapWeaponSetsInCombat ?? true,
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
-      catalog: assembleNativeRuntimeCatalog(selected.map((module) => assembly.fragments.get(module.id)!)),
+      catalog,
       resources: {
-        createState: (config) => composeStateFragments(selected, config) as State,
+        createState: (config, selectedBalance = balanceContext) =>
+          composeStateFragments(selected, config, {
+            balanceContext: selectedBalance,
+            attributes: applyAttributeContributions(
+              attributeSeed(config).conversionPool,
+              attributeSeed(config).commonTotals,
+              calculateContributions(attributeContext({ config, time: 0 }, selectedBalance))
+            )
+          }) as State,
         ...(projectors.length
           ? {
               projectPlanningState: (input: unknown) =>
@@ -488,7 +594,32 @@ export function defineNativeProfession<
             }
           : {})
       },
-      modifiers: composeModuleModifiers(selected)
+      modifiers: {
+        ...modifiers,
+        modifyConditionAttributes: [
+          ...(Array.isArray(modifiers.modifyConditionAttributes)
+            ? modifiers.modifyConditionAttributes
+            : modifiers.modifyConditionAttributes
+              ? [modifiers.modifyConditionAttributes]
+              : []),
+          {
+            id: 'gw2.final-condition-attributes',
+            order: 10000,
+            handler: (
+              context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
+              attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
+            ) => applyFinalConditionAttributes(context, attributes, queryContributions(context))
+          }
+        ],
+        modifyAttributes: [
+          ordinaryAttributes,
+          ...(Array.isArray(modifiers.modifyAttributes)
+            ? modifiers.modifyAttributes
+            : modifiers.modifyAttributes
+              ? [modifiers.modifyAttributes]
+              : [])
+        ]
+      }
     });
     const selection: NonNullable<ReturnType<typeof selections.get>> = {
       modules: selected,
@@ -540,6 +671,7 @@ export function defineNativeProfession<
       modifyStrikeDamage: source.modifyStrikeDamage,
       modifyConditionDamage: source.modifyConditionDamage,
       modifyConditionDuration: source.modifyConditionDuration,
+      attributeContributions: source.attributeContributions,
       modifyConditionBaseDuration: source.modifyConditionBaseDuration,
       // Preview and simulation share the same validated Core/elite state composition.
       createState: source.createState,
@@ -590,24 +722,7 @@ export function defineNativeProfession<
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: assembly.catalog,
     nativeDefinition: Object.freeze({ ...definition }),
-    traitBuildAttributes: ((common, context, activeTraits) => {
-      const balanceContext = context.balanceContext ?? {
-        catalog: assembly.catalog,
-        modifierRulesById: new Map(
-          modules.flatMap((module) => module.modifiers.modifierRules ?? []).map((rule) => [rule.id, rule])
-        )
-      };
-      const active = new Set(
-        activeTraits.filter((trait) => trait.name !== context.disabledTrait).map((trait) => trait.id)
-      );
-      return modules.flatMap((module) =>
-        (module.traitDefinitions ?? []).flatMap((trait) =>
-          trait.buildAttributes && hasTrait(active, trait.id)
-            ? [trait.buildAttributes(common, { ...context, balanceContext })]
-            : []
-        )
-      );
-    }) satisfies Gw2TraitBuildAttributeCalculator,
+    attributeContributions: calculateContributions,
     ...build,
     resolveProfession,
     runtimeFor,

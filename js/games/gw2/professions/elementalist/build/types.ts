@@ -6,15 +6,6 @@ export interface ElementalistBuildSpecialization {
   traits: string;
 }
 
-export interface CatalystEmpowermentPool {
-  readonly power: number;
-  readonly precision: number;
-  readonly ferocity: number;
-  readonly conditionDamage: number;
-  readonly expertise: number;
-  readonly concentration: number;
-}
-
 export interface ElementalistCanonicalBuild extends Gw2CanonicalBuild {
   profession: 'elementalist';
   startAttunement: string;
@@ -35,6 +26,4 @@ export interface ElementalistConfig extends Gw2Config {
   readonly initialEvokerEmpowered?: number;
   readonly pistolBullets?: Readonly<Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>>;
   /** Assumption: summon the glyph elemental at combat start. */
-  /** Catalyst's configured Empowerment attribute pool. */
-  readonly catalystEmpowermentPool?: CatalystEmpowermentPool;
 }

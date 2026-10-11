@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -10,12 +11,12 @@ function simulate(rotation, overrides = {}) {
   const config = {
     specialization: 'Bladesworn',
     initialResource: 100,
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2000,
       precision: 1500,
       ferocity: 500,
       conditionDamage: 1000
-    },
+    }),
     target: {
       armor: 2597,
       health: 3_970_000,

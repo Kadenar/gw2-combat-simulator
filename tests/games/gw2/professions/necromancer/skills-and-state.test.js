@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
@@ -11,7 +12,6 @@ import {
   purgeTimedState
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
 import {
   actualNecromancerLifeForceCost,
   normalizedNecromancerLifeForceCost
@@ -28,14 +28,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 2000,
     ferocity: 500,
     conditionDamage: 1200,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: {
@@ -98,7 +98,7 @@ test('Necromancer Chill producers retain duration scaling and chained trait attr
         TRAIT.BITTER_CHILL,
         ...(specialization === 'Reaper' ? [TRAIT.DEATHLY_CHILL] : [])
       ],
-      stats: { expertise: 750 },
+      attributeInputs: baseAttributeInputs({ expertise: 750 }),
       target: { conditions: { Chilled: false, Vulnerability: 0 } }
     });
     assert.deepEqual(result.warnings, []);
@@ -132,7 +132,7 @@ test('Necromancer Chill producers retain duration scaling and chained trait attr
 test('Chill of Death and Chilling Nova preserve sibling strike ordering', () => {
   const selectedTraitIds = [TRAIT.CHILL_OF_DEATH, TRAIT.CHILLING_NOVA, TRAIT.BITTER_CHILL, TRAIT.DEATHLY_CHILL];
   const config = {
-    stats: { precision: 3000, expertise: 750 },
+    attributeInputs: baseAttributeInputs({ precision: 3000, expertise: 750 }),
     target: { health: 1000000, startingHealthFraction: 0.4, conditions: { Chilled: true, Vulnerability: 0 } }
   };
   const rotation = ['Gravedigger', 'Gravedigger'];
@@ -475,7 +475,7 @@ test('every Necromancer specialization starts with a percentage life-force meter
   for (const specialization of ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']) {
     const state = simulate(specialization, [], {
       initialResource: 40,
-      stats: { vitality: 2000 },
+      attributeInputs: baseAttributeInputs({ vitality: 2000 }),
       selectedTraitIds: [TRAIT.SOUL_BATTERY]
     }).planningState.profession;
     assert.equal(state.lifeForce.maximum, 100, specialization);
@@ -487,7 +487,10 @@ test('every Necromancer specialization starts with a percentage life-force meter
 test('Scourge fixed costs preserve build scaling on the percentage meter', () => {
   for (const vitality of [1000, 2000]) {
     for (const battery of [false, true]) {
-      const config = { stats: { vitality }, selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : [] };
+      const config = {
+        attributeInputs: baseAttributeInputs({ vitality }),
+        selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : []
+      };
       const expectedCost = (4606 * 100) / ((9212 + vitality * 10) * 0.69 * (battery ? 1.2 : 1));
       const allowed = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost + 0.01 });
       const denied = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost - 0.01 });
@@ -884,7 +887,7 @@ test('Sand Sage extends boons only while a Scourge shade is active', () => {
 test('Lingering Curse increases scepter base duration beyond the stat cap', () => {
   const config = {
     primaryWeapon: 'Scepter',
-    stats: { expertise: 1500 }
+    attributeInputs: baseAttributeInputs({ expertise: 1500 })
   };
   const base = simulate('Core', ['Blood Curse'], config);
   const lingering = simulate('Core', ['Blood Curse'], {
@@ -1061,7 +1064,7 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
       initialBlight: 25,
       selectedSkillIds: [62530],
       selectedTraitIds,
-      stats: { precision: 4000 },
+      attributeInputs: baseAttributeInputs({ precision: 4000 }),
       target: {
         ...baseConfig.target,
         health: 1_000_000_000,
@@ -1219,7 +1222,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
 });
 
 test('Soul Shards expire after ten seconds and refresh together when another shard is gained', () => {
-  const state = createNecromancerCoreState();
+  const state = necromancerProfession.resolveProfession({}).createState({}).core;
 
   assert.equal(addSoulShards(state, 2, 0), 2);
   assert.equal(state.soulShardGrant.expiresAt, 10);
@@ -1235,7 +1238,7 @@ test('Soul Shards expire after ten seconds and refresh together when another sha
 });
 
 test('Soul Shards refresh at capacity and consume only live charges without reviving expired shards', () => {
-  const state = createNecromancerCoreState();
+  const state = necromancerProfession.resolveProfession({}).createState({}).core;
   assert.equal(addSoulShards(state, 8, 0), 6);
   assert.equal(addSoulShards(state, 2, 9), 0);
   assert.equal(state.soulShardGrant.expiresAt, 19);

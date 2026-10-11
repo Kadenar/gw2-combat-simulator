@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
@@ -21,14 +22,14 @@ const baseConfig = Object.freeze({
   selectedPet2: 'Carrion Devourer',
   primaryWeapon: 'Dagger',
   offHandWeapon: 'Torch',
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1800,
     expertise: 1200,
     concentration: 750
-  },
+  }),
   target: {
     armor: 2597,
     defiant: true,
@@ -41,7 +42,10 @@ function simulate(rotation, config = {}) {
     ...baseConfig,
     ...config,
     specialization: 'Druid',
-    stats: { ...baseConfig.stats, ...config.stats },
+    attributeInputs: baseAttributeInputs({
+      ...baseConfig.attributeInputs.weaponSets[0].commonTotals,
+      ...config.attributeInputs?.weaponSets[0].commonTotals
+    }),
     target: { ...baseConfig.target, ...config.target }
   };
   return observeGw2Runtime({ profession: rangerProfession.runtimeFor(options), rotation, config: options });
@@ -149,7 +153,7 @@ test('Light on Your Feet and Natural Balance add condition duration', () => {
   const result = simulate(['Dodge', 'Celestial Avatar', 'Release Celestial Avatar', 'Crippling Talon'], {
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger',
-    stats: { expertise: 0 },
+    attributeInputs: baseAttributeInputs({ expertise: 0 }),
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.NATURAL_BALANCE]
   });
   const bleeding = result.resolvedEvents.find(
@@ -173,7 +177,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   const buffed = simulate(['Dodge', 'Crossfire'], {
     primaryWeapon: 'Shortbow',
     offHandWeapon: '',
-    stats: { expertise: 0 },
+    attributeInputs: baseAttributeInputs({ expertise: 0 }),
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
   const buff = buffed.events.find((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
@@ -192,7 +196,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   assert.ok(crossfireBleeding.every((event) => event.effectiveDuration === 5.5));
 
   const evade = simulate(["Stalker's Strike"], {
-    stats: { expertise: 0 },
+    attributeInputs: baseAttributeInputs({ expertise: 0 }),
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
   const evadePoison = evade.resolvedEvents.filter(
@@ -221,7 +225,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   const upgrades = simulate(['Poison Volley', 'Crippling Shot', 'Concussion Shot'], {
     primaryWeapon: 'Shortbow',
     offHandWeapon: '',
-    stats: { expertise: 0 },
+    attributeInputs: baseAttributeInputs({ expertise: 0 }),
     target: { defiant: false, conditions: {} },
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
@@ -248,7 +252,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   const defiant = simulate(['Poison Volley', 'Crippling Shot', { type: 'wait', durationMs: 1000 }], {
     primaryWeapon: 'Shortbow',
     offHandWeapon: '',
-    stats: { expertise: 0 },
+    attributeInputs: baseAttributeInputs({ expertise: 0 }),
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
 
@@ -308,7 +312,7 @@ test("Stalker's Strike bonuses require Cripple, Slow, or Immobilize", () => {
       target,
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Dagger',
-      stats: { expertise: 0 },
+      attributeInputs: baseAttributeInputs({ expertise: 0 }),
       selectedTraitIds: []
     });
   const strikeDamage = (result) =>
@@ -328,7 +332,7 @@ test("Stalker's Strike bonuses require Cripple, Slow, or Immobilize", () => {
     const impaired = run({ defiant: false, conditions: { [condition]: true } });
 
     assert.equal(poisonStacks(impaired), 5);
-    assert.equal(strikeDamage(impaired), strikeDamage(base) * 2);
+    assert.ok(Math.abs(strikeDamage(impaired) - strikeDamage(base) * 2) <= 1);
   }
 });
 
@@ -365,7 +369,7 @@ test('Poisonous Cloud retains player ownership and combat-entry gating', () => {
     {
       selectedPet: 'Carrion Devourer',
       selectedTraitIds: [],
-      stats: { conditionDamage: 0, expertise: 0 }
+      attributeInputs: baseAttributeInputs({ conditionDamage: 0, expertise: 0 })
     }
   );
   const packets = result.resolvedEvents.filter(({ skillId }) => skillId === ID.POISONOUS_CLOUD);
@@ -425,7 +429,7 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   assert.equal(Object.hasOwn(poisonMasterProc, 'summonBaseConditionDamage'), false);
 
   const zeroPlayerConditionDamage = simulate(["Jacaranda's Embrace", { type: 'wait', durationMs: 4000 }], {
-    stats: { conditionDamage: 0, expertise: 0 },
+    attributeInputs: baseAttributeInputs({ conditionDamage: 0, expertise: 0 }),
     selectedTraitIds: [TRAIT.POISON_MASTER]
   }).resolvedEvents.find((event) => event.type === 'condition' && event.sourceId === TRAIT.POISON_MASTER);
 

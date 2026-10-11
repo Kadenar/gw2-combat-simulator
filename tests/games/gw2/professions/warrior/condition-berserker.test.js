@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -12,7 +13,7 @@ function simulate(rotation, overrides = {}) {
     secondaryWeapon: 'Torch',
     initialResource: 30,
     selectedTraitIds: [],
-    stats: { power: 1000, precision: 1000, conditionDamage: 0 },
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, conditionDamage: 0 }),
     target: { armor: 2597 },
     ...overrides
   };
@@ -60,7 +61,7 @@ test('a primal-burst critical hit grants an aura that detonates no earlier than 
     primaryWeapon: 'Longbow',
     secondaryWeapon: '',
     selectedTraitIds: [TRAIT.KING_OF_FIRES],
-    stats: { power: 1000, precision: 5000 },
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 5000 }),
     target: { armor: 2597, health: 100_000_000 }
   });
   assert.deepEqual(result.warnings, []);

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -46,7 +47,7 @@ test('Barrier Engine starts in combat and grants barrier independently of mech c
 test('Barrier Burst grants its barrier and boons to the party and retains a 30-second cooldown', () => {
   const result = simulate('Mechanist', ['Barrier Burst', { type: 'wait', durationMs: 5000 }], {
     selectedTraitIds: [TRAIT.MECH_CORE_BARRIER_ENGINE],
-    stats: { concentration: 0 }
+    attributeInputs: baseAttributeInputs({ concentration: 0 })
   });
   assert.equal(engineerCatalog.skillsByName.get('Barrier Burst').cooldown, 30);
   const packets = result.events.filter((event) => event.skillName === 'Barrier Burst' && event.type === 'buff');
@@ -122,7 +123,7 @@ test('Channeling Conduits shares the one-second ICD between player and mech for 
     selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS],
     selectedSkillIds: [],
     allies: { count: 4 },
-    stats: { concentration: 0 },
+    attributeInputs: baseAttributeInputs({ concentration: 0 }),
     boons: {}
   };
   const result = resolveTestGw2Events({ profession: engineerProfession, config, events, endTime: 2 });
@@ -164,7 +165,7 @@ test('Channeling Conduits alacrity scales with player concentration', () => {
     config: {
       specialization: 'Mechanist',
       selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS],
-      stats: { concentration: 1500 },
+      attributeInputs: baseAttributeInputs({ concentration: 1500 }),
       boons: {}
     },
     events: [barrier(0, 'summon', { recipients: 'party', maximumRecipients: 6 }, { summonOwner: 'engineer.mech' })],

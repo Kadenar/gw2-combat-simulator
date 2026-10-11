@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -45,7 +46,11 @@ test('Storm Spirit damage previews include Call Lightning without admitting a tr
   const measure = (selectedTraitIds) =>
     evaluateSkillDamage(
       {
-        config: { selectedTraitIds, boons: {}, stats: { power: 1000, precision: 1000, ferocity: 0 } },
+        config: {
+          selectedTraitIds,
+          boons: {},
+          attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0 })
+        },
         occurrences: [
           {
             id: 'storm',

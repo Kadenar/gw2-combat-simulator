@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -9,7 +10,12 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 // Exercise the production query so player ownership reaches attributes, equipment, and real trait hooks.
 const config = {
-  stats: { power: 2000, conditionDamage: 1000, expertise: 150, conditionDurationBonus: 10 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    conditionDamage: 1000,
+    expertise: 150,
+    conditionDurationBonus: 10
+  }),
   boons: { might: 10 },
   sigilSets: [{ condition: 1.1, strike: 1.1, conditionDurationBonus: 10 }],
   target: { conditions: {} }
@@ -94,4 +100,21 @@ test('Thieves Guild strike scaling and explicitly independent pet/mech condition
     assert.equal(combat.statsAt(0, condition).conditionDamage, 0);
     assert.equal(combat.conditionMultiplier('Poisoned', 0, condition), 1);
   }
+});
+
+// An owner/condition/skill key cannot replace the captured attribute profile carried by each application.
+test('independent condition applications retain distinct captured attributes for the same owner and skill', () => {
+  const combat = query();
+  const application = {
+    ...player,
+    actorType: 'summon',
+    skillId: 'pet-poison',
+    summonOwner: 'pet:1',
+    independentConditionOwner: true,
+    independentSummonStrike: true,
+    summonBasePower: 500,
+    summonIgnoresBoons: true
+  };
+  assert.equal(combat.statsAt(1, { ...application, summonBaseConditionDamage: 100 }).conditionDamage, 100);
+  assert.equal(combat.statsAt(1, { ...application, summonBaseConditionDamage: 250 }).conditionDamage, 250);
 });

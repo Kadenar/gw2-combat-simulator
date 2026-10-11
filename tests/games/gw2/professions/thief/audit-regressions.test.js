@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
@@ -5,7 +6,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreModifiers } from '#gw2/professions/thief/core/modifiers.js';
+
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
@@ -19,7 +20,14 @@ const baseConfig = {
   primaryWeapon: 'Dagger',
   secondaryWeapon: 'Dagger',
   selectedSkillIds: [13037, 13055, 13093, 13082, 30868, 41158, 77255],
-  stats: { power: 2000, precision: 1000, ferocity: 0, expertise: 0, conditionDamage: 1000, concentration: 0 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1000,
+    ferocity: 0,
+    expertise: 0,
+    conditionDamage: 1000,
+    concentration: 0
+  }),
   target: { armor: 2597, defiant: true }
 };
 const simulate = createObservedProfessionSimulator(thiefProfession, baseConfig);
@@ -124,7 +132,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 
 test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {
   const selectedSkillIds = [13062];
-  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.attributeContributions);
   const build = createThiefBuildDefaults();
   assert.equal(
     calculate(build, [thiefCatalog.skillsById.get(ID.SIGNET_OF_AGILITY)]).attributes.Precision.final -
@@ -134,21 +142,27 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
 
   // The live cooldown clock drives passive suppression, recovery, and cooldown resets for raw and panel stats.
   const precision = (runtime, config, attributes) =>
-    thiefCoreModifiers.modifyAttributes(
-      { catalog: thiefCatalog, config, timeline: runtime.combat.timeline, time: runtime.time },
-      attributes
-    ).precision;
+    thiefProfession
+      .resolveProfession({})
+      .modifyAttributes(
+        { catalog: thiefCatalog, config, timeline: runtime.combat.timeline, time: runtime.time },
+        attributes
+      ).precision;
   for (const specialization of ['Core', 'Daredevil']) {
     for (const initial of [0, 75]) {
       const observed = [];
       const probe = (runtime) => {
-        for (const professionStaticRulesApplied of [false, true]) {
-          const config = { selectedSkillIds, attributeProvenance: { professionStaticRulesApplied } };
-          const attributes = { ...baseConfig.stats, precision: professionStaticRulesApplied ? 1180 : 1000 };
-          observed.push([runtime.time, professionStaticRulesApplied, precision(runtime, config, attributes)]);
+        {
+          const config = { selectedSkillIds };
+          const attributes = { ...baseConfig.attributeInputs.weaponSets[0].commonTotals, precision: 1000 };
+          observed.push([runtime.time, 'selected', precision(runtime, config, attributes)]);
         }
 
-        observed.push([runtime.time, 'unselected', precision(runtime, { selectedSkillIds: [] }, baseConfig.stats)]);
+        observed.push([
+          runtime.time,
+          'unselected',
+          precision(runtime, { selectedSkillIds: [] }, baseConfig.attributeInputs.weaponSets[0].commonTotals)
+        ]);
       };
 
       const result = live(
@@ -179,7 +193,15 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
       selectedSkillIds
     },
     {
-      probes: [[2, (runtime) => resetPrecision.push(precision(runtime, { selectedSkillIds }, baseConfig.stats))]]
+      probes: [
+        [
+          2,
+          (runtime) =>
+            resetPrecision.push(
+              precision(runtime, { selectedSkillIds }, baseConfig.attributeInputs.weaponSets[0].commonTotals)
+            )
+        ]
+      ]
     }
   );
   assert.deepEqual(reset.warnings, []);
@@ -413,7 +435,7 @@ test('THF-007: Sun Crystal enhances base Burning once and preserves already-enha
     const result = simulate(
       'Antiquary',
       ['Skritt Swipe', 'Zephyrite Sun Crystal'],
-      { selectedTraitIds: [TRAIT.METICULOUS_CUSTODIAN], stats: { expertise } },
+      { selectedTraitIds: [TRAIT.METICULOUS_CUSTODIAN], attributeInputs: baseAttributeInputs({ expertise }) },
       { kind: 'tail', durationMs: 1000 }
     );
     assert.deepEqual(result.warnings, []);
@@ -705,7 +727,7 @@ test('guild combat activation starts parallel streams once and replacement retir
 
 // Selected owners honor disabled previews, live patch data, and conditional build assumptions.
 test('No Quarter build contribution follows Fury, disabled selection and the selected patch', () => {
-  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.traitBuildAttributes);
+  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.attributeContributions);
   const build = createThiefBuildDefaults();
   build.specializations = [{ name: 'Critical Strikes', traits: '3-2-1' }];
   build.assumptions.fury = true;

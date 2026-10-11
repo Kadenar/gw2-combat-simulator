@@ -3,10 +3,10 @@ import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistCoreModifiers } from '#gw2/professions/elementalist/core/modifiers.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerCoreModifiers } from '#gw2/professions/engineer/core/modifiers.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
@@ -17,7 +17,7 @@ for (const [name, catalog, modifiers, trait, condition, other, damage, coefficie
   [
     'Inferno',
     elementalistCatalog,
-    elementalistCoreModifiers,
+    elementalistProfession.runtimeFor({}),
     ELEMENTALIST_TRAIT_IDS.INFERNO,
     'Burning',
     'Bleeding',
@@ -27,7 +27,7 @@ for (const [name, catalog, modifiers, trait, condition, other, damage, coefficie
   [
     'Sharpshooter',
     engineerCatalog,
-    engineerCoreModifiers,
+    engineerProfession.runtimeFor({}),
     ENGINEER_TRAIT_IDS.SHARPSHOOTER,
     'Bleeding',
     'Burning',

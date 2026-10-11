@@ -6,7 +6,6 @@ export function prepareSimulationConfig(defaults, userConfig = {}, { duration = 
     ...defaults,
     ...userConfig,
     ...(duration == null ? {} : { duration }),
-    stats: { ...defaults.stats, ...(userConfig.stats || {}) },
     boons: { ...defaults.boons, ...(userConfig.boons || {}) },
     target: {
       ...defaults.target,

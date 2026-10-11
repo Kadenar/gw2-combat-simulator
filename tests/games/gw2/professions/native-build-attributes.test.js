@@ -2,21 +2,19 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
+
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
-import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
-import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
+
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
-import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
+
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
@@ -26,7 +24,7 @@ import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
+
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
@@ -36,40 +34,33 @@ import test from 'node:test';
 // Attribute tests construct the same calculators composed into the production adapters.
 const calculateEngineerAttributes = createCalculateAttributes(
   applyEngineerBuildAttributeRules,
-  engineerProfession.traitBuildAttributes
+  engineerProfession.attributeContributions
 );
 const calculateGuardianAttributes = createCalculateAttributes(
   applyGuardianBuildAttributeRules,
-  guardianProfession.traitBuildAttributes
+  guardianProfession.attributeContributions
 );
 const calculateMesmerAttributes = createCalculateAttributes(
   applyMesmerBuildAttributeRules,
-  mesmerProfession.traitBuildAttributes
+  mesmerProfession.attributeContributions
 );
 const calculateNecromancerAttributes = createCalculateAttributes(
   applyNecromancerBuildAttributeRules,
-  necromancerProfession.traitBuildAttributes
+  necromancerProfession.attributeContributions
 );
 const calculateRevenantAttributes = createCalculateAttributes(
   applyRevenantBuildAttributeRules,
-  revenantProfession.traitBuildAttributes
+  revenantProfession.attributeContributions
 );
 const calculateThiefAttributes = createCalculateAttributes(
   applyThiefBuildAttributeRules,
-  thiefProfession.traitBuildAttributes
+  thiefProfession.attributeContributions
 );
 const calculateWarriorAttributes = createCalculateAttributes(
   applyWarriorBuildAttributeRules,
-  warriorProfession.traitBuildAttributes
+  warriorProfession.attributeContributions
 );
 
-const engineerCoreRules = engineerProfession.resolveProfession({});
-const engineerAmalgamRules = engineerProfession.resolveProfession({ specialization: 'Amalgam' });
-const guardianCoreRules = guardianProfession.resolveProfession({});
-const mesmerCoreRules = mesmerProfession.resolveProfession({});
-const necromancerCoreRules = necromancerProfession.resolveProfession({});
-const thiefCoreRules = thiefProfession.resolveProfession({});
-const revenantCoreRules = revenantProfession.resolveProfession({});
 const revenantRenegadeRules = revenantProfession.resolveProfession({
   specialization: 'Renegade'
 });
@@ -150,138 +141,6 @@ test('attribute effects use explicit immutable conversion input pools', () => {
   });
 });
 
-test('shared attribute provenance applies profession static rules once', () => {
-  const applied = {
-    attributeProvenance: {
-      professionStaticRulesApplied: true,
-      calculatedWeaponSet: 1,
-      calculatedPrimaryWeapon: 'Greatsword'
-    }
-  };
-
-  const engineerDirect = engineerCoreRules.modifyAttributes(
-    { catalog: engineerCatalog, config: { selectedTraitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS] } },
-    { conditionDamage: 1000 }
-  );
-  const engineerBrowser = engineerCoreRules.modifyAttributes(
-    {
-      catalog: engineerProfession.catalog,
-      config: {
-        ...applied,
-        selectedTraitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS]
-      }
-    },
-    { conditionDamage: 1120 }
-  );
-
-  assert.equal(engineerDirect.conditionDamage, 1120);
-  assert.equal(engineerBrowser.conditionDamage, engineerDirect.conditionDamage);
-
-  for (const [rules, traitId, condition, staticBonus, catalog] of [
-    [engineerCoreRules, ENGINEER_TRAIT_IDS.SERRATED_STEEL, 'Bleeding', 0.33, engineerProfession.catalog],
-    [engineerCoreRules, ENGINEER_TRAIT_IDS.INCENDIARY_POWDER, 'Burning', 0.33, engineerProfession.catalog],
-    [engineerAmalgamRules, ENGINEER_TRAIT_IDS.CARBOLIC_COMPOSITION, 'Poisoned', 0.33, engineerProfession.catalog],
-    [mesmerCoreRules, MESMER_TRAIT_IDS.MALICIOUS_SORCERY, 'Confusion', 0.25, mesmerProfession.catalog],
-    [guardianCoreRules, GUARDIAN_TRAIT_IDS.RADIANT_FIRE, 'Burning', 0.2, guardianProfession.catalog],
-    [thiefCoreRules, THIEF_TRAIT_IDS.POTENT_POISON, 'Poisoned', 0.33, thiefProfession.catalog]
-  ]) {
-    const baseDuration = 1.1;
-    const directDuration = rules.modifyConditionDuration(
-      { catalog: catalog, config: { selectedTraitIds: [traitId] }, condition, event: { condition } },
-      baseDuration
-    );
-    const browserDuration = rules.modifyConditionDuration(
-      {
-        catalog: catalog,
-        config: {
-          ...applied,
-          selectedTraitIds: [traitId]
-        },
-        condition,
-        event: { condition }
-      },
-      baseDuration + staticBonus
-    );
-
-    assert.ok(Math.abs(directDuration - (baseDuration + staticBonus)) < 1e-12);
-    assert.equal(browserDuration, directDuration);
-  }
-
-  // Zealous Blade reads the equipped weapon at impact time when applying its Greatsword bonus.
-  const guardianDirect = guardianCoreRules.modifyAttributes(
-    {
-      catalog: guardianProfession.catalog,
-      config: { primaryWeapon: 'Greatsword', selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
-      event: { skillWeapon: 'Greatsword' }
-    },
-    { power: 1000, precision: 1000, ferocity: 0, vitality: 1000 }
-  );
-  const guardianBrowser = guardianCoreRules.modifyAttributes(
-    {
-      catalog: guardianProfession.catalog,
-      config: {
-        ...applied,
-        primaryWeapon: 'Greatsword',
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]
-      },
-      event: { skillWeapon: 'Greatsword' }
-    },
-    { power: 1240, precision: 1000, ferocity: 0, vitality: 1000 }
-  );
-
-  assert.equal(guardianDirect.power, 1240);
-  assert.equal(guardianBrowser.power, guardianDirect.power);
-
-  const necromancerDirect = necromancerCoreRules.modifyAttributes(
-    { catalog: necromancerProfession.catalog, config: { selectedTraitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE] } },
-    { precision: 1000 }
-  );
-  const necromancerBrowser = necromancerCoreRules.modifyAttributes(
-    {
-      catalog: necromancerProfession.catalog,
-      config: {
-        ...applied,
-        selectedTraitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE]
-      }
-    },
-    { precision: 1180 }
-  );
-
-  assert.equal(necromancerDirect.precision, 1180);
-  assert.equal(necromancerBrowser.precision, necromancerDirect.precision);
-
-  const necromancerDirectState = createNecromancerCoreState({
-    selectedTraitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
-    stats: { power: 1000, vitality: 1000 }
-  });
-  const necromancerBrowserState = createNecromancerCoreState({
-    ...applied,
-    selectedTraitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
-    stats: { power: 1000, vitality: 1100 }
-  });
-
-  assert.equal(necromancerBrowserState.lifeForceCostMultiplier, necromancerDirectState.lifeForceCostMultiplier);
-
-  const revenantDirect = revenantCoreRules.modifyConditionDuration(
-    { catalog: revenantProfession.catalog, config: { selectedTraitIds: [TRAIT.PACT_OF_PAIN] }, condition: 'Torment' },
-    1
-  );
-  const revenantBrowser = revenantCoreRules.modifyConditionDuration(
-    {
-      catalog: revenantProfession.catalog,
-      config: {
-        ...applied,
-        selectedTraitIds: [TRAIT.PACT_OF_PAIN]
-      },
-      condition: 'Torment'
-    },
-    1.15
-  );
-
-  assert.equal(revenantDirect, 1.15);
-  assert.equal(revenantBrowser, revenantDirect);
-});
-
 test('Engineer exposes current unconditional trait attributes', () => {
   const build = createEngineerBuildDefaults();
 
@@ -325,7 +184,7 @@ test('Engineer exposes Carbolic Composition poison duration', () => {
   assert.equal(withoutCarbolic['Poison Duration']?.traits || 0, 0);
 });
 
-test('Engineer omits conditional and obsolete attribute effects', () => {
+test('Engineer declares assumed Might bonuses while omitting obsolete attribute effects', () => {
   const firearms = createEngineerBuildDefaults();
 
   firearms.specializations = [{ name: 'Firearms', traits: '3-1-1' }];
@@ -335,6 +194,8 @@ test('Engineer omits conditional and obsolete attribute effects', () => {
 
   scrapper.specializations = [{ name: 'Scrapper', traits: '3-1-3' }];
   assert.equal(traitDelta(calculateEngineerAttributes, scrapper, 'Mass Momentum', 'Power'), 0);
+  assert.equal(traitDelta(calculateEngineerAttributes, scrapper, 'Applied Force', 'Power'), 750);
+  scrapper.assumptions.might = 0;
   assert.equal(traitDelta(calculateEngineerAttributes, scrapper, 'Applied Force', 'Power'), 0);
 
   const kinetic = structuredClone(scrapper);
@@ -571,18 +432,16 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   assert.equal(app.attributeData.attributes.Concentration.traits, 225);
 });
 
-test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () => {
+test('Bolstered Bonds evaluates the live Cosmic Wisdom multiplier', () => {
   const attributes = {
-    power: 1150,
-    precision: 1075,
-    ferocity: 150
+    power: 1000,
+    precision: 1000,
+    ferocity: 0
   };
   const context = {
     config: {
       specialization: 'Conduit',
-      attributeProvenance: {
-        professionStaticRulesApplied: true
-      }
+      selectedTraitIds: [TRAIT.BOLSTERED_BONDS]
     },
     time: 1,
     runtime: {
@@ -593,7 +452,18 @@ test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () =>
     }
   };
 
-  assert.deepEqual(revenantConduitRules.modifyAttributes(context, attributes), attributes);
+  assert.deepEqual(revenantConduitRules.modifyAttributes(context, attributes), {
+    ...attributes,
+    power: 1150,
+    precision: 1075,
+    ferocity: 150,
+    toughness: 75,
+    vitality: 75,
+    conditionDamage: 75,
+    expertise: 75,
+    concentration: 75,
+    healingPower: 75
+  });
 
   context.runtime.profession.specialization.state.cosmicWisdomUntil = 5;
   const cosmic = revenantConduitRules.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes);
@@ -661,9 +531,6 @@ test('Brutal Momentum exposes its unconditional critical chance', () => {
       catalog: revenantCatalog,
       config: {
         specialization: 'Renegade',
-        attributeProvenance: {
-          professionStaticRulesApplied: true
-        },
         selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM]
       },
       runtime: {
@@ -673,7 +540,7 @@ test('Brutal Momentum exposes its unconditional critical chance', () => {
     0.2
   );
 
-  assert.ok(Math.abs(runtime - 0.3) < 1e-9);
+  assert.ok(Math.abs(runtime - 0.2) < 1e-9);
 });
 
 test('Death Perception exposes its unconditional critical chance', () => {

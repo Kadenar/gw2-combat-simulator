@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -116,7 +117,7 @@ const catalog = createCanonicalCatalog({
   ]
 });
 const config = {
-  stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 }),
   target: { armor: 1000, health: 0, conditions: {} },
   randomness: { mode: 'expected', seed: 123 },
   selectedTraitIds: ['test.trait']
@@ -797,7 +798,13 @@ test('authored and procedural status caps apply after scaling and remain patchab
       }),
       catalog: localCatalog
     },
-    config: { ...config, stats: { ...config.stats, concentration: 1500 } },
+    config: {
+      ...config,
+      attributeInputs: baseAttributeInputs({
+        ...config.attributeInputs?.weaponSets[0].commonTotals,
+        concentration: 1500
+      })
+    },
     rotation: [cast(991001), wait(3000)]
   });
   assert.deepEqual(

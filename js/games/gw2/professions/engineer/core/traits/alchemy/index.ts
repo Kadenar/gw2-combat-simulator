@@ -1,20 +1,20 @@
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/activations.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   defineTrait,
   traitAttributeEffects,
   type TraitDefinition
 } from '#gw2/platform/profession-definition/traits.js';
-import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { type EngineerRuntime, type EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { type SimulationEventBase } from '#gw2/platform/events/events.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { type SimulationEventBase } from '#gw2/platform/events/events.js';
+import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
 const DISABLE_CONTROL_KINDS = new Set([
   'stun',
@@ -70,7 +70,7 @@ export const compoundingChemicals = defineTrait({
   id: TRAIT.COMPOUNDING_CHEMICALS,
   name: 'Compounding Chemicals',
   balance: { attributeBonus: 240 },
-  buildAttributes: traitAttributeEffects(TRAIT.COMPOUNDING_CHEMICALS, [
+  attributes: traitAttributeEffects(TRAIT.COMPOUNDING_CHEMICALS, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ])
 });

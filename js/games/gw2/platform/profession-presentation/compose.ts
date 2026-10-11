@@ -1,9 +1,6 @@
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
-import type {
-  ProfessionAttributePreviewInput,
-  ProfessionAttributePreviewPreparation
-} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamageConfigPatch,
   SkillDamagePreviewPreparation
@@ -14,7 +11,6 @@ import type {
  */
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionChargeReleaseContext,
   ProfessionEventLogContext,
@@ -24,6 +20,7 @@ import type {
   ProfessionSkillBarSelectionChange,
   ProfessionUiContract
 } from '#gw2/platform/profession-presentation/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 type UiCallbackName = keyof ProfessionUiContract;
 
@@ -279,17 +276,6 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       'skillDamageState',
       [selected.context, skill],
       (result) => result != null,
-      null
-    );
-  };
-
-  ui.attributePreviewDisabledTrait = (context: ProfessionAttributePreviewInput) => {
-    const selected = active(context);
-    return firstUiMatch(
-      [...selected.slices, family],
-      'attributePreviewDisabledTrait',
-      [selected.context],
-      (value) => value != null,
       null
     );
   };

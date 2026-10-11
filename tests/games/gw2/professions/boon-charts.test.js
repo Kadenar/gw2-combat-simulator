@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { professionRegistry } from '#gw2/profession-registry.js';
@@ -33,7 +34,7 @@ for (const entry of professionRegistry) {
       config: {
         specialization: 'Core',
         ...config,
-        stats: { power: 2000, precision: 4000, vitality: 1000 },
+        attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000, vitality: 1000 }),
         selectedTraitIds: traits.map((name) => profession.catalog.traits.find((trait) => trait.name === name).id)
       }
     };

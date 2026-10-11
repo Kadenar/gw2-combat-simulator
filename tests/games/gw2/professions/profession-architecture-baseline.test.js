@@ -1,3 +1,4 @@
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { elementalistNativeModules } from '#gw2/professions/elementalist/profession.js';
 import { engineerNativeModules } from '#gw2/professions/engineer/profession.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/profession.js';
@@ -52,8 +53,14 @@ test('independent simulations never share a mutable state instance', () => {
   for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
     for (const module of modules) {
       const config = { specialization: module.id };
-      const first = module.state.create(config);
-      const second = module.state.create(config);
+      const first = module.state.create(config, {
+        attributes: { vitality: 1000 },
+        balanceContext: { catalog: getNativeCatalogAssembly(modules).catalog, modifierRulesById: new Map() }
+      });
+      const second = module.state.create(config, {
+        attributes: { vitality: 1000 },
+        balanceContext: { catalog: getNativeCatalogAssembly(modules).catalog, modifierRulesById: new Map() }
+      });
       const label = `${profession}/${module.id}`;
 
       assert.notEqual(first, second, label);

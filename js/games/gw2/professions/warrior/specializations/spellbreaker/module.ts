@@ -1,7 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { spellbreakerHooks } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
-import { modifyAttributes } from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
 import { spellbreakerUi } from '#gw2/professions/warrior/specializations/spellbreaker/presentation.js';
 import { SPELLBREAKER_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/index.js';
@@ -23,7 +22,6 @@ export const spellbreakerModule = defineNativeModule({
     project: projectSpellbreakerPlanningState
   },
   // Compose the granted Insight attribute pool at the specialization boundary.
-  modifiers: { modifyAttributes },
   hooks: spellbreakerHooks,
   presentation: spellbreakerUi
 });

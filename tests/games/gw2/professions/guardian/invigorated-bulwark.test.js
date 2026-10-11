@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -6,7 +7,7 @@ import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpe
 
 const simulate = createObservedProfessionSimulator(guardianProfession, {
   primaryWeapon: 'Mace',
-  stats: { power: 2000, precision: 1000, concentration: 0 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, concentration: 0 }),
   boons: { alacrity: false, quickness: false },
   target: { armor: 2597, conditions: {} }
 });
@@ -16,7 +17,7 @@ test('Invigorated Bulwark extends mace boons before the boon-duration cap, inclu
   for (const concentration of [0, 1500, 2250]) {
     for (const selected of [false, true]) {
       const result = simulate('Core', ['Symbol of Faith', "Protector's Strike", { type: 'wait', durationMs: 7500 }], {
-        stats: { concentration },
+        attributeInputs: baseAttributeInputs({ concentration }),
         selectedTraitIds: [TRAIT.WRIT_OF_PERSISTENCE, ...(selected ? [TRAIT.INVIGORATED_BULWARK] : [])]
       });
       assert.deepEqual(result.warnings, []);

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -184,7 +185,7 @@ test('core blinds are five-second skill effects without duplicate completion eve
 test('one Master Fencer proc grants personal Fury and reaches four other players', () => {
   const result = simulateMesmer(['Flying Cutter'], {
     selectedTraitIds: [TRAIT.MASTER_FENCER],
-    stats: { precision: 3100 },
+    attributeInputs: baseAttributeInputs({ precision: 3100 }),
     boons: { fury: false },
     allies: { count: 4, strikesPerSecond: 0 }
   });

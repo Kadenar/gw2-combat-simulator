@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -80,15 +81,18 @@ test('Lacerating Slash applies six bleeding stacks across two hits', () => {
   assert.equal(rangerCatalog.skillsById.get(ID.LACERATING_SLASH).cooldown, 20);
 });
 
-// Pet boons ignore all player gear bonuses, including builds whose trait attributes are already precomputed.
+// Pet boon duration uses its own selected traits independently of player equipment.
 test('pet Screech scales only with Lingering Magic while merged Screech uses player boon duration', () => {
   const concentrationBonus = rangerCatalog.balanceProfilesById.get(TRAIT.LINGERING_MAGIC).attributeBonus;
   for (const trait of [false, true]) {
-    for (const preapplied of [false, true]) {
+    {
       const result = runRanger([ID.QUICKENING_SCREECH_PET, wait(1000)], {
         ...hawk,
-        stats: { concentration: 1500, boonDurationBonus: 50, boonDurationBonuses: { Swiftness: 50 } },
-        attributeProvenance: { professionStaticRulesApplied: preapplied },
+        attributeInputs: baseAttributeInputs({
+          concentration: 1500,
+          boonDurationBonus: 50,
+          boonDurationBonuses: { Swiftness: 50 }
+        }),
         selectedTraitIds: trait ? [TRAIT.LINGERING_MAGIC] : [],
         allies: { count: 4 }
       });
@@ -108,7 +112,7 @@ test('pet Screech scales only with Lingering Magic while merged Screech uses pla
   const merged = runRanger([ID.QUICKENING_SCREECH], {
     selectedPet: 'Hawk',
     specialization: 'Soulbeast',
-    stats: { concentration: 750 }
+    attributeInputs: baseAttributeInputs({ concentration: 750 })
   });
   assert.deepEqual(merged.warnings, []);
   const boon = merged.resolvedEvents.find((event) => event.type === 'buff' && event.skillId === ID.QUICKENING_SCREECH);

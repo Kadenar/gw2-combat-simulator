@@ -1,4 +1,3 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -6,6 +5,7 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -20,12 +20,29 @@ import {
 } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
-import { spellbreakerStateAt } from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
+import {
+  insightStacks,
+  spellbreakerStateAt
+} from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const attackersInsight = defineTrait({
+  // Accepted Insight belongs to the effect lifetime rather than the current selection.
+  grantedAttributes(context) {
+    const amount =
+      insightStacks(context) *
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ATTACKERS_INSIGHT), 'attributePerStack');
+    return {
+      attributeEffects: ['Power', 'Precision', 'Ferocity'].map((to) => ({
+        kind: 'flat',
+        to,
+        amount,
+        feedsConversions: false
+      }))
+    };
+  },
   triggers: [
     onTriggerPoint(spellbreakerControlAccepted, {
       run: (runtime, input: TriggerPointInput<typeof spellbreakerControlAccepted>) =>

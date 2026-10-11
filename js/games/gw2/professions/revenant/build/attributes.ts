@@ -11,6 +11,6 @@ export function applyRevenantBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ) {
-  const { activeTraits } = createBuildAttributeContext(context, revenantCatalog, getActiveTraits);
-  return finalizeProfessionBuildAttributes(common, { activeTraits }, context);
+  const { activeTraits, profileContext } = createBuildAttributeContext(context, revenantCatalog, getActiveTraits);
+  return finalizeProfessionBuildAttributes(common, { activeTraits, profileContext }, context);
 }

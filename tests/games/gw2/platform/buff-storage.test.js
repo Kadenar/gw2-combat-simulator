@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { GW2_STANDARD_BOONS, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
@@ -56,7 +57,7 @@ for (const output of ['detailed', 'score'])
           }
         }
       },
-      config: { stats: { concentration: 1500 }, target: { health: 0 } },
+      config: { attributeInputs: baseAttributeInputs({ concentration: 1500 }), target: { health: 0 } },
       output,
       rotation: [{ type: 'wait', durationMs: 1000 }],
       engineInitialize(runtime) {

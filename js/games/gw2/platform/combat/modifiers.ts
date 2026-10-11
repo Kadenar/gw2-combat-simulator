@@ -1,16 +1,16 @@
-import type { SkillId, CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
   Gw2CombatQuery,
   Gw2ConditionSample,
   Gw2CriticalChanceContributor,
   Gw2QueryRuntime
 } from '#gw2/platform/combat-calculation/combat-query.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;
@@ -60,6 +60,7 @@ export const MODIFIER_TARGET = Object.freeze({
   STRIKE_DAMAGE: 'strikeDamage',
   CONDITION_DAMAGE: 'conditionDamage',
   CONDITION_DURATION: 'conditionDuration',
+  CONDITION_BASE_DURATION: 'conditionBaseDuration',
   ATTRIBUTE_POWER: 'attributePower',
   ATTRIBUTE_PRECISION: 'attributePrecision',
   ATTRIBUTE_FEROCITY: 'attributeFerocity',
@@ -92,7 +93,8 @@ const HOOK_BY_TARGET: Readonly<
   [MODIFIER_TARGET.CRITICAL_DAMAGE]: 'modifyCriticalDamage',
   [MODIFIER_TARGET.STRIKE_DAMAGE]: 'modifyStrikeDamage',
   [MODIFIER_TARGET.CONDITION_DAMAGE]: 'modifyConditionDamage',
-  [MODIFIER_TARGET.CONDITION_DURATION]: 'modifyConditionDuration'
+  [MODIFIER_TARGET.CONDITION_DURATION]: 'modifyConditionDuration',
+  [MODIFIER_TARGET.CONDITION_BASE_DURATION]: 'modifyConditionBaseDuration'
 });
 const EMPTY_MODIFIER_PARAMETERS: Readonly<Record<string, number>> = Object.freeze({});
 
@@ -603,9 +605,27 @@ export function createModifierHooks({
   return Object.freeze(hooks) as Readonly<Gw2ModifierHooks>;
 }
 
-/** Compiles a family's merged rule list with the standard GW2 damage-bucket policies. */
-export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Readonly<Gw2ModifierHooks> {
-  return createModifierHooks({ rules });
+/** Native composition needs only authored scalar/attribute hooks; damage hooks also own equipment buckets. */
+export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Readonly<Partial<Gw2ModifierHooks>> {
+  const hooks: { -readonly [K in keyof Gw2ModifierHooks]?: Gw2ModifierHooks[K] } = {
+    ...createModifierHooks({ rules })
+  };
+  const targets = new Set(
+    rules.flatMap((rule) => (typeof rule.target === 'string' ? [rule.target] : [...rule.target]))
+  );
+  for (const target of TARGETS) {
+    if (
+      ATTRIBUTE_TARGETS.has(target) ||
+      target === MODIFIER_TARGET.STRIKE_DAMAGE ||
+      target === MODIFIER_TARGET.CONDITION_DAMAGE
+    )
+      continue;
+    const hook = HOOK_BY_TARGET[target];
+    if (hook && !targets.has(target)) delete hooks[hook];
+  }
+
+  if (![...ATTRIBUTE_TARGETS].some((target) => targets.has(target))) delete hooks.modifyAttributes;
+  return Object.freeze(hooks);
 }
 
 type Gw2ModifierTarget =
@@ -614,6 +634,7 @@ type Gw2ModifierTarget =
   | 'strikeDamage'
   | 'conditionDamage'
   | 'conditionDuration'
+  | 'conditionBaseDuration'
   | 'attributePower'
   | 'attributePrecision'
   | 'attributeFerocity'
@@ -627,6 +648,10 @@ type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
 
 /** Modifier queries retain scheduler state and source identity when no event is available. */
 export interface Gw2ModifierContext {
+  /** One query samples declarations once; no result survives a separate read at the same timestamp. */
+  readonly attributeContributions?: readonly import('#gw2/platform/builds/types.js').Gw2AttributeContributions[];
+  /** Explicit selected catalog for detached queries and profile overrides. */
+  readonly catalog?: Readonly<CanonicalCatalog>;
   /** Supplied only by the isolated attribute preview, outside persisted builds and simulation configuration. */
   readonly attributePreviewPlayerHealthFraction?: number;
   readonly skillId?: SkillId | null;
@@ -733,4 +758,5 @@ interface Gw2ModifierHooks {
   readonly modifyStrikeDamage: Gw2ModifierHook;
   readonly modifyConditionDamage: Gw2ModifierHook;
   readonly modifyConditionDuration: Gw2ModifierHook;
+  readonly modifyConditionBaseDuration: Gw2ModifierHook;
 }

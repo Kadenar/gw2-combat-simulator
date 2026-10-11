@@ -78,7 +78,10 @@ test('slaying selections survive build loading and potion removal comparisons re
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Utility:Potion of Slaying');
   assert.equal(request.baseConfig.utility, build.utility);
   assert.equal(comparison.config.utility, '');
-  assert.deepEqual(comparison.config.weaponSetStats, request.baseConfig.weaponSetStats);
+  assert.deepEqual(
+    comparison.config.attributeInputs.weaponSets.map((seed) => seed.commonTotals),
+    request.baseConfig.attributeInputs.weaponSets.map((seed) => seed.commonTotals)
+  );
   const contribution = mesmerAppAdapter
     .calculateModifierContributions(request)
     .find(({ id }) => id === 'Utility:Potion of Slaying');

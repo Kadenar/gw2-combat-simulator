@@ -93,8 +93,17 @@ const cases = [
   }
 ];
 
-function fixture({ family = engineerProfession, trait, key, specialization = 'Core' }, removed = false) {
-  const config = { specialization, selectedTraitIds: [trait], boons: { might: 25 }, allies: { count: 2 } };
+// Selection differs between fixtures, never while an existing simulation or proc sequence is running.
+function fixture(
+  { family = engineerProfession, trait, key, specialization = 'Core' },
+  { removed = false, selected = true } = {}
+) {
+  const config = {
+    specialization,
+    selectedTraitIds: selected ? [trait] : [],
+    boons: { might: 25 },
+    allies: { count: 2 }
+  };
   const native = family.runtimeFor(config);
   const profile = native.catalog.balanceProfilesById.get(trait);
   let catalog = withProfile(native.catalog, trait, {
@@ -121,6 +130,12 @@ function fixture({ family = engineerProfession, trait, key, specialization = 'Co
 
 for (const entry of cases) {
   test(`${entry.key} reserves its interval before delivery and keeps an exclusive boundary`, () => {
+    const inactive = fixture(entry, { selected: false });
+    const inactiveCapture = captureEffectEmissions({ now: () => inactive.time });
+    inactive.effects = inactiveCapture.effects;
+    entry.invoke(inactive);
+    assert.equal(inactive.procs.deadline(entry.key), 0);
+    assert.equal(inactiveCapture.events.length, 0);
     const runtime = fixture(entry);
     let reentered = false;
     const capture = captureEffectEmissions({
@@ -137,11 +152,6 @@ for (const entry of cases) {
       }
     });
     runtime.effects = capture.effects;
-    runtime.traits.delete(entry.trait);
-    entry.invoke(runtime);
-    assert.equal(runtime.procs.deadline(entry.key), 0);
-    assert.equal(capture.events.length, 0);
-    runtime.traits.add(entry.trait);
     entry.invoke(runtime);
     assert.equal(runtime.procs.deadline(entry.key), 3);
     assert.ok(capture.events.length > 0);
@@ -161,7 +171,7 @@ for (const entry of cases) {
   });
 
   test(`${entry.key} preserves cooldown eligibility when its effect is removed`, () => {
-    const runtime = fixture(entry, true);
+    const runtime = fixture(entry, { removed: true });
     const capture = captureEffectEmissions({ now: () => runtime.time });
     runtime.effects = capture.effects;
     entry.invoke(runtime);

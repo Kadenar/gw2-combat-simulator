@@ -21,8 +21,11 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 const config = { specialization: 'Evoker', selectedTraitIds: [] };
 const native = elementalistProfession.runtimeFor(config);
 
-/** Capture real packet expansion while isolating the charge owner and selected balance catalog. */
-function fixture(catalog = native.catalog) {
+/**
+ * Capture real packet expansion while isolating the charge owner and selected balance catalog.
+ * Trait selection belongs to the fixture because a build's traits never change during a run.
+ */
+function fixture(catalog = native.catalog, traits = []) {
   const state = evokerState.create();
   const capture = captureEffectEmissions();
   let activation = 0;
@@ -32,7 +35,7 @@ function fixture(catalog = native.catalog) {
     context: {
       time: 2,
       helpers: catalog,
-      traits: new Set(),
+      traits: new Set(traits),
       profession: { specialization: { kind: 'Evoker', state } },
       effects: capture.effects,
       combat: { allocateEffectActivation: () => `enchantment:${activation++}` }
@@ -54,7 +57,8 @@ test('skill and trait providers share grant announcements while retaining patche
       [TRAIT.GALVANIC_ENCHANTMENT]: { fields: { playerStacks: 4, durationMultiplier: 6 } }
     }
   });
-  const { context, state, announcements } = fixture(catalog);
+  // The build selects Galvanic Enchantment throughout; the skill providers grant independently of it.
+  const { context, state, announcements } = fixture(catalog, [TRAIT.GALVANIC_ENCHANTMENT]);
   const providers = [
     [ID.HARES_AGILITY, 'elementalist.evoker.hares-agility', 2, 11, 'skill'],
     [ID.LIGHTNING_BLITZ, 'elementalist.evoker.lightning-blitz', 1, 5, 'skill'],
@@ -65,7 +69,6 @@ test('skill and trait providers share grant announcements while retaining patche
     const cast = { id: `grant:${id}`, effectiveEnd: 2, skill };
     if (task) evokerHooks.tasks[task](context, { cast });
     else {
-      context.traits.add(TRAIT.GALVANIC_ENCHANTMENT);
       bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
       context.fireTrigger(evokerCastCompleted, { cast });
     }

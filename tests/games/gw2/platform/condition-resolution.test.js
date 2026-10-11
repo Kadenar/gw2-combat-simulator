@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -23,11 +24,11 @@ function tormentDamageAtMight(might) {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
       initialResource: 0,
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         conditionDamage: 1000,
         expertise: 0
-      },
+      }),
       boons: {
         ...defaults.boons,
         might
@@ -727,7 +728,7 @@ test('profession condition-duration hooks remain under the GW2 cap', () => {
   const result = simulateGw2({
     profession,
     rotation: ['Fixture Burn', { type: 'wait', durationMs: 2000 }],
-    config: { stats: { expertise: 1500 } }
+    config: { attributeInputs: baseAttributeInputs({ expertise: 1500 }) }
   });
   const burning = result.resolvedEvents.find((event) => event.type === 'condition');
 
@@ -743,11 +744,11 @@ test('stationary torment uses the current PvE formula', () => {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
       initialResource: 0,
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         conditionDamage: 1000,
         expertise: 0
-      },
+      }),
       boons: {
         ...defaults.boons,
         might: 0
@@ -776,12 +777,12 @@ test('static and condition-specific duration bonuses reach the resolver', () => 
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
       initialResource: 0,
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         expertise: 0,
         conditionDurationBonus: 25,
         conditionDurationBonuses: { Torment: 25 }
-      }
+      })
     })
   );
   const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
@@ -796,11 +797,11 @@ test('target skill activations add the current PvE confusion activation damage',
     primaryWeapon: 'Scepter',
     secondaryWeapon: 'Pistol',
     initialResource: 0,
-    stats: {
-      ...defaults.stats,
+    attributeInputs: baseAttributeInputs({
+      ...defaults.attributeInputs.weaponSets[0].commonTotals,
       conditionDamage: 1000,
       expertise: 0
-    },
+    }),
     boons: {
       ...defaults.boons,
       might: 0

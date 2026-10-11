@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -19,7 +20,7 @@ test('Fortifying Bond shares only player-sourced self boons and scales its durat
           selectedPet: 'Tiger',
           selectedTraitIds: selected ? [TRAIT.FORTIFYING_BOND] : [],
           sharePlayerBoonsWithSummons: false,
-          stats: { concentration: 750 }
+          attributeInputs: baseAttributeInputs({ concentration: 750 })
         },
         {
           extend: (native) => ({
@@ -119,7 +120,7 @@ test('Fortifying Bond copies configured console boons on each pulse, except in B
       specialization,
       selectedTraitIds: [TRAIT.FORTIFYING_BOND],
       sharePlayerBoonsWithSummons: false,
-      stats: { concentration: 750 },
+      attributeInputs: baseAttributeInputs({ concentration: 750 }),
       boons: { alacrity: true, might: 25, fury: false }
     });
     assert.deepEqual(result.warnings, []);

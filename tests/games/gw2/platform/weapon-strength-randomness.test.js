@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -255,12 +256,12 @@ function simulateFixture(mode, seed = 1, casts = 1, precision = 0, criticalDamag
     rotation: Array.from({ length: casts }, () => 'Dagger Flurry'),
     config: {
       primaryWeapon: 'Dagger',
-      stats: {
+      attributeInputs: baseAttributeInputs({
         power: 1000,
         precision,
         ferocity: 0,
         conditionDamage: 0
-      },
+      }),
       target: { armor: 2597 },
       criticalDamageMode,
       randomness: { mode, seed }

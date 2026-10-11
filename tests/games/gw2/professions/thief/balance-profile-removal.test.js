@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
@@ -27,7 +28,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     selectedSkillIds: [],
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Dagger',
-    stats: { power: 2000, precision: 4000, conditionDamage: 1000, expertise: 0 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000, conditionDamage: 1000, expertise: 0 }),
     target: { armor: 2597, defiant: true, conditions: {} }
   });
   const result = simulate(specialization, rotation, config, { kind: 'tail', durationMs: 1500 });

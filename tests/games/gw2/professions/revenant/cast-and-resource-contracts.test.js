@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantEnduranceRate } from '#gw2/professions/revenant/core/mechanics/resources.js';
@@ -545,7 +546,7 @@ test('Both Vindicator dodge inputs apply the selected landing conditions and boo
     ]) {
       const result = simulate('Vindicator', [name], {
         selectedTraitIds: [trait],
-        stats: { concentration: 750 },
+        attributeInputs: baseAttributeInputs({ concentration: 750 }),
         allies: { count: 4 }
       });
       assert.deepEqual(result.warnings, []);
@@ -621,7 +622,7 @@ test('Fury reactions respect recipients, source ownership, combat gating, and bo
 
   const result = simulate('Renegade', ['__combat_start', 'Riposting Shadows'], {
     selectedTraitIds: [TRAIT.INCENSED_RESPONSE, TRAIT.BRUTAL_MOMENTUM],
-    stats: { concentration: 750 }
+    attributeInputs: baseAttributeInputs({ concentration: 750 })
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.events.find((event) => event.sourceId === TRAIT.INCENSED_RESPONSE).duration, 12);

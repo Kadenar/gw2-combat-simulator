@@ -1,8 +1,8 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import {
@@ -17,10 +17,7 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  type cloneNecromancerAttributes,
-  necromancerActiveShroud
-} from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
+import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /** Accepted Chill admits Bleeding only through the selected, enabled trait trigger. */
@@ -263,6 +260,23 @@ export const decimateDefenses = defineTrait({
 
 /** Life Reap admits shroud recharge reductions independently of Onslaught's passive attribute policy. */
 export const reapersOnslaught = defineTrait({
+  // Reaper Shroud enables Ferocity through the shared trait evaluator.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.REAPERS_ONSLAUGHT);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: necromancerActiveShroud(context) === 'reaper'
+        }
+      ]
+    };
+  },
+
   id: TRAIT.REAPERS_ONSLAUGHT,
   name: "Reaper's Onslaught",
   balance: {
@@ -338,17 +352,6 @@ export const necromancerReaperTraits = [
   coldShoulder,
   soulEater
 ];
-
-/** Applies Reaper's Onslaught at the original attribute-conversion position. */
-export function modifyReapersOnslaughtAttributes(
-  context: Gw2ModifierContext,
-  result: ReturnType<typeof cloneNecromancerAttributes>
-): void {
-  if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
-    const reapersOnslaughtProfile = requireBalanceProfileFromContext(context, TRAIT.REAPERS_ONSLAUGHT);
-    result.ferocity += balanceProfileNumber(reapersOnslaughtProfile, 'attributeBonus');
-  }
-}
 
 function queueChillingNovaChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // The accepted strike owns delivery order; the live named Chill owns its payload.

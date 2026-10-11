@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -14,7 +15,7 @@ function run(specialization, rotation, initialize) {
   const config = {
     specialization,
     initialResource: 50,
-    stats: { power: 1000, precision: 1000, vitality: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
     target: { armor: 2597 }
   };
   const profession = necromancerProfession.runtimeFor(config);

@@ -169,6 +169,11 @@ export const exposeDefensesTrait = defineTrait({
 
 /** Owns Notoriety tuning and behavior at its established execution boundaries. */
 export const notoriety = defineTrait({
+  // Adjust baseline Might atomically so an unbuffed build never receives a negative standalone grant.
+  attributes(context) {
+    const bonus = balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NOTORIETY), 'attributePerStack');
+    return { mightPerStack: { power: bonus, conditionDamage: -bonus } };
+  },
   triggers: [onTriggerPoint(revenantCastCompleted, { run: completeNotoriety })],
   id: TRAIT.NOTORIETY,
   name: 'Notoriety',

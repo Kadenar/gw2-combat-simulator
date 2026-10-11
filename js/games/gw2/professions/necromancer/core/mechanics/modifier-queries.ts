@@ -1,5 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+
 import {
   readProfessionCoreState,
   readProfessionSpecializationState
@@ -21,24 +21,4 @@ export function necromancerRuntimeSpecializationState(
 
 export function necromancerActiveShroud(context: Gw2ModifierContext): string {
   return necromancerRuntimeCoreState(context).activeShroud || '';
-}
-
-export function cloneNecromancerAttributes(attributes: Gw2Stats): Gw2MutableStats & {
-  power: number;
-  precision: number;
-  vitality: number;
-  ferocity: number;
-  conditionDamage: number;
-  expertise: number;
-  concentration: number;
-} {
-  return { ...attributes } as Gw2MutableStats & {
-    power: number;
-    precision: number;
-    vitality: number;
-    ferocity: number;
-    conditionDamage: number;
-    expertise: number;
-    concentration: number;
-  };
 }

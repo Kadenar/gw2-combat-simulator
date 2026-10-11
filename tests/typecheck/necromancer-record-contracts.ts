@@ -1,10 +1,10 @@
-/** Keep Necromancer flip expiries and attribute copies tied to their owned fields. */
+/** Keep Necromancer flip expiries and canonical mutable stats tied to their owned fields. */
 import type { NecromancerCanonicalBuild } from '#gw2/professions/necromancer/types.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import type { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 
 type Assert<T extends true> = T;
-type Attributes = ReturnType<typeof cloneNecromancerAttributes>;
+type Attributes = Gw2MutableStats;
 
 export type NecromancerRecordAssertions = [
   Assert<string extends keyof Attributes ? false : true>,

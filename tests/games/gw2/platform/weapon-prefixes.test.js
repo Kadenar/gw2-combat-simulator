@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -14,7 +15,7 @@ import test from 'node:test';
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calculateAttributes = createCalculateAttributes(
   applyMesmerBuildAttributeRules,
-  mesmerProfession.traitBuildAttributes
+  mesmerProfession.attributeContributions
 );
 const defaults = () => createDefaultBuild(mesmerAppAdapter);
 
@@ -94,13 +95,24 @@ test('attribute calculation uses the prefixes selected for each weapon set', () 
 test('weapon-set overrides preserve base stats and explicit zero values', () => {
   // Partial sets inherit unspecified stats, including when a caller starts on set two.
   const config = {
-    stats: { power: 2000, expertise: 150 },
-    weaponSetStats: [{ power: 0 }, { expertise: 300 }],
+    attributeInputs: baseAttributeInputs(
+      { ...{ power: 2000, expertise: 150 }, ...{ power: 0 } },
+      { ...{ power: 2000, expertise: 150 }, ...{ expertise: 300 } }
+    ),
     startingWeaponSet: 2
   };
-  assert.deepEqual(gw2StatsForWeaponSet(config, 1), { power: 0, expertise: 150 });
-  assert.deepEqual(gw2StatsForWeaponSet(config), { power: 2000, expertise: 300 });
-  assert.deepEqual(gw2StatsForWeaponSet({ stats: config.stats }), config.stats);
+  assert.deepEqual(
+    gw2StatsForWeaponSet(config, 1),
+    baseAttributeInputs({ power: 0, expertise: 150 }).weaponSets[0].commonTotals
+  );
+  assert.deepEqual(
+    gw2StatsForWeaponSet(config),
+    baseAttributeInputs({ power: 2000, expertise: 300 }).weaponSets[0].commonTotals
+  );
+  assert.deepEqual(
+    gw2StatsForWeaponSet({ attributeInputs: baseAttributeInputs(config.attributeInputs.weaponSets[0].commonTotals) }),
+    config.attributeInputs.weaponSets[0].commonTotals
+  );
 });
 
 test('runtime stats follow chronological weapon-set swaps', () => {
@@ -129,9 +141,19 @@ test('runtime stats follow chronological weapon-set swaps', () => {
     events: [{ type: 'weapon_set', at: 1, weaponSet: 2 }]
   });
 
-  assert.equal(query.statsAt(0.5).power, config.weaponSetStats[0].power);
-  assert.equal(query.statsAt(1).power, config.weaponSetStats[1].power);
-  assert.equal(query.statsAt(1).conditionDamage, config.weaponSetStats[1].conditionDamage);
-  assert.equal(query.statsAt(0, null, { activeWeaponSet: 2 }).power, config.weaponSetStats[1].power);
+  assert.equal(query.statsAt(0.5).power, config.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[0].power);
+  assert.equal(query.statsAt(1).power, config.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[1].power);
+  assert.equal(
+    query.statsAt(1).conditionDamage,
+    calculateAttributes(
+      build,
+      config.selectedSkillIds.map((id) => mesmerProfession.catalog.skillsById.get(id)),
+      2
+    ).attributes['Condition Damage'].final
+  );
+  assert.equal(
+    query.statsAt(0, null, { activeWeaponSet: 2 }).power,
+    config.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[1].power
+  );
   assert.notEqual(query.statsAt(0.5).power, query.statsAt(1).power);
 });

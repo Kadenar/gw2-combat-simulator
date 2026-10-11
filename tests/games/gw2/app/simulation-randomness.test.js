@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -446,13 +447,13 @@ test('Mesmer distributions explain illusion criticals and their bleeding damage'
         primaryWeapon: 'Sword',
         secondaryWeapon: 'Pistol',
         selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
-        stats: {
+        attributeInputs: baseAttributeInputs({
           power: 2000,
           precision: 1945,
           ferocity: 750,
           conditionDamage: 1000,
           expertise: 0
-        },
+        }),
         boons: { fury: false },
         target: { armor: 2597 }
       },
@@ -478,14 +479,14 @@ test('Engineer random trait procs repeat by seed and vary across seeds', () => {
     specialization: 'Core',
     selectedSkillIds: [5805],
     selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL, ENGINEER_TRAIT.SERRATED_STEEL, ENGINEER_TRAIT.INCENDIARY_POWDER],
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2000,
       precision: 4000,
       ferocity: 500,
       conditionDamage: 1000,
       expertise: 0,
       vitality: 1000
-    },
+    }),
     target: {
       armor: 2597,
       conditions: { Vulnerability: 25 }
@@ -513,14 +514,14 @@ test('Engineer random trait procs repeat by seed and vary across seeds', () => {
 
 test('Necromancer randomizes Barbed Precision and Chilling Nova by seed', () => {
   const common = {
-    stats: {
+    attributeInputs: baseAttributeInputs({
       power: 2000,
       precision: 4000,
       ferocity: 500,
       conditionDamage: 1200,
       expertise: 0,
       vitality: 1000
-    },
+    }),
     target: {
       armor: 2597,
       conditions: { Chilled: true, Vulnerability: 25 }
@@ -554,7 +555,7 @@ test('Necromancer randomizes Barbed Precision and Chilling Nova by seed', () => 
         ...common,
         specialization: 'Reaper',
         selectedTraitIds: [NECROMANCER_TRAIT.CHILLING_NOVA],
-        stats: { ...common.stats, precision: 2000 },
+        attributeInputs: baseAttributeInputs({ ...common.stats, precision: 2000 }),
         initialResource: 100,
         randomness: { mode: 'stochastic', seed }
       }
@@ -572,12 +573,12 @@ test('Reaper rolls ice-field projectile finishers per bullet by seed', () => {
         specialization: 'Reaper',
         primaryWeapon: 'Pistol',
         professionAssumptions: { permanentComboField: 'Ice' },
-        stats: {
+        attributeInputs: baseAttributeInputs({
           power: 2000,
           precision: 2000,
           ferocity: 1000,
           conditionDamage: 1000
-        },
+        }),
         target: { armor: 2597 },
         randomness: { mode, seed }
       }

@@ -12,13 +12,6 @@ export function gluttonyLifeForceMultiplier(runtime: MechanicQueriesOf<Necromanc
     : 1;
 }
 
-/** Applies the static Vitality trait only on the raw-config capacity path. */
-export function vitalPersistenceVitality(config: NecromancerConfig, balanceContext: unknown): number {
-  return hasTrait(config, TRAIT.VITAL_PERSISTENCE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(balanceContext, TRAIT.VITAL_PERSISTENCE), 'attributeBonus')
-    : 0;
-}
-
 /** Soul Battery changes capacity, keeping normalized resource costs consistent for every shroud variant. */
 export function soulBatteryCapacity(config: NecromancerConfig, balanceContext: unknown): number {
   return hasTrait(config, TRAIT.SOUL_BATTERY)

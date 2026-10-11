@@ -2,13 +2,11 @@ import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
-
 import { createHarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 
 // Public normalization must detach retained values without changing the actual resource owner.
 test('Necromancer planning projection normalizes resources without mutating live state', () => {
-  const core = createNecromancerCoreState();
+  const core = necromancerProfession.resolveProfession({}).createState({}).core;
   const harbinger = createHarbingerState();
   core.lifeForce.value = 150;
   harbinger.blightExpiries = Array.from({ length: 27 }, (_, index) => index);

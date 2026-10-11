@@ -10,7 +10,7 @@ import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/at
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as GALE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
-import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
+
 import { SOULBEAST_BALANCE_PROFILE_IDS as SB } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as R } from '#gw2/professions/revenant/data/ids.js';
@@ -142,9 +142,9 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
   }
 });
 
-// A pet swap subtracts historical build stats, then adds the active pet's patched contribution.
-test('Soulbeast reconciles raw and precomputed archetypes across merge state and pet changes', () => {
-  const calculate = createCalculateAttributes(applyRangerBuildAttributeRules, rangerProfession.traitBuildAttributes);
+// Merge state and the current pet select intrinsic attributes from the same common seed.
+test('Soulbeast evaluates archetypes across merge state and pet changes', () => {
+  const calculate = createCalculateAttributes(applyRangerBuildAttributeRules, rangerProfession.attributeContributions);
   const build = createRangerBuildDefaults();
   const pig = calculate({ ...build, selectedPet: 'Pig' }).attributes;
   const lynx = calculate({ ...build, selectedPet: 'Lynx' }).attributes;
@@ -154,17 +154,17 @@ test('Soulbeast reconciles raw and precomputed archetypes across merge state and
     [SB.deadlyArchetype, { attributeBonus: 175, weaponAttributeBonus: 125 }],
     [SB.ferociousArchetype, { attributeBonus: 999, weaponAttributeBonus: 999 }]
   ]);
-  for (const precomputed of [false, true]) {
+  {
     for (const merged of [false, true]) {
       const input = {
-        power: precomputed ? 1999 : 1000,
-        ferocity: precomputed ? 999 : 0,
+        power: 1000,
+        ferocity: 0,
         conditionDamage: 0,
         precision: 1000
       };
-      const actual = soulbeastModifiers.modifyAttributes(
+      const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
         {
-          config: { selectedPet: 'Pig', attributeProvenance: { professionStaticRulesApplied: precomputed } },
+          config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
           catalog: { balanceProfilesById: profiles },
           runtime: {
             profession: {
@@ -181,7 +181,7 @@ test('Soulbeast reconciles raw and precomputed archetypes across merge state and
         conditionDamage: merged ? 175 : 0,
         precision: merged ? 1125 : 1000
       });
-      assert.equal(input.power, precomputed ? 1999 : 1000);
+      assert.equal(input.power, 1000);
     }
   }
 });

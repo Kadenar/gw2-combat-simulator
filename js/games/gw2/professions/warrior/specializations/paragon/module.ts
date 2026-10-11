@@ -6,7 +6,6 @@ import { PARAGON_BALANCE_PROFILES } from '#gw2/professions/warrior/specializatio
 import { PARAGON_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 import { paragonState, projectParagonPlanningState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import { warriorParagonTraits } from '#gw2/professions/warrior/specializations/paragon/traits/index.js';
-import { modifyParagonAttributes } from '#gw2/professions/warrior/specializations/paragon/traits/behavior.js';
 
 export const paragonModule = defineNativeModule({
   traitDefinitions: warriorParagonTraits,
@@ -16,7 +15,7 @@ export const paragonModule = defineNativeModule({
     balanceProfiles: PARAGON_BALANCE_PROFILES
   }),
   state: { create: paragonState.create, project: projectParagonPlanningState },
-  modifiers: { modifyAttributes: modifyParagonAttributes },
+  modifiers: {},
   hooks: paragonHooks,
   presentation: paragonUi
 });

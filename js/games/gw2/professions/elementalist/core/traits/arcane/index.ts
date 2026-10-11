@@ -4,7 +4,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
+
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -48,11 +48,7 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistModifierContext,
-  ElementalistResolverContext,
-  ElementalistRuntime
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Arcane definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const arcaneProwess = defineTrait({
@@ -158,7 +154,7 @@ export const elementalEnchantment = defineTrait({
     attributeBonus: 180,
     rechargeMultiplier: 0.85
   },
-  buildAttributes: traitAttributeEffects(TRAIT.ELEMENTAL_ENCHANTMENT, [
+  attributes: traitAttributeEffects(TRAIT.ELEMENTAL_ENCHANTMENT, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ])
 });
@@ -189,6 +185,23 @@ export const evasiveArcana = defineTrait({
 });
 
 export const arcaneLightning = defineTrait({
+  // Only an active Arcane Lightning application contributes Ferocity.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING);
+
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
+        }
+      ]
+    };
+  },
+
   id: TRAIT.ARCANE_LIGHTNING,
   triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyArcaneLightning })],
   name: 'Arcane Lightning',
@@ -503,14 +516,6 @@ function applyElementalLockdown(
       priority: 0
     }
   });
-}
-
-/** Preserve the live arcane attribute pass at its original position in the Core modifier pipeline. */
-export function applyArcaneTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
-  if (hasTrait(context, TRAIT.ARCANE_LIGHTNING) && activeBuffStacks(context, 'arcane-lightning', 1) > 0) {
-    const arcaneLightningProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_LIGHTNING);
-    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(arcaneLightningProfile, 'attributeBonus');
-  }
 }
 
 /** Multiply in-combat attunement recharge before the specialization's flat reduction and recharge-rate conversion. */

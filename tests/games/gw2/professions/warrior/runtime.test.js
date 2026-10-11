@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -14,7 +15,7 @@ function run(rotation, overrides = {}, profession = warriorProfession, output = 
     primaryWeapon: 'Axe',
     initialResource: 0,
     selectedTraitIds: [],
-    stats: { power: 2000, precision: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
     target: { armor: 2597 },
     ...overrides
   };
@@ -85,7 +86,7 @@ test('critical burst reactions share the resolved outcome for resources and inde
   const config = {
     patchId: 'critical-live',
     initialResource: 30,
-    stats: { power: 2000, precision: 4000 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000 }),
     selectedTraitIds: [TRAIT.FURIOUS, TRAIT.AXE_MASTERY, TRAIT.BLOODLUST, TRAIT.SUNDERING_BURST]
   };
   const result = run(['Eviscerate'], config, profession);
@@ -102,7 +103,11 @@ test('critical burst reactions share the resolved outcome for resources and inde
   assert.equal(bleeding.triggeredBy, 'Eviscerate');
   assert.equal(bleeding.metadata.procCount, 1);
   assert.equal(result.resolvedEvents.find((event) => event.kind === 'furious-surge').stacks, 1);
-  const noncritical = run(['Eviscerate'], { ...config, stats: { power: 2000, precision: 0 } }, profession);
+  const noncritical = run(
+    ['Eviscerate'],
+    { ...config, attributeInputs: baseAttributeInputs({ power: 2000, precision: 0 }) },
+    profession
+  );
   assert.equal(noncritical.planningState.profession.adrenaline.value, 1);
   assert.equal(
     noncritical.resolvedEvents
@@ -119,7 +124,7 @@ test('critical burst reactions share the resolved outcome for resources and inde
 test('seeded critical traits agree in detailed and score runs without reading report collections', () => {
   const config = {
     primaryWeapon: 'Rifle',
-    stats: { power: 2000, precision: 1800 },
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1800 }),
     randomness: { mode: 'seeded', seed: 77 },
     selectedTraitIds: [TRAIT.FURIOUS, TRAIT.BLOODLUST, TRAIT.FORCEFUL_GREATSWORD]
   };

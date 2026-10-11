@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
@@ -10,7 +11,14 @@ const baseConfig = {
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 100,
   primaryWeapon: 'Sword',
-  stats: { power: 2000, precision: 1500, ferocity: 500, conditionDamage: 1000, expertise: 0, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1500,
+    ferocity: 500,
+    conditionDamage: 1000,
+    expertise: 0,
+    vitality: 1000
+  }),
   target: { armor: 2597, conditions: {} }
 };
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);

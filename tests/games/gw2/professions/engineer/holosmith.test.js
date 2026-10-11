@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -24,14 +25,14 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1500,
     ferocity: 500,
     conditionDamage: 1000,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: { Vulnerability: 25 }
@@ -55,7 +56,7 @@ test('Holographic Shockwave guarantees a critical hit and blasts a fire field', 
   const result = simulate(
     'Holosmith',
     ['Bomb Kit', 'Fire Bomb', 'Engage Photon Forge', { type: 'wait', durationMs: 1000 }, 'Holographic Shockwave'],
-    { selectedSkillIds: [5812], stats: { precision: 1000, ferocity: 0 } }
+    { selectedSkillIds: [5812], attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }) }
   );
   assert.deepEqual(result.warnings, []);
   const strike = result.resolvedEvents.find(
@@ -676,11 +677,11 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
 test('Holosmith offensive traits consume forge heat and attack charges', () => {
   const laserBase = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
     initialHeat: 50,
-    stats: { precision: 1000, ferocity: 0 }
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 })
   });
   const laser = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
     initialHeat: 50,
-    stats: { precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
     selectedTraitIds: [TRAIT.LASERS_EDGE]
   });
 
@@ -689,14 +690,14 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
   assertFlooredDamageMultiplier(laser.strikeDamage, laserBase.strikeDamage, laserEdgeFactor);
   const glassLaser = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
     initialHeat: 50,
-    stats: { precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
     selectedTraitIds: [TRAIT.GLASS_CANNON, TRAIT.LASERS_EDGE]
   });
 
   assertFlooredDamageMultiplier(glassLaser.strikeDamage, laserBase.strikeDamage, 1.07 * laserEdgeFactor);
 
   const solar = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike', 'Bright Slash'], {
-    stats: { precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
     selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS]
   });
   const solarStrikes = solar.resolvedEvents.filter(
@@ -776,20 +777,20 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   const swordChain = ['Sun Edge', 'Sun Ripper', 'Gleam Saber'];
   const tierBase = simulate('Holosmith', swordChain, {
     initialHeat: 50,
-    stats: { precision: 1000, ferocity: 0 }
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 })
   });
   const tiered = simulate('Holosmith', swordChain, {
     initialHeat: 51,
-    stats: { precision: 1000, ferocity: 0 }
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 })
   });
   const cappedSword = simulate('Holosmith', swordChain, {
     initialHeat: 101,
-    stats: { precision: 1000, ferocity: 0 }
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 })
   });
   const enhancedSword = simulate('Holosmith', swordChain, {
     initialHeat: 101,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
-    stats: { precision: 1000, ferocity: 0 }
+    attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 })
   });
   const swordDamage = (result, name) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name).damage;
@@ -895,7 +896,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
       selectedSkillIds,
       selectedTraitIds,
       boons: { might: 25 },
-      stats: { precision: 1000, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ precision: 1000, ferocity: 0 }),
       target: { conditions: {} }
     });
   const skillEvents = (result, type, skillName) =>
@@ -993,7 +994,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
     initialHeat: 101,
     selectedSkillIds,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
-    stats: { expertise: 1500, precision: 1000, ferocity: 0 },
+    attributeInputs: baseAttributeInputs({ expertise: 1500, precision: 1000, ferocity: 0 }),
     target: { conditions: {} }
   });
   const cappedBurning = skillEvents(cappedBeam, 'condition', 'Prime Light Beam');
@@ -1012,7 +1013,11 @@ test('Holosmith direct heat variants apply profile factors to their eligible pac
       selectedSkillIds,
       // Cap Might for both cases so ECSU's opening boon cannot change the multiplier comparison.
       boons: { might: 25 },
-      stats: { ...baseConfig.stats, precision: 1000, ferocity: 0 }
+      attributeInputs: baseAttributeInputs({
+        ...baseConfig.attributeInputs.weaponSets[0].commonTotals,
+        precision: 1000,
+        ferocity: 0
+      })
     });
 
     return result.resolvedEvents.find(

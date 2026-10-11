@@ -2,9 +2,8 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasSelectedSkillId, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -32,17 +31,12 @@ import {
   type ElementalistCastCompleted,
   type ElementalistReaction
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { emitEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistModifierContext,
-  ElementalistResolverContext,
-  ElementalistRuntime
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Earth definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const earthsEmbrace = defineTrait({
@@ -73,7 +67,7 @@ export const serratedStones = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
     }
   ],
-  buildAttributes: (_common, { balanceContext }) => ({
+  attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Bleeding Duration': balanceProfileNumber(
         requireBalanceProfileFromContext(balanceContext, TRAIT.SERRATED_STONES),
@@ -134,7 +128,7 @@ export const strengthOfStone = defineTrait({
     internalCooldown: 3,
     effects: [{ type: 'condition', name: 'Strength of Stone', condition: 'Bleeding', stacks: 3, duration: 10 }]
   },
-  buildAttributes: traitAttributeEffects(TRAIT.STRENGTH_OF_STONE, [
+  attributes: traitAttributeEffects(TRAIT.STRENGTH_OF_STONE, [
     {
       kind: 'conversion',
       from: 'Toughness',
@@ -290,18 +284,6 @@ function applyResolverElementalShielding(context: MechanicCombatContext, event: 
       name: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SHIELDING).name
     })
   });
-}
-
-/** Preserve the live earth attribute pass at its original position in the Core modifier pipeline. */
-export function reconcileSignetPassive(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
-  if (
-    hasSelectedSkillId(context, ID.SIGNET_OF_FIRE) &&
-    !hasTrait(context, TRAIT.WRITTEN_IN_STONE) &&
-    context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_FIRE, context.time)
-  ) {
-    const signetOfFireProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFire);
-    modified.precision = (modified.precision || 0) - balanceProfileNumber(signetOfFireProfile, 'attributeBonus');
-  }
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */

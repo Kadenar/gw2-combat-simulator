@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -11,7 +12,7 @@ const scrapperConfig = Object.freeze({
   selectedSkillIds: [30357, 5805, 5812, 5927, 30800],
   relic: 'Steamshrieker',
   boons: { quickness: true },
-  stats: { power: 2000, conditionDamage: 1000 }
+  attributeInputs: baseAttributeInputs({ power: 2000, conditionDamage: 1000 })
 });
 
 function simulate(rotation) {

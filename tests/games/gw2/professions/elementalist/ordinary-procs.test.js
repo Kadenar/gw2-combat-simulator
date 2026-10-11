@@ -30,13 +30,14 @@ const castFor = (context, skill) => ({
 });
 
 // Use native services while collecting just the procedural output under test.
-function contextFor(kind = 'Core', specialization = {}) {
+// Trait selection is fixed here because a build's traits never change once its context is in use.
+function contextFor(kind = 'Core', specialization = {}, traits = []) {
   const context = observedRuntime(runElementalist([], { specialization: kind }));
   const core = createElementalistCoreState();
   context.profession = { core, specialization: { kind, state: specialization } };
   context.time = context.effectiveEnd = 1;
   context.combatActive = true;
-  context.traits = new Set();
+  context.traits = new Set(traits);
   const events = [];
   context.effects = captureEffectEmissions({
     submit: (event) => {
@@ -94,18 +95,24 @@ for (const [trait, traitId, key, profile, invoke] of [
 ]) {
   test(`${trait} retains eligibility, zero override and strict owner-local deadlines`, () => {
     for (const duration of [2, 0]) {
-      const { context, core, events } = contextFor();
-      core.primaryAttunement = 'Water';
       const profiles = new Map(elementalistCatalog.balanceProfilesById);
       profiles.set(profile, {
         ...profiles.get(profile),
         [traitId === TRAIT.EVASIVE_ARCANA ? 'cooldown' : 'internalCooldown']: duration
       });
       const elapsed = traitId === TRAIT.EVASIVE_ARCANA ? duration / 1.25 : duration;
-      context.helpers = { ...context.helpers, balanceProfilesById: profiles };
-      invoke(context);
-      assert.deepEqual({ ...context.procs.snapshot() }, {});
-      context.traits.add(traitId);
+      // The unselected and selected builds each own a context; neither changes selection after its first use.
+      const prepare = (traits) => {
+        const fixture = contextFor('Core', {}, traits);
+        fixture.core.primaryAttunement = 'Water';
+        fixture.context.helpers = { ...fixture.context.helpers, balanceProfilesById: profiles };
+        return fixture;
+      };
+
+      const unselected = prepare([]).context;
+      invoke(unselected);
+      assert.deepEqual({ ...unselected.procs.snapshot() }, {});
+      const { context, events } = prepare([traitId]);
       const emit = context.effects.emit.bind(context.effects);
       context.effects = {
         emit(request) {
@@ -139,18 +146,23 @@ test('Catalyst combo claims stay per element, and per trait, including Water', (
         handler(context, event);
       };
 
-      const state = catalystState.create();
-      const { context, core, events } = contextFor('Catalyst', state);
       const profiles = new Map(elementalistCatalog.balanceProfilesById);
       for (const id of [TRAIT.ELEMENTAL_EPITOME, TRAIT.ELEMENTAL_SYNERGY]) {
         profiles.set(id, { ...profiles.get(id), internalCooldown: duration });
       }
 
-      context.helpers = { ...context.helpers, balanceProfilesById: profiles };
+      // The unselected and selected builds each own a context; neither changes selection after its first use.
+      const prepare = (traits) => {
+        const fixture = contextFor('Catalyst', catalystState.create(), traits);
+        fixture.context.helpers = { ...fixture.context.helpers, balanceProfilesById: profiles };
+        return fixture;
+      };
+
       const combo = { type: 'combo', at: 1, sourceId: 1 };
-      invoke(context, combo);
-      assert.deepEqual({ ...context.procs.snapshot() }, {});
-      context.traits = new Set([TRAIT.ELEMENTAL_EPITOME, TRAIT.ELEMENTAL_SYNERGY]);
+      const unselected = prepare([]).context;
+      invoke(unselected, combo);
+      assert.deepEqual({ ...unselected.procs.snapshot() }, {});
+      const { context, core, events } = prepare([TRAIT.ELEMENTAL_EPITOME, TRAIT.ELEMENTAL_SYNERGY]);
       for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
         core.primaryAttunement = element;
         invoke(context, { ...combo, attunement: element });
@@ -172,14 +184,19 @@ test('Catalyst combo claims stay per element, and per trait, including Water', (
 });
 
 test('Evoker real and synthetic entry share selected profile timers', () => {
-  const state = evokerState.create();
-  state.element = 'Earth';
-  const { context, core } = contextFor('Evoker', state);
+  // Each build owns its Earth-aligned fixture; selection never changes after a context's first entry.
+  const prepare = (traits) => {
+    const state = evokerState.create();
+    state.element = 'Earth';
+    return contextFor('Evoker', state, traits);
+  };
+
   const earth = elementalistCatalog.skillsByName.get('Earth Attunement');
-  // Unselected real entries must leave claims available for a later selected entry.
-  completeEvokerAttunement(context, castFor(context, earth), earth);
-  assert.deepEqual({ ...context.procs.snapshot() }, {});
-  context.traits = new Set([TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]);
+  // A real entry on an unselected build claims nothing.
+  const unselected = prepare([]).context;
+  completeEvokerAttunement(unselected, castFor(unselected, earth), earth);
+  assert.deepEqual({ ...unselected.procs.snapshot() }, {});
+  const { context, core } = prepare([TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]);
   completeEvokerAttunement(context, castFor(context, earth), earth);
   assert.equal(context.procs.snapshot()[TRAIT.EARTHEN_BLAST], 6);
   assert.equal(context.procs.snapshot()[TRAIT.ROCK_SOLID], 6);

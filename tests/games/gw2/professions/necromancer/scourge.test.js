@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -5,12 +6,10 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
-
 const base = {
   specialization: 'Scourge',
   initialResource: 100,
-  stats: { power: 1000, precision: 1000, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
 const cast = (skillId) => ({ type: 'cast', skillId });
@@ -116,7 +115,11 @@ test('shade skills consume Core life force once and never enter a draining shrou
 
 // An overlap may wait for an already casting channel, but a miss cannot promise resources after that finite lane ends.
 test('a shade overlap waits for an accepted channel hit and rejects a missed channel after completion', () => {
-  const config = { ...base, initialResource: 50 * createNecromancerCoreState(base).lifeForceCostMultiplier - 1 };
+  const config = {
+    ...base,
+    initialResource:
+      50 * necromancerProfession.resolveProfession(base).createState(base).core.lifeForceCostMultiplier - 1
+  };
   const rotation = [cast(ID.GHASTLY_CLAWS), { ...cast(ID.DESERT_SHROUD), concurrentOffsetMs: 0 }];
   const result = run(rotation, config);
   assert.deepEqual(result.warnings, []);

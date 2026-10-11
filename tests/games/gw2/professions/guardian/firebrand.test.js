@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -12,13 +13,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const config = {
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 1000,
     ferocity: 0,
     conditionDamage: 1000,
     vitality: 1000
-  },
+  }),
   target: { armor: 2597 }
 };
 
@@ -679,7 +680,7 @@ test('Tome of Justice applies Amplified Wrath once before the condition duration
       specialization: 'Firebrand',
       primaryWeapon: 'Pistol',
       secondaryWeapon: 'Pistol',
-      stats: { ...config.stats, expertise: 1500 },
+      attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, expertise: 1500 }),
       selectedTraitIds: amplifiedWrath ? [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH] : []
     })(undefined, ['Peacekeeper', { type: 'wait', durationMs: 3000 }]);
     // Expertise doubles the base duration; the trait's separate multiplier must not be baked in twice.

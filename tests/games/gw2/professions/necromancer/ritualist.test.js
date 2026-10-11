@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -10,7 +11,7 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 const base = {
   specialization: 'Ritualist',
   initialResource: 100,
-  stats: { power: 1000, precision: 1000, vitality: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
 const cast = (skillId) => ({ type: 'cast', skillId });

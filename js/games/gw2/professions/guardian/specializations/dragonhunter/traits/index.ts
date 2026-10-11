@@ -1,17 +1,17 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import {
@@ -156,7 +156,7 @@ export const defendersDogma = defineTrait({
   id: TRAIT.DEFENDERS_DOGMA,
   name: "Defender's Dogma",
   balance: { attributeBonus: 180 },
-  buildAttributes: traitAttributeEffects(TRAIT.DEFENDERS_DOGMA, [
+  attributes: traitAttributeEffects(TRAIT.DEFENDERS_DOGMA, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
   ])
 });

@@ -1,8 +1,9 @@
+import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -206,7 +207,7 @@ export const fellBeacon = defineTrait({
       when: (context) => context.condition === 'Burning'
     }
   ],
-  buildAttributes: traitAttributeEffects(TRAIT.FELL_BEACON, [
+  attributes: traitAttributeEffects(TRAIT.FELL_BEACON, [
     {
       kind: 'conversion',
       from: 'Condition Damage',
@@ -220,6 +221,32 @@ export const fellBeacon = defineTrait({
 
 /** Owns Sand Sage tuning and behavior at its existing execution boundaries. */
 export const sandSage = defineTrait({
+  // A living shade enables the duration attributes until its expiry.
+  attributes(context) {
+    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SAND_SAGE);
+    const shadeActive = (necromancerRuntimeSpecializationState(context, 'Scourge').shades || []).some(
+      (expiresAt: number) => expiresAt > context.time
+    );
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Concentration',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: shadeActive
+        },
+        {
+          kind: 'flat',
+          to: 'Expertise',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false,
+          enabled: shadeActive
+        }
+      ]
+    };
+  },
+
   id: TRAIT.SAND_SAGE,
   name: 'Sand Sage',
   balance: {

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
@@ -375,7 +376,7 @@ test('Infinite Horizon ambushes retain clone weapon strength in resolved damage'
       secondaryWeapon: '',
       initialResource: 1,
       selectedTraitIds: [TRAIT.INFINITE_HORIZON],
-      stats: { power: 1000, precision: 0, ferocity: 0 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 0, ferocity: 0 }),
       boons: { might: 0, fury: false, quickness: false, alacrity: false, regeneration: false, vigor: false },
       target: { armor: 1000, health: 0, conditions: {} }
     });

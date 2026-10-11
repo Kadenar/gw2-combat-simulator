@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -82,7 +83,11 @@ test('Paralyzing Venom belongs to one pet, expires, and is consumed by its next 
         ...(swap ? [{ type: 'wait', durationMs: 1000 }, 'Swap Pets'] : []),
         { type: 'wait', durationMs: 23_000 }
       ],
-      { selectedPet: 'Jungle Spider', selectedPet2: 'Black Widow Spider', stats: { expertise: 1500 } },
+      {
+        selectedPet: 'Jungle Spider',
+        selectedPet2: 'Black Widow Spider',
+        attributeInputs: baseAttributeInputs({ expertise: 1500 })
+      },
       {
         initialize(runtime) {
           const pet = rangerPetCombatMetadata(runtime);

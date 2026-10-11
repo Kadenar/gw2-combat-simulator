@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -54,14 +55,14 @@ test('allied strikes retain their cadence across partitioned and repeated advanc
 });
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 2000,
     ferocity: 500,
     conditionDamage: 1200,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: {
@@ -493,7 +494,7 @@ test('Plaguelands, chill fields, and cooldown reset retain live behavior', () =>
     'Reaper',
     ['Plaguelands', '__cooldown_reset', 'Plaguelands'],
     {
-      stats: { expertise: 1500 },
+      attributeInputs: baseAttributeInputs({ expertise: 1500 }),
       selectedSkillIds: [10549],
       selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION],
       target: {
@@ -819,17 +820,17 @@ test('Vampiric siphons on every direct player and minion hit with separate power
   const player = simulate('Core', ['Ghastly Claws'], {
     primaryWeapon: 'Axe',
     selectedTraitIds: [TRAIT.VAMPIRIC],
-    stats: { power: 1000 }
+    attributeInputs: baseAttributeInputs({ power: 1000 })
   });
   const condition = simulate('Core', ['Blood Curse', { type: 'wait', durationMs: 2000 }], {
     primaryWeapon: 'Scepter',
     selectedTraitIds: [TRAIT.VAMPIRIC],
-    stats: { power: 1000 }
+    attributeInputs: baseAttributeInputs({ power: 1000 })
   });
   const minion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
     selectedSkillIds: [10533],
     selectedTraitIds: [TRAIT.VAMPIRIC],
-    stats: { power: 1000 }
+    attributeInputs: baseAttributeInputs({ power: 1000 })
   });
   const playerSiphons = player.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC
@@ -891,7 +892,7 @@ test('Blood Magic siphons preserve independent pools and intervals across four o
       primaryWeapon: 'Dagger',
       selectedSkillIds: [10547, 10541, 10646],
       selectedTraitIds: [TRAIT.VAMPIRIC, TRAIT.VAMPIRIC_PRESENCE, TRAIT.OVERFLOWING_THIRST],
-      stats: { power: 1000 }
+      attributeInputs: baseAttributeInputs({ power: 1000 })
     },
     observationTail(3000)
   );
@@ -932,7 +933,7 @@ test("Ritualist spirit attacks proc Vampiric and share the owner's Vampiric Pres
     {
       initialResource: 100,
       selectedTraitIds: [TRAIT.VAMPIRIC, TRAIT.VAMPIRIC_PRESENCE],
-      stats: { power: 1000 }
+      attributeInputs: baseAttributeInputs({ power: 1000 })
     }
   );
   const spiritAutos = result.resolvedEvents.filter(
@@ -975,12 +976,12 @@ test('Vampiric Presence uses its half-second interval and stronger Shroud siphon
   const base = simulate('Core', [auraUp, 'Ghastly Claws'], {
     primaryWeapon: 'Axe',
     selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
-    stats: { power: 1000 }
+    attributeInputs: baseAttributeInputs({ power: 1000 })
   });
   const shroud = simulate('Core', [auraUp, 'Death Shroud', 'Life Blast', 'End Death Shroud'], {
     initialResource: 100,
     selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
-    stats: { power: 1000 }
+    attributeInputs: baseAttributeInputs({ power: 1000 })
   });
   const baseSiphons = base.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC_PRESENCE
@@ -1022,25 +1023,25 @@ test('Vampiric Presence supports four allied players and respects its five-targe
   // Run past the first Vampiric Aura pulse at 1.5 s so allied strikes can siphon.
   const allies = simulate('Core', [{ type: 'wait', durationMs: 2000 }], {
     selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
-    stats: { power: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 1000 }),
     allies: { count: 10, strikesPerSecond: 10 }
   });
   const minion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
     selectedSkillIds: [10533],
     selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
-    stats: { power: 1000 }
+    attributeInputs: baseAttributeInputs({ power: 1000 })
   });
   const cappedMinion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
     selectedSkillIds: [10533],
     selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
-    stats: { power: 1000 },
+    attributeInputs: baseAttributeInputs({ power: 1000 }),
     allies: { count: 4, strikesPerSecond: 0 }
   });
   const boneMinions = (allies = 0) =>
     simulate('Core', ['Summon Bone Minions', { type: 'wait', durationMs: 4500 }], {
       selectedSkillIds: [10541],
       selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
-      stats: { power: 1000 },
+      attributeInputs: baseAttributeInputs({ power: 1000 }),
       allies: { count: allies, strikesPerSecond: 0 }
     });
   const alliedSiphons = allies.resolvedEvents.filter(
@@ -1344,15 +1345,15 @@ test('calibrated minion strikes ignore player Power and Signet of Spite', () => 
         .map((event) => event.damage);
     const lowPower = simulate('Core', rotation, {
       selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id],
-      stats: { power: 1000 }
+      attributeInputs: baseAttributeInputs({ power: 1000 })
     });
     const highPower = simulate('Core', rotation, {
       selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id],
-      stats: { power: 3000 }
+      attributeInputs: baseAttributeInputs({ power: 3000 })
     });
     const signet = simulate('Core', rotation, {
       selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id, 10622],
-      stats: { power: 1000 }
+      attributeInputs: baseAttributeInputs({ power: 1000 })
     });
 
     assert.deepEqual(minionDamage(highPower), minionDamage(lowPower), summon);

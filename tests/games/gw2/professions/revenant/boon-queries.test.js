@@ -1,13 +1,22 @@
+// Resolve baseline and adjusted Might together while leaving the source attributes immutable.
+function notorietyAttributes(context, attributes) {
+  const facts = attributeContext(context, { catalog: revenantCatalog, modifierRulesById: new Map() });
+  return applyMightAttributes(attributes, activeBoonStacks(context, 'might'), [notoriety.attributes(facts)]);
+}
+
+import { applyMightAttributes, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
+import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
 const renegadeModifierRules = renegadeModule.modifiers.modifierRules;
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -32,7 +41,9 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   const reprisal = revenantCoreModifierRules.find(({ id }) => id === 'revenant.vicious-reprisal');
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
   const criticalBonus = (value) =>
-    revenantCoreModifiers.modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
+    revenantProfession
+      .runtimeFor({ specialization: 'Core' })
+      .modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
   assert.equal(countActiveBoons({ ...context, runtime: undefined }), 2);
   assert.equal(bloodFury.when({ ...context, runtime: undefined }), true);
   for (const kind of ['fury', 'resolution']) {
@@ -79,31 +90,22 @@ test('Notoriety converts configured and live self Might with a combined cap', ()
     { at: 5, expiresAt: 10, stacks: 20, resolvedAudience: { includesSelf: true } }
   );
   const attributes = { power: 1000, conditionDamage: 1000 };
-  assert.deepEqual(revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
-    power: 1070,
-    conditionDamage: 930
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
+    power: 1280,
+    conditionDamage: 1140
   });
-  assert.deepEqual(
-    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, time: 5 }, attributes),
-    {
-      power: 1250,
-      conditionDamage: 750
-    }
-  );
-  assert.deepEqual(
-    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes),
-    {
-      power: 1040,
-      conditionDamage: 960
-    }
-  );
-  assert.deepEqual(
-    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, runtime: undefined }, attributes),
-    {
-      power: 1040,
-      conditionDamage: 960
-    }
-  );
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, time: 5 }, attributes), {
+    power: 2000,
+    conditionDamage: 1500
+  });
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes), {
+    power: 1160,
+    conditionDamage: 1080
+  });
+  assert.deepEqual(notorietyAttributes({ catalog: revenantCatalog, ...context, runtime: undefined }, attributes), {
+    power: 1160,
+    conditionDamage: 1080
+  });
   assert.deepEqual(attributes, { power: 1000, conditionDamage: 1000 });
 });
 

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -15,7 +16,7 @@ test('shortbow conditions distinguish frontal and defiant targets with and witho
         {
           primaryWeapon: 'Shortbow',
           selectedTraitIds: trait ? [TRAIT.LIGHT_ON_YOUR_FEET] : [],
-          stats: { expertise: 0 },
+          attributeInputs: baseAttributeInputs({ expertise: 0 }),
           target: { armor: 2597, defiant, conditions: {} }
         }
       );
@@ -94,7 +95,7 @@ test('Crippling Shot grants pet bleeding with player condition duration', () => 
   const result = runRanger(['__combat_start', ID.CRIPPLING_SHOT, { type: 'wait', durationMs: 5000 }], {
     primaryWeapon: 'Shortbow',
     selectedPet: 'Tiger',
-    stats: { expertise: 1500 },
+    attributeInputs: baseAttributeInputs({ expertise: 1500 }),
     target: { armor: 2597, defiant: true, conditions: {} }
   });
   assert.deepEqual(result.warnings, []);

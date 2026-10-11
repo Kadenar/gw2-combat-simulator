@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -21,14 +22,14 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 const baseConfig = Object.freeze({
-  stats: {
+  attributeInputs: baseAttributeInputs({
     power: 2000,
     precision: 2000,
     ferocity: 500,
     conditionDamage: 1200,
     expertise: 0,
     vitality: 1000
-  },
+  }),
   target: {
     armor: 2597,
     conditions: {
@@ -42,18 +43,19 @@ const simulate = createObservedProfessionSimulator(necromancerProfession, baseCo
 
 // Presentation derives whole points without mutating normalized resources or applying vitality traits twice.
 test('Necromancer displays actual life force while simulation and starting values remain percentages', () => {
-  for (const [specialization, vitality, battery, applied, expectedCapacity] of [
-    ['Core', 1000, false, false, 13256.28],
-    ['Scourge', 1000, true, false, 15907.536],
-    ['Scourge', 2000, false, false, 20156.28],
-    ['Harbinger', 1000, false, false, 14912.28],
-    ['Harbinger', 1240, false, true, 14912.28]
+  for (const [specialization, vitality, battery, expectedCapacity] of [
+    ['Core', 1000, false, 13256.28],
+    ['Scourge', 1000, true, 15907.536],
+    ['Scourge', 2000, false, 20156.28],
+    ['Harbinger', 1000, false, 14912.28]
   ]) {
     const state = simulate(specialization, [], {
       initialResource: 80,
-      stats: { vitality },
-      selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : [],
-      attributeProvenance: { professionStaticRulesApplied: applied }
+      attributeInputs: baseAttributeInputs({ vitality }),
+      selectedTraitIds: [
+        ...(battery ? [TRAIT.SOUL_BATTERY] : []),
+        ...(specialization === 'Harbinger' ? [TRAIT.ALCHEMIC_VIGOR] : [])
+      ]
     }).planningState.profession;
     const view = necromancerProfession.ui.resourceViews({ specialization, professionState: state })[0];
     assert.equal(view.maximum, Math.round(expectedCapacity), specialization);

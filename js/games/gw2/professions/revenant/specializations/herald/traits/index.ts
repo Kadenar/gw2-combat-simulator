@@ -1,12 +1,11 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
@@ -45,6 +44,17 @@ export const coreValue = defineTrait({
 
 /** Retain consumed facets while allowing each facet's bonus to be tuned independently. */
 export const draconicEcho = defineTrait({
+  // Echo's Nature bonus uses the normal cap, including retained facet windows.
+  attributes: (context) => ({
+    traitDurations: {
+      'Boon Duration': draconicEchoActive(context, ID.FACET_OF_NATURE)
+        ? balanceProfileNumber(
+            requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+            'boonDurationBonus'
+          )
+        : 0
+    }
+  }),
   triggers: [
     onTriggerPoint(facetConsumed, {
       run: (runtime, input: TriggerPointInput<typeof facetConsumed>) =>
@@ -108,7 +118,7 @@ export const draconicEcho = defineTrait({
 /** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
 export const elevatedCompassion = defineTrait({
   triggers: [onTriggerPoint(heraldUpkeepSettled, { run: syncCompassion })],
-  buildAttributes: traitAttributeEffects(HERALD_ELEVATED_COMPASSION_PROFILE_ID, [
+  attributes: traitAttributeEffects(HERALD_ELEVATED_COMPASSION_PROFILE_ID, [
     {
       kind: 'conversion',
       from: 'Power',
@@ -172,7 +182,7 @@ export const forcefulPersistence = defineTrait({
 
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 export const reinforcedPotency = defineTrait({
-  buildAttributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
+  attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ]),
   id: TRAIT.REINFORCED_POTENCY,
@@ -255,16 +265,6 @@ export const traitDefinitions = [
   reinforcedPotency,
   forcefulPersistence
 ];
-
-/** Supplies the capped Echo boon-duration contribution for active Nature. */
-export function draconicEchoBoonDuration(context: Gw2ModifierContext): number {
-  return hasTrait(context, TRAIT.DRACONIC_ECHO)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-        'boonDurationBonus'
-      )
-    : 0;
-}
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasActive: boolean): void {

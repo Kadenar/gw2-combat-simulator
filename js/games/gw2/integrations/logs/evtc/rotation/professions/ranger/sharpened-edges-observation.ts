@@ -1,10 +1,3 @@
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerPetDefinition } from '#gw2/professions/ranger/types.js';
-import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
@@ -13,9 +6,18 @@ import {
   hasSelectedTrait,
   isOutgoingStrike,
   matchingConditionApplications,
+  observationAttributeSets,
   primaryStrikeTargetForSources,
   traitBalanceProfile
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
+import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import type { RangerPetDefinition } from '#gw2/professions/ranger/types.js';
 
 export interface RangerSharpenedEdgesPetObservation {
   readonly address: bigint;
@@ -103,7 +105,12 @@ export function analyzeRangerSharpenedEdgesObservation(
     ).length;
 
   const playerCriticalHits = criticalHitsFor(playerAddress);
-  const staticPlayerDurationsMs = expectedConditionDurationsMs(baseDuration, 'Bleeding', config);
+  const staticPlayerDurationsMs = expectedConditionDurationsMs(
+    baseDuration,
+    'Bleeding',
+    config,
+    observationAttributeSets(config, catalog, rangerProfession.attributeContributions)
+  );
   // Light on Your Feet adds ten percentage points while active, so EVTC can
   // contain both static and buffed Sharpened Edges durations in one encounter.
   const playerMatchedDurationsMs = [
@@ -122,9 +129,9 @@ export function analyzeRangerSharpenedEdgesObservation(
   const pets = owned.flatMap(({ address, pet }) => {
     const criticalHits = criticalHitsFor(address);
     if (!criticalHits) return [];
-    const matchedDurationMs = expectedConditionDurationsMs(baseDuration, 'Bleeding', {
-      stats: { expertise: petExpertise(catalog, config, pet) }
-    })[0];
+    const matchedDurationMs = expectedConditionDurationsMs(baseDuration, 'Bleeding', {}, [
+      { expertise: petExpertise(catalog, config, pet) }
+    ])[0];
     return [
       {
         address,

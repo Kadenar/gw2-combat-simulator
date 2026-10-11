@@ -1,10 +1,11 @@
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';
+
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -60,21 +61,22 @@ test('Firebrand Imbued Haste follows the live duration pool and its expiry', () 
     timeline: createGw2TimelineIndex({ events: [event] }),
     runtime: { boons: new Map(), buffs: new Map() }
   };
-  const rule = firebrandModule.modifiers.modifierRules.find(
-    ({ id }) => id === 'guardian.firebrand.imbued-haste-attributes'
-  );
-  assert.equal(rule.amount({ catalog: guardianCatalog, ...context }, 'attributeConditionDamage', rule.parameters), 0);
+  const attributes = (time) =>
+    guardianProfession.runtimeFor({ specialization: 'Firebrand' }).modifyAttributes(
+      {
+        catalog: guardianCatalog,
+        ...context,
+        time,
+        config: { specialization: 'Firebrand', selectedTraitIds: [TRAIT.IMBUED_HASTE] }
+      },
+      { conditionDamage: 0 }
+    ).conditionDamage;
+  assert.equal(attributes(4), 0);
   recordBuffApplication(context.runtime.boons, event);
   recordBuffApplication(context.runtime.boons, event);
   // Two overlapping two-second applications last four seconds, beyond either individual expiry.
-  assert.equal(
-    rule.amount({ catalog: guardianCatalog, ...context, time: 6 }, 'attributeConditionDamage', rule.parameters),
-    250
-  );
-  assert.equal(
-    rule.amount({ catalog: guardianCatalog, ...context, time: 8 }, 'attributeConditionDamage', rule.parameters),
-    0
-  );
+  assert.equal(attributes(6), 250);
+  assert.equal(attributes(8), 0);
 });
 
 test('Righteous Instincts preserves stacked self Resolution without accepting other recipients', () => {

@@ -1,8 +1,8 @@
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -78,8 +78,8 @@ export const swindlersEquilibrium = defineTrait({
   id: TRAIT.SWINDLERS_EQUILIBRIUM,
   name: "Swindler's Equilibrium",
   balance: { attributeBonus: 120, weaponAttributeBonus: 240 },
-  buildAttributes(_common, { build, weaponSet, balanceContext }) {
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+  attributes({ loadout, weaponSet, balanceContext }) {
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const swindlersEquilibriumProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.SWINDLERS_EQUILIBRIUM);
     return {
       attributeEffects: [

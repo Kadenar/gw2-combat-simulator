@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -50,7 +51,7 @@ function run(family, rotation = [combat, wait(3000)], { traitTriggers = true, ..
       selectedTraitIds: [],
       initialResource: 0,
       boons: {},
-      stats: { power: 1000, precision: 1000, vitality: 1000 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
       target: { armor: 2597, health: 0, conditions: {} },
       ...overrides
     },

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -20,7 +21,7 @@ test('Fragmentation adds 25 percentage points to every F1 strike and respects th
           specialization,
           initialResource: 3,
           selectedTraitIds: enabled ? selectedTraitIds : [],
-          stats: { precision },
+          attributeInputs: baseAttributeInputs({ precision }),
           boons: { fury: false }
         });
         const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skill);
@@ -45,7 +46,7 @@ test('Fragmentation applies three seconds of Cripple per F2 impact only while se
         specialization,
         initialResource: 3,
         selectedTraitIds: enabled ? selectedTraitIds : [],
-        stats: { expertise: 0 },
+        attributeInputs: baseAttributeInputs({ expertise: 0 }),
         target: { conditions: {} }
       });
       const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === skill);
@@ -70,7 +71,7 @@ test('Fragmentation excludes afterimage critical chance and Cripple', () => {
       specialization: 'Troubadour',
       initialResource: 3,
       selectedTraitIds: [...selectedTraitIds, TRAIT.CALL_AND_RESPONSE],
-      stats: { precision: 1000 },
+      attributeInputs: baseAttributeInputs({ precision: 1000 }),
       boons: { fury: false }
     });
     const afterimages = result.resolvedEvents.filter(
@@ -88,7 +89,7 @@ test('Fragmentation adds provisional three-second Weakness to Drum without dupli
       specialization: 'Troubadour',
       initialResource: 3,
       selectedTraitIds: [TRAIT.SYNCOPATE, TRAIT.CALL_AND_RESPONSE, ...(enabled ? selectedTraitIds : [])],
-      stats: { expertise: 0 },
+      attributeInputs: baseAttributeInputs({ expertise: 0 }),
       target: { conditions: {} }
     });
     const hit = result.events.find(

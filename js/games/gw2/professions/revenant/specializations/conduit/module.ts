@@ -3,7 +3,7 @@ import { createPublicStateProjector } from '#gw2/platform/profession-definition/
 import { CONDUIT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { conduitModifiers } from '#gw2/professions/revenant/specializations/conduit/modifiers.js';
+import { conduitEntityModifierRules } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { conduitUi } from '#gw2/professions/revenant/specializations/conduit/presentation.js';
 import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/index.js';
@@ -19,7 +19,8 @@ export const conduitModule = defineNativeModule({
     balanceProfiles: CONDUIT_BALANCE_PROFILES
   }),
   state: { create: conduitState.create, project: createPublicStateProjector(CONDUIT_PUBLIC_STATE_PROJECTION) },
-  modifiers: conduitModifiers,
+  // Copy the entity declarations at registration so module composition owns its rule list.
+  modifiers: Object.freeze([...conduitEntityModifierRules]),
   hooks: conduitHooks,
   presentation: conduitUi
 });

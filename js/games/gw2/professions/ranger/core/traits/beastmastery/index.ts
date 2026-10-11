@@ -1,14 +1,12 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -35,7 +33,6 @@ import {
 import { activeBuff, beastmodeActive, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type {
-  RangerBuild,
   RangerResolverContext,
   RangerRuntime,
   RangerRuntimeState,
@@ -107,6 +104,23 @@ export const goForTheThroat = defineTrait({
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT), 'damageMultiplier'),
       when: (context) => rangerPetEvent(context) && activeBuff(context, 'lesser-sic-em-pet')
+    },
+    {
+      // Accepted player grants survive deselection and unmerging, within their Soulbeast owner.
+      order: 103,
+      requiresSelection: false,
+      id: 'ranger.lesser-sic-em-player',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT),
+          'playerDamageMultiplier'
+        ),
+      when: (context) =>
+        (context.runtime
+          ? readProfessionSpecializationState(context.runtime.profession, 'Soulbeast') != null
+          : context.config?.specialization === 'Soulbeast') && activeBuff(context, 'lesser-sic-em')
     }
   ]
 });
@@ -127,9 +141,9 @@ export const honedAxes = defineTrait({
       multiplier: { profile: TRAIT.HONED_AXES, field: 'rechargeMultiplier' }
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+  attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const profile = requireBalanceProfileFromContext(profileContext, TRAIT.HONED_AXES);
-    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
       attributeEffects: [
         {
@@ -159,7 +173,7 @@ export const packAlpha = defineTrait({
       multiplier: { profile: TRAIT.PACK_ALPHA, field: 'rechargeMultiplier' }
     }
   ],
-  buildAttributes: (_common, { balanceContext, build }) => ({
+  attributes: ({ balanceContext, loadout, runtime }) => ({
     attributeEffects: ['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality'].map((to) => ({
       kind: 'flat' as const,
       to,
@@ -168,7 +182,7 @@ export const packAlpha = defineTrait({
         'attributeBonus'
       ),
       feedsConversions: false,
-      enabled: (build as RangerBuild).specializations?.some((s) => s.name === 'Soulbeast')
+      enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
     }))
   })
 });
@@ -180,7 +194,7 @@ export const petsProwess = defineTrait({
   balance: {
     attributeBonus: 300
   },
-  buildAttributes: (_common, { balanceContext: profileContext, build }) => {
+  attributes: ({ balanceContext: profileContext, loadout, runtime }) => {
     const profile = requireBalanceProfileFromContext(profileContext, TRAIT.PETS_PROWESS);
     return {
       attributeEffects: [
@@ -189,7 +203,7 @@ export const petsProwess = defineTrait({
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false,
-          enabled: (build as RangerBuild).specializations?.some((s) => s.name === 'Soulbeast')
+          enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
         }
       ]
     };
@@ -270,6 +284,16 @@ export const loudWhistle = defineTrait({
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'damageMultiplier'),
       when: (context) => rangerPetEvent(context)
+    },
+    {
+      // The selected Core trait grants its player bonus only during active Soulbeast merging.
+      order: 100,
+      id: 'ranger.loud-whistle-player',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'playerDamageMultiplier'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context)
     }
   ]
 });
@@ -310,29 +334,6 @@ export const bestialRageControl = compileProfessionRules<RangerRuntimeState>({
     }
   ]
 }).reactions!['control.resolved']!;
-
-/** Installs the Core trait at Soulbeast's existing modifier boundary. */
-export const loudWhistleMergedModifier: Gw2ModifierRule = {
-  order: 100,
-  id: 'ranger.loud-whistle-player',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'playerDamageMultiplier'),
-  when: (context) =>
-    isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context) && hasTrait(context, TRAIT.LOUD_WHISTLE)
-};
-
-/** Installs the Core trait at Soulbeast's existing modifier boundary. */
-export const goForTheThroatMergedModifier: Gw2ModifierRule = {
-  order: 103,
-  id: 'ranger.lesser-sic-em-player',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT), 'playerDamageMultiplier'),
-  when: (context) => activeBuff(context, 'lesser-sic-em')
-};
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.

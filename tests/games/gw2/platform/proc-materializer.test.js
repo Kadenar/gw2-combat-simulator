@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
@@ -105,7 +106,11 @@ test('Blight procs supply condition-dependent readiness and expire without recur
       }
     }
   });
-  const config = { stats: { power: 1000, precision: 4000 }, sigilSets: [{ names: ['Blight'] }], relic: 'Shackles' };
+  const config = {
+    attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000 }),
+    sigilSets: [{ names: ['Blight'] }],
+    relic: 'Shackles'
+  };
   const result = simulateGw2({ profession, config, rotation: [{ type: 'wait', durationMs: 5000 }] });
   assert.deepEqual(observed, [true, false]);
   // Immediate sigil applications enter live state one stack at a time before later readiness checks.
@@ -155,7 +160,7 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
       const equippedSet = startsEquipped ? startingWeaponSet : otherSet;
       const config = {
         startingWeaponSet,
-        stats: { power: 1000, precision: 4000 },
+        attributeInputs: baseAttributeInputs({ power: 1000, precision: 4000 }),
         sigilSets: [1, 2].map((set) => ({ names: set === equippedSet ? ['Earth'] : [] }))
       };
       const rotation = [{ type: 'wait', durationMs: 1000 }];
@@ -205,7 +210,7 @@ test('computed combat boundaries admit opening procs but exclude the preceding m
       ]
     })
   });
-  const config = { stats: { precision: 4000 }, sigilSets: [{ names: ['Air'] }] };
+  const config = { attributeInputs: baseAttributeInputs({ precision: 4000 }), sigilSets: [{ names: ['Air'] }] };
   const rotation = [{ type: 'wait', durationMs: 100 }, 'Strike', { type: 'combat-start', concurrentOffsetMs: 200 }];
   const scheduled = simulateGw2({ profession, config, rotation: rotation });
   assert.equal(scheduled.combatStartTime, 0.32);
@@ -255,7 +260,7 @@ test('missed attacks leave consecutive swaps out of combat', () => {
 test('critical facts follow weapon swaps without proc sigils', () => {
   const defaults = defaultSimulationConfig();
   const stats = {
-    ...defaults.stats,
+    ...defaults.attributeInputs.weaponSets[0].commonTotals,
     precision: 895
   };
   const result = simulateMesmer(
@@ -265,13 +270,16 @@ test('critical facts follow weapon swaps without proc sigils', () => {
       weaponSet2Primary: 'Dagger',
       weaponSet2Secondary: 'Sword',
       stats,
-      weaponSetStats: [
-        stats,
+      attributeInputs: baseAttributeInputs(
+        { ...{}, ...stats },
         {
-          ...stats,
-          precision: 3100
+          ...{},
+          ...{
+            ...stats,
+            precision: 3100
+          }
         }
-      ],
+      ),
       boons: {
         ...defaults.boons,
         fury: false
@@ -297,7 +305,7 @@ test('sigils block a hit at the exact internal-cooldown boundary', () => {
       'Flying Cutter'
     ],
     defaultSimulationConfig({
-      stats: { ...defaults.stats, precision: 4000 },
+      attributeInputs: baseAttributeInputs({ ...defaults.attributeInputs.weaponSets[0].commonTotals, precision: 4000 }),
       sigilSets: [{ names: ['Torment'], strike: 1, condition: 1 }, { names: [] }]
     })
   );

@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -61,7 +62,11 @@ test('Mischief resolves one critical-capable snowball and two seconds of blind p
     const result = simulateMesmer(
       ['__combat_start', 'Swap Weapons', { name: '__wait', waitMs: 100 }],
       defaultSimulationConfig({
-        stats: { ...defaults.stats, precision, expertise: 0 },
+        attributeInputs: baseAttributeInputs({
+          ...defaults.attributeInputs.weaponSets[0].commonTotals,
+          precision,
+          expertise: 0
+        }),
         boons: { ...defaults.boons, fury: false },
         sigilSets: [{ names: [] }, { names: ['Mischief'] }]
       })
@@ -122,10 +127,10 @@ test('Thief relic progresses on individual hits instead of an aggregate hit', ()
     ['Unstable Bladestorm', { name: '__wait', waitMs: 4000 }],
     defaultSimulationConfig({
       relic: 'Thief',
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 3100
-      },
+      }),
       boons: {
         ...defaults.boons,
         fury: true
@@ -200,10 +205,10 @@ test('critical sigils enqueue and resolve their own proc event', () => {
   const result = simulateMesmer(
     ['Bladecall'],
     defaultSimulationConfig({
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 3100
-      },
+      }),
       boons: {
         ...defaults.boons,
         fury: true
@@ -230,10 +235,10 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   }
 
   const config = defaultSimulationConfig({
-    stats: {
-      ...defaults.stats,
+    attributeInputs: baseAttributeInputs({
+      ...defaults.attributeInputs.weaponSets[0].commonTotals,
       precision: 1945
-    },
+    }),
     boons: {
       ...defaults.boons,
       fury: false
@@ -295,10 +300,10 @@ test('critical-strike food consumes seeded crit and proc outcomes in stochastic 
     rotation,
     defaultSimulationConfig({
       food: 'Cilantro Lime Sous-Vide Steak',
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 1945
-      },
+      }),
       boons: {
         ...defaults.boons,
         fury: false
@@ -334,10 +339,10 @@ test('critical-strike food procs remain unmodified without profession effects', 
     ['Flying Cutter', { name: '__wait', waitMs: 2000 }, 'Flying Cutter'],
     defaultSimulationConfig({
       food: 'Cilantro Lime Sous-Vide Steak',
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 3100
-      }
+      })
     })
   );
   const nourishment = result.resolvedEvents.filter(
@@ -354,10 +359,10 @@ test('critical-strike food procs remain unmodified without profession effects', 
     ['Flying Cutter', { name: '__wait', waitMs: 2000 }, 'Flying Cutter'],
     defaultSimulationConfig({
       food: 'Cilantro Lime Sous-Vide Steak',
-      stats: {
-        ...defaults.stats,
+      attributeInputs: baseAttributeInputs({
+        ...defaults.attributeInputs.weaponSets[0].commonTotals,
         precision: 3100
-      },
+      }),
       target: {
         ...defaults.target,
         conditions: {
@@ -411,7 +416,7 @@ test('critical weapon-swap sigil strikes can trigger critical-hit sigils', () =>
       secondaryWeapon: 'Sword',
       weaponSet2Primary: 'Spear',
       weaponSet2Secondary: '',
-      stats: { ...defaults.stats, precision: 4000 },
+      attributeInputs: baseAttributeInputs({ ...defaults.attributeInputs.weaponSets[0].commonTotals, precision: 4000 }),
       sigilSets: [
         { names: [], strike: 1, condition: 1 },
         { names: ['Geomancy', 'Torment'], strike: 1, condition: 1 }
@@ -442,10 +447,10 @@ test('Severance affects strikes after its control trigger', () => {
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
     initialResource: 0,
-    stats: {
-      ...defaults.stats,
+    attributeInputs: baseAttributeInputs({
+      ...defaults.attributeInputs.weaponSets[0].commonTotals,
       precision: 1000
-    },
+    }),
     boons: {
       ...defaults.boons,
       fury: false
@@ -526,7 +531,7 @@ test('weapon swaps activate only the equipped set duration sigils', () => {
       secondaryWeapon: 'Sword',
       weaponSet2Primary: 'Scepter',
       weaponSet2Secondary: 'Sword',
-      stats: { expertise: 0 },
+      attributeInputs: baseAttributeInputs({ expertise: 0 }),
       sigilSets: [
         {
           strike: 1,
@@ -741,7 +746,7 @@ test('sigil rows report their recorded activations for hit counts and averages',
   const critical = simulateMesmer(
     ['Flying Cutter', { name: '__wait', waitMs: 5100 }, 'Flying Cutter', { name: '__wait', waitMs: 6000 }],
     defaultSimulationConfig({
-      stats: { ...defaults.stats, precision: 4000 },
+      attributeInputs: baseAttributeInputs({ ...defaults.attributeInputs.weaponSets[0].commonTotals, precision: 4000 }),
       sigilSets: [{ names: ['Earth', 'Torment'], strike: 1, condition: 1 }, { names: [] }]
     })
   );
@@ -848,10 +853,10 @@ test('permanent target conditions satisfy condition-dependent relic triggers', (
 test('Relic of Mistburn grants ten percent critical chance at ten Might', () => {
   const config = defaultSimulationConfig({
     relic: 'Mistburn',
-    stats: {
+    attributeInputs: baseAttributeInputs({
       ...defaultSimulationConfig().stats,
       precision: 1000
-    },
+    }),
     modifiers: { strike: 1, condition: 1 }
   });
   const resultAt = (might) =>
@@ -876,10 +881,10 @@ test('Relic of Aristocracy extends conditions after weakness or vulnerability', 
     initialResource: 0,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
-    stats: {
+    attributeInputs: baseAttributeInputs({
       ...defaultSimulationConfig().stats,
       expertise: 0
-    },
+    }),
     modifiers: { strike: 1, condition: 1 }
   });
   const result = simulateMesmer(

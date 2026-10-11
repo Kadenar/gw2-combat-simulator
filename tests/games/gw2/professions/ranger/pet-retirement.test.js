@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
@@ -25,7 +26,7 @@ for (const output of ['detailed', 'score']) {
         specialization: 'Druid',
         selectedPet: 'Jacaranda',
         selectedPet2: 'Pig',
-        stats: { expertise: 750 },
+        attributeInputs: baseAttributeInputs({ expertise: 750 }),
         selectedTraitIds: [TRAIT.BLOOD_MOON]
       },
       {
@@ -236,7 +237,7 @@ test('Poisonous Cloud keeps ranger-owned strikes and poison after its caster is 
     selectedPet2: 'Pig',
     initialUntamedState: 'Ranger',
     selectedTraitIds: [TRAIT.SHARPENED_EDGES],
-    stats: { power: 2000, precision: 4000, conditionDamage: 1000 }
+    attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000, conditionDamage: 1000 })
   });
   assert.deepEqual(result.warnings, []);
   const swappedAt = result.events.find((event) => event.type === 'ranger.pet-swapped').at;

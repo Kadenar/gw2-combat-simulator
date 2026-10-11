@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -11,7 +12,7 @@ test('Phantasmal Defender applies a three-second taunt and its defender strike f
     defaultSimulationConfig({
       specialization: 'Core',
       selectedTraitIds: [],
-      stats: { expertise: 0 },
+      attributeInputs: baseAttributeInputs({ expertise: 0 }),
       target: { conditions: {} }
     })
   );

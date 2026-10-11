@@ -63,6 +63,8 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
   };
 
   const stages = new Set(hooks.flatMap((hook) => Object.keys(hook.reactions ?? {}))) as Set<Gw2ResolverStage>;
+  // Compile per-event subscribers once so unrelated trait hooks add no work to each event dispatch.
+  const prepareEvents = hooks.flatMap((hook) => (hook.prepareEvent ? [hook.prepareEvent] : []));
   const composed = {
     traitTriggers: hooks.flatMap((hook) => hook.traitTriggers ?? []),
     rechargeRules: hooks.flatMap((hook) => hook.rechargeRules ?? []),
@@ -143,8 +145,8 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       return owner;
     },
     prepareEvent(context, event) {
-      for (const hook of hooks) {
-        const prepared = hook.prepareEvent ? hook.prepareEvent(context, event) : event;
+      for (const prepare of prepareEvents) {
+        const prepared = prepare(context, event);
         if (prepared === null) return null;
         event = prepared;
       }
@@ -174,18 +176,21 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
     sideEffectHandlers: merged('sideEffectHandlers'),
     eventHandlers: merged('eventHandlers'),
     reactions: Object.fromEntries(
-      [...stages].map((stage) => [
-        stage,
-        (context: MechanicContext<State, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
-          let updates: Record<string, unknown> | undefined;
-          for (const hook of hooks) {
-            const result = hook.reactions?.[stage]?.(context, updates ? { ...event, ...updates } : event, details);
-            if (result) updates = { ...updates, ...result };
-          }
+      [...stages].map((stage) => {
+        const handlers = hooks.flatMap((hook) => (hook.reactions?.[stage] ? [hook.reactions[stage]] : []));
+        return [
+          stage,
+          (context: MechanicContext<State, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
+            let updates: Record<string, unknown> | undefined;
+            for (const handler of handlers) {
+              const result = handler(context, updates ? { ...event, ...updates } : event, details);
+              if (result) updates = { ...updates, ...result };
+            }
 
-          return updates;
-        }
-      ])
+            return updates;
+          }
+        ];
+      })
     ),
     rechargeWork(context, skill, work) {
       // Core and specialization modifiers compose before the runtime reserves the selected work.

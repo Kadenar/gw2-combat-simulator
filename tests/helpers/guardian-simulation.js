@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
@@ -6,6 +7,6 @@ export const runGuardian = createProfessionSimulator(guardianProfession, () => (
   specialization: 'Core',
   primaryWeapon: 'Scepter',
   selectedTraitIds: [],
-  stats: { power: 2000, precision: 1000, conditionDamage: 1000 },
+  attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, conditionDamage: 1000 }),
   target: { armor: 2597 }
 }));

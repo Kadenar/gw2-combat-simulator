@@ -1,3 +1,4 @@
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -49,7 +50,7 @@ test('recalled Salvo receives live Revealed Training power without empowering th
             ...axeConfig,
             specialization,
             selectedTraitIds,
-            stats: { power: 2000, precision: 1000, criticalChanceBonus: -100 }
+            attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, criticalChanceBonus: -100 })
           },
           {
             initialize(runtime) {
