@@ -99,6 +99,12 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       );
     return { ready: true };
   },
+  resolveCastSkill(runtime, skill) {
+    // Select the follow-up cutoff before cancellation checks and charge consumption.
+    if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id) || conduitState.from(runtime).beguilingHazeCharges <= 0) return skill;
+    const followUp = requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp);
+    return { ...skill, interruptCommitMs: balanceProfileNumber(followUp, 'interruptCommitMs') };
+  },
   castDurationMs(runtime, skill, durationMs) {
     if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id)) return durationMs;
     const specialization = runtime.profession.specialization;
@@ -107,8 +113,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       beguilingHazeCastDuration(
         durationMs / 1000,
         (specialization.state.beguilingHazeCharges || 0) > 0,
-        requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp),
-        requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeMainCastExtension)
+        requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp)
       ) * 1000
     );
   },

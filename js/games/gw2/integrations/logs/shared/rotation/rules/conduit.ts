@@ -7,7 +7,29 @@ import {
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+
+/** Align combat within a clipped opening teleport using the main-minus-follow-up offset, without adding inputs. */
+export function alignConduitHazeCombatOffset<Action extends CompositeAction & { readonly replayDurationMs?: number }>(
+  actions: readonly Action[],
+  catalog: RotationCatalog | null,
+  combatStart: number
+): readonly Action[] {
+  const opener = actions.find((action) => action.end > action.start);
+  if (!opener || opener.rawSkillId !== 77047 || opener.start >= combatStart || opener.end < combatStart) return actions;
+  const skill = catalogSkillById(catalog, 77141);
+  if (!skill) return actions;
+  const followUp = requireBalanceProfileFromContext({ catalog }, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
+  const followUpMs = balanceProfileNumber(followUp, 'castTimeMs');
+  if (opener.replayDurationMs !== followUpMs) return actions;
+  const mainMs = referenceCastTimeMs(skill);
+  const offsetMs = mainMs - followUpMs;
+  if (!(offsetMs > 0)) return actions;
+  // Keep the recorded end and combat instant fixed; only their offset from the complete main input changes.
+  return actions.map((action) =>
+    action === opener ? { ...action, start: action.start - offsetMs, replayDurationMs: mainMs } : action
+  );
+}
 
 /** Combines Haze's launch and teleport and budgets the simulator's full main/follow-up cast without duplicate waits. */
 export function normalizeConduitHazeActions<Action extends CompositeAction>(
@@ -31,12 +53,8 @@ export function normalizeConduitHazeActions<Action extends CompositeAction>(
   );
   const skill = catalogSkillById(catalog, 77141);
   if (!skill || !merged.some((action) => action.rawSkillId === 77141 || action.rawSkillId === 77047)) return merged;
-  // A discovered Haze skill requires both selected timing profiles for replay duration.
+  // Follow-ups use their selected duration rather than the main skill's full cast.
   const followUp = requireBalanceProfileFromContext({ catalog }, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
-  const extension = requireBalanceProfileFromContext(
-    { catalog },
-    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension
-  );
 
   return merged.map((action) =>
     [77141, 77047].includes(action.rawSkillId)
@@ -46,8 +64,7 @@ export function normalizeConduitHazeActions<Action extends CompositeAction>(
             beguilingHazeCastDuration(
               referenceCastTimeMs(skill) / 1000,
               action.rawSkillId === 77047 && !mainCasts.has(action),
-              followUp,
-              extension
+              followUp
             ) * 1000
         }
       : action

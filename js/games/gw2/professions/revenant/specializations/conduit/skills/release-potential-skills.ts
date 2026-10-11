@@ -128,7 +128,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.8,
         hits: 1,
         name: 'Release Potential: Dervish',
-        weaponStrengthProfileId: 'weapon.sword',
+        weaponStrengthProfileId: 'nonweapon.profession-mechanic',
         actorType: 'player'
       },
       {

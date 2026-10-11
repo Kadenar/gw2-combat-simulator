@@ -55,6 +55,7 @@ import {
 import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import { restoreConduitHazeOpener } from '#gw2/integrations/logs/evtc/rotation/professions/conduit.js';
 import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import type { ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import type { RotationReconstructionBase } from '#gw2/integrations/logs/shared/rotation/model.js';
@@ -338,8 +339,13 @@ function reconstructWithProfile(
     ...professionContext,
     recordedActions: sourceActions.filter((a) => a.castOrigin == null || a.castOrigin === 'skill')
   });
-  const resolved = applyObservedInterruptTiming(
+  const completeOpener = restoreConduitHazeOpener(
+    { ...professionContext, recordedActions: sourceActions },
     normalized,
+    combatStart
+  );
+  const resolved = applyObservedInterruptTiming(
+    completeOpener,
     catalog,
     profile,
     createStrikePacketMatcher(professionContext)

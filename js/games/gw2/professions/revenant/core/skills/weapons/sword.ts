@@ -120,6 +120,9 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.DEATHSTRIKE_ID_28625]: {
+    // The second blow is automatic; retain its damage identity without offering another weapon input.
+    type: 'Proc',
+    simulatorExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

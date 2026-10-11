@@ -694,7 +694,7 @@ test('Impossible Odds cannot chain from Lesser Enchanted Daggers procs', () => {
 test('Release Potential strength is independent of the equipped weapon set', () => {
   // The conjured scythe and Assassin shockwaves retain their own strength profiles when weapon sets change.
   for (const [legend, name, strength] of [
-    [LEGEND.ENTITY, 'Release Potential: Dervish', 1000],
+    [LEGEND.ENTITY, 'Release Potential: Dervish', 1100],
     [LEGEND.ASSASSIN, 'Release Potential: Assassin', 1100]
   ]) {
     for (const primaryWeapon of ['Sword', 'Greatsword']) {

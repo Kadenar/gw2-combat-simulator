@@ -1031,7 +1031,21 @@ test('Claw and Peitha follow player modifier ownership for direct and triggered 
   // Player follow-ups inherit the buff, while independently owned summons do not.
   assert.equal(relicStrikeMultiplier(context, ownedEffect), 1.1);
   assert.equal(relicStrikeMultiplier(context, { ...ownedEffect, ownerActorType: 'summon' }), 1);
-  assert.equal(relicStrikeMultiplier(context, { ...player, at: 4 }), 1);
+  // Strikes share the final Peitha removal boundary, but cannot use it afterward.
+  assert.equal(relicStrikeMultiplier(context, { ...player, at: 4 }), 1.1);
+  assert.equal(relicStrikeMultiplier(context, { ...player, at: 4.000001 }), 1);
+  // A later refresh must preserve queries for the earlier grant and the inactive gap between them.
+  recordBuffApplication(context.buffs, {
+    type: 'buff',
+    kind: 'relic-peitha',
+    at: 8,
+    duration: 4,
+    stacks: 1,
+    resolvedAudience: gw2BoonApplicationRecipients({}, { audience: { recipients: 'self' } })
+  });
+  assert.equal(relicStrikeMultiplier(context, { ...player, at: 12 }), 1.1);
+  assert.equal(relicStrikeMultiplier(context, { ...player, at: 6 }), 1);
+  assert.equal(relicStrikeMultiplier(context, { ...player, at: 2 }), 1.1);
 });
 
 test('Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD', () => {

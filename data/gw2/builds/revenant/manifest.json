@@ -264,25 +264,51 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 42223,
+        "benchmarkDps": 43288,
         "upToDate": true,
-        "benchmarkApm": 83.1,
+        "benchmarkApm": 83.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47120, "phase": 47120 },
-          "80-60": { "cumulative": 42290, "phase": 38345 },
-          "60-40": { "cumulative": 40928, "phase": 38509 },
-          "40-20": { "cumulative": 41601, "phase": 43770 },
-          "20-0": { "cumulative": 42223, "phase": 42223 }
+          "100-80": { "cumulative": 49864, "phase": 49864 },
+          "80-60": { "cumulative": 43485, "phase": 38751 },
+          "60-40": { "cumulative": 41997, "phase": 39134 },
+          "40-20": { "cumulative": 42745, "phase": 45184 },
+          "20-0": { "cumulative": 43288, "phase": 43288 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42090,
+          "benchmarkDps": 43171,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 47082, "phase": 47082 },
-            "80-60": { "cumulative": 42078, "phase": 38046 },
-            "60-40": { "cumulative": 40974, "phase": 38973 },
-            "40-20": { "cumulative": 41669, "phase": 43996 },
-            "20-0": { "cumulative": 42090, "phase": 42090 }
+            "100-80": { "cumulative": 49807, "phase": 49807 },
+            "80-60": { "cumulative": 43152, "phase": 38213 },
+            "60-40": { "cumulative": 42039, "phase": 39896 },
+            "40-20": { "cumulative": 42727, "phase": 44976 },
+            "20-0": { "cumulative": 43171, "phase": 43171 }
+          }
+        }
+      },
+      {
+        "label": "Power Quickness Staff - Sword/Sword",
+        "build": "data/gw2/builds/revenant/b-power-quick-conduit-staff-sword-sword.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-quick-conduit-staff-sword-sword-bench.json",
+        "benchmarkDps": 35517,
+        "upToDate": true,
+        "benchmarkApm": 58.5,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 41925, "phase": 41925 },
+          "80-60": { "cumulative": 35722, "phase": 31110 },
+          "60-40": { "cumulative": 34760, "phase": 32987 },
+          "40-20": { "cumulative": 35017, "phase": 35814 },
+          "20-0": { "cumulative": 35517, "phase": 35517 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 36559,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 42704, "phase": 42704 },
+            "80-60": { "cumulative": 36314, "phase": 31557 },
+            "60-40": { "cumulative": 35731, "phase": 34610 },
+            "40-20": { "cumulative": 36287, "phase": 38073 },
+            "20-0": { "cumulative": 36559, "phase": 37688 }
           }
         }
       },

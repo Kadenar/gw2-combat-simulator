@@ -86,6 +86,8 @@ effectNames.set('forerunner-of-death', 'Forerunner of Death');
 effectNames.set('reavers-curse', "Reaver's Curse");
 effectNames.set('razorclaws-rage', "Razorclaw's Rage");
 effectNames.set('battle-scars', 'Battle Scars');
+// Resolve the form-window buff to Cosmic Wisdom's display name and skill icon.
+effectNames.set('cosmic-wisdom', 'Cosmic Wisdom');
 effectNames.set('peak-performance', 'Peak Performance');
 effectNames.set('berserkers-power', "Berserker's Power");
 // Cartridge buff IDs resolve to their skill-icon entries for both charge tiers.

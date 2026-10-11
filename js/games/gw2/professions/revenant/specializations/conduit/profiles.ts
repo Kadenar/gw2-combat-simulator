@@ -2,7 +2,6 @@ import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
   affinity: 'revenant.conduit.affinity',
-  beguilingHazeMainCastExtension: 'revenant.conduit.beguiling-haze-main-cast-extension',
   beguilingHazeFollowUp: 'revenant.conduit.beguiling-haze-follow-up',
   lingeringDetermination: 'revenant.conduit.lingering-determination',
   enhancedEmbodiment: 'revenant.conduit.enhanced-embodiment',
@@ -28,23 +27,19 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: []
   },
   {
-    id: CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension,
-    name: 'Beguiling Haze (Main Cast Extension)',
-    profileKind: 'skill-variant',
-    castTimeMs: 360,
-    effects: []
-  },
-  {
     id: CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
     name: 'Beguiling Haze (Follow-Up)',
     profileKind: 'skill-variant',
     castTimeMs: 240,
+    // Follow-up impacts remain committed when their remaining animation is interrupted.
+    interruptCommitMs: 200,
     maximumStacks: 2,
     effects: [
       {
         type: 'strike',
         name: 'Beguiling Haze — Follow-Up',
         actorType: 'player',
+        persistsAfterInterrupt: true,
         ticks: [{ atMs: 200, coefficient: 0.6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'

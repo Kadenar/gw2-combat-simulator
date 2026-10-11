@@ -151,7 +151,8 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
   shadowstepSkill: true,
   peithaImpactAnchor: 'castEnd',
   peithaImpactDelayMs: 280,
-  castTimeMs: 200,
+  // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
+  castTimeMs: 520,
   cooldown: 10,
   ammoCastLockout: 0,
   ammo: 1,
@@ -162,7 +163,7 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
       type: 'strike',
       name: 'Beguiling Haze',
       actorType: 'player',
-      ticks: [{ atMs: 520, coefficient: 2.2 }],
+      ticks: [{ atMs: 480, coefficient: 2.2 }],
       timingAnchor: 'castStart',
       timingScale: 'fixed'
     }

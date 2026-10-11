@@ -1,15 +1,11 @@
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 
-/** Shares main-cast wind-up and follow-up timing between simulation and combat-log replay. */
+/** Use the complete main cast or the charged follow-up duration in both simulation and import. */
 export function beguilingHazeCastDuration(
   duration: number,
   followUp: boolean,
-  followUpProfile: BalanceProfile,
-  mainExtensionProfile: BalanceProfile
+  followUpProfile: BalanceProfile
 ): number {
-  const profile = followUp ? followUpProfile : mainExtensionProfile;
-  // Both cast variants have authored timing; zero remains a valid instant duration.
-  const variantDuration = balanceProfileNumber(profile, 'castTimeMs') / 1000;
-  return followUp ? variantDuration : duration + variantDuration;
+  return followUp ? balanceProfileNumber(followUpProfile, 'castTimeMs') / 1000 : duration;
 }

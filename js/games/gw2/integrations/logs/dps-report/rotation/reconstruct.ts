@@ -1,5 +1,6 @@
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
+import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
 import {
   isMushroomKingsBlessing,
   isWeaponStow,
@@ -186,7 +187,8 @@ function observedInterruptMs(action: ResolvedLogAction): number | null {
   const sourceDurationMs = action.end - action.start;
   // Match EVTC imports by snapping channel and atomic cancellations to the same action grid.
   const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
-  const runtimeDurationMs = referenceCastTimeMs(action.skill);
+  // A completed follow-up must not become a cancellation of its longer main skill.
+  const runtimeDurationMs = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
@@ -194,7 +196,7 @@ function observedInterruptMs(action: ResolvedLogAction): number | null {
 function replayActionEnd(action: ResolvedLogAction, completeReportedAftercast = false): number {
   if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
   if (retainsReplayCastLockout(action.skill, observedInterruptMs(action) ?? action.end - action.start)) {
-    const runtimeDuration = referenceCastTimeMs(action.skill);
+    const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
     return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
   }
 
@@ -202,7 +204,7 @@ function replayActionEnd(action: ResolvedLogAction, completeReportedAftercast = 
   const interruptMs = observedInterruptMs(action);
   if (interruptMs != null) return action.start + interruptMs;
   if (!completeReportedAftercast) return action.end;
-  const runtimeDuration = referenceCastTimeMs(action.skill);
+  const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
 }
 
@@ -321,8 +323,12 @@ export function reconstructDpsReportWithProfile(
     recordedActions: recorded,
     professionConfig: options.professionConfig
   });
+  const combatAligned =
+    profile.specializationId === 'conduit'
+      ? alignConduitHazeCombatOffset(professionActions, catalog, phase.start)
+      : professionActions;
   const resolved = applyCastInterrupts(
-    professionActions
+    combatAligned
       .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
       .sort(compareResolvedActions)
       // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.

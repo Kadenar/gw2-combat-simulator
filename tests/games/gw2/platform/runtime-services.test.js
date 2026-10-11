@@ -728,10 +728,11 @@ test('Peitha effects wait for impact and cannot leak beyond the observation wind
   assert.equal(buff.duration, 4);
 });
 
-// Pending refreshes cannot replace live buff state; only landed applications change damage and observed expiry.
-test('Peitha shares its activation cooldown and retains ordinary buff lifetimes across delayed refreshes', () => {
-  const times = [0, 0.23, 0.24, 4.001, 4.23, 4.24, 5.039999, 5.04, 9.039999, 9.04];
-  const active = [false, false, true, true, true, false, false, true, true, false];
+// Landed grants amplify strikes through removal; pending refreshes cannot fill the gap after expiry.
+test('Peitha preserves expiry-boundary damage without extending buff lifetimes or applying pending refreshes', () => {
+  const times = [0, 0.23, 0.24, 4.001, 4.23, 4.24, 4.240001, 5.039999, 5.04, 9.039999, 9.04, 9.040001];
+  const active = [false, false, true, true, true, false, false, false, true, true, false, false];
+  const amplified = [false, false, true, true, true, true, false, false, true, true, true, false];
   const profession = native({
     initialize(runtime) {
       runtime.effects.emit({ kind: 'packet', event: { ...hit(0.24), priority: -10 } });
@@ -774,7 +775,7 @@ test('Peitha shares its activation cooldown and retains ordinary buff lifetimes 
     );
     assert.deepEqual(
       hits.map((event) => event.damage > hits[0].damage),
-      active
+      amplified
     );
     const track = result.effectReport.tracks.find((entry) => entry.kind === 'relic-peitha');
     assert.ok(track);
