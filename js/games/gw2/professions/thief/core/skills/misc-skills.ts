@@ -9,19 +9,28 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    // Three one-second pulses retain their own condition durations and patchable payloads.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
+        name: 'Bleeding',
         condition: 'Bleeding',
         stacks: 1,
         duration: 5,
+        applications: 3,
+        atMs: 800,
+        intervalMs: 1000,
         actorType: 'player'
       },
       {
         type: 'condition',
+        name: 'Crippled',
         condition: 'Crippled',
         stacks: 1,
         duration: 1,
+        applications: 3,
+        atMs: 800,
+        intervalMs: 1000,
         actorType: 'player'
       }
     ])
@@ -35,19 +44,22 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         type: 'boon',
         boon: 'quickness',
         duration: 6,
-        stacks: 1
+        stacks: 1,
+        audience: { recipients: 'self' }
       },
       {
         type: 'boon',
         boon: 'fury',
         duration: 6,
-        stacks: 1
+        stacks: 1,
+        audience: { recipients: 'self' }
       },
       {
         type: 'boon',
         boon: 'swiftness',
         duration: 6,
-        stacks: 1
+        stacks: 1,
+        audience: { recipients: 'self' }
       }
     ]
   },

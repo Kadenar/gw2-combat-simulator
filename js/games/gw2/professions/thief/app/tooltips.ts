@@ -871,19 +871,20 @@ export const thiefTooltips: ProfessionTooltips = {
       ['durationMultiplier', 'Stack duration', tooltipSeconds],
       ['rechargeMultiplier', 'Steal recharge', tooltipFactorChange]
     ]),
-    [TRAIT.UNCATCHABLE]: traitTooltip(
-      'Dodging drops Lesser Caltrops, repeatedly inflicting bleeding and cripple.',
-      (context, id) =>
-        (tooltipProfile(context, id).effects ?? []).flatMap((effect) =>
+    // Triggered skill tooltips read the selected skill patch, just like their trait consumers.
+    [TRAIT.UNCATCHABLE]: (context, entity, specialization) =>
+      skillTooltip('Dodging drops Lesser Caltrops, repeatedly inflicting bleeding and cripple.', (_context, skill) =>
+        (skill.effects ?? []).flatMap((effect) =>
           effect.intervalMs == null
             ? []
             : [{ name: `${effect.name} pulse interval`, detail: tooltipSeconds(effect.intervalMs / 1000) }]
         )
-    ),
-    [TRAIT.BURST_OF_AGILITY]: traitTooltip(
-      'Landing an attack against a defiant target triggers Lesser Haste, granting quickness, fury, and swiftness to yourself.',
-      [['cooldown', 'Base skill recharge', tooltipSeconds]]
-    ),
+      )(context, { ...entity, id: ID.LESSER_CALTROPS }, specialization),
+    [TRAIT.BURST_OF_AGILITY]: (context, entity, specialization) =>
+      skillTooltip(
+        'Landing an attack against a defiant target triggers Lesser Haste, granting quickness, fury, and swiftness to yourself.',
+        (_context, skill) => [{ name: 'Base skill recharge', detail: tooltipSeconds(Number(skill.cooldown)) }]
+      )(context, { ...entity, id: ID.LESSER_HASTE }, specialization),
     [TRAIT.THRILL_OF_THE_CRIME]: traitTooltip('Stealing grants fury, might, and swiftness to yourself.'),
     [TRAIT.BOUNTIFUL_THEFT]: traitTooltip(
       'Stealing grants vigor and might to yourself. The simulated target has no boons to steal.'
@@ -958,7 +959,9 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.HAVOC_SPECIALIST]: traitTooltip('Deal increased strike damage while endurance is below maximum.', [
       fromProfile(TRAIT.HAVOC_SPECIALIST, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
-    [TRAIT.IMPACTING_DISRUPTION]: outsideScopeTooltip,
+    [TRAIT.IMPACTING_DISRUPTION]: traitTooltip(
+      'Does not trigger: enemy skill interruptions are outside the simulator’s scope.'
+    ),
     [TRAIT.LOTUS_TRAINING]: traitTooltip(
       'Replace your dodge with Impaling Lotus, striking and applying conditions. Completing the dodge temporarily increases condition damage.',
       [

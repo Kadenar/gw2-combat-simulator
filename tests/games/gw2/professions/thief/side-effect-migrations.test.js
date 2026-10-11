@@ -4,7 +4,7 @@ import test from 'node:test';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
@@ -79,9 +79,9 @@ test('Uncatchable honors independent authored pulse timing and component removal
         {
           observation: { kind: 'absolute', endTimeMs },
           catalog: (catalog) =>
-            applyBalanceProfilePatch(catalog, {
-              balanceProfiles: {
-                [TRAIT.UNCATCHABLE]: {
+            applySkillPatch(catalog, {
+              skills: {
+                [ID.LESSER_CALTROPS]: {
                   removeEffects: [{ type: 'condition', name: removed }],
                   effects: [{ type: 'condition', name: surviving, intervalMs: { from: 1000, to: 500 } }]
                 }

@@ -9,6 +9,7 @@ import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession
 import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import {
   createObservedProfessionSimulator,
@@ -191,9 +192,16 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
 });
 
 test('Uncatchable conditions own independent pulses and dodge still spends endurance', () => {
-  const result = run({ [TRAIT.UNCATCHABLE]: remove('condition', 'Bleeding') }, 'Core', ['Dodge'], {
-    selectedTraitIds: [TRAIT.UNCATCHABLE]
-  });
+  const result = runThief(
+    ['Dodge'],
+    { selectedTraitIds: [TRAIT.UNCATCHABLE] },
+    {
+      observation: { kind: 'tail', durationMs: 1500 },
+      catalog: (catalog) =>
+        applySkillPatch(catalog, { skills: { [ID.LESSER_CALTROPS]: remove('condition', 'Bleeding') } })
+    }
+  );
+  assert.deepEqual(result.warnings, []);
   const conditions = packet(result, 'condition', TRAIT.UNCATCHABLE);
   assert.equal(
     conditions.some((event) => event.condition === 'Bleeding'),

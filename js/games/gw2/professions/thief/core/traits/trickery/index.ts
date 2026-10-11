@@ -3,7 +3,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
@@ -25,7 +24,6 @@ import {
   thiefDodgeStarted,
   thiefWeaponSwapped
 } from '#gw2/professions/thief/core/mechanics/boundaries.js';
-import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
@@ -33,27 +31,14 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 export const burstOfAgility = defineTrait({
   id: TRAIT.BURST_OF_AGILITY,
   name: 'Burst of Agility',
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: THIEF_MISC_SKILL_MECHANICS[ID.LESSER_HASTE]!.cooldown,
-    effects: THIEF_MISC_SKILL_MECHANICS[ID.LESSER_HASTE]!.effects
-  },
   triggers: [
     {
       on: 'damage.resolved',
-      emit: TRAIT.BURST_OF_AGILITY,
-      cooldown: 'profile',
+      // Invoke the selected skill so patches govern both its boons and player recharge.
+      invoke: ID.LESSER_HASTE,
+      cooldown: 'skill',
       when: (runtime, event) =>
-        event.actorType === 'player' && Number(event.coefficient) > 0 && Boolean(runtime.config.target?.defiant),
-      attribution: (runtime, event) => ({
-        skillId: ID.LESSER_HASTE,
-        skillName: 'Lesser Haste',
-        name: 'Lesser Haste',
-        icon: runtime.helpers.skillsById.get(ID.LESSER_HASTE)?.icon,
-        triggeredBy: event.skillName,
-        audience: { recipients: 'self' }
-      })
+        event.actorType === 'player' && Number(event.coefficient) > 0 && Boolean(runtime.config.target?.defiant)
     }
   ]
 });
@@ -212,32 +197,7 @@ export const thrillOfTheCrime = defineTrait({
 export const uncatchable = defineTrait({
   id: TRAIT.UNCATCHABLE,
   name: 'Uncatchable',
-  triggers: [onTriggerPoint(thiefDodgeStarted, { run: startUncatchable })],
-  balance: {
-    // Effect timelines own pulse timing for simulation, patch authoring, and tooltips.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'condition',
-        name: 'Bleeding',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5,
-        applications: 3,
-        atMs: 800,
-        intervalMs: 1000
-      },
-      {
-        type: 'condition',
-        name: 'Crippled',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 1,
-        applications: 3,
-        atMs: 800,
-        intervalMs: 1000
-      }
-    ])
-  }
+  triggers: [onTriggerPoint(thiefDodgeStarted, { run: startUncatchable })]
 });
 /** Selected steal boons retain skill lineage while shared profile delivery owns their packets. */
 function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
@@ -365,26 +325,22 @@ function grantQuickPockets(runtime: ThiefRuntime): void {
 
 /** Uncatchable's caltrop pulses are queued from the dodge's takeoff; the runtime has already paid its endurance. */
 function startUncatchable(runtime: ThiefRuntime, { cast }: ThiefDodge): void {
-  // Each condition's authored timing is authoritative; removing one component leaves its sibling's pulses intact.
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.UNCATCHABLE);
-  const caltrops = runtime.helpers.skillsById.get(ID.LESSER_CALTROPS);
-  emitTraitProfile(runtime, TRAIT.UNCATCHABLE, profile.id, undefined, {
-    preserveName: true,
-    effects: (effect) =>
-      (
-        profile.effects?.filter(
-          (effect) => effect.type === 'condition' && ['Bleeding', 'Crippled'].includes(String(effect.name))
-        ) ?? []
-      ).includes(effect),
+  // The invoked skill owns each pulse and condition; removing one leaves its sibling intact.
+  const caltrops = runtime.helpers.skillsById.get(ID.LESSER_CALTROPS)!;
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: caltrops,
+    effects: caltrops.effects,
+    at: cast.start,
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.UNCATCHABLE,
       actorType: 'player',
-      skillId: ID.LESSER_CALTROPS,
-      skillName: 'Lesser Caltrops',
+      skillId: caltrops.id,
+      skillName: caltrops.name,
       triggeredBy: cast.skill.name,
       activationId: cast.id
     },
-    transform: (event) => ({ ...event, icon: caltrops?.icon, name: 'Uncatchable \u2014 Lesser Caltrops' })
+    transform: (event) => ({ ...event, icon: caltrops.icon, name: 'Uncatchable \u2014 Lesser Caltrops' })
   });
 }

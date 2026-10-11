@@ -34,13 +34,11 @@ test('Burst of Agility grants Lesser Haste self boons on defiant hits with an Al
       }
     );
     assert.deepEqual(result.warnings, []);
-    const boons = result.resolvedEvents.filter(
-      (event) => event.type === 'buff' && event.sourceId === TRAIT.BURST_OF_AGILITY
-    );
+    const boons = result.resolvedEvents.filter((event) => event.type === 'buff' && event.skillId === ID.LESSER_HASTE);
     assert.deepEqual(
       boons.map((event) => [event.at, event.kind, event.duration]),
       selected && defiant
-        ? [1, 49.04].flatMap((at) => ['quickness', 'fury', 'swiftness'].map((kind) => [at, kind, 6]))
+        ? [1, 49].flatMap((at) => ['quickness', 'fury', 'swiftness'].map((kind) => [at, kind, 6]))
         : []
     );
     for (const boon of boons) {

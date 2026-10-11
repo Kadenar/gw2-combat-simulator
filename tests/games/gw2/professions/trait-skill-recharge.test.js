@@ -7,7 +7,6 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as E } from '#gw2/professions/elementalist/data/ids.js';
 import { ENGINEER_TRAIT_IDS as N, ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
@@ -15,7 +14,6 @@ import { GUARDIAN_TRAIT_IDS as G } from '#gw2/professions/guardian/data/ids.js';
 import { MESMER_TRAIT_IDS as M } from '#gw2/professions/mesmer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as D } from '#gw2/professions/necromancer/data/ids.js';
 import { RANGER_TRAIT_IDS as R } from '#gw2/professions/ranger/data/ids.js';
-import { THIEF_TRAIT_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { WARRIOR_TRAIT_IDS as W } from '#gw2/professions/warrior/data/ids.js';
 import { elementalistDodgeCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { explosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/index.js';
@@ -34,7 +32,6 @@ import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/c
 import { maliciousSwarm } from '#gw2/professions/necromancer/core/traits/spite/index.js';
 import { petSwapped, castCompleted, strike, mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
 
-import { burstOfAgility } from '#gw2/professions/thief/core/traits/trickery/index.js';
 import { strikeResourcesGranted } from '#gw2/professions/warrior/core/mechanics/combat.js';
 import { spellbreakerStrike } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
 import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
@@ -132,13 +129,6 @@ const cases = [
     10,
     (r) => r.fireTrigger(mergedBeastHit, { event: hit(r) }),
     'Soulbeast'
-  ],
-  [
-    thiefProfession,
-    T.BURST_OF_AGILITY,
-    T.BURST_OF_AGILITY,
-    60,
-    (r) => compiled(burstOfAgility).reactions['damage.resolved'](r.mechanics, hit(r), {})
   ],
   [
     warriorProfession,
