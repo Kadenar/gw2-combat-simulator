@@ -7,6 +7,8 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-fl
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { CAST_READY, denySkillCast } from '#gw2/platform/execution/availability.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -55,8 +57,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.DEACTIVATE_OTHERWORLDLY_BOND]: {
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DEACTIVATE_OTHERWORLDLY_BOND } }],
+    // Cancelling the tether also cancels the pending attraction window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-bond' } }],
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -123,8 +125,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.OTHERWORLDLY_BOND]: {
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DEACTIVATE_OTHERWORLDLY_BOND } }],
+    // The tether offers cancellation first, then its enemy pull once fully developed.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.start-bond' } }],
     castTimeMs: 520,
     flipDuration: 7,
     cooldown: 8,
@@ -165,6 +167,17 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ]
   },
+  [ID.OTHERWORLDLY_ATTRACTION_ENEMY]: {
+    // Releasing the mature enemy tether consumes both follow-ups and triggers disable reactions.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-bond' } }],
+    castTimeMs: 360,
+    cooldown: 0,
+    energyCost: 10,
+    effects: [
+      { type: 'condition', condition: 'Vulnerability', stacks: 6, duration: 10, actorType: 'player' },
+      { type: 'control', controlKind: 'pull', actorType: 'player' }
+    ]
+  },
   [ID.DETONATE_BLOSSOMING_AURA]: {
     // This declaration activates the Aura lifecycle owned below.
     sideEffects: [
@@ -179,6 +192,33 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
 });
 
 const REVENANT_BLOSSOMING_AURA = 'revenant.blossoming-aura';
+const REVENANT_BOND_EXPIRY = 'revenant.bond-expiry';
+
+/** One tether owns both sequential follow-ups and starts its recharge only when released. */
+function releaseRevenantBond(runtime: RevenantRuntime): void {
+  const active = runtime.consumeFlip(ID.OTHERWORLDLY_ATTRACTION_ENEMY);
+  runtime.consumeFlip(ID.DEACTIVATE_OTHERWORLDLY_BOND);
+  if (active)
+    runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.OTHERWORLDLY_BOND)!, runtime.time);
+}
+
+/** Keep delayed availability in the shared flip windows so casting and the weapon palette agree. */
+function startRevenantBond(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const matureAt = runtime.time + 4;
+  const expiresAt = runtime.time + Number(cast.skill.flipDuration);
+  runtime.cooldownController.clear(cast.skill.id);
+  runtime.armFlip(ID.DEACTIVATE_OTHERWORLDLY_BOND, {
+    visibleAt: runtime.time,
+    availableAt: runtime.time + 1,
+    expiresAt: matureAt
+  });
+  const window = runtime.armFlip(ID.OTHERWORLDLY_ATTRACTION_ENEMY, {
+    availableAt: matureAt,
+    expiresAt,
+    expiryPriority: 1
+  });
+  runtime.schedule(REVENANT_BOND_EXPIRY, expiresAt, window.identity);
+}
 
 interface AuraPulse {
   readonly index: number;
@@ -301,7 +341,23 @@ function detonateRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeC
 
 /** Aura owns its pulses and detonation; its templates must not also emit automatically. */
 export const scepterLifecycle = {
+  availability(runtime, skill) {
+    const bond = runtime.profession.core.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY];
+    if (skill.id === ID.OTHERWORLDLY_BOND && bond && runtime.time < (bond.expiresAt ?? Infinity))
+      return denySkillCast(skill, 'revenant.bond-active', 'release the active tether first.');
+    return CAST_READY;
+  },
+  onCastCommit(runtime, cast) {
+    // Changing weapons severs the enemy tether, including a pull that has not unlocked yet.
+    if (cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) releaseRevenantBond(runtime);
+  },
   sideEffectHandlers: {
+    'revenant.start-bond'(runtime, context) {
+      if (context.kind === 'cast') startRevenantBond(runtime, context.cast);
+    },
+    'revenant.release-bond'(runtime) {
+      releaseRevenantBond(runtime);
+    },
     'revenant.blossoming-aura'(runtime, context) {
       if (context.kind === 'cast') startRevenantBlossomingAura(runtime, context.cast);
     },
@@ -312,5 +368,12 @@ export const scepterLifecycle = {
   modifyEffects(_runtime, cast, effects) {
     return cast.skill.id === ID.BLOSSOMING_AURA || cast.skill.id === ID.DETONATE_BLOSSOMING_AURA ? [] : effects;
   },
-  tasks: { [REVENANT_BLOSSOMING_AURA]: revenantBlossomingAuraPulse }
+  tasks: {
+    [REVENANT_BLOSSOMING_AURA]: revenantBlossomingAuraPulse,
+    [REVENANT_BOND_EXPIRY](runtime, identity) {
+      // A stale expiry must not release a replacement tether.
+      if (runtime.profession.core.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY]?.identity === identity)
+        releaseRevenantBond(runtime);
+    }
+  }
 } satisfies RuntimeHooks<RevenantRuntimeState, RevenantSkill>;

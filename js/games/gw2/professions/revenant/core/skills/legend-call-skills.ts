@@ -6,8 +6,7 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 export const REVENANT_CORE_CALL_BY_LEGEND: Readonly<Record<string, SkillId>> = Object.freeze({
   [LEGEND.ASSASSIN]: ID.CALL_OF_THE_ASSASSIN,
   [LEGEND.DEMON]: ID.CALL_OF_THE_DEMON,
-  [LEGEND.DWARF]: ID.CALL_OF_THE_DWARF,
-  [LEGEND.CENTAUR]: ID.CALL_OF_THE_CENTAUR
+  [LEGEND.DWARF]: ID.CALL_OF_THE_DWARF
 });
 
 export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -32,12 +31,6 @@ export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Parti
         actorType: 'player'
       }
     ]
-  },
-  [ID.CALL_OF_THE_CENTAUR]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
   },
   [ID.CALL_OF_THE_ASSASSIN]: {
     castTimeMs: 0,

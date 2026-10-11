@@ -57,7 +57,8 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ],
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 520,
-    interruptCommitMs: 480,
+    // Once summoned at 400 ms, Icerazor's remaining attacks survive interruption.
+    interruptCommitMs: 400,
     cooldown: 10,
     energyCost: 20,
     // Share timing defaults while preserving each packet, effect order, and local schedule.

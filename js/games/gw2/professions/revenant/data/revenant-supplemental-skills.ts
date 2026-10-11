@@ -86,19 +86,6 @@ const records: readonly Skill[] = [
     flipSkillId: null
   },
   {
-    id: 29373,
-    name: 'Healing Orb',
-    description: 'Create a healing orb near your target. When an ally touches the orb, nearby allies are healed.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Healing_Orb.png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 31294,
     name: 'Jade Winds',
     description: 'Call upon the Jade Wind to turn nearby enemies into jade, stunning them for a short duration.',
@@ -131,19 +118,6 @@ const records: readonly Skill[] = [
     description:
       'Strike enemies around you, inflicting weakness, gaining barrier, and gaining additional barrier per target hit.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Call_of_the_Dwarf.png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 46847,
-    name: 'Call of the Centaur',
-    description: 'Heal yourself and nearby allies.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Call_of_the_Centaur.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',
@@ -198,19 +172,6 @@ const records: readonly Skill[] = [
     name: 'Call of the Dragon',
     description: 'Strike enemies around you, inflicting multiple conditions.',
     icon: 'https://render.guildwars2.com/file/27B5D1D4127A2EE73866E54F5A43E9102618B90B/1058605.png',
-    type: 'Action',
-    slot: 'Action',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 47889,
-    name: 'Unchained Desolation',
-    description: 'Unleash enough raw fury to sunder steel.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Unchained_Desolation.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',
@@ -379,27 +340,13 @@ const records: readonly Skill[] = [
     flipSkillId: null
   },
   {
-    id: 71827,
-    name: 'Otherworldly Attraction (ally)',
-    description:
-      'Release the tether, shadowstepping toward your tethered ally and granting barrier to allies in the surrounding area.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Otherworldly_Attraction_(ally).png',
-    type: 'Weapon',
-    slot: 'Weapon_3',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 71880,
     name: 'Otherworldly Attraction (enemy)',
     description: 'Release the tether, pulling the tethered enemy toward you and applying vulnerability to them.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Otherworldly_Attraction_(enemy).png',
     type: 'Weapon',
     slot: 'Weapon_3',
-    weapon: '',
+    weapon: 'Scepter',
     specialization: '',
     categories: [],
     nextChainId: null,

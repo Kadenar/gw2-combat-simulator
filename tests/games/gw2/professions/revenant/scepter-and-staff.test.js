@@ -19,6 +19,46 @@ const tail = { kind: 'tail', durationMs: 6000 };
 const auraDamage = (result) =>
   result.events.filter((event) => event.type === 'damage' && event.skillId === ID.BLOSSOMING_AURA);
 
+test('Enemy Attraction requires a mature tether and releases it with vulnerability and control', () => {
+  // Follow-ups own the active tether; the pull consumes it and starts the parent recharge.
+  const inactive = simulate('Core', ['Otherworldly Attraction (enemy)']);
+  assert.ok(inactive.warnings.some((warning) => warning.includes('unavailable')));
+  const early = simulate('Core', ['Otherworldly Bond', 'Otherworldly Attraction (enemy)']);
+  assert.ok(early.warnings.some((warning) => warning.includes('unavailable')));
+  const result = simulate('Core', [
+    'Otherworldly Bond',
+    { type: 'wait', durationMs: 4000 },
+    'Otherworldly Attraction (enemy)'
+  ]);
+  assert.deepEqual(result.warnings, []);
+  const effects = result.events.filter((event) => event.skillId === ID.OTHERWORLDLY_ATTRACTION_ENEMY);
+  assert.ok(
+    effects.some(
+      (event) =>
+        event.type === 'condition' && event.condition === 'Vulnerability' && event.stacks === 6 && event.duration === 10
+    )
+  );
+  assert.ok(effects.some((event) => event.type === 'control' && event.controlKind === 'pull'));
+  assert.equal(result.planningState.profession.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
+  assert.equal(result.planningState.profession.availableFlips[ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
+  assert.ok(result.planningState.cooldowns[ID.OTHERWORLDLY_BOND].remaining > 0);
+});
+
+test('Tether cancellation, expiry and weapon swap close follow-ups and start recharge', () => {
+  // Every release path must sever the pending pull, including one that never matured.
+  for (const ending of [
+    [{ type: 'wait', durationMs: 1000 }, 'Deactivate Otherworldly Bond'],
+    [{ type: 'wait', durationMs: 7000 }],
+    ['Swap Weapons']
+  ]) {
+    const result = simulate('Core', ['Otherworldly Bond', ...ending], { weaponSet2Primary: 'Staff' });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
+    assert.equal(result.planningState.profession.availableFlips[ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
+    assert.ok(result.planningState.cooldowns[ID.OTHERWORLDLY_BOND].remaining > 0);
+  }
+});
+
 test('Blossoming Aura divides its total pulsing coefficient across its strikes', () => {
   // The tooltip describes total pulse damage; each strike must receive only its share.
   const pulse = revenantCatalog.skillsById

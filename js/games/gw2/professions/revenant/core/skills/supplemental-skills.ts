@@ -3,18 +3,6 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.HEALING_ORB]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: []
-  },
-  [ID.UNCHAINED_DESOLATION]: {
-    castTimeMs: 1360,
-    cooldown: 5,
-    energyCost: 0,
-    effects: []
-  },
   [ID.INVOKE_TORMENT]: {
     castTimeMs: 0,
     cooldown: 0,
@@ -43,26 +31,6 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Part
     cooldown: 0,
     energyCost: 0,
     effects: []
-  },
-  [ID.OTHERWORLDLY_ATTRACTION_ALLY]: {
-    castTimeMs: 0,
-    cooldown: 5,
-    energyCost: 10,
-    effects: []
-  },
-  [ID.OTHERWORLDLY_ATTRACTION_ENEMY]: {
-    castTimeMs: 360,
-    cooldown: 0,
-    energyCost: 10,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 6,
-        duration: 10,
-        actorType: 'player'
-      }
-    ]
   },
   [ID.BLITZ_MINES]: {
     castTimeMs: 0,

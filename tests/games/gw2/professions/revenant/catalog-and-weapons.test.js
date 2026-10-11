@@ -149,6 +149,28 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
   assert.equal(preview.balanceProfilesById.get(resources.id).energyRegenerationPerSecond, 6);
 });
 
+test('Call of the Dwarf exposes Song of the Mists damage and Weakness to patch authoring', () => {
+  // The triggered call stays editable while unsupported, noncombat skills leave the catalog.
+  for (const id of [29373, 47889, 71827, 46847]) assert.equal(revenantCatalog.skillsById.has(id), false);
+  const core = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Core');
+  const call = core.skills.find((entry) => entry.id === SKILL.CALL_OF_THE_DWARF);
+  assert.equal(call.skill.effects[0].coefficient, 0.75);
+  assert.equal(call.skill.effects[1].condition, 'Weakness');
+  assert.equal(call.skill.effects[1].duration, 5);
+  const preview = applyRevenantPatch({
+    skills: {
+      [call.id]: {
+        effects: [
+          { effectIndex: 0, coefficient: { from: 0.75, to: 1 } },
+          { effectIndex: 1, duration: { from: 5, to: 6 } }
+        ]
+      }
+    }
+  });
+  assert.equal(preview.skillsById.get(call.id).effects[0].coefficient, 1);
+  assert.equal(preview.skillsById.get(call.id).effects[1].duration, 6);
+});
+
 test('Elemental Blast keeps packet timing runtime-only while exposing packet values', () => {
   const herald = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
   const elementalBlast = herald.skills.find((skill) => skill.id === SKILL.ELEMENTAL_BLAST).skill;
@@ -725,8 +747,16 @@ test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () 
     'Blossoming Aura'
   ]);
   assert.deepEqual(paletteAfter(['Otherworldly Bond'], ['Otherworldly Bond']), ['Deactivate Otherworldly Bond']);
-  assert.deepEqual(paletteAfter(['Otherworldly Bond', 'Deactivate Otherworldly Bond'], ['Otherworldly Bond']), [
-    'Otherworldly Bond'
+  assert.deepEqual(
+    paletteAfter(
+      ['Otherworldly Bond', { type: 'wait', durationMs: 1000 }, 'Deactivate Otherworldly Bond'],
+      ['Otherworldly Bond']
+    ),
+    ['Otherworldly Bond']
+  );
+  // Maturation changes the same weapon slot to the enemy pull until the tether is released.
+  assert.deepEqual(paletteAfter(['Otherworldly Bond', { type: 'wait', durationMs: 4000 }], ['Otherworldly Bond']), [
+    'Otherworldly Attraction (enemy)'
   ]);
 });
 

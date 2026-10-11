@@ -84,6 +84,33 @@
         }
       },
       {
+        "label": "Power Alacrity (Greatsword - Sword/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-alac-renegade-greatsword-sword-sword.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-greatsword-sword-sword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-greatsword-sword-sword",
+        "benchmarkDps": 35492,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 44617, "phase": 44617 },
+          "80-60": { "cumulative": 35766, "phase": 29749 },
+          "60-40": { "cumulative": 34820, "phase": 33087 },
+          "40-20": { "cumulative": 35235, "phase": 36562 },
+          "20-0": { "cumulative": 35492, "phase": 36558 }
+        },
+        "benchmarkApm": 54.1,
+        "upToDate": true,
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 35492,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 44617, "phase": 44617 },
+            "80-60": { "cumulative": 35766, "phase": 29749 },
+            "60-40": { "cumulative": 34820, "phase": 33087 },
+            "40-20": { "cumulative": 35235, "phase": 36562 },
+            "20-0": { "cumulative": 35492, "phase": 36558 }
+          }
+        }
+      },
+      {
         "label": "Condition (Shortbow - Mace/Axe)",
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",

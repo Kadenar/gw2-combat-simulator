@@ -147,16 +147,13 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   LEGENDARY_CENTAUR_STANCE_ID_28141: 28141, // Legendary Centaur Stance
   LEGENDARY_DEMON_STANCE_ID_28376: 28376, // Legendary Demon Stance
   PROTECTIVE_SOLACE_ID_29310: 29310, // Protective Solace
-  HEALING_ORB: 29373, // Healing Orb
   JADE_WINDS_ID_31294: 31294, // Jade Winds
   DISMISS_LIEUTENANT_SOULCLEAVE: 42752, // Dismiss Lieutenant Soulcleave
   CALL_OF_THE_DWARF: 46843, // Call of the Dwarf
-  CALL_OF_THE_CENTAUR: 46847, // Call of the Centaur
   CALL_OF_THE_RENEGADE: 46849, // Call of the Renegade
   CALL_OF_THE_ASSASSIN: 46854, // Call of the Assassin
   CALL_OF_THE_DEMON: 46856, // Call of the Demon
   CALL_OF_THE_DRAGON: 46857, // Call of the Dragon
-  UNCHAINED_DESOLATION: 47889, // Unchained Desolation
   SOOTHING_STONE_ID_56661: 56661, // Soothing Stone
   FORCED_ENGAGEMENT_ID_56662: 56662, // Forced Engagement
   VENGEFUL_HAMMERS_ID_56752: 56752, // Vengeful Hammers
@@ -169,7 +166,6 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   PHANTOMS_ONSLAUGHT_ID_62713: 62713, // Phantom's Onslaught
   LEGENDARY_ALLIANCE_STANCE_ID_62749: 62749, // Legendary Alliance Stance
   IMPERIAL_IMPACT: 62859, // Imperial Impact
-  OTHERWORLDLY_ATTRACTION_ALLY: 71827, // Otherworldly Attraction (ally)
   OTHERWORLDLY_ATTRACTION_ENEMY: 71880, // Otherworldly Attraction (enemy)
   BLITZ_MINES: 73149, // Blitz Mines
   BEGUILING_HAZE_ID_76805: 76805, // Beguiling Haze

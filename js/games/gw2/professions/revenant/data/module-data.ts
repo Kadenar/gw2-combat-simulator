@@ -11,17 +11,10 @@ import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/rev
 import { TRAITS } from '#gw2/professions/revenant/data/traits-data.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
-const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
-  ID.HEALING_ORB,
-  ID.CALL_OF_THE_DWARF,
-  ID.CALL_OF_THE_CENTAUR,
-  ID.UNCHAINED_DESOLATION,
-  ID.OTHERWORLDLY_ATTRACTION_ALLY,
-  ID.OTHERWORLDLY_ATTRACTION_ENEMY
-]);
-
 const generatedSource = SKILLS.filter((skill) => skill.id !== ID.DUELISTS_PREPARATION).map((skill) => ({
-  ...skill
+  ...skill,
+  // Enemy tethers mature from their cancellation button into the pull follow-up.
+  ...(skill.id === ID.DEACTIVATE_OTHERWORLDLY_BOND ? { flipSkillId: ID.OTHERWORLDLY_ATTRACTION_ENEMY } : {})
 }));
 
 const allDeclared: readonly RevenantSkill[] = [...generatedSource, ...REVENANT_SUPPLEMENTAL_SKILLS];
@@ -30,12 +23,6 @@ const flipParentById = createFlipParentMap(allDeclared);
 
 const normalize = (skill: RevenantSkill): RevenantSkill => ({
   ...skill,
-  // Leave exclusion to the owning mechanics; supplemental metadata must not re-enable generated hits.
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
-    ? {
-        patchAuthoringExcluded: true
-      }
-    : {}),
   ...(skill.cooldown == null && skill.ammoRecharge == null
     ? {}
     : {
