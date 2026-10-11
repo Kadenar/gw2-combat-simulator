@@ -448,8 +448,8 @@ export function createCastExecution<T extends object>(
         cast.firstStrikeAt = Math.min(cast.firstStrikeAt, packet.at);
     },
     resetCooldowns() {
-      // Rotation resets refresh activated skills; automatic procs retain their independent recharges.
-      cooldownController.resetAll((skill) => skill?.type !== 'Proc');
+      // Trait-triggered skills share ordinary recharge; passive trait ICDs remain in the separate proc registry.
+      cooldownController.resetAll();
       lockouts.clear();
     }
   };

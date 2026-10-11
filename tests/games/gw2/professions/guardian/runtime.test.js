@@ -1387,7 +1387,8 @@ test('Writ of Persistence extends the Symbol of Ignition field selected at cast 
   assert.equal(fieldDuration([TRAIT.WRIT_OF_PERSISTENCE]), fieldDuration([]) + 2);
 });
 
-test('Furious Focus ignores transient Alacrity and preserves its recharge across rotation cooldown resets', () => {
+// Reset clears the invoked symbol's cooldown; its next invocation starts fresh player-Alacrity recharge.
+test('Furious Focus ignores transient Alacrity and refreshes its skill recharge on rotation cooldown resets', () => {
   const result = run(
     [
       ID.JUSTICE,
@@ -1407,7 +1408,7 @@ test('Furious Focus ignores transient Alacrity and preserves its recharge across
   );
   assert.deepEqual(
     starts.map((event) => event.at),
-    [0, 8.04]
+    [0, 2, 8.04]
   );
   assert.equal(observedRuntime(result).cooldownController.readyAt(ID.LESSER_SYMBOL_OF_BLADES), 16.04);
   assert.ok(

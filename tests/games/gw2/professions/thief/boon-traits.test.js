@@ -3,8 +3,8 @@ import test from 'node:test';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
-// Rotation resets must not let another qualifying hit bypass Lesser Haste's independent recharge.
-test('Lesser Haste cannot grant another Quickness application after a rotation reset', () => {
+// Resetting Lesser Haste's skill recharge allows the next qualifying hit to invoke it again.
+test('Lesser Haste grants Quickness again after a rotation reset', () => {
   const result = runThief(
     [{ type: 'wait', durationMs: 2000 }, { type: 'cooldown-reset' }, { type: 'wait', durationMs: 2000 }],
     { selectedTraitIds: [TRAIT.BURST_OF_AGILITY], target: { armor: 2597, health: 1000000000, defiant: true } },
@@ -20,7 +20,7 @@ test('Lesser Haste cannot grant another Quickness application after a rotation r
   );
   assert.deepEqual(
     quickness.map((event) => event.at),
-    [1]
+    [1, 3]
   );
 });
 

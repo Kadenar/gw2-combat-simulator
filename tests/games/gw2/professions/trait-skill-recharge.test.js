@@ -181,7 +181,7 @@ function fixture(family, trait, specialization = 'Core', skillChanges) {
   return runtime;
 }
 
-// Exercise the real reset command across native catalogs, including generated trait-skill overlays.
+// The real reset command clears invoked skill recharge across native catalogs while retaining passive trait ICDs.
 for (const [family, trait, id, , , specialization = 'Core'] of [
   ...cases,
   [warriorProfession, W.MAGEBANE_TETHER, WS.MAGEBANE_TETHER, 12, undefined, 'Spellbreaker'],
@@ -190,13 +190,11 @@ for (const [family, trait, id, , , specialization = 'Core'] of [
   [thiefProfession, T.BURST_OF_AGILITY, TS.LESSER_HASTE],
   [thiefProfession, T.UNCATCHABLE, TS.LESSER_CALTROPS]
 ]) {
-  test(`${family.id} ${id} keeps its recharge through a rotation reset`, () => {
+  test(`${family.id} ${id} resets its skill recharge without resetting passive trait cooldowns`, () => {
     const config = { specialization, selectedTraitIds: [trait], pet: 'Juvenile Tiger' };
     const native = family.runtimeFor(config);
     const skill = native.catalog.skillsById.get(id);
     assert.equal(skill.type, 'Proc');
-    let deadline;
-    let progress;
     const result = observeGw2Runtime({
       config,
       profession: {
@@ -204,16 +202,17 @@ for (const [family, trait, id, , , specialization = 'Core'] of [
         initialize(runtime) {
           native.initialize(runtime);
           runtime.cooldownController.startRecharge(skill, 0, 20);
-          deadline = runtime.cooldownController.readyAt(id);
-          progress = runtime.cooldownController.rechargeFor(id);
+          runtime.procs.setDeadline('fixture-passive-trait', 20);
         }
       },
       rotation: [{ type: 'wait', durationMs: 2000 }, { type: 'cooldown-reset' }]
     });
     assert.deepEqual(result.warnings, []);
-    const controller = observedRuntime(result).cooldownController;
-    assert.equal(controller.readyAt(id), deadline);
-    assert.deepEqual(controller.rechargeFor(id), progress);
+    const runtime = observedRuntime(result);
+    assert.equal(runtime.cooldownController.readyAt(id), undefined);
+    assert.equal(runtime.cooldownController.rechargeFor(id), undefined);
+    assert.equal(runtime.cooldownController.isOnCooldown(id), false);
+    assert.equal(runtime.procs.deadline('fixture-passive-trait'), 20);
   });
 }
 

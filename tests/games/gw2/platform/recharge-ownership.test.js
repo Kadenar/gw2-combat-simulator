@@ -17,23 +17,24 @@ function fixture() {
   return { state, controller };
 }
 
-// Selective resets remove ordinary skill work while retaining every store belonging to excluded procs.
-test('selective recharge reset preserves excluded deadlines, progress, and ammo', () => {
+// A reset clears every skill-owned timer and reconstructs ammunition from a fresh, full pool.
+test('recharge reset clears all deadlines, progress, ammo queues, and use lockouts', () => {
   const { state, controller } = fixture();
   controller.startRecharge(ordinary, 0);
   controller.startRecharge(preserved, 0);
   controller.spendAmmo(magazine, 0);
-  const progress = controller.rechargeFor(preserved.id);
-  const ammo = controller.readAmmo(magazine.id);
+  controller.setAmmoLockout(magazine, 10, 0);
   state.time = 2;
-  controller.resetAll((skill) => skill?.id === ordinary.id);
+  controller.resetAll();
   assert.equal(controller.readyAt(ordinary.id), undefined);
   assert.equal(controller.rechargeFor(ordinary.id), undefined);
-  assert.equal(controller.readyAt(preserved.id), 20);
-  assert.deepEqual(controller.rechargeFor(preserved.id), progress);
-  assert.deepEqual(controller.readAmmo(magazine.id), ammo);
-  state.time = 5;
-  assert.equal(controller.refreshAmmo(magazine, state.time).charges, 3);
+  assert.equal(controller.readyAt(preserved.id), undefined);
+  assert.equal(controller.rechargeFor(preserved.id), undefined);
+  assert.equal(controller.readAmmo(magazine.id), undefined);
+  const freshAmmo = controller.refreshAmmo(magazine, state.time);
+  assert.equal(freshAmmo.charges, 3);
+  assert.equal(freshAmmo.nextRechargeAt, null);
+  assert.equal(freshAmmo.lockoutReadyAt, undefined);
 });
 
 // Magazine reservation consumes charges now without advancing existing pools to a future completion anchor.

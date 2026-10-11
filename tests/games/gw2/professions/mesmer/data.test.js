@@ -443,7 +443,8 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
   }
 });
 
-test('requested rifle, focus, and sword sequence flips are cataloged', () => {
+// Supplemental weapon and mantra flips must retain their canonical parent through catalog assembly.
+test('weapon and mantra sequence flips are cataloged', () => {
   for (const skill of MESMER_SUPPLEMENTAL_SKILLS.filter((candidate) => candidate.flipParentId)) {
     assert.equal(mesmerCatalog.skillsById.get(skill.id).flipParentId, skill.flipParentId);
   }
@@ -456,6 +457,7 @@ test('requested rifle, focus, and sword sequence flips are cataloged', () => {
     [
       ['Counterspell', 'Illusionary Counter'],
       ['Power Spike', 'Mantra of Pain'],
+      ['Power Return', 'Mantra of Recovery'],
       ['Dimensional Aperture', 'Singularity Shot'],
       ['Abstraction', 'Inspiring Imagery'],
       ['Into the Void', 'Temporal Curtain'],
