@@ -493,7 +493,7 @@ const records: readonly Skill[] = [
     name: 'Lesser Enchanted Daggers',
     description:
       'Whenever you use a Legendary Assassin skill or while channeling Impossible Odds, fire enchanted daggers at nearby enemies.',
-    icon: 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',
+    icon: 'https://render.guildwars2.com/file/23760CCE7F3271041121BA089A4D2453166BB52C/961421.png',
     type: 'Action',
     slot: 'Action',
     weapon: '',

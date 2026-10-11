@@ -597,8 +597,35 @@ test('Form of the Assassin fires daggers on skills and Impossible Odds pulses', 
   const daggers = result.events.filter(
     (event) => event.type === 'damage' && event.skillName === 'Lesser Enchanted Daggers'
   );
-  assert.ok(daggers.every((event) => event.coefficient === 0.06));
+  assert.ok(daggers.length > 0);
+  assert.ok(daggers.every((event) => event.damageKind === 'life-steal'));
   assert.ok(daggers.every((event) => event.triggeredBy === 'Impossible Odds'));
+});
+
+test('Lesser Enchanted Daggers scales life siphon with Power independently of armor and critical stats', () => {
+  // Both activation and upkeep daggers use the siphon formula, not weapon damage or critical scaling.
+  for (const power of [1000, 2000]) {
+    for (const armor of [1000, 4000]) {
+      const result = runRevenant(['Cosmic Wisdom', 'Impossible Odds', { type: 'wait', durationMs: 2100 }], {
+        specialization: 'Conduit',
+        selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+        startingLegend: LEGEND.ASSASSIN,
+        initialEnergy: 100,
+        attributeInputs: baseAttributeInputs({ power, precision: 4000, ferocity: 2000 }),
+        target: { armor, conditions: {} }
+      });
+      const daggers = result.resolvedEvents.filter(
+        (event) => event.type === 'damage' && event.skillId === SKILL.LESSER_ENCHANTED_DAGGERS
+      );
+      assert.deepEqual(result.warnings, []);
+      assert.ok(daggers.length > 0);
+      for (const event of daggers) {
+        // Conduit's mandatory Bolstered Bonds adds 150 Power while Cosmic Wisdom is active.
+        assert.equal(event.damage, 1028 + 0.06 * (power + 150));
+        assert.equal(event.canCrit, false);
+      }
+    }
+  }
 });
 
 test('Form of the Dervish follows every Entity skill and doubles Twin Moon', () => {

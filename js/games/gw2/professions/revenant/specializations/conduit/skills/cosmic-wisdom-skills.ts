@@ -77,7 +77,12 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: [
       {
         type: 'strike',
-        coefficient: 0.06,
+        // Daggers siphon a flat base plus Power scaling, bypassing armor and critical strikes.
+        coefficient: 0,
+        damageKind: 'life-steal',
+        flatStrikeBase: 1028,
+        flatStrikePowerCoeff: 0.06,
+        canCrit: false,
         hits: 1,
         name: 'Lesser Enchanted Daggers',
         actorType: 'player'
