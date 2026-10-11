@@ -10,13 +10,12 @@ import { boundedInteger } from '#kernel/core/numeric.js';
  * Specializations register creature reactions without coupling Core to their mechanics.
  */
 
-import { addTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
 const SOUL_SHARD_MAXIMUM_STACKS = 6;
-const CARAPACE_MAXIMUM_STACKS = 30;
 
 /** Returns stable identities for minions eligible to receive shared effects. */
 export function necromancerActiveMinionCompanionIds(
@@ -47,13 +46,6 @@ export function necromancerActiveBoonCompanionIds(context: Pick<NecromancerRunti
 export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   state.carapaceExpiries = purgeExpiredStacks(state.carapaceExpiries, at);
   expireCharges(state.soulShardGrant, at);
-}
-
-/** Adds timed carapace stacks up to the 30-stack cap. */
-export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration: number): void {
-  purgeTimedState(state, at);
-  const grant = addTimedStacks(state.carapaceExpiries, stacks, at, duration, CARAPACE_MAXIMUM_STACKS);
-  state.carapaceExpiries = grant.expiries;
 }
 
 /** Refreshes existing Soul Shards, adds stacks up to six, and returns the amount added. */
