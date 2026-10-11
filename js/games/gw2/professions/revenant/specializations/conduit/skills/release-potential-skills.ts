@@ -175,6 +175,8 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     // Conduit snapshots condition-duration scaling; the shared scheduler owns all release packets.
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
     castTimeMs: 720,
+    interruptCommitMs: 640,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 10,
     energyCost: 0,
     effects: [
@@ -182,6 +184,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         name: 'Release Potential: Assassin',
         actorType: 'player',
+        persistsAfterInterrupt: true,
         weaponStrengthProfileId: 'nonweapon.profession-mechanic',
         ticks: [160, 480, 800].map((atMs) => ({
           atMs,
@@ -191,7 +194,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'fixed'
       },
       // Share one impact timing while preserving independent payloads and declaration order.
-      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'condition',
           condition: 'Crippled',

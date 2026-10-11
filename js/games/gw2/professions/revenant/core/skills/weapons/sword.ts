@@ -218,8 +218,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.BRUTAL_BLADE]: {
     castTimeMs: 560,
-    // The measured 518 ms cancellation retains the strike on the 520 ms action frame.
-    interruptCommitMs: 520,
+    interruptCommitMs: 480,
     cooldown: 0,
     energyCost: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
