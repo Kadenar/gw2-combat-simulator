@@ -124,7 +124,9 @@ function traitContext(selectedTraitIds = [], config = {}) {
   const fullConfig = { ...config, selectedTraitIds };
   const events = [];
   const conditions = [];
-  const core = createThiefCoreState(fullConfig);
+  const core = createThiefCoreState(fullConfig, {
+    balanceContext: { catalog: thiefCatalog, modifierRulesById: new Map() }
+  });
   const context = {
     procs: createProcRegistry(() => context),
     profession: { core, specialization: { kind: 'Core', state: {} } },

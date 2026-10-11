@@ -4,10 +4,11 @@ import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { preparednessInitiativeCapacity } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
@@ -65,23 +66,22 @@ export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | numb
 
 // Initialize bounded initiative and endurance plus complete stealth, venom,
 // preparation, weapon-chain, stolen-skill, and trait bookkeeping.
-export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
-  const traits = selectedThiefTraits(config);
-  // Current-patch previews use the same authored capacity as the live resource policy.
-  const maximumInitiative = balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, preparednessCapacityField(traits));
+export function createThiefCoreState(
+  config: ThiefConfig,
+  preparation: { balanceContext: ProfessionBalanceContext }
+): ThiefCoreState {
+  // Construction reads selected tuning directly, without importing trait definitions or baking a second capacity.
+  const context = { ...preparation.balanceContext, config };
+  const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const maximumInitiative = preparednessInitiativeCapacity(context);
   return {
     lastStealthBreakingStrike: null,
     initiative: {
       ...createResourceClock(
-        boundedNumber(
-          config.initialInitiative,
-          balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, 'maximumStacks'),
-          0,
-          maximumInitiative
-        )
+        boundedNumber(config.initialInitiative, balanceProfileNumber(resources, 'maximumStacks'), 0, maximumInitiative)
       ),
       maximum: maximumInitiative,
-      rate: balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, 'resourceGain')
+      rate: balanceProfileNumber(resources, 'resourceGain')
     },
     stealthStartedAt: 0,
     stealthUntil: 0,

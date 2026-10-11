@@ -1,5 +1,5 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
+import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -10,7 +10,11 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thi
 import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -359,12 +363,13 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
   );
 });
 
-// Runtime initialization replaces construction defaults with the selected patch's resource policy.
+// Each selected trait owns its capacity; the mechanic profile supplies only the untraited maximum.
 test('patched Preparedness and Maleficent Seven capacities initialize before resource use', () => {
   for (const selectedTraitIds of [[], [TRAIT.PREPAREDNESS, TRAIT.MALEFICENT_SEVEN]]) {
     const result = run(
       {
-        [CORE.resources]: { fields: { maximumStacks: 18, minimumStacks: 21 } },
+        [CORE.resources]: { fields: { maximumStacks: 18 } },
+        [TRAIT.PREPAREDNESS]: { fields: { maximumStacks: 21 } },
         [DEADEYE.resources]: { fields: { maximumStacks: 9 } },
         [TRAIT.MALEFICENT_SEVEN]: { fields: { maximumStacks: 11 } }
       },
@@ -376,5 +381,53 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
     assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 18);
     assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 18);
     assert.equal(runtime.profession.specialization.state.malice.maximum, selectedTraitIds.length ? 11 : 9);
+  }
+});
+
+// Construction, resource admission, and presentation must agree before regeneration can hide a stale starting cap.
+test('Preparedness owns patched initiative capacity in initial state, live resources, and tooltips', () => {
+  const family = withPatchPreview(thiefProfession, {
+    id: 'preparedness-capacity',
+    label: 'Preparedness capacity',
+    professions: {
+      thief: {
+        balanceProfiles: {
+          [CORE.resources]: { fields: { maximumStacks: 18 } },
+          [TRAIT.PREPAREDNESS]: { fields: { maximumStacks: 21 } }
+        }
+      }
+    }
+  });
+  for (const [patchId, untraited, traited] of [
+    ['current', 12, 15],
+    ['preparedness-capacity', 18, 21]
+  ]) {
+    const balanceContext = family.balanceContextFor(patchId);
+    const { facts } = describeSimulationTrait(balanceContext, { id: TRAIT.PREPAREDNESS }, thiefTooltips);
+    assert.equal(facts.find(({ name }) => name === 'Maximum initiative with Preparedness').detail, String(traited));
+    assert.equal(
+      facts.find(({ name }) => name === 'Maximum initiative without Preparedness').detail,
+      String(untraited)
+    );
+    for (const selected of [false, true]) {
+      const maximum = selected ? traited : untraited;
+      for (const initialInitiative of [4, 100]) {
+        const config = {
+          specialization: 'Core',
+          patchId,
+          selectedTraitIds: selected ? [TRAIT.PREPAREDNESS] : [],
+          initialInitiative
+        };
+        const profession = family.runtimeFor(config);
+        const state = profession.createState(config);
+        assert.equal(state.core.initiative.maximum, maximum);
+        assert.equal(state.core.initiative.value, Math.min(initialInitiative, maximum));
+        const result = observeGw2Runtime({ profession, config, rotation: [] });
+        const initiative = observedRuntime(result).profession.core.initiative;
+        assert.equal(initiative.maximum, maximum);
+        assert.equal(initiative.value, Math.min(initialInitiative, maximum));
+        assert.deepEqual(result.warnings, []);
+      }
+    }
   }
 });

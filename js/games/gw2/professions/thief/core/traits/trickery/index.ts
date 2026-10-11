@@ -148,7 +148,7 @@ export const leadAttacks = defineTrait({
 export const preparedness = defineTrait({
   id: TRAIT.PREPAREDNESS,
   name: 'Preparedness',
-  balance: { attributeBonus: 150 },
+  balance: { attributeBonus: 150, maximumStacks: 15 },
   attributes({ balanceContext }) {
     const preparednessProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.PREPAREDNESS);
     return {

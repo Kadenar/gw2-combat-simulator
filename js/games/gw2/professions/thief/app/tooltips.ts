@@ -862,7 +862,7 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.KLEPTOMANIAC]: traitTooltip('Stealing restores initiative.', [['resourceGain', 'Initiative restored']]),
     [TRAIT.PREPAREDNESS]: traitTooltip('Increase maximum initiative and gain expertise.', [
       ['attributeBonus', 'Expertise'],
-      fromProfile(CORE.resources, 'minimumStacks', 'Maximum initiative with Preparedness'),
+      ['maximumStacks', 'Maximum initiative with Preparedness'],
       fromProfile(CORE.resources, 'maximumStacks', 'Maximum initiative without Preparedness')
     ]),
     [TRAIT.LEAD_ATTACKS]: traitTooltip('Spending initiative grants temporary damage stacks. Steal recharges faster.', [

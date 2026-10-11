@@ -3,7 +3,7 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
+import { preparednessInitiativeCapacity } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 
 /** Initiative regeneration: the selected base rate plus the kneeling bonus while kneeling. */
@@ -19,11 +19,7 @@ export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kne
 export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
   kind: 'continuous',
   state: (runtime) => runtime.profession.core.initiative,
-  maximum: (runtime) =>
-    balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.resources),
-      preparednessCapacityField(runtime)
-    ),
+  maximum: preparednessInitiativeCapacity,
   initial: (runtime) => (runtime.config as ThiefConfig).initialInitiative ?? 12,
   recovery: (runtime) => thiefInitiativeRegenerationRate(runtime.profession.core, runtime),
   // Besides regeneration, the pending signet pulse and the running cast's completion are the known grant boundaries.

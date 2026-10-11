@@ -15,13 +15,12 @@ export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   signetOfAgility: 'thief.core.signet-of-agility'
 });
 
-/** Canonical defaults also seed state-only previews; runtime initialization applies the selected patch. */
-export const THIEF_CORE_RESOURCE_PROFILE: BalanceProfile = {
+/** Core owns untraited capacity and recovery; selected trait capacities belong to their definitions. */
+const THIEF_CORE_RESOURCE_PROFILE: BalanceProfile = {
   id: THIEF_CORE_BALANCE_PROFILE_IDS.resources,
   name: 'Thief Core Resources',
   profileKind: 'mechanic',
   maximumStacks: 12,
-  minimumStacks: 15,
   resourceGain: 1,
   kneelingInitiativeRegenerationBonus: 1 / 3,
   resourceCost: 50,
