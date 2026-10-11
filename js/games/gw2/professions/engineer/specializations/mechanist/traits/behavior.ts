@@ -4,7 +4,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import {
   selectedMechCommand,
   isEngineerMechCommand
-} from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+} from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import type { EngineerConfig, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';

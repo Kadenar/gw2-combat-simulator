@@ -326,7 +326,7 @@ test('Addle snapshots its activation gate but grants shards and defiance life fo
     ...native,
     initialize(runtime) {
       native.initialize(runtime);
-      addSoulShards(runtime.profession.core, initial, runtime.time);
+      addSoulShards(runtime.profession.core, initial, runtime.time, 6);
     },
     onCastStart(runtime, cast) {
       native.onCastStart(runtime, cast);
@@ -335,7 +335,7 @@ test('Addle snapshots its activation gate but grants shards and defiance life fo
     tasks: {
       ...native.tasks,
       'test.shards'(runtime) {
-        if (during) addSoulShards(runtime.profession.core, during, runtime.time);
+        if (during) addSoulShards(runtime.profession.core, during, runtime.time, 6);
         else runtime.profession.core.soulShardGrant.charges = 0;
       }
     }
@@ -361,7 +361,7 @@ test('Perforate consumes current shards per accepted packet, including gains dur
     ...native,
     initialize(runtime) {
       native.initialize(runtime);
-      addSoulShards(runtime.profession.core, 1, runtime.time);
+      addSoulShards(runtime.profession.core, 1, runtime.time, 6);
     },
     onCastStart(runtime, cast) {
       native.onCastStart(runtime, cast);
@@ -371,7 +371,7 @@ test('Perforate consumes current shards per accepted packet, including gains dur
     tasks: {
       ...native.tasks,
       'test.shard'(runtime) {
-        addSoulShards(runtime.profession.core, 1, runtime.time);
+        addSoulShards(runtime.profession.core, 1, runtime.time, 6);
       }
     }
   };

@@ -8,9 +8,24 @@ import {
 import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
-export const BLIGHT_MAXIMUM_STACKS = 25;
+/** Resolve one selected capacity for initialization, live stacks, observations, and previews. */
+export function harbingerBlightMaximum(context: unknown): number {
+  return Math.max(
+    0,
+    Math.trunc(
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, HARBINGER_BALANCE_PROFILE_IDS.resources),
+        'maximumStacks'
+      )
+    )
+  );
+}
+
 /** Starting progress cannot itself complete a cycle; a live Blight consumption must trigger the trait. */
 export const MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS = 19;
 
@@ -32,8 +47,16 @@ export const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<HarbingerState>);
 
 /** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
-export function createHarbingerState(config: NecromancerConfig = {}): HarbingerState {
-  const initialBlight = boundedInteger(config.initialBlight || 0, 0, 0, BLIGHT_MAXIMUM_STACKS);
+export function createHarbingerState(
+  config: NecromancerConfig,
+  preparation: { balanceContext: ProfessionBalanceContext }
+): HarbingerState {
+  const initialBlight = boundedInteger(
+    config.initialBlight || 0,
+    0,
+    0,
+    harbingerBlightMaximum(preparation.balanceContext)
+  );
   // Starting progress stays below a full cycle; only a subsequent consumption can trigger Meltdown.
   const initialCascadingCorruptionStacks = boundedInteger(
     config.initialCascadingCorruptionStacks || 0,
@@ -54,16 +77,16 @@ export function createHarbingerState(config: NecromancerConfig = {}): HarbingerS
 }
 
 /** Keeps Harbinger's capped, expiry-backed Blight representation internally consistent. */
-function syncHarbingerState(state: HarbingerState): void {
+function syncHarbingerState(state: HarbingerState, maximum: number): void {
   // Cap refreshes retain their consumption position; sorting by expiry would spend different stacks.
-  state.blightExpiries = state.blightExpiries.slice(-BLIGHT_MAXIMUM_STACKS);
+  state.blightExpiries = maximum > 0 ? state.blightExpiries.slice(-maximum) : [];
   state.blight = state.blightExpiries.length;
 }
 
 /** Removes expired Blight applications and reconciles the public stack count. */
-export function purgeHarbingerTimedState(state: HarbingerState, at: number): void {
+export function purgeHarbingerTimedState(state: HarbingerState, at: number, maximum: number): void {
   state.blightExpiries = purgeExpiredStacks(state.blightExpiries, at);
-  syncHarbingerState(state);
+  syncHarbingerState(state, maximum);
 }
 
 /**
@@ -72,18 +95,18 @@ export function purgeHarbingerTimedState(state: HarbingerState, at: number): voi
  *
  * Returns the net change in live stacks, so a refresh at the cap still reports zero gained.
  */
-export function addBlight(state: HarbingerState, stacks: number, at: number): number {
-  purgeHarbingerTimedState(state, at);
+export function addBlight(state: HarbingerState, stacks: number, at: number, maximum: number): number {
+  purgeHarbingerTimedState(state, at, maximum);
   const before = state.blightExpiries.length;
   const expiries = state.blightExpiries;
-  const count = boundedInteger(stacks, 0, 0, BLIGHT_MAXIMUM_STACKS);
+  const count = boundedInteger(stacks, 0, 0, maximum);
   for (let index = 0; index < count; index += 1) {
     const expiresAt = canonicalTime(at + BLIGHT_DURATION_SECONDS);
-    if (expiries.length < BLIGHT_MAXIMUM_STACKS) expiries.push(expiresAt);
+    if (expiries.length < maximum) expiries.push(expiresAt);
     else expiries[expiries.indexOf(Math.min(...expiries))] = expiresAt;
   }
 
-  syncHarbingerState(state);
+  syncHarbingerState(state, maximum);
   return state.blightExpiries.length - before;
 }
 
@@ -91,11 +114,11 @@ export function addBlight(state: HarbingerState, stacks: number, at: number): nu
  * Consumes from the end of the live stack array. Refreshed positions stay in place, so the consumed
  * stacks need not be the freshest; expiration likewise preserves the surviving positions.
  */
-export function consumeBlight(state: HarbingerState, stacks: number, at: number): number {
-  purgeHarbingerTimedState(state, at);
+export function consumeBlight(state: HarbingerState, stacks: number, at: number, maximum: number): number {
+  purgeHarbingerTimedState(state, at, maximum);
   const consumption = consumeNewestStacks(state.blightExpiries, stacks, at);
   state.blightExpiries = consumption.expiries;
-  syncHarbingerState(state);
+  syncHarbingerState(state, maximum);
   return consumption.consumed;
 }
 
@@ -104,7 +127,7 @@ export const harbingerState = defineProfessionSpecializationState('Harbinger', c
 /** Publishes detached, current public values without mutating the live module state. */
 export function projectHarbingerPlanningState(input: Gw2PlanningStateInput) {
   const state = snapshotProfessionState(input.profession) as HarbingerState;
-  syncHarbingerState(state);
+  syncHarbingerState(state, harbingerBlightMaximum(input));
   return projectPublicProfessionState(
     state,
     HARBINGER_PUBLIC_STATE_PROJECTION.keys,

@@ -19,6 +19,33 @@ import test from 'node:test';
 
 const IGNITE_PROFILE = 'elementalist.evoker.ignite';
 
+// The unlock trait describes the actual pool; its old independent cap is no longer an authoring field.
+test('Depth of Elements tooltip shares the selected Catalyst energy capacity', () => {
+  const family = preview({
+    balanceProfiles: { 'elementalist.catalyst.resources': { fields: { maximumStacks: 12 } } }
+  });
+  for (const [patchId, maximum] of [
+    ['current', 30],
+    ['tooltip-projection', 12],
+    ['current', 30]
+  ]) {
+    const context = family.balanceContextFor(patchId);
+    assert.equal(context.catalog.balanceProfilesById.get(TRAIT.DEPTH_OF_ELEMENTS)?.maximumStacks, undefined);
+    const trait = context.catalog.traits.find(({ id }) => id === TRAIT.DEPTH_OF_ELEMENTS);
+    const model = describeSimulationTrait(context, trait, elementalistTooltips);
+    assert.ok(!model.incomplete);
+    assert.equal(model.facts.find(({ name }) => name === 'Maximum energy').detail, String(maximum));
+    const result = runElementalist(
+      [],
+      { patchId, specialization: 'Catalyst', initialCatalystEnergy: 100 },
+      { profession: family }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.catalystEnergy.maximum, maximum);
+    assert.equal(result.planningState.profession.catalystEnergy.value, maximum);
+  }
+});
+
 /** Keep preview selection explicit so every edited tooltip can be compared with live tuning and combat. */
 function preview(edits = {}) {
   return withPatchPreview(elementalistProfession, {

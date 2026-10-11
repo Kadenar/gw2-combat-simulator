@@ -4,7 +4,7 @@ import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/al
 
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { mechStruck } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
-import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import { overclockRechargeRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -89,7 +89,7 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
     'buff.applied': copyEngineerMechBoon,
     'damage.resolved'(runtime, event, details) {
       // Only positive mech strikes reach the mech-owned Firearms trackers and arm rewards.
-      if (Number(event.coefficient) > 0 && engineerMechResolverEvent(runtime, event))
+      if (Number(event.coefficient) > 0 && isEngineerMechEvent(event))
         runtime.fireTrigger(mechStruck, { cause: event, details });
     }
   }

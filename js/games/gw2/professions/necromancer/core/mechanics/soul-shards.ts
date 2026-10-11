@@ -7,7 +7,11 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { addSoulShards, consumeSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import {
+  addSoulShards,
+  consumeSoulShards,
+  necromancerSoulShardMaximum
+} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { soulBarbsSiphonMultiplier } from '#gw2/professions/necromancer/core/traits/soul-reaping/modifiers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -17,7 +21,7 @@ const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 
 /** A refresh extends the actual grant; an older expiry cannot erase shards gained later. */
 export function grantNecromancerSoulShards(runtime: NecromancerRuntime, amount: number): void {
-  addSoulShards(runtime.profession.core, amount, runtime.time);
+  addSoulShards(runtime.profession.core, amount, runtime.time, necromancerSoulShardMaximum(runtime));
   runtime.schedule(SHARD_EXPIRY, runtime.profession.core.soulShardGrant.expiresAt, null, undefined, -20);
 }
 

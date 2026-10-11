@@ -23,7 +23,7 @@ import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/sta
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import {
-  BLIGHT_MAXIMUM_STACKS,
+  harbingerBlightMaximum,
   MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
@@ -33,7 +33,8 @@ import { boundedInteger } from '#kernel/core/numeric.js';
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
 function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
-  const blight = boundedInteger(state.blight || 0, 0, 0, 25);
+  const maximum = harbingerBlightMaximum(context.balanceContext);
+  const blight = boundedInteger(state.blight || 0, 0, 0, maximum);
   const stacks = boundedInteger(
     state.cascadingCorruptionStacks || 0,
     0,
@@ -47,7 +48,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
     {
       id: 'harbinger-blight',
       label: 'Blight',
-      value: `${blight}/25`,
+      value: `${blight}/${maximum}`,
       title: 'Current Harbinger Blight stacks'
     }
   ];
@@ -151,7 +152,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         label: 'Blight',
         group: 'Mechanic',
         kind: 'special',
-        max: BLIGHT_MAXIMUM_STACKS,
+        max: harbingerBlightMaximum(context),
         initial: Number((context.build as { readonly initialBlight?: unknown }).initialBlight) || 0,
         scope: ['damage'],
         description: 'stacks at the start of each cast; Blight-scaling traits'
@@ -206,7 +207,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         id: 'blight',
         singular: 'blight',
         plural: 'blight',
-        maximum: 25,
+        maximum: harbingerBlightMaximum(context),
         value: Number(necromancerUiState(context).blight ?? context.initialBlight ?? 0),
         canStart: true,
         buildKey: 'initialBlight',

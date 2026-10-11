@@ -11,9 +11,9 @@ import {
 import { mechStruck, type MechStrike } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
-  engineerMechModifierEvent,
+  isEngineerMechEvent,
   isEngineerMechCommand
-} from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+} from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import {
   mechanistCastCompleted,
   mechanistCombatReady,
@@ -51,7 +51,7 @@ export const jadeCannons = defineTrait({
 
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS), 'criticalChance'),
-      when: (context) => engineerMechModifierEvent(context)
+      when: (context) => isEngineerMechEvent(context.event)
     }
   ]
 });
@@ -195,7 +195,7 @@ export const variableMassDistributor = defineTrait({
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'criticalChance'),
       when: (context) =>
-        engineerMechModifierEvent(context) && !hasTrait(context, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR)
+        isEngineerMechEvent(context.event) && !hasTrait(context, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR)
     }
   ]
 });

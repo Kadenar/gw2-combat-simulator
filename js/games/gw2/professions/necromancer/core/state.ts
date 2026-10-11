@@ -1,3 +1,4 @@
+import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
@@ -116,6 +117,8 @@ export function actualNecromancerLifeForceCost(baseHealthPercent: number): numbe
 export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
   const state = snapshotProfessionState(input.profession) as NecromancerCoreState;
   state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
+  // Detached resource values obey the same selected capacity as live grants.
+  state.soulShardGrant.charges = cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input));
   return projectPublicProfessionState(
     state,
     NECROMANCER_CORE_PUBLIC_STATE_PROJECTION.keys,

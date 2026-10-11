@@ -923,7 +923,9 @@ export const elementalistTooltips: ProfessionTooltips = {
       ['rechargeMultiplier', 'Dual-attack recharge', tooltipFactorChange]
     ]),
     [TRAIT.DEPTH_OF_ELEMENTS]: traitTooltip(
-      'Unlock Catalyst, hammer, augments, energy, and Jade Sphere. Damage builds energy while the sphere is inactive.'
+      'Unlock Catalyst, hammer, augments, energy, and Jade Sphere. Damage builds energy while the sphere is inactive.',
+      // Capacity is shared with the live energy pool rather than duplicated on the unlock trait.
+      [fromProfile(CATALYST.resources, 'maximumStacks', 'Maximum energy')]
     ),
     [TRAIT.ELEMENTAL_EMPOWERMENT]: traitTooltip(
       'Elemental Empowerment grants temporary increases to eligible power, precision, ferocity, condition damage, expertise, and concentration.',

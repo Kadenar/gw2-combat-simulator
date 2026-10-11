@@ -4,7 +4,7 @@ import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-pla
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import { jadeCannonsAttack } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 
@@ -18,7 +18,7 @@ import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializatio
 import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
-export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 
 /** Initialization without deferred combat, or explicit combat entry, admits trait-owned background work. */
 export const mechanistCombatReady = defineTriggerPoint<Record<string, never>>('engineer.mechanist-combat-ready', [
@@ -156,7 +156,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
 /** Capture the concrete mech owner before queued packets can outlive their originating activation. */
 export function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (event.actorType !== 'summon') return event;
-  // Infer ownership when replay packets lack the explicit engineerMech marker.
+  // Native command fragments identify their skill; stamp ownership here before modifiers and reactions consume it.
   const skill = skillForEvent(context.helpers, event);
   const engineerMech =
     (event.metadata as Record<string, unknown> | undefined)?.engineerMech === true ||

@@ -57,7 +57,11 @@ test('Necromancer displays actual life force while simulation and starting value
         ...(specialization === 'Harbinger' ? [TRAIT.ALCHEMIC_VIGOR] : [])
       ]
     }).planningState.profession;
-    const view = necromancerProfession.ui.resourceViews({ specialization, professionState: state })[0];
+    const view = necromancerProfession.ui.resourceViews({
+      catalog: necromancerProfession.catalog,
+      specialization,
+      professionState: state
+    })[0];
     assert.equal(view.maximum, Math.round(expectedCapacity), specialization);
     assert.equal(view.value, Math.round(expectedCapacity * 0.8), specialization);
     assert.equal(view.startMaximum, 100);
@@ -68,6 +72,7 @@ test('Necromancer displays actual life force while simulation and starting value
 
 test('Necromancer resources and palette change with specialization state', () => {
   const harbingerResources = necromancerProfession.ui.resourceViews({
+    catalog: necromancerProfession.catalog,
     specialization: 'Harbinger',
     professionState: {
       lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
@@ -77,6 +82,7 @@ test('Necromancer resources and palette change with specialization state', () =>
     }
   });
   const scourgeResources = necromancerProfession.ui.resourceViews({
+    catalog: necromancerProfession.catalog,
     specialization: 'Scourge',
     build: {
       weapons: ['Spear', '']
@@ -155,6 +161,7 @@ test('Necromancer resources and palette change with specialization state', () =>
   );
   assert.deepEqual(
     necromancerProfession.ui.rotationStateSnapshot({
+      balanceContext: withPatchPreview(necromancerProfession).balanceContextFor('current'),
       specialization: 'Harbinger',
       build: {
         specializations: [{ name: 'Harbinger', traits: '3-3-1' }]
@@ -179,6 +186,7 @@ test('Necromancer resources and palette change with specialization state', () =>
   assert.deepEqual(
     necromancerProfession.ui
       .resourceViews({
+        catalog: necromancerProfession.catalog,
         specialization: 'Harbinger',
         build: {
           weapons: ['Greatsword', ''],

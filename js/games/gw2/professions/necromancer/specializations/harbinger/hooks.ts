@@ -20,7 +20,7 @@ import {
 import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import {
   addBlight,
-  BLIGHT_MAXIMUM_STACKS,
+  harbingerBlightMaximum,
   consumeBlight,
   harbingerState,
   purgeHarbingerTimedState
@@ -80,7 +80,7 @@ function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
   );
   const cost = balanceProfileNumber(profile, 'blightCost');
   const empowered = state.blight >= cost;
-  const consumed = empowered ? consumeBlight(state, cost, runtime.time) : 0;
+  const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime)) : 0;
   runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed, at: runtime.time, activationId: cast.id });
 
   publishBlight(runtime);
@@ -128,7 +128,7 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
       timedEffectState(
         'harbinger-blight',
         state.blightExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-        BLIGHT_MAXIMUM_STACKS,
+        harbingerBlightMaximum(runtime),
         { name: 'Blight' }
       ),
       timedEffectState(
@@ -184,11 +184,11 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
   tasks: {
     [BLIGHT](runtime) {
       const state = harbingerState.from(runtime);
-      purgeHarbingerTimedState(state, runtime.time);
+      purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime));
       if (state.meltdownUntil && state.meltdownUntil <= runtime.time) state.meltdownUntil = 0;
       if (runtime.profession.core.activeShroud === 'harbinger' && Number(state.nextBlightAt) <= runtime.time) {
         const profile = requireBalanceProfileFromContext(runtime, doomApproachesBlightProfile(runtime));
-        addBlight(state, balanceProfileNumber(profile, 'blightGain'), runtime.time);
+        addBlight(state, balanceProfileNumber(profile, 'blightGain'), runtime.time, harbingerBlightMaximum(runtime));
         state.nextBlightAt = runtime.time + 1;
       }
 
@@ -211,7 +211,12 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
         runtime,
         HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)]
       );
-      addBlight(harbingerState.from(runtime), balanceProfileNumber(profile, 'blightGain'), runtime.time);
+      addBlight(
+        harbingerState.from(runtime),
+        balanceProfileNumber(profile, 'blightGain'),
+        runtime.time,
+        harbingerBlightMaximum(runtime)
+      );
       publishBlight(runtime);
       runtime.effects.emit({
         kind: 'profile',

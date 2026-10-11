@@ -13,7 +13,6 @@ import {
 import {
   addBlight,
   consumeBlight,
-  createHarbingerState,
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -178,13 +177,14 @@ test('spirit replacement changes generation and busy state only at completion', 
 
 // Cap refreshes keep their positions, and expiry must preserve the order used by later spends.
 test('Blight cap refreshes survive spending from the end of the stack array', () => {
-  const state = createHarbingerState({ initialBlight: 10 });
-  addBlight(state, 15, 5);
-  assert.equal(addBlight(state, 2, 10), 0);
-  assert.equal(consumeBlight(state, 5, 11), 5);
-  purgeHarbingerTimedState(state, 26);
+  const state = necromancerProfession.runtimeFor({ specialization: 'Harbinger' }).createState({ initialBlight: 10 })
+    .specialization.state;
+  addBlight(state, 15, 5, 25);
+  assert.equal(addBlight(state, 2, 10, 25), 0);
+  assert.equal(consumeBlight(state, 5, 11, 25), 5);
+  purgeHarbingerTimedState(state, 26, 25);
   assert.equal(state.blight, 12);
-  consumeBlight(state, 10, 26);
+  consumeBlight(state, 10, 26, 25);
   assert.deepEqual(state.blightExpiries, [35, 35]);
 });
 

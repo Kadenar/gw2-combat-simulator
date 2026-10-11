@@ -71,7 +71,6 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     initialDelay: 2,
     recharge: 10,
     durationMultiplier: 20,
-    maximumStacks: 4,
     firstPacketRatio: 0.65,
     effects: []
   },

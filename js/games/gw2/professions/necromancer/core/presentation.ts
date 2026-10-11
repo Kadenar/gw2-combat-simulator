@@ -1,3 +1,4 @@
+import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -155,7 +156,7 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
           id: 'soul-shards',
           singular: 'soul shard',
           plural: 'soul shards',
-          maximum: 6,
+          maximum: necromancerSoulShardMaximum(context),
           value: state.soulShardGrant?.charges || 0,
           canStart: false,
           step: 1,

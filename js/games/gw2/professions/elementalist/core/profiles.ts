@@ -37,7 +37,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     vigorRegenerationMultiplier: 1.5,
     recharge: 10,
     initialDelay: 1.5,
-    durationMultiplier: 4,
     effects: []
   },
   {
@@ -71,7 +70,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     damageMultiplier: 1.2,
     rechargeMultiplier: 0.67,
     maximumStacks: 3,
-    playerStacks: 3,
     effects: []
   },
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.rockBarrier, ID.ROCK_BARRIER, 'Rock Barrier - Stored Barrier', {

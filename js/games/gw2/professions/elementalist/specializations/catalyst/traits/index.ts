@@ -193,13 +193,10 @@ export const viciousEmpowerment = defineTrait({
     ]
   }
 });
-/** Owns Depth of Elements tuning and its existing execution behavior. */
+/** Unlocks Catalyst; the energy resource profile owns its capacity. */
 export const depthOfElements = defineTrait({
   id: TRAIT.DEPTH_OF_ELEMENTS,
-  name: 'Depth of Elements',
-  balance: {
-    maximumStacks: 30
-  }
+  name: 'Depth of Elements'
 });
 /** Owns Energized Elements tuning and its existing execution behavior. */
 export const energizedElements = defineTrait({

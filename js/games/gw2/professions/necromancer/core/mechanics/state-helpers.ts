@@ -4,6 +4,8 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
 
 /**
  * Shared live Carapace, Soul Shard, and creature-summon operations.
@@ -15,7 +17,19 @@ import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/sta
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
-const SOUL_SHARD_MAXIMUM_STACKS = 6;
+
+/** The selected profile owns whole-stack capacity for both combat grants and presentation. */
+export function necromancerSoulShardMaximum(context: unknown): number {
+  return Math.max(
+    0,
+    Math.trunc(
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, NECROMANCER_CORE_BALANCE_PROFILE_IDS.soulShards),
+        'maximumStacks'
+      )
+    )
+  );
+}
 
 /** Returns stable identities for minions eligible to receive shared effects. */
 export function necromancerActiveMinionCompanionIds(
@@ -48,11 +62,12 @@ export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   expireCharges(state.soulShardGrant, at);
 }
 
-/** Refreshes existing Soul Shards, adds stacks up to six, and returns the amount added. */
-export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
+/** Refreshes existing Soul Shards up to the selected capacity and returns the amount added. */
+export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number, maximum: number): number {
   purgeTimedState(state, at);
+  state.soulShardGrant.charges = Math.min(state.soulShardGrant.charges, maximum);
   // Refresh the shared deadline even at the cap, adding only the newly admitted shards.
-  const added = boundedInteger(stacks, 0, 0, SOUL_SHARD_MAXIMUM_STACKS - state.soulShardGrant.charges);
+  const added = boundedInteger(stacks, 0, 0, maximum - state.soulShardGrant.charges);
   // The stored deadline must equal the queue's canonical timestamp so exact expiry cannot leave floating-point residue.
   state.soulShardGrant = grantCharges(added, canonicalTime(at + SOUL_SHARD_DURATION_SECONDS), state.soulShardGrant, at);
   return added;

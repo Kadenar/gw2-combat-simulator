@@ -7,7 +7,7 @@ import { selectedFirearmsDurationBonuses } from '#gw2/professions/engineer/core/
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { engineerMechModifierEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import { selectedSignet } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 
@@ -17,7 +17,7 @@ const inheritedByQuery = new WeakMap<object, Map<number, ReturnType<typeof inher
 
 /** Replaces player attributes with the mech's inherited attribute set for mech-owned events. */
 export const mechanistAttributes: Gw2AttributeContributionCalculator = (context) => {
-  if (!engineerMechModifierEvent(context)) return [];
+  if (!isEngineerMechEvent(context.event)) return [];
   let byWeaponSet = context.query ? inheritedByQuery.get(context.query) : undefined;
   if (context.query && !byWeaponSet) inheritedByQuery.set(context.query, (byWeaponSet = new Map()));
   let base = byWeaponSet?.get(context.weaponSet);

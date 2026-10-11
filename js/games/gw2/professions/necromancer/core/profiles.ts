@@ -94,7 +94,6 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     name: 'Signet of Vampirism - Passive',
     profileKind: 'skill-variant',
     pulseInterval: 3,
-    attributeBonus: 180,
     effects: [
       {
         type: 'strike',
