@@ -282,8 +282,8 @@ const trait = defineTrait({
   })
 });
 
-function previewFamily() {
-  return withPatchPreview(familyWith(moduleWith([trait])), {
+function previewFamily(core = moduleWith([trait])) {
+  return withPatchPreview(familyWith(core), {
     id: 'preview',
     label: 'Preview',
     professions: {
@@ -401,7 +401,12 @@ test('preview rules, active profiles, removed effects, and tooltip values share 
 });
 
 test('definition attributes use resolved minors, eligible conversions and patch context', () => {
-  const family = previewFamily();
+  // The module grant feeds conversions in both build and live queries, even when the trait is disabled.
+  const family = previewFamily(
+    moduleWith([trait], {
+      attributes: () => [{ attributeEffects: [{ kind: 'flat', to: 'Power', amount: 10, feedsConversions: true }] }]
+    })
+  );
   const { getActiveTraits } = createProfessionTraitData([{ name: 'Line', minorTraits: [metadata], majorTraits: [] }]);
   const calculate = createCalculateAttributes((common, context) => {
     const { activeTraits } = createBuildAttributeContext(context, family.catalog, getActiveTraits);
@@ -409,8 +414,7 @@ test('definition attributes use resolved minors, eligible conversions and patch 
       common,
       {
         activeTraits,
-        profileContext: context.balanceContext ?? family.balanceContextFor(),
-        attributeEffects: [{ kind: 'flat', to: 'Power', amount: 10, feedsConversions: true }]
+        profileContext: context.balanceContext ?? family.balanceContextFor()
       },
       context
     );
@@ -431,8 +435,8 @@ test('definition attributes use resolved minors, eligible conversions and patch 
   );
   const runtime = family.runtimeFor({ patchId: 'preview' });
   const context = { catalog: runtime.catalog, config: { selectedTraitIds: [101] } };
-  const direct = runtime.modifyAttributes(context, { power: 1010 });
-  const repeated = runtime.modifyAttributes(context, { power: 1010 });
+  const direct = runtime.modifyAttributes(context, { power: 1000 });
+  const repeated = runtime.modifyAttributes(context, { power: 1000 });
   assert.equal(direct.power, repeated.power);
   assert.equal(direct.power, 1050);
 });

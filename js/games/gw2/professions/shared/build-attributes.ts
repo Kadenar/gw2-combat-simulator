@@ -5,11 +5,7 @@ import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
-import type {
-  Gw2AttributeEffect,
-  Gw2CommonAttributeResult,
-  Gw2FinalizedAttributeResult
-} from '#gw2/platform/builds/types.js';
+import type { Gw2CommonAttributeResult, Gw2FinalizedAttributeResult } from '#gw2/platform/builds/types.js';
 
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -24,23 +20,21 @@ export interface BuildAttributeTrait {
 }
 
 /**
- * Common helpers used while evaluating profession build-attribute rules.
+ * Effective trait selection and tuning used by the shared build evaluator.
  */
 export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
   readonly activeTraits: readonly TTrait[];
   readonly profileContext: ProfessionBalanceContext;
-  hasSelectedSkillId(id: SkillId): boolean;
 }
 
 /**
- * Resolves active traits and exposes the selected-skill lookup
- * used by profession build-attribute rules.
+ * Resolves active traits and the balance context for profession build attributes.
  *
  * disabledTrait is intentionally filtered here so every downstream lookup sees
  * the same effective trait set.
  */
 export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
-  { build, selectedSkills, disabledTrait, balanceContext }: Gw2BuildAttributeRuleContext,
+  { build, disabledTrait, balanceContext }: Gw2BuildAttributeRuleContext,
   catalog: CanonicalCatalog,
   getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly TTrait[]
 ): BuildAttributeContext<TTrait> {
@@ -50,38 +44,27 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
   // Share the active patch context across profession attribute rules.
   const profileContext = balanceContext ?? { catalog, modifierRulesById: new Map() };
 
-  // Stable skill IDs keep renamed display names from disabling passives.
-  function hasSelectedSkillId(id: SkillId): boolean {
-    return selectedSkills.some((skill) => skill.id === id);
-  }
-
   return {
     activeTraits,
-    profileContext,
-    hasSelectedSkillId
+    profileContext
   };
 }
 
 /**
- * Values supplied by an individual profession after it has declared its
- * profession-specific attribute effects.
+ * Selection and tuning supplied by a profession's build adapter.
  */
 export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
   readonly activeTraits: readonly TTrait[];
   readonly profileContext: ProfessionBalanceContext;
-  readonly attributeEffects?: readonly Gw2AttributeEffect[];
 }
 
 /**
- * Runs the common attribute-effect resolver and final GW2 attribute
- * finalization step.
- *
- * Profession files remain responsible for declaring their effects; this helper
- * only owns the repeated resolution/finalization pipeline.
+ * Resolves native module and trait contributions through the shared evaluator,
+ * then finalizes the build's GW2 attributes without a separate build-only effect channel.
  */
 export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeTrait>(
   common: Gw2CommonAttributeResult,
-  { activeTraits, profileContext, attributeEffects = [] }: FinalizeProfessionBuildAttributesOptions<TTrait>,
+  { activeTraits, profileContext }: FinalizeProfessionBuildAttributesOptions<TTrait>,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   // The panel supplies explicit preview facts to the same selected-owner evaluator used by live queries.
@@ -110,10 +93,7 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
     merged: build.specializations?.some((s) => (s as { name?: string }).name === 'Soulbeast') ?? false
   });
   const contributions = context.attributeContributions?.(facts) ?? [];
-  const resolved = resolveAttributeContributions(common.commonContext.conversionPool, [
-    ...contributions,
-    { attributeEffects }
-  ]);
+  const resolved = resolveAttributeContributions(common.commonContext.conversionPool, contributions);
   return finalizeBuildAttributes(common, {
     activeTraits,
     traitStats: resolved.attributes,
