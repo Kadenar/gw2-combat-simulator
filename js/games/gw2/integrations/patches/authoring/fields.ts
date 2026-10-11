@@ -31,7 +31,6 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'vigorRegenerationMultiplier',
 
   // Strike, condition, and general damage scaling.
-  'activeDamageIncrease',
   'basePower',
   'coefficientMultiplier',
   'damageMultiplier',
@@ -51,7 +50,6 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'conditionDamageBonus',
   'concentrationBonus',
   'expertiseBonus',
-  'ferocityBonus',
   'vitalityConversion',
   'criticalChance',
   'criticalDamage',
@@ -263,6 +261,24 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   'damagePerCoefficient'
 ] as const);
 
+/** Flat packets use their own formula, including defaults inherited by ticks; ordinary coefficients cannot tune it. */
+export function effectNumericFieldIsPatchable(
+  field: string,
+  effect: Readonly<Record<string, unknown>>,
+  parent?: Readonly<Record<string, unknown>>
+): boolean {
+  return (
+    PATCHABLE_EFFECT_NUMERIC_FIELDS.some((candidate) => candidate === field) &&
+    !(
+      field === 'coefficient' &&
+      [effect, parent].some(
+        (source) =>
+          source && ['flatDamage', 'flatStrikeBase', 'flatStrikePowerCoeff'].some((key) => Number.isFinite(source[key]))
+      )
+    )
+  );
+}
+
 const BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS = new Set<string>(PATCHABLE_EFFECT_NUMERIC_FIELDS);
 const ADVANCED_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS = new Set([
   'applications',
@@ -290,12 +306,12 @@ export function balanceProfileEffectNumericFieldTier(field: string, value: numbe
 }
 
 /** Detects whether an effect or nested tick exposes at least one approved profile control. */
-function effectHasAuthorableProfileValue(effect: Readonly<SkillEffect>): boolean {
+function effectHasAuthorableProfileValue(effect: Readonly<SkillEffect>, parent?: Readonly<SkillEffect>): boolean {
   for (const [field, value] of Object.entries(effect)) {
-    if (typeof value === 'number' && balanceProfileEffectNumericFieldTier(field, value)) return true;
+    if (typeof value === 'number' && effectNumericFieldIsPatchable(field, effect, parent)) return true;
   }
 
-  return Array.isArray(effect.ticks) && effect.ticks.some(effectHasAuthorableProfileValue);
+  return Array.isArray(effect.ticks) && effect.ticks.some((tick) => effectHasAuthorableProfileValue(tick, effect));
 }
 
 /** Reads a nested numeric candidate without treating missing path segments as errors. */
@@ -327,8 +343,8 @@ export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfi
 }
 
 /** Runtime predicates and activation declarations stay in the executable catalog, never in editor JSON. */
-function withoutRuntimeOnlyAuthoringFields(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(withoutRuntimeOnlyAuthoringFields);
+function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Record<string, unknown>>): unknown {
+  if (Array.isArray(value)) return value.map((entry) => withoutRuntimeOnlyAuthoringFields(entry, parent));
   if (typeof value === 'function') return undefined;
   if (!value || typeof value !== 'object') return structuredClone(value);
   return Object.fromEntries(
@@ -341,15 +357,21 @@ function withoutRuntimeOnlyAuthoringFields(value: unknown): unknown {
                 field,
                 nested
                   .filter((rule) => rule.do?.type === 'resourceGrant' && rule.do?.id)
-                  .map(withoutRuntimeOnlyAuthoringFields)
+                  .map((rule) => withoutRuntimeOnlyAuthoringFields(rule))
               ]
             ]
           : []
-        : typeof nested === 'function' ||
+        : (field === 'coefficient' && !effectNumericFieldIsPatchable(field, value as MutableRecord, parent)) ||
+            typeof nested === 'function' ||
             AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) ||
             ['effectVariants', 'when'].includes(field)
           ? []
-          : [[field, withoutRuntimeOnlyAuthoringFields(nested)]]
+          : [
+              [
+                field,
+                withoutRuntimeOnlyAuthoringFields(nested, field === 'ticks' ? (value as MutableRecord) : undefined)
+              ]
+            ]
     )
   );
 }
@@ -377,20 +399,25 @@ export function balanceProfilePatchableNumericFields(
 export function balanceProfileHasAuthorableControls(profile: Readonly<BalanceProfile>): boolean {
   return (
     Object.keys(balanceProfilePatchableNumericFields(profile)).length > 0 ||
-    (profile.effects || []).some(effectHasAuthorableProfileValue)
+    (profile.effects || []).some((effect) => effectHasAuthorableProfileValue(effect))
   );
 }
 
 /** Copies effect identity and approved numeric controls while dropping runtime-only timing metadata. */
-function balanceProfileEffectAuthoringReference(record: Readonly<Record<string, unknown>>): MutableRecord {
+function balanceProfileEffectAuthoringReference(
+  record: Readonly<Record<string, unknown>>,
+  parent?: Readonly<Record<string, unknown>>
+): MutableRecord {
   return Object.fromEntries(
     Object.entries(record).flatMap(([field, value]) => {
       if (field === 'when') return [];
       if (field === 'ticks' && Array.isArray(value)) {
-        return [[field, value.map((tick) => balanceProfileEffectAuthoringReference(tick as Readonly<MutableRecord>))]];
+        return [
+          [field, value.map((tick) => balanceProfileEffectAuthoringReference(tick as Readonly<MutableRecord>, record))]
+        ];
       }
 
-      if (typeof value === 'number' && !balanceProfileEffectNumericFieldTier(field, value)) return [];
+      if (typeof value === 'number' && !effectNumericFieldIsPatchable(field, record, parent)) return [];
       return [[field, withoutRuntimeOnlyAuthoringFields(value)]];
     })
   );

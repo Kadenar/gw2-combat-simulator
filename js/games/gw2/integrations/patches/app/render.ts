@@ -22,6 +22,7 @@ import {
 } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
+  effectNumericFieldIsPatchable,
   balanceProfileEffectNumericFieldTier,
   balanceProfileNumericFieldTier
 } from '#gw2/integrations/patches/authoring/fields.js';
@@ -279,7 +280,7 @@ function effectNumericRows(
   const topPatch = effectPatchFor(edit, effectIndex);
   const rows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
     const current = effect[field];
-    return typeof current === 'number'
+    return typeof current === 'number' && effectNumericFieldIsPatchable(field, effect)
       ? [
           numberInput({
             entity: 'effect',
@@ -310,7 +311,7 @@ function effectNumericRows(
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
     const tickRows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
       const current = tick[field];
-      return typeof current === 'number'
+      return typeof current === 'number' && effectNumericFieldIsPatchable(field, tick, effect)
         ? [
             numberInput({
               entity: 'effect',
@@ -558,7 +559,9 @@ function balanceProfileEffectRows(
   const topPatch = effectPatchFor(edit, effectIndex);
   const rows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
     const current = effect[field];
-    return typeof current === 'number' && balanceProfileEffectNumericFieldTier(field, current) === tier
+    return typeof current === 'number' &&
+      effectNumericFieldIsPatchable(field, effect) &&
+      balanceProfileEffectNumericFieldTier(field, current) === tier
       ? [
           numberInput({
             entity: 'balance-profile-effect',
@@ -590,7 +593,9 @@ function balanceProfileEffectRows(
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
     const tickRows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
       const current = tick[field];
-      return typeof current === 'number' && balanceProfileEffectNumericFieldTier(field, current) === tier
+      return typeof current === 'number' &&
+        effectNumericFieldIsPatchable(field, tick, effect) &&
+        balanceProfileEffectNumericFieldTier(field, current) === tier
         ? [
             numberInput({
               entity: 'balance-profile-effect',

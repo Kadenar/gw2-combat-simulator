@@ -706,6 +706,8 @@ test('Necromancer presentation exposes only active specialization resources', ()
     const resourceIds = necromancerProfession.ui
       .resourceViews({
         config,
+        // Resource capacities must use the same selected balance catalog as the runtime.
+        catalog: runtime.catalog,
         professionState: flattenProfessionState(state)
       })
       .map((resource) => resource.id);

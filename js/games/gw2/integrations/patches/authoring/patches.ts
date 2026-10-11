@@ -2,7 +2,8 @@ import { validateActionIds } from '#gw2/platform/effects/action-validation.js';
 import {
   PATCHABLE_SKILL_NUMERIC_FIELDS,
   PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS,
-  PATCHABLE_EFFECT_NUMERIC_FIELDS
+  PATCHABLE_EFFECT_NUMERIC_FIELDS,
+  effectNumericFieldIsPatchable
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
 import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
@@ -476,10 +477,17 @@ function tickMatches(tick: StrikeTick | ConditionTick, patch: EffectPatch): bool
 }
 
 /** Applies supported numeric effect edits to one effect or tick object. */
-function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: string): void {
+function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: string, parent?: MutableRecord): void {
   for (const field of EFFECT_NUMERIC_FIELDS) {
     const edit = patch[field];
     if (edit == null) continue;
+    // Reject ineffective edits even when a structural coefficient remains in the executable declaration.
+    if (!effectNumericFieldIsPatchable(field, target, parent)) {
+      throw new TypeError(
+        `${label}.${field} cannot tune a flat strike; edit flatDamage, flatStrikeBase, or flatStrikePowerCoeff instead.`
+      );
+    }
+
     if (target[field] == null) {
       throw new TypeError(`${label} does not expose ${field}.`);
     }
@@ -551,7 +559,7 @@ function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): Sk
     }
 
     const tick = { ...ticks[index] } as MutableRecord;
-    patchNumericFields(tick, patch, `${label}.ticks[${index}]`);
+    patchNumericFields(tick, patch, `${label}.ticks[${index}]`, mutable);
     ticks[index] = tick as unknown as StrikeTick | ConditionTick;
   }
 
