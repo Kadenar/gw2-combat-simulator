@@ -90,7 +90,8 @@ for (const [name, trait, kind, stat, perStack, maximum] of [
   ['mesmer', "Fencer's Finesse", 'fencer', 'ferocity', 15, 10],
   ['warrior', 'Furious', 'furious-surge', 'conditionDamage', 15, 25]
 ]) {
-  test(`${trait} grants survive deselection and observe recipient, same-time updates, cap and expiry`, () => {
+  // Supplied grants are recipient-owned state; each independent query keeps its own fixed build selection.
+  test(`${trait} accepted grants observe recipient, same-time updates, cap and expiry`, () => {
     const selected = scenario(name, 'Core', [trait]);
     const unselected = scenario(name, 'Core');
     const grants = [];
@@ -169,6 +170,27 @@ test('ordinary conversions, accumulated scaling, actor projection and final repl
     300
   );
   assert.deepEqual(initial, { power: 1000, ferocity: 0 });
+});
+
+// Duration accumulation may reuse its working map, but must never mutate a seed or a shared declaration.
+test('duration accumulation preserves input maps and combines aliases and repeated bonuses', () => {
+  const initial = Object.freeze({
+    conditionDurationBonuses: Object.freeze({ Poisoned: 3 }),
+    boonDurationBonuses: Object.freeze({ might: 4 })
+  });
+  const declarations = [
+    Object.freeze({
+      traitDurations: Object.freeze({ 'Poison Duration': 10, 'Bleeding Duration': 5, 'Might Duration': 6 })
+    }),
+    Object.freeze({
+      traitDurations: Object.freeze({ 'Poisoned Duration': 2, 'Bleeding Duration': 8, 'Fury Duration': 7 })
+    })
+  ];
+  const first = applyAttributeContributions({}, initial, declarations);
+  assert.deepEqual(first.conditionDurationBonuses, { Poisoned: 15, Bleeding: 13 });
+  assert.deepEqual(first.boonDurationBonuses, { might: 10, fury: 7 });
+  assert.deepEqual(applyAttributeContributions({}, initial, declarations), first);
+  assert.deepEqual(initial.conditionDurationBonuses, { Poisoned: 3 });
 });
 
 test('Blood Reaction names its owner source and excludes Might and Berserk grants', () => {

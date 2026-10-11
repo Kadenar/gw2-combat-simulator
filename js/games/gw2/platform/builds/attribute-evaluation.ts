@@ -78,20 +78,23 @@ export function resolveAttributeContributions(
   contributions: readonly Gw2AttributeContributions[]
 ) {
   const effects: Gw2AttributeEffect[] = [];
-  for (const entry of contributions) if (entry.attributeEffects) effects.push(...entry.attributeEffects);
-  const attributes = resolveAttributeEffects(pool, effects);
   const durations: Gw2NumericAttributes = {};
-  for (const entry of contributions)
+  let criticalChance = 0;
+  // Gather ordinary declarations in one pass; conversion ordering remains the effect resolver's responsibility.
+  for (const entry of contributions) {
+    if (entry.attributeEffects) effects.push(...entry.attributeEffects);
+    criticalChance += entry.traitCriticalChance ?? 0;
     for (const name in entry.traitDurations) {
       if (!Object.hasOwn(entry.traitDurations, name)) continue;
       const amount = entry.traitDurations[name];
       durations[name] = (durations[name] ?? 0) + amount;
     }
+  }
 
   return {
-    attributes,
+    attributes: resolveAttributeEffects(pool, effects),
     durations,
-    criticalChance: contributions.reduce((sum, entry) => sum + (entry.traitCriticalChance ?? 0), 0)
+    criticalChance
   };
 }
 
@@ -105,24 +108,27 @@ export function applyAttributeContributions(
   const resolved = resolveAttributeContributions(pool, contributions);
   for (const [key, name] of ATTRIBUTE_ENTRIES)
     if (resolved.attributes[name]) result[key] = (initial[key] ?? 0) + (resolved.attributes[name] ?? 0);
-  for (const [name, amount] of Object.entries(resolved.durations)) {
+  // Copy each duration map only when first changed, keeping both the input and shared declarations immutable.
+  let boonDurations: Record<string, number> | undefined;
+  let conditionDurations: Record<string, number> | undefined;
+  for (const name in resolved.durations) {
+    const amount = resolved.durations[name];
     if (name === 'Condition Duration') result.conditionDurationBonus = (result.conditionDurationBonus ?? 0) + amount;
     else if (name === 'Boon Duration') result.boonDurationBonus = (result.boonDurationBonus ?? 0) + amount;
     else if (['Quickness Duration', 'Might Duration', 'Fury Duration'].includes(name)) {
       const boon = name.slice(0, -9).toLowerCase();
-      result.boonDurationBonuses = {
-        ...result.boonDurationBonuses,
-        [boon]: (result.boonDurationBonuses?.[boon] ?? 0) + amount
-      };
+      boonDurations ??= { ...initial.boonDurationBonuses };
+      boonDurations[boon] = (boonDurations[boon] ?? 0) + amount;
     } else if (name.endsWith(' Duration')) {
       const condition = name.slice(0, -9);
-      result.conditionDurationBonuses = {
-        ...result.conditionDurationBonuses,
-        [condition === 'Poison' ? 'Poisoned' : condition]:
-          (result.conditionDurationBonuses?.[condition === 'Poison' ? 'Poisoned' : condition] ?? 0) + amount
-      };
+      const key = condition === 'Poison' ? 'Poisoned' : condition;
+      conditionDurations ??= { ...initial.conditionDurationBonuses };
+      conditionDurations[key] = (conditionDurations[key] ?? 0) + amount;
     }
   }
+
+  if (boonDurations) result.boonDurationBonuses = boonDurations;
+  if (conditionDurations) result.conditionDurationBonuses = conditionDurations;
 
   if (resolved.criticalChance)
     result.professionCriticalChanceBonus = (initial.professionCriticalChanceBonus ?? 0) + resolved.criticalChance;
@@ -130,18 +136,21 @@ export function applyAttributeContributions(
   if (uncapped) result.uncappedBoonDurationBonus = (initial.uncappedBoonDurationBonus ?? 0) + uncapped;
   // Scaling consumes accumulated attributes; actor projections follow scaling regardless of declaration order.
   for (const entry of contributions)
-    for (const transform of entry.transforms ?? [])
-      if (transform.kind === 'scale' && transform.factor !== 1)
-        for (const [key] of ATTRIBUTE_ENTRIES) result[key] = (result[key] ?? 0) * transform.factor;
+    if (entry.transforms)
+      for (const transform of entry.transforms)
+        if (transform.kind === 'scale' && transform.factor !== 1)
+          for (const [key] of ATTRIBUTE_ENTRIES) result[key] = (result[key] ?? 0) * transform.factor;
   for (const entry of contributions)
-    for (const transform of entry.transforms ?? [])
-      if (transform.kind === 'convert-current')
-        result[transform.to] = (result[transform.to] ?? 0) + (result[transform.from] ?? 0) * transform.multiplier;
+    if (entry.transforms)
+      for (const transform of entry.transforms)
+        if (transform.kind === 'convert-current')
+          result[transform.to] = (result[transform.to] ?? 0) + (result[transform.from] ?? 0) * transform.multiplier;
   let projected: Gw2Stats = result;
   for (const entry of contributions)
-    for (const transform of entry.transforms ?? [])
-      if (transform.kind === 'project')
-        projected = transform.replace ? { ...transform.attributes } : { ...projected, ...transform.attributes };
+    if (entry.transforms)
+      for (const transform of entry.transforms)
+        if (transform.kind === 'project')
+          projected = transform.replace ? { ...transform.attributes } : { ...projected, ...transform.attributes };
   return projected;
 }
 
@@ -153,18 +162,17 @@ export function applyMightAttributes(
 ): Gw2Stats {
   const might = Math.max(0, Math.min(25, stacks));
   if (!might) return initial;
+  let power = 0;
+  let conditionDamage = 0;
+  for (const entry of contributions) {
+    power += entry.mightPerStack?.power ?? 0;
+    conditionDamage += entry.mightPerStack?.conditionDamage ?? 0;
+  }
+
   return {
     ...initial,
-    power:
-      (initial.power ?? 0) +
-      might *
-        (MIGHT_ATTRIBUTE_BONUS_PER_STACK +
-          contributions.reduce((sum, entry) => sum + (entry.mightPerStack?.power ?? 0), 0)),
-    conditionDamage:
-      (initial.conditionDamage ?? 0) +
-      might *
-        (MIGHT_ATTRIBUTE_BONUS_PER_STACK +
-          contributions.reduce((sum, entry) => sum + (entry.mightPerStack?.conditionDamage ?? 0), 0))
+    power: (initial.power ?? 0) + might * (MIGHT_ATTRIBUTE_BONUS_PER_STACK + power),
+    conditionDamage: (initial.conditionDamage ?? 0) + might * (MIGHT_ATTRIBUTE_BONUS_PER_STACK + conditionDamage)
   };
 }
 

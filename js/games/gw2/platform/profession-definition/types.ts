@@ -1,4 +1,5 @@
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
@@ -63,7 +64,8 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
   readonly id: string;
   readonly name: string;
   readonly catalog?: CanonicalCatalog<TSkill>;
-  readonly attributeContributions?: import('#gw2/platform/builds/types.js').Gw2AttributeContributionCalculator;
+  /** Runtime owners construct attribute facts with their selected balance context. */
+  readonly attributeContributions?: (context: Gw2ModifierContext) => readonly Gw2AttributeContributions[];
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
   readonly modifiers?: ProfessionModifierDefinition;
 }
@@ -82,7 +84,7 @@ export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
 export interface NormalizedProfessionContract<TProfessionState extends object = object, TSkill extends Skill = Skill> {
-  readonly attributeContributions?: import('#gw2/platform/builds/types.js').Gw2AttributeContributionCalculator;
+  readonly attributeContributions?: (context: Gw2ModifierContext) => readonly Gw2AttributeContributions[];
   readonly canSwapWeaponSetsInCombat: boolean;
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;

@@ -11,6 +11,9 @@ import { engineerMechModifierEvent } from '#gw2/professions/engineer/specializat
 import { selectedSignet } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 
+// Inheritance only evaluates Core attribute declarations; unrelated traits have no source work.
+const sourceTraits = engineerCoreTraits.filter((trait) => trait.attributes);
+
 /** Replaces player attributes with the mech's inherited attribute set for mech-owned events. */
 export const mechanistAttributes: Gw2AttributeContributionCalculator = (context) => {
   if (!engineerMechModifierEvent(context)) return [];
@@ -28,15 +31,12 @@ export const mechanistAttributes: Gw2AttributeContributionCalculator = (context)
         boons: {}
       }
     },
-    { catalog: (context.catalog ?? context.profession?.catalog)!, modifierRulesById: new Map() }
+    context.balanceContext
   );
-  const inheritedSource = applyAttributeContributions(
-    attributeSeed(facts.config ?? {}, facts.weaponSet).conversionPool,
-    attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet).commonTotals,
-    engineerCoreTraits.flatMap((trait) =>
-      hasTrait(facts, trait.id) && trait.attributes ? [trait.attributes(facts)] : []
-    )
-  );
+  const seed = attributeSeed(context.config ?? {}, context.weaponSet);
+  const contributions = [];
+  for (const trait of sourceTraits) if (hasTrait(facts, trait.id)) contributions.push(trait.attributes!(facts));
+  const inheritedSource = applyAttributeContributions(seed.conversionPool, seed.commonTotals, contributions);
   const mech = engineerMechAttributes(context.config ?? {}, inheritedSource, context);
   if (selectedSignet(context, ID.SHIFT_SIGNET)) {
     mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;

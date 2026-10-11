@@ -1,4 +1,4 @@
-import { applyMightAttributes, attributeContext } from '#gw2/platform/builds/attribute-evaluation.js';
+import { applyMightAttributes } from '#gw2/platform/builds/attribute-evaluation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
@@ -148,6 +148,8 @@ export function createGw2CombatQuery({
   }
 
   const activeProfession = profession;
+  // Build selection is fixed for this query; later runs may reuse and edit the caller's selection Set.
+  traits = new Set(traits);
   const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({
     config,
@@ -342,11 +344,8 @@ export function createGw2CombatQuery({
     if (event?.type === 'condition') event = conditionOwnerEvent(event);
     const activeWeaponSet = activeWeaponSetAt(time, runtime);
     const input = hookContext(time, { event, runtime });
-    const attributeFacts = attributeContext(input, {
-      catalog: activeProfession.catalog,
-      modifierRulesById: new Map()
-    });
-    const contributions = activeProfession.attributeContributions?.(attributeFacts) ?? [];
+    // The profession owns attribute-fact construction; professions without declarations incur no attribute-context work.
+    const contributions = activeProfession.attributeContributions?.(input) ?? [];
     const context = {
       ...input,
       attributeContributions: activeProfession.attributeContributions ? contributions : undefined

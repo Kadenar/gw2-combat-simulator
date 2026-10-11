@@ -123,24 +123,32 @@ export function attributeSeedFromCommon(common: Gw2CommonAttributeResult): Gw2At
   };
 }
 
-/** Specialized policies request their documented source pool for the active equipment set. */
+const equipmentSourcePools = new WeakMap<Gw2AttributeSeed, Readonly<Gw2NumericAttributes>>();
+
+/** Specialized policies share immutable equipment-only pools; weapon sets have separate seeds. */
 export function attributeSourcePool(
   config: Gw2Config,
   policy: 'common' | 'catalyst',
   weaponSet?: number
-): Gw2NumericAttributes {
+): Readonly<Gw2NumericAttributes> {
   const seed = attributeSeed(config, weaponSet);
   if (policy === 'common') return seed.conversionPool;
-  return Object.fromEntries(
-    Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => {
-      const source = seed.sources[name];
-      const amount = source
-        ? ['base', 'gear', 'runes', 'infusions', 'food'].reduce(
-            (sum, part) => sum + source[part as keyof typeof source],
-            0
-          ) + (key === 'conditionDamage' ? source.utility : 0)
-        : (seed.conversionPool[name] ?? 0);
-      return [key, amount];
-    })
+  const cached = equipmentSourcePools.get(seed);
+  if (cached) return cached;
+  const pool = Object.freeze(
+    Object.fromEntries(
+      Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => {
+        const source = seed.sources[name];
+        const amount = source
+          ? ['base', 'gear', 'runes', 'infusions', 'food'].reduce(
+              (sum, part) => sum + source[part as keyof typeof source],
+              0
+            ) + (key === 'conditionDamage' ? source.utility : 0)
+          : (seed.conversionPool[name] ?? 0);
+        return [key, amount];
+      })
+    )
   );
+  equipmentSourcePools.set(seed, pool);
+  return pool;
 }

@@ -6,7 +6,11 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import {
+  defineTrait,
+  traitAttributeBonuses,
+  traitAttributeEffects
+} from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -125,16 +129,9 @@ export const invokingTorment = defineTrait({
 
 /** Owns Pact of Pain tuning and behavior at its established execution boundaries. */
 export const pactOfPain = defineTrait({
-  attributes: ({ balanceContext }) => ({
-    traitDurations: {
-      'Condition Duration':
-        100 *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.PACT_OF_PAIN),
-          'conditionDurationBonus'
-        )
-    }
-  }),
+  attributes: traitAttributeBonuses(TRAIT.PACT_OF_PAIN, (profile) => ({
+    traitDurations: { 'Condition Duration': 100 * balanceProfileNumber(profile, 'conditionDurationBonus') }
+  })),
   id: TRAIT.PACT_OF_PAIN,
   name: 'Pact of Pain',
   balance: { conditionDurationBonus: 0.15 }
@@ -152,18 +149,14 @@ export const seethingMalice = defineTrait({
 
 /** Owns Yearning Empowerment tuning and behavior at its established execution boundaries. */
 export const yearningEmpowerment = defineTrait({
-  attributes: ({ balanceContext }) => ({
+  attributes: traitAttributeBonuses(TRAIT.YEARNING_EMPOWERMENT, (profile) => ({
     traitDurations: Object.fromEntries(
       ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((condition) => [
         condition + ' Duration',
-        100 *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(balanceContext, TRAIT.YEARNING_EMPOWERMENT),
-            'conditionDurationBonus'
-          )
+        100 * balanceProfileNumber(profile, 'conditionDurationBonus')
       ])
     )
-  }),
+  })),
   id: TRAIT.YEARNING_EMPOWERMENT,
   name: 'Yearning Empowerment',
   balance: { conditionDurationBonus: 0.1 }

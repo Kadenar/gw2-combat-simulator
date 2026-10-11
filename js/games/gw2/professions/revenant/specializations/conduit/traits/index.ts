@@ -4,7 +4,7 @@ import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeBonuses } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
@@ -223,6 +223,16 @@ export const mistfire = defineTrait({
   ]
 });
 
+// The duration values depend only on the patch; selection is checked by the live declaration.
+const numinousDurations = traitAttributeBonuses(CONDUIT_BALANCE_PROFILE_IDS.numinousGift, (profile) => ({
+  traitDurations: Object.fromEntries(
+    ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((condition) => [
+      condition + ' Duration',
+      100 * balanceProfileNumber(profile, 'conditionDurationBonus')
+    ])
+  )
+}));
+
 /** Owns Numinous Gift tuning and behavior at its established execution boundaries. */
 export const numinousGiftTrait = defineTrait({
   triggers: [
@@ -232,20 +242,7 @@ export const numinousGiftTrait = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof cosmicWisdomEntered>) => numinousGift(runtime, input.cast)
     })
   ],
-  attributes: (context) => ({
-    traitDurations: hasTrait(context, TRAIT.YEARNING_EMPOWERMENT)
-      ? Object.fromEntries(
-          ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment'].map((condition) => [
-            condition + ' Duration',
-            100 *
-              balanceProfileNumber(
-                requireBalanceProfileFromContext(context.balanceContext, CONDUIT_BALANCE_PROFILE_IDS.numinousGift),
-                'conditionDurationBonus'
-              )
-          ])
-        )
-      : {}
-  }),
+  attributes: (context) => (hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) ? numinousDurations(context) : {}),
   id: TRAIT.NUMINOUS_GIFT,
   name: 'Numinous Gift',
   balance: {

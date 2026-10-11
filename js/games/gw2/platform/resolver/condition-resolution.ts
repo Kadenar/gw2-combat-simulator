@@ -37,6 +37,8 @@ export function createGw2ConditionResolution({
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
   const permanentTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const environmentWakes = new Map<string, Gw2ResolverEvent>();
+  // Equal-weight stacks expanded from one packet have identical attribute inputs, but retain separate damage records.
+  const attributeBatches = new WeakMap<Gw2ResolvedConditionApplication, object>();
   let bufferWake: Gw2ResolverEvent | undefined;
 
   // First positive damage fixes the shared phase; integer arithmetic avoids drifting off that phase.
@@ -277,6 +279,8 @@ export function createGw2ConditionResolution({
       vulnerabilityStacks: ctx.query.vulnerabilityStacksAt(at, ctx),
       modifierValues: new Map<object, number | null>()
     };
+    // Reuse only within this observation pass; later state changes always get a fresh attribute sample.
+    let conditionDamageByBatch: Map<object, number> | undefined;
     for (const state of ctx.conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
         for (const application of group.applications) {
@@ -292,14 +296,23 @@ export function createGw2ConditionResolution({
           if (elapsedUs > 0 && !ctx.combatStartPending && (ctx.combatStartTime == null || at >= ctx.combatStartTime)) {
             // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
             if (dealsDamage) {
-              const stats = ctx.query.statsAt(at, application, ctx);
+              const batch = attributeBatches.get(application);
+              let conditionDamage = batch ? conditionDamageByBatch?.get(batch) : undefined;
+              if (conditionDamage === undefined) {
+                conditionDamage = ctx.query.statsAt(at, application, ctx).conditionDamage;
+                if (batch) {
+                  conditionDamageByBatch ??= new Map();
+                  conditionDamageByBatch.set(batch, conditionDamage);
+                }
+              }
+
               // The first damaging sample of a diagnostic application records its rate and traced multiplier.
               const calculation = application.conditionCalculation;
               const damageContributors: Gw2ModifierContribution[] | undefined =
                 calculation && calculation.multiplier == null ? [] : undefined;
               const rate = formula
-                ? formula.base + formula.scaling * stats.conditionDamage
-                : conditionRate(ctx, group.condition, stats.conditionDamage);
+                ? formula.base + formula.scaling * conditionDamage
+                : conditionRate(ctx, group.condition, conditionDamage);
               const multiplier = ctx.query.conditionMultiplier(
                 group.condition,
                 at,
@@ -309,7 +322,7 @@ export function createGw2ConditionResolution({
                 damageContributors
               );
               if (calculation && damageContributors) {
-                calculation.conditionDamage = stats.conditionDamage;
+                calculation.conditionDamage = conditionDamage;
                 calculation.rate = rate;
                 calculation.multiplier = multiplier;
                 calculation.damageContributors = damageContributors;
@@ -377,6 +390,8 @@ export function createGw2ConditionResolution({
     // Every producer shares per-stack reactions; create applications directly without an intermediate packet array.
     // Preserve fractional weight on the final stack and dispatch before inserting the next one.
     const applications: Gw2ResolvedConditionApplication[] = [];
+    // A cache pays only when at least two equal-weight siblings can reuse the sample.
+    const attributeBatch = stacks >= 2 ? {} : undefined;
     for (let index = 0; index < stackCount; index += 1) {
       const application = {
         ...event,
@@ -406,6 +421,7 @@ export function createGw2ConditionResolution({
             }
           : {})
       } as Gw2ResolvedConditionApplication;
+      if (attributeBatch && application.stacks === 1) attributeBatches.set(application, attributeBatch);
       if (ctx.reporting) ctx.resolved.push(application);
 
       // Canonical stacks retain applications for live queries and queued-tick cancellation in both output modes.

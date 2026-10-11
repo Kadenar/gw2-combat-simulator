@@ -1,7 +1,7 @@
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
 import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeContributions, Gw2NumericAttributes } from '#gw2/platform/builds/types.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
@@ -134,17 +134,19 @@ function empowermentAttributeMultiplier(
 }
 
 /** Empowerment reads common sources plus declared trait Condition Damage, excluding temporary buffs and passives. */
-export function catalystAttributePool(context: ElementalistModifierContext) {
+export function catalystAttributePool(context: ElementalistModifierContext): Gw2NumericAttributes {
   const pool = attributeSourcePool(context.config ?? {}, 'catalyst', context.runtime?.activeWeaponSet);
   const facts = attributeContext(context, {
     catalog: (context.catalog ?? context.profession?.catalog)!,
     modifierRulesById: new Map()
   });
   const traits = [burningRage, strengthOfStone].filter((trait) => hasTrait(context, trait.id));
-  pool.conditionDamage +=
-    resolveAttributeContributions(
+  // Trait bonuses remain live and never alter the shared equipment source.
+  const conditionDamage =
+    pool.conditionDamage +
+    (resolveAttributeContributions(
       attributeSeed(context.config ?? {}, facts.weaponSet).conversionPool,
       traits.map((trait) => trait.attributes!(facts))
-    ).attributes['Condition Damage'] ?? 0;
-  return pool;
+    ).attributes['Condition Damage'] ?? 0);
+  return { ...pool, conditionDamage };
 }

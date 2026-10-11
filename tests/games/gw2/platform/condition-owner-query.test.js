@@ -101,3 +101,20 @@ test('Thieves Guild strike scaling and explicitly independent pet/mech condition
     assert.equal(combat.conditionMultiplier('Poisoned', 0, condition), 1);
   }
 });
+
+// An owner/condition/skill key cannot replace the captured attribute profile carried by each application.
+test('independent condition applications retain distinct captured attributes for the same owner and skill', () => {
+  const combat = query();
+  const application = {
+    ...player,
+    actorType: 'summon',
+    skillId: 'pet-poison',
+    summonOwner: 'pet:1',
+    independentConditionOwner: true,
+    independentSummonStrike: true,
+    summonBasePower: 500,
+    summonIgnoresBoons: true
+  };
+  assert.equal(combat.statsAt(1, { ...application, summonBaseConditionDamage: 100 }).conditionDamage, 100);
+  assert.equal(combat.statsAt(1, { ...application, summonBaseConditionDamage: 250 }).conditionDamage, 250);
+});

@@ -84,28 +84,14 @@ test('Mesmer heal and control producers respect selection and isolation', () => 
     }
 });
 
-test('Time Bomb isolates new timers and retains admitted cast-owned explosions after selection changes', () => {
+// Trait selection is fixed for each run; admitted explosions retain their cast ownership through delivery.
+test('Time Bomb isolates new timers and retains admitted cast-owned explosions', () => {
   for (const traitTriggers of [false, true]) {
-    const { result, runtime } = run(
-      mesmerProfession,
-      'Chronomancer',
-      [combat, M.TIME_SINK, wait(7000)],
-      {
-        traitTriggers,
-        selectedTraitIds: [MT.TIME_BOMB],
-        initialResource: 3
-      },
-      {
-        timeline: [
-          {
-            at: 2,
-            run(runtime) {
-              runtime.traits.delete(MT.TIME_BOMB);
-            }
-          }
-        ]
-      }
-    );
+    const { result, runtime } = run(mesmerProfession, 'Chronomancer', [combat, M.TIME_SINK, wait(7000)], {
+      traitTriggers,
+      selectedTraitIds: [MT.TIME_BOMB],
+      initialResource: 3
+    });
     assert.equal(state(runtime).timeBombUntil > 0, traitTriggers);
     const explosion = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Time Bomb');
     assert.equal(Boolean(explosion), traitTriggers);
@@ -132,40 +118,25 @@ test('Bloodsong isolates counter admission while preserving selected Bleeding da
     }
 });
 
-test('phantasm batches capture selected repeats and bonus blades independently of subsequent trait selection', () => {
+test('phantasm batches capture selected repeats and bonus blades for their fixed build', () => {
   for (const [specialization, trait] of [
     ['Chronomancer', MT.CHRONOPHANTASMA],
     ['Virtuoso', MT.PHANTASMAL_BLADES]
   ]) {
     for (const selected of [false, true])
       for (const traitTriggers of [false, true]) {
-        const { result } = run(
-          mesmerProfession,
-          specialization,
-          [combat, M.PHANTASMAL_BERSERKER, wait(12000)],
-          {
-            traitTriggers,
-            primaryWeapon: 'Greatsword',
-            selectedTraitIds: [MT.BOUNTIFUL_BLADES, ...(selected ? [trait] : [])]
-          },
-          {
-            timeline: [
-              {
-                at: 1,
-                run(runtime) {
-                  runtime.traits.delete(trait);
-                }
-              }
-            ]
-          }
-        );
+        const { result } = run(mesmerProfession, specialization, [combat, M.PHANTASMAL_BERSERKER, wait(12000)], {
+          traitTriggers,
+          primaryWeapon: 'Greatsword',
+          selectedTraitIds: [MT.BOUNTIFUL_BLADES, ...(selected ? [trait] : [])]
+        });
         const summons = result.events.find((event) => event.type === 'mesmer.phantasm-summoned');
         assert.equal(summons.count, 2);
         assert.equal(
           proc(result, specialization === 'Chronomancer' ? 'Chronophantasma' : 'Phantasmal Blades'),
           selected && traitTriggers
         );
-        // Both co-spawned entities retain their captured resource conversion, even without new reward producers.
+        // Both co-spawned entities retain the resource conversion captured for their activation.
         assert.equal(summons.conversionTimes.length, 2);
         if (specialization === 'Chronomancer')
           assert.equal(

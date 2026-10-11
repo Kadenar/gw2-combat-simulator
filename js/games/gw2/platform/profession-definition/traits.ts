@@ -93,7 +93,7 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
   readonly hooks?: TraitHooks<TSkill>;
   readonly lifetime?: TraitLifetimeHooks<TSkill>;
   readonly attributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
-  /** Accepted grants remain until expiry even after their granting trait is deselected. */
+  /** Accepted grants belong to the recipient until expiry, independently of the recipient's selected traits. */
   readonly grantedAttributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
 }
 
@@ -104,25 +104,56 @@ type TraitAttributeDeclaration =
   | (Omit<FlatAttributeEffect, 'amount' | 'enabled'> & { readonly field: string })
   | (Omit<ConversionAttributeEffect, 'multiplier' | 'enabled'> & { readonly field: string });
 
+const profileOnlyAttributes = new WeakSet<NonNullable<TraitDefinition['attributes']>>();
+
+/** Resolve profile-only declarations once per query; live declarations keep their original evaluator. */
+export function prepareTraitAttributes(
+  contribute: NonNullable<TraitDefinition['attributes']>,
+  context: Gw2AttributeContext
+): NonNullable<TraitDefinition['attributes']> | Gw2AttributeContributions {
+  if (!context.query || !profileOnlyAttributes.has(contribute)) return contribute;
+  return contribute(context);
+}
+
 /** Resolve constant declarations once per immutable balance profile; a different patch owns a different profile. */
 export function traitAttributeEffects(
   profileId: SkillId,
   declarations: readonly TraitAttributeDeclaration[]
 ): NonNullable<TraitDefinition['attributes']> {
+  return traitAttributeBonuses(profileId, (profile) => ({
+    attributeEffects: declarations.map(({ field, ...effect }) => {
+      const value = balanceProfileNumber(profile, field);
+      return effect.kind === 'flat' ? { ...effect, amount: value } : { ...effect, multiplier: value };
+    })
+  }));
+}
+
+/** Share immutable profile-only bonuses; live selection and combat conditions stay in the caller. */
+export function traitAttributeBonuses(
+  profileId: SkillId,
+  resolve: (
+    profile: BalanceProfile
+  ) => Pick<Gw2AttributeContributions, 'attributeEffects' | 'traitDurations' | 'traitCriticalChance'>
+): NonNullable<TraitDefinition['attributes']> {
   const resolved = new WeakMap<BalanceProfile, Gw2AttributeContributions>();
-  return ({ balanceContext }) => {
+  const contribute: NonNullable<TraitDefinition['attributes']> = ({ balanceContext }) => {
     const profile = requireBalanceProfileFromContext(balanceContext, profileId);
     const cached = resolved.get(profile);
     if (cached) return cached;
-    const contributions: Gw2AttributeContributions = {
-      attributeEffects: declarations.map(({ field, ...effect }) => {
-        const value = balanceProfileNumber(profile, field);
-        return effect.kind === 'flat' ? { ...effect, amount: value } : { ...effect, multiplier: value };
-      })
-    };
+    const contributions = resolve(profile);
+    if (contributions.attributeEffects) {
+      for (const effect of contributions.attributeEffects) Object.freeze(effect);
+      Object.freeze(contributions.attributeEffects);
+    }
+
+    if (contributions.traitDurations) Object.freeze(contributions.traitDurations);
+    Object.freeze(contributions);
     resolved.set(profile, contributions);
     return contributions;
   };
+
+  profileOnlyAttributes.add(contribute);
+  return contribute;
 }
 
 /** Reject misspelled behavior fields before they can silently disappear during module expansion. */

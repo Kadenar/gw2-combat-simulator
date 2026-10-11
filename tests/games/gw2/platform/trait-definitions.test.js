@@ -8,7 +8,11 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import {
+  defineTrait,
+  traitAttributeBonuses,
+  traitAttributeEffects
+} from '#gw2/platform/profession-definition/traits.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   createBuildAttributeContext,
@@ -210,6 +214,33 @@ test('attribute phases sample declarations once per query and refresh after a sa
   assert.equal(second.power, 1840);
   assert.equal(second.conditionDamage, 184);
   assert.equal(first.power, 1820);
+});
+
+// Reusing a caller's selection Set across runs must not couple their compiled attribute contributors.
+test('attribute selection is fixed per query and rebuilt for a new run', () => {
+  const family = familyWith(
+    moduleWith([
+      defineTrait({
+        ...metadata,
+        attributes: (context) => ({
+          attributeEffects: [
+            { kind: 'flat', to: 'Power', amount: hasTrait(context, 101) ? 20 : 0, feedsConversions: false }
+          ]
+        })
+      })
+    ])
+  );
+  const config = { attributeInputs: baseAttributeInputs() };
+  const traits = new Set([101]);
+  const profession = family.runtimeFor(config);
+  const first = createGw2CombatQuery({ profession, config, traits });
+  const notYetSampled = createGw2CombatQuery({ profession, config, traits });
+  assert.equal(first.statsAt(0).power, 1020);
+  traits.clear();
+  const second = createGw2CombatQuery({ profession, config, traits });
+  assert.equal(second.statsAt(0).power, 1000);
+  assert.equal(first.statsAt(1).power, 1020);
+  assert.equal(notYetSampled.statsAt(1).power, 1020);
 });
 
 // Exercise declarative effects through the same selection, preview, and provenance pipeline as custom contributions.
@@ -488,6 +519,81 @@ test('trait attribute helpers reject missing profiles and invalid balance fields
     }
   ]);
   assert.throws(() => missingField({ balanceContext: current }), /profile=101 field=missingConversion/);
+});
+
+// Shared declarations must resist mutation and remain isolated between immutable patch profiles.
+test('profile-only attribute bonuses are immutable and isolated between patches', () => {
+  const family = previewFamily();
+  let resolutions = 0;
+  const contribute = traitAttributeBonuses(101, (profile) => {
+    resolutions++;
+    return {
+      traitDurations: { 'Bleeding Duration': profile.attributeBonus },
+      traitCriticalChance: profile.attributeBonus
+    };
+  });
+  const current = { balanceContext: family.balanceContextFor('current') };
+  const preview = { balanceContext: family.balanceContextFor('preview') };
+  const bonuses = contribute(current);
+  assert.equal(contribute(current), bonuses);
+  assert.notEqual(contribute(preview), bonuses);
+  assert.equal(resolutions, 2);
+  assert.throws(() => {
+    bonuses.traitDurations['Bleeding Duration'] = 999;
+  }, TypeError);
+  assert.throws(() => {
+    bonuses.traitCriticalChance = 999;
+  }, TypeError);
+  const effects = fixtureAttributeEffects(current);
+  assert.throws(() => {
+    effects.attributeEffects[0].amount = 999;
+  }, TypeError);
+  assert.throws(() => {
+    effects.attributeEffects.push({});
+  }, TypeError);
+});
+
+// Preparing a fixed profile must not freeze live contributions or leak another simulation's patch.
+test('prepared attribute declarations isolate patch profiles while live bonuses keep changing', () => {
+  let liveBonus = 5;
+  const family = withPatchPreview(
+    familyWith(
+      moduleWith([
+        defineTrait({
+          ...metadata,
+          balance: { attributeBonus: 20 },
+          attributes: traitAttributeEffects(101, [
+            { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: false }
+          ])
+        }),
+        defineTrait({
+          id: 102,
+          name: 'Live bonus',
+          attributes: () => ({
+            attributeEffects: [{ kind: 'flat', to: 'Power', amount: liveBonus, feedsConversions: false }]
+          })
+        })
+      ])
+    ),
+    {
+      id: 'preview',
+      label: 'Preview',
+      professions: { fixture: { balanceProfiles: { 101: { fields: { attributeBonus: 40 } } } } }
+    }
+  );
+  const makeQuery = (patchId) => {
+    const config = { patchId, selectedTraitIds: [101, 102], attributeInputs: baseAttributeInputs() };
+    return createGw2CombatQuery({ profession: family.runtimeFor(config), config });
+  };
+
+  const current = makeQuery('current');
+  const preview = makeQuery('preview');
+  assert.equal(current.statsAt(0).power, 1025);
+  assert.equal(preview.statsAt(0).power, 1045);
+  liveBonus = 15;
+  assert.equal(current.statsAt(0).power, 1035);
+  assert.equal(preview.statsAt(0).power, 1055);
+  assert.equal(makeQuery('current').statsAt(0).power, 1035);
 });
 
 test('trigger order is stable within a module and preserves Core before elite emission', () => {

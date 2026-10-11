@@ -9,7 +9,12 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
-import type { Gw2AttributeContributionCalculator, Gw2Build } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2AttributeContext,
+  Gw2AttributeContributionCalculator,
+  Gw2AttributeContributions,
+  Gw2Build
+} from '#gw2/platform/builds/types.js';
 import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
@@ -57,7 +62,7 @@ import type {
 import { defineTraitProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
 import {
   assertTraitTrigger,
   compileProfessionRules,
@@ -458,23 +463,45 @@ export function defineNativeProfession<
   const build = normalizeProfessionBuild(definition.id, definition.build);
   let presentation: ProfessionUiContract | undefined;
   type State = NativeProfessionRuntimeState<TModules>;
-  // Registration removes traits without attribute work; live sampling still checks selection and retained grants.
+  // Registration removes traits without attribute work before each query selects its callbacks and retained grants.
   const attributeModules = modules.map((module) => ({
     id: module.id,
     attributes: module.attributes,
     traits: (module.traitDefinitions ?? []).filter((trait) => trait.attributes || trait.grantedAttributes)
   }));
+  // A simulation query has fixed traits. Detached previews select afresh; live values are always evaluated anew.
+  const selectedByQuery = new WeakMap<object, ReturnType<typeof selectAttributeModules>>();
+  function selectAttributeModules(context: Gw2AttributeContext) {
+    return attributeModules
+      .map((module) => {
+        const active = module.id === 'Core' || module.id === context.config?.specialization;
+        const traits: Array<ReturnType<typeof prepareTraitAttributes>> = [];
+        for (const trait of module.traits) {
+          if (trait.attributes && hasTrait(context, trait.id))
+            traits.push(prepareTraitAttributes(trait.attributes, context));
+          if (active && trait.grantedAttributes) traits.push(trait.grantedAttributes);
+        }
+
+        return { attributes: active ? module.attributes : undefined, traits };
+      })
+      .filter((module) => module.attributes || module.traits.length);
+  }
+
   // Every owner contributes once to both the panel and runtime; selection and patch resolution are shared.
   const calculateContributions: Gw2AttributeContributionCalculator = (input) => {
     const context = input.profession ? input : { ...input, profession: { catalog: input.balanceContext.catalog } };
-    const contributions: import('#gw2/platform/builds/types.js').Gw2AttributeContributions[] = [];
-    for (const module of attributeModules) {
-      const active = module.id === 'Core' || module.id === context.config?.specialization;
-      if (active && module.attributes) contributions.push(...module.attributes(context));
-      for (const trait of module.traits) {
-        if (trait.attributes && hasTrait(context, trait.id)) contributions.push(trait.attributes(context));
-        if (active && trait.grantedAttributes) contributions.push(trait.grantedAttributes(context));
-      }
+    let selected = context.query && selectedByQuery.get(context.query);
+    if (!selected) {
+      selected = selectAttributeModules(context);
+      if (context.query) selectedByQuery.set(context.query, selected);
+    }
+
+    const contributions: Gw2AttributeContributions[] = [];
+    for (const module of selected) {
+      if (module.attributes) contributions.push(...module.attributes(context));
+      // Constants are already resolved; only declarations with live inputs need another evaluation.
+      for (const contribute of module.traits)
+        contributions.push(typeof contribute === 'function' ? contribute(context) : contribute);
     }
 
     return contributions;
@@ -510,18 +537,24 @@ export function defineNativeProfession<
         selected.flatMap((module) => module.modifiers.modifierRules ?? []).map((rule) => [rule.id, rule])
       )
     };
-    // Query sampling retains the selected patch's rule parameters as well as its catalog.
-    const selectedContributions: Gw2AttributeContributionCalculator = (input) =>
-      calculateContributions({
-        ...input,
-        balanceContext: {
-          ...balanceContext,
-          catalog: input.catalog ?? input.profession?.catalog ?? input.balanceContext.catalog
-        }
-      });
+    // Runtime owners build attribute facts once, directly against the selected patch's immutable balance context.
+    const attributeBalanceContexts = new WeakMap<Readonly<CanonicalCatalog>, Gw2AttributeContext['balanceContext']>([
+      [catalog, balanceContext]
+    ]);
+    const selectedContributions: NonNullable<NormalizedProfessionContract['attributeContributions']> = (input) => {
+      const selectedCatalog = input.catalog ?? input.profession?.catalog ?? catalog;
+      let selectedBalance = attributeBalanceContexts.get(selectedCatalog);
+      if (!selectedBalance) {
+        selectedBalance = { ...balanceContext, catalog: selectedCatalog };
+        attributeBalanceContexts.set(selectedCatalog, selectedBalance);
+      }
+
+      return calculateContributions(attributeContext(input, selectedBalance));
+    };
+
     // Query phases consume the already sampled values; direct modifier callers sample their own live facts once.
     const queryContributions = (input: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext) =>
-      input.attributeContributions ?? selectedContributions(attributeContext(input, balanceContext));
+      input.attributeContributions ?? selectedContributions(input);
     const modifiers = composeModuleModifiers(selected);
     const ordinaryAttributes = {
       id: 'gw2.attribute-contributions',

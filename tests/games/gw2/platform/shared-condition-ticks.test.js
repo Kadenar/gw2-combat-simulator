@@ -117,6 +117,50 @@ function resolve(
   });
 }
 
+// Sibling stacks share attribute inputs only within one observation; distinct sources, owners and weights stay separate.
+test('condition attribute samples share a packet batch and refresh with each observation', () => {
+  for (const output of ['score', 'detailed']) {
+    const samples = [];
+    resolve(
+      [
+        condition(0, { sourceId: 'first', stacks: 2.5, duration: 2 }),
+        condition(0, { sourceId: 'second', stacks: 2, duration: 2 }),
+        condition(0, {
+          sourceId: 'pet',
+          stacks: 2,
+          duration: 2,
+          actorType: 'summon',
+          independentConditionOwner: true,
+          summonOwner: 'pet'
+        })
+      ],
+      {
+        output,
+        end: 2,
+        query: {
+          statsAt: (at, event) => {
+            if (at > 0) samples.push({ at, source: event.sourceId, weight: event.stacks });
+            return { power: 1000, conditionDamage: at * 100 + (event.sourceId === 'pet' ? 500 : 0) };
+          }
+        }
+      }
+    );
+    for (const at of [1, 2]) {
+      assert.deepEqual(
+        samples.filter((sample) => sample.at === at).map(({ source, weight }) => [source, weight]),
+        [
+          ['first', 1],
+          ['first', 0.5],
+          ['second', 1],
+          ['pet', 1]
+        ]
+      );
+    }
+
+    assert.equal(samples.length, 8);
+  }
+});
+
 function applications(result) {
   return result.resolvedEvents.filter(({ type }) => type === 'condition');
 }
