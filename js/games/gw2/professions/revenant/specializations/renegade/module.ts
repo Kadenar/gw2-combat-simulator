@@ -10,7 +10,6 @@ import {
   RENEGADE_PUBLIC_STATE_PROJECTION,
   renegadeState
 } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { modifyRenegadeCriticalChance } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
@@ -23,8 +22,6 @@ export const renegadeModule = defineNativeModule({
     balanceProfiles: RENEGADE_BALANCE_PROFILES
   }),
   state: { create: renegadeState.create, project: createPublicStateProjector(RENEGADE_PUBLIC_STATE_PROJECTION) },
-  // Compose the trait callback directly; this owner has no additional modifier rules.
-  modifiers: { modifyCriticalChance: modifyRenegadeCriticalChance },
   hooks: renegadeHooks,
   presentation: renegadeUi
 });

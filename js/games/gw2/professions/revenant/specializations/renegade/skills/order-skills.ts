@@ -1,7 +1,28 @@
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { righteousRebelOrderVariants } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+
+/** Adds protection only for the selected enhancement, retaining the order's pulse cadence. */
+const boldReversalOrderEffects: NonNullable<NonNullable<Skill['effectVariants']>[number]['transform']> = (
+  runtime,
+  _cast,
+  effects
+) =>
+  hasTrait(runtime, TRAIT.BOLD_REVERSAL)
+    ? [...effects, ...(requireBalanceProfileFromContext(runtime, PROFILE.boldReversalRighteousRebel).effects ?? [])]
+    : effects;
+
+/** Supplies Orders from Above's trait-selected pulse variant at skill materialization. */
+const righteousRebelOrderVariants: NonNullable<Skill['effectVariants']> = [
+  {
+    when: (runtime) => hasTrait(runtime, TRAIT.RIGHTEOUS_REBEL),
+    profileId: PROFILE.ordersFromAboveRighteousRebel,
+    transform: boldReversalOrderEffects
+  }
+];
 
 // Each impact applies strike damage and Burning at the same offset after cast completion.
 const BOMBARDMENT_IMPACT_MS = [640, 800, 920, 1000, 1040, 1160, 1240, 1400, 1480, 1720];

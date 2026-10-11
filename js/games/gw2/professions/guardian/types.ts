@@ -3,22 +3,15 @@ import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/pla
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
-import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-
-// Module state is declared beside each state factory; re-export it for existing family type importers.
-export interface GuardianBuild extends Gw2Build {
-  specializations?: ProfessionTraitSelection[];
-  assumptions?: { readonly quickness?: boolean };
-}
 
 export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
   initialTomePages: number;

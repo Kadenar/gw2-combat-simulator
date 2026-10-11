@@ -21,7 +21,7 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
-import { ROT_WALLOW_VENOM_ICON } from '#gw2/professions/thief/specializations/specter/traits/behavior.js';
+const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
 
 /** Owns Amplified Siphoning tuning and behavior at the existing execution boundaries. */
 export const amplifiedSiphoning = defineTrait({

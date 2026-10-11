@@ -1,5 +1,11 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import {
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/professions/revenant/core/state-queries.js';
+import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -24,6 +30,7 @@ import {
   renegadeStruck
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/boundaries.js';
 import {
+  activeKallasFervorStacks,
   bandTogetherReady,
   grantKallasFervor
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
@@ -32,7 +39,6 @@ import {
   RENEGADE_PROFILE_IDS
 } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { warbandCompleted } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
-import { kallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns All for One tuning and behavior at its established execution boundaries. */
@@ -170,6 +176,22 @@ export const boldReversal = defineTrait({
 
 /** Owns Brutal Momentum tuning and behavior at its established execution boundaries. */
 export const brutalMomentum = defineTrait({
+  // Attributes supply the baseline; full endurance adds only the remaining critical chance.
+  modifierRules: [
+    {
+      id: 'revenant.brutal-momentum',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) => {
+        const profile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
+        return (
+          balanceProfileNumber(profile, 'fullEnduranceCriticalChance') - balanceProfileNumber(profile, 'criticalChance')
+        );
+      },
+      when: (context) =>
+        resourceAtLeast(revenantRuntimeCoreState(context).endurance?.value ?? 0, REVENANT_MAXIMUM_ENDURANCE)
+    }
+  ],
   attributes: traitAttributeBonuses(RENEGADE_PROFILE_IDS.brutalMomentum, (profile) => ({
     traitCriticalChance: 100 * balanceProfileNumber(profile, 'criticalChance')
   })),
@@ -488,4 +510,9 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
       return;
     grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
   }
+}
+
+/** Trait modifiers count only Fervor stacks active at the hit instant. */
+function kallasFervorStacks(context: Gw2ModifierContext): number {
+  return activeKallasFervorStacks(revenantRuntimeSpecializationState(context, 'Renegade'), context.time);
 }

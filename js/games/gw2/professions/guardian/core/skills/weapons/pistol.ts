@@ -9,7 +9,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { guardianResolverState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type {
@@ -222,7 +222,8 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
     return;
   }
 
-  const state = guardianResolverState(context);
+  // Ignition reads the live Core window through the shared state accessor.
+  const state = professionCoreState(context);
   if (
     (state.symbolIgnitionUntil || 0) <= (state.symbolIgnitionStartsAt || 0) ||
     event.at < (state.symbolIgnitionStartsAt || 0) ||

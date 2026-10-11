@@ -6,7 +6,6 @@ import {
   readProfessionCoreState,
   readProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 
@@ -52,11 +51,6 @@ export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {
   return ['Chilled', 'Crippled', 'Immobilized', 'Taunt', 'Fear'].some((condition) =>
     targetConditionActive(context, condition)
   );
-}
-
-export function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names: readonly string[]): boolean {
-  const weapons = gw2ConfiguredWeaponSet(context.config, weaponSet);
-  return weapons.some((weapon) => names.includes(weapon || ''));
 }
 
 export function activePetFamily(context: RangerModifierContext): string {

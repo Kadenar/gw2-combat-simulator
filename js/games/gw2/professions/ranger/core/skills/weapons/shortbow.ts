@@ -1,4 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import type { RangerRuntimeState, RangerSkill, RangerResolverContext } from '#gw2/professions/ranger/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -17,6 +20,35 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+
+/** Share the patched base and intrinsic extension so trait extensions add seconds without compounding them. */
+export function shortbowConditionDuration(context: Gw2ModifierContext) {
+  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+  const base = Number(
+    skill?.effects?.find((effect) => effect.type === 'condition' && effect.condition === context.condition)?.duration ||
+      0
+  );
+  let intrinsic = 0;
+  if (qualifiesForFlankingBonuses(context)) {
+    if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') intrinsic = 1;
+    else if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') intrinsic = 2;
+  }
+
+  return { skillId: skill?.id, base, intrinsic };
+}
+
+/** Defiant targets receive the weapon's native extension independently of trait selection. */
+export const rangerShortbowConditionDurationModifier: Gw2ModifierRule = {
+  id: 'ranger.shortbow-base-duration',
+  order: 0,
+  target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+  operation: 'multiply',
+  factor: (context) => {
+    const { base, intrinsic } = shortbowConditionDuration(context);
+    return base > 0 ? (base + intrinsic) / base : 1;
+  },
+  when: (context) => shortbowConditionDuration(context).intrinsic > 0
+};
 
 // Full-cast medians and successful minimums from 20261006-010612, snapped to 40 ms.
 // Committed arrows retain their impacts and observed aftercast; offsets include this log's projectile travel.

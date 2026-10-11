@@ -33,6 +33,7 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/combat.js';
 
 import { activeBuff, qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { shortbowConditionDuration } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -67,6 +68,31 @@ export const lightOnYourFeet = defineTrait({
     ]
   },
   modifierRules: [
+    {
+      id: 'ranger.light-on-your-feet-base-duration',
+      order: 1,
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      operation: 'multiply',
+      factor: (context) => {
+        const { skillId, base, intrinsic } = shortbowConditionDuration(context);
+        if (!(base > 0)) return 1;
+        const extension = balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
+          skillId === ID.CRIPPLING_SHOT ? 'minimumStacks' : 'durationPerTier'
+        );
+        // The weapon already contributes intrinsic seconds; add the trait's seconds to that same base.
+        return Math.max(0, base + intrinsic + extension) / (base + intrinsic);
+      },
+      when: (context) => {
+        if (!qualifiesForFlankingBonuses(context)) return false;
+        const { skillId } = shortbowConditionDuration(context);
+        return (
+          (skillId === ID.CROSSFIRE && context.condition === 'Bleeding') ||
+          (skillId === ID.POISON_VOLLEY && context.condition === 'Poisoned') ||
+          (skillId === ID.CRIPPLING_SHOT && context.condition === 'Immobilized')
+        );
+      }
+    },
     {
       order: 3,
       id: 'ranger.light-on-your-feet',
@@ -181,6 +207,25 @@ export const sharpenedEdges = defineTrait({
 
 /** Owns Trapper's Expertise's live tuning and trait behavior. */
 export const trappersExpertise = defineTrait({
+  // Traps extend their base conditions, with Flame Trap retaining its separate balance field.
+  modifierRules: [
+    {
+      id: 'ranger.trappers-expertise-base-duration',
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      operation: 'multiply',
+      factor: (context) => {
+        const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+        return balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE),
+          skill?.id === ID.FLAME_TRAP ? 'coefficientMultiplier' : 'durationMultiplier'
+        );
+      },
+      when: (context) =>
+        Boolean(
+          skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes('Trap')
+        )
+    }
+  ],
   triggers: [
     onTriggerPoint(packStrikeApplied, {
       run: (runtime, input: TriggerPointInput<typeof packStrikeApplied>) =>

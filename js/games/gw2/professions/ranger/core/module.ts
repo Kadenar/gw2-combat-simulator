@@ -7,7 +7,6 @@ import {
 import { rangerFalconsStoopModifier } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
 import { rangerPounceModifier } from '#gw2/professions/ranger/core/skills/weapons/sword.js';
 
-import { modifyRangerConditionBaseDuration } from '#gw2/professions/ranger/core/traits/skirmishing/attributes.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
@@ -21,7 +20,10 @@ import {
 } from '#gw2/professions/ranger/core/skills/index.js';
 import { sharpeningStoneProfile, sicEmPetModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { poisonousStrikesProfile } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
-import { bloodThirstProfile } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import {
+  bloodThirstProfile,
+  rangerShortbowConditionDurationModifier
+} from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { createRangerCoreState, RANGER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/core/state.js';
 import { rangerCoreTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
@@ -44,8 +46,8 @@ export const rangerCoreModule = defineNativeModule({
   state: { create: createRangerCoreState, project: createPublicStateProjector(RANGER_CORE_PUBLIC_STATE_PROJECTION) },
   // Keep player/shared rules before the pet audience and retain the established duration stage.
   modifiers: {
-    modifyConditionBaseDuration: modifyRangerConditionBaseDuration,
     modifierRules: [
+      rangerShortbowConditionDurationModifier,
       rangerAttackOfOpportunityModifier,
       ...[
         rangerHammerDisabledModifier,

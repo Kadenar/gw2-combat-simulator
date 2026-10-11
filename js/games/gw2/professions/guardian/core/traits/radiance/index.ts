@@ -138,6 +138,19 @@ export const radiantPower = defineTrait({
 
 /** Owns Radiant Fire's live tuning and trait behavior. */
 export const radiantFire = defineTrait({
+  // Extend only Zealot's Flame's base Burning before ordinary duration bonuses.
+  modifierRules: [
+    {
+      id: 'guardian.radiant-fire-base-duration',
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_FIRE), 'durationMultiplier'),
+      when: (context) =>
+        context.condition === 'Burning' &&
+        (context.sourceId === ID.ZEALOTS_FLAME || context.event?.skillId === ID.ZEALOTS_FLAME)
+    }
+  ],
   rechargeRules: [
     {
       when: (_runtime, skill) => skill.weapon === 'Torch',
@@ -176,6 +189,17 @@ export const amplifiedWrath = defineTrait({
     durationMultiplier: 1.2
   },
   modifierRules: [
+    {
+      // Justice's passive Burning has its own base-duration multiplier.
+      id: 'guardian.amplified-wrath-base-duration',
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.AMPLIFIED_WRATH), 'durationMultiplier'),
+      when: (context) =>
+        context.condition === 'Burning' &&
+        (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive')
+    },
     {
       order: -2,
       id: 'guardian.amplified-wrath-damage',
