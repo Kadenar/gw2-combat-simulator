@@ -7,35 +7,32 @@ initiative, stealth, weapons, and traits; each specialization owns a complete ve
 
 ## Data
 
-- API identity snapshot: 2026-07-28 (official GW2 API).
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
 - Refresh: `npm run update:profession-data -- --profession Thief`.
 - Runtime simulation is network-free. Initiative, skill mechanics, modifiers, and other non-API behavior are checked
   into owner-local `skills/`, `traits/`, and `mechanics/` modules.
 
-Core defines traits in `traits/<line>/index.ts` for Acrobatics, Critical Strikes, Deadly Arts, Shadow Arts, and
-Trickery; its index registers them in their original order. Each elite defines and registers its traits in
-`traits/index.ts`. Each `defineTrait` owner holds its balance profiles, modifiers, triggers, recharge rules, and build
-contributions. Runtime callers import supporting behavior directly from `traits/` helpers. Profile lookups retain
-selected-patch tuning and effect-removal behavior; numeric trait IDs are used directly rather than repeated profile
-aliases.
+## Trait and resource ownership
 
-Build and live queries use `thiefProfession.attributeContributions`. The Core module registers equipped signet passives
-from `core/skills/attribute-passives.ts`; trait definitions supply selected bonuses and conversions. The build adapter
-supplies effective selection and the active balance context to the shared evaluator, including disabled-trait previews.
-Both paths start from equipment attribute seeds. Preparedness owns its initiative capacity, which initial state and live
-resource queries read from the active trait profile. Runtime resource clocks, stealth and Revealed, Mark/malice, shroud
-state, artifact slots, and applied windows remain with their mechanics.
+Core definitions live in `core/traits/<line>/index.ts`; each elite registers its traits in `traits/index.ts`.
+Definitions own balance profiles, modifiers, triggers, recharge rules, and build contributions. Supporting helpers stay
+beside their owners; mechanics own resource clocks, stealth/Revealed, Mark/malice, shroud, artifacts, and applied
+windows.
 
-Ordered mechanic trigger points invoke definition-local handlers: stealth breaks before Unrelenting Strikes and No
-Quarter; Core steals notify trait owners before acquisition and initiative; dodge packets resolve before their new
-damage windows; mark resets, stolen-skill replacement, and malice rewards retain their existing order. Specter emits its
-barrier before Dark Sentry's task and resolves Amplified Siphoning before Improvisation. Antiquary preserves
-artifact-grant ordering, Sun Crystal before Mistburn, and applied charge/window lifetimes after selection changes. The
-mixed strike sequence lives in `core/mechanics/reactions.ts`. Core steal rewards, poison, critical boons, stealth, and
-venoms live inside their owning trait-line folders; `core/mechanics/steal.ts` fires the ordered steal boundary declared
-in `core/mechanics/boundaries.ts`. Daredevil's trait-selected dodge transformations live in `traits/index.ts`; Antiquary
-retains artifact helpers in its `traits/` directory. Specter's `skills/siphon.ts` owns the Shadow Force calculation,
-while the Dark Sentry definition owns its Rot Wallow Venom delivery and icon.
+Build and live queries share `thiefProfession.attributeContributions`, combining equipped signet passives from
+`core/skills/attribute-passives.ts` with selected trait declarations. The evaluator starts from equipment seeds and uses
+the active balance context. Preparedness owns initiative capacity for both initial state and live resource queries.
+
+Ordered mechanic trigger points preserve these boundaries:
+
+- Stealth breaks before Unrelenting Strikes and No Quarter; steal traits run before stolen-skill acquisition and
+  initiative rewards. `core/mechanics/steal.ts` dispatches the boundary from `core/mechanics/boundaries.ts`.
+- Dodge packets resolve before their new damage windows; Mark resets precede stolen-skill replacement and malice
+  rewards.
+- Specter emits barrier before Dark Sentry's task and resolves Amplified Siphoning before Improvisation. Siphon's skill
+  owns Shadow Force calculation; Dark Sentry owns Rot Wallow Venom delivery.
+- Antiquary preserves artifact grant order, Sun Crystal before Mistburn, and the granted lifetime of applied charges and
+  windows. Mixed strike dispatch lives in `core/mechanics/reactions.ts`.
 
 ## Implemented systems
 
@@ -56,6 +53,6 @@ Double Edge success/backfire is saved per rotation entry; simulation never uses 
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Incoming attacks, active defense, ally support (Shallow Grave, Consume Shadows,
-Traversing Dusk, Panaku's Ambition, Hungering Darkness, etc.), pathing, secondary targets, and competitive (PvP/WvW)
-splits are out of model.
+Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
+active defense, ally support (Shallow Grave, Consume Shadows, Traversing Dusk, Panaku's Ambition, Hungering Darkness,
+etc.), pathing, secondary targets, and competitive (PvP/WvW) splits are out of model.

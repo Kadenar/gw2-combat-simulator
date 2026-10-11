@@ -23,19 +23,20 @@ does not attempt to reproduce:
 - Competitive PvP or WvW balance splits
 - Unknown, undocumented, or newly changed game behavior
 
-Both modes use seeded rolls for critical-proc eligibility and other chance-based effects, while strike damage uses
-average critical damage. Deterministic mode uses midpoint weapon strength; stochastic mode rolls weapon strength per
-activation. A single seed represents one set of proc outcomes, not their expected average. Imported logs can also differ
-because they contain realized critical damage and encounter conditions.
+Player health stays at 100% during combat simulation. Only the isolated attribute preview may vary it; target health
+remains modeled.
 
-## Good use
+Both modes use seeded rolls for critical-proc eligibility and other chance-based effects. Deterministic mode uses
+midpoint weapon strength and defaults to averaged critical damage; the **Critical damage** setting can use individual
+rolls instead. Stochastic mode samples weapon strength per activation and always uses rolled critical damage. A single
+seed represents one set of outcomes, not their expected average. Imported logs can also differ because of encounter
+conditions and unmodeled effects.
+
+## Comparing results
 
 Use the simulator to compare two setups under identical assumptions, inspect why their damage differs, and identify
 questions worth validating in game.
 
-## Bad use
-
-Do not treat a result as proof of live-game performance when the comparison changes targets, boons, observation windows,
-rotations, or unmodeled encounter conditions.
+Keep targets, boons, seeds, and observation windows fixed so their effects do not obscure the build or rotation change.
 
 For profession-specific boundaries, see [Profession support](Profession-Support).

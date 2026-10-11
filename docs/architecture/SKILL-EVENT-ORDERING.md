@@ -59,24 +59,30 @@ opening a window before a hit, consuming a resource before replacing it, or clos
 For a state transition that must surround an ordinary priority-zero skill packet:
 
 ```ts
-context.emit({
-  type: 'example.window-open',
-  at,
-  priority: -10,
-  source: 'example',
-  sourceId: skill.id,
-  actorType: 'player'
+context.effects.emit({
+  kind: 'packet',
+  event: {
+    type: 'example.window-open',
+    at,
+    priority: -10,
+    source: 'example',
+    sourceId: skill.id,
+    actorType: 'player'
+  }
 });
 
 // The ordinary skill packet resolves here at priority 0.
 
-context.emit({
-  type: 'example.window-close',
-  at,
-  priority: 10,
-  source: 'example',
-  sourceId: skill.id,
-  actorType: 'player'
+context.effects.emit({
+  kind: 'packet',
+  event: {
+    type: 'example.window-close',
+    at,
+    priority: 10,
+    source: 'example',
+    sourceId: skill.id,
+    actorType: 'player'
+  }
 });
 ```
 
@@ -110,35 +116,18 @@ authored commands begin new causal roots after due work settles. Internal payloa
 
 ### Shared condition pulses
 
-All conditions follow pulses at 1s, 2s, and so on after first positive player damage. Sample reads all owners at
-whole-second pulses and exact natural expirations. Settle commits condition payouts and their same-time derived state.
-Ordinary then runs strikes, direct condition-kind damage, and ordinary state events. A negative ordinary priority cannot
-precede settlement. An eligible condition payout takes precedence over a first strike at the same timestamp and
-establishes first damage. Before an opener, provisional encounter-second pulses allow conditions to establish first
-damage themselves. A direct opener between those pulses replaces pending wakes with the first-damage phase; an explicit
-Combat Start marker only gates damage.
+Sample reads condition rates before Settle commits payouts and same-time derived state. Ordinary then runs strikes,
+direct condition-kind damage, and ordinary state events. A negative Ordinary priority cannot precede settlement. All
+condition owners sample a boundary before any payout changes target health, and each owner/condition group commits
+atomically before its tick reaction and death check.
 
 Non-damage events emitted during settlement inherit Settle only at that timestamp; future work receives its normal
-phase. Direct damage remains Ordinary. Enqueueing work in the past or in an earlier phase at the current timestamp
-throws with the source and time. A bounded same-time chain prevents runaway reactions. Within each phase, existing
-priority and causal ordering remain unchanged.
+phase. Direct damage remains Ordinary. Enqueueing past work or rewinding the current phase throws; a bounded same-time
+chain prevents runaway reactions. Priority and causal ordering still break ties within each phase.
 
-Each owner/condition packet commits all contributions before its tick reaction and the event loop's death check.
-Distinct groups remain separately ordered, including simultaneous packets at the lethal timestamp. Applications at a
-pulse boundary contribute zero buffered time to the preceding interval. Each application samples current stats and
-modifiers for its elapsed interval without rounding; whole-second packets sum all contributions for the same condition
-and owner, round half-even once, and commit those contributions. All owners sample the boundary before any condition
-payout changes target health. Natural expiry between pulses settles on the next synchronized pulse, not at expiry or the
-observation cutoff. See [Shared condition ticks](SHARED-CONDITION-TICKS.md).
-
-Status queries use canonical half-open windows: active at application, inactive at expiry. Accrual ending at expiry may
-still enter a later payout; forced removal discards pending damage separately from natural expiration.
-
-Standard boon and condition durations round half-even to whole milliseconds after duration bonuses, including
-fixed-duration grants. Boon extension amounts use the same rounding. Temporary buff expiry follows the shared effect
-clock and rounds up to the next absolute 40 ms boundary; condition natural expiry remains exact. Duration-stacking boon
-grants add to the remaining pool before its cap is applied. Generic profession buff events retain their authored
-duration even though their active window uses the shared effect-expiry policy.
+[Shared condition ticks](SHARED-CONDITION-TICKS.md) owns the first-damage-relative pulse, expiry accrual, grouped
+rounding, and death-boundary contracts. The [event clock](SIMULATION-EVENT-CLOCK.md#8-status-and-condition-clocks)
+defines half-open status windows and duration rounding.
 
 Do not depend on incidental array order. Use:
 
@@ -188,6 +177,7 @@ Hook order does not move events on the timeline. Modifier order does not determi
 ## Implementation references
 
 - `js/kernel/events/queue.ts` owns stable phased ordering and cancellation.
-- `js/games/gw2/platform/simulation/runtime.ts` owns command acceptance and queue dispatch.
+- `js/games/gw2/platform/simulation/coordinator.ts` owns queue dispatch and clock advancement.
+- `js/games/gw2/platform/execution/cast-execution.ts` owns command acceptance and cast lifecycle.
 - `js/games/gw2/platform/simulation/internal-work.ts` validates private payloads and ownership.
 - `tests/games/gw2/platform/events/event-ordering.test.js` covers ordering contracts.

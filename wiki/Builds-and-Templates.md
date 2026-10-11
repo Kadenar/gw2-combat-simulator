@@ -28,11 +28,13 @@ build that existed before the template was loaded.
 
 ## Import, export, and reset
 
-- **Export** downloads a portable build JSON file.
+- **Export** offers **Build only** or **Build + rotation** JSON downloads.
 - **Import** validates and loads a build JSON file for the active profession.
-- **Reset** replaces the current build with that profession's default configuration.
+- **Reset** restores the active tab's loaded template, including its rotation, or the profession defaults if no template
+  is associated with the tab.
 
-Rotations are saved separately. Export the build and rotation together when sharing a complete setup.
+**Save Rotation** exports the rotation separately. Use **Build + rotation**, or share both separate files, for a
+complete setup.
 
 ## Reliable comparisons
 

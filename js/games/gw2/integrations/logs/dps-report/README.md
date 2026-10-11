@@ -17,18 +17,19 @@ Mirage Cloak gains coincident with recorded shatters or cloak-granting Deception
 adding a dodge. Other cloak gains use the ordinary unsupported-action handling. Importing EVTC provides raw buff,
 teleport and mirror damage evidence to identify their source inputs.
 
-Untamed also imports supported natural F1/F3 skills from the selected player's minion rotations. These use recorded pet
-cast timestamps and the independent pet lane. Basic attacks remain automatic, and skills already present on the player
-timeline (including F2) are not imported again from the pet. Pet cast records do not distinguish manual commands from
-autocasts.
+Untamed uses supported commandable skills from the selected player's owned pet rotations, including F2. When pet
+animations exist for a skill, they replace its player-side markers, preserving pet timestamps on the independent pet
+lane. Otherwise the player rotation remains the source. Basic attacks remain automatic; pet records cannot distinguish
+manual commands from autocasts. Other specializations, including Soulbeast, retain the player rotation.
 
 No additional cast is inferred from initial buffs, minion presence, aggregate damage, later repetitions, resources or
-dependent skills. No opener alignment or fixed preparation waits are applied. Users supply missing setup in the rotation
-editor.
+dependent skills. Users supply missing setup in the rotation editor.
 
 Commands use catalog mechanics. Shorter observed durations are encoded as quantized interruptions where applicable;
-longer occupancy can become waits. These replay conversions do not rewrite the source evidence or grant missing state.
-Consequently an imported rotation can need editing or produce availability warnings before it simulates successfully.
+longer occupancy can become waits. A clipped opening Conduit Haze expands to the represented main activation while
+keeping its recorded end and combat instant. These replay conversions do not rewrite source evidence or grant missing
+state. Consequently an imported rotation can need editing or produce availability warnings before it simulates
+successfully.
 
 Each successful import returns this notice once, alongside independent unsupported-action and interruption warnings:
 

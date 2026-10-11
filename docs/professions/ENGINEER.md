@@ -7,7 +7,7 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 
 ## Data
 
-- API identity snapshot: 2026-07-28 (official GW2 API).
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
 - Refresh: `npm run update:profession-data -- --profession Engineer`.
 - Runtime simulation is network-free. Coefficients, timings, modifiers, and state-machine rules are checked into
   owner-local `skills/`, `traits/`, and `mechanics/` modules.
@@ -26,8 +26,9 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 
 ## Modeling boundaries
 
-- Single-target, outgoing-damage focused. Incoming attacks, active defense, ally healing/barrier/cleanse, pathing,
-  secondary targets, and competitive (PvP/WvW) splits are out of model.
+- Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
+  active defense, ally healing/barrier/cleanse, pathing, secondary targets, and competitive (PvP/WvW) splits are out of
+  model.
 - Mech summon/recall, health, death, pathing, target acquisition, and autonomous command use are not modeled; commands
   are explicit rotation actions and the mech is assumed in Mechanical Genius range.
 - Deterministic simulations average critical damage by default, with rolled critical damage available in simulation
@@ -40,23 +41,14 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 - `core/skills/` and each specialization's `skills/` — skill packets, cooldowns, and timings.
 - `core/mechanics/` and specialization `mechanics/` directories — resources, availability, state transitions, and event
   behavior.
-- `core/traits/` — five trait-line folders own 39 definitions in their `index.ts` files; the parent `index.ts` preserves
-  registration order. `core/mechanics/activations.ts` declares ordered trigger points for definition-local handlers.
-  Explosives, Alchemy, and Firearms reactions and modifiers live in their line's `index.ts`.
-  `core/traits/tools/toolbelt.ts` retains Adrenal Implant's endurance bonus and Gadgeteer's mine variant, while
-  mechanics retain kit/toolbelt state and cooldown execution.
-- `specializations/scrapper/traits/index.ts` — eight registered definitions own gyro triggers, Function Gyro ammo, combo
-  rewards, attribute conversion, and the live Stability pulse. Kinetic Accelerators' combo rewards live in that same
-  index; Scrapper state retains the pending pulse timestamp.
-- `specializations/holosmith/traits/index.ts` — seven definitions own heat policies, Lens grants/consumption, Forge
-  action eligibility, and trait modifiers. Solar Focusing Lens grants and consumption live in that same `index.ts`;
-  `traits/heat.ts` supplies heat policies, while mechanics retain heat cadence and transition sequencing.
-- `specializations/mechanist/traits/index.ts` — ten definitions own command rows, arm procs, frame inheritance, and
-  core/signet adjustments; mechanics retain the independent mech lane and packet ownership.
-- `specializations/amalgam/traits/index.ts` — nine definitions own Morph/Evolve payoffs, trait build contributions,
-  variant selection, and accepted-control recharge reductions. `traits/behavior.ts` owns the shared Morph/Evolve and
-  Carbolic Composition helpers. The committed Morph task retains cross-trait ordering.
-- Supporting elite behavior remains under each `traits/` directory; mechanic callers import those helpers directly.
+- `core/traits/<line>/index.ts` and each elite's `traits/index.ts` — trait definitions, profiles, modifiers, attribute
+  contributions, and triggers. Supporting helpers remain beside their definitions.
+- `core/mechanics/activations.ts` — ordered trait trigger points; mechanics retain kit/toolbelt state and recharge.
+- Scrapper traits own combo rewards and Function Gyro ammo; specialization state retains the pending Stability pulse.
+- Holosmith traits own heat policies and Solar Focusing Lens rewards; mechanics own heat cadence and transitions.
+- Mechanist traits own command selection, arm procs, and attribute inheritance; mechanics own the independent mech lane
+  and packet ownership.
+- Amalgam traits own Morph/Evolve rewards and recharge policy; the committed Morph task preserves cross-trait ordering.
 - `specializations/mechanist/mechanics/mech.ts` — persistent mech attacks and commands.
 - `core/module.ts` and each specialization's `module.ts` — native module registration and phase ownership.
 

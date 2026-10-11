@@ -64,7 +64,7 @@ same-source checks and missile-availability gates remain excluded; ambiguous evi
 
 Coverage is intentionally incomplete. Unsupported extension healing/barrier and custom checker families are not replaced
 by generic damage or catalog guesses. Mechanist summon/recall skills are intentionally outside simulator scope. See the
-[coverage inventory](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) for the pinned finder exclusions. This
+[coverage limits](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits). This
 implementation is not a full EI parity certification; encounter logic and time-aware ownership remain limited.
 
 ## Normalization and timing

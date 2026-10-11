@@ -2,7 +2,7 @@
 
 For day-to-day maintenance (reviewing a new EI release, fixing a mismatch), start at
 [EI-PARSER-MAINTENANCE.md](../js/games/gw2/integrations/logs/EI-PARSER-MAINTENANCE.md). This document is the contract
-that guide maintains: what an import must and must not do, and which EI finders are currently supported.
+that guide maintains: evidence requirements, replay boundaries, and coverage limits.
 
 The reference for EVTC behavior is EI commit `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a`
 ([GW2-Elite-Insights-Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser)). This is a source behavior baseline,
@@ -19,15 +19,10 @@ incomplete openers themselves after importing.
 An import is successful when it faithfully converts the available cast evidence. It does not need to produce a complete
 benchmark opener or a rotation that immediately simulates without missing-state or availability warnings.
 
-Core Steal has an explicitly local EVTC inference rule outside the EI baseline. It requires a target-attached effect
-corroborated by same-owner Serpent's Touch and Deadly Ambush condition bursts; see the
-[EVTC evidence contract](../js/games/gw2/integrations/logs/evtc/README.md#cast-evidence) for its limits. It does not
-infer missing setup or alter dps.report timelines. Thousand Needles now uses the pinned EI finder with both delayed
-secondary visuals, rather than remaining in the unsupported checker list.
-
-Distress also uses the pinned EI finder: its caster-owned spear effect must coincide with a Distress buff remove-all
-event within the strict 10 ms server tolerance. The removal check spans all actors, matching EI; the visual supplies
-caster identity. It is no longer excluded as an unsupported custom checker.
+Local EVTC exceptions and skill-specific evidence requirements are documented in the
+[EVTC adapter](../js/games/gw2/integrations/logs/evtc/README.md#cast-evidence) and
+[Mesmer evidence guide](../js/games/gw2/integrations/logs/evtc/rotation/professions/mesmer/README.md). These rules do
+not add casts to supplied dps.report timelines.
 
 ## Required behavior
 
@@ -133,7 +128,7 @@ a group but cannot supply an attunement. Raw events remain unchanged; synthetic 
 by supported cast finders. Canonical identities separate EI Fire Water -5 from simulator Dodge -5, and shared
 normalization handles attunement-dependent skills and Unravel's generated dual transition for both log adapters.
 
-The following skill-specific behaviors follow the pinned EI source directly:
+The following evidence and replay rules need particular care:
 
 - **Holosmith Blade Burst / Particle Accelerator** use the pinned
   [MissileCastFinder](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/InstantCastFinders/MissileCastFinder/MissileCastFinder.cs):
@@ -167,51 +162,9 @@ Shared normalization lives in `shared/rotation/professions/`. Source durations r
 commands still use catalog timing, scheduler quantization, observed cancellation and ordinary waits. Reports with
 missing opening Forge entries require manual completion even when every supplied entry imports correctly.
 
-The following pinned ordinary-finder declarations are not currently implemented, because their finder/checker family is
-unsupported by the ordinary table. Some have a separately implemented custom path described above — listing a
-declaration here does not mean all evidence for its skill is absent. The current ordinary table is
-`evtc/rotation/ei-rules.ts`, and custom paths live beside it; read this list together with the coverage notes above, not
-as a generated diff of the current table:
-
-- **Elementalist:** `Elementalist.HealingRipple`, `Elementalist.HealingRippleWvW`, `Elementalist.FlowLikeWaterHealing`,
-  `Elementalist.FlameWheelSkill`, `Elementalist.IcyCoilSkill`, `Elementalist.CrescentWindSkill`,
-  `Elementalist.RockyLoopSkill`, `Weaver.FlameWheelSkill`, `Weaver.DualOrbitFireAndWater`, `Weaver.DualOrbitFireAndAir`,
-  `Weaver.DualOrbitFireAndEarth`, `Weaver.IcyCoilSkill`, `Weaver.DualOrbitFireAndWater`, `Weaver.DualOrbitWaterAndAir`,
-  `Weaver.DualOrbitWaterAndEarth`, `Weaver.CrescentWindSkill`, `Weaver.DualOrbitFireAndAir`,
-  `Weaver.DualOrbitWaterAndAir`, `Weaver.DualOrbitAirAndEarth`, `Weaver.RockyLoopSkill`, `Weaver.DualOrbitFireAndEarth`,
-  `Weaver.DualOrbitWaterAndEarth`, `Weaver.DualOrbitAirAndEarth`, `Catalyst.FlameWheelSkill`, `Catalyst.IcyCoilSkill`,
-  `Catalyst.CrescentWindSkill`, `Catalyst.RockyLoopSkill`.
-- **Engineer:** `Engineer.MagneticInversion`, `Engineer.EngineerKitFinder(BombKit),`,
-  `Engineer.EngineerKitFinder(ElixirGun),`, `Engineer.EngineerKitFinder(Flamethrower),`,
-  `Engineer.EngineerKitFinder(GrenadeKit),`, `Engineer.EngineerKitFinder(MedKitSkill),`,
-  `Engineer.EngineerKitFinder(ToolKit),`, `Engineer.EngineerKitFinder(EliteMortarKit),`,
-  `Engineer.DetonateThrowMineOrMineField`, `Engineer.DetonateMineField`, `Engineer.DetonateThrowMine`,
-  `Engineer.AimAssistedRocket`, `Engineer.SurpriseShot`, `Holosmith.BladeBurstOrParticleAccelerator`,
-  `Mechanist.CrisisZone`, `Mechanist.RocketPunchMech`, `Mechanist.ExigencyProtocol`.
-- **Guardian:** `Guardian.JudgesIntervention`, `Guardian.MercifulInterventionSkill`, `Guardian.Advance`,
-  `Guardian.StandYourGround`, `Guardian.LesserSymbolOfBlades`, `Guardian.LesserSymbolOfBlades`,
-  `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfProtection`,
-  `Guardian.LesserSymbolOfProtection`, `Guardian.GlacialHeartHeal`, `Guardian.SelflessDaring`,
-  `Firebrand.MantraOfSolace`, `Firebrand.EchoOfTruth`, `Firebrand.VoiceOfTruth`, `Firebrand.EchoOfTruthOrVoiceOfTruth`.
-- **Mesmer:** `Mesmer.SignetOfMidnightSkill`, `Mesmer.Swap`, `Mesmer.PhaseRetreat`, `Mesmer.BlinkOrPhaseRetreat`,
-  `Mesmer.MindWrackOrMindWrackAmmo`, `Mesmer.MindWrack`, `Mesmer.MindWrackAmmo`, `Mesmer.CryOfFrustration`,
-  `Mesmer.Diversion`, `Mesmer.DistortionSkill`, `Mesmer.DistortionSkill`, `Mesmer.MantraOfRecovery`,
-  `Mesmer.PowerCleanse`, `Virtuoso.BladesongDistortion`.
-- **Necromancer:** `Necromancer.SpitefulSpirit`, `Necromancer.SpectralRecallSkill`, `Necromancer.SpitefulRenewal`,
-  `Reaper.MinionSpawnCastFinder(Rise, (int)MinionID.ShamblingHorror)  `, `Scourge.SandCascadeSkill`,
-  `Scourge.DesertShroud`, `Scourge.SandstormShroudSkill`, `Scourge.SadisticSearingActivation`.
-- **Ranger:** `Ranger.SignetOfStone`, `Ranger.LesserSignetOfStone`, `Ranger.WindborneNotes`, `Ranger.InvigoratingBond`,
-  `Ranger.EvasivePurity`, `Ranger.ProtectMe`, `Ranger.GuardSkill`, `Ranger.LesserGuardSkill`, `Ranger.RangerPetSpawned`,
-  `Galeshot.SummonCycloneBow`.
-- **Revenant:** `Revenant.CallOfTheCentaur`, `Revenant.ProjectTranquility`, `Revenant.VentarisWill`,
-  `Revenant.NaturalHarmony`, `Revenant.NaturalHarmony`, `Revenant.PurifyingEssence`, `Revenant.EnergyExpulsion`,
-  `Revenant.ProtectiveSolaceSkill`, `Renegade.BandTogetherCastFinder(BreakrazorsBastionSkill, BreakrazorsB`,
-  `Renegade.BandTogetherCastFinder(RazorclawsRageSkill, RazorclawsRageSk`,
-  `Renegade.BandTogetherCastFinder(DarkrazorsDaringSkill, DarkrazorsDari`,
-  `Renegade.BandTogetherCastFinder(IcerazorsIreSkill, IcerazorsIreSkillE`, `Conduit.CosmicWisdomSkill`,
-  `Conduit.FormOfTheDervishDamage`, `Conduit.FormOfTheDervishDamageElite`.
-- **Thief:** `Thief.ShadowReturn`.
-- **Warrior:** `Warrior.MendingMight`, `Bladesworn.FlowStabilizer`.
+For current finder coverage, inspect `evtc/rotation/ei-rules.ts` together with `ei-custom-casts.ts`, `ei-minions.ts`,
+and `professions/`. A finder absent from the ordinary table may have a custom implementation; absence from that table
+alone is not an unsupported-skill inventory.
 
 ## Preserve necessary import behavior
 
@@ -227,9 +180,11 @@ as a generated diff of the current table:
 - Keep normal simulator mechanics, manual opener editing, and existing saved-preset content. Do not repair fresh imports
   by changing engine resource defaults, granting opening buffs, resetting cooldowns, or bypassing availability.
 
-Source timestamps may need a common offset when encoded as simulator commands. That is distinct from individually moving
-an opening cast, fabricating a wait, or moving combat start to improve replay DPS. Preserve the source origin and audit
-encounter-start handling against EI; do not replace it with a blanket "first player hit" rule.
+Source timestamps may need a common offset when encoded as simulator commands. Represented composites can also need
+replay-only adjustments: a clipped opening Conduit Haze expands to the catalog's main activation while retaining its
+recorded end and combat instant. Keep such conversion separate from `sourceActions`; do not invent preparation or move
+combat start to improve DPS. Audit encounter-start handling against EI instead of using a blanket "first player hit"
+rule.
 
 ## Import warning
 
@@ -247,36 +202,12 @@ receive this notice.
 Application entry points are `js/games/gw2/app/import-export/logs/evtc-rotation-import.ts`,
 `dps-report-rotation-import.ts`, and `rotation-import-dialog.ts`.
 
-## Axe Deadeye preset investigation: 20260731-110141
+## Saved-preset corrections
 
-The supplied `thief-build.json` and `thief-rotation (1).json` form the first Deadeye manifest preset, Power (Axe /
-Pistol + Dagger / Pistol). The saved rotation restores six Shadow Swap activations observed in EVTC damage events but
-absent from both the supplied rotation and EI's cast list. Their placement uses damage timestamps relative to each
-Shadow Flare, rounded to the simulator's 40 ms input grid. This is a correction to the saved preset, not an additional
-inference rule for fresh imports.
-
-The [report](https://dps.report/zels-20260731-110141_golem) records 4,003,922 damage over 90.773 seconds, or 44,109 DPS.
-The original supplied setup simulated at 40,825 DPS. Two confirmed discrepancies explain most of that difference:
-
-- Eight stolen skills used the competitive 0.5 coefficient instead of the PvE 1.0 coefficient. Steal Time already used
-  1.0. The
-  [official skill API](https://api.guildwars2.com/v2/skills?ids=39960,40133,40888,40903,40904,42863,43373,43768,44526)
-  includes both mode values; One in the Chamber separately multiplies the PvE coefficient by 1.25. Correcting the base
-  coefficients raises the simulation to 42,785 DPS.
-- Restoring the six Shadow Swaps raises it to 43,683 DPS, with 3,978,640 damage over 91.080 seconds and no simulation
-  warnings. The remaining gap is 426 DPS (0.97%): 25,282 less damage and a 0.307-second longer observation window.
-
-The axe-return discrepancy remains unresolved. Relative to combat start, the second Orchestrated Assault starts at 3.116
-seconds, followed by a Malicious Cunning Salvo hit at 3.640, three Volley hits at 4.039, and three more at 4.083. The
-outgoing Salvo already hit at 2.957. The next Volley starts at 3.957; the two three-hit groups arrive before its normal
-outgoing hit timing. This supports seven return hits, but does not prove seven simultaneously stored axes. The axe
-counter shows six stacks.
-
-A diagnostic allowing six ordinary axes plus one Salvo produces all 63 observed Volley returns and 44,176 DPS. Matching
-aggregate damage does not establish that storage rule. At the user's request, the implementation retains six axes total
-across all types; the diagnostic rule is not shipped. The preset remains marked `upToDate: false` while the return
-behavior and remaining timing gap need reconciliation. Do not change the cap or tune coefficients merely to match this
-benchmark.
+Manual corrections to a saved rotation do not establish inference rules for fresh imports. The Axe Deadeye preset's
+Shadow Swap additions are one such correction. Per-skill totals or a closer benchmark DPS do not establish an unproven
+mechanic; the engine's spinning-axe capacity remains six across all types. Current preset status and metrics belong in
+the build manifest, not a historical import investigation.
 
 ## Pinned EI references
 

@@ -27,8 +27,12 @@ the problem. Include:
 Start with the repository's [README](https://github.com/Kadenar/gw2-combat-simulator#development) and
 [architecture documentation](https://github.com/Kadenar/gw2-combat-simulator/tree/main/docs/architecture).
 
-Run the full project check before submitting a pull request:
+Run the standard project checks before submitting a pull request:
 
 ```bash
 npm run check
 ```
+
+For UI or browser integration changes, also run the relevant `npx playwright test <test-files>`. `npm run check:all`
+adds the full browser suite for integration or release validation. Follow
+[AGENTS.md](https://github.com/Kadenar/gw2-combat-simulator/blob/main/AGENTS.md) for test scope and restrictions.

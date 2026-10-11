@@ -34,9 +34,17 @@ increase in the current setup; they are not additive because modifiers can inter
 The normal detailed result is deterministic and reproducible. **Calculate range** runs seeded stochastic trials for
 modeled random effects and reports the mean, median, likely range, and lucky or unlucky outcomes.
 
-Keep the build's **Simulation seed** fixed for reproducible A/B comparisons. The detailed result is one seeded set of
-proc outcomes, with midpoint weapon strength and average critical damage. Use the randomized range to judge how much
-outcome variation could hide a small difference; stochastic trials also retain average critical damage.
+Keep the build's **Simulation seed** fixed for reproducible A/B comparisons. The detailed result uses midpoint weapon
+strength and defaults to averaged critical damage; **Critical damage → Rolled** applies individual critical outcomes.
+Stochastic trials sample weapon strength and always use rolled critical damage. Use the range to judge whether random
+variation could hide a small difference.
+
+## Inspect damage calculations
+
+In the Event Log, enable **Capture damage calculations** to rerun the baseline with the same seed and expand individual
+hits. Capture is session-only and resets on reload. The download changes from **CSV Log** to **Download debug JSON**,
+including the matching rotation, config, patch, seed, observation policy, and damage events. The outgoing multiplier is
+an aggregate, not a list of individual modifier contributions.
 
 ## Relic break-even comparison
 

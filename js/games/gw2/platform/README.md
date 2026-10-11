@@ -67,39 +67,30 @@ using the shared combat calculations.
 catalog references; `effects/validation.ts` validates effect payloads and canonical effect lists. External GW2 identity
 normalization belongs to `skills/external-skill-ids.ts`; these mappings are domain data, not obsolete module aliases.
 
-`profession-definition/profession.ts` is the public native compiler. Its internal contract compilation stage lives in
-`profession-definition/compile-contract.ts`; public state helpers remain in `profession-definition/state.ts`.
-`runtime-contract.ts` declares the compiled runtime; `family-contract.ts` joins runtime, build, and lazy UI surfaces.
-Authoring contracts never import the aggregate `Gw2Runtime`.
+`profession-definition/profession.ts` is the public native compiler; `compile-contract.ts` handles internal contract
+compilation. `runtime-contract.ts` declares the compiled runtime and `family-contract.ts` joins runtime, build, and lazy
+UI surfaces. Headless compilation/simulation never initializes presentation factories.
 
-`profession-definition/runtime-hooks.ts` defines `RuntimeHooks<State, TSkill>`, the contribution type used by modules,
-rule compilation, and composition. Composition rejects unsupported fields and duplicate named handlers while preserving
-notification order, transforms, retry precedence, and policy selection. Catalogs, state factories, weapon eligibility,
-attack-chain overrides, and planning projections belong to the compiled `RuntimeProfession`, outside hook contributions.
+`profession-definition/runtime-hooks.ts` defines module hook contributions. Composition rejects unsupported fields and
+duplicate named handlers while preserving notification order, transforms, retry precedence, and policy selection.
+Catalogs, state factories, weapon eligibility, attack chains, and planning projections belong to `RuntimeProfession`.
+The shared `weaponSkillMatchesSet` policy serves simulation and application adapters.
 
-All callback families use canonical author capabilities. `profession-definition/runtime-context.ts` declares dedicated
-selection, content, recharge-anchor, capacity, cast-detail, and effect-ownership contexts.
-`profession-definition/mechanic-context.ts` declares the shared capabilities:
+Authoring APIs never import the aggregate `Gw2Runtime`. Dedicated selection, content, recharge, capacity, cast-detail,
+and effect-ownership contexts live in `profession-definition/runtime-context.ts`. Shared capabilities live in
+`profession-definition/mechanic-context.ts`:
 
-- `MechanicQueryContext` lets selection and observation callbacks inspect read-only profession state, service queries,
-  and executed facts.
-- `MechanicCombatContext` lets combat helpers mutate owned profession state and use combat, emission, proc, and random
-  services.
-- `MechanicContext` extends the combat capability with lifecycle operations: cast/resource/recharge services, named
-  scheduling, and explicit observation writes.
+- `MechanicQueryContext`: read-only profession state, service queries, and executed facts.
+- `MechanicCombatContext`: owned-state mutation and combat, emission, proc, and random services.
+- `MechanicContext`: combat capabilities plus lifecycle, cast/resource/recharge operations, scheduling, and observation
+  writes.
 
-`simulation/bind-mechanic-context.ts` binds stable query and lifecycle views to the live run, and
-`resolver/mechanic-services.ts` binds combat operations to resolver-owned stores. `combat/history/executed-facts.ts`
-provides separate `facts` readers and `observations` writers in every output mode. Author capabilities do not expose the
-command cursor, shared heap, cast maps, or report collections.
+`simulation/bind-mechanic-context.ts` binds query/lifecycle views; `resolver/mechanic-services.ts` binds combat
+operations. These capabilities expose neither the command cursor, shared heap, cast maps, nor report collections.
 
-Weapon eligibility is the profession's shared `weaponSkillMatchesSet` policy, consumed by simulation and application
-adapters. Headless compilation/simulation never initializes presentation factories.
-
-`skill-damage/types.ts` owns measurement inputs, cast options, payload definitions, and outputs. Presentation imports
-these contracts and adds labels/groups. `occurrence-driver.ts` selects isolated work, `run-occurrence.ts` executes it
-through the shared runtime, and `measure-occurrences.ts` handles measurement, variants, statuses, and caching. Isolated
-execution does not register unrelated combat producers or costs.
+`skill-damage/types.ts` owns measurement contracts; presentation adds labels/groups. `occurrence-driver.ts` selects
+isolated work, `run-occurrence.ts` runs it through the shared runtime, and `measure-occurrences.ts` owns measurement,
+variants, statuses, and caching. Isolated execution does not register unrelated combat producers or costs.
 
 Saved randomness controls and conversion live in `builds/randomness-assumptions.ts`; critical damage policy
 normalization belongs to `combat/critical-damage-mode.ts`. Generic random generation remains in the kernel.

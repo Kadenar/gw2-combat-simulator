@@ -3,8 +3,10 @@
 ## Timing contract
 
 Boon and condition durations round half-even to whole milliseconds after duration bonuses. Fixed-duration grants still
-round; generic profession buffs retain authored durations. Natural expiration is application time plus rounded duration,
-with no 40ms ceiling or further snapping. Application timestamps retain canonical microsecond precision.
+round; generic profession buffs retain authored durations. A condition's natural expiration is application time plus
+rounded duration, with no 40ms ceiling or further snapping. Boon expiry uses the action-tick ceiling described in the
+[event clock](SIMULATION-EVENT-CLOCK.md#8-status-and-condition-clocks). Application timestamps retain canonical
+microsecond precision.
 
 First positive player damage starts both the DPS reporting window and the shared condition clock. All condition owners
 pay at `firstHitTime + 1s`, `firstHitTime + 2s`, and so on, displayed as 1s, 2s, 3s of fight time. An explicit Combat
@@ -84,8 +86,6 @@ Pulse/expiry sampling follows
 [its condition resolution](https://github.com/Mk-Chan/gw2combat/blob/master/src/system/effects.cpp). This project's
 first-damage-relative phase deliberately differs from the reference's default zero condition-tick offset.
 
-The user explicitly requires one rounding for the complete owner/condition stack and conditions-before-strikes ordering.
-The inspected reference rounds each application group separately, and its public loop calls strike/effect application
-before condition settlement and cleans up expired effects afterward. This project retains its existing
-Sample/Settle/Ordinary phases and half-open status queries. These differences, authored skill timing, and
-profession/balance data mean this is not a claim of complete simulator parity.
+This project's contracts are one rounding per owner/condition group, Sample/Settle/Ordinary ordering, and half-open
+status queries. Reference code is background, not a claim of complete simulator parity or an override of these
+contracts.

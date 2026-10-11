@@ -7,26 +7,23 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 
 ## Data
 
-- API identity snapshot: 2026-08-08 (official GW2 API): 159 skills, 108 traits, and all nine specialization lines.
-  Twelve API-omitted Bladesworn gunsaber and Dragon Slash skills are checked in as supplemental identities.
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance. API-omitted Bladesworn
+  gunsaber and Dragon Slash skills are checked in as supplemental identities.
 - Refresh: `npm run update:warrior-data`. The updater drops invalid API skill `62857`, repairs Dragon Trigger's dangling
   flip reference, and regenerates API metadata, Warrior IDs, and supplemental skills without overwriting the owner-local
   mechanics catalogs.
 - The generator uses Wiki skill infoboxes to identify supplemental skills, then fetches their API metadata. It does not
   generate activation timings; those remain authored in the owning Core and specialization skill modules.
 
-Native modules register 77 trait owners: Core 43, Berserker 9, Spellbreaker 6, Bladesworn 10, and Paragon 9. Grouped
-trait-line `traits/<line>/index.ts` files own profiles, modifier rules, triggers, recharge rules, build contributions,
-and trait decisions; Core `traits/index.ts` collects line declarations, while each elite `traits/index.ts` owns its
-definitions and registration array. `traits/behavior.ts` contains runtime helpers; Core keeps its shared modifier
-queries in `traits/modifier-queries.ts`. Consumers use numeric trait IDs. Build and live queries share
-`warriorProfession.attributeContributions`: the Core module registers skill-owned passive and active signet attributes,
-while trait definitions register their own contributions. The shared evaluator reads the active balance context and
-equipment attribute seeds, then resolves bonuses and conversions from their declared inputs.
+## Trait ownership
 
-Versatile Power remains in `core/traits/discipline/index.ts`. Recharge order -1 keeps it before weapon rules and the
-imperative weapon-swap cap. Explicit modifier orders preserve the former Strength/Tactics/Defense/Arms and skill-rule
-sequence. Burst Mastery owns its separate Bladesworn conversion profile under its existing patch identity.
+Core definitions live in `core/traits/<line>/index.ts`; each elite registers its traits in `traits/index.ts`.
+Definitions own profiles, modifiers, triggers, recharge rules, build contributions, and trait policies. Supporting
+helpers live under `traits/`; Core shared modifier queries live in `traits/modifier-queries.ts`.
+
+Build and live queries share `warriorProfession.attributeContributions`, combining skill-owned signet attributes with
+selected trait declarations from equipment seeds and the active balance context. Versatile Power's recharge order keeps
+it before weapon rules and the weapon-swap cap. Burst Mastery owns its separate Bladesworn conversion profile.
 
 Retained imperative boundaries preserve shared observations and granted lifetimes:
 
@@ -67,7 +64,10 @@ Queue Dragon Slash directly after Dragon Trigger; the scheduler waits for the sp
 count automatically:
 
 ```js
-['Dragon Trigger', 'Dragon Slash—Force'];
+[
+  { type: 'cast', skillId: 62803 }, // Dragon Trigger
+  { type: 'cast', skillId: 62797 } // Dragon Slash - Force
+];
 ```
 
 Set `releaseAtCharges` (or use the timeline's Dragon Slash pencil editor) to release early; the value is capped to the
@@ -86,7 +86,7 @@ intentional hold from a Flow shortage or processing delay. Imported holds can be
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Incoming attacks, active defense, ally healing/revival, projectile interaction,
-pathing, secondary targets, and competitive (PvP/WvW) splits are out of model. Full Counter activation spends adrenaline
-and starts recharge, but does not produce an automatic counterattack or successful-burst rewards without an incoming
-attack.
+Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
+active defense, ally healing/revival, projectile interaction, pathing, secondary targets, and competitive (PvP/WvW)
+splits are out of model. Full Counter activation spends adrenaline and starts recharge, but does not produce an
+automatic counterattack or successful-burst rewards without an incoming attack.

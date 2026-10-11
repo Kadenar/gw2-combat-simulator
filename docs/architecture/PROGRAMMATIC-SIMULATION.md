@@ -1,398 +1,170 @@
-# Programmatic simulation API
+﻿# Programmatic simulation API
 
-Use the simulator without opening or configuring the browser UI by calling `simulateGw2` directly. This is the same
-headless path used by profession tests such as `tests/games/gw2/professions/engineer/weapons-and-kits.test.js`.
+`simulateGw2` runs the same synchronous combat runtime used by the application without a browser or server. These are
+internal repository APIs; keep scripts in this repository and pinned to its revision. For a compact ownership map, see
+the [agent API reference](AGENT-API-REFERENCE.md).
 
-The usual programmatic call supplies these inputs:
+## Run a script
 
-```js
-simulateGw2({ profession, rotation, config, observationPolicy });
-```
+Requires Node.js 24.11+ and installed dependencies. Run `npm run build:modules` before running scripts and after source
+changes. Package aliases such as `#gw2/` resolve to compiled `dist/js/` modules in Node and TypeScript source in Vite.
 
-- `profession` is a profession family or an executable profession contract. Families resolve Core plus the elite
-  selected by `config.specialization`.
-- `rotation` is an ordered array of skill casts and simulator commands.
-- `config` contains final attributes and combat assumptions.
-- `observationPolicy` is an optional caller-owned resolution boundary. It defaults to the entered rotation timeline.
-- `damageDiagnostics: true` optionally attaches `damageCalculation` to resolved damage events in detailed output. It
-  defaults to false and is an execution option, never a saved build setting.
-
-The call is synchronous and returns the complete simulation result by default. Optional `output: 'score'` returns only
-aggregate metrics and warnings for callers such as the optimizer; `onPhase` optionally reports phase timings. It does
-not read browser state, local storage, form controls, or equipment selections.
-
-Damage diagnostics retain pre-hit target health, owner stats, the effective coefficient multiplier, base damage,
-critical/outgoing factors, and unrounded damage with its rounding rule. Existing event fields retain activation,
-authored coefficient, critical chance, and resolved weapon strength. Flat and independent-summon formulas retain their
-actual inputs. Capture makes no additional modifier queries or random draws. The event log expands these facts when
-present, including the six-decimal simulation timestamp and effective phase; its usual activation grouping is not a
-complete execution trace.
-
-The Event Log's **Capture damage calculations** checkbox reruns the displayed baseline with the same seed and enables
-expandable hit calculations. Capture is session-only and resets on reload; it is not saved with builds or enabled for
-optimizer and distribution runs. The download button exports the ordinary **CSV Log** when capture is off and switches
-to **Download debug JSON** when capture is on, exporting the matching rotation, resolved configuration, patch, seed,
-observation policy, and damage events after capture completes. The outgoing multiplier is an aggregate, not a list of
-individual modifier contributions. CSV logs continue to export their ordinary summary rows.
-
-Score output suppresses report collections and diagnostics. Both outputs execute the same runtime once, with the same
-state transitions and random draws. Detailed damage diagnostics capture the actual hit calculations. They do not predict
-effects or rerun the simulation.
-
-The optional profiler reports `preparation`, `execution`, and `reporting` durations, once each per call.
-
-Timeline seconds are canonicalized to the nearest microsecond. At a shared timestamp, condition sampling and payouts
-finish before ordinary strikes. Observation cutoffs include eligible work exactly at the cutoff and exclude later
-microseconds; use an explicit observation tail to include effects delayed beyond the final cast.
-
-## Run a standalone script
-
-The repository requires Node.js 24.11 or newer. Install dependencies and compile the TypeScript modules first:
-
-```powershell
-npm install
-npm run build
-```
-
-Create `run-engineer.mjs` in the repository root:
+Save this example as `run-engineer.mjs` in the repository root, then run `node run-engineer.mjs`:
 
 ```js
-import { prepareSimulationConfig } from './tests/helpers/simulation-config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
-const baseConfig = Object.freeze({
-  selectedSkillIds: [5857, 5805, 6161, 5812, 5868],
-  selectedMorphSkillIds: [77103, 77203, 76954],
-  stats: {
-    power: 2000,
-    precision: 1500,
-    ferocity: 500,
-    conditionDamage: 1000,
-    expertise: 0,
-    vitality: 1000
-  },
-  boons: {},
-  target: {
-    armor: 2597,
-    conditions: { Vulnerability: 25 }
-  }
-});
-
-function simulate(specialization, rotation, overrides = {}) {
-  const config = prepareSimulationConfig(baseConfig, {
-    ...overrides,
-    specialization
-  });
-
-  return simulateGw2({
-    profession: engineerProfession,
-    rotation,
-    config
-  });
-}
-
-const result = simulate('Core', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 1000 }], {
-  stats: { power: 2500 },
-  boons: { might: 25, fury: true, quickness: true }
-});
-
-console.table({
-  rotationEndTime: result.rotationEndTime,
-  observationEndTime: result.observationEndTime,
-  combatEndTime: result.combatEndTime,
-  totalDamage: Math.round(result.totalDamage),
-  dps: Math.round(result.dps),
-  strikeDamage: Math.round(result.strikeDamage),
-  conditionDamage: Math.round(result.conditionDamage)
-});
-
-console.table(
-  skillBreakdownRows(result).map((row) => ({
-    skill: row.name,
-    casts: row.casts,
-    hits: row.hits,
-    damage: Math.round(row.total),
-    dps: Math.round(row.dps)
-  }))
-);
-
-if (result.warnings.length > 0) {
-  console.warn('Simulation warnings:', result.warnings);
-}
-```
-
-Run it with:
-
-```powershell
-node ./run-engineer.mjs
-```
-
-Run `npm run build` again after changing simulator source.
-
-## How module imports resolve
-
-Scripts and tests use the package aliases declared in `package.json`. Node resolves these aliases to compiled modules
-under `dist/js`; TypeScript and Vite resolve them to source modules. No custom loader or registration flag is required.
-
-Use the same aliases in headless scripts kept inside the repository:
-
-```js
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-```
-
-Build before running so Node executes the current compiled modules.
-
-## The reusable wrapper pattern
-
-Profession tests define a base config once and merge small overrides for each simulation. `prepareSimulationConfig`
-(`tests/helpers/simulation-config.js`) provides the shared version of that merge. It is a test-only helper, not a
-platform export — standalone scripts outside `tests/` should import it by relative path or inline the equivalent merge:
-
-```js
-function simulate(specialization, rotation, overrides = {}) {
-  return simulateGw2({
-    profession: engineerProfession,
-    rotation,
-    config: prepareSimulationConfig(baseConfig, {
-      ...overrides,
-      specialization
-    })
-  });
-}
-```
-
-It merges `stats`, `boons`, and `target` independently. When an override explicitly supplies `target.conditions`, that
-condition set replaces the base set. This prevents an ordinary override such as `{ stats: { power: 2500 } }` from
-deleting every other base stat.
-
-The current profession tests reuse `createProfessionSimulator()` from `tests/helpers/profession-simulation.js`, which
-calls this same config helper and forwards an optional observation policy.
-
-Use an explicit merge for other nested profession-specific values, such as `professionAssumptions`, when individual keys
-should inherit from the base config.
-
-## Rotation format
-
-The rotation is processed from beginning to end. Each entry can use a compact skill name or a canonical command:
-
-```js
-const rotation = [
-  'Grenade Kit', // cast by skill name
-  5882, // cast by numeric skill ID
-  { type: 'cast', skillId: 5882 }, // explicit cast
-  { type: 'cast', skillId: 62797, releaseAtCharges: 3 }, // charged release target
-  { type: 'wait', durationMs: 1000 }, // explicit delay
-  { type: 'combat-start' }, // DPS/display reference marker
-  { type: 'cooldown-reset' } // reset for isolated experiments
-];
-```
-
-An explicit cast can also include:
-
-```js
-{
-  type: "cast",
-  skillId: 5882,
-  concurrentOffsetMs: 100,
-  interruptAfterMs: 500,
-  doubleEdgeOutcome: "backfire", // Antiquary risky-recast result
-}
-```
-
-`doubleEdgeOutcome` is consulted only when an Antiquary Double Edge skill is recast while recharging. Ready casts always
-succeed, and an omitted outcome defaults to `"success"`.
-
-Names are convenient, but IDs are safer for long-lived scripts. Inspect the complete application catalog when finding
-IDs:
-
-```js
-console.table(engineerProfession.catalog.skills.map(({ id, name }) => ({ id, name })));
-```
-
-Use `engineerProfession.runtimeFor({ specialization: 'Core' }).catalog` to inspect only the active runtime catalog.
-
-Unknown, unavailable, or mistimed skills can produce warnings instead of the result the caller expected. Always inspect
-`result.warnings`.
-
-## Observation policy
-
-Rotation duration and observation duration are separate. By default, combat observation stops at the end of the entered
-commands:
-
-```js
-observationPolicy: {
-  kind: 'rotation';
-}
-```
-
-Use a finite tail to observe delayed packets, conditions, fields, summons, or upkeep after the final command without
-adding a player action:
-
-```js
-observationPolicy: { kind: "tail", durationMs: 5000 }
-```
-
-Use an absolute simulation-clock boundary when the caller is intentionally requesting a fixed-clock simulation:
-
-```js
-observationPolicy: { kind: "absolute", endTimeMs: 97_450 }
-```
-
-The absolute timestamp cannot precede rotation end. Durations and timestamps must be finite and non-negative. Target
-death clips every mode. An explicit `wait` remains part of the player-command timeline and increases `rotationEndTime`;
-an observation tail does not.
-
-Saved benchmark or imported-log metadata must not choose an observation policy. Logs and saved benchmark metrics are
-comparison targets. Benchmark runners use the default rotation boundary, matching the interactive simulator.
-
-## Common configuration fields
-
-The direct API consumes resolved combat values. It does not calculate stats from armor, upgrades, runes, or infusions.
-
-| Field                                      | Purpose                                                                                           |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `specialization`                           | `Core` or the exact elite-specialization name                                                     |
-| `selectedTraitIds`                         | Active trait IDs                                                                                  |
-| `selectedSkillIds`                         | Canonical IDs of equipped heal, utility, and elite skills                                         |
-| `primaryWeapon`, `secondaryWeapon`         | First weapon set                                                                                  |
-| `weaponSet2Primary`, `weaponSet2Secondary` | Second weapon set                                                                                 |
-| `startingWeaponSet`                        | `1` or `2`                                                                                        |
-| `stats`                                    | Baseline/fallback power, precision, ferocity, condition damage, expertise, and related attributes |
-| `weaponSetStats`                           | Optional two-entry stat array selected dynamically with the active weapon set                     |
-| `boons`                                    | Might stacks and boolean boon assumptions                                                         |
-| `target`                                   | Armor, health, movement, defiance, and existing conditions                                        |
-| `sigilSets`, `relic`, `food`               | Optional common GW2 effects                                                                       |
-| `randomness`                               | Resolution mode and seed; both modes use seeded proc rolls                                        |
-
-Professions also accept their own resource and loadout fields. Existing tests are the most direct examples:
-
-- Engineer: `selectedMorphSkillIds`
-- Mesmer: `initialResource`
-- Necromancer: initial Life Force and specialization resources
-- Revenant: `selectedLegends`, `startingLegend`, and `initialEnergy`
-- Thief: `initialInitiative` and `initialShadowForce`
-
-Start with the base config near the top of the relevant profession test, then remove fields your scenario does not use.
-
-## Loading a profession dynamically
-
-Use the registry when the profession is selected by a command-line argument or configuration file:
-
-```js
-import { loadProfession } from '#gw2/profession-registry.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-
-const profession = await loadProfession('engineer');
-if (!profession) throw new Error('Unknown profession');
-
+// Supply base attributes so profession and temporary bonuses are applied once by the runtime.
 const result = simulateGw2({
-  profession,
+  profession: engineerProfession,
   rotation: ['Grenade Kit', 'Grenade'],
   config: {
     specialization: 'Core',
-    selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
-    stats: { power: 2000, precision: 1500, ferocity: 500 },
-    target: { armor: 2597 }
-  }
+    selectedSkillIds: [5805],
+    attributeInputs: baseAttributeInputs({ power: 2500, precision: 1500, ferocity: 500 }),
+    boons: { might: 25, fury: true, quickness: true, alacrity: true },
+    target: { armor: 2597, conditions: { Vulnerability: 25 } },
+    randomness: { mode: 'deterministic', seed: 1 }
+  },
+  observationPolicy: { kind: 'tail', durationMs: 1000 }
 });
+
+console.log({ dps: result.dps, totalDamage: result.totalDamage, warnings: result.warnings });
+console.table(skillBreakdownRows(result));
 ```
 
-Registered IDs are `elementalist`, `mesmer`, `necromancer`, `ranger`, `thief`, `engineer`, `guardian`, `warrior`, and
-`revenant`. Each profession still needs an appropriate config; loading the contract does not create a build or copy UI
-defaults.
+For dynamic selection, import `loadProfession` from `#gw2/profession-registry.js` and await
+`loadProfession('engineer')`. Registry IDs are lowercase profession names. Loading a profession supplies its catalog and
+runtime factory; it does not load a saved build or UI defaults.
 
-## Reading the result
+## Configuration
 
-The commonly useful result fields are:
+The entry point is `platform/simulation/simulate.ts`; run options live in `platform/simulation/options.ts` and
+configuration in `platform/simulation/config.ts`, relative to `js/games/gw2/`.
 
-| Field                                       | Meaning                                                                                                                    |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `rotationEndTime`                           | End of the entered rotation, in absolute timeline seconds                                                                  |
-| `observationEndTime`                        | Requested observation end, including any tail, in seconds                                                                  |
-| `combatEndTime`                             | Target death or observation end, in seconds                                                                                |
-| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it                                                                   |
-| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                                                                                     |
-| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                                                                             |
-| `totalDamage`, `dps`                        | Overall result                                                                                                             |
-| `strikeDamage`, `conditionDamage`           | Damage split                                                                                                               |
-| `breakdown`, `conditionBreakdown`           | Raw contribution data                                                                                                      |
-| `casts`                                     | Aggregate cast counts                                                                                                      |
-| `events`, `resolvedEvents`                  | Dispatched packets (including attempted misses/precasts) and committed combat reports                                      |
-| `warnings`                                  | Invalid or constrained rotation behavior                                                                                   |
-| `planningState`                             | Observed continuation at `atSeconds`: skill-ID-keyed `cooldowns` and `ammoBySkillId`, weapon set, and profession resources |
-| `randomness`                                | Actual resolution mode and seed                                                                                            |
+| Input               | Purpose                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| `profession`        | Profession source whose `runtimeFor(config)` selects Core plus the configured elite     |
+| `rotation`          | Ordered skill names, numeric IDs, or canonical commands                                 |
+| `config`            | Attributes, equipment effects, loadout, profession assumptions, and target state        |
+| `observationPolicy` | Optional resolution boundary; defaults to the rotation end                              |
+| `output`            | `'detailed'` (default) or `'score'` for metrics and warnings without report histories   |
+| `damageDiagnostics` | Capture actual damage calculations in detailed events; defaults to false                |
+| `collectChartData`  | Set false to omit chart histories from detailed output                                  |
+| `onPhase`           | Optional callback receiving `preparation`, `execution`, and `reporting` durations in ms |
 
-All boundary times and `planningState.atSeconds` use absolute timeline seconds. Planning continues through the requested
-horizon after target death; combat effects stop at `combatEndTime`. Cooldown `readyAt` and `remaining` values retain
-milliseconds; ammo recharge timestamps retain seconds. The editor obtains rotation/insertion state through
-`rotationPlanningStateAt`, excluding observation tails when appending.
+`config.attributeInputs` contains two weapon-set seeds before profession and temporary contributions. Use
+`baseAttributeInputs(base, alternate?)` for direct scenarios; omitted attributes use level-80 base values and the
+alternate set defaults to the first. Do not pass already calculated totals or the obsolete `stats`/`weaponSetStats`
+fields. The application builds seeds from equipment through `app/simulation/build-config.ts`.
 
-Use `resolvedEvents` for committed combat effects and `planningState.profession` for observed resources. The planning
-projection is detached from the live runtime and is not a resumable checkpoint. There is no separate combat-state
-snapshot.
+Common configuration fields:
 
-Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.
-Breakdown entries own their source, parent, actor, display label, and icon metadata. A null `skillId` is intentional for
-effects without a catalog skill identity; do not infer it from another event with the same name or trait `sourceId`.
+| Field                                                           | Purpose                                                                                 |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `specialization`, `selectedTraitIds`                            | Active Core/elite and traits                                                            |
+| `selectedSkillIds`                                              | Flat array of equipped slot-skill catalog IDs                                           |
+| `primaryWeapon`, `secondaryWeapon`                              | First weapon set                                                                        |
+| `weaponSet2Primary`, `weaponSet2Secondary`, `startingWeaponSet` | Alternate weapons and initial set (`1` or `2`)                                          |
+| `initialResource`, `professionAssumptions`                      | Starting resources and profession-specific loadout/state                                |
+| `boons`, `target`                                               | Permanent boon assumptions and target armor, health, movement, defiance, and conditions |
+| `sigilSets`, `relic`, `precastRelics`, `food`, `utility`        | Common equipment effects                                                                |
+| `randomness`, `criticalDamageMode`                              | Seed, simulation mode, and deterministic critical-damage policy                         |
 
-`dpsWindow` ends at target death or the selected observation boundary, so an explicit observation tail can make it
-longer than `rotationEndTime`.
+Profession build adapters in `professions/<name>/build/` map saved build fields into run configuration. For example,
+selected legends and morph skills belong in run `professionAssumptions`, not top-level config. Saved builds store
+`selectedSkillIds` by slot with `null` for empty slots; run configs use a flat array preserving numeric/string ID types.
+Omitting that run field permits sandbox casts; `[]` equips no slot skills.
 
-For UI-equivalent formatted data, the existing transforms are also callable headlessly:
+The shared build codec converts legacy `selectedSkills` names to catalog IDs during import, rejecting unknown or
+ambiguous names. Direct simulation configs require IDs; exports contain only the canonical field.
+
+Player health is fixed at 100%. Isolated attribute previews may vary it, but saved builds and combat runs may not.
+Target health remains modeled. For test fixtures, `tests/helpers/profession-simulation.js` and
+`tests/helpers/simulation-config.js` provide test-only setup helpers.
+
+## Rotation commands
 
 ```js
-import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { resultSummaryMetrics } from '#gw2/app/results/model.js';
-
-console.table(resultSummaryMetrics(result));
-console.table(simulationEventLogRows(result, null, engineerProfession));
+const rotation = [
+  'Grenade Kit',
+  { type: 'cast', skillId: 5882 },
+  { type: 'wait', durationMs: 1000 },
+  { type: 'combat-start' },
+  { type: 'cooldown-reset' }
+];
 ```
 
-## Deterministic and stochastic runs
+Names are convenient for experiments; canonical IDs are preferable for persisted scripts. Inspect
+`engineerProfession.catalog.skills` for the full family catalog, or
+`engineerProfession.runtimeFor({ specialization: 'Core' }).catalog` for the active runtime.
 
-Both modes use seeded critical-hit outcomes for on-critical proc eligibility and reporting, plus separate rolls for
-secondary proc chances and combo attempts. Deterministic mode uses midpoint weapon strength and defaults to averaged
-critical damage. Set `config.criticalDamageMode` to `"rolled"` to make its damage follow those same outcomes:
+`RotationCommand` in `platform/execution/rotation.ts` defines optional cast controls: `offTarget`, `impactDelayMs`,
+`concurrentOffsetMs`, `interruptAfterMs`, `releaseAtCharges`, `releaseDelayMs`, `initialStateDurationMs`, and
+`doubleEdgeOutcome`. Use them only when the skill or import scenario supports that behavior. Antiquary Double Edge
+recasts default to success unless explicitly set to `'backfire'`; ready casts always succeed.
 
-```js
-randomness: { mode: "deterministic", seed: 1 }
-```
+Use `normalizeRotation(input, catalog, { strict: true })` to reject malformed input. Unavailable or mistimed actions can
+produce simulation warnings; inspect `result.warnings` on every run.
 
-Stochastic mode samples weapon strength per activation and always uses rolled critical damage, regardless of
-`criticalDamageMode`:
+## Observation boundaries
 
-```js
-randomness: { mode: "stochastic", seed: 42 }
-```
+| Policy                                   | Meaning                                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| `{ kind: 'rotation' }`                   | Stop at the end of entered commands (default)                              |
+| `{ kind: 'tail', durationMs: 5000 }`     | Observe delayed effects after the final command without adding an action   |
+| `{ kind: 'absolute', endTimeMs: 97450 }` | Observe to a fixed simulation-clock boundary, no earlier than rotation end |
 
-The UI's **Deterministic critical damage** setting persists as `assumptions.criticalDamageMode` (`"averaged"` or
-`"rolled"`). Averaged hit details identify the critical outcomes as proc rolls rather than damage multipliers.
+Durations must be finite and non-negative. Target death clips combat effects in every mode. An explicit wait extends
+`rotationEndTime`; an observation tail does not. Saved benchmark and imported-log metadata are comparison targets and
+must not choose the observation window; benchmark runners use the default rotation boundary.
 
-The default seed is `1`. The application saves the player's chosen seed in `assumptions.simulationSeed` and converts it
-to `config.randomness.seed`. Identical inputs and seed reproduce the same result within a simulator revision. One run in
-either mode represents one set of critical-hit and proc outcomes, not an average across seeds. Combo RNG streams follow
-the caster, skill, activation, and finisher type; packets within a stream consume successive draws. Queue event numbers
-are used for attempt deduplication, not for selecting random streams, so unrelated boon emissions do not reroll combos.
-Scripts that compare random outcomes should run multiple seeds and summarize their results, as done by
-`js/games/gw2/app/simulation/random-distribution/random-distribution.ts`.
+The clock canonicalizes seconds to microseconds. Eligible work exactly at the cutoff is included; later work is not. See
+[event ordering](SKILL-EVENT-ORDERING.md) for equal-time phases.
 
-## Current API status
+## Results and diagnostics
 
-This repository is marked `private` and does not publish a package export for the simulator. The module paths above are
-internal repository paths, so scripts using them should be kept with or pinned to a compatible simulator revision. No
-web server is required for headless execution.
+`Gw2SimulationResult` and `Gw2SimulationScore` in `platform/results/types.ts` define the outputs. Both execute the same
+runtime and random draws; score output omits histories, planning projections, and diagnostics.
 
-## Selected skill identity and saved builds
+| Detailed result                                                          | Meaning                                                                           |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `totalDamage`, `dps`, `strikeDamage`, `conditionDamage`                  | Damage totals and measured DPS                                                    |
+| `rotationEndTime`, `observationEndTime`, `combatEndTime`                 | Command end, requested horizon, and combat cutoff                                 |
+| `combatStartTime`, `hasExplicitCombatStart`, `dpsStartTime`, `dpsWindow` | Precombat boundary and DPS measurement window                                     |
+| `firstHitTime`, `lastHitTime`, `deathTime`                               | Damage and target-death boundaries                                                |
+| `steps`, `events`, `resolvedEvents`                                      | Scheduled actions, dispatched packets, and committed combat reports               |
+| `breakdown`, `conditionBreakdown`, `casts`                               | Aggregated source/condition contributions and cast counts                         |
+| `planningState`                                                          | Detached cooldowns, ammo, effects, weapon set, availability, and profession state |
+| `warnings`, `randomness`                                                 | Run warnings and actual mode/seed                                                 |
 
-Build records store `selectedSkillIds` as slot-keyed catalog IDs, with `null` for an empty slot. Simulation
-configurations accept a flat array of IDs; omit empty slots. Numeric and string IDs retain their catalog type. Omitting
-the simulation field permits sandbox casts; an explicit empty array equips no slot skills. Names are display text.
+Boundary times and `planningState.atSeconds` use absolute seconds. Step `start`/`end` and cooldown `readyAt`/`remaining`
+use milliseconds; ammo recharge timestamps use seconds. Planning can continue through the requested horizon after target
+death, while combat ends at `combatEndTime`. Planning projections are observations, not resumable checkpoints. See
+[rotation state](ROTATION_STATE_SNAPSHOT.md) for insertion/continuation queries.
 
-Old JSON imports and browser-stored builds with `selectedSkills` are converted once by the shared build codec. Unique
-selectable names become catalog IDs and empty strings become `null`; the old field is removed. Browser storage is
-rewritten only after successful conversion, including workspace tabs, reset targets, and My Builds. Unknown or ambiguous
-names report an error and leave the original data intact. Exports use the new profession schema version and contain only
-IDs. Programmatic simulation does not accept the old name-valued field.
+Use `skillBreakdownRows(result)` for per-skill display aggregation. Entries own their source, parent, actor, label, and
+icon metadata; a null `skillId` intentionally represents an effect without catalog identity. For UI-equivalent rows, use
+`simulationEventLogRows` from `app/results/event-log.ts` and `resultSummaryMetrics` from `app/results/model.ts`.
+
+`damageDiagnostics: true` attaches `damageCalculation` to detailed damage events, capturing the actual pre-hit target
+health, owner attributes, coefficient multiplier, base damage, critical/outgoing factors, and rounding. It adds no
+modifier queries or random draws. Outgoing multipliers are aggregates, not per-modifier contribution lists. The browser
+capture/export workflow is described in [Reading results](../../wiki/Reading-Results.md).
+
+## Randomness
+
+Both modes use seeded rolls for critical-proc eligibility, secondary procs, and combo attempts:
+
+- `randomness: { mode: 'deterministic', seed: 1 }` uses midpoint weapon strength. Critical damage defaults to averaged;
+  `criticalDamageMode: 'rolled'` makes damage follow the sampled critical outcomes.
+- `randomness: { mode: 'stochastic', seed: 42 }` samples weapon strength per activation and always uses rolled critical
+  damage, regardless of `criticalDamageMode`.
+
+The default seed is `1`. Builds persist it as `assumptions.simulationSeed`, with the critical policy in
+`assumptions.criticalDamageMode`. Identical inputs and seeds reproduce outcomes within the same implementation. A single
+deterministic run is one proc sample, not the expected value across trials; use a seed distribution to assess variation.
+For controlled comparisons, keep the seed and observation policy fixed.

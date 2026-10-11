@@ -55,25 +55,9 @@ The boundary is computed once from the earliest death or combat exit of an agent
 encounter ID. This remains a heuristic: temporary combat exits, multiple matching targets, or encounter IDs that do not
 identify an agent can make it incomplete. With no matching target end event, inputs remain unbounded.
 
-Cast decoding and profession normalization use the complete evidence, including stops and split-animation finish
-segments after the boundary. A retained cast keeps its recorded duration; crossing the boundary alone does not cancel
-it. Filtering precedes shared replay timing, and final eligibility covers late inference before origin calculation,
-commands, and action warnings. If no actions survive, import returns the existing no-actions error.
-
-Precombat inputs and source time origin rules are preserved. This input window does not set the simulator's damage
-observation duration.
-
-## Source layout
-
-```text
-js/games/gw2/integrations/logs/
-├── shared/       Source-neutral reconstruction contracts and scheduling
-├── evtc/         Raw EVTC parsing, evidence inference, and reconstruction
-└── dps-report/   Elite Insights validation and supplied rotation conversion
-```
-
-The EVTC adapter is under `js/games/gw2/integrations/logs/evtc/`. Shared logic belongs in `../shared/`; source-specific
-EVTC behavior remains in the adapter.
+A cast that starts before the boundary retains its recorded duration, even when its stop or split-animation finish
+occurs later. Precombat inputs remain eligible. This input window does not set the simulator's damage observation
+duration. With no surviving actions, import fails with the no-actions error.
 
 ## Development tools
 
@@ -95,26 +79,8 @@ Reconstruct simulator commands:
 node scripts/analysis/reconstruct-evtc-rotation.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>
 ```
 
-Count Overload Fire's recorded Burning Bolts for each Tempest in a log, after running `npm run build:modules`:
-
-```sh
-node scripts/analysis/analyze-overload-fire.mjs "path/to/fight.zevtc"
-```
-
-The report includes cast times, durations, completion/interruption status, per-cast bolt counts, and totals. It accepts
-`.evtc`, `.zevtc`, and single-entry `.evtc.zip` files. After building, save machine-readable results with:
-
-```sh
-node scripts/analysis/analyze-overload-fire.mjs "path/to/fight.zevtc" --json > overload-fire.json
-```
-
-Counts use Burning Bolt missile creation records (skill 12853) within the same player's Overload Fire animation (skill
-29706), supporting legacy activations and modern animation events in revision 1 logs. Simultaneous projectiles count
-separately; launch/removal events do not count again. These are projectile counts, not unique whirl pulses or confirmed
-hits. Burning applications share a skill ID with other sources, so hit counts are not inferred. Missing projectile data
-and incomplete cast records produce warnings; bolts outside recorded casts are reported separately in JSON and excluded
-from the total. A cast without a stop is provisionally bounded by the next animation or the end of the log. Logs without
-Tempest players are reported explicitly.
+Add `--timeline` to reconstruction output for source and normalized actions. See the
+[script guide](../scripts/README.md#analysis-tools) for other diagnostics, including Overload Fire projectile counts.
 
 The original EVTC is preferred when available. For reconstruction from a public Elite Insights report, use the
 [dps.report adapter](../js/games/gw2/integrations/logs/dps-report/README.md).

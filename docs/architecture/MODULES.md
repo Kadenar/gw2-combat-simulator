@@ -68,9 +68,7 @@ shared application views
 | Build defaults, normalization, and validation                         | Profession `build/build.ts`                                                            |
 | New profession page/registry entry                                    | `js/games/gw2/profession-registry.ts`                                                  |
 
-The main rule is:
-
-> Put behavior with the layer that owns the underlying game concept.
+Put behavior with the layer that owns the underlying game concept.
 
 Traits use `defineTrait()` under their Core or elite `traits/` directory and register once through the module's
 `traitDefinitions`. Core `traits/<line>/index.ts` files own their definitions, and the Core `traits/index.ts` collects
@@ -112,8 +110,8 @@ Non-type imports:
 
 ## GW2 application (`js/games/gw2/app/`)
 
-The root holds only the composition root; everything else lives in one folder per page area. `profession-app.ts`
-coordinates the current GW2 browser application.
+Root modules compose the application; feature folders own individual page areas. `profession-app.ts` coordinates the
+current GW2 browser application.
 
 | Module                     | Responsibility                                     |
 | -------------------------- | -------------------------------------------------- |
@@ -289,115 +287,29 @@ inputs. Game-neutral clocks, queues, and random streams stay in `js/kernel/`. Th
 [platform directory map](../../js/games/gw2/platform/README.md) lists each domain and its placement rules. Paths below
 are relative to `js/games/gw2/platform/`.
 
-### Engine
+### Main entry points
 
-| Module                                             | Responsibility                                                                                                    |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `simulation/simulate.ts`                           | Canonical `simulateGw2()` entry point                                                                             |
-| `simulation/runtime.ts`                            | Per-run service construction and binding                                                                          |
-| `simulation/coordinator.ts`                        | Single queue, clock progression, causal scope, and stop decisions                                                 |
-| `execution/cast-execution.ts`                      | Readiness, acceptance, reservation identity and ownership, lockouts, and completion                               |
-| `resolver/effect-delivery.ts`                      | Admission, deferred preparation, target gates, and reaction settlement                                            |
-| `profession-definition/runtime-hooks.ts`           | Explicit mechanic contribution surface and ordered composition                                                    |
-| `profession-definition/traits.ts`                  | Trait authoring: compiled producers, restricted value hooks and explicit admitted lifetime handlers               |
-| `profession-definition/trigger-points.ts`          | Mechanic-owned boundary inputs and complete listener order                                                        |
-| `profession-definition/trigger-rules.ts`           | Typed `onTriggerPoint` registration, selection, isolation and ordered admission                                   |
-| `profession-definition/trait-emission.ts`          | Shared trait-profile and triggered-skill emission with causal attribution                                         |
-| `profession-definition/runtime-context.ts`         | Narrow author capabilities; selected content for effect ownership and read-only profession state for cast details |
-| `results/project-runtime.ts`                       | Projection of settled damage, score, and detailed results                                                         |
-| `execution/cast-effects.ts`                        | Effect variant selection and interruption filtering                                                               |
-| `execution/cooldowns.ts`                           | Cooldown and ammo state transitions                                                                               |
-| `events/actors.ts`                                 | Shared actor types and validation vocabulary                                                                      |
-| `effects/authoring.ts`                             | Effect constructors and authored packet readers                                                                   |
-| `effects/materializer.ts`                          | Pure effect expansion                                                                                             |
-| `skills/catalog.ts`                                | Immutable catalog assembly and indexing                                                                           |
-| `profession-definition/assemble-module-catalog.ts` | Native Core/elite catalog ownership and assembly                                                                  |
-| `profession-definition/profession.ts`              | Native Core/elite selection, state/modifier composition, and lazy UI                                              |
-| `profession-definition/compile-contract.ts`        | Runtime hook normalization and query-contract resolution                                                          |
-| `profession-presentation/`                         | UI composition, normalization, and presentation types                                                             |
-| `builds/profession-build.ts`                       | Build callback validation and defaults                                                                            |
-| `resolver/handler-registry.ts`                     | Exclusive resolver event-handler ownership                                                                        |
-| `results/combat-result.ts`                         | Resolver score and detailed report construction                                                                   |
-| `results/planning-state.ts`                        | Detached public planning state at the observation boundary                                                        |
+| Owner                         | Responsibility                                                         |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| `simulation/simulate.ts`      | Public `simulateGw2()` entry                                           |
+| `simulation/runtime.ts`       | Per-run service construction                                           |
+| `simulation/coordinator.ts`   | One queue, clock, causal scope, and advancement loop                   |
+| `execution/cast-execution.ts` | Cast admission, reservations, and completion                           |
+| `execution/cooldowns.ts`      | Private cooldown, ammo, and recharge state                             |
+| `resolver/effect-delivery.ts` | Packet admission, target gates, and reaction settlement                |
+| `profession-definition/`      | Native modules, trait authoring, compilation, and runtime capabilities |
+| `combat-calculation/`         | Effective combat values from state, equipment, and profession rules    |
+| `skill-damage/`               | Isolated skill measurement using the shared runtime and formulas       |
+| `results/`                    | Detached combat/planning output, queries, and optional reports         |
 
-Native modules are the only profession composition input. `defineNativeProfession` shares each selected Core/elite
-catalog, state factory, and compiled modifiers between `resolveProfession` queries and `runtimeFor` execution.
-Application catalogs keep all specializations; runtime catalogs use validated ownership fragments so elite-authored
-shared weapon skills stay available. Module presentation is bound only when the application requests `ui`, so headless
-simulation never initializes presentation factories.
+The [platform ownership guide](../../js/games/gw2/platform/README.md) owns the detailed domain and capability map.
+[Architecture](./ARCHITECTURE.md#runtime-and-simulation) explains composition; the
+[event clock](./SIMULATION-EVENT-CLOCK.md) defines scheduling and observation contracts. Prefer those sources over
+adding another engine inventory here.
 
-If a new abstraction would still make sense in a non-GW2 simulator, consider `js/kernel/`; otherwise keep it here.
-
-Contracts follow their functional owners: accepted casts in `execution/cast-contracts.ts`, compiled profession hooks in
-`profession-definition/runtime-contract.ts`, family composition in `profession-definition/family-contract.ts`, public
-outputs in `results/types.ts`, and run requests in `simulation/options.ts`. Skill validation lives in
-`skills/validation.ts`; effect schemas and validation live in `effects/`.
-
-Gameplay history lives in `combat/history/executed-facts.ts`, with separate reader and recording capabilities.
-`results/resolved-events.ts` clips detached condition observations without mutating live applications. Effect duration
-rounding and expiry belong to `effects/timing.ts`; the shared action tick belongs to `combat/action-tick.ts`.
-
-Isolated damage measurement belongs to `skill-damage/`: inputs and payload contracts in `types.ts`, work selection in
-`occurrence-driver.ts`, execution in `run-occurrence.ts`, and measurements/variants/cache in `measure-occurrences.ts`.
-Presentation consumes these contracts rather than owning calculation inputs.
-
-### Shared GW2 behavior
-
-This layer owns behavior shared by several professions: strike and condition damage, attributes, weapon strength, boons
-and target state, sigils, relics, profession module assembly, and modifier rules.
-
-| Module                            | Responsibility                                                                                            |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `events/`, `effects/`, `skills/`  | Event contracts, authored effects, and immutable skill catalogs                                           |
-| `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations                   |
-| `combat/modifiers.ts`             | Declarative scalar modifier system                                                                        |
-| `builds/attributes.ts`            | Shared attribute calculations                                                                             |
-| `builds/codec.ts`                 | Build normalization and validation                                                                        |
-| `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units                         |
-| `combat-calculation/`             | Effective combat attributes and multipliers combining primitives, equipment, hooks, and timestamped state |
-| `combat/procs/critical.ts`        | Critical-proc kernel: seeded critical outcomes, secondary proc rolls, and ICD claims                      |
-| `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording                         |
-| `execution/cast-timing.ts`        | Cast timing and cast-relative packet scaling                                                              |
-| `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                                  |
-| `equipment/sigils/loadout.ts`     | Sigil selection, modifier aggregation, and configured weapon-set lookup                                   |
-| `equipment/sigils/runtime.ts`     | Sigil state, pending hit effects, swap/control/strike procs, and buff-state policies                      |
-| `equipment/sigils/severance.ts`   | Severance buff queries and critical modifiers                                                             |
-| `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                                           |
-| `combat/state/targets.ts`         | Target assumptions                                                                                        |
-| `builds/selected-traits.ts`       | Shared selected-trait lookup                                                                              |
-| `combat/state/event-ownership.ts` | Player/summon/effect ownership rules                                                                      |
-
-Builds and public simulation configuration use readable sigil and relic names. Equipment catalogs resolve those names to
-item IDs for runtime rule dispatch, cooldown keys, and proc source attribution; display labels stay name-based.
-
-Combat calculations combine visible state, equipment, profession hooks, formulas, and modifiers; resolver handlers
-commit effects and dispatch reactions:
-
-- Query implementations: `combat-calculation/combat-query.ts` computes effective combat values and
-  `combat-calculation/timeline-index.ts` indexes timestamped state for live combat and previews. Primitive state checks
-  and stack lookup remain in `combat/query/`. Event payloads, validation, and the shared damage-diagnostic contract:
-  `events/events.ts`.
-- Internal work payloads and lifetime ownership: `simulation/work-contract.ts`; validated construction:
-  `simulation/internal-work.ts`. Hit diagnostics, condition applications, and mutable runtime types live with
-  `resolver/hit-resolution.ts`, `resolver/condition-resolution.ts`, and `resolver/runtime-state.ts`; shared
-  event/result/reaction contracts stay in `resolver/types.ts`.
-- `execution/` owns reusable rotation, reservation, cooldown, ammo, and interruption services; `resolver/` owns hit and
-  condition calculation and reaction services; `simulation/runtime.ts` composes them into one live loop.
-- `results/result-queries.ts` reads detached results and planning boundaries (critical-chance strikes, buff state);
-  report construction, planning-state projection, and input-rate reporting (`results/rotation-apm.ts`) live in
-  `results/`.
-- `skills/balance-profiles.ts` owns catalog profile lookup; `combat/query/runtime-query.ts` owns event-to-skill lookup
-  without depending on resolver implementations.
-- `execution/transition-lockouts.ts` owns bar-transition timing, `execution/autoattack-chains.ts` owns live chain
-  transitions, and `skills/autoattack-chain-index.ts` indexes catalog chains.
-
-Profession definitions expose weapon eligibility as `weaponSkillMatchesSet`, used by both scheduling and the application
-adapter. Family-specific matching lives in `professions/<profession>/build/weapon-matching.ts`; it is not part of
-`ProfessionUiContract`.
-
-One runtime interleaves command acceptance with internal work and combat events. Availability, cast duration, cooldowns,
-ammo, resources, strike damage, conditions, target health, and triggered effects share one live state. See
-[Architecture](./ARCHITECTURE.md#runtime-and-simulation) and [Event clock](./SIMULATION-EVENT-CLOCK.md).
+Builds and public configuration use readable sigil/relic names; equipment catalogs resolve runtime IDs. Profession
+weapon eligibility lives in `build/weapon-matching.ts` and the runtime contract, shared by scheduling and application
+adapters. It is not a UI-only rule.
 
 ## Profession modules (`js/games/gw2/professions/<profession>/`)
 
@@ -457,7 +369,8 @@ export const berserkerModule = defineNativeModule({
     balanceProfiles: BERSERKER_BALANCE_PROFILES
   }),
   state: { create: berserkerState.create, project: createPublicStateProjector(BERSERKER_PUBLIC_STATE_PROJECTION) },
-  modifiers: { modifyAttributes, modifierRules: slicingMaelstromModifiers },
+  attributes: berserkerAttributes,
+  modifiers: { modifierRules: slicingMaelstromModifiers },
   hooks: berserkerHooks,
   presentation: berserkerUi
 });
@@ -547,7 +460,8 @@ explicit lifetime declaration does not authorize unrelated new rewards.
 `traitTriggers: false` removes all compiled stage/point producers, including implicit-minor declarations. Value rules,
 intrinsic mechanics, supplied state and explicitly admitted lifetime delivery remain available. Trait modifier rules
 normally receive compiler selection gates, with an explicit `requiresSelection: false` exception for already-created
-effects. Imperative attribute modifiers stay under the module's modifier contract; `TraitHooks` does not expose
+effects. Trait `attributes`/`grantedAttributes` and module `attributes` declarations feed the shared attribute
+evaluator. Imperative modifier hooks remain under the module's modifier contract; `TraitHooks` does not expose
 `modifyAttributes`.
 
 When an owner exports a complete `RuntimeHooks` contribution, register it with `composeRuntimeHooks` rather than copying
@@ -574,49 +488,9 @@ follows reexports and ignores type-only dependencies.
 
 ### Folder size
 
-The filenames above are ownership conventions, not required placeholders. A small specialization stays compact:
-
-```text
-specializations/berserker/
-├── module.ts
-├── hooks.ts
-├── profiles.ts
-├── state.ts
-├── presentation.ts
-├── skills/index.ts
-└── traits/
-    ├── index.ts
-    └── behavior.ts
-```
-
-A larger Core module groups by GW2 concept:
-
-```text
-core/
-├── module.ts
-├── hooks.ts
-├── modifiers.ts
-├── profiles.ts
-├── state.ts
-├── presentation.ts
-├── skills/
-│   ├── index.ts
-│   ├── slot-skills.ts
-│   └── weapons/axe.ts, greatsword.ts, …
-├── mechanics/
-│   ├── life-force.ts
-│   ├── minions.ts
-│   └── shroud-lifecycle.ts
-└── traits/
-    ├── index.ts
-    └── <trait-line>/
-        ├── index.ts          definitions and small helpers
-        └── <concept>.ts      substantial support or an independent dependency boundary, when needed
-```
-
-Split large mechanics into descriptive files when that makes ownership clearer. Do not split just to make professions
-look symmetrical, and do not default to one file per skill or trait. Files such as `mechanics/shroud-lifecycle.ts`,
-`mechanics/tomes.ts`, or `mechanics/illusions/` are preferable to a growing generic `rules.ts`.
+These filenames describe ownership, not required placeholders. Keep small specializations compact; split large mechanics
+by GW2 concept when it clarifies ownership. Prefer `mechanics/tomes.ts` or `mechanics/illusions/` to a growing generic
+`rules.ts`. Do not create one file per trait or skill solely to make profession layouts symmetrical.
 
 ### Core versus specialization
 
@@ -722,29 +596,3 @@ Tests live next to the subsystem they validate: `tests/kernel/`, `tests/ui/`, `t
 For profession mechanics, test the smallest meaningful contract: availability, a state transition, a resource change, a
 modifier result, event emission, a resolver reaction, or a UI projection. Preset tests confirm that saved builds still
 load and simulate. Architecture and typecheck tests enforce cross-module ownership and composition.
-
-## Ownership principles
-
-1. **Keep profession behavior with its profession.**
-2. **Keep specialization-only behavior with its specialization.**
-3. **Move code to `js/games/gw2/platform/` only when it represents reusable Guild Wars 2 behavior.**
-4. **Put shared declarations in their owning platform domain; keep runtime composition in `simulation/`.**
-5. **Keep browser concerns in `app`.**
-6. **Keep `module.ts` and `profession.ts` focused on composition.**
-7. **Prefer descriptive files over oversized generic files.**
-8. **Do not create empty files to satisfy a folder convention.**
-9. **Do not duplicate an existing source of truth.**
-10. **Keep headless engine imports independent of browser application code.**
-
-## Mechanic lifecycle ownership
-
-Bladesworn's `mechanics/dragon-trigger.ts` owns charge scheduling, availability, release capture, packet scaling, and
-expiry. `dragon-trigger-state.ts` supplies its one state factory; the module state composes that fragment while keeping
-the public projection stable. Release records belong to each run and are queried through the owner. `gunsaber.ts` owns
-bar transitions and their consequences; `flow.ts` owns regeneration. Hooks only coordinate their required order.
-
-Holosmith's `mechanics/photon-forge.ts` contributes its own initialization, actions, tasks, and heat event registration.
-The neighboring availability, state, and trait modules remain its named collaborators. Mesmer's
-`core/mechanics/illusions/lifecycle.ts` owns illusion/resource assembly and recurring task registration, replacing the
-former runtime controller. Ordinary skill payloads, balance profiles, and trait rewards remain with their existing
-owners.

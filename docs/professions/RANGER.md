@@ -7,7 +7,7 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Data
 
-- API identity snapshot: 2026-08-08 (official GW2 API) for skill IDs and presentation metadata. Pet identity lives in
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance. Pet identity lives in
   `data/ranger-pet-data.ts` and API-omitted actions in `data/ranger-supplemental-skills.ts`.
 - Refresh: `npm run update:ranger-data`, which refreshes API metadata and regenerates Ranger IDs and pet data without
   overwriting owner-local mechanics.
@@ -27,23 +27,15 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Trait ownership
 
-Core defines traits in five `traits/<line>/index.ts` files; its `traits/index.ts` registers them in their original
-order. Each elite owns its definitions and registration array in `traits/index.ts`: 46 Core, 5 Druid, 8 Soulbeast, 7
-Untamed, and 8 Galeshot definitions. Owners contain trait balance profiles, modifiers, triggers, recharge rules, and
-build contributions. Runtime callers import named Core trait helpers for opening strikes, Beast skills, movement,
-critical procs, poison, attributes, and companion attributes inside their owning trait-line folders. Small helpers such
-as Lingering Magic's companion Concentration and Wellspring's pet conversion stay in the line's `index.ts`. Wellspring's
-player declaration retains its profile cache while pet queries read captured or live Power. Elite trait helpers remain
-beside their definitions. Pet identity and attribute snapshots live separately from scheduling in
-`core/mechanics/pet-attributes.ts`; the signet passive query does not load slot-skill execution. Soulbeast hooks and
-modifiers assemble merged-pet contributions before manifest registration. Ordered mechanic trigger points deliver
-completion and swap boundaries to definition-local handlers. Profile consumers use `RANGER_TRAIT_IDS` directly; module
-`profiles.ts` files retain only skill and mechanic packages. Build and live queries use
-`rangerProfession.attributeContributions`, combining selected trait declarations with module-owned skill passives and
-Soulbeast archetype attributes. The shared evaluator applies these contributions to equipment attribute seeds.
-Skirmishing owns Trapper's Expertise and Light on Your Feet's base-duration rules; `core/skills/weapons/shortbow.ts`
-owns the intrinsic shortbow extension. The two shortbow extensions add seconds to the same base before ordinary duration
-scaling.
+Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers definitions in `traits/index.ts`.
+Definitions own profiles, modifiers, triggers, recharge rules, and build contributions; supporting helpers remain beside
+them. Mechanics own ordered dispatch and companion scheduling. `core/mechanics/pet-attributes.ts` separates pet identity
+and attribute snapshots from scheduling.
+
+Build and live queries share `rangerProfession.attributeContributions`, combining selected traits, module-owned skill
+passives, and Soulbeast archetype attributes from equipment seeds. Pet queries use the appropriate captured or live
+attributes. Skirmishing owns Trapper's Expertise and Light on Your Feet's base-duration rules; the intrinsic shortbow
+extension lives in `core/skills/weapons/shortbow.ts`. Both shortbow extensions add to the base before duration scaling.
 
 Commanded pet recharge captures the accepting companion's incarnation and retains it through shared cooldown projection.
 Received Alacrity is integrated only from that companion's grants and extensions, ending at retirement while preserving
@@ -73,5 +65,6 @@ The following execution boundaries remain explicit to preserve ordering and acto
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Incoming attacks, active defense, ally healing/barrier/cleanse, pathing,
-secondary targets, and competitive (PvP/WvW) splits are out of model.
+Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
+active defense, ally healing/barrier/cleanse, pathing, secondary targets, and competitive (PvP/WvW) splits are out of
+model.

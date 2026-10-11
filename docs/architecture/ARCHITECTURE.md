@@ -56,7 +56,8 @@ with `defineNativeModule()`:
 | `data`             | Generated identities, skill mechanics, traits, weapon hands, and chains        |
 | `state`            | One `create` factory and optional detached public `project` projection         |
 | `hooks`            | Availability, cast hooks, named tasks, resource policies, and combat reactions |
-| `modifiers`        | Declarative formula and attribute rules                                        |
+| `modifiers`        | Declarative formula rules and imperative modifier hooks                        |
+| `attributes`       | Intrinsic mechanic and skill-passive attribute contributions                   |
 | `traitDefinitions` | Trait-owned profiles, modifier rules, triggers, hooks, and build contributions |
 | `presentation`     | UI contributions, optionally catalog-aware                                     |
 
@@ -65,9 +66,10 @@ TypeScript and native module validation reject unknown module fields and retired
 mutable state instance per run.
 
 `defineTrait()` definitions expand once in `defineNativeModule()`. Ordinary rules receive live trait-selection gates;
-rules for already-created effects may opt out with `requiresSelection: false` and an explicit event predicate. Custom
-callbacks retain explicit eligibility and lifetime. Trait hooks and module hooks share the same ordered composer, and
-build contributions enter the existing attribute conversion pass. Patch previews consume expanded declarations.
+rules for already-created effects may opt out with `requiresSelection: false` and an explicit event predicate. Trait
+triggers receive compiler selection gates; value callbacks retain explicit eligibility and admitted lifetime handlers
+retain ownership and expiry. Trait hooks and module hooks share the same ordered composer, and build contributions enter
+the existing attribute conversion pass. Patch previews consume expanded declarations.
 [MODULES.md](./MODULES.md#profession-file-roles) describes where trait definitions and their supporting behavior live.
 
 ### Catalog assembly
@@ -136,13 +138,14 @@ normalized catalog and attribute metadata to application consumers; it does not 
 - `createProfessionFamilyUi()` is more lenient: an unknown/Core-trait-line/missing name selects Core. Lists compose Core
   then elite, palette overrides refine individual fields, presenters delegate on `undefined`, and selection replacement
   asks the elite first.
-- Modifier rules: modules contribute inert `modifiers.modifierRules`; exactly one module supplies
-  `compileModifierRules`, and the family compiles Core + active elite once, preserving the single additive-damage
-  bucket.
+- Modifier rules: modules contribute inert `modifiers.modifierRules`. The family compiles Core + active elite once,
+  preserving the single additive-damage bucket. It uses the shared compiler unless one module supplies
+  `compileModifierRules`; multiple compiler owners are rejected.
 
 `platform/combat/modifiers.ts` compiles per-effect scalar rules into critical chance/damage, strike damage, condition
 damage, and condition duration hooks, combining equipment and profession additions once. Pet/mech owners exclude player
-Force and Bursting. Ordered attribute conversions stay imperative hooks.
+Force and Bursting. Trait and module `attributes` declarations provide owned attribute contributions; imperative
+modifier hooks remain available for ordered or stateful calculations.
 
 ### Hook ownership
 
@@ -173,36 +176,11 @@ selection remain explicit. Module declarations, rule compilation, and hook compo
 `RuntimeHooks<State, TSkill>`; the broader `RuntimeProfession` contract belongs to the compiled profession, including
 its catalog, state factory, weapon eligibility, attack-chain overrides, and planning projection.
 
-All callback families use their canonical author capabilities. `profession-definition/runtime-context.ts` declares
-dedicated selection, content, recharge-anchor, capacity, cast-detail, and effect-ownership contexts. `effectOwner`
-receives only selected-catalog queries through `EffectOwnershipContext`; `castDetail` receives a `CastDetailContext`
-whose profession-state query exposes nested data as read-only and excludes stateful operations. These views are bound
-once per run, and accepted casts retain their concrete selected-catalog skill.
-
-`profession-definition/mechanic-context.ts` declares the shared mechanic capabilities. `MechanicQueryContext` gives
-selection and observation callbacks read-only profession state, service queries, and executed facts.
-`MechanicCombatContext` gives combat helpers mutable profession state and combat, emission, proc, and random services.
-`MechanicContext` extends that combat capability for lifecycle handlers with cast/resource/recharge operations, named
-scheduling, and explicit observation writes. None exposes the command cursor, shared heap, or report collections.
-
-`simulation/bind-mechanic-context.ts` binds stable query and lifecycle views to the live run.
-`resolver/mechanic-services.ts` binds combat operations to their resolver-owned stores.
-`combat/history/executed-facts.ts` supplies the `facts` reader and `observations` writer independently of optional
-reports; pending work becomes history only when it executes. Professions inspect in-flight casts, query detached pending
-charge-release intent, and request lockouts through `castController`, without access to its maps.
-`execution/cooldowns.ts` privately owns all cooldown, recharge-progress, and ammo stores. Cast admission, live combat
-queries, and planning projection use controller operations and read-only observations. Live cooldown queries compare
-unrounded deadlines and settle only the requested magazine; cast admission and displayed deadlines retain their
-action-tick rounding.
-
-Dragon Trigger owns charging, release capture, charge-scaled packets, and expiry, with state defaults in its leaf state
-module. Its immutable release records are stored per run. Gunsaber transitions and Flow regeneration have separate
-owners. Photon Forge owns its task/action registration alongside the heat lifecycle. Mesmer's `family-resources.ts`
-binds clone scheduling and resource rewards independently of `family-mechanics.ts`, which assembles shatter, phantasm,
-and skill operations. This keeps trait callers from cycling through family behavior. Selected definitions come from the
-build and patch; mutable counters and lifecycle state live in the profession's Core or specialization slice. No
-context-identity registry or shared controller aggregate is required. Specialization reactions dispatch explicitly after
-committed resource gains and shatters; Core completion still runs before Mimic.
+Author callbacks receive capabilities from `profession-definition/runtime-context.ts` and
+`profession-definition/mechanic-context.ts`: read-only selection/query views, combat mutation services, or lifecycle
+services as appropriate. They do not receive the command cursor, heap, or report collections. Gameplay history in
+`combat/history/executed-facts.ts` is independent of optional reports; pending work becomes history only when executed.
+The [platform ownership guide](../../js/games/gw2/platform/README.md) documents these boundaries and service owners.
 
 - One cursor, heap, profession/target state, resource controller, and RNG own the run.
 - Pending work is invisible to historical queries until it executes.
@@ -214,10 +192,9 @@ committed resource gains and shatters; Core completion still runs before Mimic.
   observation policies bound delayed work without recursively extending the rotation.
 - Cast/interrupt commitment and lifetime generations determine whether pending work survives cancellation. Committed
   projectiles can outlive a cast. Finite actor tasks schedule bounded work, not an unbounded future history.
-- Application builds always enable console Quickness and Alacrity. Recharge uses a constant 1.25× rate for players and
-  summons, or 1.5× for Chronomancer player skills, while explicit Alacrity exemptions retain their base rate. Cooldown
-  calculations do not sample boon grants, extensions, or expiry. Boon events remain available for reporting and other
-  effects.
+- Application builds always enable console Quickness and Alacrity. Player recharge uses a constant 1.25x rate, or 1.5x
+  for Chronomancer player skills. Summon recharge integrates received Alacrity windows at 1.25x while active and 1x
+  otherwise. Explicit Alacrity exemptions retain their base rate.
 - Player health stays at 100%; target health remains live. Attribute preview health is a separate input.
 - Build adapters provide attribute provenance so static rules apply once; dynamic modifiers always read live facts.
 
@@ -241,9 +218,8 @@ Schema (version 1) lives in `platform/events/events.ts`:
 
 - `source` is a display label only. Behavior keys on `actorType` (optionally `ownerActorType` for inherited outgoing
   modifiers); validation requires explicit ownership, no source-label fallback.
-- Common types (`COMMON_EVENT_TYPES`): `action`, `damage`, `condition`, `condition_tick`, `control`, `blind`,
-  `weapon_set`, `proc`. Professions add namespaced types (e.g. `example.resource`) via `hooks.eventHandlers`;
-  duplicates, missing handlers, and unknown namespaced events throw.
+- Common types are declared by `COMMON_EVENT_TYPES` in `events/events.ts`. Professions add namespaced types (e.g.
+  `example.resource`) via `hooks.eventHandlers`; duplicates, missing handlers, and unknown namespaced events throw.
 - Boon queries read executed phase-visible history and delegate stacking/lifetime arithmetic to `combat/boons.ts`.
 
 `platform/resolver` owns standard types. Common handlers resolve damage and conditions; the runtime owns queue draining
@@ -317,7 +293,7 @@ skills not on the active set unless the caller supplies no equipment config (mec
 
 `platform/execution/rotation.ts` normalizes every rotation input to these commands. It also accepts the documented
 shorthand (a numeric skill ID or a skill-name string; see [PROGRAMMATIC-SIMULATION.md](./PROGRAMMATIC-SIMULATION.md))
-and several undocumented aliases. Saved presets use canonical `{ type, skillId }` commands.
+Saved presets use canonical `{ type, skillId }` commands.
 
 - Concurrent and interrupted timing is decided before effects and cooldowns are scheduled.
 - Serial casts and queued concurrent instants wait for finite cooldown, ammo, or profession availability; permanent
@@ -328,8 +304,7 @@ and several undocumented aliases. Saved presets use canonical `{ type, skillId }
 
 ## Builds and attributes
 
-Each profession versions its own schema; read the `*BUILD_SCHEMA_VERSION` constant in its `build/build.ts` (currently 4
-for Elementalist and Ranger, 3 elsewhere):
+Each profession versions its own schema; read the `*BUILD_SCHEMA_VERSION` constant in its `build/build.ts`:
 
 ```js
 {
@@ -353,19 +328,8 @@ which recomputes crit chance, crit damage, boon duration, and condition duration
 
 ## Included professions
 
-`js/games/gw2/profession-registry.ts` is the roster source of truth.
-
-| Profession   | Signature mechanics                                                                      |
-| ------------ | ---------------------------------------------------------------------------------------- |
-| Elementalist | attunements, elementals, auras, overloads, Weaver, Catalyst spheres, Evoker familiars    |
-| Engineer     | kits, tool belt, Photon Forge heat, Mechanist commands, Amalgam morphs                   |
-| Guardian     | API-omitted bundle skills, trait rules, specialization mechanics                         |
-| Mesmer       | clones, phantasms, shatters, instruments, Continuum Split, Mirage                        |
-| Necromancer  | life force, Reaper/Harbinger/Ritualist shrouds, Scourge shades, blight, minions, spirits |
-| Ranger       | pets, astral force, Soulbeast, Untamed, Galeshot                                         |
-| Revenant     | legend bars, energy/upkeep, legend swaps, Vindicator dodges, Conduit affinity            |
-| Thief        | initiative, stealth/revealed, stolen skills, malice, Shadow Shroud, Antiquary            |
-| Warrior      | adrenaline/bursts, Berserker rage, Bladesworn charges, Paragon                           |
+`js/games/gw2/profession-registry.ts` is the roster source of truth. The [profession guides](../professions/) describe
+each family's supported mechanics and implementation owners.
 
 ## Adding another profession
 

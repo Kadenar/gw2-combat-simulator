@@ -7,9 +7,8 @@ through Core for Weaponmaster Training.
 
 ## Data
 
-- API identity snapshot: 2026-07-25 (official GW2 API): 136 skills, 108 traits, and 9 specialization lines. Fifteen
-  API-omitted Death Shroud, Lich Form, Ritualist innervate, and simulator action identities live in
-  `data/necromancer-supplemental-skills.ts`.
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance. API-omitted Death Shroud,
+  Lich Form, Ritualist innervate, and simulator action identities live in `data/necromancer-supplemental-skills.ts`.
 - Refresh: `npm run update:profession-data -- --profession Necromancer` (API metadata only). Simulator timing and
   behavior live in owner-local `skills/` and `mechanics/` modules, and the application catalog is assembled from those
   module contributions.
@@ -38,22 +37,14 @@ until entry; weapon/slot skills are disabled while a transformed bar is active.
 
 ## Trait ownership
 
-All implemented traits have registered `defineTrait` owners: 50 Core, 10 Reaper, 9 Scourge, 11 Harbinger, and 7
-Ritualist (87 total). Core groups definitions in `traits/<line>/index.ts`; each elite groups its definitions under its
-own `traits/` directory. Core `traits/index.ts` collects line definitions; each elite `traits/index.ts` owns its
-definitions and registration array. Blood Magic life-steal and Curses procs/modifiers live in their line's `index.ts`;
-Curses retains `skill-variants.ts` for weapon effect selection. Spite retains `behavior.ts`, and Death Magic retains
-`carapace.ts` for grants and shared stack queries. Soul Reaping keeps attack procs and the Dhuumfire tooltip projection
-in `procs.ts`, siphon queries in `modifiers.ts`, and resource and shroud rewards in `index.ts`. Scourge supplies its
-cast attribution to the shared Core Soul Barbs grant instead of requiring a specialization-specific helper in Core. Soul
-Reaping's `resource-queries.ts` remains independent of active handlers so resource accounting cannot import its callers.
-Reactions and shroud-entry dispatch stay in Core mechanics and dispatch to the owning trait lines; elite support stays
-beside its definitions. Native modules expand profiles, modifier rules, triggers, recharge rules, hooks, and attribute
-contributions once. `necromancerProfession.attributeContributions` combines module and selected trait declarations for
-both build and live queries. The Core module registers Signet of Spite through `core/skills/attribute-passives.ts`; the
-build wrapper supplies selection and tuning to the shared evaluator. `core/initial-state.ts` receives prepared
-attributes and the active balance context when constructing resource state. Generated trait metadata and existing
-balance-profile identities remain unchanged.
+Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions under `traits/`.
+Definitions own profiles, modifiers, triggers, recharge rules, and attribute contributions. Helpers stay beside their
+owners: Death Magic's `carapace.ts`, Soul Reaping's `procs.ts` and `resource-queries.ts`, and Curses'
+`skill-variants.ts`. Resource queries remain independent of active handlers to avoid importing their callers.
+
+`necromancerProfession.attributeContributions` combines module and selected trait declarations for build and live
+queries. Core skill passives come from `core/skills/attribute-passives.ts`; `core/initial-state.ts` uses prepared
+attributes and the active balance context to construct resources.
 
 Explicit calls into trait helpers retain the boundaries that matter for state and ordering:
 
@@ -77,9 +68,10 @@ remove independent rewards.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Ally healing/revival/barrier, dynamic enemy-boon tracking, projectile
-interaction, pathing, incoming attacks, enemy positioning, secondary targets, and competitive (PvP/WvW) splits are out
-of model; skills whose only effects are in those categories are excluded rather than shown as zero-damage.
+Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Ally
+healing/revival/barrier, dynamic enemy-boon tracking, projectile interaction, pathing, incoming attacks, enemy
+positioning, secondary targets, and competitive (PvP/WvW) splits are out of model; skills whose only effects are in
+those categories are excluded rather than shown as zero-damage.
 
 Offensive boon-removal consequences use configured target-boon assumptions (for example, Dark Pact's life-force gain);
 the simulator does not maintain a changing enemy boon inventory.

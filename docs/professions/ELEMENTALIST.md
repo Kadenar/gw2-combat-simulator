@@ -31,36 +31,25 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
 - `app/app-definition.ts` adapts the profession contract for the shared browser shell, including build-time attributes,
   starting resources, weapon selection, and skill availability.
 
-Persisting Flames is defined in `core/traits/fire/index.ts`; `core/traits/fire/persisting-flames.ts` retains its
-pre-emission effect/field transformations. Ordered calls in `core/mechanics/reactions.ts` grant its buffs before
-Shattering Stone on damage and after Strength of Stone on Burning applications; shared resolver state retains the buff
-lifetime. Tooltips read the modifier's authoritative stack cap. The remaining Core definitions live in their five
-`core/traits/<line>/index.ts` owners.
+Core trait definitions live in `core/traits/<line>/index.ts`; each elite owns definitions in
+`specializations/<name>/traits/index.ts`. Definitions own profiles, modifiers, attribute contributions, and ordinary
+triggers. Supporting helpers stay beside their definitions; mechanics own resource clocks and ordered dispatch.
 
-Core registers 45 trait definitions; Tempest registers 11, Weaver 9, Catalyst 10, and Evoker 11 from their
-`specializations/<name>/traits/index.ts` owners, which also export each elite's registration array. Profiles,
-declarative modifiers, build contributions, and ordinary triggers live with those definitions. The Core index collects
-line definitions in registration order; mechanic trigger points order definition-local runtime handlers. Supporting
-behavior lives inside the owning line's folder: Air and Earth use `attunement-entry.ts`, Arcane keeps swap handlers in
-`arcane/index.ts`, and Fire uses `attunement-transition.ts` for entry and exit effects. Lines also own
-`critical-procs.ts` where needed; only shared hit eligibility stays in `core/traits/critical-eligibility.ts`. Elite
-support stays beside its definitions. Critical procs retain ordered calls at their mechanic boundaries. Shared state
-owns ICDs, Fresh Air wakes, Bountiful Power progress, and timed buff applications.
+Preserve these boundaries when changing behavior:
 
-`elementalistProfession.attributeContributions` supplies the same module and selected trait declarations to build and
-live queries. Core skill attributes are registered from `core/skills/attributes.ts`. The shared evaluator starts from
-equipment attribute seeds; declarations select conversion inputs and read live attunements, boons, and stacks.
-Profile-only helper declarations cache immutable contributions by balance-profile object, and simulation queries retain
-their selected declarations. Live callbacks still evaluate changing combat facts, while detached previews select traits
-afresh and use the requested patch context.
+- Core orders Persisting Flames before Shattering Stone on damage and after Strength of Stone on Burning applications.
+  Shared state owns proc cooldowns, Fresh Air wakes, and timed buffs.
+- Tempest mechanics own overload availability and scheduling; traits own aura rewards and singularity tuning.
+- Weaver mechanics own dual-attunement and stance execution, with trait calls at initialization, accepted entry, and
+  committed completion.
+- Catalyst mechanics own spheres and energy; traits own empowerment and aura/combo reactions.
+- Evoker mechanics own familiar casts and deferred resource settlement; traits own familiar rewards, recharge policies,
+  and enchantment payloads.
 
-Tempest keeps overload availability, lockouts, Lightning Jolt, and scheduler work in mechanics. Its trait helpers own
-hit-derived alacrity, completion auras, shout rewards, and aura windows. The shared overload profile retains its
-existing patch IDs and supplies singularity tuning to Transcendent Tempest. Weaver retains dual-attunement and stance
-execution in mechanics, with explicit trait calls at initialization, accepted entry, and committed completion. Catalyst
-traits own empowerment renewal and aura/combo reactions while sphere execution and resource accounting remain in
-mechanics. Evoker traits own familiar rewards, synthetic entry policy, recharge adjustments, and enchantment payloads;
-skill casts and deferred resource settlement retain their existing scheduler boundaries.
+Build and live queries share `elementalistProfession.attributeContributions`. Core skill attributes come from
+`core/skills/attributes.ts`; selected traits add their declarations. The shared evaluator starts from equipment seeds,
+uses the active balance context, and reads live attunements, boons, and stacks. Detached previews select contributions
+from their own inputs.
 
 ## Owned systems
 
@@ -75,7 +64,7 @@ skill casts and deferred resource settlement retain their existing scheduler bou
 
 ## Data
 
-- The checked-in GW2 API identity snapshot is dated 2026-08-12.
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
 - Refresh it with `npm run update:elementalist-data`.
 - Generated API metadata supplies identities, icons, descriptions, traits, and specialization records. It is not the
   source of coefficients, damaging conditions, timings, or state-machine behavior; those live in the owning `core/` or
@@ -90,8 +79,8 @@ UI tests live under `tests/games/gw2/professions/elementalist/`; saved-build sim
 
 ## Modeling boundaries
 
-The simulator is single-target and outgoing-damage focused. Incoming attacks, active defense, ally healing and
-cleansing, pathing, secondary targets, and competitive PvP/WvW splits are outside the model. Deterministic simulations
-average critical damage by default, with rolled critical damage available in simulation settings. RNG simulations always
-use rolled critical damage. An EVTC can differ from either the expected damage or the simulated seed's critical-hit
-outcomes.
+The simulator is single-target and outgoing-damage focused. Player health stays at 100%; target health remains modeled.
+Incoming attacks, active defense, ally healing and cleansing, pathing, secondary targets, and competitive PvP/WvW splits
+are outside the model. Deterministic simulations average critical damage by default, with rolled critical damage
+available in simulation settings. RNG simulations always use rolled critical damage. An EVTC can differ from either the
+expected damage or the simulated seed's critical-hit outcomes.

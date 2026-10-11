@@ -164,8 +164,10 @@ ordinaryReadyAt   = rechargeStart + rechargeDuration
 ```
 
 Cooldown and ammo state commits in the completion task at `effectiveEnd`, even when the computed recharge anchor is
-earlier. Alacrity is sampled when recharge begins, not necessarily when the cast begins. Ammo charge recharge and the
-optional between-cast ammo lockout are independent deadlines; availability uses the later applicable deadline.
+earlier. Player Alacrity is permanent; summon recharge integrates received Alacrity grants and expiry over the recharge
+interval. Skills with `rechargeIgnoresAlacrity` retain their base rate. Ammo charge recharge and the optional
+between-cast ammo lockout are independent deadlines; availability uses the later applicable deadline. See
+`combat/recharge.ts`.
 
 Retryable availability does not fail the command. The GW2 rotation driver rounds a future retry deadline up to the first
 absolute 40 ms action tick at or after that deadline. The clock advances to the earlier of that tick and the next
@@ -300,8 +302,8 @@ at = 2.0       inactive
 
 ### Same-time resolver work
 
-At `t = 3.0`, the resolver processes a condition buffer first, condition ticks second, and ordinary damage last,
-regardless of an ordinary event's lower numeric priority.
+At `t = 3.0`, the resolver samples condition rates first, settles condition payouts second, and resolves ordinary damage
+last, regardless of an ordinary event's lower numeric priority.
 
 ## 10. Safety and determinism
 

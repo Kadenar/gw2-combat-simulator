@@ -33,15 +33,22 @@ GW2 palette, timeline, chart, result, and icon views belong in `games/gw2/app/`,
 shared UI. Neutral `#ui/` primitives belong in `ui/`. View tests can reuse `helpers/dom.js` to capture markup without
 browser nodes.
 
-Mesmer's `chronomancer.test.js`, `mirage.test.js`, `virtuoso.test.js`, and `troubadour.test.js` cover their
-specialization behavior. `weapon-skills.test.js`, `slot-skills.test.js`, and `shared-traits.test.js` cover behavior used
-across specializations; clone attack scheduling belongs in `autoattacks.test.js`, and relic interactions belong in
-`conditions-and-relics.test.js`. A shared engine contract stays under `games/gw2/platform/` when it uses a profession
-simulation helper only to supply a small scenario.
+A shared engine contract stays under `games/gw2/platform/` even when a profession simulation helper supplies the
+scenario. API snapshot transforms and metadata generation belong in `scripts/profession-api-snapshot.test.mjs`; build
+migration and cross-profession contracts remain under `games/gw2/professions/`.
 
-API snapshot transforms, fixture-backed fetching, and metadata generation belong in
-`scripts/profession-api-snapshot.test.mjs`. Build migration and cross-profession contracts remain under
-`games/gw2/professions/`.
+## Choosing validation
+
+For profession, engine, or data changes, run focused Node tests and relevant build/type checks. Browser tests cover
+native interactions, focus, layout, workers, and module loading; run the affected browser files for UI changes. Keep
+formula and profession matrices in Node tests. `npm run check` does not launch browsers; `npm run check:all` includes
+the full browser suite for integration/release validation.
+
+Follow [AGENTS.md](../AGENTS.md#testing-policy): test scheduling, cooldowns, resources, state transitions, causal order,
+observation windows, loading, migration, and validation. Do not add cast-time/Quickness calibration, interrupt-commit or
+retained-lockout tests, or standalone hit-timestamp, damage-tick, pulse-count, and native-packet schedule checks. Player
+health is always full in combat tests; variable health belongs only to isolated attribute previews. Target-health
+behavior remains in scope.
 
 Preserve focused engine and trait assertions when moving cases. Saved-preset checks cover loading and simulation;
 numerical regressions compare only total DPS with at most 1% relative error. Keep preset warnings visible.

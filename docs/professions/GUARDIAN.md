@@ -5,20 +5,16 @@ Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of 
 Luminary. Virtues, Firebrand tomes, Radiant Forge, and weapon state each own their cast validation, scheduler hooks,
 skill handlers, and resolver reactions under `core/` or `specializations/<name>/`.
 
-All 34 implemented Core traits are authored in `core/traits/<line>/index.ts` and registered through
-[`core/traits/index.ts`](../../js/games/gw2/professions/guardian/core/traits/index.ts). Each elite owns its definitions
-and ordered registration array in `specializations/<name>/traits/index.ts`: Dragonhunter has nine, Firebrand eleven,
-Willbender eight, and Luminary eight. Definitions own profiles, modifiers, build contributions, and hook registration.
-Supporting runtime functions live within their owning trait-line folders; shared symbol emission stays in
-`core/traits/symbols.ts`. Small helpers remain in each line's `index.ts`; mechanics import those functions directly and
-preserve virtue activation, page accounting, equip rewards, and proc ordering. Firebrand `initial-state.ts` supplies
-canonical default profiles to its state factory, keeping runtime state independent of trait definitions.
+Trait definitions live in `core/traits/<line>/index.ts` and each elite's `traits/index.ts`. They own profiles,
+modifiers, build contributions, and hooks; supporting functions stay beside their definitions. Shared symbol emission
+lives in `core/traits/symbols.ts`. Mechanics preserve virtue activation, page accounting, equip rewards, and proc order.
+Firebrand's `initial-state.ts` supplies default profiles without importing trait definitions into its state factory.
 
 ## Data
 
-- API identity snapshot: 2026-07-25 (official GW2 API): 128 skills, 108 traits, and 9 specialization lines. The API
-  omits Firebrand tome pages, Luminary Radiant Forge weapons, and Dragonhunter virtue variants;
-  `data/guardian-bundle-skills.ts` supplies 29 stable-ID identity and presentation supplements.
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance. The API omits Firebrand tome
+  pages, Luminary Radiant Forge weapons, and Dragonhunter virtue variants; `data/guardian-bundle-skills.ts` supplies
+  their identity and presentation supplements.
 - Refresh: `npm run update:profession-data -- --profession Guardian` (generated API metadata only; the bundle supplement
   is preserved). Simulation-affecting fields live in owner-local `skills/` fragments.
 
@@ -44,10 +40,10 @@ canonical default profiles to its state factory, keeping runtime state independe
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Ally positioning, incoming damage, revival, and other encounter-side support
-effects are outside the damage total. Some support-only casts remain in the catalog as timing or trait-triggering
-actions. Cast timings are checked into owner-local skill fragments; catalog assembly does not infer a duration from the
-skill's type.
+Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Ally positioning,
+incoming damage, revival, and other encounter-side support effects are outside the damage total. Some support-only casts
+remain in the catalog as timing or trait-triggering actions. Cast timings are checked into owner-local skill fragments;
+catalog assembly does not infer a duration from the skill's type.
 
 Uncompressed ArcDPS EVTC logs can be inspected with
 `node scripts/analysis/analyze-evtc.mjs <log.evtc> --game=gw2 --summary` after `npm run build`.

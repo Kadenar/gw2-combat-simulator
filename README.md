@@ -2,23 +2,12 @@
 
 A browser-based PvE build and rotation simulator for **Guild Wars 2**.
 
-Instead of relying on a recorded benchmark attempt, the simulator runs a rotation against a modeled target and produces
-an event-by-event result using GW2 combat formulas, profession mechanics, traits, boons, conditions, cooldowns,
-resources, and modifiers.
+Run a rotation against a modeled target to compare builds, inspect damage and profession mechanics, or reconstruct
+supported actions from combat logs.
 
 **[Launch the simulator](https://kadenar.github.io/gw2-combat-simulator/)**
 
-Use it to:
-
-- Compare builds and rotations under identical conditions without re-benchmarking in game
-- See where strike and condition damage is gained or lost
-- Evaluate traits, modifiers, weapons, and profession mechanics
-- Measure the effect of weapon-strength and proc RNG
-- Reconstruct rotations from supported EVTC combat logs
-
-It is an **analysis tool**, not a replacement for in-game testing or benchmark logs.
-
----
+Results are controlled estimates for comparison, not guaranteed in-game DPS. Validate against in-game testing and logs.
 
 ## Features
 
@@ -38,33 +27,28 @@ Build rotations from the selected build's skills, by clicking or with keyboard h
 times and aftercasts, cooldowns, ammo and charges, weapon swaps, skill chains, profession resources, and deferred or
 triggered effects.
 
-**Precombat preparation** requires a **Combat Start** marker. Add **Wait** entries to model preparation time; cooldowns
-carry into combat. **Precast relics** (gear panel) apply their buffs before combat, keeping their original expiry, but
-only the combat relic can trigger again. Mount Balrior activates one second after the elite finishes and assumes you
-stay in its area. **Overlay relics** shows activation and expiry markers on the timeline.
+For precombat preparation, add a **Combat Start** marker and **Wait** entries; cooldowns carry into combat. **Precast
+relics** apply buffs before combat with their original expiry; only the equipped combat relic can trigger again.
 
 ### Deterministic simulation
 
-The default mode uses midpoint weapon strength and average critical damage, with seeded rolls for critical-proc
-eligibility and other chance-based effects. The same inputs and seed reproduce the same result; proc outcomes represent
-one sample, not an average across trials. Results include DPS, per-skill and condition damage, modifiers, events, buffs,
-resources, and execution timelines.
+The default mode uses midpoint weapon strength and averaged critical damage, with seeded rolls for proc eligibility. The
+**Critical damage** setting can instead apply individual critical rolls. Results include DPS, damage breakdowns,
+modifiers, events, buffs, resources, and timelines.
 
-Set **Simulation seed** under **Simulation config → Simulation**. It defaults to **1** and is saved with the build,
-including exports. Keep the seed fixed for controlled A/B comparisons.
+The **Simulation seed** defaults to **1** and is saved with the build. Identical inputs and seeds reproduce results;
+keep the seed fixed for A/B comparisons. A single run is one proc sample, not an average across trials.
 
 ### RNG distribution
 
-RNG mode runs reproducibly seeded trials to estimate mean, median, likely range, and unlucky/lucky outcomes. Modeled
-sources include weapon-strength rolls and random or on-critical effects.
+RNG mode runs seeded trials with sampled weapon strength, rolled critical damage, and chance-based effects to estimate
+mean, median, likely range, and unlucky/lucky outcomes.
 
 ### EVTC rotation import
 
 Supported `.evtc` and compressed logs can be converted into simulator rotations. The importer matches the active
 profession and specialization and extracts supported combat actions. See
 [EVTC Rotation Reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md) for details and limitations.
-
----
 
 ## Supported professions
 
@@ -80,23 +64,15 @@ profession and specialization and extracts supported combat actions. See
 | **Thief**        | Core, Daredevil, Deadeye, Specter, Antiquary        |
 | **Warrior**      | Core, Berserker, Spellbreaker, Bladesworn, Paragon  |
 
----
-
 ## How simulation works
 
-1. **Schedule.** The scheduler turns the rotation into a millisecond-level timeline, tracking skill availability, cast
-   duration, cooldowns, ammo, weapon swaps, resources, and triggered effects.
-2. **Resolve.** The resolver processes those events in order, applying strike and condition damage, critical hits,
-   modifiers, boons, target state, sigils, relics, and profession mechanics.
-
-Keeping the stages separate lets the same rotation be analyzed consistently across builds and simulation modes. See
-[Architecture](docs/architecture/ARCHITECTURE.md) for details.
-
----
+One live runtime interleaves rotation commands and combat effects on a shared clock and event queue. Cast admission
+reads current cooldowns, resources, and profession state; the resolver applies damage and reactions in causal order.
+Detailed and score-only runs use the same execution path. See [Architecture](docs/architecture/ARCHITECTURE.md).
 
 ## Running locally
 
-Requires Node.js **24.11+** (latest Node 24 LTS), npm, and Google Chrome for browser tests.
+Requires Node.js **24.11+** and npm. Browser tests also require Google Chrome.
 
 ```bash
 git clone https://github.com/Kadenar/gw2-combat-simulator.git
@@ -109,9 +85,10 @@ npm run dev              # open the URL Vite prints (normally http://localhost:5
 
 ```bash
 npm run build            # production site → dist/site/
-npm test                 # test suite
+npm test                 # build and Node tests
 npm run test:browser     # browser tests
-npm run check            # format, lint, build, Node tests, typecheck, artifact and browser checks
+npm run check            # format, lint, build, Node tests, typecheck, artifact checks
+npm run check:all        # all checks, including browser tests
 ```
 
 Compiled TypeScript for tests and CLI tooling goes to `dist/js/`. Never commit `dist/` output.
@@ -123,8 +100,6 @@ editor and its authoring API, and validate that development build with
 [`package.json`](package.json) is the source of truth for commands; see [`scripts/README.md`](scripts/README.md) for
 analysis tooling.
 
----
-
 ## Project structure
 
 ```text
@@ -132,7 +107,7 @@ gw2-combat-simulator/
 ├── js/
 │   ├── kernel/            Game-neutral simulation primitives
 │   ├── ui/                Game-neutral simulation views
-│   ├── app/               Game registry, bootstrap, and shell
+│   ├── browser/           Shared browser services and shell
 │   └── games/gw2/         GW2 platform, professions, app, and integrations
 ├── data/games.json        Runtime game-data manifest
 ├── data/gw2/              GW2 build and rotation presets
@@ -144,6 +119,7 @@ gw2-combat-simulator/
 
 ## Documentation
 
+- [Agent API reference](docs/architecture/AGENT-API-REFERENCE.md)
 - [Architecture](docs/architecture/ARCHITECTURE.md)
 - [Module responsibilities](docs/architecture/MODULES.md)
 - [Programmatic simulation](docs/architecture/PROGRAMMATIC-SIMULATION.md)
@@ -151,23 +127,17 @@ gw2-combat-simulator/
 - [EVTC rotation reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md)
 - [Profession implementation notes](docs/professions/)
 
----
-
 ## Community builds
 
 Submit build and rotation presets through the repository's GitHub Issue Form with an exported `build.json`, matching
 `rotation.json`, profession and specialization, expected simulator DPS, and optional benchmark source and reviewer
 notes. Submissions are reviewed before being added. See [Community Build Submissions](docs/BUILD-SUBMISSIONS.md).
 
----
-
 ## Accuracy and scope
 
-Results are controlled, reproducible estimates for comparing builds and rotations, not guaranteed in-game DPS. Encounter
-mechanics, movement, latency, player execution, undocumented behavior, incomplete modeling, and game updates can all
-cause differences. Validate against in-game testing and combat logs where possible.
-
----
+The model focuses on single-target PvE outgoing damage. Movement, latency, incoming attacks, most support-only effects,
+and encounter mechanics are outside scope. See [Accuracy and scope](wiki/Accuracy-and-Scope.md) and the profession notes
+for limitations.
 
 ## Legal
 

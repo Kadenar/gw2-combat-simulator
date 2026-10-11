@@ -23,11 +23,11 @@ Change one variable at a time. Otherwise, the simulator can show that DPS change
 
 ## Save your work
 
-- **Export** downloads the current build as JSON.
+- **Export** offers the current build alone or a combined **Build + rotation** JSON file.
 - **Save Rotation** downloads the current rotation as JSON.
 - **Import** and **Load Rotation** restore those files later.
 
-Build changes are also stored locally in the browser. Export both files before clearing browser data or moving to
+Build changes are also stored locally in the browser. Export a complete setup before clearing browser data or moving to
 another device.
 
 Next: [Builds and templates](Builds-and-Templates) or [Rotation builder](Rotation-Builder).

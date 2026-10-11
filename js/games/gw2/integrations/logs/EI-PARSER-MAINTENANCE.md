@@ -9,7 +9,7 @@ contract aligned with upstream EI.
 
 Current reference: EI commit `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a` in
 [GW2-Elite-Insights-Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser) — a source behavior baseline, not a
-claim of complete parity or the latest upstream version. The pinned links below come from the alignment doc.
+claim of complete parity or the latest upstream version. Pinned source links live in the alignment contract.
 
 - Raw EVTC imports decode recorded casts and apply supported, explicit EI finders with their actual evidence checks.
 - dps.report imports use the selected player's supplied rotation and selected phase, including EI-inferred casts. Older
@@ -24,7 +24,7 @@ claim of complete parity or the latest upstream version. The pinned links below 
 Known gaps: extension healing/barrier and unported custom checker families, time-aware ownership and reused instance
 IDs, EI encounter-specific boundaries. Some custom finders have separate implementations even when excluded from the
 ordinary table. Check the
-[coverage inventory](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits) and
+[coverage limits](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits) and
 [EVTC README](evtc/README.md) before treating a difference as a regression.
 
 ## Review an upstream update
@@ -51,9 +51,9 @@ ordinary table. Check the
    windows, and origin/accuracy metadata. If a checker is unsupported, document the omission instead of approximating it
    from damage or the simulator catalog. Add a short comment naming the EI method and why the local logic exists.
 6. **Validate before advancing the pin.** Update the baseline, affected source provenance comments, adapter
-   documentation, and the coverage inventory together. Keep old/new SHAs and remaining gaps in the change description.
-   For a partial port, record the affected rule's candidate SHA and keep an explicit mixed-version scope — don't relabel
-   every rule as aligned with the candidate.
+   documentation, and the coverage notes together. Keep old/new SHAs and remaining gaps in the change description. For a
+   partial port, record the affected rule's candidate SHA and keep an explicit mixed-version scope — don't relabel every
+   rule as aligned with the candidate.
 
 To inspect an upstream checkout, run these commands there, replacing `CANDIDATE_SHA` with the reviewed full SHA:
 
@@ -103,8 +103,9 @@ For an absent, extra, or shifted cast, check in order:
    parser mismatch. Exact timestamp ties in report JSON preserve traversal order; original cross-skill order is
    unavailable.
 
-Existing CLI tools expose source and normalized actions with `--timeline`. Run from the repository root, substituting
-the input and player values:
+With `--timeline`, the EVTC CLI exposes source and normalized actions; the report CLI exposes normalized actions only.
+For report source evidence, inspect the supplied JSON or the adapter's `sourceActions` result. Run from the repository
+root, substituting the input and player values:
 
 ```powershell
 npm run build:modules
@@ -123,11 +124,11 @@ actor/skill pairing, stop-only encoding selection, recording/window boundaries, 
 ownership, event ordering, duplicate suppression, and both sides of a changed build boundary. Exercise affected shared
 callers and include older supported encoding behavior where relevant.
 
-Follow [repository testing policy](../../../../../AGENTS.md): no tests specifically for Quickness cast times or
-`interruptCommitMs`, saved-rotation shape/order, aggregate per-skill casts/hits/damage, exact benchmark DPS, or
-whole-result snapshots. Minimal exact parser-contract assertions are appropriate. Saved-preset numerical checks may
-compare only total DPS with at most 1% relative error. Identify and fix or explicitly scope preset warnings; do not
-silence them.
+Follow [repository testing policy](../../../../../AGENTS.md). Avoid cast-time/interrupt-commit tests, isolated hit or
+packet-schedule calibration, saved-rotation shape, aggregate per-skill totals, exact benchmark DPS, and whole-result
+snapshots. Minimal parser-contract assertions are appropriate; timing checks must protect behavior such as boundaries,
+ownership, or event ordering. Saved-preset numerical checks compare only total DPS with at most 1% relative error.
+Identify and fix or explicitly scope preset warnings; do not silence them.
 
 Run focused tests from the repository root after compiling the modules:
 
@@ -137,57 +138,22 @@ node --test tests/games/gw2/integrations/logs
 npm run typecheck
 ```
 
-For implementation changes, complete the repository checks with `npm run check`, including import UI coverage. Before
-completion, format only touched Prettier-supported files with `npx prettier --write <touched-files>`; do not run a
-repository-wide write. For documentation-only updates, check formatting and links without rerunning simulation tests.
+`npm run check` runs the broader Node/build checks without browsers. Run relevant browser files only when import UI or
+browser integration changes; `npm run check:all` is the explicit full integration check. For documentation-only updates,
+check formatting and links. Format touched supported files with
+`npx prettier --write --ignore-path .gitignore <touched-files>` so the documentation exclusions in `.prettierignore` do
+not skip them.
 
 The change description should record:
 
 - Baseline and candidate EI SHAs, changed upstream methods, and affected local owners.
 - Implemented changes, intentionally unchanged behavior, deferred coverage, and preserved build compatibility.
 - Focused checks and diagnostic comparisons performed, their versions/windows, and any unresolved differences.
-- Updated pinned references and coverage notes. Historical test counts in the alignment document are not current
-  validation.
+- Updated pinned references and coverage notes.
 
 ## Pinned EI references
 
-All links below target `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a`. When advancing the baseline, verify each path and
-method against the candidate; do not just replace the SHA in URLs. Use method names to navigate when line numbers move.
-
-- [CombatItem][ei-combat-item]: record interpretation and timed-event classification.
-- [CombatEventFactory / CreateCastEvents][ei-cast-factory]: animation dispatch and cast construction.
-- [AnimatedCastEvent][ei-animated-cast]: incomplete casts, durations, statuses, and acceleration.
-- [ParserHelper][ei-parser-helper]: shared parser constants, including server delay.
-- [CombatData / EICastParse][ei-combat-data]: orchestration of ordinary and custom finders.
-- [InstantCastFinder][ei-instant-finder]: shared finder conditions and metadata.
-- [BuffGainCastFinder][ei-buff-gain]: ordinary buff application evidence and initial-application exclusion.
-- [EngineerHelper][ei-engineer]: kit identification and profession-specific evidence.
-- [MinionSpawnCastFinder][ei-minion-spawn]: actual spawn evidence and summon attribution.
-- [JsonActorBuilder][ei-json-actor]: actor rotation export.
-- [Actor][ei-actor]: cast intersection filtering for observation windows.
-- [JsonRotationBuilder][ei-json-rotation]: serialized rotation fields and timing.
-
-[ei-combat-item]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/CombatItem.cs#L402
-[ei-cast-factory]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/ParsedData/CombatEvents/CombatEventFactory.cs#L735
-[ei-animated-cast]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/ParsedData/CombatEvents/CastEvents/AnimatedCastEvent.cs
-[ei-parser-helper]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/ParserHelpers/ParserHelper.cs#L30
-[ei-combat-data]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/ParsedData/CombatData.cs#L217
-[ei-instant-finder]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/InstantCastFinders/InstantCastFinder.cs
-[ei-buff-gain]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/InstantCastFinders/BuffInstantCastFinder/BuffGainCastFinder.cs
-[ei-engineer]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Engineer/EngineerHelper.cs#L16
-[ei-minion-spawn]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/InstantCastFinders/MinionCastFinder/MinionSpawnCastFinder.cs
-[ei-json-actor]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIBuilders/JsonModels/JsonActors/JsonActorBuilder.cs#L57
-[ei-actor]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/Actors/Actor.cs#L439
-[ei-json-rotation]:
-  https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIBuilders/JsonModels/JsonActorUtilities/JsonRotationBuilder.cs
+The [alignment contract](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#pinned-ei-references) owns the pinned source
+links. Its references cover record interpretation, cast construction, ordinary and custom finders, and JSON export. When
+advancing the baseline, verify each path and method against the candidate rather than replacing SHAs blindly. Use method
+names to navigate when line numbers move.

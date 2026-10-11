@@ -34,9 +34,9 @@ npx prettier --check --ignore-path .gitignore <touched-files>
 ```
 
 Replace `<touched-files>` with a space-separated list of supported files, including Markdown. This overrides
-`.prettierignore`'s legacy documentation and build-script exclusions while retaining Git's generated/local-file ignores.
-`npm run format:check` retains its existing scope; it does not replace the explicit touched-document check. Avoid a
-repository-wide formatting pass when making a local change. Prettier does not support `.gitignore` or `.prettierignore`.
+`.prettierignore`'s documentation exclusions while retaining Git's generated/local-file ignores. `npm run format:check`
+retains its existing scope; it does not replace the explicit touched-document check. Avoid a repository-wide formatting
+pass when making a local change. Prettier does not support `.gitignore` or `.prettierignore`.
 
 ## Local scratch work
 
@@ -57,21 +57,6 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
   Numbered PNG frames and their timing manifest stay in `.scratch/tutorial-capture/` for visual review; the four GIFs
   replace `images/tutorials/` assets.
 
-- `npm run benchmarks:compare` simulates every rotation-backed manifest preset and reports DPS values more than 1% away
-  from `benchmarkDps`. Pass `-- --absolute-dps` for a fixed 100 DPS tolerance or `-- --commit` to update `benchmarkDps`
-  (whole DPS), `benchmarkApm` (one decimal), and `benchmarkDpsByHealth` for every rotation-backed preset. The health
-  bands (`100-80`, `80-60`, `60-40`, `40-20`, `20-0`) each store `{ cumulative, phase }` in whole player DPS, using the
-  same packet boundaries as Analysis. Cumulative DPS uses damage and elapsed time from combat start to the band's ending
-  health; phase DPS uses only that band's damage and duration. Environment damage advances target health but is excluded
-  from player DPS. Unreached endpoints and zero-duration phases are `null`. When the target survives, both `20-0` values
-  use the simulation's final overall DPS, even if it did not reach 20%. APM comes from the simulation's non-autoattack
-  input count over its execution window, excluding precasts before an explicit combat boundary. Entries without
-  rotations retain their live metrics. When `activePatchPreview` is authored, the command also simulates the same builds
-  under that patch and stores `patchPreview` with its `patchId`, `benchmarkDps`, and `benchmarkDpsByHealth`. APM remains
-  shared with live. Rerun with `--commit` after editing the preview. When the active preview is null, committing removes
-  `patchPreview` from every manifest entry, including entries without rotations. Dry runs report pending preview
-  updates/removals without writing files. Simulation warnings identify their emitting preset and patch in console
-  output; they are not saved in manifests. The active preview's `pendingBenchmarks` declares builds awaiting reworks.
 - `npm run build:modules && node scripts/analysis/capture-supported-build-metrics.mjs [profession...]` prints current
   deterministic preset metrics as JSON.
 - `npm run build:modules && node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>` inspects a
@@ -81,8 +66,34 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
 - `npm run build:modules && node scripts/analysis/reconstruct-dps-report-rotation.mjs <dps.report URL>` reconstructs
   simulator commands from public Elite Insights JSON. Add `--build=<build.json>` when polymorphic skill choices must
   match a saved build.
+- `npm run build:modules && node scripts/analysis/analyze-overload-fire.mjs <fight.zevtc> [--json]` counts Burning Bolt
+  missile creations during each Tempest's recorded Overload Fire casts. Also accepts `.evtc` and single-entry
+  `.evtc.zip` revision 1 logs. Counts represent projectiles, not whirl pulses or confirmed hits. Missing projectile data
+  and incomplete casts produce warnings; JSON separately reports bolts outside recorded casts. A missing stop is bounded
+  by the next animation or log end.
 - `node scripts/analysis/analyze-dps-report.mjs <report.html|dps.report URL>` inspects Elite Insights data embedded in a
   saved or remote report. Add `--summary`, `--player=<index|name|account>`, or `--phase=<index|name>` to narrow the
   output.
+
+## Benchmark metrics
+
+`npm run benchmarks:compare` simulates rotation-backed manifest presets and reports total DPS drift beyond 1%. Use
+`-- --absolute-dps` for a diagnostic 100 DPS tolerance, or `-- --commit` to write `benchmarkDps` (whole DPS),
+`benchmarkApm` (one decimal), and `benchmarkDpsByHealth`. Entries without rotations retain their live metrics. Warnings
+identify the emitting preset and patch in console output and are not stored in manifests.
+
+Target-health bands (`100-80`, `80-60`, `60-40`, `40-20`, `20-0`) store whole-player-DPS `{ cumulative, phase }`:
+
+- Cumulative DPS runs from combat start to the band's ending health; phase DPS uses only that band's damage and
+  duration.
+- Environment damage advances target health but does not count toward player DPS.
+- Unreached endpoints and zero-duration phases are `null`. If the target survives, both `20-0` values use final overall
+  DPS, even when 20% was not reached.
+- APM uses non-autoattack inputs over the execution window, excluding precasts before an explicit combat boundary.
+
+An active patch preview simulates the same builds and stores `patchPreview` with `patchId`, `benchmarkDps`, and
+`benchmarkDpsByHealth`; APM remains shared with live. `pendingBenchmarks` identifies builds awaiting reworks. Rerun with
+`--commit` after preview edits. With no active preview, committing removes `patchPreview` from every entry, including
+those without rotations. Dry runs report pending changes without writing files.
 
 Patch-preview commands are documented in [Patch preview](../docs/architecture/PATCH-PREVIEW.md).

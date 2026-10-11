@@ -7,8 +7,7 @@ shared shatter, phantasm, clone, weapon, and trait behavior; each specialization
 
 ## Data
 
-- API identity snapshot: 2026-07-25 (official GW2 API for skill IDs, descriptions, icons, specialization membership, and
-  traits).
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
 - Refresh: `npm run update:profession-data -- --profession Mesmer`, which regenerates the metadata-only
   `data/mesmer-api-metadata.ts`.
 - Simulation-affecting coefficients, activation times, cooldowns, strike counts, condition durations, and state machines
@@ -21,33 +20,21 @@ resources, and Continuum actions select registered `mesmer.*` handler strategies
 are labels only — routing, resource causes, flips, trait decisions, and timing all key off IDs, and legacy name
 rotations are resolved at the build-migration boundary.
 
-All 69 implemented traits have one native definition: 33 Core, nine Chronomancer, nine Mirage, eight Virtuoso, and ten
-Troubadour. Core definitions and helpers live in `traits/<line>/index.ts` for Chaos, Domination, Dueling, Inspiration,
-and Illusions; the Core index collects them in registration order. Each elite owns its definitions and registration
-array in `traits/index.ts`. Owners supply profiles, modifiers, build callbacks, triggers, recharge rules, hooks, and
-imperative decisions. Shared mechanics retain illusion entities, resources, and packet emission.
+Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
+Definitions own profiles, modifiers, build contributions, triggers, and recharge policies. Shared mechanics own illusion
+entities, resources, snapshots, and packet emission. `family-resources.ts` binds clone scheduling and resource rewards
+without creating an import cycle through `family-mechanics.ts`.
 
-Runtime callers import helpers from their owning trait line. Ordered mechanic trigger points preserve post-shatter
-reactions in definition-local handlers. Chronomancer retains `traits/time-bomb.ts` for delayed explosions; Troubadour
-uses `traits/performance.ts` for instrument policies and `traits/index.ts` for Syncopate rewards and delayed waves.
-`family-resources.ts` binds clone scheduling and resource rewards independently of `family-mechanics.ts`, so Inspiration
-and elite trait callers do not create a cycle through family behavior. The Core hook registry directly owns the
-observable phantasm event markers.
+Preserve the explicit reaction order: Master Fencer, Sharper Images, then Fencer's Finesse on critical hits; Maim before
+Illusionary Membrane after shatters; Deadly Blades before Jagged Mind for Virtuoso. Master of Fragmentation transforms
+specialization effects before emission. Applied buffs retain their granted lifetime independently of current selection.
+Chronomancer owns Continuum restoration in mechanics and delayed explosions in `traits/time-bomb.ts`; Troubadour owns
+instrument policies in `traits/performance.ts` and snapshots in mechanics.
 
-Critical reactions preserve Master Fencer before Sharper Images, then Fencer's Finesse; shatters preserve Maim before
-Illusionary Membrane. Master of Fragmentation owns each specialization's pre-emission transformation. Applied stack and
-buff windows retain their lifetime without current selection. Chronomancer keeps Continuum restoration in mechanics;
-Mirage passes lexical ambush and mirror callbacks to ordered trait helpers. Virtuoso retains Deadly Blades before Jagged
-Mind and its existing Bloodsong thresholds. Its modifier collector installs the Dueling-owned extra Phantasmal Fury rule
-at the original elite boundary. Troubadour keeps instrument snapshots and player/afterimage emission in mechanics;
-owners implement Crescendo, Syncopate, Harmonize, dodge, and note decisions.
-
-Build and live queries share `mesmerProfession.attributeContributions`, combining module declarations and selected trait
-attributes from equipment attribute seeds. The shared evaluator resolves each declaration's conversion inputs.
-Profile-only helper declarations cache immutable results by balance-profile object; simulation queries retain their
-selected declarations while live callbacks read current stacks and boons. Detached previews select afresh and use their
-requested patch context. Intrinsic Harmonize and Symphonic Resonance preserve their selection-independent behavior.
-Generated identity metadata remains in `data/`.
+Build and live queries share `mesmerProfession.attributeContributions`. The evaluator starts from equipment seeds and
+combines module declarations with selected trait attributes, using active balance profiles and live stacks/boons.
+Detached previews select contributions from their own inputs. Intrinsic Harmonize and Symphonic Resonance remain
+independent of trait selection.
 
 ## Implemented systems
 
@@ -60,10 +47,11 @@ Generated identity metadata remains in `data/`.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Phantasm and clone travel time uses fixed delays. Critical-condition
-applications consume the shared seeded critical-hit facts in both simulation modes. Bloodsong grants blades at each
-five-stack bleeding-application threshold. Ally healing, barriers, control damage, stealth, and defensive effects stay
-outside the damage total; boon/distortion applications are still emitted. Mirage and Troubadour use the shared 100-point
-endurance pool, 50-point dodges, and continuous regeneration at 5/sec or 7.5/sec with Vigor. Troubadour's Flute adds
-1.25 endurance/sec while playing, including when Vigor is active; Honorable Rogue restores 50 endurance without losing
-partial regeneration. Competitive (PvP/WvW) splits are out of model.
+Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Phantasm and clone
+travel time uses fixed delays. Critical-condition applications consume the shared seeded critical-hit facts in both
+simulation modes. Bloodsong grants blades at each five-stack bleeding-application threshold. Ally healing, barriers,
+control damage, stealth, and defensive effects stay outside the damage total; boon/distortion applications are still
+emitted. Mirage and Troubadour use the shared 100-point endurance pool, 50-point dodges, and continuous regeneration at
+5/sec or 7.5/sec with Vigor. Troubadour's Flute adds 1.25 endurance/sec while playing, including when Vigor is active;
+Honorable Rogue restores 50 endurance without losing partial regeneration. Competitive (PvP/WvW) splits are out of
+model.

@@ -8,7 +8,7 @@ in a given runtime.
 
 ## Data
 
-- API identity snapshot: 2026-07-28 (official GW2 API).
+- Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
 - Refresh: `npm run update:profession-data -- --profession Revenant`.
 - Runtime simulation is network-free. Energy, upkeep, skill mechanics, modifiers, and other non-API behavior are checked
   into owner-local `skills/`, `traits/`, and `mechanics/` modules.
@@ -27,37 +27,26 @@ in a given runtime.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Incoming attacks, active defense, ally healing/barrier/cleanse, pathing,
-secondary targets, and competitive (PvP/WvW) splits are out of model.
+Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
+active defense, ally healing/barrier/cleanse, pathing, secondary targets, and competitive (PvP/WvW) splits are out of
+model.
 
 ## Trait ownership
 
-Core and all four elites register 67 trait definitions: Core 32, Herald 6, Renegade 11, Vindicator 8, and Conduit 10.
-Each implemented trait owns its balance profiles, modifiers, triggers, build contributions, and imperative helpers under
-its module's `traits/` directory. Core definitions live in `traits/<line>/index.ts` for Corruption, Devastation,
-Invocation, Retribution, and Salvation; the Core index preserves their registration order. Each elite defines and
-registers its traits in `traits/index.ts`. Generated selection metadata remains in `data/`; module profiles retain
-shared mechanics and skill variants.
+Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
+Definitions own profiles, modifiers, triggers, build contributions, and trait policies. Supporting helpers remain beside
+them. `core/mechanics/boundaries.ts` declares ordered trigger points; `reactions.ts` interleaves trait and intrinsic
+on-hit work, and `resources.ts` owns Energy and Endurance policies.
 
-Core runtime callers import helpers from their owning trait-line folders. Assassin's Presence, Vicious Reprisal, Battle
-Scars grants, invocation rewards, and Salvation helpers stay beside their definitions. Ordered points in
-`core/mechanics/boundaries.ts` deliver trait reactions; `mechanics/reactions.ts` interleaves them with intrinsic on-hit
-work. Energy and Endurance policies live in `mechanics/resources.ts`. Renegade's Heroic Command, warband, and Soulcleave
-behavior lives with skills. Conduit separates form transitions, Affinity policy/gains, and form attack/release skills.
-Its cap reward and Herald's Draconic Echo duration remain trait policies called at the existing mechanic boundary.
-Herald's Draconic Echo duration helper is co-located in `traits/index.ts`; `mechanics/facets.ts` owns facet scheduling
-and eligibility, and `attributes.ts` declares facet passive attributes. Conduit's cap rewards live in `traits/index.ts`
-and listen to the Affinity mechanic's ordered grant boundary. Elite substantial helpers can still use
-`traits/behavior.ts`. `family-state.ts` supplies elite Song of the Mists skill IDs without loading their runtime
-behavior; Spirit Boon's legend effects belong to its Core definition. Renegade and Vindicator declare trait attributes
-in their definitions. Brutal Momentum's definition owns both its baseline critical chance and the additional
-full-endurance modifier. Renegade's Fervor query is private to `traits/index.ts`; Heroic Command and Orders from Above
-select their trait-dependent payloads beside their skill implementations.
+Herald mechanics own facet scheduling; Draconic Echo's duration policy belongs to its trait definition. Renegade's
+warband, Heroic Command, and Soulcleave behavior live with skills. Conduit mechanics own form transitions and Affinity;
+traits own cap rewards and form policies. `family-state.ts` supplies elite Song of the Mists IDs without loading their
+runtime behavior.
 
-Build and live queries use `revenantProfession.attributeContributions`, which combines module-owned skill/mechanic
-attributes with selected trait declarations. The shared evaluator starts from equipment attribute seeds and reads active
-patch tuning and live facts. Spirit Boon's legend-specific profiles belong to its single Core definition; their stable
-profile IDs remain patch targets.
+Build and live queries share `revenantProfession.attributeContributions`, combining module-owned skill/mechanic
+attributes and selected trait declarations from equipment seeds. The evaluator uses active patch tuning and live facts.
+Spirit Boon's legend profiles remain stable patch targets; Brutal Momentum owns both its baseline critical chance and
+additional full-endurance modifier.
 
 Ordered mechanic trigger points preserve execution order where definition-local trait handlers interleave mechanics:
 
