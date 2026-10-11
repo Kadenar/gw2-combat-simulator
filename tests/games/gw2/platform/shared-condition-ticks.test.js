@@ -277,6 +277,69 @@ test('condition sampling restarts after an idle gap and preserves an unpaid hori
   }
 });
 
+// Expiry samples are found by instant, so one pass must reach every owner and condition ending there.
+test('one expiry instant samples every owner ending there and skips removed applications', () => {
+  for (const output of ['detailed', 'score']) {
+    const samples = [];
+    let removed;
+    resolve(
+      [
+        condition(0, { sourceId: 'bleed', duration: 0.4 }),
+        condition(0, { sourceId: 'burn', name: 'Burn', condition: 'Burning', duration: 0.4 }),
+        condition(0, { sourceId: 'removed', duration: 0.6 }),
+        condition(0, { sourceId: 'long', duration: 0.7 }),
+        condition(0.1, {
+          sourceId: 'pet',
+          duration: 0.3,
+          actorType: 'summon',
+          independentConditionOwner: true,
+          summonOwner: 'pet'
+        }),
+        {
+          type: 'buff',
+          at: 0.2,
+          source: 'Player',
+          sourceId: 'remove',
+          actorType: 'player',
+          kind: 'might',
+          duration: 1,
+          stacks: 1
+        }
+      ],
+      {
+        output,
+        end: 1,
+        query: {
+          conditionMultiplier: (_name, at, application) => {
+            samples.push([at, application.sourceId]);
+            return 1;
+          }
+        },
+        reactions: {
+          'condition.applied': (_ctx, event) => {
+            if (event.sourceId === 'removed') removed = event;
+          },
+          'buff.applied': () => {
+            removed.removedAt = 0.2;
+          }
+        }
+      }
+    );
+    // Order inside one pass is not a contract; its membership and the sequence of instants are.
+    assert.deepEqual(
+      samples
+        .filter(([at]) => at === 0.4)
+        .map(([, source]) => source)
+        .sort(),
+      ['bleed', 'burn', 'pet']
+    );
+    assert.deepEqual(
+      samples.filter(([at]) => at !== 0.4),
+      [[0.7, 'long']]
+    );
+  }
+});
+
 // Traits may add a damage formula while ordinary and ambient Fear remain harmless.
 test('a trait damage formula makes Fear damaging in detailed and score output', () => {
   for (const output of ['detailed', 'score']) {

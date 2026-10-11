@@ -48,8 +48,9 @@ test('elemental training reduces only matching weapon recharge with ID-only trai
     assert.equal(elementalistRechargeWork(context, skill, 10), 8, attunement);
     assert.equal(elementalistRechargeWork(context, { ...skill, attunement: 'None' }, 10), 10);
     assert.equal(elementalistRechargeWork(context, { ...skill, type: 'Utility' }, 10), 10);
-    context.traits.clear();
-    assert.equal(elementalistRechargeWork(context, skill, 10), 10);
+    // An unselected build is its own fixture; selection never changes on a context already in use.
+    const unselected = { helpers: elementalistCatalog, traits: new Set() };
+    assert.equal(elementalistRechargeWork(unselected, skill, 10), 10);
   }
 });
 

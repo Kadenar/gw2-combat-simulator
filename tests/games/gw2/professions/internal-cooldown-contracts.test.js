@@ -168,53 +168,56 @@ for (const [key, trait, invoke, literalDuration] of [
 ]) {
   test(`Necromancer ${key} preserves scoped claims and exact boundaries`, () => {
     for (const duration of literalDuration == null ? [2, 0] : [literalDuration]) {
-      const core = necromancerProfession.resolveProfession({}).createState({}).core;
-      const { context } = professionContext({
-        id: 'necromancer',
-        catalog: necromancerCatalog,
-        core,
-        config: { target: { health: 100, startingHealthFraction: 0.4 } }
-      });
-      context.helpers = { skillsById: necromancerCatalog.skillsById };
       const profiles = new Map(necromancerCatalog.balanceProfilesById);
       profiles.set(trait, { ...profiles.get(trait), cooldown: duration });
-      context.catalog = { ...necromancerCatalog, balanceProfilesById: profiles };
-      let effects = 0;
       const bypass = key === 'dhuumfire' && duration === 0;
       const elapsed = key === 'chillOfDeath' ? duration / 1.25 : duration;
-      const emitted = (event) => {
-        assert.equal(context.procs.snapshot()[key], bypass ? undefined : event.at + elapsed);
-        effects += 1;
-      };
-
-      context.effects = captureEffectEmissions({
-        submit(event) {
-          emitted(event);
-          return event;
-        }
-      }).effects;
-      const opportunity = (at) => {
-        context.effectiveEnd = at;
-        invoke(context, {
-          type: key === 'chillingDarkness' ? 'condition' : 'damage',
-          ...(key === 'chillingDarkness' ? { condition: 'Blindness' } : {}),
-          at,
-          actorType: 'summon',
-          coefficient: 1,
-          metadata: { necromancerShroudSkillOne: true, dhuumfireInterval: duration }
+      // Each build owns its context and claim registry, because selection never changes once a context is in use.
+      const scenario = (traits) => {
+        const core = necromancerProfession.resolveProfession({}).createState({}).core;
+        const { context } = professionContext({
+          id: 'necromancer',
+          catalog: necromancerCatalog,
+          core,
+          config: { target: { health: 100, startingHealthFraction: 0.4 } },
+          traits
         });
+        context.helpers = { skillsById: necromancerCatalog.skillsById };
+        context.catalog = { ...necromancerCatalog, balanceProfilesById: profiles };
+        const observed = { effects: 0 };
+        context.effects = captureEffectEmissions({
+          submit(event) {
+            assert.equal(context.procs.snapshot()[key], bypass ? undefined : event.at + elapsed);
+            observed.effects += 1;
+            return event;
+          }
+        }).effects;
+        const opportunity = (at) => {
+          context.effectiveEnd = at;
+          invoke(context, {
+            type: key === 'chillingDarkness' ? 'condition' : 'damage',
+            ...(key === 'chillingDarkness' ? { condition: 'Blindness' } : {}),
+            at,
+            actorType: 'summon',
+            coefficient: 1,
+            metadata: { necromancerShroudSkillOne: true, dhuumfireInterval: duration }
+          });
+        };
+
+        return { context, observed, opportunity };
       };
 
+      const unselected = scenario([]);
+      unselected.opportunity(1);
+      assert.deepEqual({ ...unselected.context.procs.snapshot() }, {});
+      const { observed, opportunity } = scenario([trait]);
       opportunity(1);
-      assert.deepEqual({ ...context.procs.snapshot() }, {});
-      context.traits.add(trait);
-      opportunity(1);
-      assert.ok(effects > 0);
-      const count = effects;
+      assert.ok(observed.effects > 0);
+      const count = observed.effects;
       opportunity(1 + elapsed);
-      assert.equal(effects, bypass ? count * 2 : count);
+      assert.equal(observed.effects, bypass ? count * 2 : count);
       opportunity(1 + elapsed + 0.000001);
-      assert.ok(effects > count);
+      assert.ok(observed.effects > count);
       assert.equal('traitProcReadyAt' in necromancerProfession.resolveProfession({}).createState({}).core, false);
     }
   });

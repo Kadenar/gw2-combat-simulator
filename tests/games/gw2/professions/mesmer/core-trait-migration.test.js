@@ -16,35 +16,42 @@ import test from 'node:test';
 test('Master Fencer only claims its strict ICD on a sampled critical hit', () => {
   // Both sampled misses and hits during the ICD leave its deadline intact.
   for (const duration of [8, 0]) {
-    const core = createMesmerCoreState();
-    const events = [];
-    const context = {
-      state: {
-        profession: { core, specialization: { kind: 'Core', state: {} } },
-        traits: new Set(),
-        helpers: {
-          balanceProfilesById: new Map([
-            [
-              TRAIT.MASTER_FENCER,
-              { ...mesmerCatalog.balanceProfilesById.get(TRAIT.MASTER_FENCER), internalCooldown: duration }
-            ]
-          ])
+    // Each build owns its runtime and claim registry, because selection never changes once a context is in use.
+    const fixture = (traits) => {
+      const core = createMesmerCoreState();
+      const events = [];
+      const context = {
+        state: {
+          profession: { core, specialization: { kind: 'Core', state: {} } },
+          traits: new Set(traits),
+          helpers: {
+            balanceProfilesById: new Map([
+              [
+                TRAIT.MASTER_FENCER,
+                { ...mesmerCatalog.balanceProfilesById.get(TRAIT.MASTER_FENCER), internalCooldown: duration }
+              ]
+            ])
+          }
         }
-      }
+      };
+      context.state.effects = captureEffectEmissions({
+        submit: (event) => {
+          assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], event.at + duration);
+          events.push(event);
+          return event;
+        }
+      }).effects;
+      context.state.procs = createProcRegistry(() => context.state);
+      context.state.procs.setDeadline(TRAIT.MASTER_FENCER, 2);
+      const opportunity = (at, didCrit = true) =>
+        criticalOpportunity(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
+      return { context, events, opportunity };
     };
-    context.state.effects = captureEffectEmissions({
-      submit: (event) => {
-        assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], event.at + duration);
-        events.push(event);
-        return event;
-      }
-    }).effects;
-    context.state.procs = createProcRegistry(() => context.state);
-    context.state.procs.setDeadline(TRAIT.MASTER_FENCER, 2);
-    const opportunity = (at, didCrit = true) =>
-      criticalOpportunity(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
-    opportunity(1);
-    context.state.traits.add(TRAIT.MASTER_FENCER);
+
+    const unselected = fixture([]);
+    unselected.opportunity(1);
+    assert.equal(unselected.events.length, 0);
+    const { context, events, opportunity } = fixture([TRAIT.MASTER_FENCER]);
     opportunity(1);
     assert.equal(events.length, 0);
     opportunity(2);

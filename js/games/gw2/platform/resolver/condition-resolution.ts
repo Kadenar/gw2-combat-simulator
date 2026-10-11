@@ -39,6 +39,10 @@ export function createGw2ConditionResolution({
   const environmentWakes = new Map<string, Gw2ResolverEvent>();
   // Equal-weight stacks expanded from one packet have identical attribute inputs, but retain separate damage records.
   const attributeBatches = new WeakMap<Gw2ResolvedConditionApplication, object>();
+  // Natural expiry is fixed at acceptance, so each instant's applications are found without scanning every owner.
+  const expiryBuckets = new Map<number, Gw2ConditionExpiryBucket>();
+  // A binary min-heap of those instants yields the sampler's next expiry wake.
+  const expiryHeap: Gw2ConditionExpiryBucket[] = [];
   let bufferWake: Gw2ResolverEvent | undefined;
 
   // First positive damage fixes the shared phase; integer arithmetic avoids drifting off that phase.
@@ -191,6 +195,59 @@ export function createGw2ConditionResolution({
     );
   }
 
+  /** Record an accepted application under its natural expiry so its expiry sample and wake need no owner scan. */
+  function indexExpiry(application: Gw2ResolvedConditionApplication): void {
+    const key = timeKey(application.naturalExpiresAt);
+    let bucket = expiryBuckets.get(key);
+    if (!bucket) {
+      bucket = { at: application.naturalExpiresAt, key, applications: [] };
+      expiryBuckets.set(key, bucket);
+      // Sift the new instant up until its parent is no later.
+      let index = expiryHeap.push(bucket) - 1;
+      while (index > 0) {
+        const parent = (index - 1) >> 1;
+        if (expiryHeap[parent].key <= key) break;
+        expiryHeap[index] = expiryHeap[parent];
+        index = parent;
+      }
+
+      expiryHeap[index] = bucket;
+    }
+
+    bucket.applications.push(application);
+  }
+
+  /** Drop the earliest indexed instant and restore heap order from the root. */
+  function discardEarliestExpiry(): void {
+    expiryBuckets.delete(expiryHeap[0].key);
+    const last = expiryHeap.pop()!;
+    if (!expiryHeap.length) return;
+    let index = 0;
+    for (;;) {
+      let child = index * 2 + 1;
+      if (child >= expiryHeap.length) break;
+      if (child + 1 < expiryHeap.length && expiryHeap[child + 1].key < expiryHeap[child].key) child += 1;
+      if (expiryHeap[child].key >= last.key) break;
+      expiryHeap[index] = expiryHeap[child];
+      index = child;
+    }
+
+    expiryHeap[index] = last;
+  }
+
+  /** The next expiry that still has a live application; passed and fully removed instants leave the index for good. */
+  function nextLiveExpiry(after: number): number | undefined {
+    while (expiryHeap.length) {
+      const bucket = expiryHeap[0];
+      // Removal is permanent, so an instant whose applications are all removed can never need a sample again.
+      if (bucket.at > after && bucket.applications.some((application) => !isRemoved(application, after)))
+        return bucket.at;
+      discardEarliestExpiry();
+    }
+
+    return undefined;
+  }
+
   /** Maintain one effective owner/condition wake on the target clock; expiry remainders wait for that pulse. */
   function scheduleGroup(ctx: Gw2ResolverRuntime, group: Gw2ResolverConditionGroup): void {
     if (!group.applications.length) {
@@ -233,16 +290,11 @@ export function createGw2ConditionResolution({
       at = Math.min(at, newExpiresAt);
       active = true;
     } else {
-      // After a sample, find both continued work and the next expiry in one pass without temporary arrays.
-      for (const state of ctx.conditionState.values()) {
-        for (const group of state.groups?.values() ?? []) {
-          for (const application of group.applications) {
-            if (!isRemoved(application, after) && application.naturalExpiresAt > after) {
-              active = true;
-              at = Math.min(at, application.naturalExpiresAt);
-            }
-          }
-        }
+      // After a sample, the expiry index supplies both continued work and the next expiry without rescanning owners.
+      const expiry = nextLiveExpiry(after);
+      if (expiry !== undefined) {
+        active = true;
+        at = Math.min(at, expiry);
       }
     }
 
@@ -281,64 +333,65 @@ export function createGw2ConditionResolution({
     };
     // Reuse only within this observation pass; later state changes always get a fresh attribute sample.
     let conditionDamageByBatch: Map<object, number> | undefined;
-    for (const state of ctx.conditionState.values()) {
-      for (const group of state.groups?.values() ?? []) {
-        for (const application of group.applications) {
-          // An off-grid expiry samples only its own tail; other applications retain their regular sampling times.
-          if (!onGrid && at !== application.naturalExpiresAt) continue;
-          if (isRemoved(application, at)) continue;
-          // Optional trait damage belongs to the accepted application; ordinary conditions use their shared formula.
-          const formula = application.conditionDamageFormula;
-          const dealsDamage = formula != null || Object.hasOwn(CONDITION_FORMULAS, group.condition);
-          const through = Math.min(at, application.naturalExpiresAt);
-          const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
-          // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.
-          if (elapsedUs > 0 && !ctx.combatStartPending && (ctx.combatStartTime == null || at >= ctx.combatStartTime)) {
-            // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
-            if (dealsDamage) {
-              const batch = attributeBatches.get(application);
-              let conditionDamage = batch ? conditionDamageByBatch?.get(batch) : undefined;
-              if (conditionDamage === undefined) {
-                conditionDamage = ctx.query.statsAt(at, application, ctx).conditionDamage;
-                if (batch) {
-                  conditionDamageByBatch ??= new Map();
-                  conditionDamageByBatch.set(batch, conditionDamage);
-                }
-              }
-
-              // The first damaging sample of a diagnostic application records its rate and traced multiplier.
-              const calculation = application.conditionCalculation;
-              const damageContributors: Gw2ModifierContribution[] | undefined =
-                calculation && calculation.multiplier == null ? [] : undefined;
-              const rate = formula
-                ? formula.base + formula.scaling * conditionDamage
-                : conditionRate(ctx, group.condition, conditionDamage);
-              const multiplier = ctx.query.conditionMultiplier(
-                group.condition,
-                at,
-                application,
-                ctx,
-                sample,
-                damageContributors
-              );
-              if (calculation && damageContributors) {
-                calculation.conditionDamage = conditionDamage;
-                calculation.rate = rate;
-                calculation.multiplier = multiplier;
-                calculation.damageContributors = damageContributors;
-              }
-
-              // Retain every contribution, including expiry remainders, for one owner/condition rounding at payout.
-              const rawDamage = rate * multiplier * (elapsedUs / 1_000_000) * application.stacks;
-              application.bufferedRawDamage += rawDamage;
+    /** Settle one application through this pass, buffering its damage for its owner's whole-second payout. */
+    const settle = (application: Gw2ResolvedConditionApplication): void => {
+      if (isRemoved(application, at)) return;
+      // An application always carries its owner group's canonical condition name.
+      const condition = application.condition;
+      // Optional trait damage belongs to the accepted application; ordinary conditions use their shared formula.
+      const formula = application.conditionDamageFormula;
+      const dealsDamage = formula != null || Object.hasOwn(CONDITION_FORMULAS, condition);
+      const through = Math.min(at, application.naturalExpiresAt);
+      const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
+      // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.
+      if (elapsedUs > 0 && !ctx.combatStartPending && (ctx.combatStartTime == null || at >= ctx.combatStartTime)) {
+        // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
+        if (dealsDamage) {
+          const batch = attributeBatches.get(application);
+          let conditionDamage = batch ? conditionDamageByBatch?.get(batch) : undefined;
+          if (conditionDamage === undefined) {
+            conditionDamage = ctx.query.statsAt(at, application, ctx).conditionDamage;
+            if (batch) {
+              conditionDamageByBatch ??= new Map();
+              conditionDamageByBatch.set(batch, conditionDamage);
             }
-
-            application.bufferedDurationUs += elapsedUs;
           }
 
-          application.settledThrough = through;
+          // The first damaging sample of a diagnostic application records its rate and traced multiplier.
+          const calculation = application.conditionCalculation;
+          const damageContributors: Gw2ModifierContribution[] | undefined =
+            calculation && calculation.multiplier == null ? [] : undefined;
+          const rate = formula
+            ? formula.base + formula.scaling * conditionDamage
+            : conditionRate(ctx, condition, conditionDamage);
+          const multiplier = ctx.query.conditionMultiplier(condition, at, application, ctx, sample, damageContributors);
+          if (calculation && damageContributors) {
+            calculation.conditionDamage = conditionDamage;
+            calculation.rate = rate;
+            calculation.multiplier = multiplier;
+            calculation.damageContributors = damageContributors;
+          }
+
+          // Retain every contribution, including expiry remainders, for one owner/condition rounding at payout.
+          const rawDamage = rate * multiplier * (elapsedUs / 1_000_000) * application.stacks;
+          application.bufferedRawDamage += rawDamage;
         }
+
+        application.bufferedDurationUs += elapsedUs;
       }
+
+      application.settledThrough = through;
+    };
+
+    if (onGrid) {
+      for (const state of ctx.conditionState.values())
+        for (const group of state.groups?.values() ?? [])
+          for (const application of group.applications) settle(application);
+    } else {
+      // An off-grid expiry samples only its own tail; other applications retain their regular sampling times.
+      // The expiry index names exactly those applications, so the pass visits no other owner.
+      for (const application of expiryBuckets.get(timeKey(at))?.applications ?? [])
+        if (application.naturalExpiresAt === at) settle(application);
     }
 
     for (const entry of ctx.environmentConditions.values()) {
@@ -461,6 +514,7 @@ export function createGw2ConditionResolution({
       }
 
       group.applications.push(application);
+      indexExpiry(application);
       scheduleBuffer(ctx, event.at, expiresAt);
       scheduleGroup(ctx, group);
 
@@ -605,6 +659,13 @@ interface Gw2ResolverConditionGroup {
   wakeToken: number;
   wakeAt: number | null;
   applications: Gw2ResolvedConditionApplication[];
+}
+
+/** Every application sharing one natural expiry instant, ordered in the sampler's heap by its microsecond key. */
+interface Gw2ConditionExpiryBucket {
+  readonly at: number;
+  readonly key: number;
+  readonly applications: Gw2ResolvedConditionApplication[];
 }
 
 /** Retains each application's exposure and damage for packet rounding and attribution. */

@@ -11,30 +11,36 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 test('Kinetic Battery resets before its reward and admits only qualifying toolbelt casts', () => {
-  // A fractional profile threshold distinguishes a full reset from retained overflow.
-  const core = createEngineerCoreState();
-  core.kineticCharges = 2;
-  const observations = [];
-  const context = {
-    helpers: applyBalanceProfilePatch(engineerCatalog, {
-      balanceProfiles: { [TRAIT.KINETIC_BATTERY]: { fields: { maximumStacks: { from: 5, to: 2.5 } } } }
-    }),
-    traits: new Set([TRAIT.KINETIC_BATTERY]),
-    profession: { core },
-    effects: captureEffectEmissions({
-      submit(event) {
-        observations.push([event.kind, core.kineticCharges]);
-        return event;
-      }
-    }).effects
-  };
-  bindTriggerPoints(context, engineerProfession);
   const skill = { id: 'test.toolbelt', name: 'Toolbelt', countsAsToolbeltSkill: true };
-  const activate = (at, activated = skill) => {
-    context.time = at;
-    notifyToolbeltActivation(context, activated, `cast:${at}`);
+  // Each build owns its runtime and charge counter, because selection never changes once a context is in use.
+  const fixture = (traits, charges) => {
+    const core = createEngineerCoreState();
+    core.kineticCharges = charges;
+    const observations = [];
+    const context = {
+      // A fractional profile threshold distinguishes a full reset from retained overflow.
+      helpers: applyBalanceProfilePatch(engineerCatalog, {
+        balanceProfiles: { [TRAIT.KINETIC_BATTERY]: { fields: { maximumStacks: { from: 5, to: 2.5 } } } }
+      }),
+      traits: new Set(traits),
+      profession: { core },
+      effects: captureEffectEmissions({
+        submit(event) {
+          observations.push([event.kind, core.kineticCharges]);
+          return event;
+        }
+      }).effects
+    };
+    bindTriggerPoints(context, engineerProfession);
+    const activate = (at, activated = skill) => {
+      context.time = at;
+      notifyToolbeltActivation(context, activated, `cast:${at}`);
+    };
+
+    return { core, observations, activate };
   };
 
+  const { core, observations, activate } = fixture([TRAIT.KINETIC_BATTERY], 2);
   activate(1, { ...skill, countsAsToolbeltSkill: false });
   assert.equal(core.kineticCharges, 2);
   assert.deepEqual(observations, []);
@@ -44,9 +50,10 @@ test('Kinetic Battery resets before its reward and admits only qualifying toolbe
   assert.ok(observations.every(([, count]) => count === 0));
   activate(2);
   assert.equal(core.kineticCharges, 1);
-  context.traits.clear();
-  activate(3);
-  assert.equal(core.kineticCharges, 1);
+  // An unselected build leaves an existing charge untouched by a qualifying cast.
+  const unselected = fixture([], 1);
+  unselected.activate(3);
+  assert.equal(unselected.core.kineticCharges, 1);
 });
 
 test('Aim-Assisted Rocket claims its ICD and cumulative progress before emitting the selected proc', () => {
