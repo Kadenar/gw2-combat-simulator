@@ -20,8 +20,6 @@ export const vindicatorModule = defineNativeModule({
     extraSkills: [VINDICATOR_JUMP_SKILL]
   }),
   state: { create: vindicatorState.create, project: createPublicStateProjector(VINDICATOR_PUBLIC_STATE_PROJECTION) },
-  // Compose the trait callback directly; this owner has no additional modifier rules.
-  modifiers: {},
   hooks: vindicatorHooks,
   presentation: vindicatorUi
 });

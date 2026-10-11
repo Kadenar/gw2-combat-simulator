@@ -15,7 +15,6 @@ export const paragonModule = defineNativeModule({
     balanceProfiles: PARAGON_BALANCE_PROFILES
   }),
   state: { create: paragonState.create, project: projectParagonPlanningState },
-  modifiers: {},
   hooks: paragonHooks,
   presentation: paragonUi
 });

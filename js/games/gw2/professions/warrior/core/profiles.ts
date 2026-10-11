@@ -86,8 +86,6 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ name: 'Strike', type: 'strike', coefficient: 0.75, hits: 1 }]
   },
 
-  // Trait tuning is shared by build calculations, combat, and tooltips.
-
   {
     id: WARRIOR_CORE_BALANCE_PROFILE_IDS.signetPassives,
     name: 'Warrior Signet Passives',

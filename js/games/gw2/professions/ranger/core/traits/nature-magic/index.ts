@@ -1,6 +1,6 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { wellspringPetAttributes } from '#gw2/professions/ranger/core/traits/nature-magic/attributes.js';
+import type { Gw2AttributeContext, Gw2AttributeContributions } from '#gw2/platform/builds/types.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -204,6 +204,33 @@ export const naturesVengeance = defineTrait({
   }
 });
 
+/** Wellspring uses a pet's captured Power plus its own Might; unsnapshotted queries read accumulated Power. */
+function wellspringPetAttributes(context: Gw2AttributeContext): Gw2AttributeContributions {
+  const multiplier = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, TRAIT.WELLSPRING),
+    'attributeConversion'
+  );
+  const base = Number(context.event?.summonBasePower);
+  if (!Number.isFinite(base) || base <= 0)
+    return { transforms: [{ kind: 'convert-current', from: 'power', to: 'healingPower', multiplier }] };
+  const power = base + (context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? 0) * 30;
+  return {
+    attributeEffects: [{ kind: 'flat', to: 'Healing Power', amount: power * multiplier, feedsConversions: false }]
+  };
+}
+
+// Keep the profile cache across player queries; pet conversion still reads its live or captured Power separately.
+const wellspringPlayerAttributes = traitAttributeEffects(TRAIT.WELLSPRING, [
+  {
+    kind: 'conversion',
+    from: 'Power',
+    to: 'Healing Power',
+    field: 'attributeConversion',
+    rounding: 'none',
+    input: 'common'
+  }
+]);
+
 /** Owns Wellspring's live tuning and trait behavior. */
 export const wellspring = defineTrait({
   id: TRAIT.WELLSPRING,
@@ -237,18 +264,7 @@ export const wellspring = defineTrait({
     }
   ],
   attributes: (context) =>
-    rangerPetEvent(context)
-      ? wellspringPetAttributes(context)
-      : traitAttributeEffects(TRAIT.WELLSPRING, [
-          {
-            kind: 'conversion',
-            from: 'Power',
-            to: 'Healing Power',
-            field: 'attributeConversion',
-            rounding: 'none',
-            input: 'common'
-          }
-        ])(context)
+    rangerPetEvent(context) ? wellspringPetAttributes(context) : wellspringPlayerAttributes(context)
 });
 
 /** Owns Windborne Notes's live tuning and trait behavior. */

@@ -98,6 +98,7 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
     activeTraits,
     traitStats: resolved.attributes,
     traitDurations: resolved.durations,
-    traitCriticalChance: contributions.reduce((sum, entry) => sum + (entry.traitCriticalChance ?? 0), 0)
+    // Reuse the evaluator's aggregate so build finalization shares its contribution semantics.
+    traitCriticalChance: resolved.criticalChance
   });
 }

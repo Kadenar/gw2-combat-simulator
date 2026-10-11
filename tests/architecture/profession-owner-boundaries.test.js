@@ -23,7 +23,6 @@ const boundaries = {
     'specializations/ritualist/skills/spirit-actions.ts'
   ],
   ranger: [
-    'core/traits/nature-magic/attributes.ts',
     'core/traits/skirmishing/attributes.ts',
     'core/traits/wilderness-survival/attributes.ts',
     'core/traits/nature-magic/index.ts',

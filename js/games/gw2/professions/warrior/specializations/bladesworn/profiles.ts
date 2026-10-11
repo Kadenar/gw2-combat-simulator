@@ -96,6 +96,4 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       { name: 'Supercharged Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
     ]
   }
-
-  // Trait tuning is shared by build calculations, combat, and tooltips.
 ]);

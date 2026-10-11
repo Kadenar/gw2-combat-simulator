@@ -21,7 +21,6 @@ export const spellbreakerModule = defineNativeModule({
     create: spellbreakerState.create,
     project: projectSpellbreakerPlanningState
   },
-  // Compose the granted Insight attribute pool at the specialization boundary.
   hooks: spellbreakerHooks,
   presentation: spellbreakerUi
 });
