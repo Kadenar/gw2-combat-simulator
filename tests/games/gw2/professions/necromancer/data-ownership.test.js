@@ -1,3 +1,4 @@
+import { NECROMANCER_CORE_TRAIT_SKILLS } from '#gw2/professions/necromancer/core/skills/trait-skills.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -21,7 +22,11 @@ test('Necromancer owner-local skill families compose without duplicates or omiss
     HARBINGER_SHROUD_SKILL_MECHANICS
   ]);
   // Triggered weapon identities join the synthetic actions without replacing their original entries.
-  assert.deepEqual(NECROMANCER_CORE_EXTRA_SKILLS, [...CORE_ACTIONS, ...NECROMANCER_AXE_EXTRA_SKILLS]);
+  assert.deepEqual(NECROMANCER_CORE_EXTRA_SKILLS, [
+    ...NECROMANCER_CORE_TRAIT_SKILLS,
+    ...CORE_ACTIONS,
+    ...NECROMANCER_AXE_EXTRA_SKILLS
+  ]);
   assert.deepEqual(
     CORE_ACTIONS.map(({ id }) => id),
     [SHARED_SKILL_IDS.SWAP_WEAPONS, SHARED_SKILL_IDS.DODGE, ID.EXIT_LICH_FORM]

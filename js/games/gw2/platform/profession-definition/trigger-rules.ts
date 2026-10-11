@@ -280,7 +280,9 @@ function castCause(runtime: MechanicContext, cast: RuntimeCast): Gw2ResolverEven
     actorType: 'player',
     skillId: cast.skill.id,
     skillName: cast.skill.name,
-    activationId: cast.id
+    activationId: cast.id,
+    // Offensive proc payloads follow the accepted cast's target availability.
+    offTarget: cast.command.offTarget
   };
 }
 

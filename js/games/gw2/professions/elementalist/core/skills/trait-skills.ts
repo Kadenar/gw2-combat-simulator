@@ -1,17 +1,17 @@
 /**
- * Owns catalog placeholders for Core Elementalist trait-proc pseudo-skills.
- * Trait runtime behavior remains under `core/traits/`.
+ * Owns the patchable skills invoked by Evasive Arcana.
+ * The trait selects the attunement; each skill owns its payload and recharge.
  */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-/** Keeps trait packets nameable while excluding them from skill selection and the rotation palette. */
+/** Proc ownership preserves trait recharge across rotation resets and excludes these skills from ordinary selection. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FLAME_BURST_TRAIT]: {
     name: 'Flame Burst (trait)',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
     castTimeMs: 0,
@@ -19,14 +19,15 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 3, duration: 6, metadata: {} }
+      { type: 'strike', weaponStrengthProfileId: 'nonweapon.unequipped', coefficient: 1 },
+      { type: 'condition', actorType: 'player', condition: 'Burning', stacks: 3, duration: 6, metadata: {} }
     ])
   },
   [ID.CLEANSING_WAVE_TRAIT]: {
     name: 'Cleansing Wave (trait)',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
     castTimeMs: 0,
@@ -34,11 +35,12 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+
     effects: []
   },
   [ID.BLINDING_FLASH_TRAIT]: {
     name: 'Blinding Flash (trait)',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
     castTimeMs: 0,
@@ -46,6 +48,7 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+
     effects: [
       {
         type: 'condition',
@@ -61,7 +64,7 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.SHOCK_WAVE_TRAIT]: {
     name: 'Shock Wave (trait)',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     categories: ['Trait'],
     castTimeMs: 0,
@@ -69,9 +72,11 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     simulatorExcluded: true,
     slotSelectable: false,
     skillFamily: 'Trait',
+
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
+        weaponStrengthProfileId: 'nonweapon.unequipped',
         coefficient: 0.5,
         comboFinishers: [
           {
@@ -83,8 +88,8 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 20, metadata: {} },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', actorType: 'player', condition: 'Bleeding', stacks: 1, duration: 20, metadata: {} },
+      { type: 'condition', actorType: 'player', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
     ])
   }
 });

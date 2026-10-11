@@ -118,9 +118,16 @@ export function emitTraitProfile(
   runtime.effects.emit(request);
 }
 
-export interface TraitSkillOptions {
+export interface TraitSkillOptions extends Pick<
+  TraitProfileOptions,
+  'at' | 'fullEnd' | 'cast' | 'effect' | 'effects' | 'attribution' | 'transform' | 'durationContext'
+> {
   /** Report the trait proc beside the skill's own packets. */
   readonly announce?: boolean;
+  /** The trait may retain its own diagnostic label and log row while payloads belong to the invoked skill. */
+  readonly announcementName?: string;
+  readonly logAnnouncement?: boolean;
+  readonly detail?: string;
   readonly ownerActorType?: EffectEventBase['ownerActorType'];
 }
 
@@ -137,29 +144,62 @@ export function invokeTraitSkill(
 ): boolean {
   const skill = runtime.helpers.skillsById.get(skillId);
   if (!skill) throw new TypeError(`Trait ${trait} invokes unknown skill ${skillId}.`);
-  if (!skill.effects?.length) return false;
+  // Select from the patched skill; an explicitly removed component must never borrow a sibling payload.
+  const selected = options.effect ? requireEffect(skill, options.effect.type, options.effect.name) : undefined;
+  const effects = (options.effect ? (selected ? [selected] : []) : (skill.effects ?? [])).filter(
+    options.effects ?? (() => true)
+  );
+  if (!effects.length) return false;
   runtime.effects.emit({
     kind: 'profile',
     profile: skill,
-    at: cause.at,
+    effects,
+    at: options.at ?? cause.at,
+    fullEnd: options.fullEnd,
+    cast: options.cast,
+    durationContext: options.durationContext,
     cause,
-    attribution: {
+    attribution: (effect) => ({
       source: 'Trait',
-      sourceId: skill.id,
       actorType: 'effect',
       ownerActorType: options.ownerActorType ?? 'player',
+      offTarget: cause.offTarget,
+      ...(typeof options.attribution === 'function' ? options.attribution(effect) : options.attribution),
+      sourceId: skill.id,
       skillId: skill.id,
       skillName: skill.name,
       triggeredBy: cause.skillName
-    },
-    transform: (event) => ({ ...event, parentSkillName: cause.skillName, icon: skill.icon })
+    }),
+    transform: (event, effect) => {
+      // Effect keys address patch components; visible packets use the invoked skill's identity.
+      const attributed = {
+        ...event,
+        name:
+          effect.type === 'custom' && effect.event.name
+            ? String(effect.event.name)
+            : event.type === 'condition'
+              ? `${skill.name} — ${event.condition}`
+              : skill.name,
+        parentSkillName: cause.skillName,
+        icon: skill.icon
+      };
+      return options.transform ? options.transform(attributed, effect) : attributed;
+    }
   });
   if (options.announce)
     runtime.effects.emit({
       kind: 'announcement',
+      log: options.logAnnouncement,
       attribution: { source: 'Trait', sourceId: trait, actorType: 'effect' },
       cause,
-      announcement: { type: 'trait', name: skill.name, at: cause.at, sourceSkill: cause.skillName, icon: skill.icon }
+      announcement: {
+        type: 'trait',
+        name: options.announcementName ?? skill.name,
+        at: cause.at,
+        sourceSkill: cause.skillName,
+        icon: skill.icon,
+        detail: options.detail
+      }
     });
   return true;
 }

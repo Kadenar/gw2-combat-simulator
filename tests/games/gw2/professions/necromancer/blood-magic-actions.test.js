@@ -30,7 +30,7 @@ test('Mark of Evasion triggers at dodge completion with bleeding and party regen
   assert.deepEqual(result.warnings, []);
   for (const step of result.steps) {
     const packets = result.resolvedEvents.filter(
-      (event) => event.sourceId === TRAIT.MARK_OF_EVASION && event.at === step.end / 1000
+      (event) => event.sourceId === ID.LESSER_MARK_OF_BLOOD && event.at === step.end / 1000
     );
     assert.equal(packets.find((event) => event.type === 'damage').coefficient, 0.33);
     const bleed = packets.find((event) => event.type === 'condition');
@@ -54,7 +54,7 @@ test('Mark of Evasion triggers at dodge completion with bleeding and party regen
   ]) {
     assert.deepEqual(result.warnings, []);
     assert.equal(
-      result.resolvedEvents.some((event) => event.sourceId === TRAIT.MARK_OF_EVASION),
+      result.resolvedEvents.some((event) => event.sourceId === ID.LESSER_MARK_OF_BLOOD),
       false
     );
   }

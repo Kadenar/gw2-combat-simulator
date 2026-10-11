@@ -29,6 +29,20 @@ import {
   type EngineerRuntime,
   type EngineerSkill
 } from '#gw2/professions/engineer/types.js';
+
+/** Lock On reacts to resolved player disables; Controlled Analysis owns its payload and recharge. */
+export const lockOn = defineTrait({
+  id: TRAIT.LOCK_ON,
+  name: 'Lock On',
+  triggers: [
+    {
+      on: 'control.resolved',
+      when: (_runtime, event) => event.actorType === 'player',
+      invoke: ID.CONTROLLED_ANALYSIS,
+      cooldown: 'skill'
+    }
+  ]
+});
 /** Owns Streamlined Kits tuning and behavior at its established runtime and build boundaries. */
 export const streamlinedKits = defineTrait({
   // Kit entry admits this reward independently of the intrinsic kit transition.

@@ -22,7 +22,7 @@ const barrageId = ID.LESSER_GRENADE_BARRAGE;
 const grenadierCommit = compileProfessionRules({
   traitTriggers: grenadier.triggers.map((rule) => ({ ...rule, trait: grenadier.id }))
 }).onCastCommit;
-const commitHeal = (runtime, skill) => grenadierCommit(runtime.mechanics, { skill });
+const commitHeal = (runtime, skill) => grenadierCommit(runtime.mechanics, { skill, command: {} });
 const heal = engineerProfession.catalog.skillsById.get(ID.HEALING_TURRET);
 const config = {
   specialization: 'Core',

@@ -409,15 +409,6 @@ export function timelineRowsView(
       // Trait-selected variants can differ from saved commands; display the skill that actually ran.
       const skill = resolveEntrySkill(app, step?.skillId != null ? { name: step.skillId } : item.command);
       const invalid = Boolean(step?.invalid);
-      // Empty interrupted packet casts are cancelled; committed non-damaging buffs retain their normal styling.
-      const cancelledWithoutDamage =
-        !invalid &&
-        step?.interrupted === true &&
-        (skill?.interruptMode === 'per-packet' ||
-          step.cancelledBeforeCommit === true ||
-          skill?.interruptCommitMs == null) &&
-        !!step.activationId &&
-        !damagingActivations.has(step.activationId);
       const display =
         item.type === 'wait'
           ? 'Wait'
@@ -454,6 +445,16 @@ export function timelineRowsView(
         spend: resourceSpend,
         formattedTime: time
       });
+      // A recorded support outcome is useful even without damage; only empty interrupted casts get failure styling.
+      const cancelledWithoutDamage =
+        !invalid &&
+        annotation?.completedEffect !== true &&
+        step?.interrupted === true &&
+        (skill?.interruptMode === 'per-packet' ||
+          step.cancelledBeforeCommit === true ||
+          skill?.interruptCommitMs == null) &&
+        !!step.activationId &&
+        !damagingActivations.has(step.activationId);
       const resourceLabel = annotation?.resourceLabel || '';
       const resourceShortLabel = annotation?.resourceShortLabel || '';
       const outcomeMismatch = annotation?.outcomeMismatch === true;

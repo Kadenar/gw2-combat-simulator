@@ -581,9 +581,21 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
 test('Lush Forest reduces current-bar recharge only and preserves the normal Artillery exclusion', () => {
   for (const gunsaber of [false, true]) {
     const rotation = ['Cyclone Axe', ...(gunsaber ? ['Unsheathe Gunsaber'] : []), 'Flow Stabilizer'];
-    const config = { selectedSkillIds: [62967] };
+    // Invoked signets recharge independently of the equipped skill bar.
+    const config = {
+      selectedSkillIds: [62967],
+      selectedTraitIds: [TRAIT.SIGNET_MASTERY],
+      target: { armor: 2597, health: 1000000, fixedHealthFraction: 0.4 }
+    };
     const bare = run(rotation, config);
-    const trained = run(rotation, { ...config, selectedTraitIds: [TRAIT.LUSH_FOREST] });
+    const trained = run(rotation, { ...config, selectedTraitIds: [...config.selectedTraitIds, TRAIT.LUSH_FOREST] });
+    const signetReadyAt = observedRuntime(bare).cooldownController.readyAt(ID.LESSER_SIGNET_OF_MIGHT);
+    assert.ok(signetReadyAt > 0);
+    assert.equal(observedRuntime(trained).cooldownController.readyAt(ID.LESSER_SIGNET_OF_MIGHT), signetReadyAt);
+    const mastery = trained.events.find((event) => event.kind === 'signet-mastery');
+    assert.equal(mastery.skillId, ID.LESSER_SIGNET_OF_MIGHT);
+    assert.equal(mastery.name, 'Lesser Signet of Might');
+    assert.ok(trained.procSteps.some((proc) => proc.detail === '10 might; Signet Mastery stack'));
     assert.deepEqual(trained.warnings, []);
     close(
       observedRuntime(bare).cooldownController.readyAt(ID.CYCLONE_AXE) -

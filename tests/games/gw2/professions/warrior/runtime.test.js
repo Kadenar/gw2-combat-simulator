@@ -299,7 +299,7 @@ test('Lesser Signet claims one cooldown on an accepted hit against the current l
   const grants = result.resolvedEvents.filter((event) => event.kind === 'signet-mastery');
   assert.equal(grants.length, 1);
   assert.equal(grants[0].at, hit.at);
-  assert.ok(observedRuntime(result).procs.snapshot()[TRAIT.SIGNET_MASTERY] > hit.at);
+  assert.ok(observedRuntime(result).cooldownController.readyAt(ID.LESSER_SIGNET_OF_MIGHT) > hit.at);
   const healthy = run(['Fierce Shot'], { ...config, target: { ...config.target, startingHealthFraction: 1 } });
   assert.equal(
     healthy.resolvedEvents.some((event) => event.kind === 'signet-mastery'),

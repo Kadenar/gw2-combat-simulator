@@ -81,7 +81,7 @@ test('Necromancer Chill producers retain duration scaling and chained trait attr
     ['Core', ['Spinal Shivers'], [], 'Spinal Shivers', ID.SPINAL_SHIVERS, 5],
     ['Reaper', ['Spectral Grasp'], [], 'Spectral Grasp', ID.SPECTRAL_GRASP, 4],
     ['Reaper', ['"Suffer!"'], [], '"Suffer!"', ID.SUFFER, 3],
-    ['Core', ['Death Shroud', 'Life Transfer'], [TRAIT.TRANSFUSION], 'Lesser Chilblains', TRAIT.TRANSFUSION, 2],
+    ['Core', ['Death Shroud', 'Life Transfer'], [TRAIT.TRANSFUSION], 'Lesser Chilblains', ID.LESSER_CHILBLAINS, 2],
     [
       'Reaper',
       ["Reaper's Shroud", 'Infusing Terror', 'Terrify'],
@@ -121,7 +121,7 @@ test('Necromancer Chill producers retain duration scaling and chained trait attr
       assert.ok(result.resolvedEvents.indexOf(followup) > result.resolvedEvents.indexOf(chill));
     }
 
-    if (sourceId === TRAIT.TRANSFUSION) {
+    if (sourceId === ID.LESSER_CHILBLAINS) {
       assert.equal(chill.skillId, ID.LESSER_CHILBLAINS);
       assert.equal(chill.triggeredBy, 'Life Transfer');
     }
@@ -145,7 +145,7 @@ test('Chill of Death and Chilling Nova preserve sibling strike ordering', () => 
   assert.deepEqual(result.warnings, []);
   const firstChillIndex = result.resolvedEvents.findIndex((event) => event.condition === 'Chilled');
   assert.ok(firstChillIndex >= 0);
-  for (const traitId of [TRAIT.CHILL_OF_DEATH, TRAIT.CHILLING_NOVA]) {
+  for (const traitId of [ID.LESSER_SPINAL_SHIVERS, TRAIT.CHILLING_NOVA]) {
     const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.sourceId === traitId);
     const chill = result.resolvedEvents.find((event) => event.condition === 'Chilled' && event.sourceId === traitId);
     assert.ok(strike);

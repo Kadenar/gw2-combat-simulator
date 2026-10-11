@@ -5,6 +5,8 @@
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
+import { NECROMANCER_CORE_TRAIT_SKILLS } from '#gw2/professions/necromancer/core/skills/trait-skills.js';
+
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -54,4 +56,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Part
 });
 
 // Keep triggered axe identities in the catalog without exposing them as player inputs.
-export const NECROMANCER_CORE_EXTRA_SKILLS = Object.freeze([...CORE_ACTIONS, ...NECROMANCER_AXE_EXTRA_SKILLS]);
+export const NECROMANCER_CORE_EXTRA_SKILLS = Object.freeze([
+  ...NECROMANCER_CORE_TRAIT_SKILLS,
+  ...CORE_ACTIONS,
+  ...NECROMANCER_AXE_EXTRA_SKILLS
+]);

@@ -1126,7 +1126,12 @@ test('Lesser Signet of Might procs use the signet skill icon', () => {
 
   assert.equal(proc?.icon, warriorCatalog.skillsById.get(ID.SIGNET_OF_MIGHT).icon);
   assert.equal(lesser.at, strike.at);
-  assert.equal(lesser.priority, 5);
+  assert.ok(
+    result.resolvedEvents.indexOf(lesser) >
+      result.resolvedEvents.findIndex(
+        (event) => event === strike || (event.type === 'damage' && event.skillId === ID.THROW_BOLAS)
+      )
+  );
 });
 
 test('Burst Precision duration follows the adrenaline stage', () => {

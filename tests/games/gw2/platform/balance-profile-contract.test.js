@@ -12,6 +12,7 @@ import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 
@@ -27,6 +28,23 @@ const profile = {
 };
 const skill = { id: 1, name: 'Skill', effects: [first, second] };
 const fixture = () => createCanonicalCatalog({ generated: [skill], balanceProfiles: [profile] });
+
+// Skill modifiers use the authoritative selected catalog, even when another context layer has the same ID.
+test('required skill lookup preserves selected patch ownership', () => {
+  const base = fixture();
+  const selected = withSkill(base, skill.id, { name: 'Selected skill' });
+  for (const context of [
+    { catalog: selected },
+    { helpers: selected },
+    { profession: { catalog: selected } },
+    { runtime: { profession: { catalog: selected } } }
+  ])
+    assert.equal(requireSkillFromContext(context, skill.id).name, 'Selected skill');
+  assert.throws(
+    () => requireSkillFromContext({ catalog: { skillsById: new Map() }, profession: { catalog: base } }, skill.id),
+    /missing required skill/
+  );
+});
 // Callers select an owner once; skills come from the catalog, profiles from the context-based resolver.
 const ownerOf = (catalog, kind) =>
   kind === 'skill' ? catalog.skillsById.get(1) : requireBalanceProfileFromContext({ catalog }, 1);

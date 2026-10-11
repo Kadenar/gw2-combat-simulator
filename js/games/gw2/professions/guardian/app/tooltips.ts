@@ -1,3 +1,5 @@
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
   fromModifier,
@@ -424,12 +426,10 @@ export const guardianTooltips: ProfessionTooltips = {
     )
   },
   traits: {
-    [TRAIT.ZEALOTS_RESOLUTION]: traitTooltip(
+    [TRAIT.ZEALOTS_RESOLUTION]: traitSkillTooltip(
+      [ID.LESSER_SYMBOL_OF_RESOLUTION],
       'A qualifying strike after the target has lost enough health creates Lesser Symbol of Resolution. The hit crossing the threshold does not trigger it.',
-      [
-        ['threshold', 'Required target health lost', tooltipPercent],
-        ['cooldown', 'Internal cooldown', tooltipSeconds]
-      ]
+      [['threshold', 'Required target health lost', tooltipPercent]]
     ),
     [TRAIT.SYMBOLIC_EXPOSURE]: traitTooltip(
       'Symbol hits inflict vulnerability. Deal increased strike damage to vulnerable targets.',
@@ -472,12 +472,18 @@ export const guardianTooltips: ProfessionTooltips = {
       ['resourceGain', 'Additional ammunition']
     ]),
     [TRAIT.SHATTERED_AEGIS]: outsideScopeTooltip,
-    [TRAIT.FURIOUS_FOCUS]: traitTooltip(
+    [TRAIT.FURIOUS_FOCUS]: traitSkillTooltip(
+      [ID.LESSER_SYMBOL_OF_BLADES],
       'Activating Justice creates Lesser Symbol of Blades. Deal increased strike damage while you have fury.',
-      [
-        fromProfile(TRAIT.FURIOUS_FOCUS, 'damageIncrease', 'Strike damage with fury', tooltipPercent),
-        ['baseDuration', 'Symbol field duration', tooltipSeconds],
-        ['cooldown', 'Base symbol recharge', tooltipSeconds]
+      (context) => [
+        profileFact(context, TRAIT.FURIOUS_FOCUS, 'damageIncrease', 'Strike damage with fury', tooltipPercent),
+        // The symbol skill owns its field duration independently of the trait's passive bonus.
+        {
+          name: 'Symbol field duration',
+          detail: tooltipSeconds(
+            tooltipNumber(requireSkillFromContext(context, ID.LESSER_SYMBOL_OF_BLADES), 'duration')
+          )
+        }
       ]
     ),
     [TRAIT.JUSTICE_IS_BLIND]: traitTooltip(
@@ -566,21 +572,10 @@ export const guardianTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.PROTECTIVE_REVIVER]: outsideScopeTooltip,
-    [TRAIT.PROTECTORS_RESTORATION]: (balanceContext, entity) => {
-      const profile = tooltipProfile(balanceContext, entity.id);
-      return {
-        description:
-          'Committing a healing skill creates Lesser Symbol of Protection. Each strike pulse also grants party protection.',
-        facts: [
-          profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
-          ...simulationEffectFacts(
-            profile.effects?.map((effect) =>
-              effect.type === 'boon' ? { ...effect, audience: { recipients: 'party' as const } } : effect
-            )
-          ).facts
-        ]
-      };
-    },
+    [TRAIT.PROTECTORS_RESTORATION]: traitSkillTooltip(
+      [ID.LESSER_SYMBOL_OF_PROTECTION],
+      'Committing a healing skill creates Lesser Symbol of Protection, striking the target and granting party protection.'
+    ),
     [TRAIT.HONORABLE_STAFF]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
     [TRAIT.PURE_OF_HEART]: outsideScopeTooltip,
     [TRAIT.EMPOWERING_MIGHT]: traitTooltip(

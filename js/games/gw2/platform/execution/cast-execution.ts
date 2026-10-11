@@ -448,7 +448,8 @@ export function createCastExecution<T extends object>(
         cast.firstStrikeAt = Math.min(cast.firstStrikeAt, packet.at);
     },
     resetCooldowns() {
-      cooldownController.resetAll();
+      // Rotation resets refresh activated skills; automatic procs retain their independent recharges.
+      cooldownController.resetAll((skill) => skill?.type !== 'Proc');
       lockouts.clear();
     }
   };

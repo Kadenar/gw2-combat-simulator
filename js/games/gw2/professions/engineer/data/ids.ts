@@ -131,21 +131,15 @@ export const ENGINEER_SKILL_IDS = Object.freeze({
   MINE_FIELD: 6164, // Mine Field
   DETONATE_MINE_FIELD: 6166, // Detonate Mine Field
   REGENERATING_MIST: 6176, // Regenerating Mist
-  CONFUSING_SPEECH: 12334, // Confusing Speech
-  VENT_RADIATION: 12336, // Vent Radiation
   LESSER_ELIXIR_B: 13465, // Lesser Elixir B
   STATIC_DISCHARGE_TRAIT_SKILL: 13552, // Static Discharge (trait skill)
   DROP_MINE: 17810, // Drop Mine
-  MAGNETIC_BOMB_TRAIT_SKILL: 17811, // Magnetic Bomb (trait skill)
-  SUPERSPEED_TRAIT_SKILL: 17812, // Superspeed (trait skill)
-  FIRE_SHIELD_TRAIT_SKILL: 17813, // Fire Shield (trait skill)
   MAGNETIC_AURA_TRAIT_SKILL: 17814, // Magnetic Aura (trait skill)
   STATIC_SHOCK: 21661, // Static Shock
   BUNKER_DOWN_TRAIT_SKILL: 24329, // Bunker Down (trait skill)
   RECONSTRUCTION_FIELD: 29505, // Reconstruction Field
   DETONATE_SUPPLY_CRATE_TURRETS: 29518, // Detonate Supply Crate Turrets
   BANDAGE_BLAST: 29547, // Bandage Blast
-  INVISIBLE_ANALYSIS: 29606, // Invisible Analysis
   BYPASS_COATING: 29665, // Bypass Coating
   CLEANSING_PULSE: 29712, // Cleansing Pulse
   MED_PACK_DROP: 29716, // Med Pack Drop

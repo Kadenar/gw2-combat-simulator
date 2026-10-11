@@ -3,6 +3,27 @@ import test from 'node:test';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
+// Rotation resets must not let another qualifying hit bypass Lesser Haste's independent recharge.
+test('Lesser Haste cannot grant another Quickness application after a rotation reset', () => {
+  const result = runThief(
+    [{ type: 'wait', durationMs: 2000 }, { type: 'cooldown-reset' }, { type: 'wait', durationMs: 2000 }],
+    { selectedTraitIds: [TRAIT.BURST_OF_AGILITY], target: { armor: 2597, health: 1000000000, defiant: true } },
+    {
+      initialize(runtime) {
+        for (const at of [1, 3]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const quickness = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.skillId === ID.LESSER_HASTE && event.kind === 'quickness'
+  );
+  assert.deepEqual(
+    quickness.map((event) => event.at),
+    [1]
+  );
+});
+
 // Misses and non-player packets cannot claim the skill recharge; every boon shares the landed attack's proc boundary.
 test('Burst of Agility grants Lesser Haste self boons on defiant hits with an Alacrity-adjusted 48-second recharge', () => {
   for (const [selected, defiant] of [

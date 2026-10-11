@@ -168,8 +168,8 @@ export interface Skill extends CatalogEntity {
  * catalog while retaining the same declarative effect vocabulary.
  */
 export interface BalanceProfile extends CatalogEntity {
-  /** Proc claims default to a fixed internalCooldown; skill policies recharge cooldown work for the named owner. */
-  readonly cooldownPolicy?: 'internal' | 'playerRecharge' | 'summonRecharge';
+  /** Proc claims use a fixed internalCooldown unless a captured companion owns summon recharge work. */
+  readonly cooldownPolicy?: 'internal' | 'summonRecharge';
   /** Augmentations retain their skill/summon/shared owner instead of promising a separate trait proc row. */
   readonly damagePreviewAttribution?: 'skill' | 'summon' | 'shared';
   /** Keep the selected source identifiable when a runtime passes only a profile lookup callback. */

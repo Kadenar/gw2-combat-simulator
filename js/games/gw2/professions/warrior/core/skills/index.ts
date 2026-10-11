@@ -1,4 +1,6 @@
 /** Explicit PvE skill mechanics owned by the Core Warrior module. */
+import { WARRIOR_CORE_TRAIT_SKILLS } from '#gw2/professions/warrior/core/skills/trait-skills.js';
+
 import type { Skill } from '#gw2/platform/skills/types.js';
 export { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from '#gw2/professions/warrior/core/skills/actions.js';
 import { WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/profession-skills.js';
@@ -36,3 +38,5 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   ...WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS,
   ...WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS
 });
+
+export { WARRIOR_CORE_TRAIT_SKILLS };

@@ -40,6 +40,17 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     flipParentId: ID.MANTRA_OF_PAIN
   },
   {
+    id: ID.POWER_RETURN,
+    name: 'Power Return',
+    description: 'Mantra. Instantly heal yourself. Reverts to Mantra of Recovery once both charges are spent.',
+    icon: 'https://render.guildwars2.com/file/A999116605543595AEF225D26026127828AED66B/103745.png',
+    type: 'Heal',
+    weapon: '',
+    slot: 'Heal',
+    specialization: '',
+    flipParentId: ID.MANTRA_OF_RECOVERY
+  },
+  {
     id: ID.DIMENSIONAL_APERTURE,
     name: 'Dimensional Aperture',
     description: "Collapse your singularity into a single-use portal and increase Singularity Shot's recharge.",

@@ -62,33 +62,7 @@ export const protectorsRestoration = defineTrait({
       when: (_runtime, { cast }: GuardianCastCompletion) => cast.skill.type === 'Heal',
       run: placeProtectorsSymbol
     })
-  ],
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 20,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Strike',
-        // The symbol strikes on placement and twice more at one-second intervals.
-        ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 0.6 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      // Protection keeps its pulse cadence even if the strike is removed.
-      {
-        type: 'boon',
-        name: 'protection',
-        boon: 'protection',
-        duration: 1,
-        stacks: 1,
-        applications: 3,
-        intervalMs: 1000
-      }
-    ]
-  }
+  ]
 });
 
 /** Owns Writ of Persistence's live tuning and trait behavior. */
@@ -295,8 +269,6 @@ function writOfPersistenceEffects(
 function placeProtectorsSymbol(runtime: Runtime, { cast }: GuardianCastCompletion): void {
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
   emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause, {
-    party: true,
-    cooldownKey: 'guardian.core.protectorsRestoration',
     fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
   });
 }

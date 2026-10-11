@@ -107,7 +107,7 @@ test('Dark Barrage shares selected pulse expansion and ignores added boons in co
     );
     assert.equal(
       facts.find(({ name }) => name === 'Strike damage').detail,
-      `${patched ? '6' : '4.8'} coefficient total · ${count} hits — with Doom Approaches; replaces base volley · Strike`
+      `${patched ? '6' : '4.8'} coefficient total · ${count} hits — with Doom Approaches; replaces base volley`
     );
     const torment = facts.find(({ name }) => name === 'Torment');
     assert.equal(torment.applications, count);

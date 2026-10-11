@@ -13,11 +13,11 @@ import test from 'node:test';
 const firebrandUi = bindFirebrandUi(guardianCatalog);
 
 // Small rotations isolate deletion, surviving edits, and owned state without benchmark-shaped assertions.
-function run(balanceProfiles, specialization, rotation, selectedTraitIds = [], extra = {}) {
+function run(balanceProfiles, specialization, rotation, selectedTraitIds = [], extra = {}, skills = {}) {
   const profession = withPatchPreview(guardianProfession, {
     id: 'guardian-removal',
     label: 'Guardian removal',
-    professions: { guardian: { balanceProfiles } }
+    professions: { guardian: { balanceProfiles, skills } }
   });
   const result = createObservedProfessionSimulator(profession, {
     specialization,
@@ -117,15 +117,17 @@ test('Inspired Virtue removal cannot substitute the next boon', () => {
 
 test('Protector strike removal preserves the independently patched protection cadence', () => {
   const result = run(
+    {},
+    'Core',
+    ['Shelter', { type: 'wait', durationMs: 3000 }],
+    [TRAIT.PROTECTORS_RESTORATION],
+    {},
     {
-      [TRAIT.PROTECTORS_RESTORATION]: {
+      [SKILL.LESSER_SYMBOL_OF_PROTECTION]: {
         ...remove('strike', 'Strike'),
         effects: [{ type: 'boon', name: 'protection', duration: { from: 1, to: 3 } }]
       }
-    },
-    'Core',
-    ['Shelter', { type: 'wait', durationMs: 3000 }],
-    [TRAIT.PROTECTORS_RESTORATION]
+    }
   );
   assert.equal(has(result, 'damage', 'skillName', 'Lesser Symbol of Protection'), false);
   assert.ok(
@@ -135,19 +137,21 @@ test('Protector strike removal preserves the independently patched protection ca
 
 test('an empty Protector proc owns neither cooldown nor a proc row', () => {
   const result = run(
+    {},
+    'Core',
+    ['Shelter'],
+    [TRAIT.PROTECTORS_RESTORATION],
+    {},
     {
-      [TRAIT.PROTECTORS_RESTORATION]: {
+      [SKILL.LESSER_SYMBOL_OF_PROTECTION]: {
         removeEffects: [
           { type: 'strike', name: 'Strike' },
           { type: 'boon', name: 'protection' }
         ]
       }
-    },
-    'Core',
-    ['Shelter'],
-    [TRAIT.PROTECTORS_RESTORATION]
+    }
   );
-  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), 0);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(SKILL.LESSER_SYMBOL_OF_PROTECTION), undefined);
   assert.equal(
     result.procSteps.some((step) => step.skill === 'Lesser Symbol of Protection'),
     false

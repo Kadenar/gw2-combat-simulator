@@ -85,34 +85,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentId: ID.HEALING_TURRET,
     mechanicSlot: 1
   },
-  [ID.CONFUSING_SPEECH]: {
-    castTimeMs: 0,
-    cooldown: 45,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Confusion',
-        stacks: 3,
-        duration: 5,
-        actorType: 'player'
-      }
-    ],
-    countsAsToolbeltSkill: true
-  },
-  [ID.VENT_RADIATION]: {
-    castTimeMs: 0,
-    cooldown: 45,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 9,
-        actorType: 'player'
-      }
-    ],
-    countsAsToolbeltSkill: true
-  },
+
   [ID.STATIC_SHOCK]: {
     castTimeMs: 680,
     cooldown: 20,

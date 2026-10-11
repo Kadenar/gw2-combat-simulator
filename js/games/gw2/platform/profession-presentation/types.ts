@@ -64,6 +64,8 @@ export interface MechanicResourceSpend {
 
 /** Supplies mechanic wording and badges while leaving HTML and editing interactions to the timeline. */
 export interface ProfessionTimelineAnnotation {
+  /** Recorded mechanic success keeps interrupted support casts from being labelled as wasted damage casts. */
+  readonly completedEffect?: boolean;
   readonly resourceLabel?: string;
   readonly resourceShortLabel?: string;
   readonly details?: readonly string[];

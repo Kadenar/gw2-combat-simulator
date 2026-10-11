@@ -4,7 +4,7 @@ import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -15,6 +15,7 @@ import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
@@ -26,10 +27,7 @@ import {
   strike
 } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import {
-  rangerBuffRequest,
-  rangerConditionRequest
-} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerConditionRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { activeBuff, beastmodeActive, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type {
@@ -77,23 +75,7 @@ export const goForTheThroat = defineTrait({
   ],
   id: TRAIT.GO_FOR_THE_THROAT,
   name: 'Go for the Throat',
-  balance: {
-    damageMultiplier: 1.4,
-    playerDamageMultiplier: 1.15,
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 10,
-    effects: [
-      {
-        name: 'lesser-sic-em-pet',
-        type: 'buff',
-        kind: 'lesser-sic-em-pet',
-        duration: 8,
-        stacks: 1
-      },
-      { name: 'lesser-sic-em', type: 'buff', kind: 'lesser-sic-em', duration: 5, stacks: 1 }
-    ]
-  },
+
   modifierRules: [
     {
       order: 31,
@@ -102,7 +84,11 @@ export const goForTheThroat = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT), 'damageMultiplier'),
+        1 +
+        Number(
+          requireEffect(requireSkillFromContext(context, ID.LESSER_SIC_EM), 'buff', 'lesser-sic-em-pet')!
+            .damageIncreasePerStack
+        ),
       when: (context) => rangerPetEvent(context) && activeBuff(context, 'lesser-sic-em-pet')
     },
     {
@@ -113,9 +99,10 @@ export const goForTheThroat = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT),
-          'playerDamageMultiplier'
+        1 +
+        Number(
+          requireEffect(requireSkillFromContext(context, ID.LESSER_SIC_EM), 'buff', 'lesser-sic-em')!
+            .damageIncreasePerStack
         ),
       when: (context) =>
         (context.runtime
@@ -378,9 +365,8 @@ function applyRangerCommandTraits(
   }
 }
 
-// Trigger Go for the Throat from its qualifying Ranger or pet event and apply the
-// profile-owned companion strike with stable ownership.
-function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+// A qualifying beast hit invokes the skill's companion buff with the current pet as its recipient.
+function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const skill = skillForEvent(context.helpers, event);
   const beastSkillId = state.activePetSkillIds.at(-1);
@@ -388,10 +374,11 @@ function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2Resolve
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT);
+  const profile = context.helpers.skillsById.get(ID.LESSER_SIC_EM)!;
   const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em-pet');
   // The pet cooldown gates only the pet buff, so a removed buff leaves it ready.
-  if (!lesserSicEm || !context.procs.claim(TRAIT.GO_FOR_THE_THROAT, 'ranger.core.goForTheThroatPet', event.at)) return;
+  if (!lesserSicEm || context.cooldownController.isOnCooldown(profile.id, context.time)) return;
+  context.cooldownController.startRecharge(profile, context.time);
   const duration = effectNumber(profile, lesserSicEm, 'duration');
   context.effects.emit({
     attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
@@ -401,44 +388,34 @@ function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2Resolve
       name: 'Lesser "Sic \'Em!"',
       at: event.at,
       sourceSkill: event.skillName,
-      detail: `${duration}s, +40% pet strike damage`,
-      icon:
-        context.helpers.skillsById.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById.get(ID.SIC_EM)?.icon || ''
+      detail: `${duration}s, +${Number((effectNumber(profile, lesserSicEm, 'damageIncreasePerStack') * 100).toFixed(6))}% pet strike damage`,
+      icon: profile.icon
     }
   });
-  emitTraitProfile(context, TRAIT.GO_FOR_THE_THROAT, TRAIT.GO_FOR_THE_THROAT, undefined, {
-    at: event.at,
-    fullEnd: event.at,
+  invokeTraitSkill(context, TRAIT.GO_FOR_THE_THROAT, profile.id, event, {
     effect: { type: 'buff', name: 'lesser-sic-em-pet' },
     durationContext: event,
     attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.GO_FOR_THE_THROAT,
-      actorType: 'effect',
-      skillId: ID.LESSER_SIC_EM,
-      skillName: 'Lesser "Sic \'Em!"',
       audience: {
         recipients: 'summons' as const,
         affectsSelf: false,
         maximumRecipients: 1,
         eligibleCompanionIds: [rangerPetCompanionId(context)]
-      },
-      triggeredBy: event.skillName,
-      name: 'Lesser "Sic \'Em!"'
-    },
-    transform: (packet) => ({ ...packet, duration: duration })
+      }
+    }
   });
   // Lesser Sic 'Em is a command too: its accepted proc copies boons at the beast skill's impact.
   context.fireTrigger(commandApplied, { skill: { name: 'Lesser "Sic \'Em!"' }, at: event.at });
 }
 
 /** Runs once on the accepted first hit of the merged Beast ability. */
-function triggerMergedGoForTheThroat(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+function triggerMergedGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent): void {
   {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_THROAT);
+    const profile = context.helpers.skillsById.get(ID.LESSER_SIC_EM)!;
     // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
     const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
-    if (lesserSicEm && context.procs.claim(TRAIT.GO_FOR_THE_THROAT, 'ranger.soulbeast.goForTheThroat', event.at)) {
+    if (lesserSicEm && !context.cooldownController.isOnCooldown(profile.id, context.time)) {
+      context.cooldownController.startRecharge(profile, context.time);
       const duration = effectNumber(profile, lesserSicEm, 'duration');
       context.effects.emit({
         attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
@@ -448,14 +425,13 @@ function triggerMergedGoForTheThroat(context: RangerResolverContext, event: Gw2R
           name: 'Lesser "Sic \'Em!"',
           at: event.at,
           sourceSkill: event.skillName,
-          detail: `${duration}s, +15% strike damage`,
-          icon:
-            context.helpers.skillsById.get(ID.LESSER_SIC_EM)?.icon ||
-            context.helpers.skillsById.get(ID.SIC_EM)?.icon ||
-            ''
+          detail: `${duration}s, +${Number((effectNumber(profile, lesserSicEm, 'damageIncreasePerStack') * 100).toFixed(6))}% strike damage`,
+          icon: profile.icon
         }
       });
-      context.effects.emit(rangerBuffRequest(event, profile, lesserSicEm, 'Lesser "Sic \'Em!"', ID.LESSER_SIC_EM));
+      invokeTraitSkill(context, TRAIT.GO_FOR_THE_THROAT, profile.id, event, {
+        effect: { type: 'buff', name: 'lesser-sic-em' }
+      });
       context.fireTrigger(mergedCommandApplied, {
         skill: { id: ID.LESSER_SIC_EM, categories: ['Command'] },
         at: event.at

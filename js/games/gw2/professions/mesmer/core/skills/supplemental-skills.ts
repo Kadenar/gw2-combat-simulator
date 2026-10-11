@@ -8,6 +8,17 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
+  [ID.POWER_RETURN]: {
+    // Start prepared and return to the parent when exhausted; Heal identity still triggers traits at fixed full health.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }],
+    castTimeMs: 0,
+    rechargeAnchor: 'castStart',
+    cooldown: 20,
+    ammoCastLockout: 1,
+    ammo: 2,
+    armedAtStart: true,
+    effects: []
+  },
   [ID.POWER_SPIKE]: {
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }],
     castTimeMs: 0,

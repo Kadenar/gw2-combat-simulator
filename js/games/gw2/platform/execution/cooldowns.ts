@@ -395,10 +395,14 @@ export function createCooldownController({
           lockoutReadyAt: ammo.lockoutRemaining > 0 ? at + ammo.lockoutRemaining : 0
         });
     },
-    resetAll() {
-      cooldowns.clear();
-      rechargeProgress.clear();
-      ammoPools.clear();
+    resetAll(eligible: (skill: Skill | undefined) => boolean = () => true) {
+      // Reset all stores for each eligible owner without disturbing excluded in-flight recharge work.
+      for (const id of new Set([...cooldowns.keys(), ...rechargeProgress.keys(), ...ammoPools.keys()])) {
+        if (!eligible(skillFor(id))) continue;
+        cooldowns.delete(id);
+        rechargeProgress.delete(id);
+        ammoPools.delete(id);
+      }
     },
     startRecharge,
     setReadyAt,

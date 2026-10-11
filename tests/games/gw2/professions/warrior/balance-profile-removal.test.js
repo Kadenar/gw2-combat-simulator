@@ -296,13 +296,15 @@ test('Artillery Slash keeps ammo variant identity after first-strike removal and
 
 test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window', () => {
   const result = run(
-    {
-      [TRAIT.ATTACKERS_INSIGHT]: remove('buff', 'attackers-insight'),
-      [TRAIT.MAGEBANE_TETHER]: remove('buff', 'magebane-tether')
-    },
+    { [TRAIT.ATTACKERS_INSIGHT]: remove('buff', 'attackers-insight') },
     'Spellbreaker',
     ['Kick', ID.BREACHING_STRIKE],
-    { initialResource: 20, primaryWeapon: 'Dagger', selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT, TRAIT.MAGEBANE_TETHER] }
+    {
+      initialResource: 20,
+      primaryWeapon: 'Dagger',
+      selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT, TRAIT.MAGEBANE_TETHER]
+    },
+    { [ID.MAGEBANE_TETHER]: remove('buff', 'magebane-tether') }
   );
   const state = observedRuntime(result).profession.specialization.state;
   assert.deepEqual(state.attackerInsightExpiries, []);

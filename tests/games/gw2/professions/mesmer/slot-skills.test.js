@@ -241,6 +241,63 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
   assert.equal(result.planningState.profession.resource, 0);
 });
 
+// The healing mantra uses the same prepared flip lifecycle, with an independent ammo pool and use lockout.
+test('Power Return starts prepared, respects its recharge and use lockout, and exhausts to its parent', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    selectedSkillIds: [ID.MANTRA_OF_RECOVERY]
+  });
+  const primed = simulateMesmer([], config);
+  assert.equal(primed.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 2);
+  assert.equal(primed.planningState.ammoBySkillId[ID.POWER_RETURN].maximum, 2);
+  assert.equal(primed.planningState.profession.availableFlips[ID.POWER_RETURN].expiresAt, null);
+  const used = simulateMesmer(['Power Return'], config);
+  assert.deepEqual(used.warnings, []);
+  assert.equal(used.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 1);
+  // The simulator's permanent Alacrity reduces twenty seconds of recharge work to sixteen seconds.
+  assert.equal(used.planningState.ammoBySkillId[ID.POWER_RETURN].nextRechargeAt, 16);
+  const recovered = simulateMesmer(['Power Return', { type: 'wait', durationMs: 16000 }], config);
+  assert.equal(recovered.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 2);
+  const exhausted = simulateMesmer(['Power Return', 'Power Return', 'Power Return'], config);
+  const accepted = exhausted.steps.filter((step) => !step.invalid);
+  assert.equal(accepted.length, 2);
+  assert.equal(accepted[1].start - accepted[0].start, 800);
+  assert.equal(exhausted.planningState.profession.availableFlips[ID.POWER_RETURN], undefined);
+  assert.equal(exhausted.planningState.ammoBySkillId[ID.POWER_RETURN], undefined);
+  assert.match(exhausted.warnings.at(-1), /Mantra of Recovery is not active/);
+});
+
+// Re-preparing either equipped mantra must leave the other mantra's spent charges untouched.
+test('Mantra of Recovery and Mantra of Pain prepare only their own flips', () => {
+  for (const [parent, flip, other] of [
+    ['Mantra of Recovery', ID.POWER_RETURN, ID.POWER_SPIKE],
+    ['Mantra of Pain', ID.POWER_SPIKE, ID.POWER_RETURN]
+  ]) {
+    const result = simulateMesmer(
+      [{ type: 'cast', skillId: other }, { type: 'cast', skillId: flip }, { type: 'cast', skillId: flip }, parent],
+      defaultSimulationConfig({
+        specialization: 'Core',
+        selectedSkillIds: [ID.MANTRA_OF_RECOVERY, ID.MANTRA_OF_PAIN]
+      })
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.ammoBySkillId[flip].charges, 2);
+    assert.equal(result.planningState.ammoBySkillId[other].charges, 1);
+    assert.equal(result.planningState.profession.availableFlips[flip].expiresAt, null);
+  }
+});
+
+// A recharge channel cannot expose its new charges to overlapping inputs before preparation completes.
+test('Power Return remains unavailable during Mantra of Recovery preparation', () => {
+  const result = simulateMesmer(
+    ['Power Return', 'Power Return', 'Mantra of Recovery', { name: 'Power Return', offset: 100 }],
+    defaultSimulationConfig({ specialization: 'Core', selectedSkillIds: [ID.MANTRA_OF_RECOVERY] })
+  );
+  assert.equal(result.steps.at(-1).invalid, true);
+  assert.match(result.warnings.at(-1), /Mantra of Recovery is still channeling/);
+  assert.equal(result.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 2);
+});
+
 test('Power Spike opens with two charges and reverts to Mantra of Pain when spent', () => {
   const result = simulateMesmer(
     ['Power Spike', 'Power Spike', 'Power Spike'],

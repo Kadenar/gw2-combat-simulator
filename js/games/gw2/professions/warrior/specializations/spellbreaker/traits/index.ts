@@ -1,3 +1,4 @@
+import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -11,6 +12,7 @@ import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -68,19 +70,17 @@ export const magebaneTether = defineTrait({
   ],
   id: TRAIT.MAGEBANE_TETHER,
   name: 'Magebane Tether',
-  balance: {
-    damageMultiplier: 1.15,
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 12,
-    effects: [{ name: 'magebane-tether', type: 'buff', kind: 'magebane-tether', stacks: 1, duration: 8 }]
-  },
   modifierRules: [
     {
       id: 'warrior.magebane-tether',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MAGEBANE_TETHER), 'damageMultiplier'),
+        1 +
+        Number(
+          requireEffect(requireSkillFromContext(context, ID.MAGEBANE_TETHER), 'buff', 'magebane-tether')!
+            .damageIncreasePerStack
+        ),
       order: 110,
       when: (context) => (spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
     }
@@ -184,7 +184,7 @@ function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEvent): v
   }
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
-  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event.at)) {
+  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event)) {
     context.effects.emit({
       kind: 'announcement',
       announcement: {
@@ -224,16 +224,20 @@ function attackerInsightApplications(context: Runtime, event: Gw2ResolverEvent):
   return ID.KICK == Number(event.skillId) && context.config.target?.defiant === true ? 2 : 1;
 }
 
-function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, at: number): boolean {
-  const key = 'warrior.spellbreaker.magebaneTether';
-  // Shared player recharge owns readiness; the tether still waits for its GW2 action tick.
-  if (at < gw2CooldownReadyAt(context.procs.deadline(key))) return false;
-
-  const magebaneTetherProfile = requireBalanceProfileFromContext(context, TRAIT.MAGEBANE_TETHER);
-  const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether');
-  // A removed tether must not activate its damage window.
-  if (!effect || !context.procs.claim(TRAIT.MAGEBANE_TETHER, key, at)) return false;
-  state.magebaneTetherUntil = canonicalTime(at + effectNumber(magebaneTetherProfile, effect, 'duration'));
+function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, event: Gw2ResolverEvent): boolean {
+  const at = context.time;
+  const skill = context.helpers.skillsById.get(ID.MAGEBANE_TETHER)!;
+  // The invoked skill owns recharge while the tether still waits for its next GW2 action tick.
+  if (
+    at < gw2CooldownReadyAt(context.cooldownController.readyAt(skill.id) ?? 0) ||
+    context.cooldownController.isOnCooldown(skill.id, at)
+  )
+    return false;
+  const effect = requireEffect(skill, 'buff', 'magebane-tether');
+  if (!effect) return false;
+  context.cooldownController.startRecharge(skill, at);
+  state.magebaneTetherUntil = canonicalTime(at + effectNumber(skill, effect, 'duration'));
+  invokeTraitSkill(context, TRAIT.MAGEBANE_TETHER, skill.id, event);
   return true;
 }
 

@@ -212,6 +212,8 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
     const label = labels[spend.resource];
     if (!label) return null;
     return {
+      // Notes are consumed when a performance resolves, including Harp starting to play without dealing damage.
+      completedEffect: spend.resource === 'notes',
       resourceLabel: `${spend.count} ${spend.count === 1 ? label.singular : spend.resource} consumed at ${label.phase}`,
       resourceShortLabel: `${spend.count}${label.short}`
     };

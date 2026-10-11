@@ -21,7 +21,7 @@ export interface ProcRegistry {
 export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }): ProcRegistry {
   const readyAt: Record<string, number> = Object.create(null);
   const recharges = new Map<string, { skill: Skill; progress: RechargeProgress }>();
-  // Share the same recharge intervals as cast skills, including later received summon boons and Chronomancer's rate.
+  // Summon proc work integrates the captured companion's received recharge boons.
   const deadline = (key: SkillId): number => {
     const recharge = recharges.get(String(key));
     if (recharge) {
@@ -55,23 +55,22 @@ export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonl
       if (at === undefined) throw new TypeError('Resolver proc claims require an event time.');
       const profile = requireBalanceProfileFromContext(runtime, profileId);
       const policy = profile.cooldownPolicy ?? 'internal';
-      if (!['internal', 'playerRecharge', 'summonRecharge'].includes(policy))
+      if (!['internal', 'summonRecharge'].includes(policy))
         throw new TypeError(`Invalid proc cooldown policy for ${profileId}.`);
       if (!isInternalCooldownReady(at, deadline(key))) return false;
-      if (policy !== 'internal') {
+      if (policy === 'summonRecharge') {
         if (profile.internalCooldown != null)
           throw new TypeError(`Recharging proc ${profileId} must author cooldown, not internalCooldown.`);
-        if (policy === 'summonRecharge' && !companionId)
-          throw new TypeError(`Summon proc ${profileId} requires a companion identity.`);
+        if (!companionId) throw new TypeError(`Summon proc ${profileId} requires a companion identity.`);
         const work = balanceProfileNumber(profile, 'cooldown');
         if (!Number.isFinite(work) || work < 0)
           throw new TypeError('Proc recharge work must be a finite non-negative number.');
         const skill: Skill = {
           id: profileId,
           name: profile.name,
-          rechargeBuffAudience: policy === 'summonRecharge' ? 'summon' : 'self'
+          rechargeBuffAudience: 'summon'
         };
-        const progress = { startedAt: at, work, ...(policy === 'summonRecharge' ? { companionId } : {}) };
+        const progress = { startedAt: at, work, companionId };
         const projected = canonicalTime(
           projectRecharge(progress, runtime.query.timeline.rechargeIntervals(skill, at, Infinity, progress.companionId))
         );

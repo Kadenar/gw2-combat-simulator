@@ -32,7 +32,6 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
@@ -54,8 +53,9 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'mesmer.arm-flip'(runtime, context) {
         if (context.kind === 'cast') armMesmerSkillFlip(runtime, context.cast);
       },
-      'mesmer.prepare-mantra'(runtime) {
-        prepareMesmerMantra(runtime, ID.POWER_SPIKE);
+      'mesmer.prepare-mantra'(runtime, context) {
+        // Each preparation refills its declared flip without changing another mantra's charges.
+        prepareMesmerMantra(runtime, Number(context.skill.flipSkillId));
       },
       'mesmer.exhaust-mantra'(runtime, context) {
         exhaustMesmerMantra(runtime, context.skill);

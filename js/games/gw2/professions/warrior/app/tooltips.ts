@@ -1,3 +1,5 @@
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -575,12 +577,13 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.WOUNDING_PRECISION]: traitTooltip('Gain expertise from eligible precision.', [
       ['attributeConversion', 'Eligible precision converted to expertise', tooltipPercent]
     ]),
-    [TRAIT.SIGNET_MASTERY]: traitTooltip(
-      "Activating signets grants stacking ferocity. A qualifying strike below the target's half-health threshold triggers Lesser Signet of Might.",
+    [TRAIT.SIGNET_MASTERY]: traitSkillTooltip(
+      [ID.LESSER_SIGNET_OF_MIGHT],
+      'Activating signets grants stacking ferocity. Striking below the target health threshold invokes Lesser Signet of Might.',
       [
         ['attributeBonus', 'Ferocity per stack'],
         ['maximumStacks', 'Maximum stacks'],
-        ['cooldown', 'Lesser Signet of Might cooldown', tooltipSeconds]
+        ['threshold', 'Target health below', tooltipPercent]
       ]
     ),
     [TRAIT.OPPORTUNIST]: traitTooltip('Player control or immobilize applications grant adrenaline and fury.', [
@@ -741,12 +744,21 @@ export const warriorTooltips: ProfessionTooltips = {
     ]),
     [TRAIT.ENCHANTMENT_COLLAPSE]: outsideScopeTooltip,
     [TRAIT.RESOLUTE_COUNTER]: outsideScopeTooltip,
-    [TRAIT.MAGEBANE_TETHER]: traitTooltip(
+    [TRAIT.MAGEBANE_TETHER]: traitSkillTooltip(
+      [ID.MAGEBANE_TETHER],
       'Qualifying burst hits tether the target, increasing strike damage while the tether lasts. Alacrity shortens its recharge.',
-      [
-        fromProfile(TRAIT.MAGEBANE_TETHER, 'damageMultiplier', 'Strike damage while tethered', tooltipFactorChange),
-        ['cooldown', 'Base tether recharge', tooltipSeconds]
-      ]
+      (context) => {
+        // Tether's strike bonus is local; other buff fields may describe narrower damage categories.
+        const effect = requireEffect(requireSkillFromContext(context, ID.MAGEBANE_TETHER), 'buff', 'magebane-tether');
+        return effect
+          ? [
+              {
+                name: 'Strike damage while tethered',
+                detail: tooltipPercent(tooltipNumber(effect, 'damageIncreasePerStack'))
+              }
+            ]
+          : [];
+      }
     ),
     [TRAIT.GUN_X_SWORD]: traitTooltip(
       'Replace adrenaline with flow. Unlock the gunsaber, Dragon Trigger, and charged Dragon Slash attacks.'

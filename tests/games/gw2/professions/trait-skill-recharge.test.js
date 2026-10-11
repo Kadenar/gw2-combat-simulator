@@ -8,13 +8,15 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { ELEMENTALIST_TRAIT_IDS as E } from '#gw2/professions/elementalist/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { THIEF_TRAIT_IDS as T, THIEF_SKILL_IDS as TS } from '#gw2/professions/thief/data/ids.js';
+import { ELEMENTALIST_TRAIT_IDS as E, ELEMENTALIST_SKILL_IDS as ES } from '#gw2/professions/elementalist/data/ids.js';
 import { ENGINEER_TRAIT_IDS as N, ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
-import { GUARDIAN_TRAIT_IDS as G } from '#gw2/professions/guardian/data/ids.js';
-import { MESMER_TRAIT_IDS as M } from '#gw2/professions/mesmer/data/ids.js';
-import { NECROMANCER_TRAIT_IDS as D } from '#gw2/professions/necromancer/data/ids.js';
-import { RANGER_TRAIT_IDS as R } from '#gw2/professions/ranger/data/ids.js';
-import { WARRIOR_TRAIT_IDS as W } from '#gw2/professions/warrior/data/ids.js';
+import { GUARDIAN_TRAIT_IDS as G, GUARDIAN_SKILL_IDS as GS } from '#gw2/professions/guardian/data/ids.js';
+import { MESMER_TRAIT_IDS as M, MESMER_SKILL_IDS as MS } from '#gw2/professions/mesmer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as D, NECROMANCER_SKILL_IDS as DS } from '#gw2/professions/necromancer/data/ids.js';
+import { RANGER_TRAIT_IDS as R, RANGER_SKILL_IDS as RS } from '#gw2/professions/ranger/data/ids.js';
+import { WARRIOR_TRAIT_IDS as W, WARRIOR_SKILL_IDS as WS } from '#gw2/professions/warrior/data/ids.js';
 import { elementalistDodgeCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { explosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives/index.js';
 
@@ -36,7 +38,7 @@ import { strikeResourcesGranted } from '#gw2/professions/warrior/core/mechanics/
 import { spellbreakerStrike } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
 import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -59,63 +61,70 @@ const cases = [
   [
     mesmerProfession,
     M.METHOD_OF_MADNESS,
-    M.METHOD_OF_MADNESS,
+    MS.LESSER_CHAOS_STORM,
     28,
     (r) => r.fireTrigger(mesmerHealCompleted, { skill: heal, at: r.time, delivery: {} })
   ],
   [
     guardianProfession,
     G.ZEALOTS_RESOLUTION,
-    'guardian.core.zealotsResolution',
+    GS.LESSER_SYMBOL_OF_RESOLUTION,
     30,
     (r) => r.fireTrigger(guardianStruck, { cause: hit(r), damage: 1 })
   ],
   [
     guardianProfession,
     G.FURIOUS_FOCUS,
-    'guardian.core.furiousFocus',
+    GS.LESSER_SYMBOL_OF_BLADES,
     10,
     (r) => r.fireTrigger(justiceActivated, { cast: cast(r) })
   ],
   [
     guardianProfession,
     G.PROTECTORS_RESTORATION,
-    'guardian.core.protectorsRestoration',
+    GS.LESSER_SYMBOL_OF_PROTECTION,
     20,
     (r) => r.fireTrigger(guardianCastCompleted, { cast: cast(r) })
   ],
   [
     necromancerProfession,
     D.CHILL_OF_DEATH,
-    'chillOfDeath',
+    DS.LESSER_SPINAL_SHIVERS,
     16,
-    (r) => r.fireTrigger(necromancerStrike, { event: hit(r), details: {}, firstHit: true, shroudSkillOne: false })
+    // Owned summons retain eligibility while the invoked skill uses the same native recharge gate.
+    (r) =>
+      r.fireTrigger(necromancerStrike, {
+        event: { ...hit(r), actorType: 'summon' },
+        details: {},
+        firstHit: true,
+        shroudSkillOne: false
+      })
   ],
   [
     necromancerProfession,
     D.MALICIOUS_SWARM,
-    D.MALICIOUS_SWARM,
+    DS.LESSER_SIGNET_OF_THE_LOCUST,
     15,
     (r) => compiled(maliciousSwarm).onCastCommit(r.mechanics, cast(r))
   ],
   [
     rangerProfession,
     R.CLARION_BOND,
-    'ranger.core.clarionBond',
+    RS.LESSER_CALL_OF_THE_WILD,
     15,
     (r) => r.fireTrigger(petSwapped, { skill: heal, at: r.time })
   ],
   [
     rangerProfession,
     R.CHILD_OF_EARTH,
-    'ranger.core.childOfEarth',
+    RS.LESSER_MUDDY_TERRAIN,
     20,
     (r) => r.fireTrigger(castCompleted, { skill: heal, at: r.time })
   ],
   [
     rangerProfession,
     R.GO_FOR_THE_THROAT,
-    'ranger.core.goForTheThroatPet',
+    RS.LESSER_SIC_EM,
     10,
     (r) => {
       const skillId = r.profession.core.activePetSkillIds.at(-1);
@@ -125,7 +134,7 @@ const cases = [
   [
     rangerProfession,
     R.GO_FOR_THE_THROAT,
-    'ranger.soulbeast.goForTheThroat',
+    RS.LESSER_SIC_EM,
     10,
     (r) => r.fireTrigger(mergedBeastHit, { event: hit(r) }),
     'Soulbeast'
@@ -133,14 +142,19 @@ const cases = [
   [
     warriorProfession,
     W.SIGNET_MASTERY,
-    W.SIGNET_MASTERY,
+    WS.LESSER_SIGNET_OF_MIGHT,
     20,
     (r) => r.fireTrigger(strikeResourcesGranted, { event: hit(r) })
   ],
   ...['Fire', 'Water', 'Air', 'Earth'].map((attunement) => [
     elementalistProfession,
     E.EVASIVE_ARCANA,
-    `evasiveArcana${attunement}`,
+    {
+      Fire: ES.FLAME_BURST_TRAIT,
+      Water: ES.CLEANSING_WAVE_TRAIT,
+      Air: ES.BLINDING_FLASH_TRAIT,
+      Earth: ES.SHOCK_WAVE_TRAIT
+    }[attunement],
     10,
     (r) => {
       r.profession.core.primaryAttunement = attunement;
@@ -149,7 +163,7 @@ const cases = [
   ])
 ];
 
-function fixture(family, trait, specialization = 'Core', profileChanges) {
+function fixture(family, trait, specialization = 'Core', skillChanges) {
   const config = {
     specialization,
     selectedTraitIds: [trait],
@@ -157,8 +171,8 @@ function fixture(family, trait, specialization = 'Core', profileChanges) {
     pet: 'Juvenile Tiger'
   };
   const native = family.runtimeFor(config);
-  const profession = profileChanges
-    ? { ...native, catalog: withProfile(native.catalog, trait, profileChanges) }
+  const profession = skillChanges
+    ? { ...native, catalog: withSkill(native.catalog, skillChanges.id, { cooldown: skillChanges.cooldown }) }
     : native;
   const result = observeGw2Runtime({ profession, config, rotation: [] });
   assert.deepEqual(result.warnings, []);
@@ -167,23 +181,62 @@ function fixture(family, trait, specialization = 'Core', profileChanges) {
   return runtime;
 }
 
-for (const [family, trait, key, base, invoke, specialization] of cases) {
-  test(`${family.id} ${key} uses its profile recharge at the live trigger`, () => {
-    const runtime = fixture(family, trait, specialization);
-    runtime.time = 1;
-    invoke(runtime);
-    const deadline = canonicalTime(1 + base / 1.25);
-    assert.equal(runtime.procs.deadline(key), deadline);
-    for (const at of [1, deadline - 0.001, deadline]) {
-      runtime.time = at;
-      invoke(runtime);
-      assert.equal(runtime.procs.deadline(key), deadline);
-    }
-
-    runtime.time = deadline + 0.001;
-    invoke(runtime);
-    assert.equal(runtime.procs.deadline(key), canonicalTime(runtime.time + base / 1.25));
+// Exercise the real reset command across native catalogs, including generated trait-skill overlays.
+for (const [family, trait, id, , , specialization = 'Core'] of [
+  ...cases,
+  [warriorProfession, W.MAGEBANE_TETHER, WS.MAGEBANE_TETHER, 12, undefined, 'Spellbreaker'],
+  [engineerProfession, N.EXPLOSIVE_ENTRANCE, ENGINEER_SKILL_IDS.EXPLOSIVE_ENTRANCE_TRAIT_SKILL],
+  [engineerProfession, N.EXPLOSIVE_ENTRANCE, ENGINEER_SKILL_IDS.LESSER_GRENADE_BARRAGE],
+  [thiefProfession, T.BURST_OF_AGILITY, TS.LESSER_HASTE],
+  [thiefProfession, T.UNCATCHABLE, TS.LESSER_CALTROPS]
+]) {
+  test(`${family.id} ${id} keeps its recharge through a rotation reset`, () => {
+    const config = { specialization, selectedTraitIds: [trait], pet: 'Juvenile Tiger' };
+    const native = family.runtimeFor(config);
+    const skill = native.catalog.skillsById.get(id);
+    assert.equal(skill.type, 'Proc');
+    let deadline;
+    let progress;
+    const result = observeGw2Runtime({
+      config,
+      profession: {
+        ...native,
+        initialize(runtime) {
+          native.initialize(runtime);
+          runtime.cooldownController.startRecharge(skill, 0, 20);
+          deadline = runtime.cooldownController.readyAt(id);
+          progress = runtime.cooldownController.rechargeFor(id);
+        }
+      },
+      rotation: [{ type: 'wait', durationMs: 2000 }, { type: 'cooldown-reset' }]
+    });
+    assert.deepEqual(result.warnings, []);
+    const controller = observedRuntime(result).cooldownController;
+    assert.equal(controller.readyAt(id), deadline);
+    assert.deepEqual(controller.rechargeFor(id), progress);
   });
+}
+
+// Native skill recharge is reserved before emission and reads the selected patch's cooldown.
+for (const [family, trait, key, base, invoke, specialization] of cases) {
+  for (const cooldown of [base, 2])
+    test(`${family.id} ${key} uses ${cooldown}s recharge at the live trigger`, () => {
+      const runtime = fixture(family, trait, specialization, { id: key, cooldown });
+      const readyAt = () => runtime.cooldownController.readyAt(key);
+      runtime.time = 1;
+      invoke(runtime);
+      const deadline = canonicalTime(1 + cooldown / 1.25);
+      assert.equal(readyAt(), deadline);
+      for (const at of [1, deadline - 0.001]) {
+        runtime.time = at;
+        invoke(runtime);
+        assert.equal(readyAt(), deadline);
+      }
+
+      runtime.time = deadline;
+      invoke(runtime);
+      assert.equal(readyAt(), canonicalTime(runtime.time + cooldown / 1.25));
+    });
 }
 
 test('Method of Madness uses Chronomancer recharge instead of ordinary Alacrity', () => {
@@ -192,18 +245,18 @@ test('Method of Madness uses Chronomancer recharge instead of ordinary Alacrity'
   runtime.time = 1;
   invoke(runtime);
   const deadline = canonicalTime(1 + 28 / 1.5);
-  assert.equal(runtime.procs.deadline(M.METHOD_OF_MADNESS), deadline);
+  assert.equal(runtime.cooldownController.readyAt(MS.LESSER_CHAOS_STORM), deadline);
   runtime.time = deadline;
   invoke(runtime);
-  assert.equal(runtime.procs.deadline(M.METHOD_OF_MADNESS), deadline);
-  runtime.time += 0.001;
-  invoke(runtime);
-  assert.equal(runtime.procs.deadline(M.METHOD_OF_MADNESS), canonicalTime(runtime.time + 28 / 1.5));
+  assert.equal(runtime.cooldownController.readyAt(MS.LESSER_CHAOS_STORM), canonicalTime(runtime.time + 28 / 1.5));
 });
 
-// Tether keeps action-tick eligibility on top of the profile-owned, exclusive player recharge deadline.
+// Tether keeps action-tick eligibility on top of the skill-owned player recharge deadline.
 test('Magebane Tether uses patched recharge and waits for the action tick after an off-tick deadline', () => {
-  const runtime = fixture(warriorProfession, W.MAGEBANE_TETHER, 'Spellbreaker', { cooldown: 2.03 });
+  const runtime = fixture(warriorProfession, W.MAGEBANE_TETHER, 'Spellbreaker', {
+    id: WS.MAGEBANE_TETHER,
+    cooldown: 2.03
+  });
   const invoke = () =>
     runtime.fireTrigger(spellbreakerStrike, {
       event: { ...hit(runtime), skillId: WARRIOR_SKILL_IDS.BREACHING_STRIKE }
@@ -211,20 +264,17 @@ test('Magebane Tether uses patched recharge and waits for the action tick after 
   runtime.time = 1;
   invoke();
   const deadline = canonicalTime(1 + 2.03 / 1.25);
-  assert.equal(runtime.procs.deadline('warrior.spellbreaker.magebaneTether'), deadline);
+  assert.equal(runtime.cooldownController.readyAt(WS.MAGEBANE_TETHER), deadline);
   for (const at of [1, deadline, deadline + 0.001]) {
     runtime.time = at;
     invoke();
-    assert.equal(runtime.procs.deadline('warrior.spellbreaker.magebaneTether'), deadline);
+    assert.equal(runtime.cooldownController.readyAt(WS.MAGEBANE_TETHER), deadline);
     assert.equal(runtime.profession.specialization.state.magebaneTetherUntil, 9);
   }
 
   runtime.time = gw2CooldownReadyAt(deadline);
   invoke();
-  assert.equal(
-    runtime.procs.deadline('warrior.spellbreaker.magebaneTether'),
-    canonicalTime(runtime.time + 2.03 / 1.25)
-  );
+  assert.equal(runtime.cooldownController.readyAt(WS.MAGEBANE_TETHER), canonicalTime(runtime.time + 2.03 / 1.25));
   assert.equal(runtime.profession.specialization.state.magebaneTetherUntil, canonicalTime(runtime.time + 8));
 });
 
@@ -234,8 +284,22 @@ test('Evasive Arcana keeps independent attunement cooldowns', () => {
   cases.at(-4)[4](runtime);
   runtime.time = 2;
   cases.at(-3)[4](runtime);
-  assert.equal(runtime.procs.deadline('evasiveArcanaFire'), 9);
-  assert.equal(runtime.procs.deadline('evasiveArcanaWater'), 10);
+  assert.equal(runtime.cooldownController.readyAt(ES.FLAME_BURST_TRAIT), 9);
+  assert.equal(runtime.cooldownController.readyAt(ES.CLEANSING_WAVE_TRAIT), 10);
+});
+
+// Invoked attacks and conditions retain player ownership instead of inheriting the generic trait-effect actor.
+test('Evasive Arcana emits player-owned payloads in each damaging attunement', () => {
+  for (const attunement of ['Fire', 'Air', 'Earth']) {
+    const runtime = fixture(elementalistProfession, E.EVASIVE_ARCANA);
+    const capture = captureEffectEmissions({ now: () => runtime.time });
+    runtime.effects = capture.effects;
+    runtime.profession.core.primaryAttunement = attunement;
+    runtime.fireTrigger(elementalistDodgeCompleted, { cast: cast(runtime) });
+    const payloads = capture.events.filter((event) => event.type === 'damage' || event.type === 'condition');
+    assert.ok(payloads.some((event) => event.type === 'condition'));
+    assert.ok(payloads.every((event) => event.actorType === 'player'));
+  }
 });
 
 test('Explosive Entrance dodge rearming preserves recharge and a blocked hit does not consume the charge', () => {

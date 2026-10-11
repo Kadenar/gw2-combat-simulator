@@ -2,6 +2,8 @@
 // Committed constants keep mechanic references independent from metadata loading.
 
 export const RANGER_SKILL_IDS = Object.freeze({
+  LESSER_MUDDY_TERRAIN: 13938,
+  LESSER_CALL_OF_THE_WILD: 29449,
   PET_SWAP: -4,
   PATH_OF_SCARS_MAX_RANGE: -1001,
   RICOCHET: 12466, // Ricochet

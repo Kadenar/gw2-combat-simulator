@@ -1,7 +1,4 @@
-import {
-  elementalistConditionApplied,
-  elementalistDodgeCompleted
-} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import { elementalistConditionApplied } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
   elementalistCastCompleted,
@@ -84,13 +81,6 @@ for (const [trait, traitId, key, profile, invoke] of [
       c.fireTrigger(elementalistConditionApplied, {
         cause: { type: 'condition', condition: 'Immobilized', at: c.effectiveEnd }
       })
-  ],
-  [
-    'Evasive Arcana',
-    TRAIT.EVASIVE_ARCANA,
-    'evasiveArcanaWater',
-    TRAIT.EVASIVE_ARCANA,
-    (c) => c.fireTrigger(elementalistDodgeCompleted, { cast: castFor(c, skill) })
   ]
 ]) {
   test(`${trait} retains eligibility, zero override and strict owner-local deadlines`, () => {
@@ -98,9 +88,9 @@ for (const [trait, traitId, key, profile, invoke] of [
       const profiles = new Map(elementalistCatalog.balanceProfilesById);
       profiles.set(profile, {
         ...profiles.get(profile),
-        [traitId === TRAIT.EVASIVE_ARCANA ? 'cooldown' : 'internalCooldown']: duration
+        internalCooldown: duration
       });
-      const elapsed = traitId === TRAIT.EVASIVE_ARCANA ? duration / 1.25 : duration;
+      const elapsed = duration;
       // The unselected and selected builds each own a context; neither changes selection after its first use.
       const prepare = (traits) => {
         const fixture = contextFor('Core', {}, traits);

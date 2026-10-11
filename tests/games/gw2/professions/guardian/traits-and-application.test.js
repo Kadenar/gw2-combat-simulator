@@ -231,7 +231,7 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     true
   );
   assert.equal(
-    observedRuntime(zealotsResolution).procs.deadline('guardian.core.zealotsResolution'),
+    observedRuntime(zealotsResolution).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION),
     resolution[0].at + 24
   );
 });
@@ -258,7 +258,10 @@ test("Zealot's Resolution requires the enemy to be below its threshold before th
     (event) => event.type === 'damage' && event.skillName === 'Pure Strike'
   );
   assert.equal(pulses(followup)[0].at, secondHit.at);
-  assert.equal(observedRuntime(followup).procs.deadline('guardian.core.zealotsResolution'), secondHit.at + 24);
+  assert.equal(
+    observedRuntime(followup).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION),
+    secondHit.at + 24
+  );
 });
 
 test("Spear's Furious Focus symbol precedes the tether and only later pulses gain Big Game Hunter", () => {
@@ -322,7 +325,7 @@ test('Furious Focus uses a separate stochastic weapon-strength activation from i
 });
 
 test("Healer's Resolution grants eight seconds on committed heals with a shared twenty-second ICD", () => {
-  // Different heals share the same strict cooldown boundary; canceled casts and utilities cannot claim it.
+  // Different heals share the same native cooldown boundary; canceled casts and utilities cannot claim it.
   const settings = { selectedTraitIds: [GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION] };
   for (const skillId of [GUARDIAN_SKILL_IDS.SHELTER, GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE]) {
     const ordinary = runGuardian([skillId], settings);
@@ -371,25 +374,34 @@ test("Protector's Restoration shares an Alacrity-adjusted sixteen-second recharg
       const deadline = completion - offset;
       const result = runGuardian([skillId], settings, {
         initialize: (runtime) => {
-          runtime.procs.setDeadline('guardian.core.protectorsRestoration', deadline);
+          runtime.cooldownController.setReadyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION, deadline);
         }
       });
       const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'protection');
-      assert.equal(boons.length > 0, offset > 0);
+      assert.equal(boons.length > 0, offset >= 0);
       assert.equal(
-        observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'),
-        offset > 0 ? completion + 16 : deadline
+        observedRuntime(result).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION),
+        offset >= 0 ? completion + 16 : deadline
       );
     }
 
     const canceled = runGuardian([{ skillId, interruptAfterMs: 1 }], settings);
-    assert.equal(observedRuntime(canceled).procs.deadline('guardian.core.protectorsRestoration'), 0);
+    assert.equal(
+      observedRuntime(canceled).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION),
+      undefined
+    );
   }
 
   const utility = runGuardian(['Bane Signet'], settings);
-  assert.equal(observedRuntime(utility).procs.deadline('guardian.core.protectorsRestoration'), 0);
+  assert.equal(
+    observedRuntime(utility).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION),
+    undefined
+  );
   const untraited = runGuardian(['Shelter']);
-  assert.equal(observedRuntime(untraited).procs.deadline('guardian.core.protectorsRestoration'), 0);
+  assert.equal(
+    observedRuntime(untraited).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION),
+    undefined
+  );
 });
 
 test("Protector's Restoration pulses Protection and symbol damage while its Light field enables combos", () => {
@@ -421,9 +433,12 @@ test("Protector's Restoration pulses Protection and symbol damage while its Ligh
   const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Mighty Blow');
   assert.deepEqual(
     [combo.fieldSourceId, combo.fieldType, combo.finisherType],
-    [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION, 'Light', 'Blast']
+    [GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION, 'Light', 'Blast']
   );
-  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), start + 16);
+  assert.equal(
+    observedRuntime(result).cooldownController.readyAt(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION),
+    start + 16
+  );
   const expired = run(2500);
   assert.deepEqual(expired.warnings, []);
   assert.equal(

@@ -3,7 +3,7 @@ import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -16,11 +16,8 @@ import {
   mesmerControlAccepted,
   mesmerHealCompleted
 } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
-import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { buildMesmerStrikes, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -104,30 +101,16 @@ export const chaoticInterruption = defineTrait<MesmerSkill>({
   }
 });
 
-/** Keep Method of Madness's authored attack and cooldown with its definition. */
+/** A completed heal invokes the storm; the skill owns its payload and Alacrity-adjusted recharge. */
 export const methodOfMadness = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerHealCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerHealCompleted>) =>
-        triggerMethodOfMadness(runtime, input.skill, input.at, methodOfMadnessDamage(runtime), input.delivery)
+        triggerMethodOfMadness(runtime, input.skill, input.at, input.delivery)
     })
   ],
   id: TRAIT.METHOD_OF_MADNESS,
-  name: 'Method of Madness',
-  // The lesser storm owns a skill recharge, including Chronomancer's stronger Alacrity.
-  balance: {
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 28,
-    effects: [
-      {
-        name: 'Strike',
-        type: 'strike',
-        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 1.98 / 6 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
-  }
+  name: 'Method of Madness'
 });
 
 /**
@@ -229,51 +212,34 @@ function triggerMethodOfMadness(
   context: MesmerRuntime,
   skill: MesmerSkill,
   at: number,
-  storm: MesmerTraitDamage,
   delivery: EffectDelivery = {}
 ): void {
   if (skill.type !== 'Heal') return;
-  // A removed storm has no attack, proc, or attack-owned cooldown.
-  if (storm.type !== 'strike' || !context.procs.claim(TRAIT.METHOD_OF_MADNESS, TRAIT.METHOD_OF_MADNESS, at)) return;
-  buildMesmerStrikes(
+  const storm = context.helpers.skillsById.get(ID.LESSER_CHAOS_STORM)!;
+  // The selected skill owns its recharge and surviving payload; no trait profile duplicates it.
+  if (!storm.effects?.length || context.cooldownController.isOnCooldown(storm.id, context.time)) return;
+  context.cooldownController.startRecharge(storm, context.time);
+  invokeTraitSkill(
     context,
+    TRAIT.METHOD_OF_MADNESS,
+    storm.id,
     {
-      id: 'Lesser Chaos Storm',
-      name: 'Lesser Chaos Storm',
-      weapon: 'Utility',
-      blade: false
+      type: 'action',
+      at,
+      source: 'Trait',
+      sourceId: skill.id,
+      skillId: skill.id,
+      skillName: skill.name,
+      actorType: 'player'
     },
-    at,
     {
-      ...storm,
-      summonKind: undefined,
-      timingAnchor: 'castStart',
-      timingScale: 'fixed',
-      source: 'Player',
-      weapon: 'utility'
+      cast: delivery.cast,
+      attribution: { actorType: 'player' },
+      announce: true,
+      announcementName: 'Method of Madness',
+      logAnnouncement: true
     }
-  ).forEach((packet) => {
-    context.effects.emit({
-      ...delivery,
-      kind: 'packet',
-      event: packet,
-      owner: mesmerPacketOwner(packet),
-      priority: Number(packet.priority ?? 0)
-    });
-  });
-  context.effects.emit({
-    ...delivery,
-    kind: 'announcement',
-    log: true,
-    attribution: { source: 'Trait', sourceId: TRAIT.METHOD_OF_MADNESS, actorType: 'effect' },
-    announcement: { type: 'trait', name: 'Method of Madness', at: at, sourceSkill: skill.name, detail: '' }
-  });
-  // Elite consequences follow the accepted mechanic, independently of its diagnostic marker.
-  // Only Troubadour owns the delayed Syncopate consequence of this accepted heal.
+  );
+  // Syncopate follows the accepted storm independently of diagnostic logging.
   if (context.profession.specialization.kind === 'Troubadour') context.schedule('mesmer.syncopate', at);
-}
-
-/** Compile the selected storm before the shared runtime begins processing casts. */
-export function methodOfMadnessDamage(context: unknown): MesmerTraitDamage {
-  return mesmerProfiledTraitDamage(context, { requiresCooldown: true }, TRAIT.METHOD_OF_MADNESS);
 }

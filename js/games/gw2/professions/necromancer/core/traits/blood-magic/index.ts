@@ -176,36 +176,9 @@ export const overflowingThirst = defineTrait({
 export const transfusion = defineTrait({
   id: TRAIT.TRANSFUSION,
   name: 'Transfusion',
-  balance: {
-    effects: [
-      { name: 'Strike', type: 'strike', coefficient: 1.8, hits: 1 },
-      { name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 2, duration: 4 },
-      { name: 'Chilled', type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
-    ]
-  },
+
   triggers: [
-    ...(['Strike', 'Poisoned', 'Chilled'] as const).map<
-      Extract<
-        NonNullable<import('#gw2/platform/profession-definition/traits.js').TraitDefinition['triggers']>[number],
-        { on: 'castCommit' }
-      >
-    >((name) => ({
-      order: 2,
-      on: 'castCommit' as const,
-      when: (_runtime, cast) => cast.skill.shroudSlot === 4,
-      emit: TRAIT.TRANSFUSION,
-      effects: (effect) => effect.type === (name === 'Strike' ? 'strike' : 'condition') && effect.name === name,
-      attribution: (runtime, cast) => ({
-        skillId: ID.LESSER_CHILBLAINS,
-        skillName: 'Lesser Chilblains',
-        name: name === 'Strike' ? 'Lesser Chilblains' : `Lesser Chilblains — ${name}`,
-        parentSkillName: cast.skill.name,
-        icon: runtime.helpers.skillsById.get(ID.CHILLBLAINS)?.icon,
-        triggeredBy: cast.skill.name,
-        offTarget: cast.command.offTarget,
-        skillWeapon: 'Unequipped'
-      })
-    }))
+    { order: 2, on: 'castCommit', when: (_runtime, cast) => cast.skill.shroudSlot === 4, invoke: ID.LESSER_CHILBLAINS }
   ]
 });
 
@@ -213,33 +186,12 @@ export const transfusion = defineTrait({
 export const markOfEvasion = defineTrait({
   id: TRAIT.MARK_OF_EVASION,
   name: 'Mark of Evasion',
-  balance: {
-    effects: [
-      { name: 'Strike', type: 'strike', coefficient: 0.33, hits: 1 },
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
-      {
-        name: 'Regeneration',
-        type: 'boon',
-        boon: 'regeneration',
-        stacks: 1,
-        duration: 5,
-        audience: { recipients: 'party', maximumRecipients: 5 }
-      }
-    ]
-  },
+
   triggers: [
     {
       on: 'castCommit',
       when: (runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE && runtime.combatStartedAt(),
-      emit: TRAIT.MARK_OF_EVASION,
-      attribution: (_runtime, cast) => ({
-        skillId: undefined,
-        skillName: 'Lesser Mark of Blood',
-        name: 'Lesser Mark of Blood',
-        skillWeapon: 'Unequipped',
-        triggeredBy: cast.skill.name,
-        offTarget: cast.command.offTarget
-      })
+      invoke: ID.LESSER_MARK_OF_BLOOD
     }
   ]
 });

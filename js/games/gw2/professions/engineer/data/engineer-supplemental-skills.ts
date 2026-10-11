@@ -2,6 +2,7 @@
  * API-omitted skill identity and display metadata for skills supported by the simulator.
  *
  * Combat coefficients, costs, timing, and effects belong in owner-local skills.ts files.
+ * Automatic trait skills use the Proc type so rotation resets preserve their recharges.
  * Specialization labels use canonical names so shared build eligibility matches toolbelt skills.
  */
 interface EngineerSupplementalSkill {
@@ -313,7 +314,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Lesser Grenade Barrage',
     description: 'Throw several grenades at once.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Grenade_Barrage.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -413,40 +414,13 @@ const records: EngineerSupplementalSkill[] = [
     flipSkillId: null,
     simulatorExcluded: false
   },
-  {
-    id: 12334,
-    name: 'Confusing Speech',
-    description: 'Confuse nearby foes with complex calculations.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Confusing_Speech.png',
-    type: 'Profession',
-    slot: 'Action',
-    specialization: '',
-    categories: ['Tool belt'],
-    nextChainId: null,
-    flipSkillId: null,
-    // Racial parent skills are outside the supported loadout.
-    simulatorExcluded: true
-  },
-  {
-    id: 12336,
-    name: 'Vent Radiation',
-    description: 'Vent radioactive gas to poison nearby foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vent_Radiation.png',
-    type: 'Profession',
-    slot: 'Action',
-    specialization: '',
-    categories: ['Tool belt'],
-    nextChainId: null,
-    flipSkillId: null,
-    // Racial parent skills are outside the supported loadout.
-    simulatorExcluded: true
-  },
+
   {
     id: 13465,
     name: 'Lesser Elixir B',
     description: 'Quaff an elixir, gaining boons.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Elixir_B.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: ['elixir'],
@@ -461,7 +435,7 @@ const records: EngineerSupplementalSkill[] = [
       'Hit multiple foes with arcs of chain lightning. Critical hits with this ability deal increased damage.',
     // Use the canonical skill render so proc and damage-breakdown images resolve to the same asset.
     icon: 'https://render.guildwars2.com/file/01D310FE65DBA378CBAFD13B2BFEDE59939C5153/102964.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -474,7 +448,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Drop Mine',
     description: 'Drop a mine that deals damage to enemies that trigger it.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Drop_Mine.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -482,51 +456,13 @@ const records: EngineerSupplementalSkill[] = [
     flipSkillId: null,
     simulatorExcluded: false
   },
-  {
-    id: 17811,
-    name: 'Magnetic Bomb (trait skill)',
-    description: 'Set a timed charge that pulls nearby foes.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Bomb_(trait_skill).png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 17812,
-    name: 'Superspeed (trait skill)',
-    description: 'Run at double speed.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superspeed_(trait_skill).png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 17813,
-    name: 'Fire Shield (trait skill)',
-    description: 'Activate a fire shield that burns enemies who strike you, granting might for each burn applied.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Shield_(trait_skill).png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
+
   {
     id: 17814,
     name: 'Magnetic Aura (trait skill)',
     description: 'Become surrounded in a magnetic shield that reflects projectiles.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Aura_(trait_skill).png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -552,7 +488,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Bunker Down (trait skill)',
     description: 'Detonates when enemies draw near.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bunker_Down_(trait_skill).png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -599,19 +535,7 @@ const records: EngineerSupplementalSkill[] = [
     flipSkillId: null,
     simulatorExcluded: false
   },
-  {
-    id: 29606,
-    name: 'Invisible Analysis',
-    description: 'Analyze a stealthed foe, applying vulnerability.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Invisible_Analysis.png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: ['Tool belt'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
+
   {
     id: 29665,
     name: 'Bypass Coating',
@@ -630,7 +554,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Cleansing Pulse',
     description: 'Cleanse a condition from nearby allies.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Pulse.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -669,7 +593,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Lesser Utility Goggles',
     description: 'Gain resistance, clear blindness, and remove damaging conditions.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Utility_Goggles.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: ['gadget'],
@@ -682,7 +606,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Aim-Assisted Rocket',
     description: 'Fire a seeking rocket at your foe.',
     icon: 'https://render.guildwars2.com/file/C61F211044C97242B6324B6F092802706A5FC101/103936.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -721,7 +645,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Bandage (trait skill)',
     description: 'Drop a pack of bandages that provides a little healing.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bandage_(trait_skill).png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -853,7 +777,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Orbital Command Strike',
     description: 'Call down energy from the sky to blast an area.',
     icon: 'https://render.guildwars2.com/file/99CFD7B1B200DCC508172BC8A3C2EE970C06493E/1012854.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],
@@ -1055,7 +979,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Controlled Analysis',
     description: 'Analyze a disabled foe, applying vulnerability.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Controlled_Analysis.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: ['Tool belt'],
@@ -1160,7 +1084,7 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Explosive Entrance',
     description: 'Your first attack explodes, dealing extra damage to nearby enemies.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Explosive_Entrance_(trait_skill).png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     specialization: '',
     categories: [],

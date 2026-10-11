@@ -5,6 +5,9 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.BLADECALL_NON_VIRTUOSO]: {
+    // Launched daggers survive cancellation while the committed cast keeps its recovery lockout.
+    interruptCommitMs: 200,
+    retainsCastLockoutAfterInterrupt: true,
     resource: {
       mode: 'add',
       count: 1
@@ -15,7 +18,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
       { atMs: 2720, hits: 2 },
       { atMs: 2760, hits: 1 }
     ].flatMap(({ atMs, hits }) =>
-      impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'strike',
           coefficient: 0.25 * hits,

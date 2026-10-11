@@ -1,30 +1,9 @@
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { guardianTraitIcon, guardianTraitName } from '#gw2/professions/guardian/core/traits/metadata.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-
-// These child effects have packet identities but no player-selectable catalog entry.
-const symbols: Readonly<Record<SkillId, Skill>> = {
-  [ID.LESSER_SYMBOL_OF_BLADES]: {
-    id: ID.LESSER_SYMBOL_OF_BLADES,
-    name: 'Lesser Symbol of Blades',
-    weapon: 'Unequipped'
-  },
-  [ID.LESSER_SYMBOL_OF_PROTECTION]: {
-    id: ID.LESSER_SYMBOL_OF_PROTECTION,
-    name: 'Lesser Symbol of Protection',
-    weapon: 'Unequipped'
-  },
-  [ID.LESSER_SYMBOL_OF_RESOLUTION]: {
-    id: ID.LESSER_SYMBOL_OF_RESOLUTION,
-    name: 'Lesser Symbol of Resolution',
-    weapon: 'Unequipped'
-  }
-};
 
 /** A triggered symbol owns a distinct activation and schedules only its surviving selected components. */
 export function emitTraitSymbol(
@@ -32,14 +11,15 @@ export function emitTraitSymbol(
   trait: number,
   symbolId: SkillId,
   cause: Gw2ResolverEvent,
-  options: { party?: boolean; fieldDuration?: (effect: SkillEffect) => number; cooldownKey?: SkillId } = {}
+  options: { fieldDuration?: (effect: SkillEffect) => number } = {}
 ): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, trait);
+  const profile = runtime.helpers.skillsById.get(symbolId)!;
   const components = (profile.effects ?? []).filter((effect) => effect.type === 'strike' || effect.type === 'boon');
   if (!components.length) return false;
-  // A surviving symbol claims its profile's recharge before child effects can cause another activation.
-  if (options.cooldownKey && !runtime.procs.claim(trait, options.cooldownKey, runtime.time)) return false;
-  const symbol = symbols[symbolId];
+  // A surviving symbol reserves its native skill recharge before any derived activation.
+  if (runtime.cooldownController.isOnCooldown(symbolId, runtime.time)) return false;
+  runtime.cooldownController.startRecharge(profile, runtime.time);
+  const symbol = profile;
   const activationId = `guardian.symbol:${symbolId}:${cause.activationId ?? cause.eventOrder}:${runtime.time}`;
   for (const component of components) {
     if (component.type === 'strike' && !component.ticks?.length)
@@ -48,8 +28,7 @@ export function emitTraitSymbol(
       ...component,
       ...(component.type === 'strike'
         ? { name: symbol.name, weapon: 'Unequipped', metadata: { ...component.metadata, guardianSymbol: true } }
-        : {}),
-      ...(options.party && component.type === 'boon' ? { audience: { recipients: 'party' as const } } : {})
+        : {})
     };
     // Selected symbol components retain their field and activation while transport stays shared.
     const fieldDuration = options.fieldDuration?.(component) ?? 0;
@@ -60,7 +39,7 @@ export function emitTraitSymbol(
       cause,
       attribution: {
         source: 'Trait',
-        sourceId: trait,
+        sourceId: symbolId,
         actorType: 'player',
         skillId: symbolId,
         skillName: symbol.name,
@@ -85,7 +64,7 @@ export function emitTraitSymbol(
         name: symbol.name,
         at: runtime.time,
         sourceSkill: cause.skillName,
-        detail: profile.name,
+        detail: guardianTraitName(trait),
         icon: guardianTraitIcon(trait)
       }
     });

@@ -1,3 +1,4 @@
+import { RANGER_CORE_TRAIT_SKILLS } from '#gw2/professions/ranger/core/skills/trait-skills.js';
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
@@ -132,6 +133,7 @@ test('Soulbeast Beast catalogs follow family and archetype ownership', async () 
 
 test('Core Ranger supplemental identities compose from their semantic owners', () => {
   assert.deepEqual(RANGER_CORE_EXTRA_SKILLS, [
+    ...RANGER_CORE_TRAIT_SKILLS,
     ...RANGER_CORE_SPEAR_EXTRA_SKILLS,
     ...RANGER_CORE_AXE_EXTRA_SKILLS,
     ...RANGER_CORE_ACTION_SKILLS

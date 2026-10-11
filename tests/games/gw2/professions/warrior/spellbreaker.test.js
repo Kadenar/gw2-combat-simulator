@@ -99,7 +99,7 @@ test('Magebane starts at impact after its triggering damage and expires without 
   assert.equal(result.procSteps.find((proc) => proc.skill === 'Magebane Tether').start, Math.round(hit.at * 1000));
   assert.equal(result.planningState.profession.magebaneTetherUntil, 0);
   const missed = run([{ name: 'Breaching Strike', offTarget: true }], { selectedTraitIds: [TRAIT.MAGEBANE_TETHER] });
-  assert.equal(observedRuntime(missed).procs.deadline('warrior.spellbreaker.magebaneTether'), 0);
+  assert.equal(observedRuntime(missed).cooldownController.readyAt(ID.MAGEBANE_TETHER), undefined);
 });
 
 test('Magebane recharge ignores temporary Alacrity and admits the next action tick', () => {
@@ -147,9 +147,9 @@ test('Magebane recharge ignores temporary Alacrity and admits the next action ti
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
       result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').map((proc) => proc.start),
-      [0, 9640]
+      [0, 9600]
     );
-    assert.equal(result.planningState.profession.magebaneTetherUntil, 17.64);
+    assert.equal(result.planningState.profession.magebaneTetherUntil, 17.6);
   }
 });
 
@@ -159,10 +159,8 @@ test('removed Insight and Tether packets cannot create their state or proc windo
     label: 'Spellbreaker removed',
     professions: {
       warrior: {
-        balanceProfiles: {
-          [TRAIT.ATTACKERS_INSIGHT]: { removeEffects: [{ type: 'buff' }] },
-          [TRAIT.MAGEBANE_TETHER]: { removeEffects: [{ type: 'buff' }] }
-        }
+        balanceProfiles: { [TRAIT.ATTACKERS_INSIGHT]: { removeEffects: [{ type: 'buff' }] } },
+        skills: { [ID.MAGEBANE_TETHER]: { removeEffects: [{ type: 'buff' }] } }
       }
     }
   });
@@ -177,7 +175,7 @@ test('removed Insight and Tether packets cannot create their state or proc windo
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(result.planningState.profession.attackerInsightExpiries, []);
   assert.equal(result.planningState.profession.magebaneTetherUntil, 0);
-  assert.equal(observedRuntime(result).procs.deadline('warrior.spellbreaker.magebaneTether'), 0);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.MAGEBANE_TETHER), undefined);
 });
 
 test('Insight and Tether use the same live owner in detailed and score execution', () => {

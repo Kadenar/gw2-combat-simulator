@@ -1,3 +1,5 @@
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fromProfile,
@@ -336,6 +338,14 @@ export const rangerTooltips: ProfessionTooltips = {
       : [])
   ],
   skills: {
+    [ID.LESSER_CALL_OF_THE_WILD]: (context, entity) => ({
+      // The shared skill tooltip renders the custom packet's finisher alongside these boon and condition facts.
+      ...simulationEffectFacts(
+        context.catalog.skillsById.get(entity.id)!.effects?.filter((effect) => effect.type !== 'custom')
+      ),
+      description:
+        'Clarion Bond invokes this skill after a pet swap, granting party boons, weakening the target, and performing a blast finisher.'
+    }),
     [ID.FROST_SPIRIT]: spiritTooltip(
       "Grant resistance on summon, perform Cold Snap's blast finisher, then grant resolution with four shakes. Nature's Vengeance repeats the slam after the final shake. Condition cleansing is outside combat simulation scope."
     ),
@@ -470,9 +480,9 @@ export const rangerTooltips: ProfessionTooltips = {
       ],
       'base application; stacks depend on target health'
     ),
-    [TRAIT.CLARION_BOND]: traitTooltip(
-      'Swapping pets triggers Lesser Call of the Wild: grant party boons, weaken the target, and perform a blast finisher.',
-      [['cooldown', 'Base skill recharge', tooltipSeconds]]
+    [TRAIT.CLARION_BOND]: traitSkillTooltip(
+      [ID.LESSER_CALL_OF_THE_WILD],
+      'Swapping pets invokes Lesser Call of the Wild, granting party boons and applying weakness with a blast finisher.'
     ),
     [TRAIT.WOLFSONG]: traitTooltip(
       'Your strikes deal increased damage against vulnerable targets. Using a beast skill with a canine pet inflicts vulnerability.',
@@ -642,52 +652,45 @@ export const rangerTooltips: ProfessionTooltips = {
       ['damageMultiplier', 'Pet strike damage', tooltipFactorChange]
     ]),
     [TRAIT.ZEPHYRS_SPEED]: outsideScopeTooltip,
-    [TRAIT.GO_FOR_THE_THROAT]: (balanceContext, entity) => ({
-      description:
-        "Your pet's beast-skill hit grants it Lesser Sic 'Em. The first hit of your merged Beast Ability grants the separate personal bonus instead.",
-      facts: [
-        profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
-        profileFact(
-          balanceContext,
-          TRAIT.GO_FOR_THE_THROAT,
-          'damageMultiplier',
-          'Pet strike damage',
-          tooltipFactorChange
-        ),
-        profileFact(
-          balanceContext,
-          TRAIT.GO_FOR_THE_THROAT,
-          'playerDamageMultiplier',
-          'Player strike damage in Beastmode',
-          tooltipFactorChange
-        ),
-        ...(tooltipProfile(balanceContext, entity.id).effects || []).flatMap(
-          (effect, index) => simulationEffectFacts([effect], index === 0 ? 'pet' : 'player in Beastmode').facts
-        )
-      ]
-    }),
+    [TRAIT.GO_FOR_THE_THROAT]: traitSkillTooltip(
+      [ID.LESSER_SIC_EM],
+      'Beast skill hits invoke Lesser Sic Em for the pet, or the player while merged.',
+      (context) => {
+        const skill = context.catalog.skillsById.get(ID.LESSER_SIC_EM)!;
+        return [
+          {
+            name: 'Pet strike damage',
+            detail: tooltipFactorChange(
+              1 + Number(requireEffect(skill, 'buff', 'lesser-sic-em-pet')?.damageIncreasePerStack ?? 0)
+            )
+          },
+          {
+            name: 'Merged player strike damage',
+            detail: tooltipFactorChange(
+              1 + Number(requireEffect(skill, 'buff', 'lesser-sic-em')?.damageIncreasePerStack ?? 0)
+            )
+          }
+        ];
+      }
+    ),
     [TRAIT.NATURAL_VIGOR]: traitTooltip('Endurance regenerates faster.', [
       ['vigorRegenerationMultiplier', 'Endurance regeneration', tooltipPercent]
     ]),
     [TRAIT.COMPANIONS_DEFENSE]: outsideScopeTooltip,
     [TRAIT.RUGGED_GROWTH]: outsideScopeTooltip,
-    [TRAIT.CHILD_OF_EARTH]: (balanceContext, entity) => {
-      const profile = tooltipProfile(balanceContext, entity.id);
-      return {
-        description:
-          'Completing a healing skill triggers Lesser Muddy Terrain: immobilize once, then repeatedly cripple and slow the target.',
-        facts: [
-          profileFact(balanceContext, entity.id, 'cooldown', 'Base skill recharge', tooltipSeconds),
-          profileFact(balanceContext, entity.id, 'pulseInterval', 'Pulse interval', tooltipSeconds),
-          ...simulationEffectFacts(
-            (profile.effects || []).map((effect, index) => ({
-              ...effect,
-              applications: index === 0 ? 1 : tooltipNumber(profile, 'maximumStacks')
-            }))
-          ).facts
-        ]
-      };
-    },
+    [TRAIT.CHILD_OF_EARTH]: traitSkillTooltip(
+      [ID.LESSER_MUDDY_TERRAIN],
+      'Completing a healing skill invokes Lesser Muddy Terrain, immobilizing once and repeatedly crippling and slowing the target.',
+      (context) => {
+        // Read cadence from the surviving repeating condition rather than duplicating skill tuning.
+        const effect = requireSkillFromContext(context, ID.LESSER_MUDDY_TERRAIN).effects?.find(
+          (effect) => effect.type === 'condition' && Number(effect.applications) > 1
+        );
+        return effect
+          ? [{ name: 'Pulse interval', detail: tooltipSeconds(tooltipNumber(effect, 'intervalMs') / 1000) }]
+          : [];
+      }
+    ),
     [TRAIT.OAKHEART_SALVE]: outsideScopeTooltip,
     [TRAIT.ARACHNOPHOBIA]: traitTooltip(
       'Gain expertise, with an additional expertise bonus for spider and devourer pets. Their Spit or Twin Darts inflicts torment; Twin Darts splits the duration across its projectiles.',

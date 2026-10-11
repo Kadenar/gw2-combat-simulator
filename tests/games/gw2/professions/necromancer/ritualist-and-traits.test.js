@@ -1085,7 +1085,7 @@ test('Lesser Chilblains owns its strike and poison damage attribution', () => {
   const baselineSoulSpiral = skillBreakdownRows(baseline).find((row) => row.name === 'Soul Spiral');
   const attributedEvents = result.resolvedEvents.filter(
     (event) =>
-      event.sourceId === TRAIT.TRANSFUSION &&
+      event.sourceId === ID.LESSER_CHILBLAINS &&
       (event.type === 'damage' || (event.type === 'condition' && event.condition === 'Poisoned'))
   );
   const chilblainsIcon = necromancerCatalog.skillsById.get(ID.CHILLBLAINS)?.icon;
@@ -1096,7 +1096,8 @@ test('Lesser Chilblains owns its strike and poison damage attribution', () => {
   assert.equal(lesserChilblains?.icon, chilblainsIcon);
   assert.equal(lesserChilblains?.parentSkill, 'Soul Spiral');
   assert.equal(lesserChilblains?.casts, 0);
-  assert.equal(soulSpiral?.condition, baselineSoulSpiral?.condition);
+  // Shared condition-tick rounding can redistribute a single point between owners.
+  assert.ok(Math.abs(soulSpiral.condition - baselineSoulSpiral.condition) <= 1);
   assert.ok(attributedEvents.some((event) => event.type === 'damage'));
   assert.ok(attributedEvents.some((event) => event.type === 'condition'));
   assert.equal(
@@ -1158,7 +1159,7 @@ test('cross-specialization Necromancer trait triggers remain executable', () => 
     true
   );
   assert.equal(
-    reaper.breakdown.some((entry) => entry.name === 'Lesser Chilblains'),
+    reaper.resolvedEvents.some((entry) => entry.type === 'damage' && entry.skillId === ID.LESSER_CHILBLAINS),
     true
   );
   assert.equal(
@@ -1173,7 +1174,9 @@ test('cross-specialization Necromancer trait triggers remain executable', () => 
   );
   assert.ok(fear.conditionDamage > 0);
   assert.equal(
-    malicious.breakdown.some((entry) => entry.name === 'Lesser Signet of the Locust'),
+    malicious.resolvedEvents.some(
+      (entry) => entry.type === 'damage' && entry.skillId === ID.LESSER_SIGNET_OF_THE_LOCUST
+    ),
     true
   );
   assert.equal(ashes.planningState.profession.lifeForce.value, 10);

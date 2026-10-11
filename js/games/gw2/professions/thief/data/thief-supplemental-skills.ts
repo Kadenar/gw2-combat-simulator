@@ -67,7 +67,8 @@ const records = [
     name: 'Lesser Caltrops',
     description: 'Scatter caltrops that cripple and bleed foes.',
     icon: 'https://render.guildwars2.com/file/A85F59D91114D0702C3AB54A0AA81EC1CAE66CF5/103073.png',
-    type: 'Action',
+    // Automatic trait skills keep their recharge when a rotation resets activated skills.
+    type: 'Proc',
     slot: 'Action',
     weapon: '',
     specialization: '',
@@ -81,7 +82,7 @@ const records = [
     name: 'Lesser Haste',
     description: 'Gain quickness, fury, and swiftness.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Haste.png',
-    type: 'Action',
+    type: 'Proc',
     slot: 'Action',
     weapon: '',
     specialization: '',

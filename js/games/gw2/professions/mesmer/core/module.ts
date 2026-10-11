@@ -1,3 +1,4 @@
+import { MESMER_CORE_TRAIT_SKILLS } from '#gw2/professions/mesmer/core/skills/trait-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { mesmerCoreModifiers } from '#gw2/professions/mesmer/core/modifiers.js';
@@ -17,7 +18,7 @@ export const mesmerCoreModule = defineNativeModule({
   data: createMesmerModuleData('Core', {
     skillMechanics: MESMER_CORE_SKILL_MECHANICS,
     supplementalSkillMechanics: MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
-    extraSkills: MESMER_CORE_EXTRA_SKILLS,
+    extraSkills: [...MESMER_CORE_EXTRA_SKILLS, ...MESMER_CORE_TRAIT_SKILLS],
     balanceProfiles: MESMER_CORE_BALANCE_PROFILES
   }),
   state: {

@@ -40,12 +40,14 @@ test('cast-stage invocation carries the accepted cast identity as cause without 
     helpers: { skillsById: new Map([[2, burst]]) },
     effects: { emit: (request) => requests.push(request) }
   };
-  hooks.onCastCommit(runtime, { id: 'accepted:cast', skill: strike });
+  hooks.onCastCommit(runtime, { id: 'accepted:cast', skill: strike, command: { offTarget: true } });
   assert.equal(requests[0].cause.activationId, 'accepted:cast');
   assert.equal(requests[0].cause.skillId, strike.id);
   assert.equal(requests[0].cause.at, 3);
-  assert.equal(requests[0].attribution.skillId, burst.id);
-  assert.equal(requests[0].attribution.activationId, undefined);
+  const attribution = requests[0].attribution(burst.effects[0]);
+  assert.equal(attribution.skillId, burst.id);
+  assert.equal(attribution.activationId, undefined);
+  assert.equal(attribution.offTarget, true);
 });
 
 // JavaScript callers receive the same authoring rejection as TypeScript instead of silent listener omissions.

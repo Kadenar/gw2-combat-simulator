@@ -66,8 +66,8 @@ test('Magebane Tether ignores Alacrity gained or lost during its recharge', () =
       rotation: [{ type: 'wait', durationMs: 11000 }]
     });
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(windows, [true, false, true]);
-    assert.equal(observedRuntime(result).profession.specialization.state.magebaneTetherUntil, 17.64);
+    assert.deepEqual(windows, [true, true, true]);
+    assert.equal(observedRuntime(result).profession.specialization.state.magebaneTetherUntil, 17.6);
   }
 });
 

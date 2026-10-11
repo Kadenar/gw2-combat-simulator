@@ -86,41 +86,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       }
     ]
   },
-  [ID.MAGNETIC_BOMB_TRAIT_SKILL]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'pull'
-      }
-    ]
-  },
-  [ID.SUPERSPEED_TRAIT_SKILL]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: []
-  },
-  [ID.FIRE_SHIELD_TRAIT_SKILL]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 10,
-        stacks: 1
-      }
-    ]
-  },
+
   [ID.MAGNETIC_AURA_TRAIT_SKILL]: {
     castTimeMs: 0,
     cooldown: 0,
@@ -146,25 +112,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       }
     ]
   },
-  [ID.INVISIBLE_ANALYSIS]: {
-    castTimeMs: 0,
-    cooldown: 25,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 8,
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 5,
-        stacks: 1
-      }
-    ]
-  },
+
   [ID.CLEANSING_PULSE]: {
     castTimeMs: 0,
     cooldown: 0,

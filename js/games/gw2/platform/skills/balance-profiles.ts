@@ -26,6 +26,7 @@ type SkillEffectByType<TType extends SkillEffect['type']> = TType extends Strike
           : never;
 
 interface BalanceProfileCatalogLike {
+  readonly skillsById?: ReadonlyMap<SkillId, Skill>;
   readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
 }
@@ -81,6 +82,14 @@ export function requireBalanceProfileFromContext(context: unknown, id: SkillId):
       `Invalid balance data: ${balanceDataLabel(context, `profile=${id}`)} missing required profile/catalog`
     );
   return profile;
+}
+
+/** Resolve a required skill from the selected catalog without falling through to another patch on a miss. */
+export function requireSkillFromContext(context: unknown, id: SkillId): Skill {
+  const skill = catalogFromContext(context)?.skillsById?.get(id);
+  if (!skill)
+    throw new Error(`Invalid balance data: ${balanceDataLabel(context, `skill=${id}`)} missing required skill/catalog`);
+  return skill;
 }
 
 /** Owners carry their selected source, so diagnostics never need the runtime context that resolved them. */

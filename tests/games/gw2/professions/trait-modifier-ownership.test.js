@@ -237,10 +237,17 @@ test('Lingering Curse scales only eligible Scepter base duration with selected p
 });
 
 test('merged Beastmastery rules preserve selection, ownership, specialization, and accepted buff expiry', () => {
-  const family = patched(rangerProfession, {
-    [RANGER.LOUD_WHISTLE]: { fields: { playerDamageMultiplier: 1.2 } },
-    [RANGER.GO_FOR_THE_THROAT]: { fields: { playerDamageMultiplier: 1.3 } }
-  });
+  const family = patched(
+    rangerProfession,
+    {
+      [RANGER.LOUD_WHISTLE]: { fields: { playerDamageMultiplier: 1.2 } }
+    },
+    {
+      [RANGER_SKILL.LESSER_SIC_EM]: {
+        effects: [{ type: 'buff', name: 'lesser-sic-em', damageIncreasePerStack: { from: 0.15, to: 0.3 } }]
+      }
+    }
+  );
   for (const [patchId, whistle, throat] of [
     ['current', 1.1, 1.15],
     ['modifier-owners', 1.2, 1.3]

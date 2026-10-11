@@ -12,7 +12,7 @@ import { criticalProcHandler } from '#gw2/platform/profession-definition/critica
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -163,25 +163,7 @@ export const evasiveArcana = defineTrait({
   id: TRAIT.EVASIVE_ARCANA,
   triggers: [onTriggerPoint(elementalistDodgeCompleted, { run: triggerEvasiveArcana })],
   name: 'Evasive Arcana',
-  lifetime: { eventHandlers: { 'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER } },
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 10,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Fire',
-        coefficient: 1,
-        hits: 1
-      },
-      { type: 'condition', name: 'Fire Burning', condition: 'Burning', stacks: 3, duration: 6 },
-      { type: 'strike', name: 'Earth', coefficient: 0.5, hits: 1 },
-      { type: 'condition', name: 'Earth Bleeding', condition: 'Bleeding', stacks: 1, duration: 20 },
-      { type: 'condition', name: 'Earth Cripple', condition: 'Crippled', stacks: 1, duration: 2 },
-      { type: 'condition', name: 'Air Blindness', condition: 'Blindness', stacks: 1, duration: 5 }
-    ]
-  }
+  lifetime: { eventHandlers: { 'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER } }
 });
 
 export const arcaneLightning = defineTrait({
@@ -267,130 +249,57 @@ export const bountifulPower = defineTrait({
 
 // Materialize the current attunement's dodge proc while tracking an independent elemental ICD.
 function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
-  const skill = cast.skill;
-
-  const state = professionCoreState(context);
+  // Each attunement's invoked skill owns its payload and independent player recharge.
+  const attunement = professionCoreState(context).primaryAttunement;
+  const ids = {
+    Fire: ID.FLAME_BURST_TRAIT,
+    Water: ID.CLEANSING_WAVE_TRAIT,
+    Air: ID.BLINDING_FLASH_TRAIT,
+    Earth: ID.SHOCK_WAVE_TRAIT
+  };
+  const proc = context.helpers.skillsById.get(ids[attunement])!;
   const at = cast.effectiveEnd;
-  const attunement = state.primaryAttunement;
-  const key = `evasiveArcana${attunement}`;
-  const evasiveArcanaProfile = requireBalanceProfileFromContext(context, TRAIT.EVASIVE_ARCANA);
-  // Claim the existing owner-local timer before any derived effect.
-  if (!context.procs.claim(TRAIT.EVASIVE_ARCANA, key, at)) return;
-  const source =
-    attunement === 'Fire'
-      ? 'Flame Burst (trait)'
-      : attunement === 'Water'
-        ? 'Cleansing Wave (trait)'
-        : attunement === 'Air'
-          ? 'Blinding Flash (trait)'
-          : 'Shock Wave (trait)';
-  // Water is heal/cleanse only, so it emits no offensive packet beyond the marker.
-  if (attunement === 'Fire') {
-    const evasiveArcanaFireStrike = requireEffect(evasiveArcanaProfile, 'strike', 'Fire');
-    if (evasiveArcanaFireStrike) {
-      emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
-        at: at,
-        fullEnd: at,
-        effect: { type: 'strike', name: 'Fire' },
-        cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-        skillWeaponFallback: 'Unequipped',
-        attribution: {
-          source: source,
-          sourceId: skill.id,
-          actorType: 'effect',
-          ownerActorType: 'player',
-          skillName: source,
-          skillId: skill.id,
-          name: source,
-          activationId: context.combat.allocateEffectActivation('elementalist.effect:')
-        }
-      });
-    }
-
-    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
-      at: at,
-      fullEnd: at,
-      effect: { type: 'condition', name: 'Fire Burning' },
-      skillId: skill.id,
-      skillName: source,
-      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-      attribution: { source: source, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
-      transform: (event) => ({ ...event, name: source + ' \u2014 ' + event.condition })
-    });
-  } else if (attunement === 'Air') {
-    // Air's optional Blindness uses the same patchable emission contract as Fire and Earth.
-    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
+  if (context.cooldownController.isOnCooldown(proc.id, context.time)) return;
+  context.cooldownController.startRecharge(proc, context.time);
+  invokeTraitSkill(
+    context,
+    TRAIT.EVASIVE_ARCANA,
+    proc.id,
+    {
+      type: 'action',
+      source: 'Trait',
+      sourceId: proc.id,
       at,
-      fullEnd: at,
-      effect: { type: 'condition', name: 'Air Blindness' },
-      attribution: { source, sourceId: skill.id, actorType: 'effect', ownerActorType: 'player', skillName: source }
-    });
-  } else if (attunement === 'Earth') {
-    const evasiveArcanaEarthStrike = requireEffect(evasiveArcanaProfile, 'strike', 'Earth');
-    if (evasiveArcanaEarthStrike) {
-      emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
-        at: at,
-        fullEnd: at,
-        effect: { type: 'strike', name: 'Earth' },
-        cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-        skillWeaponFallback: 'Unequipped',
-        attribution: {
-          source: source,
-          sourceId: skill.id,
-          actorType: 'effect',
-          skillName: source,
-          skillId: skill.id,
-          name: source,
-          activationId: context.combat.allocateEffectActivation('elementalist.effect:')
-        },
-        transform: (packet) => ({
-          ...packet,
-          comboFinishers: [{ ownerId: 'elementalist', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
-        })
-      });
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      actorType: 'player'
+    },
+    {
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      // Evasive Arcana invokes player attacks and conditions, retaining player-owned modifier eligibility.
+      attribution: { actorType: 'player', offTarget: cast.command.offTarget }
     }
-
-    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
-      at: at,
-      fullEnd: at,
-      effect: { type: 'condition', name: 'Earth Bleeding' },
-      skillId: skill.id,
-      skillName: source,
-      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-      attribution: { source: source, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
-      transform: (event) => ({ ...event, name: source + ' \u2014 ' + event.condition })
-    });
-    emitTraitProfile(context, TRAIT.EVASIVE_ARCANA, TRAIT.EVASIVE_ARCANA, undefined, {
-      at: at,
-      fullEnd: at,
-      effect: { type: 'condition', name: 'Earth Cripple' },
-      skillId: skill.id,
-      skillName: source,
-      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-      attribution: { source: source, sourceId: skill.id, actorType: 'player', triggeredBy: '' },
-      transform: (event) => ({ ...event, name: source + ' \u2014 ' + event.condition })
-    });
-  }
-
+  );
   context.effects.emit({
     kind: 'packet',
     event: {
       type: 'elementalist.evasive-arcana',
       at,
-      source,
-      sourceId: skill.id,
+      source: proc.name,
+      sourceId: proc.id,
       actorType: 'effect',
-      skillName: source,
+      skillId: proc.id,
+      skillName: proc.name,
       attunement
     }
   });
   context.effects.emit(
     elementalistAnnouncement({
       at,
-      name: source,
+      name: proc.name,
       procType: 'trait',
-      sourceId: skill.id,
-      sourceSkill: skill.name
+      sourceId: proc.id,
+      sourceSkill: cast.skill.name
     })
   );
 }

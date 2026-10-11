@@ -4,7 +4,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetHealthBelow, activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
@@ -20,7 +20,7 @@ import {
   necromancerStrikePreparing
 } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
 import { shroudEntered } from '#gw2/professions/necromancer/core/mechanics/forms.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT, NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -98,30 +98,7 @@ export const chillOfDeath = defineTrait({
   ],
   id: TRAIT.CHILL_OF_DEATH,
   name: 'Chill of Death',
-  balance: {
-    threshold: 0.5,
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 16,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.6,
-        hits: 1,
-        name: 'Lesser Spinal Shivers - No Boons',
-        canCrit: false,
-        actorType: 'effect'
-      },
-      {
-        name: 'Chilled',
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 5,
-        actorType: 'effect'
-      }
-    ]
-  }
+  balance: { threshold: 0.5 }
 });
 
 /** Owns Awaken the Pain tuning and behavior at its existing execution boundaries. */
@@ -248,31 +225,14 @@ export const bitterChill = defineTrait({
 export const maliciousSwarm = defineTrait({
   id: TRAIT.MALICIOUS_SWARM,
   name: 'Malicious Swarm',
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 15,
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1 }]
-  },
+
   triggers: [
     {
       order: 0,
-
       on: 'castCommit',
-      emit: TRAIT.MALICIOUS_SWARM,
-      cooldown: 'profile',
-      when: (runtime, cast) =>
-        cast.skill.type === 'Heal' &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_SWARM), 'strike', 'Strike')),
-      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
-      attribution: (_runtime, cast) => ({
-        skillId: undefined,
-        skillName: 'Lesser Signet of the Locust',
-        name: 'Lesser Signet of the Locust',
-        skillWeapon: 'Unequipped',
-        triggeredBy: cast.skill.name,
-        offTarget: cast.command.offTarget
-      })
+      invoke: ID.LESSER_SIGNET_OF_THE_LOCUST,
+      cooldown: 'skill',
+      when: (_runtime, cast) => cast.skill.type === 'Heal'
     }
   ]
 });
@@ -430,57 +390,35 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
   });
 }
 
-function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.CHILL_OF_DEATH);
-  if (!context.combat.targetHealthBelow(balanceProfileNumber(profile, 'threshold'))) return;
-  // No target boons can be removed, so use only the zero-boon strike profile.
-  const strike = requireEffect(profile, 'strike', 'Lesser Spinal Shivers - No Boons');
-  const chilled = requireEffect(profile, 'condition', 'Chilled');
-  // Claim only after local eligibility, before conditions, resources or queued strikes; with both packets removed
-  // there is no proc to gate.
-  if ((!strike && !chilled) || !context.procs.claim(TRAIT.CHILL_OF_DEATH, 'chillOfDeath', event.at)) return;
-  if (strike) {
-    /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
-      context,
-      TRAIT.CHILL_OF_DEATH,
-      TRAIT.CHILL_OF_DEATH,
-      undefined,
-      {
-        at: event.at,
-        effect: { type: 'strike', name: 'Lesser Spinal Shivers - No Boons' },
-        skillWeaponFallback: 'Unequipped',
-        attribution: {
-          skillName: 'Lesser Spinal Shivers',
-          name: 'Lesser Spinal Shivers',
-          triggeredBy: event.skillName
-        },
-        transform: (packet) => ({ ...packet, ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}) })
-      }
-    );
-    context.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'trait', name: 'Lesser Spinal Shivers', at: event.at, sourceSkill: event.skillName }
+function applyChillOfDeath(context: NecromancerRuntime, event: NecromancerResolverEvent): void {
+  // Eligibility belongs to the trait; the selected skill owns recharge and independently removable components.
+  const threshold = requireBalanceProfileFromContext(context, TRAIT.CHILL_OF_DEATH);
+  if (!context.combat.targetHealthBelow(balanceProfileNumber(threshold, 'threshold'))) return;
+  const skill = context.helpers.skillsById.get(ID.LESSER_SPINAL_SHIVERS)!;
+  const strike = requireEffect(skill, 'strike', 'Lesser Spinal Shivers - No Boons');
+  const chilled = requireEffect(skill, 'condition', 'Chilled');
+  if ((!strike && !chilled) || context.cooldownController.isOnCooldown(skill.id, context.time)) return;
+  context.cooldownController.startRecharge(skill, context.time);
+  if (strike)
+    invokeTraitSkill(context, TRAIT.CHILL_OF_DEATH, skill.id, event, {
+      effect: { type: 'strike', name: 'Lesser Spinal Shivers - No Boons' },
+      announce: true,
+      transform: (packet) => ({ ...packet, ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}) })
     });
-  }
-  // Without its strike, Chill has no resolved hit to follow and applies at the trigger instead.
   else if (chilled) queueChillOfDeathCondition(context, event);
 }
 
 function queueChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  // The accepted strike owns delivery order; the live named Chill owns its payload.
-  emitTraitProfile(context, TRAIT.CHILL_OF_DEATH, TRAIT.CHILL_OF_DEATH, undefined, {
-    at: event.at,
-    effect: { type: 'condition', name: 'Chilled' },
-    attribution: { skillName: 'Lesser Spinal Shivers', name: 'Lesser Spinal Shivers — Chilled' }
+  // Chill follows the accepted strike, or applies directly if the strike was removed by a patch.
+  invokeTraitSkill(context, TRAIT.CHILL_OF_DEATH, ID.LESSER_SPINAL_SHIVERS, event, {
+    effect: { type: 'condition', name: 'Chilled' }
   });
 }
 
 /** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
 function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.actorType !== 'effect' || event.sourceId !== TRAIT.CHILL_OF_DEATH) return;
-  const profile = requireBalanceProfileFromContext(context, TRAIT.CHILL_OF_DEATH);
-  const chilled = requireEffect(profile, 'condition', 'Chilled');
-  if (chilled) queueChillOfDeathCondition(context, event);
+  if (event.actorType !== 'effect' || event.skillId !== ID.LESSER_SPINAL_SHIVERS) return;
+  queueChillOfDeathCondition(context, event);
 }
 
 /** Emits awaken the pain at the ordered post-entry boundary. */

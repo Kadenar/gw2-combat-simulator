@@ -1,7 +1,7 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_TRAIT_IDS as TRAIT, MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -33,9 +33,9 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
                 ...native,
                 ...(scenario === 'removed'
                   ? {
-                      catalog: applyBalanceProfilePatch(native.catalog, {
-                        balanceProfiles: {
-                          [TRAIT.METHOD_OF_MADNESS]: { removeEffects: [{ type: 'strike', all: true }] }
+                      catalog: applySkillPatch(native.catalog, {
+                        skills: {
+                          [ID.LESSER_CHAOS_STORM]: { removeEffects: [{ type: 'strike', all: true }] }
                         }
                       })
                     }
@@ -44,7 +44,7 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
             }
           },
           initialize(runtime) {
-            if (scenario === 'cooldown') runtime.procs.setDeadline(TRAIT.METHOD_OF_MADNESS, 100);
+            if (scenario === 'cooldown') runtime.cooldownController.setReadyAt(ID.LESSER_CHAOS_STORM, 100);
             // Hide only the announcement's event-log row; gameplay packets still use the real service.
             if (suppress) {
               const effects = runtime.effects;
@@ -62,6 +62,14 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
       );
     const normal = run(false);
     const suppressed = run(true);
+    assert.equal(
+      normal.events.some((event) => event.type === 'proc' && event.name === 'Method of Madness'),
+      scenario === 'completed'
+    );
+    assert.equal(
+      normal.procSteps.some((step) => step.skill === 'Method of Madness'),
+      scenario === 'completed'
+    );
     assert.deepEqual(suppressed.warnings, []);
     const waves = suppressed.events.filter((event) => event.type === 'damage' && event.skillName === 'Syncopate');
     assert.equal(waves.length, scenario === 'completed' ? 1 : 0);

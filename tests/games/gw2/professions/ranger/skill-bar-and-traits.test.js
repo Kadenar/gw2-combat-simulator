@@ -718,14 +718,15 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
   assert.ok(Math.abs(wells.duration - 6.96) < 1e-9);
   assert.ok(Math.abs(notes.duration - 6.96) < 1e-9);
   assert.ok(
-    healing.events.filter((event) => event.sourceId === TRAIT.CHILD_OF_EARTH && event.condition === 'Crippled').length >
-      0
+    healing.events.filter((event) => event.sourceId === ID.LESSER_MUDDY_TERRAIN && event.condition === 'Crippled')
+      .length > 0
   );
   assert.ok(
-    healing.events.filter((event) => event.sourceId === TRAIT.CHILD_OF_EARTH && event.condition === 'Slow').length > 0
+    healing.events.filter((event) => event.sourceId === ID.LESSER_MUDDY_TERRAIN && event.condition === 'Slow').length >
+      0
   );
   assert.equal(
-    healing.events.filter((event) => event.sourceId === TRAIT.CHILD_OF_EARTH && event.condition === 'Immobilized')
+    healing.events.filter((event) => event.sourceId === ID.LESSER_MUDDY_TERRAIN && event.condition === 'Immobilized')
       .length,
     1
   );
@@ -853,12 +854,12 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
     true
   );
   assert.equal(
-    swapped.resolvedEvents.some((event) => event.sourceId === TRAIT.CLARION_BOND && event.type === 'combo'),
+    swapped.resolvedEvents.some((event) => event.sourceId === ID.LESSER_CALL_OF_THE_WILD && event.type === 'combo'),
     false
   );
   assert.equal(
     swapped.events.some(
-      (event) => event.sourceId === TRAIT.CLARION_BOND && event.condition === 'Weakness' && event.duration === 5
+      (event) => event.sourceId === ID.LESSER_CALL_OF_THE_WILD && event.condition === 'Weakness' && event.duration === 5
     ),
     true
   );

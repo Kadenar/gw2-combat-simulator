@@ -6,7 +6,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -57,15 +57,9 @@ export const signetMastery = defineTrait({
   name: 'Signet Mastery',
   balance: {
     threshold: 0.5,
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 20,
     maximumStacks: 5,
     attributeBonus: 100,
-    effects: [
-      { name: 'might', type: 'boon', boon: 'might', stacks: 10, duration: 6 },
-      { name: 'signet-mastery', type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }
-    ]
+    effects: [{ name: 'signet-mastery', type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }]
   },
   triggers: [
     onTriggerPoint(strikeResourcesGranted, {
@@ -419,41 +413,28 @@ function signetMasteryDamage(
   context: MechanicContext<WarriorRuntimeState, WarriorSkill>,
   event: Gw2ResolverEvent
 ): void {
+  // The trait retains its threshold and stacking attribute reward; the lesser signet owns Might and recharge.
   if (
     event.actorType !== 'player' ||
-    !((event.coefficient || 0) > 0) ||
+    !(Number(event.coefficient) > 0) ||
     !context.combat.targetHealthBelow(
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SIGNET_MASTERY), 'threshold')
     )
-  ) {
+  )
     return;
-  }
-
-  // Reserve this trait's own deadline before emitting its effects.
-  if (!context.procs.claim(TRAIT.SIGNET_MASTERY)) return;
-  // The claim owns the whole lesser signet; the shared emitter expands its current buff package.
-  emitTraitProfile(context, TRAIT.SIGNET_MASTERY, TRAIT.SIGNET_MASTERY, undefined, {
-    at: event.at,
-    durationContext: event,
-    effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
-    attribution: {
-      priority: 5,
-      skillId: TRAIT.SIGNET_MASTERY,
-      skillName: 'Lesser Signet of Might',
-      name: 'Lesser Signet of Might'
-    }
+  const skill = context.helpers.skillsById.get(ID.LESSER_SIGNET_OF_MIGHT)!;
+  if (context.cooldownController.isOnCooldown(skill.id, context.time)) return;
+  context.cooldownController.startRecharge(skill, context.time);
+  invokeTraitSkill(context, TRAIT.SIGNET_MASTERY, skill.id, event, {
+    announce: true,
+    detail: `${requireEffect(skill, 'boon', 'might')?.stacks ?? 0} might; Signet Mastery stack`,
+    attribution: { priority: 5 }
   });
-
-  context.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'trait',
-      name: 'Lesser Signet of Might',
-      at: event.at,
-      sourceSkill: event.skillName,
-      detail: '10 might; Signet Mastery stack',
-      icon: context.helpers.skillsById.get(ID.SIGNET_OF_MIGHT)?.icon || ''
-    }
+  emitTraitProfile(context, TRAIT.SIGNET_MASTERY, TRAIT.SIGNET_MASTERY, event, {
+    effect: { type: 'buff', name: 'signet-mastery' },
+    skillId: skill.id,
+    skillName: skill.name,
+    attribution: { priority: 5, name: skill.name, triggeredBy: event.skillName }
   });
 }
 

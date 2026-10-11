@@ -12,3 +12,8 @@ const TRAIT_BY_ID = new Map(
 export function guardianTraitIcon(traitId: SkillId): string {
   return TRAIT_BY_ID.get(Number(traitId))?.icon || '';
 }
+
+/** Proc details identify the triggering trait separately from the invoked symbol's name. */
+export function guardianTraitName(traitId: SkillId): string {
+  return TRAIT_BY_ID.get(Number(traitId))?.name || '';
+}

@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -30,22 +29,7 @@ export const furiousFocus = defineTrait({
   id: TRAIT.FURIOUS_FOCUS,
   name: 'Furious Focus',
   triggers: [onTriggerPoint(justiceActivated, { run: placeFuriousFocusSymbol })],
-  balance: {
-    baseDuration: 4,
-    damageIncrease: 0.1,
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 10,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.25 / 5 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player'
-      }
-    ]
-  },
+  balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
       order: -6,
@@ -159,31 +143,7 @@ export const zealotsResolution = defineTrait({
       run: placeZealotsResolutionSymbol
     })
   ],
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 30,
-    threshold: 0.25,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        name: 'Strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 2.5 / 5 })),
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        name: 'resolution',
-        boon: 'resolution',
-        stacks: 1,
-        duration: 2,
-        applications: 5,
-        intervalMs: 1000,
-        actorType: 'player'
-      }
-    ])
-  }
+  balance: { threshold: 0.25 }
 });
 
 /** Owns Zealous Blade's live tuning and trait behavior. */
@@ -271,13 +231,12 @@ export const fieryWrath = defineTrait({
 
 /** Ready Justice activations claim symbol recharge at the permanent Alacrity rate. */
 function placeFuriousFocusSymbol(runtime: Runtime, { cast }: JusticeActivation): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS_FOCUS);
+  const profile = runtime.helpers.skillsById.get(ID.LESSER_SYMBOL_OF_BLADES)!;
   if (!requireEffect(profile, 'strike', 'Strike')) return;
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
   // The symbol reserves shared player recharge before its effects can trigger another activation.
   emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause, {
-    cooldownKey: 'guardian.core.furiousFocus',
-    fieldDuration: () => balanceProfileNumber(profile, 'baseDuration')
+    fieldDuration: () => Number(profile.duration)
   });
 }
 
@@ -318,9 +277,7 @@ function placeZealotsResolutionSymbol(runtime: Runtime, { cause: event, damage }
         : 0;
   if (!(lostFraction > balanceProfileNumber(profile, 'threshold'))) return;
   // The profile owns this symbol's Alacrity-aware recharge; removed symbols do not consume it.
-  emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event, {
-    cooldownKey: 'guardian.core.zealotsResolution'
-  });
+  emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event);
 }
 
 /** Spirit weapons gain their extra capacity before the runtime constructs ammunition pools. */

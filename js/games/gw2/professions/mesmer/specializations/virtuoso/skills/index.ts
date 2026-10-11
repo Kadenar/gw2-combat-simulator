@@ -21,7 +21,8 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
   [ID.BLADECALL]: {
-    interruptCommitMs: 280,
+    // Commit when the daggers launch so their persistent packets and blade gain share the same successful cast.
+    interruptCommitMs: 200,
     retainsCastLockoutAfterInterrupt: true,
     resource: {
       mode: 'add',

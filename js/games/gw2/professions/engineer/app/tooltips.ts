@@ -1,3 +1,4 @@
+import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
@@ -622,7 +623,10 @@ export const engineerTooltips: ProfessionTooltips = {
         )
       ]
     }),
-    [TRAIT.LOCK_ON]: outsideScopeTooltip,
+    [TRAIT.LOCK_ON]: traitSkillTooltip(
+      [ID.CONTROLLED_ANALYSIS],
+      'Disabling a foe invokes Controlled Analysis, granting fury and applying vulnerability.'
+    ),
     [TRAIT.TAKEDOWN_ROUND]: traitTooltip(
       'Player-owned strikes deal increased damage while endurance is below its maximum.',
       [fromProfile(TRAIT.TAKEDOWN_ROUND, 'damageIncrease', 'Strike damage below full endurance', tooltipPercent)]

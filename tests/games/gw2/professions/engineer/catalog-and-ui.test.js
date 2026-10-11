@@ -668,8 +668,8 @@ test('toolbelt IDs require the equipped parent and exclude unsupported racial sk
   const selectedSkillIds = [31248];
   assert.equal(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkillIds }).warnings.length, 0);
   assert.match(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkillIds: [] }).warnings[0], /not equipped/);
-  for (const skillId of [ID.CONFUSING_SPEECH, ID.VENT_RADIATION]) {
-    assert.equal(engineerCatalog.skillsById.get(skillId).simulatorExcluded, true);
+  for (const skillId of [12334, 12336, 17811, 17812, 17813, 29606]) {
+    assert.equal(engineerCatalog.skillsById.has(skillId), false);
     assert.ok(simulate('Core', [skillId]).warnings.length > 0);
   }
 });

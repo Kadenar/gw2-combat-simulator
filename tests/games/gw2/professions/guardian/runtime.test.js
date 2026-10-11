@@ -1202,7 +1202,7 @@ test("Zealot's Resolution excludes the threshold-crossing hit and gives its chil
   assert.ok(child.every((event) => event.at === 0.2));
   assert.ok(child.every((event) => event.activationId === child[0].activationId));
   assert.notEqual(child[0].activationId, 'impact-0.2');
-  assert.equal(observedRuntime(triggered).procs.deadline('guardian.core.zealotsResolution'), 24.2);
+  assert.equal(observedRuntime(triggered).cooldownController.readyAt(ID.LESSER_SYMBOL_OF_RESOLUTION), 24.2);
 });
 
 test('Righteous Instincts extends one cadence and rejects stale ticks after a new Resolution window', () => {
@@ -1269,11 +1269,11 @@ test('heal traits commit independently, retain party scope, and sample later boo
   };
   const canceled = run([{ skillId: ID.SHELTER, interruptAfterMs: 1 }, wait(3000)], config);
   assert.equal(observedRuntime(canceled).procs.deadline('guardian.core.healersResolution'), 0);
-  assert.equal(observedRuntime(canceled).procs.deadline('guardian.core.protectorsRestoration'), 0);
+  assert.equal(observedRuntime(canceled).cooldownController.readyAt(ID.LESSER_SYMBOL_OF_PROTECTION), undefined);
   const committed = run([ID.SHELTER, 'Swap Weapons', wait(2000)], config);
   assert.deepEqual(committed.warnings, []);
   assert.ok(observedRuntime(committed).procs.deadline('guardian.core.healersResolution') > 0);
-  assert.ok(observedRuntime(committed).procs.deadline('guardian.core.protectorsRestoration') > 0);
+  assert.ok(observedRuntime(committed).cooldownController.readyAt(ID.LESSER_SYMBOL_OF_PROTECTION) > 0);
   const protection = committed.resolvedEvents.filter(
     (event) => event.type === 'buff' && event.skillId === ID.LESSER_SYMBOL_OF_PROTECTION
   );
@@ -1299,7 +1299,7 @@ test('Furious Focus claims symbol recharge once for a ready Justice activation',
   );
   assert.ok(pulses.length > 1);
   assert.equal(new Set(pulses.map((event) => event.activationId)).size, 1);
-  assert.equal(observedRuntime(result).procs.deadline('guardian.core.furiousFocus'), 8);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.LESSER_SYMBOL_OF_BLADES), 8);
   assert.notEqual(pulses[0].activationId, result.steps[0].activationId);
 });
 
@@ -1387,9 +1387,17 @@ test('Writ of Persistence extends the Symbol of Ignition field selected at cast 
   assert.equal(fieldDuration([TRAIT.WRIT_OF_PERSISTENCE]), fieldDuration([]) + 2);
 });
 
-test('Furious Focus ignores transient Alacrity and keeps its exclusive deadline across rotation cooldown resets', () => {
+test('Furious Focus ignores transient Alacrity and preserves its recharge across rotation cooldown resets', () => {
   const result = run(
-    [ID.JUSTICE, wait(8000), { type: 'cooldown-reset' }, ID.JUSTICE, wait(40), { type: 'cooldown-reset' }, ID.JUSTICE],
+    [
+      ID.JUSTICE,
+      wait(2000),
+      { type: 'cooldown-reset' },
+      ID.JUSTICE,
+      wait(6040),
+      { type: 'cooldown-reset' },
+      ID.JUSTICE
+    ],
     { selectedTraitIds: [TRAIT.FURIOUS_FOCUS] },
     { initialize: (runtime) => boon(runtime, 'alacrity', 1, 4) }
   );
@@ -1401,7 +1409,12 @@ test('Furious Focus ignores transient Alacrity and keeps its exclusive deadline 
     starts.map((event) => event.at),
     [0, 8.04]
   );
-  assert.equal(observedRuntime(result).procs.deadline('guardian.core.furiousFocus'), 16.04);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.LESSER_SYMBOL_OF_BLADES), 16.04);
+  assert.ok(
+    result.procSteps
+      .filter((proc) => proc.skill === 'Lesser Symbol of Blades')
+      .every((proc) => proc.detail === 'Furious Focus')
+  );
 });
 
 test('removed trait components neither claim heal cooldowns nor start recurring Might work', () => {
@@ -1412,13 +1425,15 @@ test('removed trait components neither claim heal cooldowns nor start recurring 
       guardian: {
         balanceProfiles: {
           [TRAIT.HEALERS_RESOLUTION]: { removeEffects: [{ type: 'boon', all: true }] },
-          [TRAIT.PROTECTORS_RESTORATION]: {
+          [TRAIT.RIGHTEOUS_INSTINCTS]: { removeEffects: [{ type: 'boon', all: true }] }
+        },
+        skills: {
+          [ID.LESSER_SYMBOL_OF_PROTECTION]: {
             removeEffects: [
               { type: 'strike', all: true },
               { type: 'boon', all: true }
             ]
-          },
-          [TRAIT.RIGHTEOUS_INSTINCTS]: { removeEffects: [{ type: 'boon', all: true }] }
+          }
         }
       }
     }
@@ -1433,7 +1448,7 @@ test('removed trait components neither claim heal cooldowns nor start recurring 
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).procs.deadline('guardian.core.healersResolution'), 0);
-  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), 0);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.LESSER_SYMBOL_OF_PROTECTION), undefined);
   assert.equal(
     result.events.some((event) => event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS),
     false

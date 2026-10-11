@@ -17,6 +17,25 @@ function fixture() {
   return { state, controller };
 }
 
+// Selective resets remove ordinary skill work while retaining every store belonging to excluded procs.
+test('selective recharge reset preserves excluded deadlines, progress, and ammo', () => {
+  const { state, controller } = fixture();
+  controller.startRecharge(ordinary, 0);
+  controller.startRecharge(preserved, 0);
+  controller.spendAmmo(magazine, 0);
+  const progress = controller.rechargeFor(preserved.id);
+  const ammo = controller.readAmmo(magazine.id);
+  state.time = 2;
+  controller.resetAll((skill) => skill?.id === ordinary.id);
+  assert.equal(controller.readyAt(ordinary.id), undefined);
+  assert.equal(controller.rechargeFor(ordinary.id), undefined);
+  assert.equal(controller.readyAt(preserved.id), 20);
+  assert.deepEqual(controller.rechargeFor(preserved.id), progress);
+  assert.deepEqual(controller.readAmmo(magazine.id), ammo);
+  state.time = 5;
+  assert.equal(controller.refreshAmmo(magazine, state.time).charges, 3);
+});
+
 // Magazine reservation consumes charges now without advancing existing pools to a future completion anchor.
 test('reserved magazine rounds recharge serially from their future anchor', () => {
   const { controller } = fixture();

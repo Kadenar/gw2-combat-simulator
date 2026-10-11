@@ -1,3 +1,4 @@
+import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -513,9 +514,9 @@ export const mesmerTooltips: ProfessionTooltips = {
         ['concentrationBonus', 'Concentration']
       ]
     ),
-    [TRAIT.METHOD_OF_MADNESS]: traitTooltip(
-      'Completing a healing skill triggers Lesser Chaos Storm, repeatedly striking the target.',
-      [['cooldown', 'Base skill recharge', tooltipSeconds]]
+    [TRAIT.METHOD_OF_MADNESS]: traitSkillTooltip(
+      [ID.LESSER_CHAOS_STORM],
+      'Completing a healing skill invokes Lesser Chaos Storm, repeatedly striking the target.'
     ),
     [TRAIT.ILLUSIONARY_DEFENSE]: outsideScopeTooltip,
     [TRAIT.MASTER_OF_MANIPULATION]: outsideScopeTooltip,

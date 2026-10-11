@@ -96,6 +96,38 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
   }
 });
 
+// Successful instrument activation is visible even when the shortened channel itself deals no damage.
+test('both Harp variants keep normal timeline styling after starting to play, including with zero notes', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const profession = adapter.profession;
+  for (const skillId of [76960, 77077]) {
+    for (const initialResource of [0, 3]) {
+      const rotation = [{ type: 'cast', skillId, interruptAfterMs: 360 }];
+      const build = { ...profession.createBuildDefaults(), rotation };
+      const config = { specialization: 'Troubadour', initialResource };
+      const results = runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
+      assert.deepEqual(results.warnings, []);
+      assert.ok(results.events.some((event) => event.type === 'mesmer.instrument' && event.instrument === 'Harp'));
+      const app = {
+        adapter: { ...adapter, eliteSpecialization: () => 'Troubadour' },
+        profession,
+        build,
+        skills: profession.catalog.skills,
+        skillById: profession.catalog.skillsById,
+        skillByName: profession.catalog.skillsByName
+      };
+      for (const readOnly of [false, true]) {
+        const html = timelineRowsView(app, build, results, readOnly, new Set(), false)
+          .rows.map((row) => row.html)
+          .join('');
+        assert.doesNotMatch(html, /rot-cancelled|Cancelled without dealing damage|--att-border:#ff3b45/);
+        assert.match(html, /rot-interrupt-badge/);
+        assert.match(html, new RegExp(`${initialResource}N`));
+      }
+    }
+  }
+});
+
 test('timeline labels the executed skill variant while preserving the saved command', () => {
   // A build trait may replace an imported action without rewriting the user's rotation.
   const base = { id: 76642, name: 'Evolve (Base)' };

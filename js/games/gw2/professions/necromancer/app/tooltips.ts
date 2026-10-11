@@ -1,3 +1,4 @@
+import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromModifier,
   fromProfile,
@@ -611,16 +612,15 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.SPITEFUL_TALISMAN]: traitTooltip('Increases strike damage.', [
       fromProfile(TRAIT.SPITEFUL_TALISMAN, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
     ]),
-    [TRAIT.MALICIOUS_SWARM]: traitTooltip('Using a healing skill triggers a Lesser Signet of the Locust strike.', [
-      ['cooldown', 'Base skill recharge', tooltipSeconds]
-    ]),
+    [TRAIT.MALICIOUS_SWARM]: traitSkillTooltip(
+      [ID.LESSER_SIGNET_OF_THE_LOCUST],
+      'Using a healing skill invokes Lesser Signet of the Locust.'
+    ),
     [TRAIT.BITTER_CHILL]: traitTooltip('Applying chill also applies vulnerability.'),
-    [TRAIT.CHILL_OF_DEATH]: traitTooltip(
-      'Striking a low-health target triggers Lesser Spinal Shivers. Its strike applies chill; target boon removal is not simulated.',
-      [
-        ['cooldown', 'Internal cooldown', tooltipSeconds],
-        ['threshold', 'Target health below', tooltipPercent]
-      ]
+    [TRAIT.CHILL_OF_DEATH]: traitSkillTooltip(
+      [ID.LESSER_SPINAL_SHIVERS],
+      'Striking a low-health target invokes Lesser Spinal Shivers. Chill follows the strike; target boon removal is not simulated.',
+      [['threshold', 'Target health below', tooltipPercent]]
     ),
     [TRAIT.SPITEFUL_FORTITUDE]: traitTooltip(
       'Gain vitality from power. Player strikes against a low-health target generate life force.',
@@ -740,8 +740,9 @@ export const necromancerTooltips: ProfessionTooltips = {
       ['duration', 'Carapace duration', tooltipSeconds]
     ]),
     [TRAIT.UNHOLY_SANCTUARY]: outsideScopeTooltip,
-    [TRAIT.MARK_OF_EVASION]: traitTooltip(
-      'Completing a dodge in combat triggers Lesser Mark of Blood, striking and bleeding the target and granting party regeneration.'
+    [TRAIT.MARK_OF_EVASION]: traitSkillTooltip(
+      [ID.LESSER_MARK_OF_BLOOD],
+      'Completing a dodge in combat invokes Lesser Mark of Blood.'
     ),
     [TRAIT.VAMPIRIC]: traitTooltip(
       'Eligible player and creature attacks trigger life-steal damage. Healing is outside simulation scope.'
@@ -772,9 +773,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.BLOOD_BANK]: outsideScopeTooltip,
     [TRAIT.UNHOLY_MARTYR]: outsideScopeTooltip,
-    [TRAIT.TRANSFUSION]: traitTooltip(
-      'Shroud skill 4 triggers Lesser Chilblains. Allied revival and healing are outside simulation scope.'
-    ),
+    [TRAIT.TRANSFUSION]: traitSkillTooltip([ID.LESSER_CHILBLAINS], 'Using shroud skill 4 invokes Lesser Chilblains.'),
     [TRAIT.GLUTTONY]: traitTooltip('Life force gains are increased.', [
       ['lifeForceGainMultiplier', 'Life-force gains', tooltipFactorChange]
     ]),

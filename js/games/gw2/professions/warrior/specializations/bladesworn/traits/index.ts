@@ -421,9 +421,9 @@ function lushForestAmmo(
     if (skill.type === 'Weapon' || skill.weapon)
       return !state.gunsaberActive && !state.dragonTriggerActive && (!weapons.size || weapons.has(skill.weapon ?? ''));
     return (
-      !['Heal', 'Utility', 'Elite'].includes(String(skill.type)) ||
-      runtime.config.selectedSkillIds === undefined ||
-      selected.has(skill.id)
+      // Only equipped slot skills join the visible weapon bar; triggered skills own separate recharge.
+      ['Heal', 'Utility', 'Elite'].includes(String(skill.type)) &&
+      (runtime.config.selectedSkillIds === undefined || selected.has(skill.id))
     );
   };
 

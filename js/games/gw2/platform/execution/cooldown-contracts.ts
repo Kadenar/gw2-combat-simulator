@@ -66,7 +66,8 @@ export interface CooldownController {
     deadlines: readonly { readonly skillId: SkillId; readonly readyAt: number }[]
   ): void;
   /** Reset all recharge and ammunition pools at an authored reset boundary. */
-  resetAll(): void;
+  /** Reset eligible skills together, preserving excluded deadlines, recharge work, and ammo queues. */
+  resetAll(eligible?: (skill: Skill | undefined) => boolean): void;
   /** Starts a cooldown with base-recharge work; fixed deadlines use setReadyAt instead. */
   startRecharge(skill: Skill, at: number, work?: number, companionId?: string): number;
   setReadyAt(skillId: SkillId, readyAt: number): void;

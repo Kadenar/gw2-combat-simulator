@@ -1,3 +1,4 @@
+import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
   fromModifier,
@@ -794,9 +795,9 @@ export const elementalistTooltips: ProfessionTooltips = {
       [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.FINAL_SHIELDING]: outsideScopeTooltip,
-    [TRAIT.EVASIVE_ARCANA]: traitTooltip(
-      "Completing a dodge triggers your primary attunement's effect: Fire strikes and burns, Earth strikes and applies conditions with a blast finisher, and Air blinds. Water healing and cleansing are outside combat scope.",
-      [['cooldown', 'Cooldown per attunement', tooltipSeconds]]
+    [TRAIT.EVASIVE_ARCANA]: traitSkillTooltip(
+      [ID.FLAME_BURST_TRAIT, ID.CLEANSING_WAVE_TRAIT, ID.BLINDING_FLASH_TRAIT, ID.SHOCK_WAVE_TRAIT],
+      'Completing a dodge invokes the current attunement skill. Each attunement has an independent recharge. Healing and cleansing are outside simulation scope.'
     ),
     [TRAIT.ARCANE_LIGHTNING]: traitTooltip(
       'Completing an arcane skill grants temporary ferocity and its corresponding extra effect. Arcane Blast blinds the target.',

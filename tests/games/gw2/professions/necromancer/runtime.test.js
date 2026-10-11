@@ -1477,7 +1477,9 @@ test('heal completion claims Dark Defense and Malicious Swarm once per cooldown,
   const result = simulate([cast(ID.WELL_OF_BLOOD), cast(ID.SUMMON_BLOOD_FIEND)], config);
   assert.equal(result.planningState.profession.carapaceExpiries.length, 10);
   assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === TRAIT.MALICIOUS_SWARM).length,
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.sourceId === ID.LESSER_SIGNET_OF_THE_LOCUST
+    ).length,
     1
   );
   assert.equal(
@@ -1492,21 +1494,29 @@ test('Transfusion keeps surviving conditions when its strike is removed and acce
   const native = necromancerProfession.runtimeFor(config);
   const profession = {
     ...native,
-    catalog: applyBalanceProfilePatch(native.catalog, {
-      balanceProfiles: {
-        [TRAIT.TRANSFUSION]: { removeEffects: [{ type: 'strike', name: 'Strike' }] }
+    catalog: applySkillPatch(native.catalog, {
+      skills: {
+        [ID.LESSER_CHILBLAINS]: { removeEffects: [{ type: 'strike', name: 'Strike' }] }
       }
     })
   };
   const rotation = [cast(ID.REAPERS_SHROUD), cast(ID.SOUL_SPIRAL)];
   const result = simulate(rotation, config, { profession });
-  const effects = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.TRANSFUSION);
+  const effects = result.resolvedEvents.filter((event) => event.sourceId === ID.LESSER_CHILBLAINS);
   assert.deepEqual(effects.map((event) => event.condition).sort(), ['Chilled', 'Poisoned', 'Poisoned']);
+  // A removed strike cannot let the surviving conditions escape the triggering cast's target gate.
+  const missed = simulate([cast(ID.REAPERS_SHROUD), { ...cast(ID.SOUL_SPIRAL), offTarget: true }], config, {
+    profession
+  });
+  assert.equal(
+    missed.resolvedEvents.some((event) => event.sourceId === ID.LESSER_CHILBLAINS),
+    false
+  );
   const shortened = simulate([cast(ID.REAPERS_SHROUD), { ...cast(ID.SOUL_SPIRAL), interruptAfterMs: 400 }], config, {
     profession
   });
   assert.equal(
-    shortened.resolvedEvents.some((event) => event.sourceId === TRAIT.TRANSFUSION),
+    shortened.resolvedEvents.some((event) => event.sourceId === ID.LESSER_CHILBLAINS),
     true
   );
   assert.equal(simulate(rotation, config, { profession, output: 'score' }).totalDamage, result.totalDamage);

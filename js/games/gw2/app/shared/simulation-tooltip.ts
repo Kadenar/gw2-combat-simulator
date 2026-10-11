@@ -97,6 +97,10 @@ effectNames.set('fresh-air', 'Fresh Air');
 // Match named buff IDs to their display names so generated facts keep the granting skill or trait icon.
 effectNames.set('fierce-as-fire', 'Fierce as Fire');
 effectNames.set('signet-mastery', 'Signet Mastery');
+effectNames.set('lesser-sic-em-pet', 'Lesser "Sic \'Em!" (pet)');
+effectNames.set('lesser-sic-em', 'Lesser "Sic \'Em!" (merged)');
+// Show the strike variant without repeating its owning skill or exposing its patch key.
+effectNames.set('lesser spinal shivers - no boons', 'No boons');
 effectNames.set('ashes-of-the-just', 'Ashes of the Just');
 effectNames.set('lethal-tempo', 'Lethal Tempo');
 effectNames.set('enchanted-daggers', 'Enchanted Daggers');
@@ -149,6 +153,34 @@ export function traitTooltip(
     const effects = simulationEffectFacts(context.catalog.balanceProfilesById.get(entity.id)?.effects, effectQualifier);
     const custom = typeof facts === 'function' ? facts(context, entity.id) : resolveFacts(context, entity.id, facts);
     return { ...effects, description, facts: [...custom, ...effects.facts] };
+  };
+}
+
+/** Trait explanations combine their own bonuses with live payloads from the skills they invoke. */
+export function traitSkillTooltip(
+  skillIds: readonly SkillId[],
+  description: string,
+  facts: TooltipFacts<SkillId> = []
+): DescribeSimulationTooltip {
+  return (context, entity) => {
+    const trait = traitTooltip(description, facts)(context, entity);
+    const skills = skillIds.map((id) => {
+      const skill = context.catalog.skillsById.get(id);
+      if (!skill) throw new Error(`Missing invoked tooltip skill: ${id}`);
+      return skill;
+    });
+    return {
+      ...trait,
+      facts: [
+        ...trait.facts,
+        ...skills.flatMap((skill) => [
+          ...simulationEffectFacts(skill.effects, skill.name).facts,
+          ...(Number(skill.cooldown) > 0
+            ? [{ name: `${skill.name} recharge`, detail: tooltipSeconds(Number(skill.cooldown)) }]
+            : [])
+        ])
+      ]
+    };
   };
 }
 
@@ -231,7 +263,13 @@ function effectContext(effect: SkillEffect, factName: string): string {
     parts.push(effect.actorType === 'summon' ? 'on the companion' : 'on yourself');
   if (effect.actorType === 'summon') parts.push('companion effect');
   // Packet names distinguish variants, but repeating the displayed effect name adds no information.
-  if (effect.name && tooltipEffectName(effect.name).toLowerCase() !== factName.toLowerCase()) parts.push(effect.name);
+  // Generic component keys address patches; only meaningful variant names belong in displayed facts.
+  if (
+    effect.name &&
+    effect.name !== 'Strike' &&
+    tooltipEffectName(effect.name).toLowerCase() !== factName.toLowerCase()
+  )
+    parts.push(effectNames.get(effect.name.toLowerCase()) ?? effect.name);
   if (typeof effect.packetLabel === 'string') parts.push(effect.packetLabel);
   return parts.join(' · ');
 }

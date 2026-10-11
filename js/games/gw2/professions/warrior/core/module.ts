@@ -8,6 +8,7 @@ import { WARRIOR_CORE_BALANCE_PROFILES } from '#gw2/professions/warrior/core/pro
 import { warriorPassiveAttributes } from '#gw2/professions/warrior/core/skills/attribute-passives.js';
 import {
   WARRIOR_CORE_SKILL_MECHANICS,
+  WARRIOR_CORE_TRAIT_SKILLS,
   WARRIOR_DODGE,
   WARRIOR_SWAP_WEAPONS
 } from '#gw2/professions/warrior/core/skills/index.js';
@@ -25,7 +26,7 @@ export const warriorCoreModule = defineNativeModule({
   data: createWarriorModuleData('Core', {
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,
     balanceProfiles: WARRIOR_CORE_BALANCE_PROFILES,
-    extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS]
+    extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, ...WARRIOR_CORE_TRAIT_SKILLS]
   }),
   state: {
     create: createWarriorCoreState,

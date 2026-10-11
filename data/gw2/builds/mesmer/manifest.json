@@ -231,6 +231,60 @@
             "20-0": { "cumulative": 42824, "phase": 45783 }
           }
         }
+      },
+      {
+        "label": "Power Quickness (Spear / Dagger-Sword)",
+        "build": "data/gw2/builds/mesmer/b-power-quickness-troubadour-spear-dagger-sword.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-quickness-troubadour-spear-dagger-sword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-quickness-troubadour-spear-dagger-sword",
+        "upToDate": true,
+        "benchmarkDps": 33532,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 30915, "phase": 30915 },
+          "80-60": { "cumulative": 31452, "phase": 32018 },
+          "60-40": { "cumulative": 31968, "phase": 33034 },
+          "40-20": { "cumulative": 33050, "phase": 36870 },
+          "20-0": { "cumulative": 33532, "phase": 35613 }
+        },
+        "benchmarkApm": 74.4,
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 33532,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 30915, "phase": 30915 },
+            "80-60": { "cumulative": 31452, "phase": 32018 },
+            "60-40": { "cumulative": 31968, "phase": 33034 },
+            "40-20": { "cumulative": 33050, "phase": 36870 },
+            "20-0": { "cumulative": 33532, "phase": 35613 }
+          }
+        }
+      },
+      {
+        "label": "Power Quickness (Spear / Greatsword)",
+        "build": "data/gw2/builds/mesmer/b-power-quickness-troubadour-spear-greatsword.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-quickness-troubadour-spear-greatsword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-quickness-troubadour-spear-greatsword",
+        "upToDate": true,
+        "benchmarkDps": 32153,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 31409, "phase": 31409 },
+          "80-60": { "cumulative": 31153, "phase": 30900 },
+          "60-40": { "cumulative": 31585, "phase": 32492 },
+          "40-20": { "cumulative": 32147, "phase": 33936 },
+          "20-0": { "cumulative": 32153, "phase": 32180 }
+        },
+        "benchmarkApm": 75.5,
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 32153,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 31409, "phase": 31409 },
+            "80-60": { "cumulative": 31153, "phase": 30900 },
+            "60-40": { "cumulative": 31585, "phase": 32492 },
+            "40-20": { "cumulative": 32147, "phase": 33936 },
+            "20-0": { "cumulative": 32153, "phase": 32180 }
+          }
+        }
       }
     ]
   }

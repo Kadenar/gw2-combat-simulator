@@ -114,25 +114,16 @@ export function mesmerProfiledShatter(context: unknown, shatter: MesmerShatterDe
   };
 }
 
-export function mesmerProfiledTraitDamage(
-  context: unknown,
-  metadata: { readonly requiresCooldown?: boolean },
-  balanceProfileId: SkillId
-): MesmerTraitDamage {
+export function mesmerProfiledTraitDamage(context: unknown, balanceProfileId: SkillId): MesmerTraitDamage {
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
   const strike = requireEffect(profile, 'strike', 'Strike');
-  const cooldownField =
-    profile.cooldownPolicy && profile.cooldownPolicy !== 'internal' ? 'cooldown' : 'internalCooldown';
-  // Runtime callers supply only mechanic metadata; all attack tuning comes from the active profile.
+  // Remaining Mesmer trait attacks use optional internal cooldowns from the selected profile.
   return {
     balanceProfileId,
     weaponStrength: profile.weaponStrength === undefined ? undefined : balanceProfileNumber(profile, 'weaponStrength'),
     ...strike,
     name: undefined,
-    cooldown:
-      !metadata.requiresCooldown && profile[cooldownField] === undefined
-        ? undefined
-        : balanceProfileNumber(profile, cooldownField),
+    cooldown: profile.internalCooldown === undefined ? undefined : balanceProfileNumber(profile, 'internalCooldown'),
     duration: profile.durationMultiplier === undefined ? undefined : balanceProfileNumber(profile, 'durationMultiplier')
   };
 }

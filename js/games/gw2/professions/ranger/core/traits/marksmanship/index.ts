@@ -10,7 +10,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -93,18 +93,7 @@ export const clarionBond = defineTrait({
     })
   ],
   id: TRAIT.CLARION_BOND,
-  name: 'Clarion Bond',
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 15,
-    effects: [
-      { name: 'fury', type: 'boon', boon: 'fury', duration: 5, stacks: 1 },
-      { name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 6 },
-      { name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 5, stacks: 1 },
-      { name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 5, stacks: 1 }
-    ]
-  }
+  name: 'Clarion Bond'
 });
 
 /** Owns Opening Strike's live tuning and trait behavior. */
@@ -307,68 +296,19 @@ export const predatorsOnslaught = defineTrait({
 
 /** Completes the lesser warhorn package after the pet swap. */
 function applyClarionBond(context: RangerRuntime, skill: RangerSkill): void {
-  const at = context.time;
-  if (context.procs.claim(TRAIT.CLARION_BOND, 'ranger.core.clarionBond', context.time)) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.CLARION_BOND);
-    // The blast finisher is part of the lesser warhorn package, so the cooldown survives removed boons.
-    emitTraitProfile(context, TRAIT.CLARION_BOND, TRAIT.CLARION_BOND, undefined, {
-      at,
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.CLARION_BOND,
-        actorType: 'effect',
-        skillId: TRAIT.CLARION_BOND,
-        skillName: 'Clarion Bond',
-        triggeredBy: skill.name
-      },
-      transform: (event) => ({
-        ...event,
-        name: 'Clarion Bond - ' + event.kind,
-        boon: event.kind,
-        audience: { recipients: 'party', maximumRecipients: 5 }
-      }),
-      preserveName: true,
-      effects: (effect) => effect.type === 'boon'
-    });
-
-    const weakness = requireEffect(profile, 'condition', 'Weakness');
-    if (weakness)
-      emitTraitProfile(context, TRAIT.CLARION_BOND, TRAIT.CLARION_BOND, undefined, {
-        at: at,
-        fullEnd: at,
-        effect: { type: 'condition', name: 'Weakness' },
-        attribution: {
-          source: 'Trait',
-          actorType: 'effect',
-          skillId: TRAIT.CLARION_BOND,
-          skillName: 'Clarion Bond',
-          name: 'Lesser Call of the Wild - Weakness',
-          triggeredBy: skill.name,
-          sourceId: TRAIT.CLARION_BOND
-        }
-      });
-    context.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'proc',
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.CLARION_BOND,
-        actorType: 'effect',
-        skillId: TRAIT.CLARION_BOND,
-        skillName: 'Clarion Bond',
-        name: 'Lesser Call of the Wild - Blast Finisher',
-        triggeredBy: skill.name,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: 'Blast',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      }
-    });
-  }
+  // A trait trigger invokes one independently patchable skill and shares that skill's recharge.
+  const proc = context.helpers.skillsById.get(ID.LESSER_CALL_OF_THE_WILD)!;
+  if (!proc.effects?.length || context.cooldownController.isOnCooldown(proc.id, context.time)) return;
+  context.cooldownController.startRecharge(proc, context.time);
+  invokeTraitSkill(context, TRAIT.CLARION_BOND, proc.id, {
+    type: 'action',
+    source: 'Trait',
+    sourceId: proc.id,
+    at: context.time,
+    skillId: skill.id,
+    skillName: skill.name,
+    actorType: 'player'
+  });
 }
 
 /** Applies the trait at the accepted Beast-skill boundary. */

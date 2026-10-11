@@ -26,7 +26,7 @@ import { reactToAshesHit } from '#gw2/professions/guardian/specializations/fireb
 import { mesmerControlAccepted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS, NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
@@ -135,7 +135,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
 // Heal traits claim from the actual completion timestamp, with the shared strict cooldown boundary.
 for (const [key, trait] of [
   ['darkDefense', NECROMANCER_TRAIT_IDS.DARK_DEFENSE],
-  [NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM, NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM]
+  [ID.LESSER_SIGNET_OF_THE_LOCUST, NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM]
 ]) {
   test(`Necromancer ${key} claims only after its live completion boundary`, () => {
     for (const selected of [false, true])
@@ -149,11 +149,17 @@ for (const [key, trait] of [
             ...native,
             initialize(runtime) {
               native.initialize(runtime);
-              runtime.procs.setDeadline(key, 1);
+              if (trait === NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM) runtime.cooldownController.setReadyAt(key, 1);
+              else runtime.procs.setDeadline(key, 1);
             }
           }
         });
-        assert.equal(observedRuntime(result).procs.snapshot()[key] > 1, selected && completion > 1);
+        const runtime = observedRuntime(result);
+        const skillOwned = trait === NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM;
+        assert.equal(
+          (skillOwned ? runtime.cooldownController.readyAt(key) : runtime.procs.deadline(key)) > 1,
+          selected && (skillOwned || completion > 1)
+        );
         assert.deepEqual(result.warnings, []);
       }
   });
@@ -162,7 +168,6 @@ for (const [key, trait] of [
 // Keep map claims behind local eligibility, with Dhuumfire's explicit zero-interval bypass intact.
 for (const [key, trait, invoke, literalDuration] of [
   ['siphonedPower', NECROMANCER_TRAIT_IDS.SIPHONED_POWER, strikeOpportunity],
-  ['chillOfDeath', NECROMANCER_TRAIT_IDS.CHILL_OF_DEATH, strikeOpportunity],
   ['chillingDarkness', NECROMANCER_TRAIT_IDS.CHILLING_DARKNESS, conditionOpportunity],
   ['dhuumfire', NECROMANCER_TRAIT_IDS.DHUUMFIRE, strikeOpportunity]
 ]) {
@@ -171,7 +176,7 @@ for (const [key, trait, invoke, literalDuration] of [
       const profiles = new Map(necromancerCatalog.balanceProfilesById);
       profiles.set(trait, { ...profiles.get(trait), cooldown: duration });
       const bypass = key === 'dhuumfire' && duration === 0;
-      const elapsed = key === 'chillOfDeath' ? duration / 1.25 : duration;
+      const elapsed = duration;
       // Each build owns its context and claim registry, because selection never changes once a context is in use.
       const scenario = (traits) => {
         const core = necromancerProfession.resolveProfession({}).createState({}).core;
@@ -455,8 +460,8 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
   assert.ok(observedRuntime(result).procs.snapshot()[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
 });
 
-// Actual burst impacts share the exclusive trait gate, independently of their skill recharge.
-test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
+// Burst impacts use native invoked-skill recharge, which admits the exact ready action tick.
+test('Magebane Tether admits a burst at its native recharge boundary', () => {
   for (const at of [READY_AT, AFTER_READY_AT]) {
     const config = { specialization: 'Spellbreaker', selectedTraitIds: [WARRIOR_TRAIT_IDS.MAGEBANE_TETHER] };
     const native = warriorProfession.runtimeFor(config);
@@ -467,7 +472,7 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
         ...native,
         initialize(runtime) {
           native.initialize(runtime);
-          runtime.procs.setDeadline('warrior.spellbreaker.magebaneTether', READY_AT);
+          runtime.cooldownController.setReadyAt(WARRIOR_SKILL_IDS.MAGEBANE_TETHER, READY_AT);
           runtime.effects.emit({
             kind: 'packet',
             event: {
@@ -485,10 +490,10 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
       }
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').length, at === READY_AT ? 0 : 1);
+    assert.equal(result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').length, 1);
     assert.equal(
-      observedRuntime(result).procs.deadline('warrior.spellbreaker.magebaneTether') > READY_AT,
-      at > READY_AT
+      observedRuntime(result).cooldownController.readyAt(WARRIOR_SKILL_IDS.MAGEBANE_TETHER) > READY_AT,
+      true
     );
   }
 });

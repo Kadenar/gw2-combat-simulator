@@ -5,7 +5,7 @@ import { activePetFamily, rangerPetEvent } from '#gw2/professions/ranger/core/tr
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -36,25 +36,7 @@ export const childOfEarth = defineTrait({
     })
   ],
   id: TRAIT.CHILD_OF_EARTH,
-  name: 'Child of Earth',
-  balance: {
-    // This produced skill recharges with the player's Alacrity; ordinary trait ICDs remain fixed.
-    cooldownPolicy: 'playerRecharge',
-    cooldown: 20,
-    pulseInterval: 2,
-    maximumStacks: 5,
-    effects: [
-      {
-        name: 'Immobilized',
-        type: 'condition',
-        condition: 'Immobilized',
-        duration: 1,
-        stacks: 1
-      },
-      { name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 },
-      { name: 'Slow', type: 'condition', condition: 'Slow', duration: 1, stacks: 1 }
-    ]
-  }
+  name: 'Child of Earth'
 });
 
 /** Owns Poison Master's live tuning and trait behavior. */
@@ -244,42 +226,19 @@ export const survivalInstincts = defineTrait({
 // On an eligible heal, claim Lesser Muddy Terrain's recharge and emit the initial
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
 function triggerChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.CHILD_OF_EARTH);
-  const immobilized = requireEffect(profile, 'condition', 'Immobilized');
-  // Pulse conditions keep their own identities, so removing one never rebinds another.
-  const pulses = [requireEffect(profile, 'condition', 'Crippled'), requireEffect(profile, 'condition', 'Slow')].filter(
-    (effect) => effect !== undefined
-  );
-  // The cooldown gates the lesser field; with every packet removed there is nothing to gate.
-  if (!immobilized && !pulses.length) return;
-  if (!context.procs.claim(TRAIT.CHILD_OF_EARTH, 'ranger.core.childOfEarth', context.time)) return;
-  const at = context.time;
-  if (immobilized)
-    emitTraitProfile(context, TRAIT.CHILD_OF_EARTH, TRAIT.CHILD_OF_EARTH, undefined, {
-      at: at,
-      fullEnd: at,
-      effect: { type: 'condition', name: 'Immobilized' },
-      attribution: {
-        source: 'Trait',
-        actorType: 'effect',
-        skillId: TRAIT.CHILD_OF_EARTH,
-        skillName: 'Child of Earth',
-        name: 'Lesser Muddy Terrain - Immobilized',
-        triggeredBy: skill.name,
-        sourceId: TRAIT.CHILD_OF_EARTH
-      }
-    });
-  const applications = balanceProfileNumber(profile, 'maximumStacks');
-  const interval = balanceProfileNumber(profile, 'pulseInterval');
-  for (let application = 0; application < applications; application += 1) {
-    // The field owns its pulse count and cadence; the selected effects own each condition application.
-    emitTraitProfile(context, TRAIT.CHILD_OF_EARTH, TRAIT.CHILD_OF_EARTH, undefined, {
-      at: at + application * interval,
-      effects: (effect) => pulses.includes(effect as (typeof pulses)[number]),
-      attribution: { skillId: TRAIT.CHILD_OF_EARTH, skillName: 'Child of Earth', triggeredBy: skill.name },
-      transform: (packet) => ({ ...packet, name: 'Lesser Muddy Terrain - ' + packet.condition })
-    });
-  }
+  // A trait trigger invokes one independently patchable skill and shares that skill's recharge.
+  const proc = context.helpers.skillsById.get(ID.LESSER_MUDDY_TERRAIN)!;
+  if (!proc.effects?.length || context.cooldownController.isOnCooldown(proc.id, context.time)) return;
+  context.cooldownController.startRecharge(proc, context.time);
+  invokeTraitSkill(context, TRAIT.CHILD_OF_EARTH, proc.id, {
+    type: 'action',
+    source: 'Trait',
+    sourceId: proc.id,
+    at: context.time,
+    skillId: skill.id,
+    skillName: skill.name,
+    actorType: 'player'
+  });
 }
 
 /** Applies the trait at the accepted Beast-skill boundary. */

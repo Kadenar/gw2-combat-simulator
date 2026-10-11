@@ -29,7 +29,9 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.MANTRA_OF_RECOVERY]: {
-    castTimeMs: 1500,
+    // Completing preparation restores the healing mantra's own two-charge flip.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }],
+    castTimeMs: 1600,
     effects: []
   },
   [ID.SIGNET_OF_DOMINATION]: {

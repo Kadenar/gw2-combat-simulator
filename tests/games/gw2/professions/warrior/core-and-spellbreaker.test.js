@@ -168,7 +168,7 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
 
   assert.equal(profile('Core', WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).patchableFields.threshold, 20);
   assert.equal(profile('Berserker', BERSERKER_BALANCE_PROFILE_IDS.resources).profile.effects[0].duration, 20);
-  assert.equal(profile('Spellbreaker', TRAIT.MAGEBANE_TETHER).profile.effects[0].duration, 8);
+  assert.equal(warriorCatalog.skillsById.get(ID.MAGEBANE_TETHER).effects[0].duration, 8);
   assert.equal(profile('Bladesworn', BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger).patchableFields.maximumStacks, 10);
   assert.equal(profile('Paragon', PARAGON_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 10);
 
@@ -197,21 +197,23 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
       [BERSERKER_BALANCE_PROFILE_IDS.resources]: {
         effects: [{ effectIndex: 0, duration: { from: 20, to: 25 } }]
       },
-      [TRAIT.MAGEBANE_TETHER]: {
-        effects: [{ effectIndex: 0, duration: { from: 8, to: 9 } }]
-      },
       [BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger]: {
         fields: { maximumStacks: { from: 10, to: 12 } }
       },
       [PARAGON_BALANCE_PROFILE_IDS.resources]: {
         fields: { maximumStacks: { from: 10, to: 12 } }
       }
+    },
+    skills: {
+      [ID.MAGEBANE_TETHER]: {
+        effects: [{ effectIndex: 0, duration: { from: 8, to: 9 } }]
+      }
     }
   });
 
   assert.equal(preview.balanceProfilesById.get(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).threshold, 15);
   assert.equal(preview.balanceProfilesById.get(BERSERKER_BALANCE_PROFILE_IDS.resources).effects[0].duration, 25);
-  assert.equal(preview.balanceProfilesById.get(TRAIT.MAGEBANE_TETHER).effects[0].duration, 9);
+  assert.equal(preview.skillsById.get(ID.MAGEBANE_TETHER).effects[0].duration, 9);
   assert.equal(preview.balanceProfilesById.get(BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger).maximumStacks, 12);
   assert.equal(preview.balanceProfilesById.get(PARAGON_BALANCE_PROFILE_IDS.resources).maximumStacks, 12);
 

@@ -13,7 +13,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 // Each live trigger must claim only its own gate before emitting its effects.
 for (const [key, trait, trigger, literalDuration] of [
-  ['lesserSignetMight', TRAIT.SIGNET_MASTERY, 'damage'],
   ['stalwartStrength', TRAIT.STALWART_STRENGTH, 'control'],
   ['aggressiveOnslaught', TRAIT.AGGRESSIVE_ONSLAUGHT, 'control'],
   ['cullTheWeak', TRAIT.CULL_THE_WEAK, 'damage', 5],
@@ -43,9 +42,9 @@ for (const [key, trait, trigger, literalDuration] of [
         const profiles = new Map(native.catalog.balanceProfilesById);
         profiles.set(trait, {
           ...profiles.get(trait),
-          [trait === TRAIT.SIGNET_MASTERY ? 'cooldown' : 'internalCooldown']: duration
+          internalCooldown: duration
         });
-        const elapsed = trait === TRAIT.SIGNET_MASTERY ? duration / 1.25 : duration;
+        const elapsed = duration;
         let emitted = 0;
         const result = observeGw2Runtime({
           config,

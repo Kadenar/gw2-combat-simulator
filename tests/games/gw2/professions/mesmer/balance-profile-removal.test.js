@@ -5,7 +5,6 @@ import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -14,11 +13,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Minimal scenarios keep removal, patch isolation, and resource contracts independent of benchmark rotations.
-function run(balanceProfiles, specialization, rotation, config = {}) {
+function run(balanceProfiles, specialization, rotation, config = {}, skills = {}) {
   const profession = withPatchPreview(mesmerProfession, {
     id: 'mesmer-removal',
     label: 'Mesmer removal',
-    professions: { mesmer: { balanceProfiles } }
+    professions: { mesmer: { balanceProfiles, skills } }
   });
   const result = runMesmer(
     rotation,
@@ -97,10 +96,13 @@ for (const [specialization, trait, skill, attack] of [
 ])
   test(`${attack} removal produces neither an attack nor its proc`, () => {
     const result = run(
-      { [trait]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } },
+      trait === TRAIT.METHOD_OF_MADNESS ? {} : { [trait]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } },
       specialization,
       [skill, { type: 'wait', durationMs: 7000 }],
-      { selectedTraitIds: [trait] }
+      { selectedTraitIds: [trait] },
+      trait === TRAIT.METHOD_OF_MADNESS
+        ? { [ID.LESSER_CHAOS_STORM]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
+        : {}
     );
     assert.equal(
       result.events.some((event) => event.type === 'damage' && event.skillName === attack),
@@ -114,7 +116,7 @@ for (const [specialization, trait, skill, attack] of [
             (attack === 'Phantasmal Blade'
               ? 'Phantasmal Blades'
               : attack === 'Lesser Chaos Storm'
-                ? 'Method of Madness'
+                ? 'Lesser Chaos Storm'
                 : attack)
       ),
       false
@@ -264,18 +266,6 @@ test('removing Chronomancer boon preserves its sibling and clone refund', () => 
   );
   assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'quickness'));
   assert.equal(result.planningState.profession.resource, 1);
-});
-
-test('required profiles and scalars reject malformed input while optional trait fields stay absent', () => {
-  const id = TRAIT.METHOD_OF_MADNESS;
-  const compile = (profile) => methodOfMadnessDamage({ balanceProfile: () => profile });
-  assert.throws(() => compile(undefined), /missing required profile/);
-  for (const cooldown of [undefined, null, '', '10', NaN, Infinity]) {
-    assert.throws(() => compile({ ...mesmerCatalog.balanceProfilesById.get(id), cooldown }), /field=cooldown/);
-  }
-
-  const compiled = compile(mesmerCatalog.balanceProfilesById.get(id));
-  assert.equal(compiled.duration, undefined);
 });
 
 test('selected resource capacity is shared by simulation and presentation', () => {

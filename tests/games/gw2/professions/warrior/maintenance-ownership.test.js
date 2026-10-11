@@ -103,6 +103,9 @@ test('Signet Mastery target-health eligibility and same-time cooldown reservatio
     assert.deepEqual(result.warnings, []);
     const context = observedRuntime(result).mechanics;
     assert.equal(context.combat.activeBuffStacks('signet-mastery', context.time), startingHealthFraction < 0.5 ? 1 : 0);
-    assert.equal(context.procs.deadline(TRAIT.SIGNET_MASTERY) > 0, startingHealthFraction < 0.5);
+    assert.equal(
+      observedRuntime(result).cooldownController.readyAt(ID.LESSER_SIGNET_OF_MIGHT) > 0,
+      startingHealthFraction < 0.5
+    );
   }
 });

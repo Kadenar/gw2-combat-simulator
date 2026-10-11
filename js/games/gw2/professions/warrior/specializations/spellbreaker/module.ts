@@ -1,3 +1,4 @@
+import { SPELLBREAKER_TRAIT_SKILLS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/trait-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { spellbreakerHooks } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
@@ -15,6 +16,7 @@ export const spellbreakerModule = defineNativeModule({
   id: 'Spellbreaker',
   data: createWarriorModuleData('Spellbreaker', {
     skillMechanics: SPELLBREAKER_SKILL_MECHANICS,
+    extraSkills: SPELLBREAKER_TRAIT_SKILLS,
     balanceProfiles: SPELLBREAKER_BALANCE_PROFILES
   }),
   state: {

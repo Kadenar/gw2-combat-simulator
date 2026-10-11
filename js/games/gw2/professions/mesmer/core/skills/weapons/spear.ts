@@ -218,8 +218,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.PSYCUT]: {
-    // The attack commits before its full cast animation finishes.
-    interruptCommitMs: 400,
+    // Landing Psycut advances the chain even when its remaining recovery is cancelled.
+    interruptCommitMs: 360,
     nextChainId: ID.PSYSTRIKE,
     effects: [
       {

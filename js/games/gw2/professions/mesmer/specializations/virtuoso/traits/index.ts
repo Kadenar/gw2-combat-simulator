@@ -155,7 +155,7 @@ export const phantasmalBlades = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
       run(runtime, admission: MesmerPhantasmAdmission) {
-        const damage = mesmerProfiledTraitDamage(runtime, {}, TRAIT.PHANTASMAL_BLADES);
+        const damage = mesmerProfiledTraitDamage(runtime, TRAIT.PHANTASMAL_BLADES);
         if (damage.type === 'strike')
           admission.bonusStrike = {
             name: 'Phantasmal Blade',
