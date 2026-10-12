@@ -72,20 +72,21 @@ export function createMesmerSkillEffects(context: MesmerRuntime) {
     spawnModifiers: bountifulBladesSpawnModifiers(context),
     conversionTiming: specialization === 'Virtuoso' ? 'blade-tick' : 'spawn'
   };
-  const timings = Object.fromEntries(
-    context.helpers.skills.flatMap((skill) => (skill.phantasmTiming ? [[skill.id, skill.phantasmTiming]] : []))
-  ) as Record<number, MesmerPhantasmAttackTiming>;
   const overrides =
     specialization === 'Chronomancer'
       ? MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS
       : specialization === 'Virtuoso'
         ? MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS
-        : {};
-  for (const [id, timing] of Object.entries(overrides)) timings[Number(id)] = { ...timings[Number(id)], ...timing };
+        : undefined;
   return createSkillEffectController({
     state: context,
     resourceDefinition: mesmerResourceDefinition(specialization, context),
-    phantasmAttackTimings: timings,
+    // Resolve only the requested summon from this run's catalog; elite overrides retain their field precedence.
+    phantasmTimingFor: (skillId) => {
+      const timing = context.helpers.skillsById.get(skillId)?.phantasmTiming;
+      const override = overrides?.[skillId];
+      return (override ? { ...timing, ...override } : timing) as MesmerPhantasmAttackTiming | undefined;
+    },
     phantasmPolicy: () => policy,
     activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
     queueResources: createMesmerIllusionRewards(context).queueResources

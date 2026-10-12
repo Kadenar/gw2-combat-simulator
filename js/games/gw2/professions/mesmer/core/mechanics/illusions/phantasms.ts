@@ -75,14 +75,14 @@ export interface MesmerPhantasmEffectController {
 
 interface PhantasmEffectControllerOptions {
   readonly state: MesmerRuntime;
-  readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
+  readonly phantasmTimingFor: (skillId: number) => MesmerPhantasmAttackTiming | undefined;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly queueResources: MesmerQueueResources;
 }
 
 export function createPhantasmEffectController({
   state,
-  phantasmAttackTimings,
+  phantasmTimingFor,
   phantasmPolicy,
   queueResources
 }: PhantasmEffectControllerOptions): MesmerPhantasmEffectController {
@@ -104,7 +104,8 @@ export function createPhantasmEffectController({
       (clarityConsumed ? (skill.resource.clarityCount ?? skill.resource.count ?? 1) : (skill.resource.count ?? 1)) *
       (spawnModifier?.countMultiplier ?? 1);
 
-    const timing = phantasmAttackTimings[skill.id];
+    // One resolved timing record belongs to this activation's entire summon batch.
+    const timing = phantasmTimingFor(skill.id);
     if (!timing) {
       throw new TypeError(`Phantasm skill ${skill.id} requires attack timing metadata.`);
     }

@@ -25,5 +25,4 @@ export interface MesmerExceptionalProfileOptions {
 
 export interface MesmerSkillEffectController {
   schedule(skill: MesmerSkill, at: number, castStart?: number, options?: MesmerExceptionalProfileOptions): void;
-  scheduleResources(skill: MesmerSkill, at: number, castStart?: number, delivery?: EffectDelivery): void;
 }

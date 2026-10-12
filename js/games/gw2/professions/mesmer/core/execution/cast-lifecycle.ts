@@ -3,6 +3,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { scheduleDirectSkillResources } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {
   completeMesmerShatter,
@@ -10,7 +11,8 @@ import {
   createMesmerSkillEffects,
   mesmerShatterDefinition
 } from '#gw2/professions/mesmer/family-mechanics.js';
-import { mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -112,16 +114,23 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
     if (cast.cancelled) return;
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return;
+    // Ordinary grants need only the reward queue; resource-free casts must not construct effect controllers.
     if (
+      (skill.resource?.mode === 'add' || skill.resource?.mode === 'fill') &&
       !mesmerShatterDefinition(context, skill.id) &&
       !skill.phantasm &&
       !skill.ambush &&
       !skill.instrument &&
       !details.resourceScheduledDuringCast
     ) {
-      createMesmerSkillEffects(context).scheduleResources(
+      scheduleDirectSkillResources(
+        {
+          resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context),
+          activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
+          queueResources: createMesmerIllusionRewards(context).queueResources
+        },
         skill,
-        skill.resource?.timingAnchor === 'castEnd' ? cast.fullEnd : at,
+        skill.resource.timingAnchor === 'castEnd' ? cast.fullEnd : at,
         cast.start,
         delivery
       );

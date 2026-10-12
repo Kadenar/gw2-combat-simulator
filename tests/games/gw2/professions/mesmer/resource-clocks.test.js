@@ -10,6 +10,7 @@ import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-reso
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -47,6 +48,75 @@ function fixture(specialization, initialResource) {
   return { context, profession, scheduled, cancelled, ...capture };
 }
 
+// Ordinary completion still clears its activation without inventing a resource transaction.
+test('completion without a resource declaration leaves resources and their queue unchanged', () => {
+  const { context, scheduled, events } = fixture('Virtuoso', 2);
+  const skill = { id: 'no-resource', name: 'No resource' };
+  const cast = { id: 'ordinary-cast', start: 0, fullEnd: 1, effectiveEnd: 1, skill, command: {} };
+  startMesmerCast(context, cast, skill);
+  context.time = cast.fullEnd;
+  completeMesmerCast(context, cast, skill);
+  assert.deepEqual(scheduled, []);
+  assert.equal(context.resourceController.value('blades'), 2);
+  assert.equal(
+    events.some((event) => event.type === 'resource'),
+    false
+  );
+  assert.equal(context.profession.core.castDetails.has(cast.id), false);
+});
+
+// Direct grants commit through the same queued reward owner for clones, blades, and notes.
+for (const [specialization, key, maximum] of [
+  ['Core', 'clones', 3],
+  ['Virtuoso', 'blades', 5],
+  ['Troubadour', 'notes', 3]
+]) {
+  test(`${specialization} completion queues add and fill grants with their declared weapon and capped rewards`, () => {
+    for (const mode of ['add', 'fill']) {
+      const initial = mode === 'fill' ? 1 : 0;
+      const { context, scheduled, events } = fixture(specialization, initial);
+      mesmerIllusionHooks.initialize(context);
+      const value = () =>
+        key === 'clones' ? context.profession.core.clones.length : context.resourceController.value(key);
+      const skill = {
+        id: 'direct-resource',
+        name: 'Direct resource',
+        ...(mode === 'add' ? { weapon: 'Staff' } : {}),
+        resource: { mode, count: 2, timingAnchor: 'castEnd', atMs: mode === 'add' ? 250 : 0 }
+      };
+      const cast = { id: 'direct-cast', start: 0, fullEnd: 1, effectiveEnd: 1, skill, command: {} };
+      startMesmerCast(context, cast, skill);
+      context.time = cast.fullEnd;
+      completeMesmerCast(context, cast, skill);
+      assert.equal(value(), initial);
+      assert.equal(
+        events.some((event) => event.reason === skill.name),
+        false
+      );
+      const tasks = scheduled.filter((task) => task.type === 'mesmer.resource-gain');
+      assert.equal(tasks.length, 1);
+      const task = tasks[0];
+      assert.equal(task.at, cast.fullEnd + (mode === 'add' ? 0.25 : 0));
+      assert.equal(task.data.weapon, skill.weapon || context.config.primaryWeapon);
+      assert.deepEqual(task.data.cause, { kind: 'skill', sourceSkillId: skill.id });
+      context.time = task.at;
+      mesmerIllusionHooks.tasks[task.type](context, task.data);
+      const expectedValue = mode === 'fill' ? maximum : 2;
+      assert.equal(value(), expectedValue);
+      const reward = events.find((event) => event.reason === skill.name);
+      assert.equal(reward.amount, key === 'clones' ? expectedValue : expectedValue - initial);
+      assert.equal(reward.value, expectedValue);
+      assert.ok(events.some((event) => event.kind === 'compounding'));
+
+      if (key === 'clones') {
+        assert.ok(context.profession.core.clones.every((clone) => clone.weapon === task.data.weapon));
+      }
+
+      assert.equal(context.profession.core.castDetails.has(cast.id), false);
+    }
+  });
+}
+
 // Resource ownership follows canonical boundaries, including the last microsecond before completion.
 test('cast-start resources before completion are available to concurrent actions', () => {
   const { context, scheduled } = fixture('Virtuoso', 0);
@@ -60,7 +130,7 @@ test('cast-start resources before completion are available to concurrent actions
       count: 1
     }
   };
-  const cast = { id: 'resource-cast', start: 0, fullEnd: 1, effectiveEnd: 1, skill };
+  const cast = { id: 'resource-cast', start: 0, fullEnd: 1, effectiveEnd: 1, skill, command: {} };
   startMesmerCast(context, cast, skill);
   assert.equal(scheduled.length, 1);
   const task = scheduled[0];
@@ -68,6 +138,12 @@ test('cast-start resources before completion are available to concurrent actions
   context.time = task.at;
   mesmerIllusionHooks.tasks[task.type](context, task.data);
   assert.equal(context.resourceController.value('blades'), 1);
+  // A concurrent shatter can spend the grant, and completion must not grant it again.
+  assert.equal(createMesmerActions(context).consumeResources(context.time), 1);
+  context.time = cast.fullEnd;
+  completeMesmerCast(context, cast, skill);
+  assert.equal(scheduled.length, 1);
+  assert.equal(context.resourceController.value('blades'), 0);
 });
 
 test('resource gain at completion belongs to completion rather than a second task', () => {
@@ -82,10 +158,18 @@ test('resource gain at completion belongs to completion rather than a second tas
       count: 1
     }
   };
-  const cast = { id: 'resource-cast', start: 0.1, fullEnd: 0.3, effectiveEnd: 0.3, skill };
+  const cast = { id: 'resource-cast', start: 0.1, fullEnd: 0.3, effectiveEnd: 0.3, skill, command: {} };
   startMesmerCast(context, cast, skill);
   assert.deepEqual(scheduled, []);
   assert.equal(context.profession.core.castDetails.get(cast.id).resourceScheduledDuringCast, false);
+  context.time = cast.fullEnd;
+  completeMesmerCast(context, cast, skill);
+  assert.equal(scheduled.length, 1);
+  // This fixture captures before the shared scheduler canonicalizes floating-point inputs.
+  assert.equal(canonicalTime(scheduled[0].at), cast.fullEnd);
+  assert.equal(context.resourceController.value('blades'), 0);
+  mesmerIllusionHooks.tasks[scheduled[0].type](context, scheduled[0].data);
+  assert.equal(context.resourceController.value('blades'), 1);
 });
 
 test('resource gain at an interrupted endpoint survives roundoff but a later gain loses its owner', () => {

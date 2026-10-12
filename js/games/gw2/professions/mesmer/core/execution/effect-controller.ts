@@ -3,7 +3,10 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
  * Owns the ordered Core Mesmer effect-controller pipeline used by replacing handlers.
  * Packet emission and stateful effects remain in their focused sibling modules.
  */
-import { createIllusionResourceController } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
+import {
+  scheduleDirectSkillResources,
+  schedulePhantasmConversions
+} from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';
 import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js';
@@ -23,7 +26,7 @@ import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer
 interface SkillEffectControllerOptions {
   readonly state: MesmerRuntime;
   readonly resourceDefinition: MesmerResourceDefinition;
-  readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
+  readonly phantasmTimingFor: (skillId: number) => MesmerPhantasmAttackTiming | undefined;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
@@ -37,18 +40,12 @@ interface SkillEffectControllerOptions {
 export function createSkillEffectController({
   state,
   resourceDefinition,
-  phantasmAttackTimings,
+  phantasmTimingFor,
   phantasmPolicy,
   activePrimaryWeapon,
   queueResources
 }: SkillEffectControllerOptions): MesmerSkillEffectController {
-  const phantasms = createPhantasmEffectController({ state, phantasmAttackTimings, phantasmPolicy, queueResources });
-  const illusionResources = createIllusionResourceController({
-    resourceDefinition,
-    activePrimaryWeapon,
-    queueResources,
-    phantasms
-  });
+  const phantasms = createPhantasmEffectController({ state, phantasmTimingFor, phantasmPolicy, queueResources });
   const damage = createSkillDamageController({ phantasms, state });
   const schedule = (
     skill: MesmerSkill,
@@ -68,12 +65,19 @@ export function createSkillEffectController({
       (effect): effect is MesmerConditionEffect => effect.type === 'condition'
     );
     damage.schedule(skill, at, castStart, playerEffectEnd, conditions, phantasmExecutions, delivery);
-    illusionResources.schedule(skill, at, castStart, phantasmExecutions, delivery);
+    // Explicit grants take precedence; otherwise the prepared phantasms own their conversion batches.
+    if (
+      !scheduleDirectSkillResources(
+        { resourceDefinition, activePrimaryWeapon, queueResources },
+        skill,
+        at,
+        castStart,
+        delivery
+      )
+    ) {
+      schedulePhantasmConversions(phantasmExecutions, phantasms.queueConversion);
+    }
   };
 
-  return {
-    schedule,
-    scheduleResources: (skill, at, castStart = at, delivery = {}) =>
-      illusionResources.schedule(skill, at, castStart, [], delivery)
-  };
+  return { schedule };
 }
