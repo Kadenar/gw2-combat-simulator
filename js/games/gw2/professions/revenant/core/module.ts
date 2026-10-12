@@ -1,9 +1,7 @@
 import { traitDefinitions } from '#gw2/professions/revenant/core/traits/index.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
-import { REVENANT_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/core/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { createRevenantCoreState, projectRevenantPlanningState } from '#gw2/professions/revenant/core/state.js';
 import { revenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
 import {
   REVENANT_CORE_BASE_SKILL_MECHANICS,
@@ -23,7 +21,7 @@ export const revenantCoreModule = defineNativeModule({
   }),
   state: {
     create: createRevenantCoreState,
-    project: createPublicStateProjector(REVENANT_CORE_PUBLIC_STATE_PROJECTION)
+    project: projectRevenantPlanningState
   },
   hooks: revenantCoreHooks,
   presentation: revenantCoreUi

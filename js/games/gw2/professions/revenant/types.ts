@@ -56,7 +56,10 @@ export interface RevenantTimedStack {
   expiresAt: number;
 }
 
-export interface RevenantState extends RevenantCoreState, HeraldState, RenegadeState, VindicatorState, ConduitState {}
+export interface RevenantState extends RevenantCoreState, HeraldState, RenegadeState, VindicatorState, ConduitState {
+  /** Public loadout consumers use the projected legend identity; live Core state stores only activeLegendId. */
+  activeLoadoutId: string;
+}
 
 export interface RevenantRuntimeState {
   core: RevenantCoreState;

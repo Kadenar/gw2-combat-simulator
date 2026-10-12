@@ -7,6 +7,8 @@ import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 
 export interface RevenantUpkeepState {
   skillId: SkillId;
@@ -28,7 +30,6 @@ export interface RevenantCoreState {
   activationClaims: ActivationClaims;
   energy: ResourceClock;
   activeLegendId: string;
-  activeLoadoutId: string;
   selectedLegendIds: string[];
   activeUpkeeps: RevenantUpkeepState[];
   availableFlips: SkillFlipWindows;
@@ -68,7 +69,6 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     },
     activationClaims: {},
     activeLegendId,
-    activeLoadoutId: activeLegendId,
     selectedLegendIds,
     activeUpkeeps: [],
     availableFlips: {},
@@ -96,7 +96,6 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
 const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] = Object.freeze([
   'energy',
   'activeLegendId',
-  'activeLoadoutId',
   'selectedLegendIds',
   'activeUpkeeps',
   'availableFlips',
@@ -112,7 +111,17 @@ const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] 
 ]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.
-export const REVENANT_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+const REVENANT_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: REVENANT_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });
+
+/** Derive the shared loadout identity from the current legend without storing a second live identity. */
+export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as RevenantCoreState,
+    REVENANT_CORE_PUBLIC_STATE_PROJECTION.keys,
+    REVENANT_CORE_PUBLIC_STATE_PROJECTION.defaults
+  );
+  return { ...state, activeLoadoutId: state.activeLegendId };
+}

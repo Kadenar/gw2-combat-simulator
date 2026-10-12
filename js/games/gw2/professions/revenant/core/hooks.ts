@@ -127,7 +127,6 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   const core = runtime.profession.core;
   const previous = runtime.resourceController.value('energy');
   core.activeLegendId = core.selectedLegendIds.find((id) => id !== core.activeLegendId) || core.activeLegendId;
-  core.activeLoadoutId = core.activeLegendId;
   const energy = chargedMistsEnergy(runtime, cast, previous);
   // Legend invocation replaces the balance after Charged Mists reads pre-swap energy, preserving recovery timing.
   runtime.resourceController.replace('energy', energy);
@@ -179,7 +178,6 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     const state = runtime.profession.core;
     if (skill?.legendId) {
       state.activeLegendId = skill.legendId;
-      state.activeLoadoutId = skill.legendId;
     }
 
     // Both the stat strip and occurrences consume the control's canonical serialized skill identity.
