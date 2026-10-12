@@ -90,8 +90,7 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Pre-steal grants the selected stolen-skill pool without marking a target, gaining malice, or firing steal traits.
   initialize(runtime) {
     if ((runtime.config as ThiefConfig).initialPreSteal !== 1) return;
-    const grant = stolenSkillGrant(runtime);
-    storeThiefStolenSkillChoices(runtime, grant.skillIds, grant.forcedSkillId);
+    storeThiefStolenSkillChoices(runtime, stolenSkillGrant(runtime));
   },
   // Malice has no passive recovery; only accepted mark and hit transactions earn its cycle rewards.
   resources: {

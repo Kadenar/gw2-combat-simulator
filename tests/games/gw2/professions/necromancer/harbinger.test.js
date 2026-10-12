@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -24,7 +25,7 @@ test('Harbinger entry grants precede depletion and its passive clock stops on ev
   const config = { ...base, initialResource: 0, selectedTraitIds: [TRAIT.CORRUPTED_TALENT] };
   const entered = run([cast(ID.HARBINGER_SHROUD), wait(1000)], config);
   assert.equal(entered.planningState.profession.activeShroud, 'harbinger');
-  assert.equal(entered.planningState.profession.lifeForce.value, 10);
+  assert.equal(lifeForcePercent(entered.planningState.profession.lifeForce), 10);
   assert.equal(state(entered).blight, 2);
   assert.deepEqual(entered.warnings, []);
   const depleted = run([cast(ID.HARBINGER_SHROUD), wait(2000)], { ...base, initialResource: 5 });
@@ -107,9 +108,9 @@ test('Cascading Corruption commits one delayed Meltdown and expires its live win
 test('Vital Draw grants only the siphons that have arrived', () => {
   const config = { ...base, initialResource: 10 };
   const result = run([cast(ID.HARBINGER_SHROUD), cast(ID.VITAL_DRAW)], config);
-  assert.ok(Math.abs(result.planningState.profession.lifeForce.value - 9) < 1e-9);
+  assert.ok(Math.abs(lifeForcePercent(result.planningState.profession.lifeForce) - 9) < 1e-9);
   const missed = run([cast(ID.HARBINGER_SHROUD), { ...cast(ID.VITAL_DRAW), offTarget: true }], config);
-  assert.equal(missed.planningState.profession.lifeForce.value, 6);
+  assert.equal(lifeForcePercent(missed.planningState.profession.lifeForce), 6);
 });
 
 test('Harbinger recharge modifies pistol work while preserving Core shroud reductions', () => {

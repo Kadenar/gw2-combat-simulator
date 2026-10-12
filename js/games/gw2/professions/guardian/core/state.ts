@@ -62,8 +62,8 @@ export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreStat
   return purgeExpiredStacks(state.symbolicAvengerExpirations || [], at);
 }
 
-/** Publish visible Core state; virtue readiness and hit counters stay with live availability and mechanics. */
-const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] = Object.freeze([
+/** Preserve literal public keys so projection types cannot expose private virtue readiness or hit counters. */
+const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'endurance',
 
   'justiceActiveArmed',
@@ -80,7 +80,7 @@ const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] 
   'spearIlluminatedArmed',
   'spearIlluminatedUntil',
   'spearLuminanceUntil'
-]);
+] as const satisfies readonly (keyof GuardianCoreState)[]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.
 const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({

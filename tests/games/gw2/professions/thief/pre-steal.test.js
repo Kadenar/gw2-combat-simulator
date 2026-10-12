@@ -29,6 +29,7 @@ test('Core and Daredevil pre-steal grant and consume their normal stolen choices
       const refreshed = runThief([ID.DETONATE_PLASMA, ID.STEAL], config);
       assert.deepEqual(refreshed.warnings, []);
       assert.deepEqual(refreshed.planningState.profession.storedStolenSkillIds, THIEF_STOLEN_SKILL_IDS);
+      assert.equal(refreshed.planningState.profession.storedStolenSkillCount, selectedTraitIds.length ? 2 : 1);
     }
   }
 });
@@ -52,7 +53,6 @@ test('Deadeye pre-steal respects Fire for Effect and Improvisation without apply
       const state = initial.planningState.profession;
       assert.deepEqual(initial.warnings, []);
       assert.deepEqual(state.storedStolenSkillIds, choices);
-      assert.equal(state.storedStolenSkillId, fireForEffect ? ID.STEAL_TIME : null);
       assert.equal(state.storedStolenSkillCount, improvisation ? 2 : 1);
       assert.equal(state.markedTargetId, null);
       assert.equal(state.malice.value, 0);
@@ -63,6 +63,9 @@ test('Deadeye pre-steal respects Fire for Effect and Improvisation without apply
       assert.deepEqual(used.warnings, []);
       assert.equal(used.planningState.profession.storedStolenSkillCount, improvisation ? 1 : 0);
       assert.deepEqual(used.planningState.profession.storedStolenSkillIds, improvisation ? [skillId] : []);
+      // Availability follows the narrowed choice list while Improvisation retains a use.
+      assert.equal(used.planningState.availability[skillId].ready, improvisation);
+      assert.equal(used.planningState.availability[ID.STEAL_DEFENSES].ready, false);
       const refreshed = runThief([skillId, ID.DEADEYES_MARK], config);
       assert.deepEqual(refreshed.warnings, []);
       assert.deepEqual(refreshed.planningState.profession.storedStolenSkillIds, choices);

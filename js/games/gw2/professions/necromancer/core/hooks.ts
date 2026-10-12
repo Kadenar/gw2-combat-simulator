@@ -1,4 +1,5 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
@@ -60,10 +61,7 @@ import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/profession
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
-import {
-  necromancerLifeForceCostMultiplier,
-  normalizedNecromancerLifeForceCost
-} from '#gw2/professions/necromancer/core/state.js';
+import { necromancerLifeForceCapacity } from '#gw2/professions/necromancer/core/state.js';
 import {
   NECROMANCER_SKILL_IDS as DAMAGE_SKILL,
   NECROMANCER_TRAIT_IDS as TRAIT
@@ -165,12 +163,6 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
         expiresAt: cast.rechargeStart + Math.max(1, skill.flipDuration ?? skill.cooldown ?? 5)
       });
     },
-    // Scourge declarations spend the same normalized amount used by the shared affordability gate.
-    'necromancer.life-force-cost'(runtime, context) {
-      const cost = normalizedNecromancerLifeForceCost(runtime.profession.core, context.skill.lifeForceCost ?? 0);
-      if (cost) runtime.resourceController.spend('lifeForce', cost);
-    },
-
     'necromancer.axe-health'(runtime, context) {
       if (context.kind === 'effect') reactToNecromancerAxeHealth(runtime, context.trigger.event);
     },
@@ -196,7 +188,10 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     }
   },
   initialize(runtime) {
-    runtime.profession.core.lifeForceCostMultiplier = necromancerLifeForceCostMultiplier(
+    // Apply final attribute-derived capacity while preserving the initialized fraction of the pool.
+    const pool = runtime.profession.core.lifeForce;
+    const fraction = pool.value / pool.maximum;
+    pool.maximum = necromancerLifeForceCapacity(
       runtime.config,
       runtime,
       runtime.combat.statsAt(runtime.time, {
@@ -207,6 +202,10 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
         sourceId: 'resource-initialization'
       }).vitality
     );
+    // Initialization replaces the complete segment, including capacity when the starting balance is zero.
+    pool.value = fraction * pool.maximum;
+    anchorResourceClock(pool);
+    runtime.resourceController.refresh('lifeForce');
     initializeNecromancerPassives(runtime);
   },
   onCombatStart(runtime) {
@@ -249,14 +248,6 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
       return denySkillCast(skill, 'necromancer.wrong-shroud', `requires ${skill.shroud} shroud.`);
     else if (!skill.shroud && state.activeShroud && !skill.usableInShroud)
       return denySkillCast(skill, 'necromancer.in-shroud', 'cannot cast in shroud.');
-    const cost = normalizedNecromancerLifeForceCost(state, skill.lifeForceCost ?? 0);
-    if (runtime.resourceController.value('lifeForce') < cost)
-      return denySkillCast(
-        skill,
-        'necromancer.insufficient-life-force',
-        'requires more life force.',
-        runtime.resourceController.readyAt('lifeForce', cost)
-      );
     return { ready: true };
   },
   // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.

@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -364,12 +365,12 @@ test('spirit creation commits once and Soul Twisting refunds only the first comp
   assert.equal(state(result).activeSpirits.anguish.generation, 2);
   assert.equal(state(result).soulTwistingAvailable, false);
   assert.ok(observedRuntime(result).cooldownController.readyAt(ID.ANGUISH) > result.planningState.atSeconds);
-  assert.equal(result.planningState.profession.lifeForce.value, 56.64);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 56.64);
   assert.deepEqual(result.warnings, []);
   const interrupted = run([cast(ID.RITUALISTS_SHROUD), { ...cast(ID.ANGUISH), interruptAfterMs: 100 }], { config });
   assert.deepEqual(state(interrupted).activeSpirits, {});
   assert.equal(state(interrupted).soulTwistingAvailable, true);
-  assert.equal(interrupted.planningState.profession.lifeForce.value, 39.64);
+  assert.equal(lifeForcePercent(interrupted.planningState.profession.lifeForce), 39.64);
 });
 
 test('exit preserves committed attacks while autonomous spirit work ends on exit or Lingering depletion', () => {
@@ -384,10 +385,13 @@ test('exit preserves committed attacks while autonomous spirit work ends on exit
   const config = { ...base, initialResource: 12, selectedTraitIds: [TRAIT.LINGERING_SPIRITS] };
   const living = run(rotation.slice(0, 3), { config });
   assert.deepEqual(Object.keys(state(living).activeSpirits), ['anguish']);
-  assert.equal(living.planningState.profession.lifeForce.rate, -3);
+  assert.equal(
+    living.planningState.profession.lifeForce.rate,
+    (-living.planningState.profession.lifeForce.maximum * 3) / 100
+  );
   const depleted = run([...rotation, cast(ID.INNERVATE_ANGUISH)], { config });
   assert.deepEqual(state(depleted).activeSpirits, {});
-  assert.equal(depleted.planningState.profession.lifeForce.value, 0);
+  assert.equal(lifeForcePercent(depleted.planningState.profession.lifeForce), 0);
   assert.equal(depleted.planningState.profession.lifeForce.rate, 0);
   assert.equal(depleted.steps.at(-1).invalid, true);
 });
@@ -450,10 +454,12 @@ test('Innervate requires its live spirit and grants life force once even when ho
   const config = { ...base, initialResource: 50 };
   const rotation = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), { ...cast(ID.INNERVATE_ANGUISH), offTarget: true }];
   const result = run(rotation, { config });
-  assert.equal(result.planningState.profession.lifeForce.value, 58.32);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 58.32);
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'might' && event.skillId === ID.INNERVATE_ANGUISH));
   assert.equal(
-    run([...rotation.slice(0, 2), cast(ID.INNERVATE_ANGUISH)], { config }).planningState.profession.lifeForce.value,
+    lifeForcePercent(
+      run([...rotation.slice(0, 2), cast(ID.INNERVATE_ANGUISH)], { config }).planningState.profession.lifeForce
+    ),
     58.32
   );
 });
@@ -461,16 +467,16 @@ test('Innervate requires its live spirit and grants life force once even when ho
 test('creature traits observe actual Core minion and staggered horror creation with independent strike multipliers', () => {
   const config = { ...base, initialResource: 0, selectedTraitIds: [TRAIT.BOON_OF_CREATION, TRAIT.EXPLOSIVE_GROWTH] };
   const minions = run([cast(ID.SUMMON_BONE_MINIONS)], { config });
-  assert.equal(minions.planningState.profession.lifeForce.value, 20);
+  assert.equal(lifeForcePercent(minions.planningState.profession.lifeForce), 20);
   assert.equal(
     minions.resolvedEvents.filter((event) => event.sourceId === TRAIT.EXPLOSIVE_GROWTH && event.type === 'damage')
       .length,
     1
   );
   const horrors = run([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS)], { config });
-  assert.equal(horrors.planningState.profession.lifeForce.value, 10);
+  assert.equal(lifeForcePercent(horrors.planningState.profession.lifeForce), 10);
   const later = run([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS), wait(1000)], { config });
-  assert.ok(later.planningState.profession.lifeForce.value > 10);
+  assert.ok(lifeForcePercent(later.planningState.profession.lifeForce) > 10);
   const rotation = [cast(ID.SUMMON_SHADOW_FIEND), wait(3000)];
   const normal = run(rotation);
   const stronger = run(rotation, { config: { ...base, selectedTraitIds: [TRAIT.SPIRITS_STRENGTH] } });

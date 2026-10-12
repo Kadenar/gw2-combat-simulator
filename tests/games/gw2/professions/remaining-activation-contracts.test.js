@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -230,7 +231,7 @@ test('Necromancer hit resource admission preserves actor, mark and target-health
             { timeline: [packet(strike(1, { skillId: N.MARK_OF_BLOOD, hitIndex: 1, actorType }))] }
           );
           const expected = selected && traitTriggers && actorType === 'player' ? (3 + Number(below)) * 1.1 : 0;
-          assert.ok(Math.abs(runtime.profession.core.lifeForce.value - expected) < 1e-9);
+          assert.ok(Math.abs(lifeForcePercent(runtime.profession.core.lifeForce) - expected) < 1e-9);
         }
 
   const later = run(
@@ -241,7 +242,7 @@ test('Necromancer hit resource admission preserves actor, mark and target-health
       timeline: [packet(strike(1, { skillId: N.MARK_OF_BLOOD, hitIndex: 2 }))]
     }
   );
-  assert.equal(later.runtime.profession.core.lifeForce.value, 0);
+  assert.equal(lifeForcePercent(later.runtime.profession.core.lifeForce), 0);
 });
 
 test('Eternal Life admits no isolated loop or readiness while native signets still operate', () => {
@@ -252,7 +253,7 @@ test('Eternal Life admits no isolated loop or readiness while native signets sti
         selectedTraitIds: selected ? [NT.ETERNAL_LIFE] : []
       });
       assert.equal(runtime.profession.core.passiveNextAt['eternal-life'] != null, selected && traitTriggers);
-      assert.equal(runtime.profession.core.lifeForce.value > 0, selected && traitTriggers);
+      assert.equal(lifeForcePercent(runtime.profession.core.lifeForce) > 0, selected && traitTriggers);
       if (!selected || !traitTriggers) assert.equal(runtime.resourceController.readyAt('lifeForce', 3), null);
     }
 
@@ -260,7 +261,7 @@ test('Eternal Life admits no isolated loop or readiness while native signets sti
     traitTriggers: false,
     selectedSkillIds: [N.SIGNET_OF_UNDEATH]
   });
-  assert.ok(signet.runtime.profession.core.lifeForce.value > 0);
+  assert.ok(lifeForcePercent(signet.runtime.profession.core.lifeForce) > 0);
 });
 
 test('Eternal Life retained tasks deliver admitted work and keep the threshold cap under isolation', () => {
@@ -283,7 +284,7 @@ test('Eternal Life retained tasks deliver admitted work and keep the threshold c
       ]
     }
   );
-  assert.equal(runtime.profession.core.lifeForce.value, 66);
+  assert.equal(lifeForcePercent(runtime.profession.core.lifeForce), 66);
   assert.equal(runtime.profession.core.passiveNextAt['eternal-life'], 2);
 });
 

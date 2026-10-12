@@ -294,8 +294,7 @@ function restoreMaliciousIntent(runtime: ThiefRuntime): void {
 
 function grantOneInTheChamber(runtime: ThiefRuntime): void {
   {
-    const grant = stolenSkillGrant(runtime);
-    storeThiefStolenSkillChoices(runtime, grant.skillIds, grant.forcedSkillId);
+    storeThiefStolenSkillChoices(runtime, stolenSkillGrant(runtime));
   }
 }
 

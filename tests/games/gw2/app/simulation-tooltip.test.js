@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -782,7 +783,7 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
   );
   assert.ok(torment.every((event) => event.duration === 7));
   // The accepted strike counts existing Chilled before applying its own Torment, using the patched gain.
-  assert.equal(darkness.planningState.profession.lifeForce.value, 10);
+  assert.equal(lifeForcePercent(darkness.planningState.profession.lifeForce), 10);
   const corruption = simulate('Core', ['Blood Is Power'], {
     patchId: 'condition-tooltips',
     selectedSkillIds: [10544]

@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -226,14 +227,14 @@ test('condition-only hands grant spendable life force at their accepted target a
     const native = necromancerProfession.runtimeFor(base);
     const skill = native.catalog.skillsById.get(skillId);
     const landed = simulate([cast(skillId)]);
-    assert.equal(landed.planningState.profession.lifeForce.value, percent);
+    assert.equal(lifeForcePercent(landed.planningState.profession.lifeForce), percent);
     // Condition reactions share the strike grant owner and apply Gluttony exactly once.
     const gluttony = simulate([cast(skillId)], { ...base, selectedTraitIds: [TRAIT.GLUTTONY] });
     const multiplier = native.catalog.balanceProfilesById.get(TRAIT.GLUTTONY).lifeForceGainMultiplier;
-    assert.ok(Math.abs(gluttony.planningState.profession.lifeForce.value - percent * multiplier) < 1e-8);
+    assert.ok(Math.abs(lifeForcePercent(gluttony.planningState.profession.lifeForce) - percent * multiplier) < 1e-8);
     assert.deepEqual(gluttony.warnings, []);
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
-      assert.equal(simulate([{ ...cast(skillId), ...flags }]).planningState.profession.lifeForce.value, 0);
+      assert.equal(lifeForcePercent(simulate([{ ...cast(skillId), ...flags }]).planningState.profession.lifeForce), 0);
     const profession = {
       ...native,
       catalog: applySkillPatch(native.catalog, {
@@ -242,7 +243,10 @@ test('condition-only hands grant spendable life force at their accepted target a
         }
       })
     };
-    assert.equal(simulate([cast(skillId)], base, { profession }).planningState.profession.lifeForce.value, 0);
+    assert.equal(
+      lifeForcePercent(simulate([cast(skillId)], base, { profession }).planningState.profession.lifeForce),
+      0
+    );
     assert.deepEqual(simulate([cast(skillId), cast(ID.REAPERS_SHROUD)]).warnings, []);
   }
 });
@@ -345,14 +349,14 @@ test('Addle snapshots its activation gate but grants shards and defiance life fo
     gained.resolvedEvents.some((event) => event.condition === 'Immobilized'),
     false
   );
-  assert.equal(gained.planningState.profession.lifeForce.value, 20);
+  assert.equal(lifeForcePercent(gained.planningState.profession.lifeForce), 20);
   assert.equal(gained.planningState.profession.soulShardGrant.charges, 6);
   const spent = simulate([cast(ID.ADDLE)], config, { profession: makeProfession(3, 0) });
   assert.ok(spent.resolvedEvents.some((event) => event.condition === 'Immobilized'));
   assert.equal(spent.planningState.profession.soulShardGrant.charges, 4);
   const missed = simulate([{ ...cast(ID.ADDLE), offTarget: true }], config);
   assert.equal(missed.planningState.profession.soulShardGrant.charges, 0);
-  assert.equal(missed.planningState.profession.lifeForce.value, 0);
+  assert.equal(lifeForcePercent(missed.planningState.profession.lifeForce), 0);
 });
 
 test('Perforate consumes current shards per accepted packet, including gains during the channel', () => {
@@ -410,10 +414,10 @@ test('Soul Marks grants only on accepted mark impacts', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.SOUL_MARKS] };
   const native = necromancerProfession.runtimeFor(config);
   const amount = native.catalog.balanceProfilesById.get(TRAIT.SOUL_MARKS).lifeForceGain;
-  assert.equal(simulate([cast(ID.REAPERS_MARK)], config).planningState.profession.lifeForce.value, amount);
+  assert.equal(lifeForcePercent(simulate([cast(ID.REAPERS_MARK)], config).planningState.profession.lifeForce), amount);
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
     assert.equal(
-      simulate([{ ...cast(ID.REAPERS_MARK), ...flags }], config).planningState.profession.lifeForce.value,
+      lifeForcePercent(simulate([{ ...cast(ID.REAPERS_MARK), ...flags }], config).planningState.profession.lifeForce),
       0
     );
 });
@@ -717,7 +721,7 @@ test('condition-based life force belongs to a landed impact and Devouring counts
       target: { ...base.target, conditions: { Bleeding: 1, Poisoned: 1 } }
     };
     const result = simulate([cast(skillId)], config);
-    assert.equal(result.planningState.profession.lifeForce.value, 10);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 10);
     if (skillId === ID.DEVOURING_DARKNESS)
       assert.equal(
         result.resolvedEvents
@@ -726,7 +730,10 @@ test('condition-based life force belongs to a landed impact and Devouring counts
         2
       );
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
-      assert.equal(simulate([{ ...cast(skillId), ...flags }], config).planningState.profession.lifeForce.value, 0);
+      assert.equal(
+        lifeForcePercent(simulate([{ ...cast(skillId), ...flags }], config).planningState.profession.lifeForce),
+        0
+      );
   }
 });
 
@@ -754,7 +761,7 @@ test('Devouring observes a condition arriving during travel and its condition su
   };
   const rotation = [{ ...cast(ID.DEVOURING_DARKNESS), impactDelayMs: 1000 }, wait(1100)];
   const landed = simulate(rotation, config, { profession });
-  assert.equal(landed.planningState.profession.lifeForce.value, 9);
+  assert.equal(lifeForcePercent(landed.planningState.profession.lifeForce), 9);
   assert.equal(
     landed.resolvedEvents.find((event) => event.skillId === ID.DEVOURING_DARKNESS && event.type === 'condition').stacks,
     1
@@ -766,7 +773,7 @@ test('Devouring observes a condition arriving during travel and its condition su
     })
   };
   const result = simulate(rotation, config, { profession: removed });
-  assert.equal(result.planningState.profession.lifeForce.value, 0);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
   assert.ok(
     result.resolvedEvents.some((event) => event.skillId === ID.DEVOURING_DARKNESS && event.type === 'condition')
   );
@@ -776,7 +783,7 @@ test('Devouring observes a condition arriving during travel and its condition su
 test('landed Ghastly Claws funds shroud entry in one native runtime', () => {
   const rotation = [cast(ID.GHASTLY_CLAWS), cast(ID.REAPERS_SHROUD)];
   const result = simulate(rotation);
-  assert.equal(result.planningState.profession.lifeForce.value, 12);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
   assert.equal(result.planningState.profession.activeShroud, 'reaper');
   assert.deepEqual(result.warnings, []);
   const score = simulate(rotation, base, { output: 'score' });
@@ -787,7 +794,7 @@ test('landed Ghastly Claws funds shroud entry in one native runtime', () => {
 test('missed and late Ghastly Claws packets cannot fund shroud entry', () => {
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }]) {
     const result = simulate([{ ...cast(ID.GHASTLY_CLAWS), ...flags }, cast(ID.REAPERS_SHROUD)]);
-    assert.equal(result.planningState.profession.lifeForce.value, 0);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
     assert.equal(result.planningState.profession.activeShroud, '');
     assert.ok(result.warnings.some((warning) => warning.includes('life force')));
   }
@@ -823,13 +830,13 @@ test('the crossing strike grants Spiteful Fortitude and later dead-target packet
       ...native.reactions,
       'damage.resolved'(runtime, event, details) {
         native.reactions['damage.resolved'](runtime, event, details);
-        values.push(runtime.resourceController.value('lifeForce'));
+        values.push(lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')));
       }
     }
   };
   const result = simulate([wait(500)], config, { profession });
   assert.deepEqual(values, [0, 1, 2]);
-  assert.equal(result.planningState.profession.lifeForce.value, 2);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 2);
 });
 
 test('Gravedigger completion uses actual target health to determine the next cast', () => {
@@ -863,7 +870,7 @@ test('a life-force grant replaces depletion and reset restores the same live poo
   assert.equal(during.planningState.profession.activeShroud, 'reaper');
   const after = simulate([cast(ID.REAPERS_SHROUD), wait(6000), { type: 'cooldown-reset' }], config, { profession });
   assert.equal(after.planningState.profession.activeShroud, '');
-  assert.equal(after.planningState.profession.lifeForce.value, 100);
+  assert.equal(lifeForcePercent(after.planningState.profession.lifeForce), 100);
 });
 
 // Expiry owns its earlier priority even when a same-time passive grant was enqueued first.
@@ -888,7 +895,7 @@ test('shroud depletion precedes a simultaneous life-force refill', () => {
   };
   const result = simulate([cast(ID.REAPERS_SHROUD), wait(at * 1000)], config, { profession });
   assert.equal(result.planningState.profession.activeShroud, '');
-  assert.equal(result.planningState.profession.lifeForce.value, 10);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 10);
 });
 
 // Minimal summon sequences exercise lifetime and recharge ownership without using saved rotations.
@@ -956,7 +963,7 @@ test('Haunt grants life force once at its accepted impact, with no off-target or
   ]) {
     const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), command, wait(durationMs)]);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.lifeForce.value, expected);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), expected);
   }
 });
 
@@ -988,7 +995,7 @@ test('a replacement generation cancels the old autonomous clock and pending Haun
   };
   const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), cast(ID.HAUNT), wait(9000)], base, { profession });
   assert.equal(observedRuntime(result).profession.core.minionGenerations['shadow-fiend'], 2);
-  assert.equal(result.planningState.profession.lifeForce.value, 0);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
   const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
   assert.ok(strikes.length > 0);
   assert.ok(strikes.every((event) => event.activationId.startsWith('replacement:')));
@@ -1074,7 +1081,7 @@ test('shroud entry reads existing Carapace, then grants stacks and removes activ
   };
   const result = simulate([cast(ID.SUMMON_BONE_MINIONS), cast(ID.REAPERS_SHROUD)], config, { profession });
   const state = result.planningState.profession;
-  assert.equal(state.lifeForce.value, 13);
+  assert.equal(lifeForcePercent(state.lifeForce), 13);
   assert.equal(state.carapaceExpiries.length, 10);
   assert.deepEqual(
     state.selfConditions.map((application) => application.condition),
@@ -1100,10 +1107,10 @@ test('Lich expiry owns an exact deadline and never invokes life-force shroud ent
   const config = { ...base, selectedTraitIds: [TRAIT.SOUL_BARBS, TRAIT.ARMORED_SHROUD] };
   const during = simulate([cast(ID.LICH_FORM), wait(19960)], config);
   assert.equal(during.planningState.profession.activeShroud, 'lich');
-  assert.equal(during.planningState.profession.lifeForce.value, 0);
+  assert.equal(lifeForcePercent(during.planningState.profession.lifeForce), 0);
   const ended = simulate([cast(ID.LICH_FORM), wait(20000)], config);
   assert.equal(ended.planningState.profession.activeShroud, '');
-  assert.equal(ended.planningState.profession.lifeForce.value, 15);
+  assert.equal(lifeForcePercent(ended.planningState.profession.lifeForce), 15);
   assert.equal(ended.planningState.profession.availableFlips[ID.EXIT_LICH_FORM], undefined);
   assert.deepEqual(ended.planningState.profession.carapaceExpiries, []);
   assert.equal(
@@ -1127,7 +1134,7 @@ test('manual Lich exit cancels its old deadline before a replacement form begins
     { profession }
   );
   assert.equal(result.planningState.profession.activeShroud, 'lich');
-  assert.equal(result.planningState.profession.lifeForce.value, 15);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 15);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -1162,7 +1169,7 @@ test('a delivered entry boon triggers Blighters Boon once for the whole applicat
   const result = simulate([cast(ID.REAPERS_SHROUD)], config);
   const might = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'might');
   assert.equal(might.stacks, 5);
-  assert.equal(result.planningState.profession.lifeForce.value, 11);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 11);
 });
 
 // Boon rewards follow actual self recipients and exclude personal statuses on the shared buff stage.
@@ -1170,7 +1177,7 @@ test('Blighters Boon excludes Soul Barbs and boons delivered only to allies', ()
   const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.BLIGHTERS_BOON, TRAIT.SOUL_BARBS] };
   const shroud = simulate([cast(ID.REAPERS_SHROUD)], config);
   assert.ok(shroud.events.some((event) => event.kind === 'necromancer-soul-barbs'));
-  assert.equal(shroud.planningState.profession.lifeForce.value, 10);
+  assert.equal(lifeForcePercent(shroud.planningState.profession.lifeForce), 10);
   for (const affectsSelf of [false, true]) {
     const native = necromancerProfession.runtimeFor(config);
     const result = simulate([wait(1)], config, {
@@ -1196,7 +1203,7 @@ test('Blighters Boon excludes Soul Barbs and boons delivered only to allies', ()
       }
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.lifeForce.value, affectsSelf ? 11 : 10);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), affectsSelf ? 11 : 10);
   }
 });
 
@@ -1270,7 +1277,7 @@ test('selected resource passives can fund shroud entry without a predicted gain'
     const config = { ...base, ...options };
     const result = simulate([cast(ID.REAPERS_SHROUD)], config);
     assert.equal(result.steps[0].start, expectedStart);
-    assert.equal(result.planningState.profession.lifeForce.value, 12);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
     assert.deepEqual(result.warnings, []);
     assert.equal(
       simulate([cast(ID.REAPERS_SHROUD)], config, { output: 'score' }).rotationEndTime,
@@ -1293,11 +1300,11 @@ test('Eternal Life keeps its cadence through overflow and caps its grants at the
     tasks: {
       ...native.tasks,
       'spend-below-cap'(runtime) {
-        values.push(runtime.resourceController.value('lifeForce'));
-        runtime.resourceController.spend('lifeForce', 6);
+        values.push(lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')));
+        runtime.resourceController.spend('lifeForce', runtime.profession.core.lifeForce.maximum * 0.06);
       },
       'observe-cap'(runtime) {
-        values.push(runtime.resourceController.value('lifeForce'));
+        values.push(lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')));
       }
     }
   };
@@ -1326,17 +1333,18 @@ test('signet passives sample current recharge and only real shrouds enable Signe
   };
 
   const ready = run([wait(9000)], [], 0);
-  assert.equal(ready.planningState.profession.lifeForce.value, 4);
+  assert.equal(lifeForcePercent(ready.planningState.profession.lifeForce), 4);
   const suppressed = run([cast(ID.REAPERS_SHROUD), wait(4000)]);
   const enabled = run([cast(ID.REAPERS_SHROUD), wait(4000)], [TRAIT.SIGNETS_OF_SUFFERING]);
   assert.equal(
-    enabled.planningState.profession.lifeForce.value - suppressed.planningState.profession.lifeForce.value,
+    lifeForcePercent(enabled.planningState.profession.lifeForce) -
+      lifeForcePercent(suppressed.planningState.profession.lifeForce),
     4
   );
   const lich = run([cast(ID.LICH_FORM), wait(4000)], [TRAIT.SIGNETS_OF_SUFFERING]);
   assert.equal(lich.planningState.profession.activeShroud, 'lich');
   assert.deepEqual(lich.warnings, []);
-  assert.equal(lich.planningState.profession.lifeForce.value, 50);
+  assert.equal(lifeForcePercent(lich.planningState.profession.lifeForce), 50);
 });
 
 test('Eternal Life resumes at its original boundary after a shroud interval', () => {
@@ -1346,7 +1354,10 @@ test('Eternal Life resumes at its original boundary after a shroud interval', ()
   const rotation = [cast(ID.REAPERS_SHROUD), wait(1520), cast(ID.EXIT_REAPERS_SHROUD), wait(480)];
   const result = simulate(rotation, config);
   assert.equal(result.planningState.profession.activeShroud, '');
-  assert.equal(result.planningState.profession.lifeForce.value, during.planningState.profession.lifeForce.value + 3);
+  assert.equal(
+    lifeForcePercent(result.planningState.profession.lifeForce),
+    lifeForcePercent(during.planningState.profession.lifeForce) + 3
+  );
 });
 
 test('Vampirism passive impacts obey the observation window and share score execution', () => {
@@ -1533,7 +1544,7 @@ test('Fear of Death applies Gluttony once and caps gains with Soul Battery selec
   ]) {
     const result = simulate([cast(ID.REAPERS_MARK)], { ...base, initialResource, selectedTraitIds: traits });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.lifeForce.value, expected);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), expected);
   }
 });
 
@@ -1541,10 +1552,14 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
   const config = { ...base, selectedTraitIds: [TRAIT.FEAR_OF_DEATH] };
   const ordinary = simulate([cast(ID.REAPERS_MARK)]);
   const landed = simulate([cast(ID.REAPERS_MARK)], config);
-  assert.equal(landed.planningState.profession.lifeForce.value - ordinary.planningState.profession.lifeForce.value, 15);
+  assert.equal(
+    lifeForcePercent(landed.planningState.profession.lifeForce) -
+      lifeForcePercent(ordinary.planningState.profession.lifeForce),
+    15
+  );
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }]) {
     const result = simulate([{ ...cast(ID.REAPERS_MARK), ...flags }, cast(ID.REAPERS_SHROUD)], config);
-    assert.equal(result.planningState.profession.lifeForce.value, 0);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
     assert.equal(observedRuntime(result).procs.deadline('necromancer.core.fearOfDeath'), 0);
     assert.ok(result.warnings.some((warning) => warning.includes('life force')));
   }
@@ -1572,7 +1587,7 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
     }
   };
   const repeated = simulate([wait(5000)], config, { profession });
-  assert.equal(repeated.planningState.profession.lifeForce.value, 30);
+  assert.equal(lifeForcePercent(repeated.planningState.profession.lifeForce), 30);
 });
 
 // Terror changes the originating Fear's damage while control rewards still observe only one application.
@@ -1588,7 +1603,7 @@ test('Terror adds damage to canonical Fear without duplicating Fear of Death', (
       };
       const result = simulate([cast(ID.REAPERS_MARK), wait(3000)], config, { output });
       assert.deepEqual(result.warnings, []);
-      assert.equal(observedRuntime(result).profession.core.lifeForce.value, 15);
+      assert.equal(lifeForcePercent(observedRuntime(result).profession.core.lifeForce), 15);
       if (enabled) assert.ok(result.conditionDamage > 0);
       else assert.equal(result.conditionDamage, 0);
       if (output === 'detailed') {

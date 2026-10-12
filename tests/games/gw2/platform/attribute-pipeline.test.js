@@ -173,7 +173,7 @@ test('Necromancer resource preparation uses patched attribute declarations once'
   const baseline = family
     .runtimeFor({ specialization: 'Harbinger' })
     .createState({ specialization: 'Harbinger', attributeInputs: baseAttributeInputs({ vitality: 1500 }) });
-  assert.equal(runtime.createState(config).core.lifeForceCostMultiplier, baseline.core.lifeForceCostMultiplier);
+  assert.equal(runtime.createState(config).core.lifeForce.maximum, baseline.core.lifeForce.maximum);
 });
 
 test('attribute seeds retain uncapped boon bonuses and reject malformed source breakdowns', () => {

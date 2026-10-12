@@ -1,11 +1,14 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
+import {
+  flattenProfessionState,
+  projectPublicProfessionState,
+  defineProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 interface MesmerMirageMirror {
   availableAt: number;

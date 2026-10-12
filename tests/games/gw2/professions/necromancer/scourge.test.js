@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -5,6 +6,7 @@ import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runt
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 const base = {
   specialization: 'Scourge',
@@ -102,15 +104,64 @@ test('Sand Savant selects the live ammo cap and modified recharge work', () => {
 });
 
 test('shade skills consume Core life force once and never enter a draining shroud', () => {
-  const result = run([cast(ID.DESERT_SHROUD)]);
-  const core = result.planningState.profession;
-  assert.equal(core.lifeForce.value, 100 - 50 * core.lifeForceCostMultiplier);
-  assert.equal(core.activeShroud, '');
-  assert.equal(core.lifeForce.rate, 0);
+  // Each paid shade command shares admission and payment, including the trait-selected F5 replacement.
+  for (const skillId of [
+    ID.NEFARIOUS_FAVOR,
+    ID.SAND_CASCADE,
+    ID.GARISH_PILLAR,
+    ID.DESERT_SHROUD,
+    ID.SANDSTORM_SHROUD
+  ]) {
+    const config = { ...base, selectedTraitIds: skillId === ID.SANDSTORM_SHROUD ? [TRAIT.HERALD_OF_SORROW] : [] };
+    const result = run([cast(skillId)], config);
+    const core = result.planningState.profession;
+    const rawCost = necromancerProfession.runtimeFor(config).catalog.skillsById.get(skillId).lifeForceCost;
+    assert.deepEqual(result.warnings, []);
+    assert.equal(core.lifeForce.value, core.lifeForce.maximum - rawCost);
+    assert.equal(core.activeShroud, '');
+    assert.equal(core.lifeForce.rate, 0);
+  }
+
   const rejected = run([cast(ID.DESERT_SHROUD)], { ...base, selectedTraitIds: [TRAIT.HERALD_OF_SORROW] });
   assert.equal(rejected.steps[0].invalid, true);
-  assert.equal(rejected.planningState.profession.lifeForce.value, 100);
+  assert.equal(lifeForcePercent(rejected.planningState.profession.lifeForce), 100);
   assert.equal(run([cast(ID.SANDSTORM_SHROUD)]).steps[0].invalid, true);
+});
+
+// A selected catalog cost must affect the affordability boundary and debit with the same build conversion.
+test('selected shade costs use vitality and Soul Battery in shared admission and payment', () => {
+  for (const vitality of [1000, 2000]) {
+    for (const battery of [false, true]) {
+      const config = {
+        ...base,
+        attributeInputs: baseAttributeInputs({ vitality }),
+        selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : []
+      };
+      const native = necromancerProfession.runtimeFor(config);
+      for (const lifeForceCost of [0, 3000, 6000]) {
+        const profession = {
+          ...native,
+          catalog: withSkill(native.catalog, ID.DESERT_SHROUD, { lifeForceCost })
+        };
+        const maximum = (9212 + vitality * 1.05 * 10) * 0.69 * (battery ? 1.2 : 1);
+        const cost = (lifeForceCost * 100) / maximum;
+        const initialResource = cost === 0 ? 0 : cost + 0.01;
+        const allowed = run([cast(ID.DESERT_SHROUD)], { ...config, initialResource }, { profession });
+        assert.deepEqual(allowed.warnings, []);
+        assert.ok(
+          Math.abs(
+            allowed.planningState.profession.lifeForce.value - ((initialResource * maximum) / 100 - lifeForceCost)
+          ) < 1e-8
+        );
+        if (cost === 0) continue;
+        const denied = run([cast(ID.DESERT_SHROUD)], { ...config, initialResource: cost - 0.01 }, { profession });
+        assert.equal(denied.steps[0].invalid, true);
+        assert.equal(denied.warnings.length, 1);
+        assert.match(denied.warnings[0], /requires .*lifeForce/);
+        assert.ok(Math.abs(denied.planningState.profession.lifeForce.value - ((cost - 0.01) * maximum) / 100) < 1e-8);
+      }
+    }
+  }
 });
 
 // An overlap may wait for an already casting channel, but a miss cannot promise resources after that finite lane ends.
@@ -118,7 +169,7 @@ test('a shade overlap waits for an accepted channel hit and rejects a missed cha
   const config = {
     ...base,
     initialResource:
-      50 * necromancerProfession.resolveProfession(base).createState(base).core.lifeForceCostMultiplier - 1
+      (4606 * 100) / necromancerProfession.resolveProfession(base).createState(base).core.lifeForce.maximum - 1
   };
   const rotation = [cast(ID.GHASTLY_CLAWS), { ...cast(ID.DESERT_SHROUD), concurrentOffsetMs: 0 }];
   const result = run(rotation, config);
@@ -128,7 +179,7 @@ test('a shade overlap waits for an accepted channel hit and rejects a missed cha
   const missed = run([{ ...rotation[0], offTarget: true }, rotation[1]], config);
   assert.equal(missed.steps[1].invalid, true);
   assert.equal(missed.steps[1].start, missed.steps[0].end);
-  assert.equal(missed.planningState.profession.lifeForce.value, config.initialResource);
+  assert.ok(Math.abs(lifeForcePercent(missed.planningState.profession.lifeForce) - config.initialResource) < 1e-8);
 });
 
 test('Nourishing Ashes grants from accepted Burning before a subsequent shade command', () => {
@@ -141,13 +192,13 @@ test('Nourishing Ashes grants from accepted Burning before a subsequent shade co
   assert.equal(observedRuntime(missed).procs.deadline('necromancer.scourge.nourishingAshes'), 0);
   const pending = run([{ ...cast(ID.MANIFEST_SAND_SHADE), impactDelayMs: 1000 }, cast(ID.NEFARIOUS_FAVOR)], config);
   assert.equal(pending.steps.at(-1).invalid, true);
-  assert.equal(pending.planningState.profession.lifeForce.value, 10);
+  assert.equal(lifeForcePercent(pending.planningState.profession.lifeForce), 10);
 });
 
 test('Demonic Lore derived Burning reaches the same live Nourishing Ashes cooldown', () => {
   const config = { ...base, initialResource: 0, selectedTraitIds: [TRAIT.DEMONIC_LORE, TRAIT.NOURISHING_ASHES] };
   const result = run([cast(ID.MANIFEST_SAND_SHADE), cast(ID.MANIFEST_SAND_SHADE)], config);
-  assert.equal(result.planningState.profession.lifeForce.value, 5);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 5);
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.DEMONIC_LORE).length,
     1

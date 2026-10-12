@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import assert from 'node:assert/strict';
@@ -8,12 +9,12 @@ test('Necromancer planning projection normalizes resources without mutating live
   const core = necromancerProfession.resolveProfession({}).createState({}).core;
   const harbinger = necromancerProfession.runtimeFor({ specialization: 'Harbinger' }).createState({})
     .specialization.state;
-  core.lifeForce.value = 150;
+  core.lifeForce.value = core.lifeForce.maximum * 1.5;
   harbinger.blightExpiries = Array.from({ length: 27 }, (_, index) => index);
   const profession = { core, specialization: { kind: 'Harbinger', state: harbinger } };
   const before = structuredClone(profession);
   const planning = projectObservedState(necromancerProfession, { profession });
-  assert.equal(planning.lifeForce.value, 100);
+  assert.equal(lifeForcePercent(planning.lifeForce), 100);
   assert.equal(planning.blight, 25);
   assert.deepEqual(planning.blightExpiries, harbinger.blightExpiries.slice(-25));
   planning.lifeForce.value = 0;

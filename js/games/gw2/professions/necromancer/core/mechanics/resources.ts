@@ -4,7 +4,9 @@ import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-pol
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { nextNecromancerPassiveGain } from '#gw2/professions/necromancer/core/mechanics/passives.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerRuntime, NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 /** Wake that ends a draining shroud once life force runs out; the Core hooks own its task handler. */
 export const DEPLETION = 'necromancer.life-force-depleted';
@@ -23,8 +25,13 @@ function refreshDepletion(runtime: NecromancerRuntime): void {
 export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
   kind: 'continuous',
   state: (runtime) => runtime.profession.core.lifeForce,
-  maximum: () => 100,
-  initial: (runtime) => runtime.config.initialResource ?? 100,
+  maximum(context: NecromancerRuntime | NecromancerUiContext) {
+    // Live and projected pools expose points; an uninitialized starting control exposes only percentages.
+    const live = readProfessionCoreState<NecromancerCoreState>(context.profession).lifeForce;
+    const projected = 'professionState' in context ? context.professionState?.lifeForce : undefined;
+    return (live ?? projected)?.maximum ?? 100;
+  },
+  initial: (runtime, maximum) => ((runtime.config.initialResource ?? 100) * maximum) / 100,
   recovery(runtime) {
     const state = runtime.profession.core;
     return state.activeShroud && state.activeShroud !== 'lich'

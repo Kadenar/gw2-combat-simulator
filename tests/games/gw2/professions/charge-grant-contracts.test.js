@@ -2,7 +2,7 @@ import { overflowingThirst } from '#gw2/professions/necromancer/core/traits/bloo
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { triggerShatteringStone } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';

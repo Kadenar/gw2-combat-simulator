@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -80,7 +81,7 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
   ]) {
     const result = simulate('Core', ['Locust Swarm', wait(8000)], { selectedTraitIds });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.lifeForce.value, lifeForce);
+    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), lifeForce);
     const strikes = result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.skillId === ID.LOCUST_SWARM
     );
@@ -91,11 +92,11 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
     assert.equal(swiftness.duration, duration);
     assert.equal(swiftness.audience.recipients, 'party');
     const missed = simulate('Core', [{ name: 'Locust Swarm', offTarget: true }, wait(8000)], { selectedTraitIds });
-    assert.equal(missed.planningState.profession.lifeForce.value, 0);
+    assert.equal(lifeForcePercent(missed.planningState.profession.lifeForce), 0);
   }
 
   const clipped = simulate('Core', ['Locust Swarm']);
-  assert.equal(clipped.planningState.profession.lifeForce.value, 1.5);
+  assert.equal(lifeForcePercent(clipped.planningState.profession.lifeForce), 1.5);
 
   // A faster extension must not grant its life force before the native swarm finishes.
   const run = createProfessionSimulator(necromancerProfession, () => ({
@@ -120,5 +121,5 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.lifeForce.value, 15);
+  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 15);
 });

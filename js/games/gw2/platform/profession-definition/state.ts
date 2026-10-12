@@ -30,11 +30,6 @@ export function flattenProfessionState(professionState: unknown): UnvalidatedFie
   return { ...runtime };
 }
 
-/** Flattens and deeply clones a family runtime for detached public observations. */
-export function snapshotProfessionState(professionState: unknown): object {
-  return structuredClone(flattenProfessionState(professionState));
-}
-
 /** Reads only the owned Core runtime slice; public projections are read by their presentation consumers. */
 export function readProfessionCoreState<TCoreState extends object = DynamicFields>(
   professionState: unknown

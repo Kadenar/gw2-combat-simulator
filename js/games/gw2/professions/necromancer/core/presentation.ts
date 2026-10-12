@@ -18,7 +18,6 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import type {
@@ -166,12 +165,11 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     : [];
 }
 
-// Project whole life-force points from the build multiplier; the resource and starting input remain percentages.
+// Display runtime points directly; the saved starting control remains a percentage.
 function necromancerCoreResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
-  // Before a simulation supplies its build multiplier, the detached preview can only show the percentage meter.
-  const maximum =
-    state.lifeForceCostMultiplier == null ? 100 : actualNecromancerLifeForceCost(100) / state.lifeForceCostMultiplier;
+  // Without a planning state, only the percentage-based starting control is available.
+  const maximum = state.lifeForce?.maximum ?? 100;
   const views: ProfessionResourceView[] = [
     {
       id: 'life-force',
@@ -179,7 +177,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
       plural: 'life force',
       maximum: Math.round(maximum),
       value: Math.round(
-        (Number(state.lifeForce?.value ?? context.value ?? context.initialResource ?? 100) * maximum) / 100
+        state.lifeForce?.value ?? (Number(context.value ?? context.initialResource ?? 100) * maximum) / 100
       ),
       startMaximum: 100,
       canStart: true,

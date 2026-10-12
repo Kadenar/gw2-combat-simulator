@@ -23,11 +23,11 @@ export interface TasteForBloodGrant extends ChargeGrant {
 
 export interface NecromancerCoreState {
   endurance: ResourceClock;
+  /** Current and maximum life force are points; percentage mechanics convert against this capacity. */
   lifeForce: ResourceClock;
   lifeForceWakeGeneration: number;
   /** Readiness reads the next actual passive wake without crediting a future grant. */
   passiveNextAt: Record<string, number>;
-  lifeForceCostMultiplier: number;
   activeShroud: string;
   activeShroudEntryId?: SkillId | null;
   activeShroudExitId?: SkillId | null;
@@ -69,7 +69,6 @@ export interface NecromancerCoreState {
 const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'endurance',
   'lifeForce',
-  'lifeForceCostMultiplier',
   'activeShroud',
   'soulShardGrant',
   'carapaceExpiries',
@@ -88,29 +87,16 @@ const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
 
 const NECROMANCER_BASE_HEALTH = 9212;
 
-/** Scales fixed Scourge costs onto a 0–100 meter, applying build vitality traits and Soul Battery once. */
-export function necromancerLifeForceCostMultiplier(
+/** Maximum life-force points use build vitality and Soul Battery, independently of current player health. */
+export function necromancerLifeForceCapacity(
   config: NecromancerConfig,
   balanceContext: unknown,
   vitality: number
 ): number {
   const capacityMultiplier = soulBatteryCapacity(config, balanceContext);
-  // Percentage costs require a nonzero capacity; reject invalid tuning before it creates infinite costs.
+  // A live resource pool must have positive capacity.
   if (capacityMultiplier <= 0) throw new RangeError('Life-force capacity multiplier must be positive.');
-  return NECROMANCER_BASE_HEALTH / ((NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10) * 0.69 * capacityMultiplier);
-}
-
-/** Converts a base-health percentage cost into the normalized life-force resource scale. */
-export function normalizedNecromancerLifeForceCost(
-  state: Pick<NecromancerCoreState, 'lifeForceCostMultiplier'>,
-  baseHealthPercent: number
-): number {
-  return Math.max(0, baseHealthPercent || 0) * state.lifeForceCostMultiplier;
-}
-
-/** Converts a base-health percentage into its raw life-force pool cost. */
-export function actualNecromancerLifeForceCost(baseHealthPercent: number): number {
-  return (NECROMANCER_BASE_HEALTH * Math.max(0, baseHealthPercent || 0)) / 100;
+  return (NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10) * 0.69 * capacityMultiplier;
 }
 
 /** Detach only public fields before clamping resources so normalization cannot mutate live owners. */

@@ -1,3 +1,5 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
+import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
@@ -12,10 +14,6 @@ import {
   purgeTimedState
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
-import {
-  actualNecromancerLifeForceCost,
-  normalizedNecromancerLifeForceCost
-} from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
@@ -370,7 +368,10 @@ test('Manifest Sand Shade aliases load the one canonical Scourge behavior', () =
     assert.equal(necromancerCatalog.skillsById.has(aliasId), false);
     assert.equal(action.skillId, ID.MANIFEST_SAND_SHADE);
     assert.equal(result.planningState.profession.shades.length, canonical.planningState.profession.shades.length);
-    assert.equal(result.planningState.profession.lifeForce.value, canonical.planningState.profession.lifeForce.value);
+    assert.equal(
+      lifeForcePercent(result.planningState.profession.lifeForce),
+      lifeForcePercent(canonical.planningState.profession.lifeForce)
+    );
     assert.deepEqual(result.warnings, canonical.warnings);
   }
 });
@@ -408,7 +409,7 @@ test('Core Death Shroud drains life force and gates transformed skills', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.activeShroud, '');
-  assert.ok(result.planningState.profession.lifeForce.value < 97);
+  assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) < 97);
   assert.ok(result.strikeDamage > 0);
   assert.equal(invalid.warnings.length, 2);
   assert.match(invalid.warnings.join(' '), /Life Blast is unavailable/);
@@ -433,32 +434,34 @@ test('Reaper Shroud enforces its chain and four-percent drain', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.planningState.profession.lifeForce.value < 93);
+  assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) < 93);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Life Reap'));
   assert.match(skipped.warnings.join(' '), /Life Reap is unavailable/);
 });
 
 test('Death and Reaper shrouds drain a percentage of the maximum life-force pool', () => {
   const drainAfterOneSecond = (specialization, enter, exit) =>
-    simulate(specialization, [enter, { type: 'wait', durationMs: 1000 }, exit], {
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.SOUL_BATTERY]
-    }).planningState.profession.lifeForce.value;
+    lifeForcePercent(
+      simulate(specialization, [enter, { type: 'wait', durationMs: 1000 }, exit], {
+        initialResource: 100,
+        selectedTraitIds: [TRAIT.SOUL_BATTERY]
+      }).planningState.profession.lifeForce
+    );
 
   assert.equal(drainAfterOneSecond('Core', 'Death Shroud', 'End Death Shroud'), 97);
   assert.equal(drainAfterOneSecond('Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"), 96);
 });
 
 // Build capacity bonuses change fixed costs, never the meaning of the configured starting percentage.
-test('every Necromancer specialization starts with a percentage life-force meter', () => {
+test('every Necromancer specialization converts the starting percentage to life-force points', () => {
   for (const specialization of ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']) {
     const state = simulate(specialization, [], {
       initialResource: 40,
       attributeInputs: baseAttributeInputs({ vitality: 2000 }),
       selectedTraitIds: [TRAIT.SOUL_BATTERY]
     }).planningState.profession;
-    assert.equal(state.lifeForce.maximum, 100, specialization);
-    assert.equal(state.lifeForce.value, 40, specialization);
+    assert.ok(Math.abs(state.lifeForce.maximum - (9212 + 2000 * 1.05 * 10) * 0.69 * 1.2) < 1e-8, specialization);
+    assert.equal(lifeForcePercent(state.lifeForce), 40, specialization);
   }
 });
 
@@ -475,17 +478,17 @@ test('Scourge fixed costs preserve build scaling on the percentage meter', () =>
       const allowed = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost + 0.01 });
       const denied = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost - 0.01 });
       assert.deepEqual(allowed.warnings, []);
-      assert.ok(Math.abs(allowed.planningState.profession.lifeForce.value - 0.01) < 1e-10);
+      assert.ok(Math.abs(lifeForcePercent(allowed.planningState.profession.lifeForce) - 0.01) < 1e-10);
       assert.equal(denied.warnings.length, 1);
-      assert.match(denied.warnings[0], /requires .*life force/);
-      assert.equal(denied.planningState.profession.lifeForce.value, expectedCost - 0.01);
+      assert.match(denied.warnings[0], /requires .*lifeForce/);
+      assert.ok(Math.abs(lifeForcePercent(denied.planningState.profession.lifeForce) - (expectedCost - 0.01)) < 1e-8);
     }
   }
 });
 
 // Runtime initialization must replace detached defaults with the active patch's vitality and capacity tuning.
-test('Scourge percentage costs use the selected balance profiles', () => {
-  const run = (capacityMultiplier) =>
+test('Scourge point capacity and fixed costs use the selected balance profiles', () => {
+  const run = (capacityMultiplier, initialResource = 50, rotation = ['Desert Shroud']) =>
     createObservedProfessionSimulator(
       withPatchPreview(necromancerProfession, {
         id: 'scourge-costs',
@@ -501,16 +504,26 @@ test('Scourge percentage costs use the selected balance profiles', () => {
         }
       }),
       baseConfig
-    )('Scourge', ['Desert Shroud'], {
+    )('Scourge', rotation, {
       patchId: 'scourge-costs',
-      initialResource: 50,
+      initialResource,
       selectedTraitIds: [TRAIT.SOUL_BATTERY, TRAIT.SPITEFUL_FORTITUDE, TRAIT.VITAL_PERSISTENCE]
     });
   const result = run(1.5);
   // Reinforced Armor uses base Vitality; neither Vital Persistence nor converted Vitality feeds it.
   const expectedCost = (4606 * 100) / ((9212 + (1000 + 2000 * 0.2 + 100 + 50) * 10) * 0.69 * 1.5);
   assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(result.planningState.profession.lifeForce.value - (50 - expectedCost)) < 1e-10);
+  assert.ok(Math.abs(lifeForcePercent(result.planningState.profession.lifeForce) - (50 - expectedCost)) < 1e-10);
+  // Empty starts must receive the final capacity in their clock anchor even without a balance change.
+  for (const initialResource of [0, 40, 100]) {
+    const initialized = run(1.5, initialResource, []);
+    const pool = observedRuntime(initialized).profession.core.lifeForce;
+    const maximum = (9212 + (1000 + 2000 * 0.2 + 100 + 50) * 10) * 0.69 * 1.5;
+    assert.ok(Math.abs(pool.maximum - maximum) < 1e-8);
+    assert.ok(Math.abs(pool.value - (maximum * initialResource) / 100) < 1e-8);
+    assert.equal(resourceAnchor(pool).maximum, pool.maximum);
+  }
+
   assert.throws(() => run(0), /Life-force capacity multiplier must be positive/);
 });
 
@@ -743,13 +756,12 @@ test('Scourge shades use ammo and shade skills spend life force', () => {
   });
 
   assert.equal(ammo.planningState.profession.shades.length, 3);
-  assert.equal(ammo.planningState.profession.lifeForce.value, 100);
+  assert.equal(lifeForcePercent(ammo.planningState.profession.lifeForce), 100);
   assert.equal(ammo.steps[3].start, ammo.steps[0].end + 12000);
   assert.deepEqual(ammo.warnings, []);
   assert.ok(
     Math.abs(
-      cost.planningState.profession.lifeForce.value -
-        (30 - normalizedNecromancerLifeForceCost(cost.planningState.profession, 21))
+      cost.planningState.profession.lifeForce.value - (0.3 * cost.planningState.profession.lifeForce.maximum - 1935)
     ) < 1e-12
   );
   assert.ok(cost.conditionDamage > 0);
@@ -768,8 +780,8 @@ test('Scourge shade costs and packets use their fixed PvE values', () => {
   );
 
   assert.deepEqual(
-    [ID.NEFARIOUS_FAVOR, ID.SAND_CASCADE, ID.GARISH_PILLAR, ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD].map((skillId) =>
-      Math.round(actualNecromancerLifeForceCost(necromancerCatalog.skillsById.get(skillId).lifeForceCost))
+    [ID.NEFARIOUS_FAVOR, ID.SAND_CASCADE, ID.GARISH_PILLAR, ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD].map(
+      (skillId) => necromancerCatalog.skillsById.get(skillId).lifeForceCost
     ),
     [1935, 2487, 3685, 4606, 3224]
   );
@@ -1115,7 +1127,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
     [1.8]
   );
   assert.equal(chain.planningState.profession.soulShardGrant.charges, 2);
-  assert.equal(chain.planningState.profession.lifeForce.value, 5);
+  assert.equal(lifeForcePercent(chain.planningState.profession.lifeForce), 5);
   assert.equal(
     chain.events.some(
       (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.SINISTER_STAB
@@ -1124,7 +1136,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
   );
   assert.equal(expired.planningState.profession.soulShardGrant.charges, 0);
 
-  assert.equal(utility.planningState.profession.lifeForce.value, 22);
+  assert.equal(lifeForcePercent(utility.planningState.profession.lifeForce), 22);
   assert.equal(utility.planningState.profession.soulShardGrant.charges, 0);
   assert.equal(
     utility.events.some(
@@ -1329,11 +1341,11 @@ test('Addle grants four shards to defiant foes and checks activation shards', ()
     );
 
   assert.equal(normal.planningState.profession.soulShardGrant.charges, 2);
-  assert.equal(normal.planningState.profession.lifeForce.value, 10);
+  assert.equal(lifeForcePercent(normal.planningState.profession.lifeForce), 10);
   assert.equal(immobilizes(normal).length, 0);
   assert.ok(normal.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
   assert.equal(defiant.planningState.profession.soulShardGrant.charges, 4);
-  assert.equal(defiant.planningState.profession.lifeForce.value, 20);
+  assert.equal(lifeForcePercent(defiant.planningState.profession.lifeForce), 20);
   assert.equal(immobilizes(defiant).length, 0);
   assert.ok(defiant.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
   assert.equal(threshold.planningState.profession.soulShardGrant.charges, 5);

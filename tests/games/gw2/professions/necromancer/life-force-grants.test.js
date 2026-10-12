@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -26,7 +27,7 @@ function simulate(skillId, edit, config = base, extra = {}) {
     rotation: [cast(skillId, extra)]
   });
   assert.deepEqual(result.warnings, []);
-  return result.planningState.profession.lifeForce.value;
+  return lifeForcePercent(result.planningState.profession.lifeForce);
 }
 
 // Two rewards on one strike retain their own tuning and the bonus's original eligibility gate.
@@ -113,7 +114,7 @@ test('patched Innervate grants once on commit independently of hostile output', 
       rotation: [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), cast(ID.INNERVATE_ANGUISH, { offTarget })]
     });
     assert.deepEqual(result.warnings, []);
-    return result.planningState.profession.lifeForce.value;
+    return lifeForcePercent(result.planningState.profession.lifeForce);
   };
 
   assert.ok(Math.abs(run(17, true) - run(10, true) - 7) < 1e-10);

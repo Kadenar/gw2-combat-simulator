@@ -1,6 +1,7 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { projectPublicProfessionState, flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import {
+  projectPublicProfessionState,
+  flattenProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';

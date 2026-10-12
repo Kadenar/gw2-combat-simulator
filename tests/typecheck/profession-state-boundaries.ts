@@ -14,7 +14,8 @@ import { mechanistState } from '#gw2/professions/engineer/specializations/mechan
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import { type GuardianCoreState, projectGuardianPlanningState } from '#gw2/professions/guardian/core/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
@@ -150,3 +151,13 @@ const misspelledProjection = definePublicStateDefaults({ tomePagez: 5 });
 declare const firebrandState: GuardianFirebrandState;
 // @ts-expect-error Projection descriptors must not widen invalid keys into accepted state fields.
 projectPublicProfessionState(firebrandState, misspelledProjection.keys, misspelledProjection.defaults);
+
+// Public projection types preserve selected fields without claiming private runtime counters exist.
+declare const planningInput: Gw2PlanningStateInput;
+const guardianProjection = projectGuardianPlanningState(planningInput);
+guardianProjection.justiceActiveBurns.toFixed();
+guardianProjection.symbolicAvengerExpirations.map((expiresAt) => expiresAt.toFixed());
+// @ts-expect-error Justice's private hit counter is absent from the public projection.
+guardianProjection.justiceHitCount.toFixed();
+// @ts-expect-error Core's private virtue readiness is not part of its public projection.
+guardianProjection.virtueReadyAt.justice;

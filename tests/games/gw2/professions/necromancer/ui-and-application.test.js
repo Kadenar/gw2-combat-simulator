@@ -41,8 +41,8 @@ const baseConfig = Object.freeze({
 
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 
-// Presentation derives whole points without mutating normalized resources or applying vitality traits twice.
-test('Necromancer displays actual life force while simulation and starting values remain percentages', () => {
+// Runtime and presentation share point capacity; starting input remains a percentage.
+test('Necromancer stores and displays life-force points while starting settings remain percentages', () => {
   for (const [specialization, vitality, battery, expectedCapacity] of [
     ['Core', 1000, false, 13601.28],
     ['Scourge', 1000, true, 16321.536],
@@ -65,8 +65,8 @@ test('Necromancer displays actual life force while simulation and starting value
     assert.equal(view.maximum, Math.round(expectedCapacity), specialization);
     assert.equal(view.value, Math.round(expectedCapacity * 0.8), specialization);
     assert.equal(view.startMaximum, 100);
-    assert.equal(state.lifeForce.maximum, 100);
-    assert.equal(state.lifeForce.value, 80);
+    assert.ok(Math.abs(state.lifeForce.maximum - expectedCapacity) < 1e-8);
+    assert.ok(Math.abs(state.lifeForce.value - expectedCapacity * 0.8) < 1e-8);
   }
 });
 

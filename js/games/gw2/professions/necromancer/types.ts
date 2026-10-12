@@ -51,6 +51,7 @@ export type NecromancerRuntime = MechanicContext<NecromancerRuntimeState, Necrom
 export interface NecromancerSkill extends Skill {
   readonly dhuumfireDuration?: number;
   readonly flipParent?: string;
+  /** Fixed life-force points paid by the shared skill-cost lifecycle. */
   readonly lifeForceCost?: number;
   readonly shroud?: string;
   readonly shroudEntry?: string;

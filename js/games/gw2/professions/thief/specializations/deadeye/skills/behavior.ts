@@ -36,8 +36,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   else runtime.resourceController.replace('malice', initialMalice(runtime));
   if (!remarking) state.maleficentSevenTriggered = false;
   runtime.fireTrigger(maliceGained, { cast });
-  const grant = stolenSkillGrant(runtime);
-  completeThiefSteal(runtime, grant.skillIds, grant.forcedSkillId);
+  completeThiefSteal(runtime, stolenSkillGrant(runtime));
   runtime.fireTrigger(markCompleted, { cast });
 
   runtime.schedule(DEADEYE_MARK_EXPIRY, state.markExpiresAt, { generation: state.markGeneration });

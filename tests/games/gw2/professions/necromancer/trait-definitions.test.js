@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -165,7 +166,7 @@ test('Soul Comprehension shares timed and selected-minion Carapace while retaini
       const result = observeGw2Runtime({ profession, config, rotation: [ID.DEATH_SHROUD] });
       const available = Math.min(capacity, minionTraitSelected ? 8 : 4);
       assert.equal(
-        observedRuntime(result).profession.core.lifeForce.value,
+        lifeForcePercent(observedRuntime(result).profession.core.lifeForce),
         10 + Math.min(countedMaximum, available) * 0.5
       );
       assert.deepEqual(result.warnings, []);

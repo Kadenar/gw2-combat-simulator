@@ -10,13 +10,8 @@ import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
 /** Fire for Effect replaces Deadeye's stolen-skill choice pool with Steal Time. */
-export function stolenSkillGrant(runtime: ThiefRuntime): {
-  skillIds: readonly SkillId[];
-  forcedSkillId: SkillId | null;
-} {
-  return hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT)
-    ? { skillIds: [ID.STEAL_TIME], forcedSkillId: ID.STEAL_TIME }
-    : { skillIds: DEADEYE_STOLEN_SKILL_IDS, forcedSkillId: null };
+export function stolenSkillGrant(runtime: ThiefRuntime): readonly SkillId[] {
+  return hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT) ? [ID.STEAL_TIME] : DEADEYE_STOLEN_SKILL_IDS;
 }
 
 export const STOLEN_SKILLS = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);

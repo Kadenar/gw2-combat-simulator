@@ -31,7 +31,7 @@ export interface ThiefCoreState {
   stealthUntil: number;
   hiddenKillerUntil: number;
   revealedUntil: number;
-  storedStolenSkillId: SkillId | null;
+  /** A singleton choice represents a forced grant or a locked Improvisation reuse. */
   storedStolenSkillIds: SkillId[];
   storedStolenSkillCount: number;
   kneeling: boolean;
@@ -89,7 +89,6 @@ export function createThiefCoreState(
     stealthUntil: 0,
     hiddenKillerUntil: 0,
     revealedUntil: 0,
-    storedStolenSkillId: null,
     storedStolenSkillIds: [],
     storedStolenSkillCount: 0,
     kneeling: false,
@@ -127,7 +126,6 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'stealthStartedAt',
   'stealthUntil',
   'revealedUntil',
-  'storedStolenSkillId',
   'storedStolenSkillIds',
   'storedStolenSkillCount',
   'kneeling',

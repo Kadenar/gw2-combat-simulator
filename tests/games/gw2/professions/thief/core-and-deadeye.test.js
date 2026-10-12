@@ -1011,7 +1011,6 @@ test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar'
   assert.equal(simulate('Deadeye', []).planningState.availability[ID.STEAL_TIME].ready, false);
 
   const storedStolenSkillState = {
-    storedStolenSkillId: ID.STEAL_TIME,
     storedStolenSkillIds: [ID.STEAL_TIME],
     storedStolenSkillCount: 1
   };
@@ -1126,7 +1125,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
 
   const stored = simulate('Core', ['Steal']);
 
-  assert.equal(stored.planningState.profession.storedStolenSkillId, null);
+  assert.equal(stored.planningState.profession.storedStolenSkillCount, 1);
   assert.deepEqual(stored.planningState.profession.storedStolenSkillIds, stolenSkillIds);
   const storedGroups = thiefProfession.ui.paletteGroups({
     specialization: 'Core',
@@ -1138,7 +1137,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
   const used = simulate('Core', ['Steal', 'Detonate Plasma']);
 
   assert.equal(used.warnings.length, 0);
-  assert.equal(used.planningState.profession.storedStolenSkillId, null);
+  assert.equal(used.planningState.profession.storedStolenSkillCount, 0);
   assert.deepEqual(used.planningState.profession.storedStolenSkillIds, []);
   assert.deepEqual(
     thiefProfession.ui
@@ -1437,7 +1436,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.equal(result.planningState.profession.markedTargetId, 'primary-target');
-  assert.equal(result.planningState.profession.storedStolenSkillId, ID.STEAL_TIME);
+  assert.deepEqual(result.planningState.profession.storedStolenSkillIds, [ID.STEAL_TIME]);
   assert.equal(result.planningState.profession.storedStolenSkillCount, 1);
   assert.equal(result.planningState.profession.malice.value, 4);
   assert.ok(
@@ -1463,7 +1462,8 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   const noMaliceStealth = simulate('Deadeye', ["Deadeye's Mark", 'Steal Defenses']);
 
   assert.equal(noMaliceStealth.warnings.length, 0);
-  assert.equal(noMaliceStealth.planningState.profession.storedStolenSkillId, null);
+  assert.deepEqual(noMaliceStealth.planningState.profession.storedStolenSkillIds, []);
+  assert.equal(noMaliceStealth.planningState.profession.storedStolenSkillCount, 0);
   assert.equal(noMaliceStealth.planningState.profession.stealthUntil, 0);
 
   const stolen = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Steal Time'], {
@@ -1480,7 +1480,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   });
 
   assert.equal(improvised.warnings.length, 0);
-  assert.equal(improvised.planningState.profession.storedStolenSkillId, null);
+  assert.deepEqual(improvised.planningState.profession.storedStolenSkillIds, []);
   assert.equal(improvised.planningState.profession.storedStolenSkillCount, 0);
 
   const lockedImprovisation = simulate('Deadeye', ["Deadeye's Mark", 'Steal Defenses', 'Steal Time'], {
@@ -1488,7 +1488,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   });
 
   assert.equal(lockedImprovisation.warnings.length, 1);
-  assert.equal(lockedImprovisation.planningState.profession.storedStolenSkillId, ID.STEAL_DEFENSES);
+  assert.equal(lockedImprovisation.planningState.profession.storedStolenSkillCount, 1);
   assert.deepEqual(lockedImprovisation.planningState.profession.storedStolenSkillIds, [ID.STEAL_DEFENSES]);
 
   const mercy = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Mercy', "Deadeye's Mark"], {
@@ -1506,7 +1506,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
     selectedSkillIds: [41158]
   });
 
-  assert.equal(chamber.planningState.profession.storedStolenSkillId, null);
+  assert.equal(chamber.planningState.profession.storedStolenSkillCount, 1);
   assert.deepEqual(chamber.planningState.profession.storedStolenSkillIds, [
     ID.STEAL_TIME,
     ID.STEAL_WARMTH,
@@ -1524,7 +1524,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   });
 
   assert.equal(fireForEffectRestriction.warnings.length, 1);
-  assert.equal(fireForEffectRestriction.planningState.profession.storedStolenSkillId, ID.STEAL_TIME);
+  assert.equal(fireForEffectRestriction.planningState.profession.storedStolenSkillCount, 1);
   assert.deepEqual(fireForEffectRestriction.planningState.profession.storedStolenSkillIds, [ID.STEAL_TIME]);
   assert.deepEqual(
     thiefProfession.ui

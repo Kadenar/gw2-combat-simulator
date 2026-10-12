@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -121,7 +122,10 @@ test('Reaper damage producers gate cooldown claims, life force and shroud rechar
         result.resolvedEvents.some((event) => event.sourceId === TRAIT.CHILLING_NOVA),
         active
       );
-      assert.equal(runtime.resourceController.value('lifeForce'), active ? 11 : 10);
+      assert.equal(
+        lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')),
+        active ? 11 : 10
+      );
       const rechargeRate = runtime.cooldownController.rate(runtime.helpers.skillsById.get(ID.DEATHS_CHARGE), 1);
       assert.equal(
         runtime.cooldownController.readyAt(ID.DEATHS_CHARGE),
@@ -153,7 +157,10 @@ test('Nova uses the resolved critical outcome in both damage modes and only elig
         result.resolvedEvents.some((event) => event.sourceId === TRAIT.CHILLING_NOVA),
         nova
       );
-      assert.equal(runtime.resourceController.value('lifeForce'), eligible ? 11 : 10);
+      assert.equal(
+        lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')),
+        eligible ? 11 : 10
+      );
       assert.equal(runtime.procs.deadline(novaDeadline), nova ? 4 : 0);
     }
   }
@@ -163,7 +170,7 @@ test('Nova uses the resolved critical outcome in both damage modes and only elig
     result.resolvedEvents.some((event) => event.sourceId === TRAIT.CHILLING_NOVA),
     false
   );
-  assert.equal(runtime.resourceController.value('lifeForce'), 10);
+  assert.equal(lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')), 10);
   assert.deepEqual(runtime.procs.snapshot(), {});
 });
 
@@ -181,7 +188,7 @@ test('Nova and Chilling Victory retain patched cooldowns with an exclusive deadl
       }
     }
   );
-  assert.equal(runtime.resourceController.value('lifeForce'), 14);
+  assert.equal(lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')), 14);
   assert.equal(runtime.procs.deadline(novaDeadline), 5.25);
   assert.equal(runtime.procs.deadline(victoryDeadline), 5.25);
   assert.equal(
@@ -285,7 +292,7 @@ test("Blighter's Boon requires selected enabled producers and a standard boon de
             }
           );
           assert.equal(
-            runtime.resourceController.value('lifeForce'),
+            lifeForcePercent(runtime.profession.core.lifeForce, runtime.resourceController.value('lifeForce')),
             selected && traitTriggers && kind === 'might' && affectsSelf ? 11 : 10
           );
         }

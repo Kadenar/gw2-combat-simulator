@@ -194,7 +194,8 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
 
   assert.equal(result.warnings.length, 0);
   assert.equal(result.planningState.profession.shadowShroudActive, false);
-  assert.equal(result.planningState.profession.storedStolenSkillId, null);
+  assert.deepEqual(result.planningState.profession.storedStolenSkillIds, []);
+  assert.equal(result.planningState.profession.storedStolenSkillCount, 0);
   assert.ok(result.planningState.profession.shadowClock.value > 0);
   assert.equal(result.events.filter((event) => event.type === 'sigil_swap').length, 0);
   assert.deepEqual(

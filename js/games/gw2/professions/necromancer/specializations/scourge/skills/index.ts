@@ -13,18 +13,25 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Herald of Sorrow swaps Desert Shroud for Sandstorm Shroud; both are state-selected variants of one UI tile.
 const SCOURGE_SHROUD_PALETTE_TILE = 'scourge-desert-shroud';
 
+// Author costs as rounded whole points so admission, payment, and tooltips agree independently of build capacity.
+const SCOURGE_LIFE_FORCE_COST = {
+  resource: 'lifeForce',
+  skillAmount: 'lifeForceCost',
+  spendOn: 'castStart'
+} as const;
+
 export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.NEFARIOUS_FAVOR]: {
+    cost: SCOURGE_LIFE_FORCE_COST,
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
-      { on: 'castStart', do: { type: 'necromancer.life-force-cost' } },
       { on: 'castCommit', do: { type: 'scourge.cleanse' } },
       { on: 'castCommit', do: { type: 'scourge.strike' } }
     ],
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
-    lifeForceCost: 21
+    lifeForceCost: 1935
   },
   [ID.SERPENT_SIPHON]: {
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
@@ -121,33 +128,33 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.SAND_CASCADE]: {
+    cost: SCOURGE_LIFE_FORCE_COST,
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
-      { on: 'castStart', do: { type: 'necromancer.life-force-cost' } },
       { on: 'castCommit', do: { type: 'scourge.strike' } },
       { on: 'castCommit', do: { type: 'scourge.barrier' } }
     ],
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
-    lifeForceCost: 27
+    lifeForceCost: 2487
   },
   [ID.GARISH_PILLAR]: {
+    cost: SCOURGE_LIFE_FORCE_COST,
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
-      { on: 'castStart', do: { type: 'necromancer.life-force-cost' } },
       { on: 'castCommit', do: { type: 'scourge.strike' } },
       { on: 'castCommit', do: { type: 'scourge.garish-pillar' } }
     ],
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
-    lifeForceCost: 40
+    lifeForceCost: 3685
   },
   [ID.DESERT_SHROUD]: {
+    cost: SCOURGE_LIFE_FORCE_COST,
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
-      { on: 'castStart', do: { type: 'necromancer.life-force-cost' } },
       { on: 'castCommit', do: { type: 'scourge.strike' } },
       { on: 'castCommit', do: { type: 'scourge.barrier' } },
       { on: 'castCommit', do: { type: 'scourge.desert-shroud' } }
@@ -155,7 +162,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
-    lifeForceCost: 50,
+    lifeForceCost: 4606,
     flipSkillId: null,
     paletteTileId: SCOURGE_SHROUD_PALETTE_TILE,
     paletteTileOrder: 1
@@ -174,16 +181,16 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     specialization: 'Scourge'
   },
   [ID.SANDSTORM_SHROUD]: {
+    cost: SCOURGE_LIFE_FORCE_COST,
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
-      { on: 'castStart', do: { type: 'necromancer.life-force-cost' } },
       { on: 'castCommit', do: { type: 'scourge.strike' } },
       { on: 'castCommit', do: { type: 'scourge.sandstorm-shroud' } }
     ],
     castTimeMs: 0,
     effects: [],
     specialization: 'Scourge',
-    lifeForceCost: 35,
+    lifeForceCost: 3224,
     flipParentId: null,
     paletteTileId: SCOURGE_SHROUD_PALETTE_TILE,
     paletteTileOrder: 2

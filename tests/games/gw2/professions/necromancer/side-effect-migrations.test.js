@@ -1,3 +1,4 @@
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -179,7 +180,7 @@ test('Haunt grants Gluttony-scaled life force only through its selected accepted
       ]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(observedRuntime(result).profession.core.lifeForce.value, mode === 'landed' ? 11 : 0);
+    assert.equal(lifeForcePercent(observedRuntime(result).profession.core.lifeForce), mode === 'landed' ? 11 : 0);
   }
 });
 
@@ -205,11 +206,11 @@ test('Scourge declared costs retain vitality scaling and interrupted acceptance 
       const core = observedRuntime(result).profession.core;
       if (initialResource) {
         assert.deepEqual(result.warnings, []);
-        assert.ok(Math.abs(core.lifeForce.value - (100 - 21 * core.lifeForceCostMultiplier)) < 1e-8);
+        assert.ok(Math.abs(core.lifeForce.value - (core.lifeForce.maximum - 1935)) < 1e-8);
       } else {
-        assert.equal(core.lifeForce.value, 0);
+        assert.equal(lifeForcePercent(core.lifeForce), 0);
         assert.equal(result.warnings.length, 1);
-        assert.match(result.warnings[0], /life force/);
+        assert.match(result.warnings[0], /lifeForce/);
       }
     }
   }

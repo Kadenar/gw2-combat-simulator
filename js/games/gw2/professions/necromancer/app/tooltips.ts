@@ -25,7 +25,6 @@ import {
   castLifeForceGrants,
   effectLifeForceGrants
 } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
-import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
 import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
@@ -467,7 +466,7 @@ export const necromancerTooltips: ProfessionTooltips = {
               {
                 name: 'Life force spent',
                 // Match whole-point in-game facts without rounding the cost used by simulation.
-                detail: actualNecromancerLifeForceCost(tooltipNumber(entity, 'lifeForceCost')).toLocaleString('en-US', {
+                detail: tooltipNumber(entity, 'lifeForceCost').toLocaleString('en-US', {
                   maximumFractionDigits: 0
                 })
               }

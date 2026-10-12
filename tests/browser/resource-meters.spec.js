@@ -6,7 +6,9 @@ test('pip, bar, and composite resources render through the shared meter UI', asy
   for (const [profession, specialization, resourceId] of [
     ['mesmer', 'Virtuoso', 'blades'],
     ['revenant', null, 'energy'],
-    ['elementalist', 'Evoker', 'evoker-charges']
+    ['elementalist', 'Evoker', 'evoker-charges'],
+    // Life-force points must survive worker projection and the shared meter integration.
+    ['necromancer', 'Scourge', 'life-force']
   ]) {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);

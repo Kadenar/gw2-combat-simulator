@@ -3,11 +3,11 @@ import test from 'node:test';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState,
-  snapshotProfessionState,
   readProfessionCoreState,
   readProfessionSpecializationState,
   projectPublicProfessionState
 } from '#gw2/platform/profession-definition/state.js';
+import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 
 // The shared accessor preserves the owning state identity and rejects a different active specialization.
 test('specialization accessors retain factory state and validate the active kind', () => {
@@ -24,7 +24,7 @@ test('specialization accessors retain factory state and validate the active kind
   );
 });
 
-// Shared profession state preserves isolated runtime fields and detached public snapshots.
+// Test snapshots preserve all active runtime fields while detaching them from the live owner.
 test('profession snapshots flatten and deeply clone active runtime state', () => {
   const runtime = {
     core: { resource: 10, nested: { value: 1 } },
