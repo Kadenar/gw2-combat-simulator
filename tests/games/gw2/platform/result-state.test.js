@@ -79,22 +79,66 @@ test('reported boon extensions preserve pooled duration and surviving grant iden
 });
 
 test('critical chance query selects the next eligible player strike', () => {
-  const before = { type: 'damage', at: 0.5, criticalChance: 0.4 };
-  const after = { type: 'damage', at: 2, criticalChance: 0.75 };
+  // Canonical ownership excludes summons even when their labels or modifier owners resemble the player.
+  const before = { type: 'damage', actorType: 'player', at: 0.5, critEligible: true, criticalChance: 0.4 };
+  const after = { ...before, at: 2, source: 'Phantasm', criticalChance: 0.75 };
+  const ineligible = [
+    { ...before, at: 1.1, actorType: 'summon', summonKind: 'clone', source: 'Renamed clone' },
+    { ...before, at: 1.2, actorType: 'summon', summonKind: 'phantasm', source: 'Renamed phantasm' },
+    { ...before, at: 1.3, actorType: 'summon', summonKind: 'minion', ownerActorType: 'player' },
+    { ...before, at: 1.4, critEligible: false, criticalChance: 0 },
+    { ...before, at: 1.5, actorType: 'effect' },
+    { ...before, at: 1.6, actorType: 'unknown' },
+    { ...before, at: 1.7, type: 'condition' },
+    { ...before, at: 1.8, critEligible: undefined },
+    { ...before, at: 1.9, criticalChance: NaN }
+  ];
   const result = {
-    ...effectFields(
-      [
-        before,
-        { type: 'damage', at: 1.1, source: 'Clone', criticalChance: 1 },
-        { type: 'damage', at: 1.2, independentSummonStrike: true, criticalChance: 1 },
-        { type: 'damage', at: 1.3, critEligible: false, criticalChance: 0 },
-        after
-      ],
-      120
-    )
+    ...effectFields([before, ...ineligible, after], 120)
   };
 
   assert.equal(criticalChanceEventAt(result, 1000), after);
+  assert.equal(criticalChanceEventAt(result, 2000), after);
+  assert.equal(criticalChanceEventAt(result, 3000), after);
+  assert.equal(criticalChanceEventAt({ resolvedEvents: ineligible }, 1000), null);
+  assert.equal(criticalChanceEventAt(null, 1000), null);
+});
+
+test('critical chance query excludes independent critical profiles even on player-attributed strikes', () => {
+  // Stat inheritance, rather than actor attribution, decides whether an independent strike represents player crit.
+  const strike = { type: 'damage', at: 1, critEligible: true, criticalChance: 0.05, independentSummonStrike: true };
+  for (const ownership of [{ actorType: 'player' }, { actorType: 'effect', ownerActorType: 'player' }]) {
+    for (const profile of [{}, { summonInheritsAttributes: false, summonInheritsCriticalAttributes: false }]) {
+      const independent = { ...strike, ...ownership, ...profile };
+      assert.equal(criticalChanceEventAt({ resolvedEvents: [independent] }, 0), null);
+    }
+
+    for (const profile of [
+      { summonInheritsAttributes: true },
+      { summonInheritsCriticalAttributes: true },
+      { independentSummonStrike: false }
+    ]) {
+      const inherited = { ...strike, ...ownership, ...profile };
+      assert.equal(criticalChanceEventAt({ resolvedEvents: [inherited] }, 0), inherited);
+    }
+  }
+});
+
+test('critical chance query includes critical-eligible player-owned derived effects', () => {
+  // Equipment procs retain the player's critical sample through explicit effect ownership.
+  const effect = {
+    type: 'damage',
+    actorType: 'effect',
+    ownerActorType: 'player',
+    at: 1,
+    source: 'Renamed proc',
+    critEligible: true,
+    criticalChance: 0.5
+  };
+  assert.equal(criticalChanceEventAt({ resolvedEvents: [effect] }, 0), effect);
+  assert.equal(criticalChanceEventAt({ resolvedEvents: [{ ...effect, critEligible: false }] }, 0), null);
+  assert.equal(criticalChanceEventAt({ resolvedEvents: [{ ...effect, ownerActorType: 'summon' }] }, 0), null);
+  assert.equal(criticalChanceEventAt({ resolvedEvents: [{ ...effect, ownerActorType: undefined }] }, 0), null);
 });
 
 test('effect histories retain the latest active source and sum live stacks', () => {

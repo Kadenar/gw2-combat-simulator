@@ -1,8 +1,31 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compareQueuedEvents } from '#tests/helpers/event-order.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
+import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+
+// Every insertion needs a finite canonical at; rejected input cannot invent work at zero or disturb accepted ties.
+test('event normalization and queue insertion reject missing or invalid timestamps', () => {
+  const queue = new StableEventQueue();
+  const first = queue.enqueue({ at: 0, name: 'first' });
+  for (const event of [{}, { time: 1 }, ...[undefined, null, NaN, Infinity, -Infinity, '1'].map((at) => ({ at }))]) {
+    assert.throws(() => canonicalEvent(event), /Timestamp must be finite/);
+    assert.throws(() => queue.enqueue(event), /Timestamp must be finite/);
+    assert.equal(queue.length, 1);
+    assert.equal(queue.peek(), first);
+  }
+
+  const second = queue.enqueue({ at: 0, name: 'second' });
+  assert.equal(queue.dequeue(), first);
+  assert.equal(queue.dequeue(), second);
+  // Missing and nonfinite timestamps identify the event producer at the queue boundary.
+  for (const at of [undefined, Infinity]) {
+    assert.throws(() => queue.enqueue({ at, type: 'damage', sourceId: 'fixture-strike' }), {
+      name: 'RangeError',
+      message: /Timestamp must be finite.*Event damage from fixture-strike/
+    });
+  }
+});
 
 // Construction cannot prepare work before its owner exists; every event uses the same insertion path afterward.
 test('queues start empty and prepare every enqueued event once before capturing its ordering keys', () => {

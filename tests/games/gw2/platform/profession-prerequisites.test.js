@@ -263,7 +263,6 @@ test('timeline indexes buff stacks by kind and summon audience', () => {
   assert.equal(timeline.buffStacksAt('Might', 1, 0, 25, 'summon'), 11);
   assert.equal(timeline.buffStacksAt('might', 1, 0, 25, 'summon', 'minion:one'), 11);
   assert.equal(timeline.buffStacksAt('might', 1, 0, 25, 'summon', 'minion:two'), 7);
-  assert.equal(timeline.buffStacksAt('might', 1, 0, 25, 'summon-trait'), 7);
   assert.equal(timeline.buffStacksAt('might', 1, 0, 5), 5);
   assert.equal(timeline.buffStacksAt('might', 2, 0, 25), 0);
   assert.equal(timeline.buffStacksAt('quickness', 3.5, 0, 1), 1);
@@ -370,7 +369,7 @@ test('capped permanent Might skips history while uncapped and isolated summon qu
       null,
       { actorType: 'player' },
       { actorType: 'summon', summonInheritsAttributes: true },
-      { actorType: 'summon', source: 'Phantasm' }
+      { actorType: 'summon', summonKind: 'phantasm', source: 'Phantasm' }
     ]) {
       assert.equal(query.mightStacksAt(0, runtime, event), Math.min(25, configured));
       assert.equal(query.mightStacksAt(1, runtime, event), Math.min(25, configured + 10));
@@ -482,6 +481,7 @@ test('player boon sharing can exclude non-mech summons', () => {
   };
   const phantasmEvent = {
     ...summonEvent,
+    summonKind: 'phantasm',
     source: 'Phantasm'
   };
   const spiritSkillEvent = {
@@ -526,12 +526,12 @@ test('player boon sharing can exclude non-mech summons', () => {
   assert.equal(isolated.critical(mechEvent, 1, runtime).chance, 0.3);
 });
 
-test('summon-targeted trait boons bypass disabled player boon sharing', () => {
+test('summon-targeted trait boons bypass disabled player boon sharing independently of labels', () => {
   const events = [
     {
       type: 'buff',
       at: 0,
-      source: 'Trait',
+      source: 'Renamed trait',
       sourceId: 'summon-trait',
       actorType: 'effect',
       kind: 'might',
@@ -635,6 +635,62 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
     }
   ]);
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1060);
+});
+
+test('illusion stats and critical policies follow identity independently of display labels', () => {
+  // Renaming packets must preserve distinct Might inheritance and companion-only Fury policies.
+  const query = createGw2CombatQuery({
+    profession: queryProfession,
+    config: {
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, criticalChanceBonus: 10 }),
+      boons: { might: 25, fury: true },
+      sigilSets: [{ criticalChanceBonus: 7 }],
+      sharePlayerBoonsWithSummons: false
+    }
+  });
+  for (const summonKind of ['clone', 'phantasm']) {
+    const event = {
+      type: 'damage',
+      at: 1,
+      actorType: 'summon',
+      summonKind,
+      summonOwner: `fixture:${summonKind}`,
+      source: summonKind === 'clone' ? 'Clone' : 'Phantasm'
+    };
+    const runtime = {
+      boons: new Map([
+        [
+          'fury',
+          [
+            {
+              at: 0,
+              expiresAt: 2,
+              stacks: 1,
+              resolvedAudience: resolvedAudience({ includesSelf: false, companionIds: [event.summonOwner] })
+            }
+          ]
+        ]
+      ])
+    };
+    for (const source of [event.source, 'Renamed illusion', 'Player', undefined]) {
+      const renamed = { ...event, source };
+      assert.equal(query.statsAt(1, renamed).power, summonKind === 'phantasm' ? 1750 : 1000);
+      assert.deepEqual(query.critical(renamed, 1), query.critical(event, 1));
+      assert.equal(query.critical(renamed, 1).chance, 0.05);
+      assert.equal(query.furyActiveAt(1, null, renamed), false);
+      assert.equal(query.critical(renamed, 1, runtime).chance, 0.3);
+      assert.equal(query.furyActiveAt(2, runtime, renamed), false);
+      assert.equal(query.furyActiveAt(1, runtime, { ...renamed, summonOwner: 'other' }), false);
+      assert.equal(query.furyActiveAt(1, runtime, { ...renamed, summonIgnoresBoons: true }), false);
+      // Subtype metadata on a player-owned attack cannot turn it into a summon.
+      const player = { ...renamed, actorType: 'player' };
+      assert.equal(query.statsAt(1, player).power, 1750);
+      assert.ok(Math.abs(query.critical(player, 1).chance - 0.47) < 1e-12);
+    }
+  }
+
+  // A misleading label cannot grant an unrelated summon the phantasm Might exception.
+  assert.equal(query.statsAt(1, { actorType: 'summon', summonKind: 'minion', source: 'Phantasm' }).power, 1000);
 });
 
 test('profession event-log hooks present, hide, and diagnose custom events', () => {

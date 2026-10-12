@@ -1,10 +1,11 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationResult, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { gw2EventActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 
 /**
- * Finds the player strike whose resolved critical chance best represents a
- * requested rotation time, preferring the next eligible strike over the last.
+ * Finds a player strike or player-owned derived effect whose resolved critical chance
+ * represents the requested rotation time, preferring the next eligible strike over the last.
  */
 export function criticalChanceEventAt(
   result: Gw2SimulationResult | null | undefined,
@@ -16,11 +17,19 @@ export function criticalChanceEventAt(
   let before: Gw2ResolverEvent | null = null;
   let beforeAt = -Infinity;
   for (const event of result?.resolvedEvents || []) {
-    if (event.independentSummonStrike === true) continue;
-    if (event.source === 'Clone' || event.source === 'Phantasm') continue;
+    const actor = gw2EventActorType(event);
+    // Only effects explicitly owned by the player join player actors in this sample.
+    if (actor !== 'player' && (actor !== 'effect' || !isGw2PlayerModifierOwnedEvent(event))) continue;
+    // Match combat-query's independent critical profile: attribution alone does not imply player stats.
+    if (
+      event.independentSummonStrike === true &&
+      event.summonInheritsAttributes !== true &&
+      event.summonInheritsCriticalAttributes !== true
+    )
+      continue;
     // Flat ticks and other non-critical packets report zero chance, which must
     // not replace the player strike being inspected.
-    if (event.critEligible === false) continue;
+    if (event.type !== 'damage' || event.critEligible !== true) continue;
     const chance = Number(event.criticalChance);
     if (!Number.isFinite(chance)) continue;
     const at = event.at || 0;

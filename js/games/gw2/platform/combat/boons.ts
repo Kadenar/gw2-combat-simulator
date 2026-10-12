@@ -7,7 +7,6 @@ import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 interface BuffAudienceMetadata {
-  readonly source?: unknown;
   readonly resolvedAudience?: ResolvedEffectAudience;
 }
 
@@ -260,7 +259,7 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
   return normalizeDurationPool(Math.max(0, remaining - Math.max(0, time - previousTime)));
 }
 
-/** Returns whether a buff application belongs to the requested actor scope. */
+/** Resolved recipients select player or companion grants independently of the author's display label. */
 export function buffMatchesAudience(
   application: BuffAudienceMetadata,
   audience: Gw2BuffAudience,
@@ -270,10 +269,6 @@ export function buffMatchesAudience(
   if (!resolvedAudience) return false;
   if (audience === 'all') return resolvedAudience.includesSelf;
   if (!resolvedAudience.includesSummons) return false;
-  if (audience === 'summon-trait' && application.source !== 'Trait') {
-    return false;
-  }
-
   const companionIds = resolvedAudience.companionIds;
   return (
     companionIds.length === 0 ||
@@ -480,7 +475,7 @@ export function timedBuffApplicationsAt(
   return applicationsByKind.get(kind) || [];
 }
 
-export type Gw2BuffAudience = 'all' | 'summon' | 'summon-trait';
+export type Gw2BuffAudience = 'all' | 'summon';
 
 export interface Gw2TimedBuffApplication {
   readonly event?: SimulationEvent;

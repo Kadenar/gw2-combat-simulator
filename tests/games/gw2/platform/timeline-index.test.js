@@ -242,7 +242,6 @@ test('buff query arguments and timeline instances cannot share another audience 
   assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon', 'pet-a'), 4);
   assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon', 'pet-b'), 6);
   assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon', null), 0);
-  assert.equal(timeline.buffStacksAt('might', 1, 2, 25, 'summon-trait'), 4);
   assert.equal(timeline.buffStacksAt('fury', 1, 2, 25), 0);
   assert.equal(createGw2TimelineIndex().buffStacksAt('might', 1, 2, 25), 0);
 });

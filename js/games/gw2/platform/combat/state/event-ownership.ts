@@ -18,6 +18,19 @@ export function isGw2PlayerActorEvent(event: Partial<SimulationEventBase> | null
   return gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.PLAYER;
 }
 
+/** Phantasm inheritance follows summon identity, independently of the packet's display label. */
+export function isGw2PhantasmEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
+  return gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.SUMMON && event?.summonKind === 'phantasm';
+}
+
+/** Clone and phantasm critical policies apply only to explicitly identified illusion actors. */
+export function isGw2IllusionEvent(event: Partial<SimulationEventBase> | null | undefined): boolean {
+  return (
+    gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.SUMMON &&
+    (event?.summonKind === 'clone' || event?.summonKind === 'phantasm')
+  );
+}
+
 /**
  * Resolves whose outgoing modifiers an event inherits. Events without an
  * explicit owner retain their actor ownership.

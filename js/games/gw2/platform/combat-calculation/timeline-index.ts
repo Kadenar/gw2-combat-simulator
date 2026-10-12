@@ -32,7 +32,6 @@ interface CreateGw2TimelineIndexOptions {
 interface IndexedBuffEvents {
   readonly all: SimulationEvent[];
   readonly summon: SimulationEvent[];
-  readonly summonTrait: SimulationEvent[];
   maximumDuration: number;
 }
 
@@ -123,7 +122,8 @@ export function createGw2TimelineIndex({
     const kind = (event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
     if (!bucket) {
-      bucket = { all: [], summon: [], summonTrait: [], maximumDuration: 0 };
+      // Keep only recipient-based views consumed by player and companion queries.
+      bucket = { all: [], summon: [], maximumDuration: 0 };
       indexedBuffs.set(kind, bucket);
     }
 
@@ -134,10 +134,6 @@ export function createGw2TimelineIndex({
 
     if (buffMatchesAudience(event, 'summon')) {
       insertOrdered(bucket.summon, event);
-    }
-
-    if (buffMatchesAudience(event, 'summon-trait')) {
-      insertOrdered(bucket.summonTrait, event);
     }
   };
 
@@ -197,8 +193,7 @@ export function createGw2TimelineIndex({
     }
 
     const bucket = indexedBuffs.get((kind || '').toLowerCase());
-    const applications =
-      audience === 'summon-trait' ? bucket?.summonTrait : audience === 'summon' ? bucket?.summon : bucket?.all;
+    const applications = audience === 'summon' ? bucket?.summon : bucket?.all;
     if (isDurationStackingBoon(kind)) {
       return buffApplicationStacks(applications || [], kind, time, maximum, {
         audience,

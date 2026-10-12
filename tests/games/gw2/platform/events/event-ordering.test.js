@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compareQueuedEvents } from '#tests/helpers/event-order.js';
 import { eventCausalOrder, StableEventQueue } from '#kernel/events/queue.js';
 import { gw2ResolverPhase, GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 
@@ -51,5 +50,4 @@ test('event queues retain timestamp, priority, causal, and stable insertion orde
   while (queue.length) ordered.push(queue.dequeue().name);
 
   assert.deepEqual(ordered, ['priority-first', 'causal-first', 'causal-second', 'stable-first', 'later']);
-  assert.ok(compareQueuedEvents({ time: 1 }, { at: 2 }) < 0);
 });

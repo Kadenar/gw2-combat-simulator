@@ -1,5 +1,6 @@
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { isGw2IllusionEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProcStep, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
@@ -190,12 +191,8 @@ function criticalMetric(event: Gw2ResolverEvent): Readonly<{
   id: string;
   label: string;
 }> {
-  if (
-    event.source === 'Clone' ||
-    event.source === 'Phantasm' ||
-    event.summonKind === 'clone' ||
-    event.summonKind === 'phantasm'
-  ) {
+  // Critical cohorts use the same actor/subtype identity as combat formulas, independent of labels.
+  if (isGw2IllusionEvent(event)) {
     return { id: 'illusion', label: 'Illusion critical hits' };
   }
 

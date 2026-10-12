@@ -7,28 +7,32 @@ import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 
 export interface QueuedEvent {
-  readonly at?: number;
-  readonly time?: number;
+  readonly at: number;
   readonly priority?: number;
   readonly causalOrder?: number;
   readonly eventOrder?: number;
   readonly [field: string]: unknown;
 }
 
-function eventTimestamp(event: QueuedEvent): number {
-  return Number(event.at ?? event.time ?? 0);
-}
-
-/** Copy only when normalization is needed, preserving frozen inputs and already canonical event identities. */
+/** Require a finite at timestamp; normalize without mutating inputs or copying already canonical events. */
 export function canonicalEvent<T extends QueuedEvent>(event: T): T {
-  const at = canonicalTime(eventTimestamp(event));
-  if (event.at != null) return event.at === at ? event : { ...event, at };
-  if (event.time != null) return event.time === at ? event : { ...event, time: at };
-  return event;
+  let at: number;
+  try {
+    at = canonicalTime(event.at);
+  } catch (error) {
+    if (!(error instanceof RangeError)) throw error;
+    // Attribute invalid clock inputs to their producer without changing the clock's validation rules.
+    throw new RangeError(
+      `${error.message} Event ${String(event.type ?? 'event')} from ${String(event.sourceId ?? event.name ?? 'unknown source')}.`,
+      { cause: error }
+    );
+  }
+
+  return event.at === at ? event : { ...event, at };
 }
 
 /** Returns finite ordering metadata, preferring explicit causal placement over emission order. */
-export function eventCausalOrder(event: QueuedEvent): number | null {
+export function eventCausalOrder(event: Pick<QueuedEvent, 'causalOrder' | 'eventOrder'>): number | null {
   const order = Number(event.causalOrder ?? event.eventOrder);
   return Number.isFinite(order) ? order : null;
 }
@@ -108,7 +112,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   /** Game-owned phases stay private to heap entries; derived work cannot rewind an already handled instant. */
   private entry(input: T, sequence: number): HeapEntry<T> {
     const event = canonicalEvent(input);
-    const at = eventTimestamp(event);
+    const at = event.at;
     const phase = this.phaseFor?.(event, this.current) ?? 0;
     if (!Number.isFinite(phase)) throw new RangeError('Event phase must be finite.');
     const priority = Number(event.priority ?? 0);
@@ -153,7 +157,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     if (!first) return undefined;
     // Keys are captured in the heap; reject edits instead of silently dispatching a corrupted packet.
     if (
-      eventTimestamp(first.event) !== first.time / 1_000_000 ||
+      first.event.at !== first.time / 1_000_000 ||
       Number(first.event.priority ?? 0) !== first.priority ||
       eventCausalOrder(first.event) !== first.explicitCausalOrder
     ) {

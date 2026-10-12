@@ -16,7 +16,11 @@ import type {
   Gw2ModifierHook
 } from '#gw2/platform/combat/modifiers.js';
 import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
-import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import {
+  gw2EventActorType,
+  isGw2IllusionEvent,
+  isGw2PhantasmEvent
+} from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
 import {
   createPermanentTargetConditionStacks,
@@ -203,7 +207,7 @@ export function createGw2CombatQuery({
    * Explicitly inherited companion profiles retain their existing behavior.
    */
   const isBoonIsolatedSummonEvent = (event: SimulationEvent | null | undefined): boolean =>
-    gw2EventActorType(event) === 'summon' && event?.summonInheritsAttributes !== true && event?.source !== 'Phantasm';
+    gw2EventActorType(event) === 'summon' && event?.summonInheritsAttributes !== true && !isGw2PhantasmEvent(event);
   const summonCompanionId = (event: SimulationEvent | null | undefined): string | null => {
     if (!event || gw2EventActorType(event) !== 'summon') return null;
     if (event.summonOwner) return String(event.summonOwner);
@@ -252,7 +256,7 @@ export function createGw2CombatQuery({
     // Illusions inherit the summoner's base crit chance but never the
     // player-configured permanent Fury. They gain Fury only when a skill
     // applies it dynamically (handled by the runtime/timeline branch below).
-    const illusionEvent = event?.source === 'Clone' || event?.source === 'Phantasm';
+    const illusionEvent = isGw2IllusionEvent(event);
     if ((!isolatedSummon || inheritsOwnerCriticalState) && !illusionEvent && config.boons?.fury) {
       return true;
     }
@@ -442,7 +446,7 @@ export function createGw2CombatQuery({
       // Illusions inherit only the summoner's base (precision-derived) crit
       // chance. Player-only gear bonuses — configured crit-chance and weapon
       // sigils — do not carry over to them.
-      const illusionEvent = event.source === 'Clone' || event.source === 'Phantasm';
+      const illusionEvent = isGw2IllusionEvent(event);
       if (!illusionEvent) {
         const configuredBonus = (stats.criticalChanceBonus || 0) / 100;
         chance += configuredBonus;

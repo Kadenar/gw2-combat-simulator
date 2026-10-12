@@ -318,6 +318,47 @@ test('RNG explanations compare variable combat facts in low and high DPS cohorts
   assert.equal(distribution.explanation.drivers[0].estimatedDpsDelta, 180);
 });
 
+test('RNG critical cohorts use illusion actor identity independently of labels', () => {
+  // Renamed illusions stay together; misleading names and subtype fields cannot turn player/effect actors into illusions.
+  for (const summonKind of ['clone', 'phantasm']) {
+    for (const source of ['Clone', 'Phantasm', 'Renamed attack', undefined]) {
+      for (const [actorType, cohort] of [
+        ['summon', 'illusion'],
+        ['player', 'player'],
+        ['effect', 'effect']
+      ]) {
+        const metrics = randomDistributionMetrics({
+          dps: 0,
+          resolvedEvents: [{ type: 'damage', at: 0, coefficient: 1, didCrit: true, actorType, summonKind, source }]
+        });
+        assert.deepEqual(
+          metrics.filter((metric) => metric.category === 'critical').map((metric) => metric.id),
+          [`critical:${cohort}`]
+        );
+      }
+    }
+  }
+
+  const metrics = randomDistributionMetrics({
+    dps: 0,
+    resolvedEvents: [
+      {
+        type: 'damage',
+        at: 0,
+        coefficient: 1,
+        didCrit: true,
+        actorType: 'summon',
+        summonKind: 'minion',
+        source: 'Phantasm'
+      }
+    ]
+  });
+  assert.deepEqual(
+    metrics.filter((metric) => metric.category === 'critical').map((metric) => metric.id),
+    ['critical:summon']
+  );
+});
+
 test('RNG explanations retain condition damage when equal application counts tick differently', () => {
   const outcomes = Array.from({ length: 20 }, (_unused, index) => ({
     dps: 1000 + index * 10,
