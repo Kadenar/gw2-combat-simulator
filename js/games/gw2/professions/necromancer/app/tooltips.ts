@@ -951,10 +951,9 @@ export const necromancerTooltips: ProfessionTooltips = {
         ]
       };
     },
-    [TRAIT.IMPLACABLE_FOE]: traitTooltip(
-      'Gain ferocity from vitality. Entering Harbinger Shroud grants stability and the Implacable Foe buff.',
-      [['attributeConversion', 'Vitality converted to ferocity', tooltipPercent]]
-    ),
+    [TRAIT.IMPLACABLE_FOE]: traitTooltip('Gain ferocity from vitality. Entering Harbinger Shroud grants stability.', [
+      ['attributeConversion', 'Vitality converted to ferocity', tooltipPercent]
+    ]),
     [TRAIT.TWISTED_MEDICINE]: traitTooltip('Gain concentration from vitality. Elixir boons are shared with allies.', [
       ['attributeConversion', 'Vitality converted to concentration', tooltipPercent]
     ]),

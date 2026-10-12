@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 4,
+  "profession": "necromancer",
+  "gear": {
+    "Helm": "Assassin's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Greatsword", ""],
+  "alternateWeapons": ["Spear", ""],
+  "rune": "Dragonhunter",
+  "weaponSigils": [
+    ["Force", "Accuracy"],
+    ["Force", "Accuracy"]
+  ],
+  "relic": "Claw",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 12
+    },
+    {
+      "stat": "Precision",
+      "count": 6
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Spite",
+      "traits": "1-2-2"
+    },
+    {
+      "name": "Soul Reaping",
+      "traits": "1-1-2"
+    },
+    {
+      "name": "Harbinger",
+      "traits": "1-2-2"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 62667,
+    "Utility1": 10546,
+    "Utility2": 62530,
+    "Utility3": 62662,
+    "Elite": 62655
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "averaged",
+    "permanentComboField": "none",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Crippled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetSkillActivationsPerSecond": 0
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
+  "initialResource": 100,
+  "initialBlight": 0,
+  "initialCascadingCorruptionStacks": 0,
+  "precastRelics": []
+}

@@ -233,6 +233,33 @@
         }
       },
       {
+        "label": "Power Quickness (Greatsword / Spear)",
+        "build": "data/gw2/builds/necromancer/b-power-quick-harbinger.json",
+        "rotation": "data/gw2/rotations/necromancer/r-power-quick-harbinger-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-quickness-harbinger-greatsword-spear",
+        "benchmarkDps": 34985,
+        "upToDate": true,
+        "benchmarkApm": 72.9,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 32942, "phase": 32942 },
+          "80-60": { "cumulative": 31517, "phase": 30154 },
+          "60-40": { "cumulative": 32266, "phase": 33887 },
+          "40-20": { "cumulative": 33606, "phase": 38387 },
+          "20-0": { "cumulative": 34985, "phase": 41845 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 34985,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 32942, "phase": 32942 },
+            "80-60": { "cumulative": 31517, "phase": 30154 },
+            "60-40": { "cumulative": 32266, "phase": 33887 },
+            "40-20": { "cumulative": 33606, "phase": 38387 },
+            "20-0": { "cumulative": 34985, "phase": 41845 }
+          }
+        }
+      },
+      {
         "label": "Condition Quickness (Pistol / Dagger + Scepter / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-quick-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-quick-harbinger-bench.json",
