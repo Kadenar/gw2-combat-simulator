@@ -167,10 +167,13 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     });
   }
 
+  // Load optional diagnostics only for this player; each analyzer depends on its profession's attribute rules.
   if (selected.professionId === 'warrior') {
+    const { analyzeWarriorBloodlustObservation } =
+      await import('#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js');
     observations.push(
       ...bloodlustImportObservation(
-        rotationModule.analyzeWarriorBloodlustObservation(
+        analyzeWarriorBloodlustObservation(
           log,
           playerAddress,
           app.activeCatalog,
@@ -181,9 +184,11 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   }
 
   if (selected.professionId === 'engineer') {
+    const { analyzeEngineerShrapnelObservation, analyzeEngineerSerratedSteelObservation } =
+      await import('#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js');
     observations.push(
       ...shrapnelImportObservation(
-        rotationModule.analyzeEngineerShrapnelObservation(
+        analyzeEngineerShrapnelObservation(
           log,
           playerAddress,
           app.activeCatalog,
@@ -191,7 +196,7 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
         )
       ),
       ...serratedSteelImportObservation(
-        rotationModule.analyzeEngineerSerratedSteelObservation(
+        analyzeEngineerSerratedSteelObservation(
           log,
           playerAddress,
           app.activeCatalog,
@@ -202,9 +207,11 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   }
 
   if (selected.professionId === 'mesmer') {
+    const { analyzeMesmerSharperImagesObservation } =
+      await import('#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js');
     observations.push(
       ...sharperImagesImportObservation(
-        rotationModule.analyzeMesmerSharperImagesObservation(
+        analyzeMesmerSharperImagesObservation(
           log,
           playerAddress,
           app.activeCatalog,
@@ -215,9 +222,11 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   }
 
   if (selected.professionId === 'necromancer') {
+    const { analyzeNecromancerBarbedPrecisionObservation } =
+      await import('#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js');
     observations.push(
       ...barbedPrecisionImportObservation(
-        rotationModule.analyzeNecromancerBarbedPrecisionObservation(
+        analyzeNecromancerBarbedPrecisionObservation(
           log,
           playerAddress,
           app.activeCatalog,
@@ -228,9 +237,11 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   }
 
   if (selected.professionId === 'ranger') {
+    const { analyzeRangerSharpenedEdgesObservation } =
+      await import('#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js');
     observations.push(
       ...sharpenedEdgesImportObservation(
-        rotationModule.analyzeRangerSharpenedEdgesObservation(
+        analyzeRangerSharpenedEdgesObservation(
           log,
           playerAddress,
           app.activeCatalog,

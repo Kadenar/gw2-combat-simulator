@@ -1,8 +1,4 @@
 export * from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 export * from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
-export * from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
-export * from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
-export * from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
-export * from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
-export * from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
+// Observation analyzers load separately so reconstruction does not initialize unrelated profession runtimes.
 export { detectEvtcRotationPlayers } from '#gw2/integrations/logs/evtc/rotation/players.js';
