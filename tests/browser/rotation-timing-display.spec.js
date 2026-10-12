@@ -103,18 +103,10 @@ test('concurrent precast landing updates while editing timing', async ({ page })
 
 // Native increments must snap saved or typed off-grid timings before applying an edit.
 test('activation timing controls snap and validate 40 ms ticks', async ({ page }) => {
-  await page.route('**/app/profession-app.ts', async (route) => {
-    const response = await route.fetch();
-    await route.fulfill({
-      response,
-      body: (await response.text()).replace(
-        'this.scheduleInitialDeferredRender();',
-        'setTimeout(() => this.scheduleInitialDeferredRender(), 200);'
-      )
-    });
-  });
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  // The deferred first timeline render closes floating editors after the loading overlay disappears.
+  await expect(page.locator('#rotation-timeline')).toHaveAttribute('aria-busy', 'false');
   for (const options of [
     { interruptMs: 101, fullCastMs: 657 },
     { behavior: 'concurrent', concurrentOffsetMs: 101 },
