@@ -6,7 +6,7 @@
         "label": "Power (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-deadeye-axe-pistol-dagger-pistol-bench.json",
-        "benchmarkDps": 44265,
+        "benchmarkDps": 44337,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-axe-pistol-dagger",
         "benchmarkApm": 90.5,
@@ -14,18 +14,44 @@
           "100-80": { "cumulative": 42269, "phase": 42269 },
           "80-60": { "cumulative": 42175, "phase": 42078 },
           "60-40": { "cumulative": 41356, "phase": 39803 },
-          "40-20": { "cumulative": 43118, "phase": 49354 },
-          "20-0": { "cumulative": 44265, "phase": 49411 }
+          "40-20": { "cumulative": 43136, "phase": 49436 },
+          "20-0": { "cumulative": 44337, "phase": 49725 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42216,
+          "benchmarkDps": 42285,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 42337, "phase": 42337 },
             "80-60": { "cumulative": 40386, "phase": 38554 },
             "60-40": { "cumulative": 40473, "phase": 40646 },
-            "40-20": { "cumulative": 41014, "phase": 42794 },
-            "20-0": { "cumulative": 42216, "phase": 42216 }
+            "40-20": { "cumulative": 41031, "phase": 42889 },
+            "20-0": { "cumulative": 42285, "phase": 42285 }
+          }
+        }
+      },
+      {
+        "label": "Power (Rifle + Dagger / Pistol)",
+        "build": "data/gw2/builds/thief/b-power-deadeye-rifle-dagger-pistol.json",
+        "rotation": "data/gw2/rotations/thief/r-power-deadeye-rifle-dagger-pistol-bench.json",
+        "upToDate": true,
+        "benchmarkDps": 42123,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 40565, "phase": 40565 },
+          "80-60": { "cumulative": 39205, "phase": 37858 },
+          "60-40": { "cumulative": 39145, "phase": 39024 },
+          "40-20": { "cumulative": 40389, "phase": 44804 },
+          "20-0": { "cumulative": 42123, "phase": 50921 }
+        },
+        "benchmarkApm": 114,
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 39850,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 38866, "phase": 38866 },
+            "80-60": { "cumulative": 37035, "phase": 35366 },
+            "60-40": { "cumulative": 36654, "phase": 35909 },
+            "40-20": { "cumulative": 38323, "phase": 44290 },
+            "20-0": { "cumulative": 39850, "phase": 39850 }
           }
         }
       },
@@ -33,7 +59,7 @@
         "label": "Power Quickness (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
-        "benchmarkDps": 40709,
+        "benchmarkDps": 40768,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-axe-pistol-dagger",
         "benchmarkApm": 88.9,
@@ -41,18 +67,18 @@
           "100-80": { "cumulative": 40879, "phase": 40879 },
           "80-60": { "cumulative": 40178, "phase": 39492 },
           "60-40": { "cumulative": 39257, "phase": 37521 },
-          "40-20": { "cumulative": 40220, "phase": 43367 },
-          "20-0": { "cumulative": 40709, "phase": 40709 }
+          "40-20": { "cumulative": 40236, "phase": 43434 },
+          "20-0": { "cumulative": 40768, "phase": 40768 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 38858,
+          "benchmarkDps": 38915,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 38464, "phase": 38464 },
             "80-60": { "cumulative": 37381, "phase": 36340 },
             "60-40": { "cumulative": 37926, "phase": 39073 },
-            "40-20": { "cumulative": 38394, "phase": 39838 },
-            "20-0": { "cumulative": 38858, "phase": 38858 }
+            "40-20": { "cumulative": 38420, "phase": 39943 },
+            "20-0": { "cumulative": 38915, "phase": 38915 }
           }
         }
       },
@@ -88,25 +114,25 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-rifle-only",
-        "benchmarkDps": 36706,
+        "benchmarkDps": 36710,
         "upToDate": true,
-        "benchmarkApm": 77.8,
+        "benchmarkApm": 76.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38067, "phase": 38067 },
-          "80-60": { "cumulative": 35444, "phase": 32973 },
-          "60-40": { "cumulative": 35360, "phase": 35190 },
-          "40-20": { "cumulative": 36318, "phase": 39564 },
-          "20-0": { "cumulative": 36706, "phase": 36706 }
+          "100-80": { "cumulative": 37182, "phase": 37182 },
+          "80-60": { "cumulative": 35483, "phase": 33905 },
+          "60-40": { "cumulative": 35090, "phase": 34325 },
+          "40-20": { "cumulative": 35899, "phase": 38581 },
+          "20-0": { "cumulative": 36710, "phase": 40269 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 36723,
+          "benchmarkDps": 36718,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 37674, "phase": 37674 },
-            "80-60": { "cumulative": 35495, "phase": 33564 },
-            "60-40": { "cumulative": 35373, "phase": 35123 },
-            "40-20": { "cumulative": 36355, "phase": 39639 },
-            "20-0": { "cumulative": 36723, "phase": 36723 }
+            "100-80": { "cumulative": 37477, "phase": 37477 },
+            "80-60": { "cumulative": 35537, "phase": 33787 },
+            "60-40": { "cumulative": 35093, "phase": 34226 },
+            "40-20": { "cumulative": 35942, "phase": 38757 },
+            "20-0": { "cumulative": 36718, "phase": 40127 }
           }
         }
       }

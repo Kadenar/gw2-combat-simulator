@@ -37,7 +37,7 @@ import {
   venomsConsumed
 } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 import { stealCompleted, type StealCompletion } from '#gw2/professions/thief/core/mechanics/boundaries.js';
@@ -260,6 +260,17 @@ export const potentPoison = defineTrait({
 export const revealedTraining = defineTrait({
   id: TRAIT.REVEALED_TRAINING,
   name: 'Revealed Training',
+  triggers: [
+    onTriggerPoint(thiefStruck, {
+      run(runtime: ThiefRuntime, { cause }: ThiefStrike) {
+        // Record successful player hits after their damage resolves so only later hits can use the bonus.
+        if (cause.actorType !== 'player' || cause.offTarget || !cause.activationId || !(Number(cause.coefficient) > 0))
+          return;
+        if (skillForEvent(runtime.helpers, cause)?.stealthAttack)
+          runtime.profession.core.revealedTrainingHitActivations[cause.activationId] = true;
+      }
+    })
+  ],
   balance: {
     attributeBonus: 80,
     attributePerStack: 120
@@ -268,10 +279,17 @@ export const revealedTraining = defineTrait({
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.REVEALED_TRAINING);
     const state = thiefRuntimeState(context);
-    // The revealing stealth attack is excluded; a recalled Salvo is a subsequent hit.
+    // Exclude only a revealing activation's first landed hit. Judgment reveals before firing;
+    // attacks that do not reveal and recalled axes use the live Revealed state without that exclusion.
+    const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+    const activationId = context.event?.activationId;
     const revealingAttack =
-      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.stealthAttack &&
-      context.event?.metadata?.recallSkillId == null;
+      skill?.stealthAttack &&
+      !skill.preservesStealth &&
+      skill.id !== ID.DEATHS_JUDGMENT &&
+      skill.id !== ID.MALICIOUS_DEATHS_JUDGMENT &&
+      context.event?.metadata?.recallSkillId == null &&
+      !(activationId && state.revealedTrainingHitActivations?.[activationId]);
     return {
       attributeEffects: [
         {

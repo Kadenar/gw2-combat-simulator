@@ -257,6 +257,8 @@ export const thiefCoreUi = Object.freeze({
     ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
   ]),
   rotationStateSnapshot: thiefCoreStateSnapshot,
+  // Keep target-health milestones visible across Thief specializations, including Heartseeker's execute band.
+  targetHealthThresholds: () => [0.8, 0.5, 0.25],
   paletteGroups: (context: ThiefUiContext) =>
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
   resourceViews: (context: ThiefUiContext) => {

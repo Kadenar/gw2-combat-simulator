@@ -345,16 +345,19 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
-    castTimeMs: 600,
+    castTimeMs: 680,
+    interruptCommitMs: 560,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2.67 }],
+        ticks: [{ atMs: 560, coefficient: 2.67 }],
         name: "Malicious Death's Judgment — Packet 1",
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        persistsAfterInterrupt: true,
+        comboFinishers: [{ ownerId: 'thief', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }],
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
@@ -468,7 +471,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         coefficient: 0.6,
         hits: 1,
         name: 'Malicious Surprise Shot',
-        actorType: 'player'
+        actorType: 'player',
+        comboFinishers: [{ ownerId: 'thief', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',
@@ -492,7 +496,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.MALICIOUS_SNEAK_ATTACK]: {
     // Only a completed channel emits the Torment using its accepted malice.
     sideEffects: [
-      { on: 'castCommit', when: (_runtime, cast) => !castWasInterrupted(cast), do: { type: 'thief.sneak-torment' } }
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => !castWasInterrupted(cast) && (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) > 0,
+        do: { type: 'thief.sneak-torment' }
+      }
     ],
 
     castTimeMs: 680,
@@ -504,15 +512,14 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 1.8 / 5 })),
         name: 'Malicious Sneak Attack',
         actorType: 'player',
+        comboFinishers: [{ ownerId: 'thief', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
           type: 'condition',
-          condition: 'Bleeding',
-          stacks: 5,
-          duration: 5,
+          ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 5 })),
           actorType: 'player'
         }
         // Malice-scaled Torment is emitted from its removable balance profile at completion.
@@ -586,10 +593,15 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 3 }],
+        ticks: [200, 440, 640, 840, 1040, 1280, 1480, 1680].map((atMs) => ({
+          atMs,
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 3
+        })),
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'boon',
@@ -738,7 +750,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       },
       {
         on: 'castCommit',
-        when: (_runtime, cast) => (deadeyeCastFacts.get(cast)?.malice ?? 0) > 0,
+        when: (_runtime, cast) => (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) > 0,
         do: { type: 'thief.ashen-torment' }
       }
     ],
@@ -748,7 +760,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         transform: (runtime, cast, effects) => {
           const factor =
             1 +
-            (deadeyeCastFacts.get(cast)?.malice ?? 0) *
+            // An unmarked or missed attack cannot receive a bonus from malice it does not consume.
+            (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) *
               balanceProfileNumber(
                 requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault),
                 'coefficientMultiplier'
@@ -832,7 +845,7 @@ export function markedTarget(context: Gw2ModifierContext): boolean {
   return Boolean(state.markedTargetId) && (state.markExpiresAt || Infinity) > context.time;
 }
 
-/** Intrinsic damage rules retain live mark eligibility and additive malice composition. */
+/** Intrinsic damage rules retain live mark eligibility and scale malicious attacks by consumed malice. */
 export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
   {
     order: 200,
@@ -861,12 +874,14 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
     order: 202,
     id: 'thief.malicious-stealth-attack',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    // Malice at cast start is snapshotted onto the event so each hit sees the pre-consumption value after malice is spent
+    operation: 'multiply',
+    // Malice scales the attack itself; additive equipment bonuses must not dilute its ten percent per stack.
+    // Snapshotting preserves the consumed value for the launched hit after the resource is spent.
     parameters: { damagePerMalice: 0.1 },
-    amount: (context, _target, parameters) =>
+    factor: (context, _target, parameters) =>
+      1 +
       Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
-      parameters.damagePerMalice,
+        parameters.damagePerMalice,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       markedTarget(context) &&

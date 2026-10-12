@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 4,
+  "profession": "thief",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Assassin's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Rifle", ""],
+  "alternateWeapons": ["Dagger", "Pistol"],
+  "rune": "Dragonhunter",
+  "weaponSigils": [
+    ["Force", "Impact"],
+    ["Force", "Impact"]
+  ],
+  "relic": "Deadeye",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 13
+    },
+    {
+      "stat": "Precision",
+      "count": 5
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Deadly Arts",
+      "traits": "1-3-3"
+    },
+    {
+      "name": "Critical Strikes",
+      "traits": "3-2-1"
+    },
+    {
+      "name": "Deadeye",
+      "traits": "3-3-1"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 45088,
+    "Utility1": 13046,
+    "Utility2": 41372,
+    "Utility3": 41158,
+    "Elite": 45508
+  },
+  "selectedDodge": "Dodge",
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "averaged",
+    "permanentComboField": "none",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": false,
+      "Torment": 1,
+      "Confusion": 0,
+      "Blindness": true,
+      "Immobilized": true,
+      "Poisoned": true,
+      "Chilled": true,
+      "Crippled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetDefiant": true
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
+  "initialInitiative": 12,
+  "initialSpinningAxes": 6,
+  "initialPreSteal": 0,
+  "initialShadowForce": 0,
+  "precastRelics": []
+}

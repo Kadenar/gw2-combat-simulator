@@ -50,6 +50,8 @@ export interface ThiefCoreState {
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   activationClaims: ActivationClaims;
+  /** Revealed Training excludes only the first landed revealing hit of each stealth activation. */
+  revealedTrainingHitActivations: Record<string, true>;
 
   /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
   infiltratorsSignetPulseAt: number | null;
@@ -111,6 +113,7 @@ export function createThiefCoreState(
     availableFlips: {},
     autoattackChains: {},
     activationClaims: {},
+    revealedTrainingHitActivations: {},
 
     infiltratorsSignetPulseAt: null,
     strikeBrokeStealthAt: null,

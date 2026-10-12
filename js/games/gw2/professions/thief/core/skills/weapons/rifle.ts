@@ -3,7 +3,6 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEATHS_ADVANCE]: {
@@ -12,7 +11,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
       { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DEATHS_ADVANCE } },
       { on: 'castCommit', do: { type: 'thief.stealth' } }
     ],
-    castTimeMs: 200,
+    castTimeMs: 240,
     cooldown: 0,
     initiativeCost: 2,
     effects: [
@@ -30,7 +29,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.kneel' } }],
 
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    castTimeMs: 360,
+    castTimeMs: 320,
     cooldown: 0.5,
     initiativeCost: 1,
     effects: []
@@ -38,9 +37,10 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.DEADLY_AIM]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
+    interruptCommitMs: 520,
     cooldown: 0,
     initiativeCost: 0,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.1,
@@ -79,7 +79,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.stand' } }],
 
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    castTimeMs: 0,
+    castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -94,10 +94,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.BRUTAL_AIM]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 520,
+    castTimeMs: 600,
+    interruptCommitMs: 520,
     cooldown: 0,
     initiativeCost: 0,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.75,
@@ -131,11 +132,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.SKIRMISHERS_SHOT]: {
-    castTimeMs: 360,
+    castTimeMs: 440,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
           coefficient: 1,
@@ -168,10 +169,10 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DEATHS_RETREAT]: {
-    castTimeMs: 200,
+    castTimeMs: 240,
     cooldown: 0,
     initiativeCost: 4,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    effects: impactEffects({ atMs: 160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.3,
@@ -199,13 +200,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.DOUBLE_TAP]: {
-    castTimeMs: 520,
+    castTimeMs: 680,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
       {
         type: 'strike',
-        ticks: [280, 520].map((atMs) => ({ atMs, coefficient: 2.8 / 2 })),
+        ticks: [400, 560].map((atMs) => ({ atMs, coefficient: 2.8 / 2 })),
         name: 'Double Tap',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -229,11 +230,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SPOTTERS_SHOT]: {
-    castTimeMs: 520,
+    castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
           coefficient: 1.3,
@@ -280,7 +281,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: [
       {
         type: 'strike',
-        ticks: [240, 440, 680].map((atMs) => ({ atMs, coefficient: 2.25 / 3 })),
+        ticks: [400, 560, 720].map((atMs) => ({ atMs, coefficient: 2.25 / 3 })),
         name: 'Three Round Burst',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -308,7 +309,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     flipDuration: 5,
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DEATHS_ADVANCE } }],
-    castTimeMs: 200,
+    castTimeMs: 320,
     cooldown: 0,
     initiativeCost: 4,
     // The smoke field lasts through the existing five-second Death's Advance follow-up window.

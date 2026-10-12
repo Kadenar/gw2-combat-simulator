@@ -104,6 +104,7 @@ export interface ThiefStrike {
  * all of this precedes venom consumption.
  */
 export const thiefStruck = defineTriggerPoint<ThiefStrike>('thief.strike', [
+  TRAIT.REVEALED_TRAINING,
   TRAIT.UNRELENTING_STRIKES,
   TRAIT.NO_QUARTER,
   TRAIT.DEADLY_AMBITION

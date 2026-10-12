@@ -1787,7 +1787,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   assert.equal(
     maliciousSneak.events.find((event) => event.skillName === 'Malicious Sneak Attack' && event.condition === 'Torment')
       .duration,
-    9
+    8
   );
 });
 
