@@ -16,11 +16,7 @@ import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shat
 import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/domination/index.js';
-import {
-  createMesmerIllusionRewards,
-  destroyClone,
-  mesmerActivePrimaryWeapon
-} from '#gw2/professions/mesmer/family-resources.js';
+import { createMesmerIllusionRewards, destroyClone } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
@@ -80,7 +76,6 @@ export function createMesmerSkillEffects(context: MesmerRuntime) {
         : undefined;
   return createSkillEffectController({
     state: context,
-    resourceDefinition: mesmerResourceDefinition(specialization, context),
     // Resolve only the requested summon from this run's catalog; elite overrides retain their field precedence.
     phantasmTimingFor: (skillId) => {
       const timing = context.helpers.skillsById.get(skillId)?.phantasmTiming;
@@ -88,7 +83,6 @@ export function createMesmerSkillEffects(context: MesmerRuntime) {
       return (override ? { ...timing, ...override } : timing) as MesmerPhantasmAttackTiming | undefined;
     },
     phantasmPolicy: () => policy,
-    activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
     queueResources: createMesmerIllusionRewards(context).queueResources
   });
 }
