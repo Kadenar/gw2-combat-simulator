@@ -1,24 +1,30 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { REFRAIN, startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
-import { paragonMotivationPolicy } from '#gw2/professions/warrior/specializations/paragon/mechanics/resources.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
   PARAGON_COMMAND_ECHO_PROFILES,
   paragonRefrains
 } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
-import {
-  enduringRefrainMotivation,
-  enduringRefrainMultiplier,
-  reverberationEchoCount
-} from '#gw2/professions/warrior/specializations/paragon/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
+/** Motivation starts empty and changes only through rewards and the existing refrain tasks, never passive recovery. */
+const paragonMotivationPolicy: ResourcePolicy<WarriorRuntime> = {
+  kind: 'continuous',
+  state: (runtime) => paragonState.from(runtime).motivation,
+  maximum: (runtime) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
+  initial: () => 0,
+  recovery: () => 0
+};
 
 const ECHO = 'warrior.paragon-command-echo';
 
@@ -237,3 +243,24 @@ export const paragonCastCompleted = defineTriggerPoint<{ readonly cast: RuntimeC
 export const paragonCombatStarted = defineTriggerPoint<Record<string, never>>('warrior.paragon-combat-started', [
   TRAIT.CALL_TO_ACTION
 ]);
+
+/** Enduring Refrain scales Might only; other packets retain their original stacks. */
+function enduringRefrainMultiplier(runtime: WarriorRuntime): number {
+  return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ENDURING_REFRAIN), 'stackMultiplier')
+    : 1;
+}
+
+/** Chant entry adds the selected trait's Motivation before opening boons. */
+function enduringRefrainMotivation(runtime: WarriorRuntime): number {
+  return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ENDURING_REFRAIN), 'resourceGain')
+    : 0;
+}
+
+/** Echo counts are fixed at command admission and survive later trait changes. */
+function reverberationEchoCount(runtime: WarriorRuntime): number {
+  return hasTrait(runtime, TRAIT.REVERBERATION)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.REVERBERATION), 'maximumStacks')
+    : 1;
+}

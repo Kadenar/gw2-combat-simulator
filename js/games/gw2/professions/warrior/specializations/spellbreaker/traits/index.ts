@@ -1,7 +1,8 @@
 import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -22,10 +23,6 @@ import {
 } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
-import {
-  insightStacks,
-  spellbreakerStateAt
-} from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -239,4 +236,22 @@ function triggerMagebaneTether(context: WarriorRuntime, state: SpellbreakerState
   state.magebaneTetherUntil = canonicalTime(at + effectNumber(skill, effect, 'duration'));
   invokeTraitSkill(context, TRAIT.MAGEBANE_TETHER, skill.id, event);
   return true;
+}
+
+/** Read accepted Insight stacks and tether state for the selected trait contributions. */
+function insightStacks(context: Gw2ModifierContext): number {
+  const state = readProfessionSpecializationState<{ attackerInsightExpiries?: number[] }>(
+    context.runtime?.profession,
+    'Spellbreaker'
+  );
+  return activeStackCount(state?.attackerInsightExpiries || [], context.time);
+}
+
+function spellbreakerStateAt(context: Gw2ModifierContext): {
+  magebaneTetherUntil?: number;
+} {
+  return (
+    readProfessionSpecializationState<{ magebaneTetherUntil?: number }>(context.runtime?.profession, 'Spellbreaker') ||
+    {}
+  );
 }

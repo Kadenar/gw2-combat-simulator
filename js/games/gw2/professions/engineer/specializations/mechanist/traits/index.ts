@@ -23,7 +23,7 @@ import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engin
 import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-attack-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 
-import { overclockPassive } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import { overclockPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

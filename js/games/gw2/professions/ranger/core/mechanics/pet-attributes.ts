@@ -1,4 +1,7 @@
 import { resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
@@ -11,9 +14,8 @@ import {
   beastlyWardenPetDamageMultiplier,
   beastmasteryPetAttributes
 } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
-import { skirmishingPetAttributes } from '#gw2/professions/ranger/core/traits/skirmishing/attributes.js';
 import { wildernessPetAttributes } from '#gw2/professions/ranger/core/traits/wilderness-survival/attributes.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {
@@ -74,4 +76,22 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonDamagePerCoefficient:
       ((2880 * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)
   };
+}
+
+/** Declare independent pet bonuses at launch; family and selection cannot change an emitted snapshot. */
+function skirmishingPetAttributes(
+  context: RangerRuntime | RangerResolverContext,
+  family: string
+): readonly Gw2AttributeEffect[] {
+  const declarations = [
+    [TRAIT.STRIDERS_STRENGTH, ['Power'], 'attributeBonus'],
+    [TRAIT.FANG_AND_CLAW, ['Precision'], 'attributeBonus'],
+    [TRAIT.FANG_AND_CLAW, ['Ferocity'], 'weaponAttributeBonus']
+  ] as const;
+  return declarations.flatMap(([id, attributes, field]) => {
+    if (!hasTrait(context, id)) return [];
+    if (id === TRAIT.FANG_AND_CLAW && !['feline', 'avian', 'drake'].includes(family)) return [];
+    const amount = balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
+    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: false }));
+  });
 }

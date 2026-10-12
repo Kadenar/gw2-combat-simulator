@@ -14,14 +14,10 @@ export interface MesmerClone {
   nextAttackAt?: number;
 }
 
+/** Adds trait profile and lifetime metadata to the shared strike definition. */
 export interface MesmerTraitDamage extends Partial<StrikeEffect> {
   readonly balanceProfileId?: SkillId;
-  readonly name?: string;
-  readonly coefficient?: number;
-  readonly hits?: number;
-  readonly ticks?: readonly StrikeTick[];
   readonly cooldown?: number;
-  readonly weaponStrength?: number;
   readonly duration?: number;
 }
 

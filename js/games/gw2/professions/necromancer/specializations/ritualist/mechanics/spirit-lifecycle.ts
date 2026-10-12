@@ -10,7 +10,10 @@ import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { spiritFields } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
-import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
+import {
+  spiritDefinition,
+  type SpiritDefinition
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { lingeringSpiritsActive } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
@@ -24,7 +27,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 const AUTO = 'ritualist.spirit-auto';
 const PACKET = 'ritualist.spirit-packet';
 const owner = (key: string, generation: number) => ({ id: `spirit:${key}`, generation });
-type Spirit = NonNullable<ReturnType<typeof spiritDefinition>>;
 interface SpiritPacket {
   key: string;
   generation: number;
@@ -98,7 +100,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
 export function summonRitualistSpirit(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
-  spirit: Spirit
+  spirit: SpiritDefinition
 ): void {
   const state = ritualistState.from(runtime);
   const key = spirit.key;
@@ -184,7 +186,7 @@ export function canActivateRitualistSpirit(runtime: NecromancerRuntime, key: str
 }
 
 /** A committed active attack suppresses autonomous starts and impacts without moving their shared cadence. */
-export function markRitualistSpiritBusy(runtime: NecromancerRuntime, spirit: Spirit): void {
+export function markRitualistSpiritBusy(runtime: NecromancerRuntime, spirit: SpiritDefinition): void {
   const state = ritualistState.from(runtime);
   state.activeSpirits[spirit.key].busyUntil = Math.max(
     state.activeSpirits[spirit.key].busyUntil,

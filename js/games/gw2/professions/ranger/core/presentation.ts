@@ -1,3 +1,4 @@
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -56,10 +57,6 @@ export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
   return context.professionState ?? {};
 }
 
-function rangerUiSpecialization(context: RangerUiContext): string {
-  return context.specialization || context.config?.specialization || 'Core';
-}
-
 function activePetSkillIds(context: RangerUiContext): SkillId[] {
   const state = rangerUiState(context);
   if (Array.isArray(state.activePetSkillIds)) {
@@ -71,7 +68,7 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
 
 function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): SkillId[] {
   const skillIds = activePetSkillIds(context).filter((skillId) =>
-    rangerPetSkillCommandable(catalog.skillsById.get(skillId), rangerUiSpecialization(context))
+    rangerPetSkillCommandable(catalog.skillsById.get(skillId), uiSpecialization(context))
   );
   // Place the ordinary F2 beast command between the first and second commandable family skills (F1/F3).
   const beastIndex = skillIds.findIndex((skillId) => !catalog.skillsById.get(skillId)?.petAutonomousSkill);
@@ -215,7 +212,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     skillBarGroups: (context: RangerUiContext) => {
       const pet = selectedRangerUiPet(context);
       const pet2 = selectedRangerUiPet(context, 2);
-      const specialization = rangerUiSpecialization(context);
+      const specialization = uiSpecialization(context);
       // Put supported pets first, with alphabetical choices within each combat-support section.
       const petOptions = RANGER_PETS.map((option) => {
         const supported = rangerPetAutoProfile(option.name) !== null;
@@ -293,7 +290,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     },
     updateSkillBarSelection: updateRangerCoreSelection,
     paletteGroups: (context: RangerUiContext) => {
-      if (rangerUiSpecialization(context) !== 'Core') return [];
+      if (uiSpecialization(context) !== 'Core') return [];
       return [rangerPetPaletteGroup(catalog, context, { resourceAnchor: true })];
     },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {

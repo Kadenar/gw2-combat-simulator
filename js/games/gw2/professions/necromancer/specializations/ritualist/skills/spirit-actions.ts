@@ -22,7 +22,10 @@ import {
   summonRitualistSpirit
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
 import { RITUALIST_SPIRIT_SKILL_IDS } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
-import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
+import {
+  spiritDefinition,
+  type SpiritDefinition
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import type {
   NecromancerRuntime,
@@ -37,14 +40,12 @@ export const INNERVATE = new Map<SkillId, string>([
   [ID.INNERVATE_PRESERVATION, 'preservation']
 ]);
 
-type Spirit = NonNullable<ReturnType<typeof spiritDefinition>>;
-
 /** Finite spirit attacks retain one activation and ordered secondary conditions while sharing common damage resolution. */
 function strikes(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
-  spirit: Spirit,
-  ticks: Spirit['summonTicks'],
+  spirit: SpiritDefinition,
+  ticks: SpiritDefinition['summonTicks'],
   attackType: string
 ): void {
   for (const [index, tick] of ticks.entries()) {

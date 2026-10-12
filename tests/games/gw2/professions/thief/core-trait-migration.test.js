@@ -10,7 +10,7 @@ import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { reactThiefCoreDamage } from '#gw2/professions/thief/core/mechanics/reactions.js';
+import { reactThiefCoreDamage } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';

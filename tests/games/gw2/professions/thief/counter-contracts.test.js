@@ -3,7 +3,7 @@ import test from 'node:test';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { prodigiousPincherReady } from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
+import { prodigiousPincherReady } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 

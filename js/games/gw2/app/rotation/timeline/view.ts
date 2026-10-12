@@ -1,8 +1,5 @@
 /** Reconciles rendered timeline rows and binds editing, insertion, and preview interactions. */
-import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline-options.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
 import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
@@ -174,15 +171,11 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     element.querySelector(':scope > .rotation-skeleton')?.remove();
   }
 
-  // Empty and populated timelines share selection, clearing, and dependent-view refreshes.
+  // Empty and populated timelines delegate selection to the app, which coordinates dependent views.
   const bindInsertionCursor = (): void => {
     const selectInsertion = (index: number | null): void => {
       if (!interactionOptions.canInteract?.()) return;
-      app.rotationInsertionIndex = index;
-      renderPalette(app);
-      renderTimeline(app);
-      renderRotationStateSnapshot(app);
-      renderRotationComparison(app);
+      app.selectRotationInsertion(index);
     };
 
     app.rotationInsertionIndex = mountRotationInsertionCursor({

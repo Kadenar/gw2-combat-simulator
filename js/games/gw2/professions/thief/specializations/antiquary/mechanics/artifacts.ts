@@ -1,4 +1,5 @@
-import { addCounterProgress } from '#gw2/platform/combat/resources/counters.js';
+import { addCounterProgress, advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { consumeChargeBatch } from '#gw2/platform/combat/resources/charges.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -8,14 +9,14 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { improvisationArtifactUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
 import { artifactsPilfered } from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
-import { THIEF_SKILL_IDS as ID, THIEF_ARTIFACT_IDS } from '#gw2/professions/thief/data/ids.js';
+import {
+  THIEF_SKILL_IDS as ID,
+  THIEF_ARTIFACT_IDS,
+  THIEF_TRAIT_IDS as TRAIT
+} from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import {
-  prodigiousPincherReady,
-  prolificPlundererUses
-} from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { stealAccepted, stealCompleted } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 
@@ -110,4 +111,25 @@ export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, 
   if (skill.id === ID.RESHUFFLE && (state.artifactUsesRemaining <= 0 || state.artifactSlots.length === 0))
     return denySkillCast(skill, 'thief.artifact', 'pilfer artifacts first.');
   return { ready: true };
+}
+
+/** Reads accumulated spending without consuming it; only an in-combat threshold check can request a pilfer. */
+export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
+  return (
+    runtime.combatStartedAt() &&
+    hasTrait(runtime, TRAIT.PRODIGIOUS_PINCHER) &&
+    advanceCounter(
+      antiquaryState.from(runtime).initiativeSpentSincePilfer,
+      0,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PRODIGIOUS_PINCHER), 'threshold'),
+      'retain'
+    ).reached
+  );
+}
+
+/** Only Swipe pilfers receive Prolific Plunderer's extra use. */
+function prolificPlundererUses(runtime: ThiefRuntime, source: string): number {
+  return source === 'swipe' && hasTrait(runtime, TRAIT.PROLIFIC_PLUNDERER)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PROLIFIC_PLUNDERER), 'resourceGain')
+    : 0;
 }

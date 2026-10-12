@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
+import { createProfessionFamilyUi, uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
+import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
+import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
+import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
+import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
+import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
+import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -8,6 +14,50 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
+
+// Presentation owners share the composer's precedence, including its fallback after trimming the selected name.
+test('presentation selection resolves direct, config, and build inputs consistently', () => {
+  for (const [context, expected] of [
+    [undefined, 'Core'],
+    [null, 'Core'],
+    [{}, 'Core'],
+    [{ specialization: ' Core ', config: { specialization: 'First' } }, 'Core'],
+    [{ specialization: ' First ', config: { specialization: 'Second' } }, 'First'],
+    [{ config: { specialization: ' First ' }, build: { specialization: 'Second' } }, 'First'],
+    [{ build: { specialization: ' First ' } }, 'First'],
+    [{ specialization: '', config: { specialization: '' }, build: { specialization: 'First' } }, 'First'],
+    [{ specialization: ' ', config: { specialization: 'First' } }, 'Core'],
+    [{ config: { specialization: ' ' }, build: { specialization: 'First' } }, 'Core']
+  ]) {
+    assert.equal(uiSpecialization(context), expected);
+  }
+});
+
+// A build-only elite must not accidentally expose Core's profession controls alongside its own bar.
+test('profession presentation slices honor normalized elite selection from every supported source', () => {
+  const catalog = { skills: [], skillsById: new Map(), skillsByName: new Map() };
+  for (const [ui, elite] of [
+    [warriorCoreUi, 'Berserker'],
+    [mesmerCoreUi, 'Mirage'],
+    [bindGuardianCoreUi(catalog), 'Firebrand'],
+    [bindNecromancerCoreUi(catalog), 'Reaper'],
+    [bindRangerCoreUi(catalog), 'Soulbeast']
+  ]) {
+    for (const context of [
+      { specialization: ` ${elite} ` },
+      { config: { specialization: ` ${elite} ` } },
+      { build: { specialization: ` ${elite} ` } }
+    ])
+      assert.deepEqual(ui.paletteGroups(context), [], elite);
+  }
+
+  for (const context of [
+    { specialization: ' Catalyst ' },
+    { config: { specialization: ' Catalyst ' } },
+    { build: { specialization: ' Catalyst ' } }
+  ])
+    assert.equal(elementalistAttunementResourceAnchor(context), false);
+});
 
 // New projections use the same active-module selection as the existing profession UI.
 test('presentation lists include Core, the selected elite, and family contributions only', () => {

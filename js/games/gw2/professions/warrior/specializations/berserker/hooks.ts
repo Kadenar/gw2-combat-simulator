@@ -1,4 +1,7 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -8,7 +11,6 @@ import {
   berserkerBuffPolicies,
   berserkerEffectStates
 } from '#gw2/professions/warrior/specializations/berserker/effect-state.js';
-import { berserkerAdrenalinePolicy } from '#gw2/professions/warrior/specializations/berserker/mechanics/resources.js';
 import { berserkSkillActions } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import {
   BERSERK_EXPIRE,
@@ -21,6 +23,16 @@ import {
   smashBrawlerBerserkExtension
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+
+/** Berserk changes the shared pool cap; refresh clamps entry and preserves the remaining balance on expiry. */
+const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
+  ...coreAdrenalinePolicy,
+  // Build-only resource views have catalog/config but no live mode; they use the starting Core cap.
+  maximum: (runtime) =>
+    'profession' in runtime && berserkerState.from(runtime).berserkActive
+      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks')
+      : coreAdrenalinePolicy.maximum(runtime)
+};
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
 function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {

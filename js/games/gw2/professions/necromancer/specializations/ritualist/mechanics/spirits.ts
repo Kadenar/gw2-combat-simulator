@@ -16,7 +16,8 @@ import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { spiritAttackEffects } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 
-interface SpiritDefinition {
+/** Canonical spirit attack and lifetime data shared by scheduling and active skills. */
+export interface SpiritDefinition {
   readonly key: string;
   readonly initialBusyMs: number;
   readonly autoattackImpactDelayMs: number;

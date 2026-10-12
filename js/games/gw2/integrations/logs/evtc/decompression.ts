@@ -1,7 +1,7 @@
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { EVTC_PARSE_LIMITS } from '#gw2/integrations/logs/evtc/parser.js';
 
-export const EVTC_FILE_LIMITS = Object.freeze({
+const EVTC_FILE_LIMITS = Object.freeze({
   maximumCompressedBytes: 64 * 1024 * 1024,
   maximumExpandedBytes: EVTC_PARSE_LIMITS.maximumExpandedBytes,
   maximumExpansionRatio: 200

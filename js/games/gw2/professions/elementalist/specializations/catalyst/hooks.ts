@@ -1,4 +1,5 @@
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { type ActionContext } from '#gw2/platform/effects/actions.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -30,10 +31,19 @@ import { denyCast } from '#gw2/platform/execution/availability.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { catalystEnergyPolicy } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/resources.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+
+/** Energy has no passive recovery: accepted hits and attunement traits grant at their owned event boundaries. */
+const catalystEnergyPolicy: ResourcePolicy<ElementalistRuntime> = {
+  kind: 'continuous',
+  state: (runtime) => catalystState.from(runtime).catalystEnergy,
+  maximum: (runtime) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
+  initial: (runtime, maximum) => runtime.config.initialCatalystEnergy ?? maximum,
+  recovery: () => 0
+};
 
 // Resource policies initialize energy first; retain the actual attunement notification for trait rewards.
 function initialize(context: ElementalistRuntime): void {

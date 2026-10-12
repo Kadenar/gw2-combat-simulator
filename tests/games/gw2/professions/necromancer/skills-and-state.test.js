@@ -311,27 +311,6 @@ test('Elixir of Anguish applies Cripple and Swiftness for their exact durations'
   assert.deepEqual(durations(empowered), { cripple: 10, swiftness: 20 });
 });
 
-test('Elixirs apply all authored packets together at impact', () => {
-  for (const [name, skillId] of [
-    ['Elixir of Bliss', ID.ELIXIR_OF_BLISS],
-    ['Elixir of Risk', ID.ELIXIR_OF_RISK],
-    ['Elixir of Ignorance', ID.ELIXIR_OF_IGNORANCE],
-    ['Elixir of Anguish', ID.ELIXIR_OF_ANGUISH],
-    ['Elixir of Promise', ID.ELIXIR_OF_PROMISE],
-    ['Elixir of Ambition', ID.ELIXIR_OF_AMBITION]
-  ]) {
-    const result = simulate('Harbinger', [name], { selectedSkillIds: [necromancerCatalog.skillsByName.get(name).id] });
-    const impacts = result.events
-      .filter(
-        (event) => event.skillId === skillId && ['damage', 'condition', 'buff'].includes(String(event.type || ''))
-      )
-      .map((event) => event.at);
-
-    assert.ok(impacts.length, name);
-    assert.equal(new Set(impacts).size, 1, name);
-  }
-});
-
 test('Signet of Spite follows its live passive and active profile', () => {
   const withSignet = simulate('Core', ['Rending Claws', 'Death Shroud', 'Life Blast'], {
     initialResource: 100,

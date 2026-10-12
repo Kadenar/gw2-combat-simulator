@@ -116,6 +116,7 @@ export interface ProfessionAppState
   exitRotationComparison(): void;
   renderAttributes(): void;
   addRotation(name: string, options?: RotationActionOptions): void;
+  selectRotationInsertion(index: number | null): void;
   runRandomDistribution(): void;
   runRelicComparison(comparisonRelic?: string, initialStacks?: number): void;
   selectPatch(patchId: string): void;

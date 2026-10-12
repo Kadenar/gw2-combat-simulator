@@ -14,7 +14,7 @@ import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/pr
 type RegisteredProfession = NativeProfessionContract<readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]]>;
 
 /** Armor classes, ordered as navigation surfaces group professions. */
-export const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;
+const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;
 
 export type ArmorWeight = (typeof ARMOR_WEIGHTS)[number];
 

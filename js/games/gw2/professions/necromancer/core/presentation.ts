@@ -1,3 +1,4 @@
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -45,11 +46,6 @@ const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] 
 export function necromancerUiState(context: NecromancerUiContext = {}): Partial<NecromancerState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
-}
-
-/** Resolves the specialization name used to select Necromancer UI groups and rules. */
-function necromancerUiSpecialization(context: NecromancerUiContext = {}): string {
-  return context.specialization || context.config?.specialization || 'Core';
 }
 
 // Order the live shroud palette by slot, keeping each flip skill after its parent.
@@ -195,7 +191,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
       statusLabel: 'Current'
     }
   ];
-  if (necromancerUiSpecialization(context) === 'Core') views.push(...necromancerSoulShardResourceViews(context));
+  if (uiSpecialization(context) === 'Core') views.push(...necromancerSoulShardResourceViews(context));
   return views;
 }
 
@@ -263,7 +259,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
 
     targetHealthThresholds: necromancerCoreTargetHealthThresholds,
     paletteGroups: (context: NecromancerUiContext) =>
-      necromancerUiSpecialization(context) === 'Core'
+      uiSpecialization(context) === 'Core'
         ? necromancerTransformPaletteGroups(catalog, context, {
             entryId: ID.DEATH_SHROUD,
             exitId: ID.END_DEATH_SHROUD,

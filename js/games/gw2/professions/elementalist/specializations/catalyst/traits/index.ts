@@ -1,7 +1,7 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
@@ -10,7 +10,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -31,12 +31,7 @@ import {
   catalystTransitionObserved,
   sphereDeployed
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
-import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import {
-  applyEmpoweringAurasBuff,
-  empoweringAuraStacks,
-  empoweringAurasParameters
-} from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
+import { catalystState, type CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   CATALYST_BASE_EMPOWERMENT_TASK,
   applyCatalystEmpowerment,
@@ -44,20 +39,6 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { sphereSpecialistDuration } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
-  type: 'boon',
-  name,
-  boon: boonName,
-  stacks,
-  duration
-});
-const aura = (name: string, auraName: string, duration: number): SkillEffect => ({
-  type: 'buff',
-  name,
-  kind: auraName,
-  stacks: 1,
-  duration
-});
 /** Owns Empowering Auras tuning and its existing execution behavior. */
 const empoweringAuras = defineTrait({
   id: TRAIT.EMPOWERING_AURAS,
@@ -563,4 +544,44 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
     kind: 'announcement',
     announcement: { type: 'trait', name: 'Vicious Empowerment', at: event.at, sourceSkill: event.skillName }
   });
+}
+
+/** Accepted self buffs add to the same refreshed pool, including isolated preview inputs. */
+export function applyEmpoweringAurasBuff(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
+  if (event.kind !== 'empowering auras' || !event.resolvedAudience?.includesSelf) return;
+  const state = catalystState.from(context);
+  const { maximumStacks } = empoweringAurasParameters(context);
+  state.empoweringAuras = grantRefreshedStacks(
+    state.empoweringAuras,
+    event.stacks || 1,
+    event.at,
+    gw2EffectExpiresAt(event.at, event.duration || 0),
+    maximumStacks,
+    'exclusive'
+  );
+}
+
+/** Strike and condition modifiers read the canonical Catalyst pool without replaying buff receipts. */
+export function empoweringAuraStacks(context: Gw2ModifierContext): number {
+  const state = readProfessionSpecializationState<CatalystState>(context.runtime?.profession, 'Catalyst');
+  return activeRefreshedStacks(state?.empoweringAuras, context.time, 'exclusive');
+}
+
+/** Shares aura-stack parameters while each phase retains its grant and refresh rules. */
+function empoweringAurasParameters(context: unknown) {
+  const empoweringAurasProfile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+  return {
+    maximumStacks: balanceProfileNumber(empoweringAurasProfile, 'maximumStacks'),
+    duration: balanceProfileNumber(empoweringAurasProfile, 'durationMultiplier')
+  };
+}
+
+/** Builds a named boon packet for the trait's selected balance profile. */
+function boon(name: string, boonName: string, stacks: number, duration: number): SkillEffect {
+  return { type: 'boon', name, boon: boonName, stacks, duration };
+}
+
+/** Builds a single aura grant for trait-owned effect declarations. */
+function aura(name: string, auraName: string, duration: number): SkillEffect {
+  return { type: 'buff', name, kind: auraName, stacks: 1, duration };
 }

@@ -1,12 +1,22 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { masterOfFragmentationDuration } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { completeMesmerShatter } from '#gw2/professions/mesmer/family-mechanics.js';
+import { completeMesmerShatter, createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
-import { chronomancerAvailability } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
-import { createChronomancerMechanics } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/runtime.js';
+import {
+  chronomancerAvailability,
+  createContinuumController
+} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntimeState, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+
+// Mimic and weapon swap keep their live recharge progress through either Continuum exit.
+const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([SHARED_SKILL_IDS.SWAP_WEAPONS, ID.MIMIC]);
 
 /** Continuum restores its deliberate checkpoint once; accepted control owns Danger Time. */
 export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
@@ -39,3 +49,19 @@ export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = 
   },
   eventHandlers: { 'mesmer.phantasm-resummoned': OBSERVABLE_EVENT_HANDLER }
 };
+
+/** Bind Continuum to its explicit checkpoint state and the recharge owner for this operation. */
+function createChronomancerMechanics(context: MesmerRuntime) {
+  const actions = createMesmerActions(context);
+  const continuumSplitProfile = requireBalanceProfileFromContext(context, PROFILE.continuumSplit);
+  return createContinuumController({
+    state: context,
+    cooldownController: context.cooldownController,
+    unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
+    refreshAmmo: context.cooldownController.refreshAmmo,
+    consumeResources: actions.consumeResources,
+    durationPerSource: balanceProfileNumber(continuumSplitProfile, 'durationPerTier'),
+    bonusDuration: masterOfFragmentationDuration(context),
+    scheduleExpiry: (at) => context.schedule('mesmer.continuum-expire', at, at, undefined, -30)
+  });
+}

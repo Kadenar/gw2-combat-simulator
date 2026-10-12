@@ -12,7 +12,7 @@ import { catalystState } from '#gw2/professions/elementalist/specializations/cat
 import {
   applyEmpoweringAurasBuff,
   empoweringAuraStacks
-} from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
+} from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
 import { reenterEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';

@@ -1,4 +1,6 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -62,8 +64,10 @@ import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
 } from '#gw2/professions/necromancer/core/state.js';
-import { lingeringCurseAvailability } from '#gw2/professions/necromancer/core/traits/curses/skill-variants.js';
-import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
+import {
+  NECROMANCER_SKILL_IDS as DAMAGE_SKILL,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -304,3 +308,16 @@ export const necromancerCoreHooks = composeRuntimeHooks<NecromancerRuntimeState,
   coreLifecycle,
   torchLifecycle
 ]);
+
+/** Resolves the scepter trait replacement before other Core availability gates. */
+function lingeringCurseAvailability(runtime: MechanicQueriesOf<NecromancerRuntime>, skill: NecromancerSkill) {
+  if (skill.id === DAMAGE_SKILL.DEVOURING_DARKNESS && !hasTrait(runtime, TRAIT.LINGERING_CURSE))
+    return denySkillCast(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
+  if (skill.id === DAMAGE_SKILL.FEAST_OF_CORRUPTION && hasTrait(runtime, TRAIT.LINGERING_CURSE))
+    return denySkillCast(
+      skill,
+      'necromancer.trait-replacement',
+      'Devouring Darkness replaces it while Lingering Curse is selected.'
+    );
+  return undefined;
+}

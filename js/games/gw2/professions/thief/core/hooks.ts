@@ -1,4 +1,5 @@
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -26,7 +27,6 @@ import {
   prepareTrap,
   thiefTrapAvailability
 } from '#gw2/professions/thief/core/mechanics/preparations.js';
-import { reactThiefCoreDamage } from '#gw2/professions/thief/core/mechanics/reactions.js';
 import { setThiefKneeling, thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   expireThiefScepterChain,
@@ -56,9 +56,11 @@ import {
   thiefSameInstantStealthBreak,
   thiefStealthed
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { activateVenom, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { activateVenom, applyActiveVenoms, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
 import {
+  thiefStruck,
+  venomsConsumed,
   signetCompleted,
   stealAccepted,
   stealthAttackCompleted,
@@ -289,3 +291,14 @@ export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>
   infiltratorsSignetLifecycle,
   coreLifecycle
 ]);
+
+/** Landed strikes reach critical and Deadly Arts traits, consume venoms, then reach the aggregate venom traits. */
+export function reactThiefCoreDamage(
+  runtime: ThiefRuntime,
+  event: Gw2ResolverEvent,
+  details: Record<string, unknown>
+): void {
+  runtime.fireTrigger(thiefStruck, { cause: event, details: details });
+  // Multiple venom types consume their charges but share one siphon per player strike.
+  runtime.fireTrigger(venomsConsumed, { cause: event, consumed: applyActiveVenoms(runtime, event) });
+}

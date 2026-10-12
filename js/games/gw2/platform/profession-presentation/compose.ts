@@ -57,7 +57,8 @@ interface ProfessionFamilyUiDefinition {
   readonly family?: UiSlice;
 }
 
-function uiSpecialization(context: unknown): string {
+/** Select direct, config, then build input; trim the selected name and default blank or absent input to Core. */
+export function uiSpecialization(context: unknown): string {
   if (!context || typeof context !== 'object') return 'Core';
   const candidate = context as UiSelectionCandidate;
   const config = candidate.config;

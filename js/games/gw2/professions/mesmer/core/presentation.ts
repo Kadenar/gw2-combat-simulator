@@ -1,3 +1,4 @@
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -29,10 +30,6 @@ interface MesmerUiResourceDefinition {
   readonly singular: string;
   readonly plural: string;
   readonly pipStyle?: string;
-}
-
-function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
-  return context.specialization || context.config?.specialization || 'Core';
 }
 
 export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
@@ -220,11 +217,9 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
   },
   rotationStateSnapshot: mesmerCoreStateSnapshot,
   paletteGroups: (context: MesmerUiContext) =>
-    mesmerUiSpecialization(context) === 'Core'
-      ? mesmerMechanicPaletteGroups(context, CORE_MECHANIC_SKILLS, 'clones')
-      : [],
+    uiSpecialization(context) === 'Core' ? mesmerMechanicPaletteGroups(context, CORE_MECHANIC_SKILLS, 'clones') : [],
   resourceViews: (context: MesmerUiContext) =>
-    mesmerUiSpecialization(context) === 'Core'
+    uiSpecialization(context) === 'Core'
       ? mesmerResourceViews(context, {
           id: 'clones',
           singular: 'clone',

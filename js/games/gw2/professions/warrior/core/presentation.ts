@@ -1,3 +1,4 @@
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -298,9 +299,8 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: warriorCoreEffectPresentations,
   rotationStateSnapshot: warriorCoreStateSnapshot,
-  paletteGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),
-  resourceViews: (context) =>
-    warriorUiSpecialization(context) === 'Core' ? warriorAdrenalineResourceViews(context) : [],
+  paletteGroups: (context) => (uiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),
+  resourceViews: (context) => (uiSpecialization(context) === 'Core' ? warriorAdrenalineResourceViews(context) : []),
   targetHealthThresholds: () => [0.8, 0.5, 0.25]
 });
 
@@ -324,8 +324,4 @@ export function warriorBurstPaletteOverride(
   }
 
   return {};
-}
-
-function warriorUiSpecialization(context: WarriorUiContext = {}): string {
-  return context.specialization || context.config?.specialization || 'Core';
 }

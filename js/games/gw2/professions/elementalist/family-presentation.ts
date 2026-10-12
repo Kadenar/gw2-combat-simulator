@@ -1,3 +1,4 @@
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
   ElementalistSkill,
   ElementalistUiContext,
@@ -25,12 +26,6 @@ const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Obje
   Air: '#9b65c7',
   Earth: '#a7783f'
 });
-
-// The elite spec name reaches these callbacks either directly or through the
-// simulation config, depending on which shell (build editor or results) is asking.
-function specialization(context: ElementalistUiContext): string {
-  return context.specialization || context.config?.specialization || 'Core';
-}
 
 // Resolves a build's stored attunement choice, falling the secondary back to the
 // primary and anything unrecognized back to Fire so controls always have a valid value.
@@ -69,7 +64,7 @@ function attunementControl(
 export function bindElementalistFamilyUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
     startControls: (context: ElementalistUiContext) =>
-      specialization(context) === 'Weaver'
+      uiSpecialization(context) === 'Weaver'
         ? [
             attunementControl(catalog, context, 'startAttunement', 'Primary attunement'),
             attunementControl(catalog, context, 'secondaryAttunement', 'Secondary attunement')
@@ -80,5 +75,5 @@ export function bindElementalistFamilyUi(catalog: Readonly<CanonicalCatalog<Elem
 
 /** Keeps the shared attunement bank anchored only when an elite does not replace the profession resource slot. */
 export function elementalistAttunementResourceAnchor(context: ElementalistUiContext): boolean {
-  return ['Core', 'Weaver'].includes(specialization(context));
+  return ['Core', 'Weaver'].includes(uiSpecialization(context));
 }

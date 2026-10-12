@@ -8,7 +8,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystCombatStarted } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { empoweringAuraStacks } from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
+import { empoweringAuraStacks } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
 import {
   elementalEmpowermentAttributes,
   CATALYST_BASE_EMPOWERMENT_TASK

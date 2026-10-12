@@ -116,7 +116,7 @@ export const swiftScholar = defineTrait({
 });
 
 /** Each completed page grants the boon associated with its tome. */
-export const legendaryLore = defineTrait({
+const legendaryLore = defineTrait({
   id: TRAIT.LEGENDARY_LORE,
   name: 'Legendary Lore',
   balance: {
@@ -157,7 +157,7 @@ export const legendaryLore = defineTrait({
 });
 
 /** Quickness enables the same attribute contribution in preview and live queries. */
-export const imbuedHaste = defineTrait({
+const imbuedHaste = defineTrait({
   id: TRAIT.IMBUED_HASTE,
   name: 'Imbued Haste',
   balance: {
@@ -222,7 +222,7 @@ export const liberatorsVow = defineTrait({
 });
 
 /** Final-charge rewards precede charge retirement; the compiled completion stage reports the selected reward. */
-export const weightyTerms = defineTrait({
+const weightyTerms = defineTrait({
   id: TRAIT.WEIGHTY_TERMS,
   name: 'Weighty Terms',
   balance: {
@@ -259,7 +259,7 @@ export const weightyTerms = defineTrait({
 });
 
 /** Delivered Aegis or Stability grants party Quickness on the existing shared interval. */
-export const stalwartSpeed = defineTrait({
+const stalwartSpeed = defineTrait({
   id: TRAIT.STALWART_SPEED,
   name: 'Stalwart Speed',
   balance: {
@@ -276,7 +276,7 @@ export const stalwartSpeed = defineTrait({
 });
 
 /** Player controls grant boons while Courage retains its passive through dormancy. */
-export const stoicDemeanor = defineTrait({
+const stoicDemeanor = defineTrait({
   id: TRAIT.STOIC_DEMEANOR,
   name: 'Stoic Demeanor',
   balance: {
@@ -294,7 +294,7 @@ export const stoicDemeanor = defineTrait({
 });
 
 /** Accepted axe damage grants the surviving Bleeding packet after Ashes consumption. */
-export const unrelentingCriticism = defineTrait({
+const unrelentingCriticism = defineTrait({
   id: TRAIT.UNRELENTING_CRITICISM,
   name: 'Unrelenting Criticism',
   balance: {
@@ -342,14 +342,14 @@ export const quickfire = defineTrait({
 });
 
 /** Increases the shared page capacity and upgrades the untraited initial default. */
-export const archivistOfWhispers = defineTrait({
+const archivistOfWhispers = defineTrait({
   id: TRAIT.ARCHIVIST_OF_WHISPERS,
   name: 'Archivist of Whispers',
   balance: { maximumStacks: 8 }
 });
 
 /** Shortens the resource controller cadence without creating a second recovery clock. */
-export const loremaster = defineTrait({
+const loremaster = defineTrait({
   id: TRAIT.LOREMASTER,
   name: 'Loremaster',
   balance: {

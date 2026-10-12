@@ -3,7 +3,7 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -106,15 +106,11 @@ export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<Mesmer
 /** UI slice whose callbacks read Mesmer end-state projections. */
 export type MesmerUiSlice = Partial<ProfessionUiContract<Partial<MesmerProfessionState>>>;
 
+/** Adds ambush damage and status scheduling to the shared strike definition. */
 export interface MesmerAmbushStrike extends Partial<StrikeEffect> {
-  readonly coefficient?: number;
-  readonly hits?: number;
-  readonly atMs?: number;
-  readonly castTimeMs?: number;
   readonly damageAtMs?: number;
   /** Repeated statuses retain their cadence when their sibling strike is removed. */
   readonly statusAtMs?: readonly number[];
-  readonly ticks?: readonly StrikeTick[];
   readonly conditions?: readonly ConditionEffect[];
   readonly boons?: readonly import('#gw2/platform/effects/types.js').StatusEffect[];
 }
@@ -130,16 +126,15 @@ export interface MesmerAmbushAttack extends MesmerSkill {
   };
 }
 
+/**
+ * Adds instrument identity and companion conditions to the shared strike definition.
+ * Inherited persistsAfterInterrupt lets launched performance packets outlive interruption after commitment.
+ */
 export interface MesmerInstrument extends Partial<StrikeEffect> {
   readonly balanceProfileId?: SkillId;
   readonly slot: number;
   readonly instrument: string;
-  readonly coefficient?: number;
-  readonly hits?: number;
   readonly damageAtMs?: number;
-  /** Launched performance packets can outlive an interruption after the skill's commit point. */
-  readonly persistsAfterInterrupt?: boolean;
-  readonly ticks?: readonly StrikeTick[];
   readonly conditions?: readonly ConditionEffect[];
 }
 

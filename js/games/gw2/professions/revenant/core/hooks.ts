@@ -1,4 +1,8 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -11,16 +15,16 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
+import { consumeBattleScar, emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
 import {
+  revenantStruck,
+  battleScarConsumed,
   legendInvoked,
   revenantConditionApplied,
   revenantLifecycleAnchored,
   revenantWeaponSwapped
 } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
-import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
-import { reactRevenantPlayerStrike } from '#gw2/professions/revenant/core/mechanics/reactions.js';
 import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import {
   activateRevenantUpkeep,
@@ -35,15 +39,14 @@ import {
   startRevenantEmbrace,
   starveRevenantUpkeeps
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { enchantedDaggersLifecycle } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
+import { enchantedDaggers, enchantedDaggersLifecycle } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
 import {
   greatswordLifecycle,
   imperialGuardAvailability
 } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
 import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
-import { chargedMistsEnergy } from '#gw2/professions/revenant/core/traits/invocation/behavior.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import {
   isRevenantUpkeep,
@@ -52,7 +55,7 @@ import {
 } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RevenantRuntimeState, RevenantSkill, RevenantResolverContext } from '#gw2/professions/revenant/types.js';
 
 const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
 
@@ -285,3 +288,33 @@ export const revenantCoreHooks = composeRuntimeHooks<RevenantRuntimeState, Reven
   greatswordLifecycle,
   enchantedDaggersLifecycle
 ]);
+
+/** Applies Fury's life-steal bonus to Core and elite specializations without using ordinary strike scaling. */
+function modifyRevenantLifeSiphon(context: RevenantResolverContext, event: Gw2ResolverEvent) {
+  const bonus = revenantLifeSiphonBonus(context, event);
+  if (bonus == null) return;
+  return { flatStrikeMultiplier: (event.flatStrikeMultiplier ?? 1) * (1 + bonus) };
+}
+
+/** Landed player strikes interleave trait rewards, Battle Scars, and Enchanted Daggers in their established order. */
+function reactRevenantPlayerStrike(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
+  if (event.actorType !== 'player' || !((event.coefficient || 0) > 0)) return;
+  runtime.fireTrigger(revenantStruck, { cause: event });
+  consumeBattleScar(runtime, event);
+  runtime.fireTrigger(battleScarConsumed, { cause: event });
+  enchantedDaggers(runtime, event);
+}
+
+/** Samples pre-swap Energy before the legend reset is applied. */
+function chargedMistsEnergy(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, previous: number): number {
+  const chargedMists = hasTrait(runtime, TRAIT.CHARGED_MISTS)
+    ? requireBalanceProfileFromContext(runtime, TRAIT.CHARGED_MISTS)
+    : undefined;
+  const energy = Math.min(
+    100,
+    chargedMists && Math.floor(previous) <= balanceProfileNumber(chargedMists, 'threshold')
+      ? balanceProfileNumber(chargedMists, 'resourceGain')
+      : cast.skill.resourceGain || 0
+  );
+  return energy;
+}

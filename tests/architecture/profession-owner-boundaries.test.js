@@ -5,25 +5,21 @@ import path from 'node:path';
 import test from 'node:test';
 
 const boundaries = {
-  elementalist: [
-    'core/state.ts',
-    'core/traits/critical-eligibility.ts',
-    'specializations/catalyst/mechanics/resources.ts'
-  ],
+  elementalist: ['core/state.ts', 'core/traits/critical-eligibility.ts'],
   engineer: [
     'core/traits/firearms/index.ts',
-    'specializations/holosmith/traits/forge-availability.ts',
+    'specializations/holosmith/mechanics/availability.ts',
     'specializations/holosmith/mechanics/photon-forge.ts'
   ],
   necromancer: [
     'core/mechanics/resources.ts',
     'core/traits/soul-reaping/procs.ts',
-    'core/traits/soul-reaping/modifiers.ts',
+    'core/mechanics/soul-shards.ts',
     'core/mechanics/passives.ts',
     'specializations/ritualist/skills/spirit-actions.ts'
   ],
   ranger: [
-    'core/traits/skirmishing/attributes.ts',
+    'core/mechanics/pet-attributes.ts',
     'core/traits/wilderness-survival/attributes.ts',
     'core/traits/nature-magic/index.ts',
     'core/mechanics/combat.ts',
@@ -32,7 +28,8 @@ const boundaries = {
   ],
   revenant: [
     'core/mechanics/resources.ts',
-    'core/mechanics/reactions.ts',
+    'core/mechanics/battle-scars.ts',
+    'core/traits/invocation/queries.ts',
     'specializations/conduit/mechanics/affinity.ts',
     'specializations/conduit/mechanics/forms.ts',
     'specializations/herald/traits/index.ts',
@@ -40,7 +37,7 @@ const boundaries = {
     'specializations/vindicator/skills/profession-skills.ts'
   ],
   thief: [
-    'core/mechanics/reactions.ts',
+    'core/mechanics/venoms.ts',
     'specializations/antiquary/mechanics/artifacts.ts',
     'specializations/antiquary/skills/artifact-actions.ts',
     'specializations/specter/mechanics/shadow-shroud.ts'

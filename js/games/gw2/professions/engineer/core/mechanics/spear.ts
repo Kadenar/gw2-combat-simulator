@@ -189,7 +189,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
 }
 
 /** Opens the Focused target window and resolves Conduit Surge's strike and burning packets. */
-export function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, PROFILE.conduitSurge);
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
   const burning = requireEffect(idProfile, 'condition', 'Burning');

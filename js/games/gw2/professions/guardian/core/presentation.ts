@@ -1,3 +1,4 @@
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -20,10 +21,6 @@ import type {
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
-
-function guardianUiSpecialization(context: GuardianUiContext = {}): string {
-  return context.specialization || context.config?.specialization || 'Core';
-}
 
 /** Simulation time (seconds) of the rotation point being inspected. */
 export function guardianSnapshotAt(context: GuardianUiContext = {}): number {
@@ -156,7 +153,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
     rotationStateSnapshot: guardianCoreStateSnapshot,
     paletteWeaponSkills: guardianPaletteWeaponSkills,
     paletteGroups: (context: GuardianUiContext) =>
-      guardianUiSpecialization(context) === 'Core'
+      uiSpecialization(context) === 'Core'
         ? [
             {
               id: 'profession',
