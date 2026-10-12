@@ -103,6 +103,16 @@ test('concurrent precast landing updates while editing timing', async ({ page })
 
 // Native increments must snap saved or typed off-grid timings before applying an edit.
 test('activation timing controls snap and validate 40 ms ticks', async ({ page }) => {
+  await page.route('**/app/profession-app.ts', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      body: (await response.text()).replace(
+        'this.scheduleInitialDeferredRender();',
+        'setTimeout(() => this.scheduleInitialDeferredRender(), 200);'
+      )
+    });
+  });
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   for (const options of [
