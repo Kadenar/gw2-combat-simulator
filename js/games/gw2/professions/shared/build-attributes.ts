@@ -94,10 +94,12 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
     merged: build.specializations?.some((s) => (s as { name?: string }).name === 'Soulbeast') ?? false
   });
   const contributions = context.attributeContributions?.(facts) ?? [];
-  const resolved = resolveAttributeContributions(common.commonContext.conversionPool, contributions);
+  const resolved = resolveAttributeContributions(seed, contributions);
   return finalizeBuildAttributes(common, {
     activeTraits,
+    reinforcedArmorStats: resolved.reinforcedArmorAttributes,
     traitStats: resolved.attributes,
+    utilityStats: resolved.utilityAttributes,
     traitDurations: resolved.durations,
     // Reuse the evaluator's aggregate so build finalization shares its contribution semantics.
     traitCriticalChance: resolved.criticalChance

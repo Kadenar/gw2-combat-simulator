@@ -238,24 +238,24 @@
         "rotation": "data/gw2/rotations/mesmer/r-power-quickness-troubadour-spear-dagger-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-quickness-troubadour-spear-dagger-sword",
         "upToDate": true,
-        "benchmarkDps": 33532,
+        "benchmarkDps": 33657,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 30915, "phase": 30915 },
-          "80-60": { "cumulative": 31452, "phase": 32018 },
-          "60-40": { "cumulative": 31968, "phase": 33034 },
-          "40-20": { "cumulative": 33050, "phase": 36870 },
-          "20-0": { "cumulative": 33532, "phase": 35613 }
+          "100-80": { "cumulative": 31082, "phase": 31082 },
+          "80-60": { "cumulative": 31376, "phase": 31679 },
+          "60-40": { "cumulative": 32577, "phase": 35277 },
+          "40-20": { "cumulative": 33263, "phase": 35482 },
+          "20-0": { "cumulative": 33657, "phase": 35349 }
         },
-        "benchmarkApm": 74.4,
+        "benchmarkApm": 74.2,
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 33532,
+          "benchmarkDps": 33657,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 30915, "phase": 30915 },
-            "80-60": { "cumulative": 31452, "phase": 32018 },
-            "60-40": { "cumulative": 31968, "phase": 33034 },
-            "40-20": { "cumulative": 33050, "phase": 36870 },
-            "20-0": { "cumulative": 33532, "phase": 35613 }
+            "100-80": { "cumulative": 31082, "phase": 31082 },
+            "80-60": { "cumulative": 31376, "phase": 31679 },
+            "60-40": { "cumulative": 32577, "phase": 35277 },
+            "40-20": { "cumulative": 33263, "phase": 35482 },
+            "20-0": { "cumulative": 33657, "phase": 35349 }
           }
         }
       },

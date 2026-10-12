@@ -106,7 +106,7 @@ export const arachnophobia = defineTrait({
           kind: 'flat',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'attributeBonus') + familyBonus,
-          feedsConversions: false
+          feedsConversions: 'none'
         }
       ]
     };
@@ -194,7 +194,7 @@ export const ambidexterity = defineTrait({
               ? 'weaponAttributeBonus'
               : 'attributeBonus'
           ),
-          feedsConversions: false
+          feedsConversions: 'none'
         }
       ]
     };

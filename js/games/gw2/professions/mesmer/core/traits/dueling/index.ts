@@ -61,7 +61,7 @@ export const fencersFinesse = defineTrait<MesmerSkill>({
               kind: 'flat',
               to: 'Ferocity',
               amount: fencersFinesseFerocity(context, prepareFencersFinesse(context)),
-              feedsConversions: false
+              feedsConversions: 'none'
             }
           ]
         },

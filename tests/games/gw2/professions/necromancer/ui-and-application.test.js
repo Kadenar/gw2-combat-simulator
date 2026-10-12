@@ -44,10 +44,10 @@ const simulate = createObservedProfessionSimulator(necromancerProfession, baseCo
 // Presentation derives whole points without mutating normalized resources or applying vitality traits twice.
 test('Necromancer displays actual life force while simulation and starting values remain percentages', () => {
   for (const [specialization, vitality, battery, expectedCapacity] of [
-    ['Core', 1000, false, 13256.28],
-    ['Scourge', 1000, true, 15907.536],
-    ['Scourge', 2000, false, 20156.28],
-    ['Harbinger', 1000, false, 14912.28]
+    ['Core', 1000, false, 13601.28],
+    ['Scourge', 1000, true, 16321.536],
+    ['Scourge', 2000, false, 20846.28],
+    ['Harbinger', 1000, false, 15340.08]
   ]) {
     const state = simulate(specialization, [], {
       initialResource: 80,

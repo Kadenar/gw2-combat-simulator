@@ -19,31 +19,36 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
 
     castTimeMs: 520,
+    // The attack launches before impact; a queued finisher must retain the launched strike and chain advancement.
+    interruptCommitMs: 360,
     cooldown: 0,
     initiativeCost: 2,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        name: 'Entangling Asp',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      }
-    ])
+    effects: impactEffects(
+      { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.2,
+          hits: 1,
+          name: 'Entangling Asp',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 2,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Immobilized',
+          stacks: 1,
+          duration: 2,
+          actorType: 'player'
+        }
+      ]
+    )
   },
   [ID.SHATTERING_ASSAULT]: {
     // The skill owns this transition at successful commitment.
@@ -113,8 +118,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.UNSUSPECTING_STRIKE]: {
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
-
-    castTimeMs: 520,
+    castTimeMs: 680,
     cooldown: 0,
     initiativeCost: 3,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -153,34 +157,27 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.SHADOW_VEIL]: {
-    castTimeMs: 1360,
+    // The defensive stance releases the input lane immediately after activation.
+    castTimeMs: 80,
     cooldown: 0,
     initiativeCost: 3,
     effects: []
   },
   [ID.ASHEN_ASSAULT]: {
-    // The stealth attack consumes at acceptance; its refund and chain reset commit once.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.spear-chain' } },
-      {
-        on: 'castCommit',
-        do: {
-          type: 'resourceGrant',
-          resource: 'initiative',
-          amount: { profile: PROFILE.ashenAssaultRefund, field: 'resourceGain' }
-        }
-      }
-    ],
+    // The chain resets on completion; the channel's landed-hit observer owns the all-strikes initiative refund.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
     preservesStealth: true,
     spearStealthAttack: true,
 
     castTimeMs: 1200,
+    // Cancelling keeps earlier packets and removes the remainder of the channel.
+    interruptMode: 'per-packet',
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
         type: 'strike',
-        ticks: [160, 360, 520, 680, 880].map((atMs) => ({
+        ticks: [320, 480, 560, 640, 760].map((atMs) => ({
           atMs,
           coefficient: 1.5 / 5
         })),
@@ -189,7 +186,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
           coefficient: 0.3,
@@ -258,19 +255,22 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
 
-    castTimeMs: 360,
+    // The measured follow-up includes its siphon animation before the next chain input.
+    castTimeMs: 440,
+    // The strike and siphon resolve before the final animation tail.
+    interruptCommitMs: 400,
     cooldown: 0,
     initiativeCost: 1,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        ticks: [{ atMs: 400, coefficient: 1 }],
         name: 'Vampiric Slash — Packet 1',
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
           // The siphon owns a flat Power formula and a separate row from the weapon strike.
@@ -370,7 +370,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.BARBED_SPEAR]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
 
-    castTimeMs: 520,
+    // Preserve the measured repeat cadence for the spear autoattack.
+    castTimeMs: 560,
     cooldown: 0,
     initiativeCost: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [

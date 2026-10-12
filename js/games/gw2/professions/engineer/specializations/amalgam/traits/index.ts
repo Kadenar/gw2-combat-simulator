@@ -82,7 +82,7 @@ const hybridVigor = defineTrait({
   name: 'Hybrid Vigor',
   balance: { attributeBonus: 240 },
   attributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 

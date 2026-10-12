@@ -245,7 +245,7 @@ const powerForPower = defineTrait({
     }
   ],
   attributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [
-    { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 
@@ -255,7 +255,7 @@ const conceitedCurate = defineTrait({
   name: 'Conceited Curate',
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 
@@ -288,7 +288,7 @@ const searingPact = defineTrait({
     }
   ],
   attributes: traitAttributeEffects(TRAIT.SEARING_PACT, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 

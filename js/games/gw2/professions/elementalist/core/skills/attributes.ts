@@ -21,13 +21,13 @@ export const elementalistSkillAttributes: Gw2AttributeContributionCalculator = (
         kind: 'flat' as const,
         to: weapon === 'Fiery Greatsword' ? 'Power' : 'Precision',
         amount: balanceProfileNumber(profile, 'weaponAttributeBonus'),
-        feedsConversions: false
+        feedsConversions: 'none' as const
       },
       {
         kind: 'flat' as const,
         to: weapon === 'Fiery Greatsword' ? 'Condition Damage' : 'Ferocity',
         amount: balanceProfileNumber(profile, 'attributeBonus'),
-        feedsConversions: false
+        feedsConversions: 'none' as const
       }
     );
   }

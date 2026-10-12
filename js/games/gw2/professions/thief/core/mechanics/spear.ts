@@ -9,10 +9,64 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+
+/** Each Ashen channel refunds only after every authored strike lands; missed and cancelled packets cannot qualify. */
+export function ashenAssaultLifecycle(
+  skillId: SkillId,
+  refundProfile: SkillId
+): RuntimeHooks<ThiefRuntimeState, ThiefSkill> {
+  const channels = new WeakMap<object, Map<string, number>>();
+  const cleanup = `thief.ashen-channel-${skillId}`;
+  const finish = (runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void => {
+    if (cast.skill.id === skillId) runtime.schedule(cleanup, runtime.time, cast.id, undefined, 20);
+  };
+
+  return {
+    onCastStart(runtime, cast) {
+      if (cast.skill.id !== skillId) return;
+      let active = channels.get(runtime);
+      if (!active) channels.set(runtime, (active = new Map()));
+      const hits = (cast.skill.effects ?? []).reduce(
+        (count, effect) => count + (effect.type === 'strike' ? effect.ticks?.length || effect.hits || 1 : 0),
+        0
+      );
+      active.set(cast.id, hits);
+    },
+    onCastCommit: finish,
+    onCastCancel: finish,
+    reactions: {
+      'damage.resolved'(runtime, event) {
+        if (event.skillId !== skillId || event.actorType !== 'player' || event.offTarget || event.procType) return;
+        const active = channels.get(runtime);
+        const id = String(event.activationId);
+        const remaining = active?.get(id);
+        if (remaining == null || remaining <= 0) return;
+        if (remaining > 1) {
+          active!.set(id, remaining - 1);
+          return;
+        }
+
+        active!.delete(id);
+        runtime.resourceController.grant(
+          'initiative',
+          balanceProfileNumber(requireBalanceProfileFromContext(runtime, refundProfile), 'resourceGain')
+        );
+      }
+    },
+    // Cleanup follows same-time impacts, so a final hit at the cancellation boundary can still earn its refund.
+    tasks: {
+      [cleanup]: (runtime, id) => {
+        channels.get(runtime)?.delete(String(id));
+      }
+    }
+  };
+}
 
 const SPEAR_STEALTH_SKILLS = new Set<SkillId>([ID.ASHEN_ASSAULT]);
 

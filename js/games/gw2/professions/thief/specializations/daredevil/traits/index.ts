@@ -215,7 +215,7 @@ const staffMaster = defineTrait({
             staffMasterProfile,
             weapons.includes('Staff') ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
-          feedsConversions: true
+          feedsConversions: 'all'
         }
       ]
     };

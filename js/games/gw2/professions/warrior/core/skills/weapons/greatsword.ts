@@ -51,9 +51,14 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 1000,
+    // Require Rush to commit before interruption can preserve its strike, keeping the remaining cast lockout.
+    interruptCommitMs: 840,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
+        // The committed charge still lands its strike after the animation is interrupted.
+        persistsAfterInterrupt: true,
         coefficient: 2.5,
         hits: 1
       }

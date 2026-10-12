@@ -232,7 +232,7 @@ const sharpeningSorrow = defineTrait<MesmerSkill>({
           requireBalanceProfileFromContext(balanceContext, TRAIT.SHARPENING_SORROW),
           'expertiseBonus'
         ),
-        feedsConversions: false,
+        feedsConversions: 'none',
         enabled: loadout.assumptions.fury !== false
       }
     ]

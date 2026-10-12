@@ -195,7 +195,7 @@ const enhancedPotency = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled:
             config?.evokerElement === 'Air' &&
             (context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, 'fury'))
@@ -204,7 +204,7 @@ const enhancedPotency = defineTrait({
           kind: 'flat',
           to: 'Condition Damage',
           amount: elementalistMightStacks(context) * balanceProfileNumber(profile, 'attributePerStack'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: config?.evokerElement === 'Fire'
         }
       ]

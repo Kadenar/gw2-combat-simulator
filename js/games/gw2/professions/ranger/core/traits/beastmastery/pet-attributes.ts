@@ -36,6 +36,6 @@ export function beastmasteryPetAttributes(
     if (!hasTrait(context, id)) return [];
 
     const amount = balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
-    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: false }));
+    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
   });
 }

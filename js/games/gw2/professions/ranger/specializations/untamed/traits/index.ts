@@ -71,7 +71,7 @@ const naturalFortitude = defineTrait({
     }
   },
   attributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 

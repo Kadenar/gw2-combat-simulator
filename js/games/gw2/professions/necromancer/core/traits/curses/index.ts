@@ -150,7 +150,8 @@ export const furiousDemise = defineTrait({
     attributeBonus: 180
   },
   attributes: traitAttributeEffects(TRAIT.FURIOUS_DEMISE, [
-    { kind: 'flat', to: 'Precision', field: 'attributeBonus', feedsConversions: true }
+    // Target the Weak explicitly converts this Precision; utility consumables do not.
+    { kind: 'flat', to: 'Precision', field: 'attributeBonus', feedsConversions: 'profession-only' }
   ])
 });
 
@@ -214,7 +215,7 @@ export const lingeringCurse = defineTrait({
     }
   ],
   attributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 

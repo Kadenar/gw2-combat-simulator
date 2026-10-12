@@ -1,4 +1,5 @@
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -434,7 +435,7 @@ test('Mesmer instrument checks skip other specializations and observe new histor
   const relevant = countedEvents();
   const troubadour = modifierContext({
     traits: [MESMER.FORTISSIMO, MESMER.SHREDDING],
-    config: { specialization: 'Troubadour' },
+    config: { specialization: 'Troubadour', attributeInputs: baseAttributeInputs({ vitality: 100 }) },
     events: relevant.events
   });
   relevant.resetReads();
@@ -466,7 +467,8 @@ test('Mesmer instrument checks skip other specializations and observe new histor
     'concentration',
     'healingPower'
   ]) {
-    assert.equal(attributes[attribute], 108, attribute);
+    // Reinforced Armor uses base Vitality, excluding the instrument's temporary increase.
+    assert.equal(attributes[attribute], attribute === 'vitality' ? 113 : 108, attribute);
   }
 
   assert.equal(first, second);

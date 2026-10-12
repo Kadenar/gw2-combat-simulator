@@ -27,6 +27,6 @@ export function wildernessPetAttributes(
     if (!hasTrait(context, id)) return [];
     if (field === 'weaponAttributeBonus' && !['spider', 'devourer'].includes(family)) return [];
     const amount = balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
-    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: false }));
+    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
   });
 }

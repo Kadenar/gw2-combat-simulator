@@ -67,7 +67,7 @@ function inheritedMechAttributes(context: Gw2AttributeContext) {
   const seed = attributeSeed(context.config ?? {}, context.weaponSet);
   const contributions = [];
   for (const trait of sourceTraits) if (hasTrait(facts, trait.id)) contributions.push(trait.attributes!(facts));
-  const inheritedSource = applyAttributeContributions(seed.conversionPool, seed.commonTotals, contributions);
+  const inheritedSource = applyAttributeContributions(seed, seed.commonTotals, contributions);
   const mech = engineerMechAttributes(context.config ?? {}, inheritedSource, context);
 
   // The independent mech receives only the Firearms durations assigned to its actor.

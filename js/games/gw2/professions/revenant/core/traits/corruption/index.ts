@@ -140,7 +140,7 @@ export const pactOfPain = defineTrait({
 /** Owns Seething Malice tuning and behavior at its established execution boundaries. */
 export const seethingMalice = defineTrait({
   attributes: traitAttributeEffects(TRAIT.SEETHING_MALICE, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
   ]),
   id: TRAIT.SEETHING_MALICE,
   name: 'Seething Malice',

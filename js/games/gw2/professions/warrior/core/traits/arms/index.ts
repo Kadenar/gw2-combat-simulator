@@ -46,7 +46,7 @@ export const signetMastery = defineTrait({
           amount:
             warriorActiveBuffStacks(context, 'signet-mastery', balanceProfileNumber(profile, 'maximumStacks')) *
             balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         }
       ]
@@ -90,7 +90,7 @@ export const burstPrecision = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
         }
       ]
@@ -172,7 +172,7 @@ export const furious = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          feedsConversions: false,
+          feedsConversions: 'none',
           amount:
             warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(profile, 'maximumStacks')) *
             balanceProfileNumber(profile, 'attributeBonus')
@@ -297,7 +297,7 @@ export const deepStrikes = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.DEEP_STRIKES),
             'attributeBonus'
           ),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: Boolean(context.loadout.assumptions.fury)
         }
       ]
@@ -368,14 +368,14 @@ export const blademaster = defineTrait({
           kind: 'flat',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Condition Damage',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: warriorWieldingWeapon(context, 'Sword')
         }
       ]

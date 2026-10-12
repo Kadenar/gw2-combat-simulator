@@ -311,7 +311,7 @@ const alchemicVigor = defineTrait({
     attributeBonus: 240
   },
   attributes: traitAttributeEffects(TRAIT.ALCHEMIC_VIGOR, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 

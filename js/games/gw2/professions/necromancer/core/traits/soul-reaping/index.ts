@@ -91,7 +91,8 @@ export const vitalPersistence = defineTrait({
   name: 'Vital Persistence',
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.VITAL_PERSISTENCE, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+    // Native Necromancer conversions include this bonus, but utility consumables exclude it.
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'profession-only' }
   ])
 });
 

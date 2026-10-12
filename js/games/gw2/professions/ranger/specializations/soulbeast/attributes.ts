@@ -27,7 +27,7 @@ export const soulbeastAttributes: Gw2AttributeContributionCalculator = (context)
           kind: 'flat',
           to: ATTRIBUTE_NAMES[key as keyof typeof ATTRIBUTE_NAMES],
           amount,
-          feedsConversions: false
+          feedsConversions: 'none'
         })
       )
     }

@@ -105,17 +105,30 @@ export function elementalEmpowermentAttributes(context: ElementalistModifierCont
   const multiplier = empowermentAttributeMultiplier(context, elementalEmpowermentProfile, stacks, maximumStacks);
   const pool = catalystAttributePool(context);
   return {
-    attributeEffects: (
-      ['power', 'precision', 'ferocity', 'conditionDamage', 'expertise', 'concentration'] as const
-    ).map((stat) => {
-      const bonus = (pool[stat] ?? 0) * multiplier;
-      return {
-        kind: 'flat',
-        to: ATTRIBUTE_NAMES[stat],
-        feedsConversions: false,
-        amount: ['power', 'conditionDamage'].includes(stat) ? Math.round(bonus) : bonus
-      };
-    })
+    attributeEffects: [
+      ...(
+        [
+          'power',
+          'precision',
+          'toughness',
+          'ferocity',
+          'conditionDamage',
+          'expertise',
+          'concentration',
+          'healingPower'
+        ] as const
+      ).map((stat) => {
+        const bonus = (pool[stat] ?? 0) * multiplier;
+        return {
+          kind: 'flat' as const,
+          to: ATTRIBUTE_NAMES[stat],
+          feedsConversions: 'none' as const,
+          amount: ['power', 'conditionDamage'].includes(stat) ? Math.round(bonus) : bonus
+        };
+      }),
+      // Vitality includes Jade Bot stats and rounds jointly with Reinforced Armor without either bonus feeding the other.
+      { kind: 'conversion', from: 'Vitality', to: 'Vitality', multiplier, input: 'common', rounding: 'round' }
+    ]
   };
 }
 
@@ -142,11 +155,13 @@ export function catalystAttributePool(context: ElementalistModifierContext): Gw2
   });
   const traits = [burningRage, strengthOfStone].filter((trait) => hasTrait(context, trait.id));
   // Trait bonuses remain live and never alter the shared equipment source.
+  const resolved = resolveAttributeContributions(
+    attributeSeed(context.config ?? {}, facts.weaponSet),
+    traits.map((trait) => trait.attributes!(facts))
+  );
   const conditionDamage =
     pool.conditionDamage +
-    (resolveAttributeContributions(
-      attributeSeed(context.config ?? {}, facts.weaponSet).conversionPool,
-      traits.map((trait) => trait.attributes!(facts))
-    ).attributes['Condition Damage'] ?? 0);
+    (resolved.attributes['Condition Damage'] ?? 0) +
+    (resolved.utilityAttributes['Condition Damage'] ?? 0);
   return { ...pool, conditionDamage };
 }

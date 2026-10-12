@@ -38,7 +38,7 @@ export const lastRites = defineTrait({
   name: 'Last Rites',
   balance: { attributeBonus: 150 },
   attributes: traitAttributeEffects(TRAIT.LAST_RITES, [
-    { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 

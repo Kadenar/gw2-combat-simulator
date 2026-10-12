@@ -320,7 +320,7 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
 });
 
 // Accepted malice must survive live changes and the first-hit spend, while only the authored final strike scales.
-test('Malicious Ashen declarations retain accepted malice and own their commitment refund', () => {
+test('Malicious Ashen declarations retain accepted malice and refund a fully landed activation', () => {
   const result = runThief(
     [ID.MALICIOUS_ASHEN_ASSAULT],
     { specialization: 'Deadeye', primaryWeapon: 'Spear', secondaryWeapon: '', initialInitiative: 0 },

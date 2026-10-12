@@ -565,8 +565,9 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     .runtimeFor({ specialization: 'Core' })
     .modifyAttributes({ ...untamedContext, traits: new Set() }, baseAttributes);
 
-  assert.equal(untamedAttributes.vitality, 1240);
-  assert.equal(coreAttributes.vitality, 1000);
+  // Reinforcement scales the final player Vitality after the selected trait grants.
+  assert.equal(untamedAttributes.vitality, 1290);
+  assert.equal(coreAttributes.vitality, 1050);
 
   const soulbeastAttributes = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
     {
@@ -586,7 +587,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   assert.equal(soulbeastAttributes.power, 300);
   assert.equal(soulbeastAttributes.ferocity, 400);
   assert.equal(soulbeastAttributes.toughness, 150);
-  assert.equal(soulbeastAttributes.vitality, 1150);
+  assert.equal(soulbeastAttributes.vitality, 1200);
 
   for (const id of ['ranger.furious-strength', 'ranger.twice-as-vicious-strike', 'ranger.twice-as-vicious-condition']) {
     assert.equal(soulbeastOperations.get(id), 'damage-additive', id);

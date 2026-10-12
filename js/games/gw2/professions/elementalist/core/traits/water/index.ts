@@ -48,7 +48,7 @@ export const soothingPower = defineTrait({
   name: 'Soothing Power',
   balance: { attributeBonus: 300 },
   attributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 

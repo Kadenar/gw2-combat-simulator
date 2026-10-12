@@ -229,7 +229,7 @@ export const appliedForce = defineTrait<EngineerSkill>({
           amount:
             modifierBoonStacks(context, 'might', balanceProfileNumber(profile, 'maximumStacks')) *
             balanceProfileNumber(profile, 'attributePerStack'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         }
       ]

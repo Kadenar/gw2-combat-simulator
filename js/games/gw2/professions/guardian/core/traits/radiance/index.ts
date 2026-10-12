@@ -96,13 +96,13 @@ export const rightHandStrength = defineTrait({
           kind: 'flat',
           to: 'Precision',
           amount: balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus'),
-          feedsConversions: false
+          feedsConversions: 'none'
         },
         {
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: oneHandedMainHand
         }
       ]
@@ -130,7 +130,7 @@ export const radiantPower = defineTrait({
     }
   ],
   attributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
-    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 

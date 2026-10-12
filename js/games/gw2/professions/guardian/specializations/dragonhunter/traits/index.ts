@@ -155,7 +155,7 @@ const defendersDogma = defineTrait({
   name: "Defender's Dogma",
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.DEFENDERS_DOGMA, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 

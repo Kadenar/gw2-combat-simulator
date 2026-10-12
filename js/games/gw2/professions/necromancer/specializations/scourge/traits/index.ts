@@ -221,7 +221,7 @@ const fellBeacon = defineTrait({
 
 /** Owns Sand Sage tuning and behavior at its existing execution boundaries. */
 const sandSage = defineTrait({
-  // A living shade enables the duration attributes until its expiry.
+  // A living shade grants conversion-eligible duration attributes; expiry also removes their utility contribution.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SAND_SAGE);
     const shadeActive = (necromancerRuntimeSpecializationState(context, 'Scourge').shades || []).some(
@@ -233,14 +233,14 @@ const sandSage = defineTrait({
           kind: 'flat',
           to: 'Concentration',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'all',
           enabled: shadeActive
         },
         {
           kind: 'flat',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'all',
           enabled: shadeActive
         }
       ]

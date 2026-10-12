@@ -1,5 +1,4 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { bloodReactionSource } from '#gw2/professions/warrior/specializations/berserker/attribute-sources.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
@@ -239,15 +238,28 @@ const kingOfFires = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const bloodReaction = defineTrait({
-  // This named owner source excludes both Might and Berserk's later grants.
+  // Ordinary eligible conversions exclude signets, utility conversions, Might, and Berserk's flat grants.
   attributes(context) {
-    const source = bloodReactionSource(context);
     const profile = requireBalanceProfileFromContext(context, TRAIT.BLOOD_REACTION);
     const factor = balanceProfileNumber(profile, active(context) ? 'coefficientMultiplier' : 'attributeConversion');
     return {
       attributeEffects: [
-        { kind: 'flat', to: 'Ferocity', amount: (source.precision ?? 0) * factor, feedsConversions: false },
-        { kind: 'flat', to: 'Condition Damage', amount: (source.power ?? 0) * factor, feedsConversions: false }
+        {
+          kind: 'conversion',
+          from: 'Precision',
+          to: 'Ferocity',
+          multiplier: factor,
+          rounding: 'round',
+          input: 'eligible'
+        },
+        {
+          kind: 'conversion',
+          from: 'Power',
+          to: 'Condition Damage',
+          multiplier: factor,
+          rounding: 'round',
+          input: 'eligible'
+        }
       ]
     };
   },

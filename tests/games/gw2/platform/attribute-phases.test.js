@@ -1,3 +1,4 @@
+import { equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { getActiveTraits as getWarriorActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
@@ -15,10 +16,9 @@ import {
 import { attributeSeed, baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { bloodReactionSource } from '#gw2/professions/warrior/specializations/berserker/attribute-sources.js';
 
 const families = {};
-for (const name of ['engineer', 'mesmer', 'revenant', 'warrior'])
+for (const name of ['engineer', 'mesmer', 'revenant', 'thief', 'warrior'])
   families[name] = (await import(`#gw2/professions/${name}/profession.js`))[`${name}Profession`];
 
 // Minimal builds exercise shared phases without saved-rotation or packet-schedule assertions.
@@ -39,12 +39,223 @@ function scenario(name, specialization, names = [], options = {}, family = famil
   return { family, config, profession, query, facts };
 }
 
+// Utility conversions include eligible flat trait grants, but never other conversions or temporary attribute buffs.
+test('tuning crystals include flat Expertise grants without chaining converted Expertise', () => {
+  const pool = { Precision: 1633, Expertise: 703, Vitality: 1235 };
+  const contributions = [
+    {
+      attributeEffects: [
+        { kind: 'flat', to: 'Expertise', amount: 150, feedsConversions: 'all' },
+        { kind: 'flat', to: 'Expertise', amount: 70, feedsConversions: 'none' },
+        {
+          kind: 'conversion',
+          from: 'Vitality',
+          to: 'Expertise',
+          multiplier: 0.13,
+          rounding: 'round',
+          input: 'eligible'
+        }
+      ]
+    }
+  ];
+  const resolved = resolveAttributeContributions(
+    { conversionPool: pool, conversions: equipmentAttributeConversions('Potent Master Tuning Crystal') },
+    contributions
+  );
+  assert.deepEqual(resolved.utilityAttributes, { 'Condition Damage': 117 });
+  assert.equal(resolved.attributes.Expertise, 381);
+  assert.deepEqual(pool, { Precision: 1633, Expertise: 703, Vitality: 1235 });
+});
+
+// The selected consumable's existing rules determine every source stat; no utility gets a special conversion path.
+test('utility conversion corrections cover Precision, Ferocity, Condition Damage, and Vitality', () => {
+  const pool = { Power: 1000, Precision: 1000, Ferocity: 0, 'Condition Damage': 1000, Vitality: 1000, Toughness: 1000 };
+  for (const [utility, from, amount, to, expected] of [
+    ['Superior Sharpening Stone', 'Precision', 180, 'Power', 5],
+    ['Superior Sharpening Stone', 'Ferocity', 150, 'Power', 9],
+    ['Toxic Tuning Crystal', 'Power', 120, 'Condition Damage', 4],
+    ['Toxic Maintenance Oil', 'Condition Damage', 180, 'Concentration', 11],
+    ['Magnanimous Tuning Crystal', 'Vitality', 300, 'Condition Damage', 9]
+  ]) {
+    const contributions = [{ attributeEffects: [{ kind: 'flat', to: from, amount, feedsConversions: 'all' }] }];
+    assert.deepEqual(
+      resolveAttributeContributions(
+        { conversionPool: pool, conversions: equipmentAttributeConversions(utility) },
+        contributions
+      ).utilityAttributes[to] -
+        resolveAttributeContributions({ conversionPool: pool, conversions: equipmentAttributeConversions(utility) }, [])
+          .utilityAttributes[to],
+      expected
+    );
+    assert.deepEqual(
+      resolveAttributeContributions(
+        { conversionPool: pool, conversions: equipmentAttributeConversions() },
+        contributions
+      ).utilityAttributes,
+      {}
+    );
+  }
+});
+
+// Explicit profession exceptions preserve native trait conversions without raising utility consumable bonuses.
+test('profession-only Precision feeds trait conversions but not tuning crystals', () => {
+  const resolved = resolveAttributeContributions(
+    { conversionPool: { Precision: 1000 }, conversions: equipmentAttributeConversions('Toxic Tuning Crystal') },
+    [
+      {
+        attributeEffects: [
+          { kind: 'flat', to: 'Precision', amount: 180, feedsConversions: 'profession-only' },
+          {
+            kind: 'conversion',
+            from: 'Precision',
+            to: 'Condition Damage',
+            multiplier: 0.13,
+            rounding: 'round',
+            input: 'eligible'
+          }
+        ]
+      }
+    ]
+  );
+  assert.deepEqual(resolved.utilityAttributes, { 'Condition Damage': 30 });
+  assert.equal(resolved.attributes['Condition Damage'], 153);
+});
+
+// Trait and utility percentages for the same source/destination share one rounding step.
+test('Vitality conversion combines trait and crystal before rounding without converting Reinforced Armor', () => {
+  const pool = { Vitality: 2356, Toughness: 1000 };
+  const effects = [
+    { kind: 'flat', to: 'Vitality', amount: 250, feedsConversions: 'all' },
+    {
+      kind: 'conversion',
+      from: 'Vitality',
+      to: 'Condition Damage',
+      multiplier: 0.07,
+      rounding: 'round',
+      input: 'eligible'
+    }
+  ];
+  for (const attributeEffects of [effects, [...effects].reverse()]) {
+    const contributions = [{ attributeEffects }];
+    // Utility is resolved from its seed declarations together with the trait conversion.
+    const result = applyAttributeContributions(
+      { conversionPool: pool, conversions: equipmentAttributeConversions('Magnanimous Tuning Crystal') },
+      { vitality: 2356, conditionDamage: 0 },
+      contributions
+    );
+    assert.equal(result.conditionDamage, 291); // round(2606 * (7% + 3%)) + 30
+    assert.equal(result.vitality, 2736);
+    assert.deepEqual(pool, { Vitality: 2356, Toughness: 1000 });
+  }
+});
+
+// Different source stats remain separate conversion groups, even when their output attribute matches.
+test('conversion rounding groups matching source and destination only', () => {
+  const conversion = (from, multiplier) => ({
+    kind: 'conversion',
+    from,
+    to: 'Ferocity',
+    multiplier,
+    rounding: 'round',
+    input: 'common'
+  });
+  const resolved = resolveAttributeContributions(
+    { conversionPool: { Power: 2606, Precision: 2606 }, conversions: equipmentAttributeConversions() },
+    [{ attributeEffects: [conversion('Power', 0.07), conversion('Power', 0.03), conversion('Precision', 0.07)] }]
+  );
+  assert.equal(resolved.attributes.Ferocity, 443); // round(260.6) + round(182.42)
+  assert.deepEqual(resolved.utilityAttributes, {});
+});
+
+// Reinforced Armor is universal player Vitality, applied after conversions so no profession gains conversion stats from it.
+test('Reinforced Armor raises live Vitality without feeding Strength of Shadows or changing seeds', () => {
+  for (const name of Object.keys(families)) {
+    const probe = scenario(
+      name,
+      name === 'thief' ? 'Specter' : 'Core',
+      name === 'thief' ? ['Strength of Shadows'] : [],
+      {
+        attributeInputs: baseAttributeInputs({ vitality: 1235 })
+      }
+    );
+    const live = probe.query.statsAt(0);
+    assert.equal(live.vitality, 1297);
+    assert.equal(live.expertise, name === 'thief' ? 161 : 0);
+    assert.equal(attributeSeed(probe.config).conversionPool.Vitality, 1235);
+    assert.equal(attributeSeed(probe.config).commonTotals.vitality, 1235);
+  }
+});
+
+// Generic Vitality conversion admits eligible flats but excludes merged buffs, profession exceptions and converted stats.
+test('Reinforced Armor excludes final-only Vitality and other conversion results', () => {
+  const result = applyAttributeContributions(
+    { conversionPool: { Vitality: 1000, Power: 1000 }, conversions: equipmentAttributeConversions() },
+    { vitality: 1000 },
+    [
+      {
+        attributeEffects: [
+          { kind: 'flat', to: 'Vitality', amount: 300, feedsConversions: 'all' },
+          { kind: 'flat', to: 'Vitality', amount: 150, feedsConversions: 'none' },
+          { kind: 'flat', to: 'Vitality', amount: 180, feedsConversions: 'profession-only' },
+          { kind: 'conversion', from: 'Power', to: 'Vitality', multiplier: 0.1, rounding: 'round', input: 'eligible' }
+        ]
+      }
+    ]
+  );
+  assert.equal(result.vitality, 1795); // 1000 + 300 + 150 + 180 + 100 + 65
+});
+
+// Reinforced Armor and a self-converting utility share the same rounding group without recursively converting each other.
+test('Reinforced Armor rounds with Vitality-to-Vitality utility conversion', () => {
+  const result = applyAttributeContributions(
+    { conversionPool: { Vitality: 1044 }, conversions: equipmentAttributeConversions('Leviathan Tempering Oil') },
+    { vitality: 1044 },
+    []
+  );
+  assert.equal(result.vitality, 1128); // 1044 + round(1044 * (3% + 5%))
+});
+
+test('conversion attribution sums jointly across traits, utility, and reinforcement without mutating seeds', () => {
+  // All three buckets share a rounding boundary, regardless of declaration order or a sparse initial result.
+  const pool = Object.freeze({ Vitality: 1044 });
+  const conversions = Object.freeze(equipmentAttributeConversions('Leviathan Tempering Oil').map(Object.freeze));
+  const effects = Object.freeze([
+    Object.freeze({
+      kind: 'conversion',
+      from: 'Vitality',
+      to: 'Vitality',
+      multiplier: 0.045,
+      input: 'common',
+      rounding: 'round'
+    }),
+    Object.freeze({ kind: 'flat', to: 'Vitality', amount: 150, feedsConversions: 'none' })
+  ]);
+  for (const attributeEffects of [effects, [...effects].reverse()]) {
+    for (const declarations of [conversions, [...conversions].reverse()]) {
+      const seed = Object.freeze({ conversionPool: pool, conversions: declarations });
+      const resolved = resolveAttributeContributions(seed, [{ attributeEffects }]);
+      const total =
+        resolved.attributes.Vitality +
+        resolved.utilityAttributes.Vitality +
+        resolved.reinforcedArmorAttributes.Vitality;
+      assert.equal(total, 150 + Math.round(1044 * (0.045 + 0.03 + 0.05)));
+      assert.equal(applyAttributeContributions(seed, {}, [{ attributeEffects }]).vitality, total);
+    }
+  }
+
+  assert.equal(pool.Vitality, 1044);
+});
+
 test('Might applies baseline and Notoriety together while unbuffed declarations exclude both', () => {
   const probe = scenario('revenant', 'Core', ['Notoriety'], { boons: { might: 25 } });
   const contributions = probe.family.attributeContributions(probe.facts);
-  assert.deepEqual(resolveAttributeContributions({}, contributions).attributes, {});
+  assert.deepEqual(
+    resolveAttributeContributions({ conversionPool: {}, conversions: equipmentAttributeConversions() }, contributions)
+      .attributes,
+    {}
+  );
   const seed = probe.config.attributeInputs.weaponSets[0].commonTotals;
-  const build = applyAttributeContributions(attributeSeed(probe.config).conversionPool, seed, contributions);
+  const build = applyAttributeContributions(attributeSeed(probe.config), seed, contributions);
   assert.equal(build.conditionDamage, 0);
   const live = probe.query.statsAt(0);
   assert.equal(live.power, 2000);
@@ -138,7 +349,7 @@ test('ordinary conversions, accumulated scaling, actor projection and final repl
   const declarations = [
     {
       attributeEffects: [
-        { kind: 'flat', to: 'Power', amount: 100, feedsConversions: false },
+        { kind: 'flat', to: 'Power', amount: 100, feedsConversions: 'none' },
         { kind: 'conversion', from: 'Power', to: 'Ferocity', multiplier: 0.1, input: 'common', rounding: 'none' }
       ],
       // Projection must follow scaling even when listed first.
@@ -153,7 +364,7 @@ test('ordinary conversions, accumulated scaling, actor projection and final repl
   ];
   const initial = { power: 1000, ferocity: 0 };
   const ordinary = applyAttributeContributions(
-    attributeSeed(probe.config).conversionPool,
+    attributeSeed(probe.config),
     applyMightAttributes(initial, 10, []),
     declarations
   );
@@ -188,39 +399,58 @@ test('duration accumulation preserves input maps and combines aliases and repeat
       traitDurations: Object.freeze({ 'Poisoned Duration': 2, 'Bleeding Duration': 8, 'Fury Duration': 7 })
     })
   ];
-  const first = applyAttributeContributions({}, initial, declarations);
+  const first = applyAttributeContributions(
+    { conversionPool: {}, conversions: equipmentAttributeConversions() },
+    initial,
+    declarations
+  );
   assert.deepEqual(first.conditionDurationBonuses, { Poisoned: 15, Bleeding: 13 });
   assert.deepEqual(first.boonDurationBonuses, { might: 10, fury: 7 });
-  assert.deepEqual(applyAttributeContributions({}, initial, declarations), first);
+  assert.deepEqual(
+    applyAttributeContributions(
+      { conversionPool: {}, conversions: equipmentAttributeConversions() },
+      initial,
+      declarations
+    ),
+    first
+  );
   assert.deepEqual(initial.conditionDurationBonuses, { Poisoned: 3 });
 });
 
-test('Blood Reaction names its owner source and excludes Might and Berserk grants', () => {
+test('Blood Reaction and Great Fortitude exclude Might and Berserk grants from their conversions', () => {
   const probe = scenario('warrior', 'Berserker', ['Blood Reaction', 'Pinnacle of Strength', 'Great Fortitude'], {
     boons: { might: 25 }
   });
   const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkActive: true } } } };
-  const source = bloodReactionSource({ ...probe.facts, runtime });
-  assert.equal(source.power, 1000);
-  assert.equal(source.precision, 1000);
-  // Named sub-sources must ignore a caller's sampled main-pipeline declarations.
-  assert.equal(
-    bloodReactionSource({
-      ...probe.facts,
-      runtime,
-      attributeContributions: [
-        { attributeEffects: [{ kind: 'flat', to: 'Power', amount: 999, feedsConversions: false }] }
-      ]
-    }).power,
-    1000
-  );
   const active = probe.query.statsAt(0, null, runtime);
   assert.equal(active.power, 2300);
   assert.equal(active.conditionDamage, 1140);
-  assert.equal(active.ferocity, 370);
-  assert.equal(active.vitality, 1130);
+  assert.equal(active.ferocity, 340);
+  assert.equal(active.vitality, 1150); // Reinforced Armor excludes Great Fortitude's converted Vitality.
   runtime.profession.specialization.state.berserkActive = false;
   assert.equal(probe.query.statsAt(0, null, runtime).ferocity, 220);
+});
+
+// Signet readiness and common utility totals change final Power, but cannot feed Blood Reaction.
+test('Blood Reaction rounds eligible stats and ignores signet and converted utility Power', () => {
+  const inputs = baseAttributeInputs({ power: 1007, precision: 1007 });
+  for (const seed of inputs.weaponSets) seed.commonTotals.power += 36;
+  const probe = scenario('warrior', 'Berserker', ['Blood Reaction', 'Forceful Greatsword'], {
+    attributeInputs: inputs,
+    selectedSkillIds: [14404]
+  });
+  const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkActive: true } } } };
+  for (const signetOnCooldown of [false, true]) {
+    const query = createGw2CombatQuery({
+      config: probe.config,
+      profession: probe.profession,
+      skillOnCooldown: () => signetOnCooldown
+    });
+    const live = query.statsAt(0, null, runtime);
+    assert.equal(live.power, 1043 + 120 + 300 + (signetOnCooldown ? 0 : 180));
+    assert.equal(live.conditionDamage, 150 + Math.round(1127 * 0.24));
+    assert.equal(live.ferocity, Math.round(1007 * 0.24));
+  }
 });
 
 test('Chemical Rounds declares base-duration eligibility and respects patch tuning without a recharge grant', () => {
@@ -264,9 +494,9 @@ test('Blood Reaction build and live sources agree for both equipment sets', () =
   );
   for (const weaponSet of [1, 2]) {
     const panel = panels[weaponSet - 1];
-    const seed = panel.attributeSeed.commonTotals;
-    assert.equal(panel.attributes.Ferocity.traits, seed.precision * 0.12);
-    assert.equal(panel.attributes['Condition Damage'].traits, seed.power * 0.12);
+    const pool = panel.attributeSeed.conversionPool;
+    assert.equal(panel.attributes.Ferocity.traits, Math.round(pool.Precision * 0.12));
+    assert.equal(panel.attributes['Condition Damage'].traits, Math.round(pool.Power * 0.12));
     const probe = scenario('warrior', 'Berserker', ['Blood Reaction'], {
       attributeInputs,
       startingWeaponSet: weaponSet

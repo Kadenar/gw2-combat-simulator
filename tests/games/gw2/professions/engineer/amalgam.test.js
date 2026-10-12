@@ -624,6 +624,7 @@ test('Evolve scales only its eligible static attribute pool', () => {
         weaponSets: [0, 1].map(() => ({
           commonTotals: baseAttributeInputs().weaponSets[0].commonTotals,
           conversionPool: pool,
+          conversions: baseAttributeInputs().weaponSets[0].conversions,
           sources: {}
         }))
       }
@@ -641,11 +642,11 @@ test('Evolve scales only its eligible static attribute pool', () => {
 
   assert.deepEqual(
     evaluateAttributeDeclarations(context([]), resolved, amalgamAttributes),
-    Object.fromEntries(attributes.map((attribute) => [attribute, 1600]))
+    Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1650 : 1600]))
   );
   assert.deepEqual(
     evaluateAttributeDeclarations(context([TRAIT.DOUBLE_HELIX]), resolved, amalgamAttributes),
-    Object.fromEntries(attributes.map((attribute) => [attribute, 1700]))
+    Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1750 : 1700]))
   );
 });
 

@@ -16,7 +16,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     stealRechargeMode: 'additive',
 
     castTimeMs: 520,
-    interruptCommitMs: 480,
+    // Siphon's committed effects survive cancellation of the remaining animation.
+    interruptCommitMs: 440,
     cooldown: 18,
     initiativeCost: 0,
     effects: [
@@ -49,6 +50,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.ETERNAL_NIGHT]: {
     // The supplied log retains the 360/680 ms impacts within a 760 ms activation.
     castTimeMs: 760,
+    // Both impacts have committed before the animation finishes.
+    interruptCommitMs: 720,
     cooldown: 8,
     initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -80,32 +83,37 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.GRASPING_SHADOWS]: {
     castTimeMs: 240,
+    // The ground effect is already placed when a following shroud skill cancels the remaining animation.
+    interruptCommitMs: 200,
     cooldown: 3,
     initiativeCost: 0,
-    effects: impactEffects({ atMs: 1000, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        weaponStrengthProfileId: 'transform.shadow-shroud',
-        type: 'strike',
-        coefficient: 1.66,
-        hits: 1,
-        name: 'Grasping Shadows',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 6,
-        actorType: 'player'
-      }
-    ]),
+    effects: impactEffects(
+      { atMs: 1000, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          weaponStrengthProfileId: 'transform.shadow-shroud',
+          type: 'strike',
+          coefficient: 1.66,
+          hits: 1,
+          name: 'Grasping Shadows',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 3,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 2,
+          duration: 6,
+          actorType: 'player'
+        }
+      ]
+    ),
     comboFinishers: [
       {
         ownerId: 'thief',
@@ -251,10 +259,12 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     movementSkill: true,
     shadowstepSkill: true,
     castTimeMs: 600,
+    // Once placed, the well keeps pulsing through cancellation of its remaining animation.
+    interruptCommitMs: 520,
     cooldown: 20,
     initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 400 + index * 1000, coefficient: 1.11 / 5 })),

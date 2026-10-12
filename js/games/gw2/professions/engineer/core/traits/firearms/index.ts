@@ -108,7 +108,7 @@ export const noScope = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(noScopeProfile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: engineerBuild.assumptions.fury !== false
         }
       ]
@@ -193,7 +193,7 @@ export const thermalVision = defineTrait({
     }
   ],
   attributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [
-    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 
@@ -255,7 +255,7 @@ export const chemicalRounds = defineTrait({
     attributeBonus: 120
   },
   attributes: traitAttributeEffects(TRAIT.CHEMICAL_ROUNDS, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 

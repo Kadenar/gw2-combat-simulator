@@ -60,8 +60,8 @@ export const deadlyStrength = defineTrait({
       balanceProfileNumber(profile, 'attributePerStack');
     return {
       attributeEffects: [
-        { kind: 'flat', to: 'Power', amount: bonus, feedsConversions: false, enabled: true },
-        { kind: 'flat', to: 'Condition Damage', amount: bonus, feedsConversions: false, enabled: true }
+        { kind: 'flat', to: 'Power', amount: bonus, feedsConversions: 'none', enabled: true },
+        { kind: 'flat', to: 'Condition Damage', amount: bonus, feedsConversions: 'none', enabled: true }
       ]
     };
   },

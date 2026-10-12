@@ -41,7 +41,7 @@ const empireDivided = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: playerHealthFraction(context) > balanceProfileNumber(profile, 'threshold')
         }
       ]

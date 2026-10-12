@@ -100,7 +100,7 @@ const secondOpinion = defineTrait({
           amount:
             balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
             (weapons.includes('Scepter') ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack') : 0),
-          feedsConversions: true
+          feedsConversions: 'all'
         },
         {
           kind: 'conversion',
@@ -163,8 +163,10 @@ const strengthOfShadows = defineTrait({
       order: 300,
       id: 'thief.strength-of-shadows',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: 'damage-additive',
-      amount: (context) =>
+      // The Torment-specific bonus multiplies the additive Lead Attacks and Distracting Throw pool.
+      operation: 'multiply',
+      factor: (context) =>
+        1 +
         balanceProfileNumber(
           requireBalanceProfileFromContext(context, TRAIT.STRENGTH_OF_SHADOWS),
           'conditionDamageIncrease'

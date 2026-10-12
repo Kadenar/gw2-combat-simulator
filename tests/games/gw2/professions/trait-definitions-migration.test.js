@@ -178,7 +178,11 @@ test('Imbued Haste shares patched attributes between build preview and current r
     const context = {
       catalog: runtime.catalog,
       time: 0,
-      config: { selectedTraitIds: [GUARDIAN.IMBUED_HASTE], boons: { quickness: true } }
+      config: {
+        selectedTraitIds: [GUARDIAN.IMBUED_HASTE],
+        boons: { quickness: true },
+        attributeInputs: baseAttributeInputs({ vitality: 100 })
+      }
     };
     for (const [label, key] of [
       ['Condition Damage', 'conditionDamage'],
@@ -188,16 +192,15 @@ test('Imbued Haste shares patched attributes between build preview and current r
       assert.equal(preview.attributes[label].traits, bonus);
       assert.equal(disabled.attributes[label].traits, 0);
       assert.equal(withoutQuickness.attributes[label].traits, 0);
-      assert.equal(runtime.modifyAttributes(context, { [key]: 100 })[key], 100 + bonus);
-      assert.equal(
-        runtime.modifyAttributes({ ...context, config: { ...context.config } }, { [key]: 100 })[key],
-        100 + bonus
-      );
+      // Final Vitality includes armor reinforcement without changing the trait's declared grant.
+      const final = 100 + bonus + (key === 'vitality' ? Math.round((100 + bonus) * 0.05) : 0);
+      assert.equal(runtime.modifyAttributes(context, { [key]: 100 })[key], final);
+      assert.equal(runtime.modifyAttributes({ ...context, config: { ...context.config } }, { [key]: 100 })[key], final);
       assert.equal(
         runtime.modifyAttributes({ ...context, config: { ...context.config, selectedTraitIds: [] } }, { [key]: 100 })[
           key
         ],
-        100
+        key === 'vitality' ? 105 : 100
       );
     }
   }

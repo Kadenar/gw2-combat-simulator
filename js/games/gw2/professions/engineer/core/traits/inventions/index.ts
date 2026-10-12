@@ -18,14 +18,14 @@ export const energyAmplifier = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: engineerBuild.assumptions.regeneration !== false
         },
         {
           kind: 'flat',
           to: 'Healing Power',
           amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: engineerBuild.assumptions.regeneration !== false
         }
       ]

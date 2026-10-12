@@ -90,7 +90,7 @@ export const swindlersEquilibrium = defineTrait({
             swindlersEquilibriumProfile,
             weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
-          feedsConversions: true
+          feedsConversions: 'all'
         }
       ]
     };

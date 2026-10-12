@@ -41,7 +41,8 @@ const elementalRefreshment = defineTrait({
   name: 'Elemental Refreshment',
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.ELEMENTAL_REFRESHMENT, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+    // Intrinsic Vitality feeds both consumables and Reinforced Armor before converted bonuses are applied.
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 
@@ -61,28 +62,28 @@ const elementalPolyphony = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: active.has('Fire')
         },
         {
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: active.has('Air')
         },
         {
           kind: 'flat',
           to: 'Healing Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: active.has('Water')
         },
         {
           kind: 'flat',
           to: 'Condition Damage',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: active.has('Earth')
         }
       ]

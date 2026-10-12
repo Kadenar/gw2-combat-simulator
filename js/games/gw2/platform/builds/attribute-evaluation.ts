@@ -3,6 +3,7 @@ import { resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import type {
   Gw2AttributeContext,
   Gw2AttributeContributions,
+  Gw2AttributeConversionInputs,
   Gw2AttributeEffect,
   Gw2AttributeLoadout,
   Gw2NumericAttributes
@@ -74,7 +75,7 @@ export function attributeContext(
 
 /** Resolve every ordinary conversion against one immutable pool, independent of declaration order or live Might. */
 export function resolveAttributeContributions(
-  pool: Readonly<Gw2NumericAttributes>,
+  seed: Gw2AttributeConversionInputs,
   contributions: readonly Gw2AttributeContributions[]
 ) {
   const effects: Gw2AttributeEffect[] = [];
@@ -92,7 +93,7 @@ export function resolveAttributeContributions(
   }
 
   return {
-    attributes: resolveAttributeEffects(pool, effects),
+    ...resolveAttributeEffects(seed, effects),
     durations,
     criticalChance
   };
@@ -100,14 +101,15 @@ export function resolveAttributeContributions(
 
 /** Add ordinary declarations, then apply accumulated scaling and actor projections without altering source pools. */
 export function applyAttributeContributions(
-  pool: Readonly<Gw2NumericAttributes>,
+  seed: Gw2AttributeConversionInputs,
   initial: Gw2Stats,
   contributions: readonly Gw2AttributeContributions[]
 ): Gw2Stats {
   const result: Gw2MutableStats = { ...initial };
-  const resolved = resolveAttributeContributions(pool, contributions);
+  const resolved = resolveAttributeContributions(seed, contributions);
   for (const [key, name] of ATTRIBUTE_ENTRIES)
-    if (resolved.attributes[name]) result[key] = (initial[key] ?? 0) + (resolved.attributes[name] ?? 0);
+    if (resolved.attributes[name] || resolved.utilityAttributes[name])
+      result[key] = (initial[key] ?? 0) + (resolved.attributes[name] ?? 0) + (resolved.utilityAttributes[name] ?? 0);
   // Copy each duration map only when first changed, keeping both the input and shared declarations immutable.
   let boonDurations: Record<string, number> | undefined;
   let conditionDurations: Record<string, number> | undefined;
@@ -145,6 +147,10 @@ export function applyAttributeContributions(
       for (const transform of entry.transforms)
         if (transform.kind === 'convert-current')
           result[transform.to] = (result[transform.to] ?? 0) + (result[transform.from] ?? 0) * transform.multiplier;
+  // Add the eligible-pool conversion without scaling final-only buffs or exposing it to later conversions.
+  for (const [key, name] of ATTRIBUTE_ENTRIES)
+    if (resolved.reinforcedArmorAttributes[name])
+      result[key] = (result[key] ?? 0) + resolved.reinforcedArmorAttributes[name];
   let projected: Gw2Stats = result;
   for (const entry of contributions)
     if (entry.transforms)

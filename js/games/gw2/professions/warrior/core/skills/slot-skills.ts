@@ -355,7 +355,7 @@ export function signetActiveAttributeEffects(context: Gw2ModifierContext): reado
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
     const signetOfFuryActiveProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFuryActive);
     const bonus = balanceProfileNumber(signetOfFuryActiveProfile, 'attributeBonus');
-    return ['Precision', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount: bonus, feedsConversions: false }));
+    return ['Precision', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount: bonus, feedsConversions: 'none' }));
   }
 
   return [];

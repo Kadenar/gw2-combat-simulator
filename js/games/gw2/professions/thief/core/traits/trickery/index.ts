@@ -142,7 +142,7 @@ export const preparedness = defineTrait({
           kind: 'flat',
           to: 'Expertise',
           amount: balanceProfileNumber(preparednessProfile, 'attributeBonus'),
-          feedsConversions: true
+          feedsConversions: 'all'
         }
       ]
     };

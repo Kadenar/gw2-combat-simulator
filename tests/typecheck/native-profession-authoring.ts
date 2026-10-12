@@ -44,7 +44,7 @@ const core = defineNativeModule({
             kind: 'flat',
             to: 'Power',
             amount: balanceContext.catalog.balanceProfiles.length,
-            feedsConversions: false
+            feedsConversions: 'none'
           }
         ]
       })

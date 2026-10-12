@@ -80,9 +80,22 @@ export type ProfessionAssumptionControl =
     });
 
 /** Unprocessed, serializable equipment sources; profession effects never enter these immutable seeds. */
-export interface Gw2AttributeSeed {
-  readonly commonTotals: Readonly<Gw2Stats>;
+/** Equipment conversions travel with their immutable source pool, never as a second utility selection. */
+export interface Gw2SeedAttributeConversion {
+  readonly source: 'utility' | 'reinforcedArmor';
+  readonly from: string;
+  readonly to: string;
+  readonly multiplier: number;
+  readonly rounding: Gw2AttributeEffectRounding;
+}
+
+export interface Gw2AttributeConversionInputs {
   readonly conversionPool: Readonly<Gw2NumericAttributes>;
+  readonly conversions: readonly Gw2SeedAttributeConversion[];
+}
+
+export interface Gw2AttributeSeed extends Gw2AttributeConversionInputs {
+  readonly commonTotals: Readonly<Gw2Stats>;
   readonly sources: Readonly<Gw2AttributeMap>;
 }
 
@@ -118,9 +131,11 @@ interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
   readonly amount: number;
   /**
    * Include this flat bonus in the source pool for conversions with `input: 'eligible'`.
-   * When false, the bonus still contributes to final attributes but does not feed conversions.
+   * 'all' also feeds utility consumables and Reinforced Armor; 'profession-only' preserves explicit trait conversions
+   * such as Furious Demise into Target the Weak without admitting that bonus to utilities.
+   * 'none' contributes to final attributes only.
    */
-  readonly feedsConversions: boolean;
+  readonly feedsConversions: 'all' | 'profession-only' | 'none';
 }
 
 interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
@@ -129,14 +144,15 @@ interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
   readonly to: string;
   readonly multiplier: number;
   /**
-   * Round each conversion result after multiplying the source attribute by `multiplier`.
+   * Conversions with the same source, destination, and rounding policy combine before rounding.
    * `none` retains fractions, `floor` rounds down, and `round` uses the nearest integer
    * (Math.round, with ties toward positive infinity). For 15.75, results are 15.75, 15, and 16.
    */
   readonly rounding: Gw2AttributeEffectRounding;
   /**
    * Choose the source attribute pool: `common` uses the shared pool before profession and
-   * trait attribute effects; `eligible` also includes flat bonuses with `feedsConversions: true`.
+   * trait attribute effects; `eligible` also includes flat bonuses with `feedsConversions: 'all'`
+   * or `feedsConversions: 'profession-only'`.
    * Neither pool includes conversion results, so conversions cannot feed one another.
    */
   readonly input: 'common' | 'eligible';
@@ -145,6 +161,8 @@ interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
 export type Gw2AttributeEffect = Gw2FlatAttributeEffect | Gw2ConversionAttributeEffect;
 
 export interface Gw2AttributeBreakdown {
+  /** Permanent armor reinforcement is applied after conversions, separately from equipment and trait grants. */
+  reinforcedArmor?: number;
   final: number;
   base: number;
   gear: number;
@@ -322,6 +340,7 @@ export interface Gw2BuildValidationOptions {
 
 interface Gw2AttributeCommonContext {
   conversionPool: Gw2NumericAttributes;
+  conversions: readonly Gw2SeedAttributeConversion[];
   runeDurations: Gw2NumericAttributes;
   foodDurations: Gw2NumericAttributes;
   sigilDurations: Gw2NumericAttributes;

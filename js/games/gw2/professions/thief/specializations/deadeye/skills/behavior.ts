@@ -7,7 +7,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildThiefCondition, type ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { stealAccepted } from '#gw2/professions/thief/core/mechanics/boundaries.js';
@@ -55,15 +54,9 @@ export function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
   state.maleficentSevenTriggered = false;
 }
 
-/** Torment from a malicious finisher scales with the malice it was cast with. */
-function maliceTorment(
-  runtime: ThiefRuntime,
-  cast: RuntimeCast<ThiefSkill>,
-  profileId: SkillId,
-  malice: number,
-  trait: boolean
-) {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
+/** Pistol Torment scales with the malice the channel was cast with. */
+function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, malice: number) {
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.maliciousSneakAttack);
   const torment = requireEffect(profile, 'condition', 'Torment');
   if (!torment) return;
   const baseDuration = effectNumber(profile, torment, 'duration');
@@ -72,12 +65,9 @@ function maliceTorment(
     kind: 'packet',
     event: buildThiefCondition(cast.skill, {
       at: runtime.time,
-      ...(trait ? { source: 'Trait', name: 'Malicious Ashen Assault — Torment' } : {}),
       activationId: cast.id,
       condition: String(torment.condition),
-      // Pistol multiplies its duration unit by twice the consumed malice; spear adds its half-second base.
-      duration:
-        profileId === PROFILE.maliciousSneakAttack ? baseDuration * maliceDuration : baseDuration + maliceDuration,
+      duration: baseDuration * maliceDuration,
       stacks: effectNumber(profile, torment, 'stacks')
     })
   });
@@ -106,22 +96,6 @@ export const deadeyeSkillSideEffectHandlers: NonNullable<
   },
   'thief.sneak-torment'(runtime, context) {
     if (context.kind === 'cast')
-      maliceTorment(
-        runtime,
-        context.cast,
-        PROFILE.maliciousSneakAttack,
-        deadeyeCastFacts.get(context.cast)?.markedMalice ?? 0,
-        false
-      );
-  },
-  'thief.ashen-torment'(runtime, context) {
-    if (context.kind === 'cast')
-      maliceTorment(
-        runtime,
-        context.cast,
-        PROFILE.maliciousAshenAssault,
-        deadeyeCastFacts.get(context.cast)?.markedMalice ?? 0,
-        true
-      );
+      maliceTorment(runtime, context.cast, deadeyeCastFacts.get(context.cast)?.markedMalice ?? 0);
   }
 };

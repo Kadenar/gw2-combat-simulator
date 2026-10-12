@@ -171,7 +171,7 @@ const imbuedHaste = defineTrait({
         requireBalanceProfileFromContext(balanceContext, TRAIT.IMBUED_HASTE),
         'attributeBonus'
       ),
-      feedsConversions: true,
+      feedsConversions: 'all',
       enabled: loadout.assumptions.quickness !== false
     }))
   })

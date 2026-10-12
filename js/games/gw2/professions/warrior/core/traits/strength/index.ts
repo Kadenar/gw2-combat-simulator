@@ -1,6 +1,3 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -237,7 +234,7 @@ export const pinnacleOfStrength = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: might * balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         }
       ]
@@ -292,7 +289,7 @@ export const forcefulGreatsword = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD),
             'attributeBonus'
           ),
-          feedsConversions: true,
+          feedsConversions: 'all',
           enabled: true
         },
         {
@@ -302,7 +299,7 @@ export const forcefulGreatsword = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD),
             'weaponAttributeBonus'
           ),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: weapons.includes('Greatsword')
         }
       ]
@@ -324,6 +321,7 @@ export const greatFortitude = defineTrait({
     attributeConversion: 0.1
   },
   attributes(context) {
+    // Round eligible Power conversions; temporary Berserk Power never enters this pool.
     return {
       attributeEffects: [
         {
@@ -334,7 +332,7 @@ export const greatFortitude = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE),
             'attributeConversion'
           ),
-          rounding: 'none',
+          rounding: 'round',
           input: 'eligible',
           enabled: true
         },
@@ -346,7 +344,7 @@ export const greatFortitude = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE),
             'attributeConversion'
           ),
-          rounding: 'none',
+          rounding: 'round',
           input: 'eligible',
           enabled: true
         }
@@ -509,18 +507,6 @@ function forcefulGreatswordCritical(
       });
     }
   }
-}
-
-/** Only Berserk's authored Power increment joins Great Fortitude, never arbitrary live Power. */
-export function berserkFortitudeEffects(
-  context: Gw2ModifierContext,
-  powerBonus: number
-): readonly Gw2AttributeEffect[] {
-  if (!hasTrait(context, TRAIT.GREAT_FORTITUDE)) return [];
-  const amount =
-    powerBonus *
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE), 'attributeConversion');
-  return ['Vitality', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount, feedsConversions: false }));
 }
 
 /** Dragon Slash grants the charge-converted reward at completion. */

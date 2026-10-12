@@ -173,7 +173,7 @@ export const zealousBlade = defineTrait({
             zealousBladeProfile,
             mainHand === 'Greatsword' ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
-          feedsConversions: false
+          feedsConversions: 'none'
         }
       ]
     };

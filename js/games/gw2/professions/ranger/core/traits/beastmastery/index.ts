@@ -137,7 +137,7 @@ export const honedAxes = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'),
-          feedsConversions: false
+          feedsConversions: 'none'
         }
       ]
     };
@@ -168,7 +168,7 @@ export const packAlpha = defineTrait({
         requireBalanceProfileFromContext(balanceContext, TRAIT.PACK_ALPHA),
         'attributeBonus'
       ),
-      feedsConversions: false,
+      feedsConversions: 'none',
       enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
     }))
   })
@@ -189,7 +189,7 @@ export const petsProwess = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
         }
       ]

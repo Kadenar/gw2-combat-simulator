@@ -47,6 +47,9 @@ export const EQUIPMENT_ICONS: Readonly<Record<string, string>> = {
   'Magnanimous Tuning Crystal':
     'https://render.guildwars2.com/file/69DDBB1A79A104656C631204D4FC65C941D24319/1676541.png',
   'Potent Lucent Oil': 'https://render.guildwars2.com/file/B4335597D7C65F33163D5DFAB83A4E2734D2E2D4/2063492.png',
+  // Map the selectable crystal to its item icon so utility choices and equipped tiles display it.
+  'Potent Master Tuning Crystal':
+    'https://render.guildwars2.com/file/071410D26DC8480BA014C84A05EC7BE4DA0FDA5A/219373.png',
   'Superior Sharpening Stone': 'https://render.guildwars2.com/file/91AC9F70D30C5E3E22635DF4F30CAFA1F6F803A0/219361.png',
   'Toxic Maintenance Oil': 'https://render.guildwars2.com/file/7AB4D4BBBF563E0B5796C7CD645BDAB7BF9753B4/665780.png',
   'Toxic Sharpening Stone': 'https://render.guildwars2.com/file/09B6025D01199D77CACA2980A159D2C30F9D3256/665779.png',

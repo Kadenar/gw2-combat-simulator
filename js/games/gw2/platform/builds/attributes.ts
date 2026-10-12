@@ -1,11 +1,11 @@
-import { attributeSeedFromCommon } from '#gw2/platform/builds/attribute-inputs.js';
+import { attributeSeedFromCommon, equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
 import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
   criticalDamagePercentFromFerocity
 } from '#gw2/platform/combat/formulas.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
-import { UTILITY_DATA, UTILITY_STAT_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
+import { UTILITY_STAT_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
 import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
@@ -22,6 +22,7 @@ import type {
   Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,
   Gw2AttributeEffect,
+  Gw2AttributeConversionInputs,
   Gw2AttributeMap,
   Gw2Build,
   Gw2CalculateAttributes,
@@ -50,7 +51,9 @@ interface CalculateCommonAttributesOptions {
 
 interface FinalizeBuildAttributesOptions {
   readonly activeTraits: unknown;
+  readonly reinforcedArmorStats: Readonly<Gw2NumericAttributes>;
   readonly traitStats?: Readonly<Gw2NumericAttributes>;
+  readonly utilityStats?: Readonly<Gw2NumericAttributes>;
   readonly traitDurations?: Readonly<Gw2NumericAttributes>;
   readonly traitCriticalChance?: number;
 }
@@ -94,42 +97,86 @@ function addAttributes(target: Gw2NumericAttributes, source: Readonly<Gw2Numeric
   }
 }
 
-/**
- * Resolves flat attribute effects and conversions in separate phases. Only
- * explicitly eligible flat effects are added to the conversion snapshot, and
- * conversion results never become inputs to later conversions.
- */
-export function resolveAttributeEffects(
-  commonConversionPool: Readonly<Gw2NumericAttributes>,
-  effects: readonly Gw2AttributeEffect[]
-): Gw2NumericAttributes {
-  const traitStats: Gw2NumericAttributes = {};
-  let eligibleConversionPool = commonConversionPool;
+/** Keep each conversion owner's contribution available for final stat attribution. */
+export interface ResolvedAttributeEffects {
+  readonly attributes: Gw2NumericAttributes;
+  readonly utilityAttributes: Gw2NumericAttributes;
+  readonly reinforcedArmorAttributes: Gw2NumericAttributes;
+}
 
-  // Most declarations do not feed conversions; copy the source pool only when a flat grant changes it.
+/** Resolve eligible flat grants before grouped conversions, preserving immutable inputs and preventing chaining. */
+export function resolveAttributeEffects(
+  { conversionPool: commonConversionPool, conversions }: Gw2AttributeConversionInputs,
+  effects: readonly Gw2AttributeEffect[]
+): ResolvedAttributeEffects {
+  const attributes: Gw2NumericAttributes = {};
+  let eligibleConversionPool = commonConversionPool;
+  let genericConversionPool = commonConversionPool;
+
+  // Copy only pools that admit a flat grant; converted results never become new conversion inputs.
   for (const effect of effects) {
     if (effect.enabled === false || effect.kind !== 'flat') continue;
-    addAttribute(traitStats, effect.to, effect.amount);
-    if (effect.feedsConversions && effect.amount) {
+    addAttribute(attributes, effect.to, effect.amount);
+    if (effect.feedsConversions !== 'none' && effect.amount) {
       if (eligibleConversionPool === commonConversionPool) eligibleConversionPool = { ...commonConversionPool };
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
     }
+
+    if (effect.feedsConversions === 'all' && effect.amount) {
+      if (genericConversionPool === commonConversionPool) genericConversionPool = { ...commonConversionPool };
+      addAttribute(genericConversionPool, effect.to, effect.amount);
+    }
   }
+
+  const groups = new Map<
+    string,
+    {
+      to: string;
+      rounding: 'round' | 'floor' | 'none';
+      amounts: [number, number, number];
+    }
+  >();
+  const groupFor = (from: string, to: string, rounding: 'round' | 'floor' | 'none') => {
+    const key = from + ':' + to + ':' + rounding;
+    let group = groups.get(key);
+    if (!group) {
+      group = { to, rounding, amounts: [0, 0, 0] };
+      groups.set(key, group);
+    }
+
+    return group;
+  };
 
   for (const effect of effects) {
     if (effect.enabled === false || effect.kind !== 'conversion') continue;
-    const inputPool = effect.input === 'common' ? commonConversionPool : eligibleConversionPool;
-    const rawAmount = (inputPool[effect.from] ?? 0) * effect.multiplier;
-    const amount =
-      effect.rounding === 'round'
-        ? Math.round(rawAmount)
-        : effect.rounding === 'floor'
-          ? Math.floor(rawAmount)
-          : rawAmount;
-    addAttribute(traitStats, effect.to, amount);
+    const pool = effect.input === 'common' ? commonConversionPool : eligibleConversionPool;
+    groupFor(effect.from, effect.to, effect.rounding).amounts[0] += (pool[effect.from] ?? 0) * effect.multiplier;
   }
 
-  return traitStats;
+  for (const conversion of conversions) {
+    const index = conversion.source === 'utility' ? 1 : 2;
+    groupFor(conversion.from, conversion.to, conversion.rounding).amounts[index] +=
+      (genericConversionPool[conversion.from] ?? 0) * conversion.multiplier;
+  }
+
+  const utilityAttributes: Gw2NumericAttributes = {};
+  const reinforcedArmorAttributes: Gw2NumericAttributes = {};
+  const destinations = [attributes, utilityAttributes, reinforcedArmorAttributes];
+  // Each group rounds its cumulative total in attribution order: traits, utility, reinforcement.
+  // Successive deltas sum to exactly the rounded total without precomputed bonuses or subtraction of a seed baseline.
+  for (const { to, rounding, amounts } of groups.values()) {
+    let cumulative = 0;
+    let previous = 0;
+    for (let index = 0; index < amounts.length; index += 1) {
+      cumulative += amounts[index];
+      const current =
+        rounding === 'round' ? Math.round(cumulative) : rounding === 'floor' ? Math.floor(cumulative) : cumulative;
+      addAttribute(destinations[index], to, current - previous);
+      previous = current;
+    }
+  }
+
+  return { attributes, utilityAttributes, reinforcedArmorAttributes };
 }
 
 /** Builds a standard attribute breakdown for a derived percentage value. */
@@ -292,6 +339,8 @@ export function calculateCommonAttributes(
   }
 
   const conversionPool: Gw2NumericAttributes = {};
+  // Flat writ bonuses feed attribute conversions; percentage-based utility results never feed another conversion.
+  const utilityFlatStats = (UTILITY_STAT_DATA as Readonly<Record<string, Gw2NumericAttributes>>)[build.utility || ''];
   // Prebuilt stacks persist on either set and feed conversions; removing a sigil removes its bonus on both sets.
   const stackingSigil = stackingSigilForBuild(build);
   const sigilStats =
@@ -305,20 +354,12 @@ export function calculateCommonAttributes(
       (runes[stat] || 0) +
       (sigilStats[stat] || 0) +
       (foodConverted[stat] || 0) +
+      (utilityFlatStats?.[stat] || 0) +
       (infusions[stat] || 0) +
       (build.jadeBotCore ? JBC_BONUS[stat] || 0 : 0);
   }
 
-  for (const conversion of (
-    UTILITY_DATA as Readonly<Record<string, readonly { from: string; to: string; percent: number }[]>>
-  )[build.utility || ''] || []) {
-    // Each utility supplies its complete conversion rule, independent of other source-stat conversions.
-    const rate = conversion.percent / 100;
-    // GW2 stat conversions round each declared conversion independently.
-    addAttribute(utility, conversion.to, Math.round((conversionPool[conversion.from] || 0) * rate));
-  }
-
-  addAttributes(utility, (UTILITY_STAT_DATA as Readonly<Record<string, Gw2NumericAttributes>>)[build.utility || '']);
+  addAttributes(utility, utilityFlatStats);
 
   let sigilCriticalChance = 0;
   const selectedSigils = sigilNames || weaponSigilsForSet(build, weaponSet);
@@ -400,6 +441,7 @@ export function calculateCommonAttributes(
     commonContext: {
       // Pass eligible conversion inputs and duration bonuses to profession finalization.
       conversionPool,
+      conversions: equipmentAttributeConversions(build.utility),
       runeDurations,
       foodDurations,
       sigilDurations,
@@ -414,7 +456,14 @@ export function calculateCommonAttributes(
  */
 export function finalizeBuildAttributes(
   common: Gw2CommonAttributeResult,
-  { activeTraits, traitStats = {}, traitDurations = {}, traitCriticalChance = 0 }: FinalizeBuildAttributesOptions
+  {
+    activeTraits,
+    reinforcedArmorStats,
+    traitStats = {},
+    utilityStats = {},
+    traitDurations = {},
+    traitCriticalChance = 0
+  }: FinalizeBuildAttributesOptions
 ): Gw2FinalizedAttributeResult {
   // Clone before applying profession deltas so a common result can be reused
   // for disabled-trait comparisons without cross-run mutation.
@@ -422,6 +471,18 @@ export function finalizeBuildAttributes(
   for (const [name, amount] of Object.entries(traitStats)) {
     if (!attributes[name]) continue;
     attributes[name].traits += amount;
+    attributes[name].final += amount;
+  }
+
+  // Add the utility's resolved conversion once, retaining its source attribution alongside trait grants.
+  for (const [name, amount] of Object.entries(utilityStats)) {
+    if (!attributes[name]) continue;
+    attributes[name].utility += amount;
+    attributes[name].final += amount;
+  }
+
+  for (const [name, amount] of Object.entries(reinforcedArmorStats)) {
+    attributes[name].reinforcedArmor = amount;
     attributes[name].final += amount;
   }
 

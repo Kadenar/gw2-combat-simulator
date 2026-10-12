@@ -78,7 +78,7 @@ export const freshAir = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: activeBuffStacks(context, 'fresh-air', 1) > 0
         }
       ]
@@ -243,7 +243,7 @@ export const ragingStorm = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled:
             context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, 'fury')
         }
@@ -284,14 +284,14 @@ export const aeromancersTraining = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: primaryAttunement(context) === 'Air'
         }
       ]

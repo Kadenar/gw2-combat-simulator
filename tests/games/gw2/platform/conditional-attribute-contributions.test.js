@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
-import { attributeSeed, baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
+import {
+  attributeSeed,
+  baseAttributeInputs,
+  equipmentAttributeConversions
+} from '#gw2/platform/builds/attribute-inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
@@ -31,7 +35,7 @@ function scenario(name, specialization, traits, options = {}, family = families[
         { catalog: profession.catalog, modifierRulesById: new Map() }
       );
       return resolveAttributeContributions(
-        attributeSeed(config, context.weaponSet).conversionPool,
+        attributeSeed(config, context.weaponSet),
         family.attributeContributions(context)
       ).attributes;
     }
@@ -131,6 +135,35 @@ test('Enhanced Potency respects selection, actor Fury and the active patch', () 
   );
 });
 
+test('Elemental Refreshment feeds utility and reinforcement without compounding either conversion', () => {
+  // The intrinsic grant joins base Vitality, while reinforcement never feeds the tuning crystal back.
+  const attributeInputs = baseAttributeInputs({ vitality: 1235 });
+  for (const seed of attributeInputs.weaponSets)
+    seed.conversions = equipmentAttributeConversions('Magnanimous Tuning Crystal');
+  const weaver = scenario('elementalist', 'Weaver', ['Elemental Refreshment'], { attributeInputs });
+  const original = structuredClone(attributeInputs);
+  const stats = weaver.query.statsAt(0);
+  assert.equal(stats.vitality, 1486);
+  assert.equal(stats.conditionDamage, 72);
+  assert.deepEqual(attributeInputs, original);
+});
+
+test('Sand Sage feeds utility conversions only while a shade lives without chaining Fell Beacon', () => {
+  // The shade's flat Expertise feeds the crystal, while Expertise converted from Condition Damage cannot feed it back.
+  const attributeInputs = baseAttributeInputs({ precision: 1000, expertise: 600, conditionDamage: 1000 });
+  for (const seed of attributeInputs.weaponSets) seed.conversions = equipmentAttributeConversions('Tuning Icicle');
+  const scourge = scenario('necromancer', 'Scourge', ['Sand Sage', 'Fell Beacon'], { attributeInputs });
+  const runtime = { profession: { specialization: { kind: 'Scourge', state: { shades: [5] } } } };
+  const original = structuredClone({ attributeInputs, runtime });
+  const active = scourge.query.statsAt(4, null, runtime);
+  const expired = scourge.query.statsAt(5, null, runtime);
+  assert.equal(active.expertise, 895);
+  assert.equal(expired.expertise, 670);
+  assert.equal(active.conditionDamage, 1096);
+  assert.equal(expired.conditionDamage, 1078);
+  assert.deepEqual({ attributeInputs, runtime }, original);
+});
+
 test('Necromancer declarations observe shade and shroud expiry while Carapace reads stay pure', () => {
   const scourge = scenario('necromancer', 'Scourge', ['Sand Sage', 'Deadly Strength', 'Flesh of the Master']);
   const runtime = {
@@ -170,14 +203,14 @@ test('Warrior live flats stay outside ordinary conversions and Blood Reaction so
   const runtime = { profession: { specialization: { kind: 'Berserker', state: { berserkActive: false } } } };
   const before = probe.query.statsAt(0, null, runtime);
   assert.equal(before.power, 2000);
-  assert.equal(before.vitality, 1100);
+  assert.equal(before.vitality, 1150); // Reinforcement excludes converted Vitality.
   assert.equal(before.ferocity, 220);
   assert.equal(before.conditionDamage, 870);
   runtime.profession.specialization.state.berserkActive = true;
   const after = probe.query.statsAt(0, null, runtime);
   assert.equal(after.power, 2300);
-  assert.equal(after.vitality, 1130);
-  assert.equal(after.ferocity, 370);
+  assert.equal(after.vitality, 1150);
+  assert.equal(after.ferocity, 340);
   assert.equal(after.conditionDamage, 1140);
 });
 

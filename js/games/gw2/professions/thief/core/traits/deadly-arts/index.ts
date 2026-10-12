@@ -59,7 +59,7 @@ export const daggerTraining = defineTrait({
             daggerTrainingProfile,
             weapons.includes('Dagger') ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
-          feedsConversions: true
+          feedsConversions: 'all'
         }
       ]
     };
@@ -84,7 +84,7 @@ export const deadlyAmbition = defineTrait({
           kind: 'flat',
           to: 'Condition Damage',
           amount: balanceProfileNumber(deadlyAmbitionProfile, 'attributeBonus'),
-          feedsConversions: true
+          feedsConversions: 'all'
         }
       ]
     };
@@ -296,14 +296,14 @@ export const revealedTraining = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributePerStack'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: (state.revealedUntil || 0) > context.time && !revealingAttack
         }
       ]

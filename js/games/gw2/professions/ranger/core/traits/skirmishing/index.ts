@@ -276,7 +276,7 @@ export const stridersStrength = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'),
-          feedsConversions: false
+          feedsConversions: 'none'
         }
       ]
     };
@@ -311,7 +311,7 @@ export const viciousQuarry = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: loadout.assumptions.fury !== false
         }
       ]

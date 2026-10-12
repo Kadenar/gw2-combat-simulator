@@ -205,7 +205,7 @@ const gunsAndGlory = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: runtimeBuffActive(context, 'guns-and-glory')
         }
       ]

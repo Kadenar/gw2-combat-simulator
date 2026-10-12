@@ -70,7 +70,7 @@ export const empoweringFlame = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: primaryAttunement(context) === 'Fire'
         }
       ]
@@ -170,7 +170,7 @@ export const burningRage = defineTrait({
     effects: [{ type: 'condition', name: 'Sunspot Burning', condition: 'Burning', stacks: 2, duration: 4 }]
   },
   attributes: traitAttributeEffects(TRAIT.BURNING_RAGE, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 
@@ -194,7 +194,7 @@ export const powerOverwhelming = defineTrait({
             profile,
             primaryAttunement(context) === 'Fire' ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: elementalistMightStacks(context) >= balanceProfileNumber(profile, 'minimumStacks')
         }
       ]

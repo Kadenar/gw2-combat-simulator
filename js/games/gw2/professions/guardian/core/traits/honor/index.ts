@@ -119,7 +119,7 @@ export const forceOfWill = defineTrait({
   name: 'Force of Will',
   balance: { attributeBonus: 300 },
   attributes: traitAttributeEffects(TRAIT.FORCE_OF_WILL, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 
@@ -129,7 +129,7 @@ export const honorableStaff = defineTrait({
   name: 'Honorable Staff',
   balance: { attributeBonus: 120 },
   attributes: traitAttributeEffects(TRAIT.HONORABLE_STAFF, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 

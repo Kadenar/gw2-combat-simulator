@@ -150,7 +150,7 @@ export const roaringReveille = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.ROARING_REVEILLE),
             'attributeBonus'
           ),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         }
       ]

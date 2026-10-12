@@ -1,3 +1,4 @@
+import { equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
@@ -193,7 +194,7 @@ test('attribute phases sample declarations once per query and refresh after a sa
         attributes() {
           samples++;
           return {
-            attributeEffects: [{ kind: 'flat', to: 'Power', amount: bonus, feedsConversions: false }],
+            attributeEffects: [{ kind: 'flat', to: 'Power', amount: bonus, feedsConversions: 'none' }],
             mightPerStack: { power: 2 },
             finalCondition: { condition: 'Burning', powerMultiplier: 0.1 }
           };
@@ -224,7 +225,7 @@ test('attribute selection is fixed per query and rebuilt for a new run', () => {
         ...metadata,
         attributes: (context) => ({
           attributeEffects: [
-            { kind: 'flat', to: 'Power', amount: hasTrait(context, 101) ? 20 : 0, feedsConversions: false }
+            { kind: 'flat', to: 'Power', amount: hasTrait(context, 101) ? 20 : 0, feedsConversions: 'none' }
           ]
         })
       })
@@ -245,7 +246,7 @@ test('attribute selection is fixed per query and rebuilt for a new run', () => {
 
 // Exercise declarative effects through the same selection, preview, and provenance pipeline as custom contributions.
 const fixtureAttributeEffects = traitAttributeEffects(101, [
-  { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: true },
+  { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' },
   {
     kind: 'conversion',
     from: 'Power',
@@ -404,7 +405,7 @@ test('definition attributes use resolved minors, eligible conversions and patch 
   // The module grant feeds conversions in both build and live queries, even when the trait is disabled.
   const family = previewFamily(
     moduleWith([trait], {
-      attributes: () => [{ attributeEffects: [{ kind: 'flat', to: 'Power', amount: 10, feedsConversions: true }] }]
+      attributes: () => [{ attributeEffects: [{ kind: 'flat', to: 'Power', amount: 10, feedsConversions: 'all' }] }]
     })
   );
   const { getActiveTraits } = createProfessionTraitData([{ name: 'Line', minorTraits: [metadata], majorTraits: [] }]);
@@ -470,8 +471,8 @@ test('trait attribute helpers resolve overridden profile IDs without changing co
     ['eligible', 'round', 19, 36]
   ]) {
     const contribute = traitAttributeEffects(profileId, [
-      { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: true },
-      { kind: 'flat', to: 'Power', field: 'weaponAttributeBonus', feedsConversions: false },
+      { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' },
+      { kind: 'flat', to: 'Power', field: 'weaponAttributeBonus', feedsConversions: 'none' },
       { kind: 'conversion', from: 'Power', to: 'Ferocity', field: 'attributeConversion', input, rounding }
     ]);
     for (const [patchId, power, ferocity] of [
@@ -480,7 +481,16 @@ test('trait attribute helpers resolve overridden profile IDs without changing co
       ['current', 50, current]
     ]) {
       const { attributeEffects } = contribute({ balanceContext: family.balanceContextFor(patchId) });
-      assert.deepEqual(resolveAttributeEffects({ Power: 105 }, attributeEffects), { Power: power, Ferocity: ferocity });
+      assert.deepEqual(
+        resolveAttributeEffects(
+          { conversionPool: { Power: 105 }, conversions: equipmentAttributeConversions() },
+          attributeEffects
+        ).attributes,
+        {
+          Power: power,
+          Ferocity: ferocity
+        }
+      );
     }
   }
 });
@@ -567,14 +577,14 @@ test('prepared attribute declarations isolate patch profiles while live bonuses 
           ...metadata,
           balance: { attributeBonus: 20 },
           attributes: traitAttributeEffects(101, [
-            { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: false }
+            { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'none' }
           ])
         }),
         defineTrait({
           id: 102,
           name: 'Live bonus',
           attributes: () => ({
-            attributeEffects: [{ kind: 'flat', to: 'Power', amount: liveBonus, feedsConversions: false }]
+            attributeEffects: [{ kind: 'flat', to: 'Power', amount: liveBonus, feedsConversions: 'none' }]
           })
         })
       ])

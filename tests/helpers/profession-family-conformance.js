@@ -98,12 +98,12 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     assert.equal(runtime.id, family.id);
     const state = runtime.createState(config);
     const expectedCoreState = core.state.create(config, {
-      attributes: { vitality: 1000 },
+      attributes: { vitality: 1050 }, // Shared Reinforced Armor is included before resource state is constructed.
       balanceContext: { catalog: family.catalog, modifierRulesById: new Map() }
     });
     const expectedSpecializationState = specialization
       ? specialization.state.create(config, {
-          attributes: { vitality: 1000 },
+          attributes: { vitality: 1050 },
           balanceContext: { catalog: family.catalog, modifierRulesById: new Map() }
         })
       : {};

@@ -5,7 +5,12 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireEffect,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
@@ -737,36 +742,19 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
-    // Snapshot rewards commit before the shared lifecycle releases the acceptance facts.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'thief.spear-chain' } },
-      {
-        on: 'castCommit',
-        do: {
-          type: 'resourceGrant',
-          resource: 'initiative',
-          amount: { profile: PROFILE.maliciousAshenAssault, field: 'resourceGain' }
-        }
-      },
-      {
-        on: 'castCommit',
-        when: (_runtime, cast) => (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) > 0,
-        do: { type: 'thief.ashen-torment' }
-      }
-    ],
+    // Landed strikes own the initiative refund; the final packet owns accepted-malice Torment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
     effectVariants: [
       {
         when: () => true,
         transform: (runtime, cast, effects) => {
+          const profile = requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault);
+          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
           const factor =
             1 +
             // An unmarked or missed attack cannot receive a bonus from malice it does not consume.
-            (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) *
-              balanceProfileNumber(
-                requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault),
-                'coefficientMultiplier'
-              );
-          return effects.map((effect) =>
+            malice * balanceProfileNumber(profile, 'coefficientMultiplier');
+          const scaled = effects.map((effect) =>
             effect.type !== 'strike' || effect.name !== 'Malicious Ashen Assault — Final Strike'
               ? effect
               : effect.ticks?.length
@@ -776,19 +764,51 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
                   }
                 : { ...effect, coefficient: (effect.coefficient || 0) * factor }
           );
+          // Author Torment beside the final strike so a partial channel cannot emit the finisher reward.
+          const final = effects.find(
+            (effect) => effect.type === 'strike' && effect.name === 'Malicious Ashen Assault — Final Strike'
+          );
+          if (malice <= 0 || final?.type !== 'strike') return scaled;
+          const torment = requireEffect(profile, 'condition', 'Torment');
+          if (!torment) return scaled;
+          return [
+            ...scaled,
+            ...impactEffects(
+              {
+                atMs: final.ticks?.[0]?.atMs ?? final.atMs ?? 0,
+                timingAnchor: final.timingAnchor,
+                timingScale: final.timingScale
+              },
+              [
+                {
+                  type: 'condition',
+                  condition: 'Torment',
+                  name: 'Malicious Ashen Assault — Torment',
+                  source: 'Trait',
+                  actorType: 'player',
+                  duration:
+                    effectNumber(profile, torment, 'duration') +
+                    malice * balanceProfileNumber(profile, 'durationMultiplier'),
+                  stacks: effectNumber(profile, torment, 'stacks')
+                }
+              ]
+            )
+          ];
         }
       }
     ],
     preservesStealth: true,
     spearStealthAttack: true,
 
-    castTimeMs: 400,
+    // Malicious Ashen Assault shares the measured spear channel and finishes its damage before aftercast.
+    castTimeMs: 1200,
+    interruptMode: 'per-packet',
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
         type: 'strike',
-        ticks: [160, 360, 520, 680, 880].map((atMs) => ({
+        ticks: [320, 480, 560, 640, 760].map((atMs) => ({
           atMs,
           coefficient: 1.5 / 5
         })),
@@ -797,7 +817,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
           coefficient: 0.3,

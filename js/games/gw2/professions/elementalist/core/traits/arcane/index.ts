@@ -155,7 +155,7 @@ export const elementalEnchantment = defineTrait({
     rechargeMultiplier: 0.85
   },
   attributes: traitAttributeEffects(TRAIT.ELEMENTAL_ENCHANTMENT, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 
@@ -177,7 +177,7 @@ export const arcaneLightning = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
         }
       ]

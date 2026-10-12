@@ -28,7 +28,7 @@ for (const [name, specialization, traits, extra, key, expected] of [
   ['guardian', 'Core', ['Force of Will', 'Power of the Virtuous'], {}, 'conditionDamage', 91],
   ['mesmer', 'Virtuoso', ['Quiet Intensity'], { vitality: 1005 }, 'ferocity', 101],
   ['necromancer', 'Harbinger', ['Spiteful Fortitude', 'Alchemic Vigor', 'Dark Gunslinger'], {}, 'expertise', 124],
-  ['ranger', 'Untamed', ['Natural Fortitude'], {}, 'vitality', 1240],
+  ['ranger', 'Untamed', ['Natural Fortitude'], {}, 'vitality', 1290],
   ['revenant', 'Core', ['Versed in Stone'], {}, 'power', 1130],
   ['thief', 'Specter', ['Second Opinion'], { conditionDamage: 1000 }, 'healingPower', 83],
   ['warrior', 'Core', ['Forceful Greatsword', 'Great Fortitude'], {}, 'ferocity', 112]
@@ -60,10 +60,7 @@ for (const [name, specialization, traits, extra, key, expected] of [
       { config, time: 0, catalog: runtime.catalog },
       { catalog: runtime.catalog, modifierRulesById: new Map() }
     );
-    const declared = resolveAttributeContributions(
-      attributeSeed(config).conversionPool,
-      family.attributeContributions(context)
-    );
+    const declared = resolveAttributeContributions(attributeSeed(config), family.attributeContributions(context));
     const label = {
       ferocity: 'Ferocity',
       concentration: 'Concentration',
@@ -73,7 +70,9 @@ for (const [name, specialization, traits, extra, key, expected] of [
       power: 'Power',
       healingPower: 'Healing Power'
     }[key];
-    assert.equal(first[key], (attributeSeed(config).commonTotals[key] ?? 0) + (declared.attributes[label] ?? 0));
+    const ordinary = (attributeSeed(config).commonTotals[key] ?? 0) + (declared.attributes[label] ?? 0);
+    // Reinforced Armor is a final Vitality bonus and does not change the ordinary conversion declarations.
+    assert.equal(first[key], ordinary + (key === 'vitality' ? (declared.reinforcedArmorAttributes.Vitality ?? 0) : 0));
   });
 
 // Every Core/elite configuration survives the same worker serialization and resource preparation boundary.
@@ -102,6 +101,13 @@ test('canonical attribute inputs reject missing sets and non-finite conversion v
   const input = baseAttributeInputs();
   input.weaponSets[0].conversionPool.Power = Infinity;
   assert.throws(() => validateAttributeInputs(input), /finite/);
+  // Seed-owned declarations must survive worker serialization and cannot be silently omitted or malformed.
+  const missingConversions = baseAttributeInputs();
+  delete missingConversions.weaponSets[0].conversions;
+  assert.throws(() => validateAttributeInputs(missingConversions), /conversion declarations/);
+  const invalidConversion = baseAttributeInputs();
+  invalidConversion.weaponSets[0].conversions[0].multiplier = NaN;
+  assert.throws(() => validateAttributeInputs(invalidConversion), /valid conversion declarations/);
 });
 
 // Temporary Might and a weapon swap cannot change the declared conversion's input policy.
@@ -121,8 +127,8 @@ test('ordinary conversions use the active common pool without consuming Might or
   const second = query.statsAt(0, null, { activeWeaponSet: 2 });
   assert.equal(first.power, 2250);
   assert.equal(second.power, 3250);
-  assert.equal(first.vitality, 1240 + Math.round(1500 * 0.1));
-  assert.equal(second.vitality, 1240 + Math.round(2500 * 0.1));
+  assert.equal(first.vitality, 1452);
+  assert.equal(second.vitality, 1552);
   assert.equal(first.expertise, 124);
   assert.equal(second.expertise, 124);
 });
@@ -163,7 +169,7 @@ test('Necromancer resource preparation uses patched attribute declarations once'
   };
   const runtime = patched.runtimeFor(config);
   const query = createGw2CombatQuery({ profession: runtime, config });
-  assert.equal(query.statsAt(0).vitality, 1500);
+  assert.equal(query.statsAt(0).vitality, 1575);
   const baseline = family
     .runtimeFor({ specialization: 'Harbinger' })
     .createState({ specialization: 'Harbinger', attributeInputs: baseAttributeInputs({ vitality: 1500 }) });

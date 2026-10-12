@@ -165,7 +165,8 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
         power: 1000,
         ferocity: 0,
         conditionDamage: 0,
-        precision: 1000
+        precision: 1000,
+        vitality: 1000
       };
       const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
         {
@@ -184,7 +185,8 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
         power: 1000,
         ferocity: 0,
         conditionDamage: merged ? 175 : 0,
-        precision: merged ? 1125 : 1000
+        precision: merged ? 1125 : 1000,
+        vitality: 1050
       });
       assert.equal(input.power, 1000);
     }

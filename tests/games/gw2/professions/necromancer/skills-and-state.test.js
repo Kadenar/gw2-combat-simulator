@@ -470,7 +470,8 @@ test('Scourge fixed costs preserve build scaling on the percentage meter', () =>
         attributeInputs: baseAttributeInputs({ vitality }),
         selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : []
       };
-      const expectedCost = (4606 * 100) / ((9212 + vitality * 10) * 0.69 * (battery ? 1.2 : 1));
+      // Life-force capacity reads final Vitality, including the universal armor reinforcement.
+      const expectedCost = (4606 * 100) / ((9212 + vitality * 1.05 * 10) * 0.69 * (battery ? 1.2 : 1));
       const allowed = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost + 0.01 });
       const denied = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost - 0.01 });
       assert.deepEqual(allowed.warnings, []);
@@ -506,7 +507,8 @@ test('Scourge percentage costs use the selected balance profiles', () => {
       selectedTraitIds: [TRAIT.SOUL_BATTERY, TRAIT.SPITEFUL_FORTITUDE, TRAIT.VITAL_PERSISTENCE]
     });
   const result = run(1.5);
-  const expectedCost = (4606 * 100) / ((9212 + (1000 + 2000 * 0.2 + 100) * 10) * 0.69 * 1.5);
+  // Reinforced Armor uses base Vitality; neither Vital Persistence nor converted Vitality feeds it.
+  const expectedCost = (4606 * 100) / ((9212 + (1000 + 2000 * 0.2 + 100 + 50) * 10) * 0.69 * 1.5);
   assert.deepEqual(result.warnings, []);
   assert.ok(Math.abs(result.planningState.profession.lifeForce.value - (50 - expectedCost)) < 1e-10);
   assert.throws(() => run(0), /Life-force capacity multiplier must be positive/);

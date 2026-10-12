@@ -45,7 +45,7 @@ export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) =
           kind: 'flat' as const,
           to,
           amount: titanic,
-          feedsConversions: false
+          feedsConversions: 'none' as const
         }))
       ]
     }

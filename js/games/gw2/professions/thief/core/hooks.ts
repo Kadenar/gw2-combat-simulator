@@ -11,6 +11,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
@@ -35,6 +36,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/scepter.js';
 import { activateAssassinsSignet } from '#gw2/professions/thief/core/mechanics/signets.js';
 import {
+  ashenAssaultLifecycle,
   grantDistractingThrowWindow,
   thiefSpearAvailability,
   unsuspectingStrikeBonus,
@@ -289,6 +291,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
 /** Compose skill-owned lifecycle behavior with the shared profession rules. */
 export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
   infiltratorsSignetLifecycle,
+  ashenAssaultLifecycle(ID.ASHEN_ASSAULT, PROFILE.ashenAssaultRefund),
   coreLifecycle
 ]);
 

@@ -71,6 +71,43 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
   );
 });
 
+test('Empowerment scales defensive and healing attributes without compounding Reinforced Armor', () => {
+  // Partial stacks expose joint Vitality rounding; expiry must remove empowerment while retaining reinforcement.
+  const { app } = createNativeApp({ lines: [['Catalyst', '2-1-2']], jadeBotCore: true });
+  const buildConfig = elementalistAppAdapter.simulationConfig(app);
+  assert.equal(
+    catalystAttributePool({ config: buildConfig, catalog: elementalistCatalog, time: 0 }).vitality,
+    buildConfig.attributeInputs.weaponSets[0].conversionPool.Vitality
+  );
+  const config = {
+    attributeInputs: baseAttributeInputs({ vitality: 1235, toughness: 1000, healingPower: 400 })
+  };
+  for (const [stacks, at, vitality, toughness, healingPower] of [
+    [3, 0, 1352, 1045, 418],
+    [10, 0, 1544, 1200, 480],
+    [10, 10, 1297, 1000, 400]
+  ]) {
+    const resolved = evaluateAttributeDeclarations(
+      {
+        config,
+        catalog: elementalistCatalog,
+        traits: new Set([TRAIT.EMPOWERED_EMPOWERMENT]),
+        time: at,
+        runtime: {
+          profession: {
+            specialization: { kind: 'Catalyst', state: { elementalEmpowermentExpiries: Array(stacks).fill(10) } }
+          }
+        }
+      },
+      { vitality: 1235, toughness: 1000, healingPower: 400 },
+      (context) => [elementalEmpowermentAttributes(context)]
+    );
+    assert.equal(resolved.vitality, vitality);
+    assert.equal(resolved.toughness, toughness);
+    assert.equal(resolved.healingPower, healingPower);
+  }
+});
+
 // The field and enhanced burst share the projectile release clock.
 test('Frozen Fusillade detonates at field expiry', () => {
   const result = runNative({
@@ -257,6 +294,8 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
     {
       power: 1500,
       precision: 1500,
+      toughness: 1000,
+      vitality: 1000,
       ferocity: 1500,
       conditionDamage: 1500,
       expertise: 1500,
@@ -268,6 +307,8 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
   assert.deepEqual(attributes, {
     power: 1700,
     precision: 1700,
+    toughness: 1200,
+    vitality: 1250,
     ferocity: 1700,
     conditionDamage: 1700,
     expertise: 1700,

@@ -564,8 +564,7 @@ export function defineNativeProfession<
         attributes: import('#gw2/platform/combat/stats.js').Gw2Stats
       ) =>
         applyAttributeContributions(
-          attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet)
-            .conversionPool,
+          attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet),
           attributes,
           queryContributions(context)
         )
@@ -582,7 +581,7 @@ export function defineNativeProfession<
           composeStateFragments(selected, config, {
             balanceContext: selectedBalance,
             attributes: applyAttributeContributions(
-              attributeSeed(config).conversionPool,
+              attributeSeed(config),
               attributeSeed(config).commonTotals,
               calculateContributions(attributeContext({ config, time: 0 }, selectedBalance))
             )

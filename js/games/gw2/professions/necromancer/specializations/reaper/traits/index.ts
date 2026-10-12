@@ -270,7 +270,7 @@ const reapersOnslaught = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: necromancerActiveShroud(context) === 'reaper'
         }
       ]

@@ -7,7 +7,7 @@ export const attributeTrait = defineTrait<ElementalistSkill>({
   name: 'Typed attributes',
   balance: { bonus: 20, conversion: 0.1 },
   attributes: traitAttributeEffects(1, [
-    { kind: 'flat', to: 'Power', field: 'bonus', feedsConversions: true },
+    { kind: 'flat', to: 'Power', field: 'bonus', feedsConversions: 'all' },
     {
       kind: 'conversion',
       from: 'Power',
@@ -37,7 +37,7 @@ if (false) {
       kind: 'flat',
       to: 'Power',
       field: 'bonus',
-      feedsConversions: true,
+      feedsConversions: 'all',
       // @ts-expect-error Conditional contributions belong in explicit callbacks.
       enabled: false
     }
@@ -47,7 +47,7 @@ if (false) {
       kind: 'flat',
       to: 'Power',
       field: 'bonus',
-      feedsConversions: true,
+      feedsConversions: 'all',
       // @ts-expect-error Values come from the selected balance profile.
       amount: 20
     }

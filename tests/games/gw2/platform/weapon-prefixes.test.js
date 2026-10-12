@@ -143,8 +143,8 @@ test('runtime stats follow chronological weapon-set swaps', () => {
     events: [{ type: 'weapon_set', at: 1, weaponSet: 2 }]
   });
 
-  assert.equal(query.statsAt(0.5).power, config.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[0].power);
-  assert.equal(query.statsAt(1).power, config.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[1].power);
+  assert.equal(query.statsAt(0.5).power, calculateAttributes(build, [], 1).attributes.Power.final);
+  assert.equal(query.statsAt(1).power, calculateAttributes(build, [], 2).attributes.Power.final);
   assert.equal(
     query.statsAt(1).conditionDamage,
     calculateAttributes(
@@ -155,7 +155,7 @@ test('runtime stats follow chronological weapon-set swaps', () => {
   );
   assert.equal(
     query.statsAt(0, null, { activeWeaponSet: 2 }).power,
-    config.attributeInputs.weaponSets.map((seed) => seed.commonTotals)[1].power
+    calculateAttributes(build, [], 2).attributes.Power.final
   );
   assert.notEqual(query.statsAt(0.5).power, query.statsAt(1).power);
 });

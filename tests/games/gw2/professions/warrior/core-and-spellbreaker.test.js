@@ -707,7 +707,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, vitality: 1000 },
     (context) => [
       ...berserkerModule.attributes(context),
       ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
@@ -718,7 +718,8 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     power: 1300,
     precision: 1000,
     ferocity: 240,
-    conditionDamage: 390
+    conditionDamage: 390,
+    vitality: 1050
   });
 
   const bloodReactionOutsideBerserk = evaluateAttributeDeclarations(
@@ -734,7 +735,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+    { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, vitality: 1000 },
     (context) => [
       ...berserkerModule.attributes(context),
       ...(hasTrait(context, TRAIT.BLOOD_REACTION) ? [bloodReaction.attributes(context)] : [])
@@ -745,10 +746,11 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     power: 1000,
     precision: 1000,
     ferocity: 120,
-    conditionDamage: 120
+    conditionDamage: 120,
+    vitality: 1050
   });
 
-  const greatFortitude = evaluateAttributeDeclarations(
+  const berserkWithGreatFortitude = evaluateAttributeDeclarations(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.GREAT_FORTITUDE] },
@@ -774,12 +776,13 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     ]
   );
 
-  assert.deepEqual(greatFortitude, {
+  // Berserk's own declarations must not add converted stats on top of Great Fortitude's ordinary conversion.
+  assert.deepEqual(berserkWithGreatFortitude, {
     power: 1300,
     precision: 0,
-    ferocity: 130,
+    ferocity: 100,
     conditionDamage: 150,
-    vitality: 1030
+    vitality: 1050
   });
 
   const strikeDamage = (selectedTraitIds) =>
@@ -1296,14 +1299,15 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
         }
       }
     },
-    { power: 1000, precision: 1000, ferocity: 0 },
+    { power: 1000, precision: 1000, ferocity: 0, vitality: 1000 },
     (context) => [attackersInsight.grantedAttributes(context)]
   );
 
   assert.deepEqual(attributes, {
     power: 1250,
     precision: 1250,
-    ferocity: 250
+    ferocity: 250,
+    vitality: 1050
   });
 
   const kick = simulate('Spellbreaker', ['Kick'], {

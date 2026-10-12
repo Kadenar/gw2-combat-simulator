@@ -16,7 +16,8 @@ import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-
 import {
   calculateCommonAttributes,
   createCalculateAttributes,
-  finalizeBuildAttributes
+  finalizeBuildAttributes,
+  resolveAttributeEffects
 } from '#gw2/platform/builds/attributes.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -37,6 +38,27 @@ const replaceBuild = (saved) => replaceBuildFor(saved, mesmerAppAdapter);
 
 // Canonical commands keep the intended specialization variant when skills share a display name.
 const cast = (skillId) => ({ type: 'cast', skillId });
+
+test('flat writ attributes feed conversions while converted utility attributes do not', () => {
+  // Writs enter the shared source pool once, allowing Evolve and native traits to convert their flat grants.
+  const build = createDefaultBuild();
+
+  build.utility = '';
+  const baseline = calculateCommonAttributes(build);
+  for (const [utility, stat] of [
+    ['Writ of Masterful Strength', 'Power'],
+    ['Writ of Masterful Malice', 'Condition Damage']
+  ]) {
+    const result = calculateCommonAttributes({ ...build, utility });
+    assert.equal(result.attributes[stat].final - baseline.attributes[stat].final, 200);
+    assert.equal(result.commonContext.conversionPool[stat] - baseline.commonContext.conversionPool[stat], 200);
+  }
+
+  const converted = calculateCommonAttributes({ ...build, utility: 'Superior Sharpening Stone' });
+  assert.equal(converted.attributes.Power.utility, 0);
+  assert.ok(converted.commonContext.conversions.some((conversion) => conversion.source === 'utility'));
+  assert.deepEqual(converted.commonContext.conversionPool, baseline.commonContext.conversionPool);
+});
 
 test('config preparation calculates each affected weapon set once and reuses the displayed set for hooks', () => {
   const calculatedSets = [];
@@ -201,26 +223,30 @@ test('every Celestial slot grants equal Vitality and Healing Power', () => {
 
 test('a Celestial helm contributes Vitality and Healing Power before utility conversion', () => {
   // Isolate one item so missing gear stats cannot hide behind profession or upgrade bonuses.
-  const { attributes } = calculateCommonAttributes({
+  const common = calculateCommonAttributes({
     gear: { Helm: 'Celestial' },
     utility: 'Magnanimous Tuning Crystal'
   });
+  const { attributes } = common;
+  const resolved = resolveAttributeEffects(common.commonContext, []);
 
   assert.equal(attributes.Vitality.gear, 30);
   assert.equal(attributes.Vitality.final, 1030);
   assert.equal(attributes['Healing Power'].gear, 30);
   assert.equal(attributes['Healing Power'].final, 30);
-  assert.equal(attributes['Condition Damage'].utility, 62);
-  assert.equal(attributes['Condition Damage'].final, 92);
+  assert.equal(resolved.utilityAttributes['Condition Damage'], 62);
+  assert.equal(attributes['Condition Damage'].final + resolved.utilityAttributes['Condition Damage'], 92);
 });
 
 test('Potent Master Tuning Crystal converts Precision and Expertise to Condition Damage', () => {
   // A single Viper item supplies both conversion sources and keeps utility bonuses out of the source pool.
   const build = { gear: { Helm: "Viper's" } };
   const base = calculateCommonAttributes(build).attributes;
-  const { attributes } = calculateCommonAttributes({ ...build, utility: 'Potent Master Tuning Crystal' });
+  const common = calculateCommonAttributes({ ...build, utility: 'Potent Master Tuning Crystal' });
+  const { attributes } = common;
+  const resolved = resolveAttributeEffects(common.commonContext, []);
   assert.equal(
-    attributes['Condition Damage'].utility,
+    resolved.utilityAttributes['Condition Damage'],
     Math.round(base.Precision.final * 0.03) + Math.round(base.Expertise.final * 0.08)
   );
   assert.equal(attributes.Precision.final, base.Precision.final);
@@ -231,7 +257,9 @@ test('Leviathan Tempering Oil grants three percent of every primary attribute', 
   // Real Celestial gear exercises every primary stat without injecting alternate gear tables.
   const build = { gear: { Helm: 'Celestial' } };
   const sourceStats = calculateCommonAttributes(build).attributes;
-  const { attributes } = calculateCommonAttributes({ ...build, utility: 'Leviathan Tempering Oil' });
+  const common = calculateCommonAttributes({ ...build, utility: 'Leviathan Tempering Oil' });
+  const { attributes } = common;
+  const resolved = resolveAttributeEffects(common.commonContext, []);
   for (const name of [
     'Power',
     'Precision',
@@ -245,8 +273,8 @@ test('Leviathan Tempering Oil grants three percent of every primary attribute', 
   ]) {
     const source = sourceStats[name].final;
     const expectedBonus = Math.round(source * 0.03);
-    assert.equal(attributes[name].utility, expectedBonus, name);
-    assert.equal(attributes[name].final, source + expectedBonus, name);
+    assert.equal(resolved.utilityAttributes[name], expectedBonus, name);
+    assert.equal(attributes[name].final + resolved.utilityAttributes[name], source + expectedBonus, name);
   }
 });
 
@@ -408,6 +436,7 @@ test('shared build finalization applies deltas and rebuilds derived stats', () =
   const activeTraits = [{ id: 1, name: 'Test Trait' }];
   const result = finalizeBuildAttributes(common, {
     activeTraits,
+    reinforcedArmorStats: { Vitality: Math.round(common.commonContext.conversionPool.Vitality * 0.05) },
     traitStats: {
       Power: 10,
       Precision: 21,

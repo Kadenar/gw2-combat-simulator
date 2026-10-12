@@ -13,7 +13,7 @@ export const thiefPassiveAttributes: Gw2AttributeContributionCalculator = (conte
       {
         kind: 'flat',
         to: 'Power',
-        feedsConversions: false,
+        feedsConversions: 'none',
         amount:
           hasSelectedSkillId(context, ID.ASSASSINS_SIGNET) && buffActive(context, 'assassins-signet')
             ? balanceProfileNumber(

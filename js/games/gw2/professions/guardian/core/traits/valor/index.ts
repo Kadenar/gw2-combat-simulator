@@ -33,7 +33,7 @@ export const stalwartDefender = defineTrait({
           kind: 'flat',
           to: 'Toughness',
           amount: balanceProfileNumber(stalwartDefenderProfile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: offHand === 'Shield'
         }
       ]

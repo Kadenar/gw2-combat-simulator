@@ -42,14 +42,14 @@ const beQuickOrBeKilled = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: boonActive(context, 'quickness')
         },
         {
           kind: 'flat',
           to: 'Precision',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: boonActive(context, 'quickness')
         }
       ]
@@ -192,7 +192,7 @@ const premeditation = defineTrait({
           kind: 'flat',
           to: 'Concentration',
           amount: balanceProfileNumber(premeditationProfile, 'attributeBonus'),
-          feedsConversions: false
+          feedsConversions: 'none'
         }
       ]
     };
@@ -217,7 +217,7 @@ const silentScope = defineTrait({
           kind: 'flat',
           to: 'Precision',
           amount: balanceProfileNumber(silentScopeProfile, 'attributeBonus'),
-          feedsConversions: true
+          feedsConversions: 'all'
         }
       ]
     };

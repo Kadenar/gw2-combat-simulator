@@ -183,7 +183,7 @@ const forcefulPersistence = defineTrait({
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 const reinforcedPotency = defineTrait({
   attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
   ]),
   id: TRAIT.REINFORCED_POTENCY,
   name: 'Reinforced Potency',

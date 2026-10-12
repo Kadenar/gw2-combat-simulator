@@ -191,7 +191,7 @@ const lightsGift = defineTrait({
   name: "Light's Gift",
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
   ])
 });
 

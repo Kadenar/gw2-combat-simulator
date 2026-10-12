@@ -202,7 +202,7 @@ export const noQuarter = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(noQuarterProfile, 'attributeBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: Boolean(thiefBuild.assumptions.fury)
         }
       ]

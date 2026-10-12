@@ -38,7 +38,7 @@ export const attackersInsight = defineTrait({
         kind: 'flat',
         to,
         amount,
-        feedsConversions: false
+        feedsConversions: 'none'
       }))
     };
   },

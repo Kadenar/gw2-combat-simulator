@@ -32,7 +32,7 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
   const petName = professionCoreState(context).activePet;
   const attributes = { ...rangerPetBaseAttributes(petName) };
   const family = rangerPetByName(petName).family;
-  const bonuses = resolveAttributeContributions({}, [
+  const bonuses = resolveAttributeContributions({ conversionPool: {}, conversions: [] }, [
     {
       attributeEffects: [
         ...beastmasteryPetAttributes(context),
@@ -92,6 +92,6 @@ function skirmishingPetAttributes(
     if (!hasTrait(context, id)) return [];
     if (id === TRAIT.FANG_AND_CLAW && !['feline', 'avian', 'drake'].includes(family)) return [];
     const amount = balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
-    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: false }));
+    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
   });
 }

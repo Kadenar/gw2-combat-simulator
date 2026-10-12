@@ -114,7 +114,7 @@ export const awakenThePain = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: might * balanceProfileNumber(profile, 'attributePerStack'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         }
       ]

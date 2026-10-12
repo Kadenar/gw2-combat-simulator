@@ -1,11 +1,34 @@
 import type {
   Gw2AttributeInputs,
   Gw2AttributeSeed,
+  Gw2SeedAttributeConversion,
   Gw2CommonAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { UTILITY_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
+
+/** Seed declarations keep utilities and permanent reinforcement in the same grouped conversion phase. */
+export function equipmentAttributeConversions(utility = ''): readonly Gw2SeedAttributeConversion[] {
+  const conversions: Gw2SeedAttributeConversion[] = Object.hasOwn(UTILITY_DATA, utility)
+    ? UTILITY_DATA[utility as keyof typeof UTILITY_DATA].map(({ from, to, percent }) => ({
+        source: 'utility',
+        from,
+        to,
+        multiplier: percent / 100,
+        rounding: 'round'
+      }))
+    : [];
+  conversions.push({
+    source: 'reinforcedArmor',
+    from: 'Vitality',
+    to: 'Vitality',
+    multiplier: 0.05,
+    rounding: 'round'
+  });
+  return conversions;
+}
 
 export const ATTRIBUTE_NAMES = Object.freeze({
   power: 'Power',
@@ -37,7 +60,7 @@ export function baseAttributeInputs(base: Gw2Stats = {}, alternate: Gw2Stats = b
     const conversionPool = Object.fromEntries(
       Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => [name, commonTotals[key as keyof typeof ATTRIBUTE_NAMES]])
     );
-    return { commonTotals, conversionPool, sources: {} };
+    return { commonTotals, conversionPool, conversions: equipmentAttributeConversions(), sources: {} };
   };
 
   const inputs = { weaponSets: [seed(base), seed(alternate)] as const };
@@ -55,8 +78,22 @@ export function validateAttributeInputs(value: unknown): asserts value is Gw2Att
     throw new TypeError('Attribute inputs require exactly two weapon-set seeds.');
   for (const candidate of inputs.weaponSets) {
     const seed = candidate as Partial<Gw2AttributeSeed> | null;
-    if (!seed?.commonTotals || !seed.conversionPool || !seed.sources)
-      throw new TypeError('Attribute seed requires common totals, conversion pool, and sources.');
+    if (!seed?.commonTotals || !seed.conversionPool || !seed.sources || !Array.isArray(seed.conversions))
+      throw new TypeError(
+        'Attribute seed requires common totals, conversion pool, conversion declarations, and sources.'
+      );
+    for (const conversion of seed.conversions) {
+      if (
+        !conversion ||
+        !['utility', 'reinforcedArmor'].includes(conversion.source) ||
+        !Object.values(ATTRIBUTE_NAMES).includes(conversion.from) ||
+        !Object.values(ATTRIBUTE_NAMES).includes(conversion.to) ||
+        !Number.isFinite(conversion.multiplier) ||
+        !['round', 'floor', 'none'].includes(conversion.rounding)
+      )
+        throw new TypeError('Attribute seed requires valid conversion declarations.');
+    }
+
     for (const [key, name] of Object.entries(ATTRIBUTE_NAMES)) {
       if (
         !Number.isFinite(seed.commonTotals[key as keyof typeof ATTRIBUTE_NAMES]) ||
@@ -119,6 +156,7 @@ export function attributeSeedFromCommon(common: Gw2CommonAttributeResult): Gw2At
   return {
     commonTotals,
     conversionPool: { ...common.commonContext.conversionPool },
+    conversions: common.commonContext.conversions,
     sources: structuredClone(common.attributes)
   };
 }
@@ -140,8 +178,8 @@ export function attributeSourcePool(
       Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => {
         const source = seed.sources[name];
         const amount = source
-          ? ['base', 'gear', 'runes', 'infusions', 'food'].reduce(
-              (sum, part) => sum + source[part as keyof typeof source],
+          ? ['base', 'gear', 'runes', 'infusions', 'food', 'jbc'].reduce(
+              (sum, part) => sum + (source[part as keyof typeof source] ?? 0),
               0
             ) + (key === 'conditionDamage' ? source.utility : 0)
           : (seed.conversionPool[name] ?? 0);

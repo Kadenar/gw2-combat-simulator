@@ -38,14 +38,14 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
           kind: 'flat',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'expertiseBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: loadout.assumptions.regeneration !== false
         },
         {
           kind: 'flat',
           to: 'Concentration',
           amount: balanceProfileNumber(profile, 'concentrationBonus'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: loadout.assumptions.regeneration !== false
         }
       ]

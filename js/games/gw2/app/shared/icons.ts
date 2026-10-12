@@ -58,6 +58,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Cosmic Wisdom': 'https://render.guildwars2.com/file/5DA12A719EBDBFA95C7F416BAC7101D035DEBC22/3680202.png',
   // Named profession buffs use their granting skill or trait icons in tooltip line items.
   'Spider Venom': 'https://render.guildwars2.com/file/39320C2D4AED963861F4540F59AEBB5E05AD2E1C/103513.png',
+  // Dark Sentry's granted venom uses its effect icon in tooltip facts.
+  'Rot Wallow Venom': 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png',
   // Weapon-spell charge grants use the icon of the spell that provides them.
   'Nightmare Weapon': 'https://render.guildwars2.com/file/B3CF370B0E35DA07C023A4BFAA791809C6A67437/3680180.png',
   'Splinter Weapon': 'https://render.guildwars2.com/file/04294CE6BE3BBB314032BD430A631BC614D1E279/3680182.png',

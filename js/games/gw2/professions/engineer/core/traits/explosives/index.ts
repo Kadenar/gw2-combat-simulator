@@ -112,7 +112,7 @@ export const explosiveTemper = defineTrait({
           amount:
             activeBuffStacks(context, 'explosive-temper', balanceProfileNumber(profile, 'maximumStacks')) *
             balanceProfileNumber(profile, 'attributePerStack'),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         }
       ]

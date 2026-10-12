@@ -7,7 +7,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.MAIMING_SPEAR]: {
     castTimeMs: 480,
     // Committed throws preserve their effects and hold the cast lane through the remaining animation.
-    interruptCommitMs: 440,
+    interruptCommitMs: 400,
     interruptMode: 'commit',
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ persistsAfterInterrupt: true }, [

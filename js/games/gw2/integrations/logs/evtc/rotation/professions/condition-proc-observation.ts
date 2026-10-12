@@ -229,7 +229,7 @@ export function observationAttributeSets(
 ): readonly Gw2Stats[] {
   return [1, 2].map((weaponSet) =>
     applyAttributeContributions(
-      attributeSeed(config, weaponSet).conversionPool,
+      attributeSeed(config, weaponSet),
       attributeSeed(config, weaponSet).commonTotals,
       calculate(
         attributeContext(

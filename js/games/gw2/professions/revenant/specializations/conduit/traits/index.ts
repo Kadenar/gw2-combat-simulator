@@ -66,7 +66,7 @@ const bolsteredBonds = defineTrait({
       kind: 'flat' as const,
       to: BUILD_ATTRIBUTE_NAMES[attribute as keyof typeof BUILD_ATTRIBUTE_NAMES],
       amount,
-      feedsConversions: false
+      feedsConversions: 'none'
     }))
   }),
   id: TRAIT.BOLSTERED_BONDS,

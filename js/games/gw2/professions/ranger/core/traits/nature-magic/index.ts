@@ -215,7 +215,7 @@ function wellspringPetAttributes(context: Gw2AttributeContext): Gw2AttributeCont
     return { transforms: [{ kind: 'convert-current', from: 'power', to: 'healingPower', multiplier }] };
   const power = base + (context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? 0) * 30;
   return {
-    attributeEffects: [{ kind: 'flat', to: 'Healing Power', amount: power * multiplier, feedsConversions: false }]
+    attributeEffects: [{ kind: 'flat', to: 'Healing Power', amount: power * multiplier, feedsConversions: 'none' }]
   };
 }
 
@@ -341,7 +341,7 @@ export const lingeringMagic = defineTrait({
     attributeBonus: 240
   },
   attributes: traitAttributeEffects(TRAIT.LINGERING_MAGIC, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
   ])
 });
 

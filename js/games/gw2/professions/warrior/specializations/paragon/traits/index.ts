@@ -45,7 +45,7 @@ const inspiringImplements = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.INSPIRING_IMPLEMENTS),
             'attributeBonus'
           ),
-          feedsConversions: false,
+          feedsConversions: 'none',
           enabled: true
         }
       ]

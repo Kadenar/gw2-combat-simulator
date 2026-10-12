@@ -1,4 +1,6 @@
+import { equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import { getActiveTraits as getEngineerActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
@@ -82,6 +84,11 @@ function traitDelta(calculate, build, trait, attribute, selectedSkillIds = [], w
   return withTrait[attribute].final - withoutTrait[attribute].final;
 }
 
+// Conversion assertions inspect Vitality before the universal Reinforced Armor bonus.
+function conversionVitality(attributes) {
+  return attributes.Vitality.final - attributes.Vitality.reinforcedArmor;
+}
+
 test('attribute effects use explicit immutable conversion input pools', () => {
   const commonStats = { Power: 1000, Vitality: 1000 };
   const effects = [
@@ -89,13 +96,13 @@ test('attribute effects use explicit immutable conversion input pools', () => {
       kind: 'flat',
       to: 'Power',
       amount: 120,
-      feedsConversions: true
+      feedsConversions: 'all'
     },
     {
       kind: 'flat',
       to: 'Vitality',
       amount: 180,
-      feedsConversions: false
+      feedsConversions: 'none'
     },
     {
       kind: 'conversion',
@@ -132,19 +139,23 @@ test('attribute effects use explicit immutable conversion input pools', () => {
     }
   ];
 
-  assert.deepEqual(resolveAttributeEffects(commonStats, effects), {
-    Power: 120,
-    Vitality: 180,
-    Ferocity: 112,
-    Expertise: 100,
-    'Condition Damage': 50
-  });
+  assert.deepEqual(
+    resolveAttributeEffects({ conversionPool: commonStats, conversions: equipmentAttributeConversions() }, effects)
+      .attributes,
+    {
+      Power: 120,
+      Vitality: 180,
+      Ferocity: 112,
+      Expertise: 100,
+      'Condition Damage': 50
+    }
+  );
   assert.deepEqual(commonStats, { Power: 1000, Vitality: 1000 });
   assert.deepEqual(effects[0], {
     kind: 'flat',
     to: 'Power',
     amount: 120,
-    feedsConversions: true
+    feedsConversions: 'all'
   });
 });
 
@@ -266,10 +277,10 @@ test('Guardian includes Force of Will before Power of the Virtuous', () => {
   const withoutForce = calculateGuardianAttributes(build, [], 1, 'Force of Will').attributes;
   const withoutVirtuous = calculateGuardianAttributes(build, [], 1, 'Power of the Virtuous').attributes;
 
-  assert.equal(all.Vitality.final - withoutForce.Vitality.final, 300);
+  assert.equal(all.Vitality.final - withoutForce.Vitality.final, 315);
   assert.equal(
     all['Condition Damage'].final - withoutVirtuous['Condition Damage'].final,
-    Math.round(all.Vitality.final * 0.07)
+    Math.round(conversionVitality(all) * 0.07)
   );
   assert.equal(all['Condition Damage'].final - withoutForce['Condition Damage'].final, 21);
 });
@@ -308,10 +319,11 @@ test('Guardian eligible flat traits feed attribute conversions', () => {
     const all = calculateGuardianAttributes(build).attributes;
     const withoutConversion = calculateGuardianAttributes(build, [], 1, 'Power of the Virtuous').attributes;
 
-    assert.equal(traitDelta(calculateGuardianAttributes, build, trait, 'Vitality'), amount, trait);
+    const withoutSource = calculateGuardianAttributes(build, [], 1, trait).attributes;
+    assert.equal(conversionVitality(all) - conversionVitality(withoutSource), amount, trait);
     assert.equal(
       all['Condition Damage'].final - withoutConversion['Condition Damage'].final,
-      Math.round(all.Vitality.final * 0.07),
+      Math.round(conversionVitality(all) * 0.07),
       trait
     );
   }
@@ -448,6 +460,7 @@ test('Bolstered Bonds evaluates the live Cosmic Wisdom multiplier', () => {
   const context = {
     config: {
       specialization: 'Conduit',
+      attributeInputs: baseAttributeInputs({ vitality: 0 }),
       selectedTraitIds: [TRAIT.BOLSTERED_BONDS]
     },
     time: 1,
@@ -649,12 +662,12 @@ test("Thief eligible power traits feed Marauder's Resilience", () => {
         `${testCase.trait}, weapon set ${weaponSet}`
       );
       assert.equal(
-        all.Vitality.final - withoutConversion.Vitality.final,
+        conversionVitality(all) - conversionVitality(withoutConversion),
         Math.round(all.Power.final * 0.07),
         `${testCase.trait}, weapon set ${weaponSet}`
       );
       assert.equal(
-        all.Vitality.final - withoutSource.Vitality.final,
+        conversionVitality(all) - conversionVitality(withoutSource),
         Math.round(all.Power.final * 0.07) - Math.round(withoutSource.Power.final * 0.07),
         `${testCase.trait}, weapon set ${weaponSet}`
       );
@@ -747,6 +760,6 @@ test('Thief uses current flat trait and conversion values', () => {
   assert.equal(traitDelta(calculateThiefAttributes, specter, 'Second Opinion', 'Condition Damage', [], 2), 90);
   assert.equal(
     traitDelta(calculateThiefAttributes, specter, 'Strength of Shadows', 'Expertise'),
-    Math.round(calculateThiefAttributes(specter).attributes.Vitality.final * 0.13)
+    Math.round(conversionVitality(calculateThiefAttributes(specter).attributes) * 0.13)
   );
 });
