@@ -565,7 +565,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     .runtimeFor({ specialization: 'Core' })
     .modifyAttributes({ ...untamedContext, traits: new Set() }, baseAttributes);
 
-  // Reinforcement scales the final player Vitality after the selected trait grants.
+  // Natural Fortitude is final-only: reinforcement converts base Vitality, excluding the trait grant.
   assert.equal(untamedAttributes.vitality, 1290);
   assert.equal(coreAttributes.vitality, 1050);
 

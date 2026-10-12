@@ -246,6 +246,41 @@ test('conversion attribution sums jointly across traits, utility, and reinforcem
   assert.equal(pool.Vitality, 1044);
 });
 
+test('shared conversion pools separate profession-only grants in either declaration order', () => {
+  // An all-eligible grant before and after a profession exception must update each pool once without alias leakage.
+  const seed = Object.freeze({
+    conversionPool: Object.freeze({ Power: 1000, Vitality: 1000 }),
+    conversions: Object.freeze([
+      { source: 'utility', from: 'Power', to: 'Condition Damage', multiplier: 0.03, rounding: 'round' },
+      ...equipmentAttributeConversions()
+    ])
+  });
+  const grants = [
+    { kind: 'flat', to: 'Power', amount: 100, feedsConversions: 'all' },
+    { kind: 'flat', to: 'Power', amount: 180, feedsConversions: 'profession-only' },
+    { kind: 'flat', to: 'Power', amount: 50, feedsConversions: 'all' },
+    { kind: 'flat', to: 'Power', amount: 500, feedsConversions: 'none' }
+  ];
+  const conversions = [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Condition Damage',
+      multiplier: 0.1,
+      rounding: 'round',
+      input: 'eligible'
+    },
+    { kind: 'conversion', from: 'Power', to: 'Ferocity', multiplier: 0.1, rounding: 'round', input: 'common' }
+  ];
+  for (const ordered of [grants, [...grants].reverse(), [grants[1], grants[0], grants[2], grants[3]]]) {
+    const resolved = resolveAttributeContributions(seed, [{ attributeEffects: [...ordered, ...conversions] }]);
+    assert.deepEqual(resolved.attributes, { Power: 830, 'Condition Damage': 133, Ferocity: 100 });
+    assert.deepEqual(resolved.utilityAttributes, { 'Condition Damage': 35 });
+    assert.deepEqual(resolved.reinforcedArmorAttributes, { Vitality: 50 });
+  }
+  assert.deepEqual(seed.conversionPool, { Power: 1000, Vitality: 1000 });
+});
+
 test('Might applies baseline and Notoriety together while unbuffed declarations exclude both', () => {
   const probe = scenario('revenant', 'Core', ['Notoriety'], { boons: { might: 25 } });
   const contributions = probe.family.attributeContributions(probe.facts);

@@ -79,7 +79,6 @@ export type ProfessionAssumptionControl =
       readonly options: readonly ProfessionAssumptionOption[];
     });
 
-/** Unprocessed, serializable equipment sources; profession effects never enter these immutable seeds. */
 /** Equipment conversions travel with their immutable source pool, never as a second utility selection. */
 export interface Gw2SeedAttributeConversion {
   readonly source: 'utility' | 'reinforcedArmor';
@@ -94,6 +93,7 @@ export interface Gw2AttributeConversionInputs {
   readonly conversions: readonly Gw2SeedAttributeConversion[];
 }
 
+/** Unprocessed, serializable equipment sources; profession effects never enter these immutable seeds. */
 export interface Gw2AttributeSeed extends Gw2AttributeConversionInputs {
   readonly commonTotals: Readonly<Gw2Stats>;
   readonly sources: Readonly<Gw2AttributeMap>;

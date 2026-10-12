@@ -183,7 +183,8 @@ const forcefulPersistence = defineTrait({
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 const reinforcedPotency = defineTrait({
   attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+    // This intrinsic Concentration is conversion-eligible, unlike the separate boon-dependent damage bonus.
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'all' }
   ]),
   id: TRAIT.REINFORCED_POTENCY,
   name: 'Reinforced Potency',

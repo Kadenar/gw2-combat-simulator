@@ -104,6 +104,33 @@ export interface ResolvedAttributeEffects {
   readonly reinforcedArmorAttributes: Gw2NumericAttributes;
 }
 
+interface AttributeConversionGroup {
+  readonly from: string;
+  readonly to: string;
+  readonly rounding: 'round' | 'floor' | 'none';
+  traits: number;
+  utility: number;
+  reinforcement: number;
+}
+
+/** Builds typically have only a handful of groups; scanning avoids hashing and allocating compound keys. */
+function attributeConversionGroup(
+  groups: AttributeConversionGroup[],
+  from: string,
+  to: string,
+  rounding: AttributeConversionGroup['rounding']
+): AttributeConversionGroup {
+  for (const group of groups) if (group.from === from && group.to === to && group.rounding === rounding) return group;
+  const group = { from, to, rounding, traits: 0, utility: 0, reinforcement: 0 };
+  groups.push(group);
+  return group;
+}
+
+/** Each source/destination group retains its declared rounding policy at every attribution boundary. */
+function roundAttributeConversion(value: number, rounding: AttributeConversionGroup['rounding']): number {
+  return rounding === 'round' ? Math.round(value) : rounding === 'floor' ? Math.floor(value) : value;
+}
+
 /** Resolve eligible flat grants before grouped conversions, preserving immutable inputs and preventing chaining. */
 export function resolveAttributeEffects(
   { conversionPool: commonConversionPool, conversions }: Gw2AttributeConversionInputs,
@@ -113,67 +140,54 @@ export function resolveAttributeEffects(
   let eligibleConversionPool = commonConversionPool;
   let genericConversionPool = commonConversionPool;
 
-  // Copy only pools that admit a flat grant; converted results never become new conversion inputs.
+  // Share the copied pool until a profession-only grant requires different inputs for traits and equipment.
   for (const effect of effects) {
     if (effect.enabled === false || effect.kind !== 'flat') continue;
     addAttribute(attributes, effect.to, effect.amount);
-    if (effect.feedsConversions !== 'none' && effect.amount) {
-      if (eligibleConversionPool === commonConversionPool) eligibleConversionPool = { ...commonConversionPool };
+    if (!effect.amount || effect.feedsConversions === 'none') continue;
+    if (effect.feedsConversions === 'profession-only') {
+      if (eligibleConversionPool === genericConversionPool) eligibleConversionPool = { ...eligibleConversionPool };
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
-    }
-
-    if (effect.feedsConversions === 'all' && effect.amount) {
+    } else if (eligibleConversionPool === genericConversionPool) {
+      if (eligibleConversionPool === commonConversionPool) {
+        eligibleConversionPool = { ...commonConversionPool };
+        genericConversionPool = eligibleConversionPool;
+      }
+      addAttribute(eligibleConversionPool, effect.to, effect.amount);
+    } else {
       if (genericConversionPool === commonConversionPool) genericConversionPool = { ...commonConversionPool };
+      addAttribute(eligibleConversionPool, effect.to, effect.amount);
       addAttribute(genericConversionPool, effect.to, effect.amount);
     }
   }
 
-  const groups = new Map<
-    string,
-    {
-      to: string;
-      rounding: 'round' | 'floor' | 'none';
-      amounts: [number, number, number];
-    }
-  >();
-  const groupFor = (from: string, to: string, rounding: 'round' | 'floor' | 'none') => {
-    const key = from + ':' + to + ':' + rounding;
-    let group = groups.get(key);
-    if (!group) {
-      group = { to, rounding, amounts: [0, 0, 0] };
-      groups.set(key, group);
-    }
-
-    return group;
-  };
-
+  const groups: AttributeConversionGroup[] = [];
   for (const effect of effects) {
     if (effect.enabled === false || effect.kind !== 'conversion') continue;
     const pool = effect.input === 'common' ? commonConversionPool : eligibleConversionPool;
-    groupFor(effect.from, effect.to, effect.rounding).amounts[0] += (pool[effect.from] ?? 0) * effect.multiplier;
+    attributeConversionGroup(groups, effect.from, effect.to, effect.rounding).traits +=
+      (pool[effect.from] ?? 0) * effect.multiplier;
   }
 
   for (const conversion of conversions) {
-    const index = conversion.source === 'utility' ? 1 : 2;
-    groupFor(conversion.from, conversion.to, conversion.rounding).amounts[index] +=
-      (genericConversionPool[conversion.from] ?? 0) * conversion.multiplier;
+    const group = attributeConversionGroup(groups, conversion.from, conversion.to, conversion.rounding);
+    const amount = (genericConversionPool[conversion.from] ?? 0) * conversion.multiplier;
+    if (conversion.source === 'utility') group.utility += amount;
+    else group.reinforcement += amount;
   }
 
   const utilityAttributes: Gw2NumericAttributes = {};
   const reinforcedArmorAttributes: Gw2NumericAttributes = {};
-  const destinations = [attributes, utilityAttributes, reinforcedArmorAttributes];
-  // Each group rounds its cumulative total in attribution order: traits, utility, reinforcement.
-  // Successive deltas sum to exactly the rounded total without precomputed bonuses or subtraction of a seed baseline.
-  for (const { to, rounding, amounts } of groups.values()) {
-    let cumulative = 0;
-    let previous = 0;
-    for (let index = 0; index < amounts.length; index += 1) {
-      cumulative += amounts[index];
-      const current =
-        rounding === 'round' ? Math.round(cumulative) : rounding === 'floor' ? Math.floor(cumulative) : cumulative;
-      addAttribute(destinations[index], to, current - previous);
-      previous = current;
-    }
+  // Preserve the same cumulative rounding order without allocating a bucket array for each small group.
+  for (const group of groups) {
+    const utilityTotal = group.traits + group.utility;
+    const total = utilityTotal + group.reinforcement;
+    const traits = roundAttributeConversion(group.traits, group.rounding);
+    const withUtility = roundAttributeConversion(utilityTotal, group.rounding);
+    const withReinforcement = roundAttributeConversion(total, group.rounding);
+    addAttribute(attributes, group.to, traits);
+    addAttribute(utilityAttributes, group.to, withUtility - traits);
+    addAttribute(reinforcedArmorAttributes, group.to, withReinforcement - withUtility);
   }
 
   return { attributes, utilityAttributes, reinforcedArmorAttributes };
@@ -482,6 +496,7 @@ export function finalizeBuildAttributes(
   }
 
   for (const [name, amount] of Object.entries(reinforcedArmorStats)) {
+    if (!attributes[name]) continue;
     attributes[name].reinforcedArmor = amount;
     attributes[name].final += amount;
   }

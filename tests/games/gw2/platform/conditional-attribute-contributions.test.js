@@ -10,8 +10,37 @@ import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-qu
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
 const families = {};
-for (const name of ['elementalist', 'engineer', 'necromancer', 'revenant', 'thief', 'warrior']) {
+for (const name of ['elementalist', 'engineer', 'guardian', 'necromancer', 'ranger', 'revenant', 'thief', 'warrior']) {
   families[name] = (await import(`#gw2/professions/${name}/profession.js`))[`${name}Profession`];
+}
+
+// Audited against https://github.com/discretize/discretize-gear-optimizer/tree/main/src/assets/modifierdata:
+// `buff` grants stay out of conversions; Reinforced Potency is explicitly `converted` despite also being always on.
+for (const [profession, specialization, trait, attribute, grant, utilityBonus] of [
+  ['elementalist', 'Core', 'Soothing Power', 'vitality', 300, 0],
+  ['engineer', 'Amalgam', 'Hybrid Vigor', 'vitality', 240, 0],
+  ['ranger', 'Untamed', 'Natural Fortitude', 'vitality', 240, 0],
+  ['necromancer', 'Core', 'Lingering Curse', 'conditionDamage', 200, 0],
+  ['elementalist', 'Core', 'Burning Rage', 'conditionDamage', 180, 0],
+  ['revenant', 'Core', 'Seething Malice', 'conditionDamage', 120, 0],
+  ['elementalist', 'Core', 'Elemental Enchantment', 'concentration', 180, 0],
+  ['elementalist', 'Tempest', 'Gathered Focus', 'concentration', 240, 0],
+  ['engineer', 'Core', 'Compounding Chemicals', 'concentration', 240, 0],
+  ['guardian', 'Core', 'Honorable Staff', 'concentration', 120, 0],
+  ['necromancer', 'Ritualist', 'Boon of Creation', 'concentration', 180, 0],
+  ['ranger', 'Core', 'Lingering Magic', 'concentration', 240, 0],
+  ['revenant', 'Herald', 'Reinforced Potency', 'concentration', 240, 7]
+]) {
+  test(`${trait}: permanent grants preserve audited utility and reinforcement eligibility`, () => {
+    // Leviathan exercises each grant's source stat directly, exposing accidental conversion of always-on buffs.
+    const attributeInputs = baseAttributeInputs({ conditionDamage: 1000, concentration: 1000 });
+    for (const seed of attributeInputs.weaponSets)
+      seed.conversions = equipmentAttributeConversions('Leviathan Tempering Oil');
+    const baseline = scenario(profession, specialization, [], { attributeInputs }).query.statsAt(0);
+    const current = scenario(profession, specialization, [trait], { attributeInputs }).query.statsAt(0);
+    assert.equal(current[attribute] - baseline[attribute], grant + utilityBonus);
+    assert.equal(current.vitality - baseline.vitality, attribute === 'vitality' ? grant : 0);
+  });
 }
 
 // Exercise the public contribution and combat boundaries with the same minimal selected build.
