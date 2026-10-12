@@ -84,36 +84,26 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'mesmer.grant-clarity'(runtime, context) {
         if (context.kind !== 'cast') return;
         const skill = context.skill;
-        {
-          const delivery = mesmerCastDelivery(context.cast, skill);
-          runtime.effects.emit({
-            ...delivery,
-            kind: 'profile',
-            profile: {
-              ...skill,
-              effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
-            },
-            at: runtime.time,
-            fullEnd: runtime.time,
-            attribution: {
-              source: 'Player',
-              sourceId: {
-                ...skill,
-                effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
-              }.id,
-              actorType: 'player',
-              skillId: {
-                ...skill,
-                effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
-              }.id,
-              skillName: {
-                ...skill,
-                effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
-              }.name
-            },
-            priority: 0
-          });
-        }
+        const delivery = mesmerCastDelivery(context.cast, skill);
+        // Emit only the Clarity reward while attributing it to the accepted skill's identity.
+        runtime.effects.emit({
+          ...delivery,
+          kind: 'profile',
+          profile: {
+            ...skill,
+            effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
+          },
+          at: runtime.time,
+          fullEnd: runtime.time,
+          attribution: {
+            source: 'Player',
+            sourceId: skill.id,
+            actorType: 'player',
+            skillId: skill.id,
+            skillName: skill.name
+          },
+          priority: 0
+        });
       },
       'mesmer.signet-reset': applyMesmerSignetReset,
       'mesmer.tracked-hit'(runtime, context) {
