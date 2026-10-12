@@ -278,6 +278,7 @@ test('shared conversion pools separate profession-only grants in either declarat
     assert.deepEqual(resolved.utilityAttributes, { 'Condition Damage': 35 });
     assert.deepEqual(resolved.reinforcedArmorAttributes, { Vitality: 50 });
   }
+
   assert.deepEqual(seed.conversionPool, { Power: 1000, Vitality: 1000 });
 });
 

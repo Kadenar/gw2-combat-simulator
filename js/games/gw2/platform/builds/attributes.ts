@@ -153,6 +153,7 @@ export function resolveAttributeEffects(
         eligibleConversionPool = { ...commonConversionPool };
         genericConversionPool = eligibleConversionPool;
       }
+
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
     } else {
       if (genericConversionPool === commonConversionPool) genericConversionPool = { ...commonConversionPool };
