@@ -1,8 +1,8 @@
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pet-swap.js';
 import { resetRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
@@ -61,10 +61,7 @@ export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
   });
   const slot = state.activePetSlot === 1 ? 2 : 1;
   const pet = rangerPetByName(state.petNames[slot - 1]);
-  handleRangerPetSwapped(
-    runtime,
-    buildRangerPacket({ at: runtime.time, activePet: pet.name, activePetSlot: slot }, 'ranger.pet-swapped')
-  );
+  applyRangerPetSwap(runtime, pet, slot, runtime.time);
   state.petAutoActivationCounts[slot - 1] += 1;
   state.petAutoActivationUses = {};
   state.petAutoOpeningBasic = state.petAutoActivationCounts[slot - 1] === 1;

@@ -3,9 +3,9 @@ import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pet-swap.js';
+import { createRangerCoreState, rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
@@ -76,7 +76,7 @@ test('pet retirement clears live boon queries while preserving pre-swap history'
   assert.equal(rangerActiveBoonCount({ ...context, time: 6 }, 'pet'), 1);
   assert.equal(rangerActiveBoonCount({ ...context, time: 8 }, 'pet'), 0);
 
-  handleRangerPetSwapped(runtime, { at: 5, activePet: 'Smokescale', activePetSlot: 2 });
+  applyRangerPetSwap(runtime, rangerPetByName('Smokescale'), 2, 5);
   history.push({ type: 'marker', action: 'companion-retired', at: 5, summonOwner: oldPet });
   const newPet = rangerPetCompanionId(runtime);
   assert.notEqual(newPet, oldPet);

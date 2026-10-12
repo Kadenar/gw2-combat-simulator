@@ -4,9 +4,9 @@ import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-bud
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
-import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pet-swap.js';
+import { createRangerCoreState, rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import assert from 'node:assert/strict';
@@ -55,7 +55,8 @@ for (const reporting of [true, false]) {
         stacks: 1
       })
     );
-    context.queue.enqueue({ type: 'ranger.pet-swapped', at: swappedAt, activePet: 'Smokescale', activePetSlot: 2 });
+    // Schedule the swap command between condition ticks; observable swap facts do not mutate state.
+    context.queue.enqueue({ type: 'test.swap-pets', at: swappedAt });
     const observationRuntime = { ...context, time: 1, equipmentBuffPolicies: [] };
     const observeBleeding = () =>
       observeRuntimeEffects(observationRuntime, {}).find((effect) => effect.kind === 'Bleeding');
@@ -63,8 +64,8 @@ for (const reporting of [true, false]) {
     const paidAfterSwap = new Set();
     while (context.queue.length) {
       const event = context.queue.dequeue();
-      if (event.type === 'ranger.pet-swapped') {
-        handleRangerPetSwapped(context, event);
+      if (event.type === 'test.swap-pets') {
+        applyRangerPetSwap(context, rangerPetByName('Smokescale'), 2, event.at);
         assert.equal(effectStateValue(observeBleeding(), swappedAt).count, 2);
         assert.notEqual(rangerPetCompanionId(context), outgoing);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', swappedAt), 2);
