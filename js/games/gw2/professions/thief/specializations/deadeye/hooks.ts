@@ -43,8 +43,8 @@ function marked(runtime: ThiefRuntime, at = runtime.time): boolean {
 }
 
 /**
- * The first landed strike of a marked activation resolves malice once: a malicious attack spends it (Tactical Strike
- * refunds endurance first), while an initiative attack gains malice plus a bonus for each critical hit.
+ * Malicious attacks spend once on their first marked hit. Initiative attacks earn separate once-per-activation
+ * grants for a marked hit and a marked critical hit, so a later strike can still earn the critical bonus.
  */
 function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?: Gw2HitResolutionContext): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
@@ -58,8 +58,8 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   const initiativeAttack = skill.type === 'Weapon' && (skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
   if (!skill.malicious && !initiativeAttack) return;
   const state = deadeyeState.from(runtime);
-  if (!claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice', event.activationId)) return;
   if (skill.malicious) {
+    if (!claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-spend', event.activationId)) return;
     refundMaliciousTacticalStrike(runtime, event);
     runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;
@@ -71,10 +71,16 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   const criticals = hit
     ? criticalOpportunity(hit.critEligible ? hit.critical.chance : 0, hit.critical.didCrit).sampledCriticals
     : 0;
+  const firstHit = claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-hit', event.activationId);
+  const firstCritical =
+    criticals > 0 &&
+    claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-critical', event.activationId);
+  if (!firstHit && !firstCritical) return;
   const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
   runtime.resourceController.grant(
     'malice',
-    balanceProfileNumber(resources, 'resourceGain') + criticals * balanceProfileNumber(resources, 'playerStacks')
+    (firstHit ? balanceProfileNumber(resources, 'resourceGain') : 0) +
+      (firstCritical ? balanceProfileNumber(resources, 'playerStacks') : 0)
   );
   runtime.fireTrigger(maliceGained, { cast: null });
 }
