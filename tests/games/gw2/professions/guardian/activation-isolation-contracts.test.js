@@ -55,7 +55,7 @@ test('Swift Scholar isolates implicit minor rewards while pages, dormancy, and s
     assert.equal(current.tomePages.maximum, 8);
     assert.equal(current.tomePages.value, 8 - 3 + Number(traitTriggers));
     assert.equal(current.activeTome, '');
-    assert.ok(current.tomeDormantReadyAt.justice > 0);
+    assert.ok(runtime.profession.core.virtueReadyAt.justice > 0);
     assert.ok(current.tomePages.nextAt > 0);
     assert.equal(
       result.procSteps.some((step) => step.skill === 'Swift Scholar'),

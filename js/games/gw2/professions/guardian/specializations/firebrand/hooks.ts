@@ -58,16 +58,17 @@ const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, c
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
 function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   const state = firebrandState.from(runtime);
-  const ready = state.tomeDormantReadyAt[virtue] <= runtime.time;
+  // Tome activation and passive eligibility share Core's deadline, independently of skill cooldowns.
+  const readyAt = runtime.profession.core.virtueReadyAt;
+  const ready = readyAt[virtue] <= runtime.time;
   state.activeTome = virtue;
 
   if (ready) {
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
-    state.tomeDormantReadyAt[virtue] = canonicalTime(
+    readyAt[virtue] = canonicalTime(
       runtime.time +
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, DORMANCY[virtue]), 'cooldown') * multiplier
     );
-    runtime.profession.core.virtueReadyAt[virtue] = state.tomeDormantReadyAt[virtue];
     runtime.fireTrigger(virtueActivated, { cast, virtue });
     if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
   }
@@ -193,12 +194,11 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
 
     return firebrandMantraAvailability(runtime, skill);
   },
-  /** Full Renewed Focus completion follows Core's recharge reset and preserves the page recovery phase. */
+  /** Core resets virtue dormancy; full Renewed Focus completion refills pages without moving their recovery phase. */
   onCastCommit(runtime, cast) {
     if (cast.skill.id !== ID.RENEWED_FOCUS || castWasInterrupted(cast)) return;
     const state = firebrandState.from(runtime);
     runtime.resourceController.grant('tomePages', state.tomePages.maximum);
-    state.tomeDormantReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
   },
   onCooldownReset: refreshFirebrandMantras,
   reactions: {

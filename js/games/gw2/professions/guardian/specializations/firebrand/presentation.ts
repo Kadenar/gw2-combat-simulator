@@ -94,7 +94,8 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
 }
 
 function dormantTomeClasses(context: GuardianUiContext): string {
-  const readyAt = professionState(context).tomeDormantReadyAt;
+  // Palette tint and countdowns observe the same projected deadlines used by passive mechanics.
+  const readyAt = professionState(context).virtueReadyAt;
   const at = context.time ?? context.simulationTime ?? 0;
   // Project dormancy onto the existing Tome group so CSS can tint only the
   // affected opener while the skill remains available to equip.
@@ -171,7 +172,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
           'maximumStacks'
         );
       const simulationTime = context.simulationTime || 0;
-      const readyAt = state.tomeDormantReadyAt || { justice: 0, resolve: 0, courage: 0 };
+      const readyAt = state.virtueReadyAt || { justice: 0, resolve: 0, courage: 0 };
       // Keep passive readiness visible without adding three more resource bars.
       const virtueStatuses = TOME_DORMANCY_LABELS.map(([virtue, label]) => {
         const remaining = Math.max(0, (readyAt[virtue] || 0) - simulationTime);

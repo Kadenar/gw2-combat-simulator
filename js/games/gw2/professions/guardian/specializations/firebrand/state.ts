@@ -13,6 +13,7 @@ import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
+import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 export interface GuardianFirebrandState {
@@ -20,7 +21,6 @@ export interface GuardianFirebrandState {
   tomePages: DiscreteResourceClock;
   ashes: ChargeGrant;
   ashesBurnDuration: number;
-  tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   swiftScholarTome: string;
   swiftScholarCount: number;
 
@@ -47,7 +47,6 @@ function createFirebrandState(profileContext: {
     },
     ashes: grantCharges(0, 0),
     ashesBurnDuration: burn ? effectNumber(ashesProfile, burn, 'duration') : 0,
-    tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
     swiftScholarTome: '',
     swiftScholarCount: 0,
 
@@ -56,16 +55,16 @@ function createFirebrandState(profileContext: {
   };
 }
 
-/** Keeps Firebrand projection ownership beside the state that produces it. */
+/** Publish Firebrand observations with a detached view of Core's sole passive-readiness map. */
 export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeTome: '',
   tomePages: { ...createDiscreteResourceClock(5), interval: 8 },
   ashes: grantCharges(0, 0),
-  tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
+  virtueReadyAt: { justice: 0, resolve: 0, courage: 0 },
   swiftScholarTome: '',
   swiftScholarCount: 0,
 
   mantraRechargeReadyAt: {}
-} satisfies Partial<GuardianFirebrandState>);
+} satisfies Partial<GuardianFirebrandState & Pick<GuardianCoreState, 'virtueReadyAt'>>);
 
 export const firebrandState = defineProfessionSpecializationState('Firebrand', createFirebrandState);

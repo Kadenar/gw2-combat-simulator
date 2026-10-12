@@ -866,7 +866,7 @@ test('elite specializations expose their profession mechanics', () => {
     professionState: {
       tomePages: { value: 3, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
 
-      tomeDormantReadyAt: { justice: 20, resolve: 10, courage: 0 }
+      virtueReadyAt: { justice: 20, resolve: 10, courage: 0 }
     }
   });
 

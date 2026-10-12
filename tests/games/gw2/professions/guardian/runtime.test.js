@@ -543,7 +543,6 @@ test('Firebrand page refunds survive concurrent stow while canceled pages spend 
 test('Firebrand dormant reopening preserves its deadline and grants activation benefits only once', () => {
   const result = run([ID.TOME_OF_JUSTICE, ID.STOW_TOME, wait(1000), ID.TOME_OF_JUSTICE], firebrand);
   assert.deepEqual(result.warnings, []);
-  assert.equal(fb(result).tomeDormantReadyAt.justice, 20);
   assert.equal(core(result).virtueReadyAt.justice, 20);
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'quickness').length, 1);
 });
@@ -720,7 +719,7 @@ test('Firebrand Renewed Focus restores the current page pool and dormancy only o
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(fb(result).tomePages.value, interrupted ? 4 : 5);
-    assert.equal(fb(result).tomeDormantReadyAt.justice, interrupted ? 20 : result.rotationEndTime);
+    assert.equal(core(result).virtueReadyAt.justice, interrupted ? 20 : result.rotationEndTime);
   }
 });
 

@@ -672,7 +672,7 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
     time: 10,
     professionState: {
       ...inactiveFirebrand.professionState,
-      tomeDormantReadyAt: { justice: 20, resolve: 10, courage: 30 }
+      virtueReadyAt: { justice: 20, resolve: 10, courage: 30 }
     }
   })[0];
   const groupIds = (groups) => groups.map((group) => group.id);

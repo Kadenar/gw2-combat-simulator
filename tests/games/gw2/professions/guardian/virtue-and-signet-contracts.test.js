@@ -2,7 +2,7 @@ import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
@@ -51,6 +51,27 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
   }
 });
 
+test('Firebrand dormancy has one Core owner and a detached public observation', () => {
+  // Both mechanics and presentation read Core deadlines; the elite owns no duplicate map or legacy alias.
+  const config = { specialization: 'Firebrand' };
+  const native = guardianProfession.runtimeFor(config);
+  const profession = native.createState(config);
+  const independent = native.createState(config);
+  assert.deepEqual(profession.core.virtueReadyAt, { justice: 0, resolve: 0, courage: 0 });
+  assert.notEqual(profession.core.virtueReadyAt, independent.core.virtueReadyAt);
+  profession.core.virtueReadyAt.justice = 20;
+  const projected = projectObservedState(guardianProfession, { profession, config, time: 5 });
+  assert.deepEqual(projected.virtueReadyAt, { justice: 20, resolve: 0, courage: 0 });
+  assert.equal(Object.hasOwn(profession.specialization.state, 'virtueReadyAt'), false);
+  for (const state of [profession.core, profession.specialization.state, projected]) {
+    assert.equal(Object.hasOwn(state, 'tomeDormantReadyAt'), false);
+  }
+
+  projected.virtueReadyAt.justice = 0;
+  assert.equal(profession.core.virtueReadyAt.justice, 20);
+  assert.equal(independent.core.virtueReadyAt.justice, 0);
+});
+
 test('Renewed Focus restores Firebrand pages and dormancy only on completion', () => {
   // Both ordinary and trait-expanded pools retain their cap and recovery phase across the shared reset.
   for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS]]) {
@@ -76,9 +97,10 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
         (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.SEARING_SPELL
       );
       assert.equal(state.tomePages.nextAt, spent.endsAt + state.tomePages.interval);
-      assert.equal(state.tomeDormantReadyAt.justice > focus.endsAt, interrupted);
-      if (!interrupted)
-        assert.deepEqual(state.tomeDormantReadyAt, observedRuntime(result).profession.core.virtueReadyAt);
+      assert.equal(state.virtueReadyAt.justice > focus.endsAt, interrupted);
+      if (!interrupted) {
+        for (const readyAt of Object.values(state.virtueReadyAt)) assert.equal(readyAt, focus.endsAt);
+      }
     }
   }
 });

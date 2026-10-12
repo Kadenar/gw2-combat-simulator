@@ -854,8 +854,8 @@ test('Power of the Virtuous reduces each Tome dormancy duration', () => {
       undefined,
       ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 'Tome of Courage']
     );
-  const baseline = simulate([]).planningState.profession.tomeDormantReadyAt;
-  const traited = simulate([GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]).planningState.profession.tomeDormantReadyAt;
+  const baseline = simulate([]).planningState.profession.virtueReadyAt;
+  const traited = simulate([GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]).planningState.profession.virtueReadyAt;
 
   // Apply the trait multiplier to each tome's own dormancy, not a copied cooldown table.
   for (const virtue of ['justice', 'resolve', 'courage']) {

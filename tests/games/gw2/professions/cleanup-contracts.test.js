@@ -77,7 +77,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     assert.equal(second.tomePages.maximum, 8);
     assert.equal(second.tomePages.nextAt, expected < 8 ? 5 : Infinity);
     assert.deepEqual(first.tomePages, second.tomePages);
-    assert.notEqual(first.tomeDormantReadyAt, second.tomeDormantReadyAt);
+    assert.notEqual(first.tomePages, second.tomePages);
   }
 
   const patched = withPatchPreview(guardianProfession, {
