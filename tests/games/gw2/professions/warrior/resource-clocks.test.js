@@ -102,7 +102,7 @@ test('Warrior resource gates share pool tolerance and a short Flow interval stal
   assert.equal(charged.planningState.profession.dragonCharges.value, 2);
 });
 
-test('doubled Dragon Trigger gains cap at selected charges and release retains facts after clearing the clock', () => {
+test('doubled Dragon Trigger gains cap at selected charges and release reports the spend after clearing the clock', () => {
   const profiles = { [BLADESWORN.dragonTrigger]: { maximumStacks: 3, minimumStacks: 2 } };
   for (const selectedTraitIds of [[], [TRAIT.DARING_DRAGON]]) {
     const maximum = selectedTraitIds.length ? 2 : 3;
@@ -113,15 +113,16 @@ test('doubled Dragon Trigger gains cap at selected charges and release retains f
       profiles
     );
     const state = observedRuntime(result).profession.specialization.state;
-    const release = [...state.dragonSlashReleases.values()].at(-1);
-    assert.equal(release.charges, maximum);
-    assert.equal(release.maximum, maximum);
+    const release = result.events.find(
+      (event) => event.resource === 'dragon charges' && event.reason === 'profession mechanic'
+    );
+    assert.equal(release.chargesReached, maximum);
+    assert.equal(release.maximumCharges, maximum);
     assert.equal(state.dragonCharges.value, 0);
     assert.equal(state.dragonCharges.maximum, maximum);
     assert.equal(state.dragonCharges.rate, 0);
-    assert.equal(Object.isFrozen(release), true);
     observedRuntime(result).mechanics.resourceController.grant('dragonCharges', 1);
-    assert.equal(release.charges, maximum);
+    assert.equal(release.chargesReached, maximum);
     assert.equal(result.planningState.profession.dragonCharges.value, 0);
   }
 });

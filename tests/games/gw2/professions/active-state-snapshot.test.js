@@ -30,7 +30,7 @@ test('planning projections omit private mechanic state while retaining visible o
     [rangerProfession, 'Core', 'core', ['petAutoNextAt', 'petAutoBusyUntil', 'petAutoRecharges'], 'activePetSlot'],
     [thiefProfession, 'Antiquary', 'specialization', ['backfireState', 'canachCoinIndex'], 'artifactSlots'],
     [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity'],
-    [warriorProfession, 'Bladesworn', 'specialization', ['dragonSlashReleases'], 'flow'],
+    [warriorProfession, 'Bladesworn', 'specialization', ['dragonChargeReachedAt'], 'flow'],
     [warriorProfession, 'Paragon', 'specialization', ['commandEchoes', 'activeRefrainId'], 'motivation']
   ]) {
     const config = { specialization };

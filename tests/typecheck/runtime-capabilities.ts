@@ -106,8 +106,8 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     state.core.adrenaline.value = 0;
     if (state.specialization.kind === 'Bladesworn') {
       const charges: number = state.specialization.state.dragonCharges.value;
-      // @ts-expect-error Maps remain queryable but release retirement belongs to the mechanic.
-      state.specialization.state.dragonSlashReleases.clear();
+      // @ts-expect-error A label cannot change the active charge pool's capacity.
+      state.specialization.state.dragonCharges.maximum = 0;
       // @ts-expect-error Charge observations cannot be changed through a label.
       state.specialization.state.dragonChargeReachedAt.push(0);
       void charges;

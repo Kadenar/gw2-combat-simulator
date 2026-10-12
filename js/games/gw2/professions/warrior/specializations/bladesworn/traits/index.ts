@@ -186,7 +186,7 @@ const daringDragon = defineTrait({
 
       emit: TRAIT.DARING_DRAGON,
       on: 'castCommit',
-      when: (runtime, cast) => dragonSlashRelease(runtime, cast) != null,
+      when: (_runtime, cast) => dragonSlashRelease(cast) != null,
       effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
       attribution: { priority: 0, audience: { recipients: 'party' } }
     }

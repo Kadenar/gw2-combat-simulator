@@ -1,12 +1,5 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-/** Immutable release facts remain available after charging state exits. */
-interface DragonSlashRelease {
-  readonly charges: number;
-  readonly maximum: number;
-  readonly flowSpent: number;
-  readonly coefficient: number;
-}
 export interface DragonTriggerState {
   dragonTriggerActive: boolean;
   dragonTriggerStartedAt: number;
@@ -19,9 +12,8 @@ export interface DragonTriggerState {
   dragonChargesPerInterval: number;
   dragonTriggerFlowSpent: number;
   dragonTriggerEventActivationId: string;
-  dragonSlashReleases: Map<string, DragonSlashRelease>;
 }
-/** A fresh state fragment keeps thresholds and accepted release facts isolated between runs. */
+/** A fresh state fragment keeps the active charging window and its thresholds isolated between runs. */
 export function createDragonTriggerState(): DragonTriggerState {
   return {
     dragonTriggerActive: false,
@@ -33,7 +25,6 @@ export function createDragonTriggerState(): DragonTriggerState {
     dragonCharges: createResourceClock(),
     dragonChargesPerInterval: 1,
     dragonTriggerFlowSpent: 0,
-    dragonTriggerEventActivationId: '',
-    dragonSlashReleases: new Map()
+    dragonTriggerEventActivationId: ''
   };
 }

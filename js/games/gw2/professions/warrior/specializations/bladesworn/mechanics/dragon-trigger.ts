@@ -1,7 +1,6 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -26,6 +25,16 @@ import { clamp } from '#kernel/core/numeric.js';
 
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
 export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = 'dragon trigger charge';
+
+/** Immutable acceptance facts survive mode exit and belong to the actual cast, independent of reused string IDs. */
+interface DragonSlashRelease {
+  readonly charges: number;
+  readonly maximum: number;
+  readonly flowSpent: number;
+  readonly coefficient: number;
+}
+
+const dragonSlashReleases = new WeakMap<RuntimeCast<WarriorSkill>, DragonSlashRelease>();
 
 function dragonSlashCoefficient(minimum: number, maximum: number, charges: number, maximumCharges: number): number {
   if (maximumCharges <= 1) return maximum;
@@ -186,7 +195,7 @@ function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
 
 /** Release captures charge facts before clearing the mode; every packet still uses common miss, interruption, and impact scheduling. */
 export function slashEffects(_runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): readonly SkillEffect[] {
-  const released = dragonSlashRelease(_runtime, cast)!;
+  const released = dragonSlashRelease(cast)!;
   const skill = cast.skill;
   const spent = dragonChargesToAdrenalineSpent(released.charges);
   const timing = {
@@ -240,7 +249,7 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
       maximum
     )
   };
-  state.dragonSlashReleases.set(cast.id, Object.freeze(release));
+  dragonSlashReleases.set(cast, Object.freeze(release));
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -269,9 +278,9 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
   exitDragonTrigger(runtime);
 }
 
-/** Release facts belong to this run and survive exit for commit traits and detached packets. */
-export function dragonSlashRelease(runtime: MechanicQueriesOf<WarriorRuntime>, cast: RuntimeCast<WarriorSkill>) {
-  return bladeswornState.from(runtime).dragonSlashReleases.get(cast.id);
+/** Read captured facts for this exact cast after mode exit, through packet construction and every commit observer. */
+export function dragonSlashRelease(cast: RuntimeCast<WarriorSkill>) {
+  return dragonSlashReleases.get(cast);
 }
 
 /** Capacity follows the selected trait/profile; the existing charge task remains the only grant cadence. */

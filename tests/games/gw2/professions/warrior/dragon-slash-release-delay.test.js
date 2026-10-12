@@ -4,6 +4,7 @@ import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 
 // Minimal charge scenarios isolate holds from saved rotations, weapon rolls, and benchmark damage.
 const combat = { type: 'combat-start' };
@@ -14,6 +15,7 @@ const slash = (releaseAtCharges, releaseDelayMs) => ({
   releaseAtCharges,
   releaseDelayMs
 });
+const acceptedSlashes = new WeakMap();
 function run(rotation, overrides = {}, output = 'detailed') {
   const config = {
     specialization: 'Bladesworn',
@@ -23,7 +25,23 @@ function run(rotation, overrides = {}, output = 'detailed') {
     target: { armor: 2597 },
     ...overrides
   };
-  return observeGw2Runtime({ profession: warriorProfession.runtimeFor(config), config, rotation, output });
+  const native = warriorProfession.runtimeFor(config);
+  const casts = [];
+  // Retain the actual accepted casts so ownership checks do not depend on any release-storage container.
+  const result = observeGw2Runtime({
+    profession: {
+      ...native,
+      onCastStart(runtime, cast) {
+        native.onCastStart?.(runtime, cast);
+        if (cast.skill.dragonSlash) casts.push(cast);
+      }
+    },
+    config,
+    rotation,
+    output
+  });
+  acceptedSlashes.set(result, casts);
+  return result;
 }
 
 const release = (result) =>
@@ -34,14 +52,21 @@ const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9
 test('Dragon Trigger release facts belong to one simulation and survive exit immutably', () => {
   const first = run([combat, 'Dragon Trigger', slash(2, 0)]);
   const firstState = observedRuntime(first).profession.specialization.state;
+  const [firstCast] = acceptedSlashes.get(first);
+  const firstRelease = dragonSlashRelease(firstCast);
   const second = run([combat, 'Dragon Trigger', slash(1, 0)]);
-  const secondState = observedRuntime(second).profession.specialization.state;
-  assert.notEqual(firstState.dragonSlashReleases, secondState.dragonSlashReleases);
+  const [secondCast] = acceptedSlashes.get(second);
+  assert.equal(firstCast.id, secondCast.id);
+  assert.notEqual(firstCast, secondCast);
+  assert.equal(dragonSlashRelease({ ...firstCast }), undefined);
   assert.equal(firstState.dragonTriggerActive, false);
-  const firstRelease = [...firstState.dragonSlashReleases.values()][0];
+  assert.equal(firstState.dragonCharges.value, 0);
+  assert.equal(dragonSlashRelease(firstCast), firstRelease);
   assert.equal(firstRelease.charges, 2);
-  assert.equal([...secondState.dragonSlashReleases.values()][0].charges, 1);
+  assert.equal(dragonSlashRelease(secondCast).charges, 1);
   assert.equal(Object.isFrozen(firstRelease), true);
+  observedRuntime(first).mechanics.resourceController.grant('dragonCharges', 1);
+  assert.equal(firstRelease.charges, 2);
 });
 
 test('release holds add to actual charge completion with and without Tactical Reload', () => {

@@ -98,7 +98,7 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
       // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
       const spent = warriorAmmunition.get(cast);
       if (spent) runtime.fireTrigger(ammunitionCommitted, { cast, spent });
-      const release = dragonSlashRelease(runtime, cast);
+      const release = dragonSlashRelease(cast);
       if (release) {
         runtime.fireTrigger(dragonSlashReleased, { cast, flowSpent: release.flowSpent });
 
