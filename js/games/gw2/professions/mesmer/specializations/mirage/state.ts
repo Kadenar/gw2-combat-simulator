@@ -1,7 +1,7 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
@@ -38,13 +38,14 @@ function createMirageState(): MesmerMirageState {
 
 export const mirageState = defineProfessionSpecializationState('Mirage', createMirageState);
 
-/** Publishes this module's detached public observations at the planning boundary. */
+/** Detach the public clock and derive the ambush display without copying private mirror or cast state. */
 export function projectMiragePlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as MesmerMirageState;
+  const state = flattenProfessionState(input.profession) as unknown as MesmerMirageState;
+  const publicState = projectPublicProfessionState(state, ['endurance']);
   const at = canonicalTime(input.time);
   const weapon = gw2ActivePrimaryWeapon(input.config, input.activeWeaponSet === 1 ? 1 : 2) || '';
   return {
-    endurance: state.endurance,
+    ...publicState,
     availableAmbush:
       state.ambushSource && state.ambushUntil > at
         ? {

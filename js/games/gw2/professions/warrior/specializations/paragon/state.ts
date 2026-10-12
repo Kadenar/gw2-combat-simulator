@@ -1,5 +1,5 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { projectPublicProfessionState, flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -39,16 +39,15 @@ function createParagonState(): ParagonState {
 
 export const paragonState = defineProfessionSpecializationState('Paragon', createParagonState);
 
-/** Publishes detached, current public values without mutating the live module state. */
+/** Derive the public refrain label and detach selected fields without cloning private echo bookkeeping. */
 export function projectParagonPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as ParagonState;
-  const publicState = {
-    ...state,
-    activeRefrain: state.activeRefrainId == null ? '' : input.catalog.skillsById.get(state.activeRefrainId)?.name || ''
-  };
-  return projectPublicProfessionState(
-    publicState,
+  const state = flattenProfessionState(input.profession) as Partial<WarriorState>;
+  const publicState = projectPublicProfessionState(
+    state,
     PARAGON_PUBLIC_STATE_PROJECTION.keys,
     PARAGON_PUBLIC_STATE_PROJECTION.defaults
   );
+  publicState.activeRefrain =
+    state.activeRefrainId == null ? '' : input.catalog.skillsById.get(state.activeRefrainId)?.name || '';
+  return publicState;
 }

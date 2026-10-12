@@ -1,7 +1,7 @@
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
-  snapshotProfessionState,
+  flattenProfessionState,
   projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -29,14 +29,14 @@ function createSpellbreakerState(): SpellbreakerState {
 
 export const spellbreakerState = defineProfessionSpecializationState('Spellbreaker', createSpellbreakerState);
 
-/** Filters expired public values at observation time without queue work or live-state mutation. */
+/** Detach public fields before filtering expiry so observations cannot mutate live deadlines. */
 export function projectSpellbreakerPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as SpellbreakerState;
-  state.attackerInsightExpiries = purgeExpiredStacks(state.attackerInsightExpiries, input.time);
-  if (state.magebaneTetherUntil <= input.time) state.magebaneTetherUntil = 0;
-  return projectPublicProfessionState(
-    state,
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as SpellbreakerState,
     SPELLBREAKER_PUBLIC_STATE_PROJECTION.keys,
     SPELLBREAKER_PUBLIC_STATE_PROJECTION.defaults
   );
+  state.attackerInsightExpiries = purgeExpiredStacks(state.attackerInsightExpiries, input.time);
+  if (state.magebaneTetherUntil <= input.time) state.magebaneTetherUntil = 0;
+  return state;
 }

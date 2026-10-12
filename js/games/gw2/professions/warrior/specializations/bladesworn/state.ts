@@ -4,7 +4,7 @@ import {
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
-  snapshotProfessionState,
+  flattenProfessionState,
   projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -81,15 +81,15 @@ export function activeCartridgeWindow(
   return undefined;
 }
 
-/** Filters expired public values at observation time without queue work or live-state mutation. */
+/** Detach only public fields before filtering expiry so private release history is never deep-cloned. */
 export function projectBladeswornPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as BladeswornState;
-  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
-    (window) => window.expiresAt > input.time
-  );
-  return projectPublicProfessionState(
-    state,
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as BladeswornState,
     BLADESWORN_PUBLIC_STATE_PROJECTION.keys,
     BLADESWORN_PUBLIC_STATE_PROJECTION.defaults
   );
+  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
+    (window) => window.expiresAt > input.time
+  );
+  return state;
 }

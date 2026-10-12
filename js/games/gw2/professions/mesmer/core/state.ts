@@ -1,6 +1,6 @@
 import type { MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
@@ -43,10 +43,11 @@ export function createMesmerCoreState(): MesmerCoreState {
   };
 }
 
-/** Publishes this module's detached public observations at the planning boundary. */
+/** Derive display values and detach public windows without copying private cast or illusion history. */
 export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as MesmerCoreState;
+  const state = flattenProfessionState(input.profession) as unknown as MesmerCoreState;
   const at = canonicalTime(input.time);
+  const publicState = projectPublicProfessionState(state, ['availableFlips']);
   return {
     // Clone counts remain entity observations; elite numeric pools are projected by their owners.
     ...(mesmerResourceKind(input.config.specialization ?? 'Core') === 'clones'
@@ -58,7 +59,7 @@ export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
     // The display timer projects the grant without consuming or pruning its owner.
     clarityRemaining: state.clarity.charges > 0 ? Math.max(0, Math.round((state.clarity.expiresAt - at) * 1000)) : 0,
     availableFlips: Object.fromEntries(
-      Object.entries(state.availableFlips).filter(([, window]) => skillFlipVisible(window, at))
+      Object.entries(publicState.availableFlips).filter(([, window]) => skillFlipVisible(window, at))
     ),
     autoattackChains: Object.fromEntries(
       input.catalog.autoattackChains.map((chain) => [chain[0], state.autoattackChains[chain[0]] || chain[0]])

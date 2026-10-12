@@ -2,7 +2,7 @@ import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-cla
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
-  snapshotProfessionState,
+  flattenProfessionState,
   projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -53,13 +53,13 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
 
 export const untamedState = defineProfessionSpecializationState('Untamed', createUntamedState);
 
-/** Filters expired public values at observation time without queue work or live-state mutation. */
+/** Detach public fields before hiding expired ambushes, leaving private activation claims untouched. */
 export function projectUntamedPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as UntamedState;
-  if (state.ambushReadyUntil <= input.time) state.ambushReadyUntil = 0;
-  return projectPublicProfessionState(
-    state,
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as UntamedState,
     UNTAMED_PUBLIC_STATE_PROJECTION.keys,
     UNTAMED_PUBLIC_STATE_PROJECTION.defaults
   );
+  if (state.ambushReadyUntil <= input.time) state.ambushReadyUntil = 0;
+  return state;
 }

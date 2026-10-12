@@ -3,7 +3,7 @@ import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { projectPublicProfessionState, flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { soulBatteryCapacity } from '#gw2/professions/necromancer/core/traits/soul-reaping/resource-queries.js';
@@ -113,15 +113,15 @@ export function actualNecromancerLifeForceCost(baseHealthPercent: number): numbe
   return (NECROMANCER_BASE_HEALTH * Math.max(0, baseHealthPercent || 0)) / 100;
 }
 
-/** Publishes detached, current public values without mutating the live module state. */
+/** Detach only public fields before clamping resources so normalization cannot mutate live owners. */
 export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as NecromancerCoreState;
-  state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
-  // Detached resource values obey the same selected capacity as live grants.
-  state.soulShardGrant.charges = cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input));
-  return projectPublicProfessionState(
-    state,
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as NecromancerCoreState,
     NECROMANCER_CORE_PUBLIC_STATE_PROJECTION.keys,
     NECROMANCER_CORE_PUBLIC_STATE_PROJECTION.defaults
   );
+  state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
+  // Detached resource values obey the same selected capacity as live grants.
+  state.soulShardGrant.charges = cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input));
+  return state;
 }

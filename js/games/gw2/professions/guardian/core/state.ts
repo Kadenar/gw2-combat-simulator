@@ -1,9 +1,7 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
-import type { GuardianState } from '#gw2/professions/guardian/types.js';
-import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -90,23 +88,17 @@ const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   defaults: {}
 });
 
-/** Detaches canonical combat state and expires public windows at the observation time. */
-export function snapshotGuardianState(state: unknown, at: number): GuardianState {
-  const snapshot = snapshotProfessionState(state) as GuardianState;
-  // Snapshots can be captured before a flip's expiry task runs; never expose an expired flip to the palette.
-  snapshot.availableFlips = Object.fromEntries(
-    Object.entries(snapshot.availableFlips).filter(([, window]) => skillFlipVisible(window, at))
-  );
-  snapshot.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(snapshot, at);
-  return snapshot;
-}
-
-/** Publishes detached, current public values without mutating the live module state. */
+/** Detach only public fields before expiring visible windows, leaving private state and live owners untouched. */
 export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotGuardianState(input.profession, input.time);
-  return projectPublicProfessionState(
-    state,
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as GuardianCoreState,
     GUARDIAN_CORE_PUBLIC_STATE_PROJECTION.keys,
     GUARDIAN_CORE_PUBLIC_STATE_PROJECTION.defaults
   );
+  // Projections can precede a flip's expiry task; never expose an expired flip to the palette.
+  state.availableFlips = Object.fromEntries(
+    Object.entries(state.availableFlips).filter(([, window]) => skillFlipVisible(window, input.time))
+  );
+  state.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(state, input.time);
+  return state;
 }

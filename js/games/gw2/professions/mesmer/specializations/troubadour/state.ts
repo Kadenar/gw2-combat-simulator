@@ -1,5 +1,5 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
@@ -54,13 +54,13 @@ export function activeTroubadourInstrumentsAt(
   );
 }
 
-/** Publishes this module's detached public observations at the planning boundary. */
+/** Detach public clocks and build fresh instrument observations without copying private family state. */
 export function projectTroubadourPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as MesmerTroubadourState;
+  const state = flattenProfessionState(input.profession) as unknown as MesmerTroubadourState;
+  const publicState = projectPublicProfessionState(state, ['notes', 'endurance']);
   const at = canonicalTime(input.time);
   return {
-    notes: state.notes,
-    endurance: state.endurance,
+    ...publicState,
     activeInstruments: Object.entries(state.instruments)
       .filter(([, expiresAt]) => expiresAt > at)
       .map(([name, expiresAt]) => ({

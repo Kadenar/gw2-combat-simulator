@@ -29,7 +29,9 @@ test('planning projections omit private mechanic state while retaining visible o
     [guardianProfession, 'Core', 'core', ['justiceHitCount', 'virtueReadyAt'], 'symbolicAvengerExpirations'],
     [rangerProfession, 'Core', 'core', ['petAutoNextAt', 'petAutoBusyUntil', 'petAutoRecharges'], 'activePetSlot'],
     [thiefProfession, 'Antiquary', 'specialization', ['backfireState', 'canachCoinIndex'], 'artifactSlots'],
-    [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity']
+    [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity'],
+    [warriorProfession, 'Bladesworn', 'specialization', ['dragonSlashReleases'], 'flow'],
+    [warriorProfession, 'Paragon', 'specialization', ['commandEchoes', 'activeRefrainId'], 'motivation']
   ]) {
     const config = { specialization };
     const profession = family.runtimeFor(config).createState(config);
@@ -72,6 +74,94 @@ test('public expiry projections use exclusive deadlines without mutating the liv
       assert.deepEqual(owner[key], value, 'Projection leaves the stored deadlines untouched');
     }
   }
+});
+
+test('filtered public windows remain deeply detached from their live owners', () => {
+  // Filtering must preserve nested detachment even when a visible window survives the observation.
+  const guardian = guardianProfession.runtimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
+  const expiredFlip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 5 };
+  const visibleFlip = { identity: 2, visibleAt: 0, availableAt: 0, expiresAt: 7 };
+  guardian.core.availableFlips = { expired: expiredFlip, visible: visibleFlip };
+  const guardianProjection = projectObservedState(guardianProfession, { profession: guardian, time: 5 });
+  assert.deepEqual(guardianProjection.availableFlips, { visible: visibleFlip });
+  guardianProjection.availableFlips.visible.expiresAt = 99;
+  assert.equal(visibleFlip.expiresAt, 7);
+  assert.equal(guardian.core.availableFlips.expired, expiredFlip);
+
+  const config = { specialization: 'Bladesworn' };
+  const bladesworn = warriorProfession.runtimeFor(config).createState(config);
+  const cartridge = {
+    startedAt: 1,
+    expiresAt: 7,
+    damageBonus: 0.15,
+    burningDuration: 3,
+    supercharged: false
+  };
+  bladesworn.specialization.state.overchargedCartridgeWindows = [cartridge];
+  const bladeswornProjection = projectObservedState(warriorProfession, { profession: bladesworn, time: 5 });
+  assert.deepEqual(bladeswornProjection.overchargedCartridgeWindows, [cartridge]);
+  bladeswornProjection.overchargedCartridgeWindows[0].damageBonus = 99;
+  assert.equal(cartridge.damageBonus, 0.15);
+});
+
+test('Mesmer public projectors do not traverse private cast history', () => {
+  // Private acceptance records must not be visited merely to publish the Core and active elite observations.
+  for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
+    const config = { specialization };
+    const profession = mesmerProfession.runtimeFor(config).createState(config);
+    profession.core.castDetails.set('private-cast', {
+      get clarityConsumed() {
+        return assert.fail('Projection traversed private cast details');
+      }
+    });
+    const flip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 7 };
+    profession.core.availableFlips = { visible: flip, expired: { ...flip, identity: 2, expiresAt: 5 } };
+    const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
+    assert.equal(Object.hasOwn(projected, 'castDetails'), false);
+    assert.deepEqual(projected.availableFlips, { visible: flip });
+    projected.availableFlips.visible.expiresAt = 99;
+    assert.equal(flip.expiresAt, 7);
+    assert.equal(profession.core.availableFlips.expired.expiresAt, 5);
+  }
+});
+
+test('Mesmer public endurance and instrument observations remain detached', () => {
+  // Display consumers can edit both copied clocks and derived entries without changing their live owners.
+  for (const specialization of ['Mirage', 'Troubadour']) {
+    const config = { specialization };
+    const profession = mesmerProfession.runtimeFor(config).createState(config);
+    const state = profession.specialization.state;
+    if (specialization === 'Troubadour') state.instruments = { Lute: 7, Flute: 5 };
+    const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
+    assert.deepEqual(projected.endurance, state.endurance);
+    projected.endurance.value = 0;
+    assert.equal(state.endurance.value, 100);
+    if (specialization === 'Troubadour') {
+      assert.deepEqual(projected.activeInstruments, [{ name: 'Lute', expiresAt: 7000, remaining: 2000 }]);
+      projected.activeInstruments[0].name = 'edited';
+      assert.deepEqual(state.instruments, { Lute: 7, Flute: 5 });
+    }
+  }
+});
+
+test('Antiquary filters refund grants without sharing surviving grants with live state', () => {
+  // Expiry and earliest-first display ordering affect the detached observation, never the owner's grants or order.
+  const config = { specialization: 'Antiquary' };
+  const profession = thiefProfession.runtimeFor(config).createState(config);
+  const grants = [
+    { charges: 2, expiresAt: 9 },
+    { charges: 1, expiresAt: 5 },
+    { charges: 3, expiresAt: 7 }
+  ];
+  profession.specialization.state.chakInitiativeRefunds = grants;
+  const projected = projectObservedState(thiefProfession, { profession, config, time: 5 });
+  assert.deepEqual(projected.chakInitiativeRefunds, [grants[2], grants[0]]);
+  projected.chakInitiativeRefunds[0].charges = 0;
+  assert.deepEqual(grants, [
+    { charges: 2, expiresAt: 9 },
+    { charges: 1, expiresAt: 5 },
+    { charges: 3, expiresAt: 7 }
+  ]);
 });
 
 test('force clocks are detached in snapshots and planning projections and absent for inactive specializations', () => {

@@ -1,5 +1,5 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { projectPublicProfessionState, flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import {
   definePublicStateDefaults,
@@ -77,7 +77,7 @@ function createHarbingerState(
 }
 
 /** Keeps Harbinger's capped, expiry-backed Blight representation internally consistent. */
-function syncHarbingerState(state: HarbingerState, maximum: number): void {
+function syncHarbingerState(state: Pick<HarbingerState, 'blight' | 'blightExpiries'>, maximum: number): void {
   // Cap refreshes retain their consumption position; sorting by expiry would spend different stacks.
   state.blightExpiries = maximum > 0 ? state.blightExpiries.slice(-maximum) : [];
   state.blight = state.blightExpiries.length;
@@ -124,13 +124,13 @@ export function consumeBlight(state: HarbingerState, stacks: number, at: number,
 
 export const harbingerState = defineProfessionSpecializationState('Harbinger', createHarbingerState);
 
-/** Publishes detached, current public values without mutating the live module state. */
+/** Detach public fields before reconciling Blight so its display cap cannot alter live stacks. */
 export function projectHarbingerPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as HarbingerState;
-  syncHarbingerState(state, harbingerBlightMaximum(input));
-  return projectPublicProfessionState(
-    state,
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as HarbingerState,
     HARBINGER_PUBLIC_STATE_PROJECTION.keys,
     HARBINGER_PUBLIC_STATE_PROJECTION.defaults
   );
+  syncHarbingerState(state, harbingerBlightMaximum(input));
+  return state;
 }

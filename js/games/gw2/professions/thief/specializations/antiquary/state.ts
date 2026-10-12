@@ -9,7 +9,7 @@ import {
   defineProfessionSpecializationState,
   definePublicStateDefaults,
   projectPublicProfessionState,
-  snapshotProfessionState
+  flattenProfessionState
 } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
@@ -84,9 +84,13 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);
 
-/** Publishes detached, current public values without mutating the live module state. */
+/** Detach public grants and stacks before expiring them so observations never consume live entitlements. */
 export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState(input.profession) as AntiquaryState;
+  const state = projectPublicProfessionState(
+    flattenProfessionState(input.profession) as unknown as AntiquaryState,
+    ANTIQUARY_PUBLIC_STATE_PROJECTION.keys,
+    ANTIQUARY_PUBLIC_STATE_PROJECTION.defaults
+  );
   expireCharges(state.mistburn, input.time);
   state.chakInitiativeRefunds = activeChargeGrants(state.chakInitiativeRefunds, input.time);
   state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations, input.time);
@@ -94,9 +98,5 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
     state.holoUtilityCooldownReductionExpirations,
     input.time
   );
-  return projectPublicProfessionState(
-    state,
-    ANTIQUARY_PUBLIC_STATE_PROJECTION.keys,
-    ANTIQUARY_PUBLIC_STATE_PROJECTION.defaults
-  );
+  return state;
 }

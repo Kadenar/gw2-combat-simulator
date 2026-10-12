@@ -11,7 +11,6 @@ import {
 } from '#gw2/professions/guardian/build/build.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
-import { snapshotGuardianState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -211,7 +210,10 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     true
   );
   assert.equal(
-    snapshotGuardianState(symbols.planningState.profession, symbols.combatEndTime).symbolicAvengerExpirations.length,
+    projectObservedState(guardianProfession, {
+      profession: observedRuntime(symbols).profession,
+      time: symbols.combatEndTime
+    }).symbolicAvengerExpirations.length,
     5
   );
   assert.ok(blades.at(-1).damage > blades[0].damage);
