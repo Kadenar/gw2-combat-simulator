@@ -4,7 +4,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -65,25 +65,28 @@ test('completion without a resource declaration leaves resources and their queue
   assert.equal(context.profession.core.castDetails.has(cast.id), false);
 });
 
-// Direct grants commit through the same queued reward owner for clones, blades, and notes.
-for (const [specialization, key, maximum] of [
-  ['Core', 'clones', 3],
-  ['Virtuoso', 'blades', 5],
-  ['Troubadour', 'notes', 3]
+// Add grants cover each resource owner; only Virtuoso's Blade Renewal declares a fill grant.
+for (const [specialization, key, maximum, modes] of [
+  ['Core', 'clones', 3, ['add']],
+  ['Virtuoso', 'blades', 5, ['add', 'fill']],
+  ['Troubadour', 'notes', 3, ['add']]
 ]) {
-  test(`${specialization} completion queues add and fill grants with their declared weapon and capped rewards`, () => {
-    for (const mode of ['add', 'fill']) {
+  test(`${specialization} completion queues supported grants with their declared weapon and earned rewards`, () => {
+    for (const mode of modes) {
       const initial = mode === 'fill' ? 1 : 0;
       const { context, scheduled, events } = fixture(specialization, initial);
       mesmerIllusionHooks.initialize(context);
       const value = () =>
         key === 'clones' ? context.profession.core.clones.length : context.resourceController.value(key);
-      const skill = {
-        id: 'direct-resource',
-        name: 'Direct resource',
-        ...(mode === 'add' ? { weapon: 'Staff' } : {}),
-        resource: { mode, count: 2, timingAnchor: 'castEnd', atMs: mode === 'add' ? 250 : 0 }
-      };
+      const skill =
+        mode === 'fill'
+          ? context.helpers.skillsById.get(ID.BLADE_RENEWAL)
+          : {
+              id: 'direct-resource',
+              name: 'Direct resource',
+              weapon: 'Staff',
+              resource: { mode, count: 2, timingAnchor: 'castEnd', atMs: 250 }
+            };
       const cast = { id: 'direct-cast', start: 0, fullEnd: 1, effectiveEnd: 1, skill, command: {} };
       startMesmerCast(context, cast, skill);
       context.time = cast.fullEnd;
@@ -104,7 +107,7 @@ for (const [specialization, key, maximum] of [
       const expectedValue = mode === 'fill' ? maximum : 2;
       assert.equal(value(), expectedValue);
       const reward = events.find((event) => event.reason === skill.name);
-      assert.equal(reward.amount, key === 'clones' ? expectedValue : expectedValue - initial);
+      assert.equal(reward.amount, expectedValue - initial);
       assert.equal(reward.value, expectedValue);
       assert.ok(events.some((event) => event.kind === 'compounding'));
 

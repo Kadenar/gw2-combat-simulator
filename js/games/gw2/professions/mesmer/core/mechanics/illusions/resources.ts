@@ -15,14 +15,14 @@ interface DirectSkillResourceOptions {
   readonly queueResources: MesmerQueueResources;
 }
 
-/** Queue declared add/fill grants without constructing phantasms; report whether a direct grant was handled. */
+/** Queue declared add/fill grants through their reward owner without constructing phantasms. */
 export function scheduleDirectSkillResources(
   { resourceDefinition, activePrimaryWeapon, queueResources }: DirectSkillResourceOptions,
   skill: MesmerSkill,
   at: number,
   castStart: number,
   delivery: EffectDelivery = {}
-): boolean {
+): void {
   if (skill.resource?.mode === 'fill') {
     // Resource tasks run after the completion task; a synthetic delay would hide the gain from the next cast.
     queueResources(
@@ -36,7 +36,7 @@ export function scheduleDirectSkillResources(
       },
       delivery
     );
-    return true;
+    return;
   }
 
   if (skill.resource?.mode === 'add') {
@@ -55,10 +55,7 @@ export function scheduleDirectSkillResources(
       },
       delivery
     );
-    return true;
   }
-
-  return false;
 }
 
 /** Keep simultaneous phantasm conversions atomic, including specialization-specific conversion instants. */
