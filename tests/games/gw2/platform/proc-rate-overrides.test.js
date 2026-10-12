@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -180,8 +181,20 @@ test('proc rates round-trip with builds and become detached worker configuration
     skillByName: adapter.profession.catalog.skillsByName,
     attributeWeaponSet: 1
   };
-  adapter.recalculate(app);
-  const config = adapter.simulationConfig(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  const config = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
   assert.deepEqual(config.procRateOverrides, original.assumptions.procRateOverrides);
   build.assumptions.procRateOverrides['engineer.shrapnel'] = 1;
   assert.equal(config.procRateOverrides['engineer.shrapnel'], 0);

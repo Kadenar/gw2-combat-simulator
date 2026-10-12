@@ -4,7 +4,7 @@ import {
   savedComparisonAlliedPlayerCount,
   type ComparisonResult
 } from '#gw2/app/page/benchmark-comparison/model.js';
-import { fetchJsonAsset } from '#gw2/app/import-export/files.js';
+import { fetchJsonAsset } from '#gw2/integrations/assets.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
 
 /** Reuse workers across the runner's bounded jobs so engines and prepared builds stay warm between comparisons. */

@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { calculateCommonAttributes, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
@@ -47,9 +48,28 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
         skillByName: adapter.profession.catalog.skillsByName,
         skillById: adapter.profession.catalog.skillsById
       };
-      adapter.recalculate(app);
-      const without = adapter.simulationConfig(app, { type: 'Sigil', name: sigil });
-      const baseline = adapter.simulationConfig(app);
+      app.attributeData = adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+      const without = adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: 'current',
+          transitionDelays: normalizeTransitionDelays(),
+          disabledModifier: { type: 'Sigil', name: sigil }
+        })
+        .simulationConfig();
+      const baseline = adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .simulationConfig();
       const field = { Bloodlust: 'power', Corruption: 'conditionDamage', Cruelty: 'ferocity', Stars: 'precision' }[
         sigil
       ];
@@ -93,14 +113,26 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       assert.ok(weaponSkills(app, set).length > 0);
     }
 
-    adapter.recalculate(app);
+    app.attributeData = adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const result = simulateGw2({
       profession: adapter.profession,
       rotation:
         adapter.id === 'engineer'
           ? ['__combat_start', 'Grenade Kit', 'Swap Weapons']
           : ['__combat_start', 'Fire Attunement'],
-      config: adapter.simulationConfig(app)
+      config: adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .simulationConfig()
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.activeWeaponSet, 2);

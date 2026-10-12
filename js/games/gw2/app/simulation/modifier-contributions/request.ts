@@ -1,14 +1,14 @@
-import { deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import type { BuildContextFactory } from '#gw2/build-context/types.js';
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
-import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
+import type { ProfessionAppState, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type {
-  ModifierContributionRequest,
-  ProfessionModifier
-} from '#gw2/app/simulation/modifier-contributions/types.js';
+import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
+import type { ProfessionModifier } from '#gw2/build-context/types.js';
 
 /** Enumerates equipped effects and active assumptions for one-at-a-time removal comparisons. */
 function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
@@ -104,10 +104,17 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
 export function createModifierContributionRequest(
   app: ProfessionAppState,
   profession: ProfessionRuntimeOptions['profession'],
-  simulationConfig: ProfessionRuntimeApi['simulationConfig']
+  createBuildContext: BuildContextFactory
 ): ModifierContributionRequest {
   const comparisonConfig = (disabled: ProfessionModifier | null = null): Gw2Config => {
-    const config = deterministicSimulationConfig(simulationConfig(app, disabled));
+    const config = deterministicSimulationConfig(
+      createBuildContext({
+        build: app.build,
+        patchId: app.patchId,
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+        disabledModifier: disabled ?? undefined
+      }).simulationConfig()
+    );
     // Eagle needs finite target health for its health-threshold behavior; other comparisons use the full rotation.
     return app.build.relic === 'Eagle' ? config : { ...config, target: { ...config.target, health: 0 } };
   };

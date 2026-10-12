@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
@@ -5,7 +6,7 @@ import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
 } from '#gw2/app/build/state/persistence.js';
-import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
+import { bindBuildContext } from '#gw2/build-context/create.js';
 import {
   calculateContributionComparisons,
   mergeModifierContributions,
@@ -60,45 +61,41 @@ test('flat writ attributes feed conversions while converted utility attributes d
   assert.deepEqual(converted.commonContext.conversionPool, baseline.commonContext.conversionPool);
 });
 
-test('config preparation calculates each affected weapon set once and reuses the displayed set for hooks', () => {
+test('build contexts calculate each requested weapon set once and detach configuration seeds', () => {
   const calculatedSets = [];
-  let hookAttributes;
-  const runtime = createProfessionRuntime({
-    profession: mesmerAppAdapter.profession,
-    // Distinct set values expose accidentally selecting the first set for displayed-attribute hooks.
-    calculateAttributes(_build, _skills, weaponSet) {
+  const createBuildContext = bindBuildContext(
+    mesmerAppAdapter.profession,
+    (_build, _skills, weaponSet) => {
       calculatedSets.push(weaponSet);
       return {
         attributeSeed: baseAttributeInputs({ power: weaponSet * 100 }).weaponSets[0],
         attributes: { Power: { final: weaponSet * 100 } },
-        activeTraits: [{ id: weaponSet }]
+        activeTraits: [{ id: 1, name: 'Trait' }]
       };
     },
-    buildConfigExtras(_app, { attributeData }) {
-      hookAttributes = attributeData;
-      return {};
-    }
-  });
-  const build = createDefaultBuild();
-  build.selectedSkillIds = {};
-  const app = { build, attributeWeaponSet: 2, skillByName: new Map() };
-  runtime.recalculate(app);
-  for (const type of ['Trait', 'Boon', 'Sigil', 'Food']) {
+    () => ({})
+  );
+  const input = { build: createDefaultBuild(), patchId: 'current', transitionDelays: normalizeTransitionDelays() };
+  for (const type of [null, 'Trait', 'Boon', 'Sigil', 'Food', 'Skill']) {
     calculatedSets.length = 0;
-    const config = runtime.simulationConfig(app, { id: `${type}:Test`, type, name: 'Test', label: 'Test' });
-    assert.deepEqual(calculatedSets, [1, 2]);
+    const context = createBuildContext({
+      ...input,
+      disabledModifier: type ? { id: `${type}:Test`, type, name: 'Test', label: 'Test', skillId: 1 } : undefined
+    });
+    assert.deepEqual(calculatedSets, []);
+    const attributes = context.attributes(2);
+    assert.equal(context.attributes(2), attributes);
+    assert.deepEqual(calculatedSets, [2]);
+    const config = context.simulationConfig();
+    assert.deepEqual(calculatedSets, [2, 1]);
     assert.deepEqual(
-      config.attributeInputs.weaponSets.map((seed) => seed.commonTotals).map((stats) => stats.power),
+      config.attributeInputs.weaponSets.map((seed) => seed.commonTotals.power),
       [100, 200]
     );
-    assert.equal(hookAttributes.attributes.Power.final, 200);
-    assert.deepEqual(config.selectedTraitIds, [2]);
+    config.attributeInputs.weaponSets[1].commonTotals.power = 999;
+    assert.equal(context.simulationConfig().attributeInputs.weaponSets[1].commonTotals.power, 200);
+    assert.deepEqual(calculatedSets, [2, 1]);
   }
-
-  calculatedSets.length = 0;
-  runtime.simulationConfig(app);
-  assert.deepEqual(calculatedSets, [1], 'ordinary preparation retains the cached displayed attributes');
-  assert.equal(hookAttributes, app.attributeData);
 });
 
 test('modifier requests apply one deterministic health policy to baseline and removed effects', () => {
@@ -108,14 +105,19 @@ test('modifier requests apply one deterministic health policy to baseline and re
   });
   for (const relic of ['', 'Thief', 'Eagle']) {
     const app = {
+      patchId: 'current',
       build: { rotation: [], relic, assumptions: { might: 1 }, weaponSigils: [], food: '' },
       attributeData: { activeTraits: [] }
     };
     const disabledEffects = [];
-    const request = createModifierContributionRequest(app, mesmerAppAdapter.profession, (_app, disabled) => {
-      disabledEffects.push(disabled?.id ?? null);
-      return sourceConfig;
-    });
+    const request = createModifierContributionRequest(
+      app,
+      mesmerAppAdapter.profession,
+      ({ disabledModifier: disabled }) => {
+        disabledEffects.push(disabled?.id ?? null);
+        return { simulationConfig: () => sourceConfig };
+      }
+    );
     assert.deepEqual(disabledEffects, [null, 'Boon:Might', ...(relic ? [`Relic:${relic}`] : [])]);
     assert.equal(request.contentId, 'mesmer');
     for (const config of [request.baseConfig, ...request.comparisons.map(({ config }) => config)]) {
@@ -406,10 +408,9 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     ['Force', 'Accuracy'],
     ['Bursting', 'Malice']
   ];
-  const config = mesmerAppAdapter.simulationConfig({
-    build,
-    attributeData: calcAttributes(build, [])
-  });
+  const config = mesmerAppAdapter
+    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .simulationConfig();
 
   assert.equal(config.sigilSets[0].strike, 1.05);
   assert.equal(config.sigilSets[0].criticalChanceBonus, 7);
@@ -484,10 +485,7 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
     ID.LINGERING_THOUGHTS,
     ID.AXES_OF_SYMMETRY
   ].map(cast);
-  const app = {
-    build,
-    attributeData: calcAttributes(build, [])
-  };
+  const app = { patchId: 'current', build, attributeData: calcAttributes(build, []) };
 
   assert.deepEqual(
     mesmerAppAdapter
@@ -506,10 +504,9 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
     ['Bursting', 'Demons'],
     ['Bursting', 'Demons']
   ];
-  const config = mesmerAppAdapter.simulationConfig({
-    build,
-    attributeData: calcAttributes(build, [])
-  });
+  const config = mesmerAppAdapter
+    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .simulationConfig();
 
   assert.equal(config.attributeInputs.weaponSets[0].commonTotals.conditionDurationBonus, 15);
   assert.ok(
@@ -525,7 +522,9 @@ test('Mesmer runtime includes Malicious Sorcery once through panel-derived stats
 
   build.specializations.find((spec) => spec.name === 'Illusions').traits = '1-2-3';
   const attributeData = calcAttributes(build, []);
-  const config = mesmerAppAdapter.simulationConfig({ build, attributeData });
+  const config = mesmerAppAdapter
+    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .simulationConfig();
 
   assert.equal(attributeData.attributes['Confusion Duration'].traits, 25);
   assert.equal(config.attributeInputs.weaponSets[0].commonTotals.conditionDurationBonuses.Confusion, 0);
@@ -542,10 +541,9 @@ test('simulation config exposes the selected target skill activation rate', () =
   const build = createDefaultBuild();
 
   build.assumptions.targetSkillActivationsPerSecond = 1.25;
-  const config = mesmerAppAdapter.simulationConfig({
-    build,
-    attributeData: calcAttributes(build, [])
-  });
+  const config = mesmerAppAdapter
+    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .simulationConfig();
 
   assert.equal(config.target.activatingSkills, true);
   assert.equal(config.target.confusionActivationsPerSecond, 1.25);
@@ -555,10 +553,9 @@ test('simulation config does not multiply duplicate sigil effects', () => {
   const build = createDefaultBuild();
 
   build.weaponSigils[0] = ['Force', 'Force'];
-  const config = mesmerAppAdapter.simulationConfig({
-    build,
-    attributeData: calcAttributes(build, [])
-  });
+  const config = mesmerAppAdapter
+    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .simulationConfig();
 
   assert.equal(config.sigilSets[0].strike, 1.05);
 });
@@ -570,6 +567,7 @@ test('modifier contributions compare the active build against each modifier remo
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
+    patchId: 'current',
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
@@ -599,7 +597,7 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
   ];
   const attributeData = calcAttributes(build, []);
   const withoutAccuracy = calcAttributes(build, [], 1, null, 'Accuracy');
-  const app = { build, attributeData, attributeWeaponSet: 1, skillByName: new Map() };
+  const app = { patchId: 'current', build, attributeData, attributeWeaponSet: 1, skillByName: new Map() };
   const request = mesmerAppAdapter.modifierContributionRequest(app);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Sigil:Accuracy');
   const contribution = mesmerAppAdapter
@@ -622,6 +620,7 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
   build.food = 'Plate of Coq Au Vin with Salsa';
   build.selectedSkillIds = {};
   const app = {
+    patchId: 'current',
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,
@@ -652,6 +651,7 @@ test('interactive simulation leaves contribution passes to the background worker
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
+    patchId: 'current',
     build,
     attributeData: calcAttributes(build, []),
     attributeWeaponSet: 1,

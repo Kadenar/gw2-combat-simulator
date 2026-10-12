@@ -1,5 +1,7 @@
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -17,7 +19,6 @@ import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
-import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -372,7 +373,7 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
 test('adapter caches skill tooltips without retaining row state', () => {
   let descriptions = 0;
   const adapter = defineProfessionApp({
-    profession: necromancerProfession,
+    profession: necromancerAppAdapter.profession,
     tooltips: {
       ...necromancerTooltips,
       skillFacts: (context, skill) => {
@@ -380,7 +381,7 @@ test('adapter caches skill tooltips without retaining row state', () => {
         return necromancerTooltips.skillFacts(context, skill);
       }
     },
-    applyBuildAttributeRules: createProfessionBuildAttributeRules(necromancerCatalog, getNecromancerActiveTraits),
+    createBuildContext: necromancerAppAdapter.createBuildContext,
     toApplicationBuild
   });
   const skill = necromancerProfession.catalog.skillsById.get(ID.BLOOD_CURSE);

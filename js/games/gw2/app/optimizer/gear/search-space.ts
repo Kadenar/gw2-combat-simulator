@@ -2,7 +2,7 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
-import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
   createOptimizerResultGroups,
   optimizerEquipmentIdentity,
@@ -45,7 +45,7 @@ function contribution(
   key: string,
   value: OptimizerDimension['choices'][number],
   space: OptimizerSpace,
-  adapter: Gw2AppAdapter
+  adapter: OptimizerContext
 ): number[] {
   const alternate = key.startsWith('Alternate');
   const statSlot = alternate ? key.slice('Alternate'.length) : key;
@@ -73,7 +73,7 @@ function contribution(
 /** Merge equal integer totals after each slot, retaining coverage and the smallest representative assignment. */
 export function groupOptimizerSpace(
   ordinary: OptimizerSpace,
-  adapter: Gw2AppAdapter,
+  adapter: OptimizerContext,
   totalLimit = MAX_OPTIMIZER_STAT_TOTALS
 ): GroupedOptimizerSpace {
   if (!Number.isSafeInteger(totalLimit) || totalLimit < 1 || totalLimit > MAX_OPTIMIZER_STAT_TOTALS)
@@ -172,7 +172,7 @@ export function groupedEquipmentAt(
 export function optimizerEquivalenceKey(
   equipment: OptimizerEquipment,
   space: OptimizerSpace,
-  adapter: Gw2AppAdapter
+  adapter: OptimizerContext
 ): string {
   let vector: number[] = [];
   for (const dimension of space.dimensions) {
@@ -197,16 +197,24 @@ export function optimizerEquivalenceKey(
   ]);
 }
 
+export type OptimizerRangeProgress = (completed: bigint, represented: bigint, simulations: bigint) => void;
+
 /** Unique ordinals belong to one worker range, so no score cache or repeat simulations are needed. */
-export function createGroupedOptimizer(request: GearOptimizerRequest, adapter: Gw2AppAdapter) {
+export function createGroupedOptimizer(request: GearOptimizerRequest, adapter: OptimizerContext) {
   const ordinary = createOptimizerSpace(request, adapter);
   // ponytail: workers rebuild this index; share a packed index if preparation becomes the bottleneck.
   const space = groupOptimizerSpace(ordinary, adapter);
   const evaluator = createOptimizerEvaluator(request, adapter);
-  const evaluateRange = (start: bigint, end: bigint) => {
+  const evaluateRange = (start: bigint, end: bigint, onProgress?: OptimizerRangeProgress) => {
     if (start < 0n || end > space.count || end <= start) throw new RangeError('Invalid optimizer chunk.');
-    return scoreOptimizerRange(ordinary, adapter, evaluator, start, end, (ordinal) =>
-      groupedEquipmentAt(space, ordinal)
+    return scoreOptimizerRange(
+      ordinary,
+      adapter,
+      evaluator,
+      start,
+      end,
+      (ordinal) => groupedEquipmentAt(space, ordinal),
+      onProgress
     );
   };
 
@@ -216,11 +224,12 @@ export function createGroupedOptimizer(request: GearOptimizerRequest, adapter: G
 /** Exact and bounded searches share scoring, warning retention and top-result limits. */
 export function scoreOptimizerRange(
   ordinary: OptimizerSpace,
-  adapter: Gw2AppAdapter,
+  adapter: OptimizerContext,
   evaluator: ReturnType<typeof createOptimizerEvaluator>,
   start: bigint,
   end: bigint,
-  equipmentAt: (ordinal: bigint) => { equipment: OptimizerEquipment; represented: bigint }
+  equipmentAt: (ordinal: bigint) => { equipment: OptimizerEquipment; represented: bigint },
+  onProgress?: OptimizerRangeProgress
 ) {
   const winners: OptimizerCandidate[] = [];
   const groups = createOptimizerResultGroups();
@@ -241,7 +250,11 @@ export function scoreOptimizerRange(
     // Rejected assignments still count toward coverage but never run combat or enter result groups.
     represented += candidate.represented;
     const result = evaluator.score(candidate.equipment);
-    if (!result) continue;
+    if (!result) {
+      onProgress?.(ordinal - start + 1n, represented, simulations);
+      continue;
+    }
+
     const key = optimizerEquivalenceKey(candidate.equipment, ordinary, adapter);
     const score = optimizerScore(result);
     simulations++;
@@ -271,9 +284,13 @@ export function scoreOptimizerRange(
       for (const filter of Object.keys(groups) as OptimizerGroupedFilter[])
         retainOptimizerGroup(groups[filter], result, filter, sets);
     }
+
+    // Report finished candidates even while a large range is still being scored.
+    onProgress?.(ordinal - start + 1n, represented, simulations);
   }
 
   return {
+    completed: (end - start).toString(),
     winners,
     groups,
     represented: represented.toString(),

@@ -216,7 +216,7 @@ grouping uses the first owning specialization/Core/family callback, including an
 
 ### `simulation/` and `optimizer/`
 
-`simulation/build-config.ts` translates application builds into engine configuration. `baseline/`,
+`../build-context/` translates canonical builds into cached attributes and detached engine configuration. `baseline/`,
 `modifier-contributions/`, and `random-distribution/` each keep their views, runners, workers, and contracts together.
 `optimizer/` owns `view.ts`, `gear/`, and `relic-comparison/` on the same pattern. Consumers import the owning module
 directly. `simulation/settings.ts` owns the browser simulation settings contract and persistence, independently of saved
@@ -230,8 +230,9 @@ Shared pieces already exist and should stay outside individual feature directori
 
 - Worker lifecycle: `js/browser/game/worker-harness.ts` (`ManagedWorkerBatch`, `createGameWorkerEndpoint`). Baseline,
   modifier, and RNG workers use the default game driver; `js/games/gw2/worker-driver.ts` loads and caches preview-aware
-  profession engines without browser adapters. The optimizer still loads its adapter for build and attribute work.
-- Config and runtime: `createProfessionRuntime` in `create-runtime.ts`, `simulation/build-config.ts`
+  profession engines without browser adapters. The optimizer loads `optimizer/gear/context.ts` for headless build
+  calculation and search metadata.
+- Config and runtime: `createProfessionRuntime` in `create-runtime.ts`, `../build-context/simulation-config.ts`
   (`deterministicSimulationConfig`), and the shared `simulateGw2` engine. Exact and fast optimizer searches share
   `createOptimizerEvaluator` and `scoreOptimizerRange`; relic comparison reuses `buildChartSeries` from `results/`.
 
@@ -601,3 +602,14 @@ Tests live next to the subsystem they validate: `tests/kernel/`, `tests/ui/`, `t
 For profession mechanics, test the smallest meaningful contract: availability, a state transition, a resource change, a
 modifier result, event emission, a resolver reaction, or a UI projection. Preset tests confirm that saved builds still
 load and simulate. Architecture and typecheck tests enforce cross-module ownership and composition.
+
+### GW2 build context
+
+`js/games/gw2/build-context/` composes canonical builds with native profession attribute declarations and patch balance.
+`load.ts` caches profession module loading through the registry; `create.ts` binds the synchronous factory and owns at
+most one calculation per weapon set per context. `simulation-config.ts` assembles common inputs from equipment seeds,
+never finalized profession totals. Each `professions/<name>/build/context.ts` binds the codec, preview-aware profession,
+attribute calculator, and typed starting-resource mapping. The browser adapter consumes that binding directly.
+
+`integrations/assets.ts` contains JSON fetching and rotation payload decoding shared by browser and headless request
+loaders. Export dialogs remain in `app/import-export/files.ts`.

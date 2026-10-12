@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { bindBuildFileImportDialog } from '#gw2/app/import-export/build-file-import-dialog.js';
 import {
   downloadJson,
@@ -16,7 +17,13 @@ export function bindSessionControls(app: ProfessionAppState): void {
   const attributeWeaponSet = requiredValueControl('attribute-weapon-set');
   attributeWeaponSet.addEventListener('change', () => {
     app.attributeWeaponSet = Number(attributeWeaponSet.value) === 2 ? 2 : 1;
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId,
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     app.renderAttributes();
   });
   document.addEventListener('click', (event) => {

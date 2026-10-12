@@ -8,7 +8,7 @@ const packageAliasPattern = {
   message: 'Use the package alias so TypeScript, Vite, and Node resolve the same module.'
 };
 const sharedPlatformBoundaryPattern = {
-  regex: '(^|/)professions(/|$)|(^|/)(app|integrations)(/|$)',
+  regex: '(^|/)professions(/|$)|(^|/)(app|integrations|build-context)(/|$)',
   message: 'Shared platform modules must receive profession contributions rather than import concrete implementations.'
 };
 const simulationImplementationPattern = {
@@ -390,6 +390,17 @@ export default [
         regex:
           '(^|/)(app|integrations)(/|$)|(^|/)core/(?!skills/index\\.js$)|(^|/)specializations/(?![^/]+/skills/index\\.js$)|(^|/)presentation\\.js$',
         message: 'Profession data may read module skill declarations but no behavior, presentation, or application.'
+      })
+    }
+  },
+
+  // Build-context bindings compose the active preview; native profession content keeps the stricter rule above.
+  {
+    files: ['js/games/gw2/professions/*/build/context.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports({
+        regex: '(^|/)app(/|$)|^#gw2/integrations/(?!patches/active-profession\\.js$)',
+        message: 'Build-context bindings may compose the active preview, but must not load application code.'
       })
     }
   },

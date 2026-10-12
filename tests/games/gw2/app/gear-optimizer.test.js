@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { runOrdinaryOptimizer } from '#tests/helpers/gear-optimizer.js';
@@ -18,6 +19,7 @@ import {
   createOptimizerSpace,
   createOptimizerEvaluator,
   ordinaryEquipmentAt,
+  optimizerEquipment,
   optimizerSlots,
   optimizerWeaponSets,
   optimizerCardinality,
@@ -244,7 +246,7 @@ class OptimizerTestWorker {
           kind: 'ready',
           count: this.job.space.count.toString(),
           rawCount: this.job.space.ordinary.rawCount.toString(),
-          baseline: optimizerScore(this.job.evaluator.evaluate(ordinaryEquipmentAt(this.job.space.ordinary, 0n)))
+          baseline: optimizerScore(this.job.evaluator.evaluate(optimizerEquipment(message.request.build)))
         };
       } else if (message.kind === 'refine') {
         this.job.refine(message.candidates);
@@ -604,7 +606,13 @@ test('requirements use inclusive finalized stats and reject before simulation co
   };
   const captured = request({}, overrides);
   const app = { build: captured.build, attributeWeaponSet: captured.build.startingWeaponSet };
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const toughness = app.attributeData.attributes.Toughness.final;
   const vitality = app.attributeData.attributes.Vitality.final;
   const boon = app.attributeData.attributes['Boon Duration'].final;
@@ -715,10 +723,22 @@ test('minimum vitality checks every usable weapon set', () => {
     }
   );
   const app = { build: initial.build, attributeWeaponSet: 2 };
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const minVitality = app.attributeData.attributes.Vitality.final + 1;
   app.attributeWeaponSet = 1;
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.ok(app.attributeData.attributes.Vitality.final >= minVitality);
   const captured = { ...initial, selections: { minVitality } };
   assert.equal(createOptimizerEvaluator(captured, adapter).score(captured.build), null);
@@ -813,6 +833,59 @@ test('workers finish exact and fast searches when every candidate fails requirem
     assert.deepEqual(state.winners, []);
   }
 });
+
+// Stacking choices are alternatives; cross-set conflicts may reject candidates without failing the worker batch.
+test(
+  'workers compare stacking sigils and complete when some or all combinations conflict',
+  { timeout: 10000 },
+  async () => {
+    const choices = ['Bursting', 'Bloodlust', 'Corruption', 'Cruelty'];
+    for (const search of ['exact', 'fast']) {
+      for (const scenario of [
+        { first: choices, second: ['Force'], expected: 4n },
+        { first: choices, second: ['Force', 'Bloodlust'], expected: 5n },
+        { first: choices, second: ['Bloodlust'], expected: 1n },
+        { first: choices.slice(1), second: ['Bloodlust'], expected: 0n }
+      ]) {
+        const captured = {
+          ...request(
+            {
+              sigils: [
+                [scenario.first, ['Agony']],
+                [scenario.second, ['Accuracy']]
+              ]
+            },
+            {
+              weapons: ['Axe', 'Axe'],
+              alternateWeapons: ['Axe', 'Axe'],
+              rotation: adapter.toApplicationBuild({ rotation: ['Chop'] }).rotation
+            }
+          ),
+          search
+        };
+        const state = await new Promise((resolve, reject) => {
+          const runner = new GearOptimizerRunner(
+            { buildRevision: captured.revision },
+            () => {
+              if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+              if (runner.state.status === 'complete') resolve(runner.state);
+            },
+            () => new OptimizerTestWorker(),
+            2
+          );
+          runner.run(captured);
+        });
+        assert.equal(state.simulations, scenario.expected);
+        assert.equal(state.completed, state.count);
+        assert.equal(state.represented, state.rawCount);
+        assert.deepEqual(
+          state.winners.map(({ equipment, score }) => ({ equipment, score })),
+          runOrdinaryOptimizer(captured, adapter).map(({ equipment, score }) => ({ equipment, score }))
+        );
+      }
+    }
+  }
+);
 
 test('mixed prefixes, locks outside candidates, independent sigils, and infusion endpoints', () => {
   const initial = request();

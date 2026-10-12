@@ -1,6 +1,5 @@
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
 import {
-  OPTIMIZER_REQUIREMENTS,
   retainOptimizerCandidate,
   type GearOptimizerRequest,
   type OptimizerCandidate,
@@ -18,11 +17,12 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 export const MAX_OPTIMIZER_WORKERS = 4;
 
 interface OptimizerMessage extends GameWorkerResponseEnvelope {
-  readonly kind: 'ready' | 'chunk' | 'verified';
+  readonly kind: 'ready' | 'progress' | 'chunk' | 'verified';
   readonly count?: string;
   readonly rawCount?: string;
   readonly baseline?: OptimizerScore;
   readonly chunkId?: number;
+  readonly completed?: string;
   readonly represented?: string;
   readonly simulations?: string;
   readonly winners?: OptimizerCandidate[];
@@ -116,9 +116,6 @@ export class GearOptimizerRunner {
     this.request = request;
     this.state = this.emptyState();
     this.state.status = 'preparing';
-    const hasRequirements = Object.keys(OPTIMIZER_REQUIREMENTS).some(
-      (key) => request.selections[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
-    );
     let next = 0n;
     let chunkId = 0;
     let bootstrapped = false;
@@ -127,7 +124,10 @@ export class GearOptimizerRunner {
     let roundOffset = 0n;
     let roundCount = 0n;
     let chunkSize = 1n;
-    const pending = new Map<Worker, { id: number; size: bigint }>();
+    const pending = new Map<
+      Worker,
+      { id: number; size: bigint; completed: bigint; represented: bigint; simulations: bigint }
+    >();
     const ready = new Set<Worker>();
     const verifying = new Set<Worker>();
     let verification: OptimizerCandidate[] = [];
@@ -145,7 +145,7 @@ export class GearOptimizerRunner {
       if (next >= this.state.count) return;
       const end = next + chunkSize < this.state.count ? next + chunkSize : this.state.count;
       const id = ++chunkId;
-      pending.set(worker, { id, size: end - next });
+      pending.set(worker, { id, size: end - next, completed: 0n, represented: 0n, simulations: 0n });
       worker.postMessage({
         kind: 'chunk',
         requestId,
@@ -235,20 +235,32 @@ export class GearOptimizerRunner {
 
         dispatch(worker);
         finishRound();
-      } else if (message.kind === 'chunk') {
+      } else if (message.kind === 'chunk' || message.kind === 'progress') {
         const chunk = pending.get(worker);
         if (!chunk || chunk.id !== message.chunkId) throw new Error('Unexpected optimizer chunk completion.');
-        // Requirements can reject unique candidates before simulation; coverage still includes every ordinal.
+        const completed = BigInt(message.completed!);
+        const represented = BigInt(message.represented!);
+        const simulations = BigInt(message.simulations!);
+        // Cumulative range updates include rejected candidates; only add new work, including at final completion.
         if (
-          BigInt(message.simulations!) < 0n ||
-          BigInt(message.simulations!) > chunk.size ||
-          (!hasRequirements && BigInt(message.simulations!) !== chunk.size)
+          completed < chunk.completed ||
+          completed > chunk.size ||
+          (message.kind === 'chunk' && completed !== chunk.size) ||
+          represented - chunk.represented < completed - chunk.completed ||
+          simulations < chunk.simulations ||
+          simulations - chunk.simulations > completed - chunk.completed
         )
-          throw new Error('Invalid optimizer simulation count.');
+          throw new Error('Invalid optimizer progress counts.');
+        this.state.completed += completed - chunk.completed;
+        this.state.represented += represented - chunk.represented;
+        this.state.simulations += simulations - chunk.simulations;
+        Object.assign(chunk, { completed, represented, simulations });
+        if (message.kind === 'progress') {
+          this.publish();
+          return;
+        }
+
         pending.delete(worker);
-        this.state.completed += chunk.size;
-        this.state.represented += BigInt(message.represented!);
-        this.state.simulations += BigInt(message.simulations!);
         for (const candidate of message.winners || [])
           retainOptimizerCandidate(this.state.winners, candidate, request.limit);
         // Unusable sets stay fixed in the captured equipment, so including them here cannot split a group.

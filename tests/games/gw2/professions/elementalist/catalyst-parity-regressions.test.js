@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
@@ -61,7 +62,13 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
     selectedSkillIds: { Utility1: 5542 }
   });
   const conditionDamage = app.attributeData.attributes['Condition Damage'];
-  const config = elementalistAppAdapter.simulationConfig(app);
+  const config = elementalistAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
 
   assert.ok(conditionDamage.utility > 0);
   assert.ok(conditionDamage.traits > 0);
@@ -74,7 +81,13 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
 test('Empowerment scales defensive and healing attributes without compounding Reinforced Armor', () => {
   // Partial stacks expose joint Vitality rounding; expiry must remove empowerment while retaining reinforcement.
   const { app } = createNativeApp({ lines: [['Catalyst', '2-1-2']], jadeBotCore: true });
-  const buildConfig = elementalistAppAdapter.simulationConfig(app);
+  const buildConfig = elementalistAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
   assert.equal(
     catalystAttributePool({ config: buildConfig, catalog: elementalistCatalog, time: 0 }).vitality,
     buildConfig.attributeInputs.weaponSets[0].conversionPool.Vitality
@@ -221,16 +234,26 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
       pistolBullets: { Fire: false, Water: waterBullet, Air: false, Earth: false },
       rotation: ['Deploy Jade Sphere (Water)', 'Frigid Flurry', 1000]
     });
-    const result = runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
-      initialize(runtime) {
-        // Exercise the aura payoff on successful combos without depending on one seed's projectile rolls.
-        const random = runtime.random;
-        runtime.random = {
-          ...random,
-          roll: (chance, stream) => (stream.startsWith('gw2.combo:') ? chance > 0 : random.roll(chance, stream))
-        };
+    const result = runElementalist(
+      commands,
+      elementalistAppAdapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .simulationConfig(),
+      {
+        initialize(runtime) {
+          // Exercise the aura payoff on successful combos without depending on one seed's projectile rolls.
+          const random = runtime.random;
+          runtime.random = {
+            ...random,
+            roll: (chance, stream) => (stream.startsWith('gw2.combo:') ? chance > 0 : random.roll(chance, stream))
+          };
+        }
       }
-    });
+    );
     assert.deepEqual(result.warnings, []);
     assert.equal(observedRuntime(result).profession.core.activeAuras.length, 1);
     assert.equal(observedRuntime(result).profession.core.activeAuras[0].type, 'Frost Aura');

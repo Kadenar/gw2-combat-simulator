@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 // Headless application state for skill damage tests: a saved build loaded through the real adapter, without a DOM.
 import { readFile } from 'node:fs/promises';
 
@@ -25,7 +26,13 @@ export async function headlessApp(professionId, buildPath) {
     results: null,
     build: adapter.toApplicationBuild({ ...saved, rotation: [] })
   };
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   return app;
 }
 

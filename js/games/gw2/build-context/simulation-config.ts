@@ -1,4 +1,14 @@
-import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
+import type { Gw2AttributeSeed } from '#gw2/platform/builds/types.js';
+import type { BuildAttributes, BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+interface SimulationConfigOptions extends BuildContextInput {
+  readonly attributeDataByWeaponSet: readonly [BuildAttributes, BuildAttributes];
+  readonly specialization: string;
+  readonly disabled?: ProfessionModifier;
+  readonly selectedSkillIds: readonly SkillId[];
+  readonly selectedTraitIds: readonly SkillId[];
+  readonly assumptionControls: readonly ProfessionAssumptionControl[];
+}
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
@@ -21,20 +31,37 @@ export function deterministicSimulationConfig(config: Gw2Config): Gw2Config {
     : config;
 }
 
+/** Copy the numeric seed graph without serializing newly assembled config branches on every candidate. */
+function snapshotSeed(seed: Gw2AttributeSeed): Gw2AttributeSeed {
+  const totals = seed.commonTotals;
+  return {
+    commonTotals: {
+      ...totals,
+      ...(totals.boonDurationBonuses ? { boonDurationBonuses: { ...totals.boonDurationBonuses } } : {}),
+      ...(totals.conditionDurationBonuses ? { conditionDurationBonuses: { ...totals.conditionDurationBonuses } } : {})
+    },
+    conversionPool: { ...seed.conversionPool },
+    conversions: seed.conversions.map((conversion) => ({ ...conversion })),
+    sources: Object.fromEntries(Object.entries(seed.sources).map(([name, source]) => [name, { ...source }]))
+  };
+}
+
 /**
  * Assembles common equipment, boon, target, weapon, and stat simulation input.
  * Profession adapters supply specialization, traits, and resource semantics.
  */
 export function createGw2SimulationConfig({
-  app,
-  attributeData,
+  build,
+  patchId,
+  transitionDelays,
+  selectedSkillIds,
+  assumptionControls,
   attributeDataByWeaponSet,
   specialization,
-  disabled = null,
-  selectedTraitIds = [],
-  initialResource = 0
-}: Gw2SimulationConfigOptions): Gw2Config {
-  const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
+  disabled,
+  selectedTraitIds
+}: SimulationConfigOptions): Gw2Config {
+  const assumptions = build.assumptions as ProfessionBuildAssumptions;
   const targetSkillActivationsPerSecond = Math.max(0, Number(assumptions.targetSkillActivationsPerSecond) || 0);
   const alliedPlayerCount = boundedInteger(assumptions.alliedPlayerCount || 0, 0, 0, 4);
   const targetConditions = { ...(assumptions.targetConditions || {}) };
@@ -43,56 +70,49 @@ export function createGw2SimulationConfig({
   }
 
   const sigilSets = [1, 2]
-    .map((setNumber) => weaponSigilsForSet(app.build, setNumber))
+    .map((setNumber) => weaponSigilsForSet(build, setNumber))
     .map((names) => (disabled?.type === 'Sigil' ? names.filter((name) => name !== disabled.name) : names))
     .map(aggregateSigilSet);
   // Only common equipment seeds cross the worker boundary; profession bonuses are evaluated by the selected runtime.
-  const seeds =
-    attributeDataByWeaponSet?.length === 2
-      ? attributeDataByWeaponSet.map((data) => data.attributeSeed)
-      : [attributeData.attributeSeed, attributeData.attributeSeed];
-  const attributeInputs = { weaponSets: [seeds[0], seeds[1]] as const };
-  const professionAssumptionControls = assumptionControlsForSpecialization(
-    app.adapter?.assumptionControls || [],
-    specialization
-  );
+  const attributeInputs = {
+    weaponSets: [
+      snapshotSeed(attributeDataByWeaponSet[0].attributeSeed),
+      snapshotSeed(attributeDataByWeaponSet[1].attributeSeed)
+    ] as const
+  };
+  const professionAssumptionControls = assumptionControlsForSpecialization(assumptionControls, specialization);
 
   return {
-    patchId: app.patchId || 'current',
+    patchId,
     // Carry build-local rates into workers and every comparison/optimization request.
     procRateOverrides: normalizeProcRateOverrides(assumptions.procRateOverrides),
-    // Snapshot browser-level timing preferences for workers, comparisons, and optimizer candidates.
-    transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+    // Snapshot explicit timing preferences for workers, comparisons, and optimizer candidates.
+    transitionDelays: normalizeTransitionDelays(transitionDelays),
     specialization,
-    selectedTraitIds: selectedTraitIds as readonly SkillId[],
+    selectedTraitIds: [...selectedTraitIds],
     // Removing a skill for contribution analysis also removes its intrinsic passives from every actor.
-    selectedSkillIds: (app.adapter?.slotLoadout
-      ? app.adapter.slotLoadout.selectedSkillIds({
-          build: app.build,
-          specialization,
-          professionState: app.results?.planningState?.profession
-        })
-      : Object.values(app.build.selectedSkillIds).filter((id): id is SkillId => id !== null)
-    ).filter((id) => disabled?.type !== 'Skill' || id !== disabled.skillId),
-    primaryWeapon: app.build.weapons[0],
-    secondaryWeapon: app.build.weapons[1],
-    weaponSet2Primary: app.build.alternateWeapons[0],
-    weaponSet2Secondary: app.build.alternateWeapons[1],
-    startingWeaponSet: app.build.startingWeaponSet === 2 ? 2 : 1,
-    initialResource,
-    randomness: simulationRandomnessFromAssumptions(assumptions),
+    selectedSkillIds: [...selectedSkillIds],
+    primaryWeapon: build.weapons[0],
+    secondaryWeapon: build.weapons[1],
+    weaponSet2Primary: build.alternateWeapons[0],
+    weaponSet2Secondary: build.alternateWeapons[1],
+    startingWeaponSet: build.startingWeaponSet === 2 ? 2 : 1,
+    initialResource: 0,
+    randomness: { ...simulationRandomnessFromAssumptions(assumptions) },
     criticalDamageMode: normalizeCriticalDamageMode(assumptions.criticalDamageMode),
-    professionAssumptions: Object.fromEntries(
-      professionAssumptionControls.map((control) => [control.key, assumptions[control.key] ?? control.defaultValue])
+    professionAssumptions: structuredClone(
+      Object.fromEntries(
+        professionAssumptionControls.map((control) => [control.key, assumptions[control.key] ?? control.defaultValue])
+      )
     ),
     attributeInputs,
     sigilSets,
-    relic: disabled?.type === 'Relic' ? '' : app.build.relic,
+    relic: disabled?.type === 'Relic' ? '' : build.relic,
     // Temporary relic selections travel with every simulation of this build, including optimizer candidates.
-    precastRelics: [...(app.build.precastRelics || [])],
-    food: disabled?.type === 'Food' ? '' : app.build.food,
+    precastRelics: [...(build.precastRelics || [])],
+    food: disabled?.type === 'Food' ? '' : build.food,
     // Preserve damage-only utilities and allow contribution comparisons to remove their effect.
-    utility: disabled?.type === 'Utility' ? '' : app.build.utility,
+    utility: disabled?.type === 'Utility' ? '' : build.utility,
     timeOfDay: assumptions.timeOfDay === 'night' ? 'night' : 'day',
     boons: {
       might: disabled?.type === 'Boon' && disabled.name === 'Might' ? 0 : Number(assumptions.might || 0),
@@ -113,10 +133,10 @@ export function createGw2SimulationConfig({
       strikesPerSecond: 1
     },
     target: {
-      armor: app.build.targetArmor,
-      health: Math.max(0, Number(app.build.targetHealth) || 0),
+      armor: build.targetArmor,
+      health: Math.max(0, Number(build.targetHealth) || 0),
       // Starting health is a fraction of maximum health so low-health gates and death share one source of truth.
-      startingHealthFraction: boundedNumber(Number(app.build.targetStartingHealthPercent ?? 100) / 100, 1, 0, 1),
+      startingHealthFraction: boundedNumber(Number(build.targetStartingHealthPercent ?? 100) / 100, 1, 0, 1),
       // Existing professions retain the historical defiant-golem default.
       // Defiant doubles as the positional proxy: a defiant golem never rotates,
       // so flanking/behind bonuses always apply and need no separate control.

@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -43,8 +44,20 @@ function simulate(
     skillById: elementalistCatalog.skillsById,
     attributeWeaponSet: 1
   };
-  elementalistAppAdapter.recalculate(app);
-  const config = elementalistAppAdapter.simulationConfig(app);
+  app.attributeData = elementalistAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  const config = elementalistAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
 
   return runElementalist(
     commands,

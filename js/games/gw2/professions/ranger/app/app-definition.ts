@@ -1,34 +1,16 @@
+import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/ranger/build/context.js';
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
-import { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
 
 // Exposes Ranger only through the shared browser application contract.
 export const rangerAppAdapter = defineProfessionApp({
   tooltips: rangerTooltips,
-  profession: rangerProfession,
-  applyBuildAttributeRules: createProfessionBuildAttributeRules(rangerCatalog, getActiveTraits),
+  profession,
+  createBuildContext,
   toApplicationBuild,
   resetPrompt: 'Reset the Ranger build, pet, assumptions, and rotation?',
-  runtime: {
-    buildConfigExtras: (app) => {
-      const build = app.build as RangerCanonicalBuild;
-      return {
-        initialAstralForce: build.initialAstralForce,
-        initialArrows: build.initialArrows,
-        selectedPet: build.selectedPet,
-        selectedPet2: build.selectedPet2,
-        selectedHammerSkillIds: [...build.selectedHammerSkillIds],
-        initialUntamedState: build.initialUntamedState
-      };
-    }
-  },
   isSkillAvailable(skill, context = {}) {
     // Greatsword Maul changes recipient when Soulbeast merges, so expose the matching skill ID.
     if (skill.id === ID.MAUL_SOULBEAST || skill.id === ID.MAUL_BASE) {

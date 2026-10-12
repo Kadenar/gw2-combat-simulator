@@ -20,10 +20,17 @@ export function prepareElementalistHitboxEvent(
   const excluded =
     preparedEvent.metadata?.largeHitboxOnly === true || (smallHitboxCap > 0 && hitIndex > smallHitboxCap);
   if (!excluded) return preparedEvent;
+  // Identify each rejected payload so simultaneous strike and condition markers remain distinguishable.
+  const effect =
+    preparedEvent.type === 'damage'
+      ? 'Strike damage'
+      : preparedEvent.type === 'condition'
+        ? preparedEvent.condition
+        : preparedEvent.type;
   return {
     ...preparedEvent,
     type: 'marker',
-    name: `${preparedEvent.skillName || preparedEvent.name || 'Elementalist effect'} misses small hitbox`,
+    name: `${preparedEvent.skillName || preparedEvent.name || 'Elementalist effect'} (${effect}) misses small hitbox`,
     cancelled: true,
     detail: 'excluded by Elementalist target-hitbox rules'
   };

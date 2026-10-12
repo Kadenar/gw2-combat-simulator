@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
 import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
 import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
@@ -37,7 +38,8 @@ import { renderEventLog } from '#gw2/app/results/event-log.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 
-import type { BuildTemplatePreset, BuildTemplateSelection, ProfessionAttributeData } from '#gw2/app/build/types.js';
+import type { BuildTemplatePreset, BuildTemplateSelection } from '#gw2/app/build/types.js';
+import type { BuildAttributes } from '#gw2/build-context/types.js';
 import type {
   Gw2AppAdapter,
   ProfessionAppResult,
@@ -68,7 +70,7 @@ export class ProfessionApp implements ProfessionAppState {
   readonly specializations: ProfessionAppState['specializations'];
   readonly resourceDefinitions: ProfessionAppState['resourceDefinitions'];
   attributeWeaponSet: number;
-  attributeData: ProfessionAttributeData | null;
+  attributeData: BuildAttributes | null;
   results: ProfessionAppResult | null;
   damageDiagnostics: boolean;
   buildRevision: number;
@@ -240,7 +242,13 @@ export class ProfessionApp implements ProfessionAppState {
     // Optimizer results can contain zero or one allocation; keep both editor rows before recalculating.
     if (this.build.infusions.length !== 2) this.build.infusions = normalizeInfusions(this.build.infusions, []);
     normalizeSelectedSkills(this);
-    this.adapter.recalculate(this);
+    this.attributeData = this.adapter
+      .createBuildContext({
+        build: this.build,
+        patchId: this.patchId,
+        transitionDelays: normalizeTransitionDelays(this.simulationSettings?.transitionDelays)
+      })
+      .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
     this.buildRevision += 1;
     this.gearOptimizerRunner?.cancel();
     // Prior-result analysis must release CPU and discard callbacks as soon as the build changes.
@@ -391,7 +399,13 @@ export class ProfessionApp implements ProfessionAppState {
     this.simulationStatus = tab.resultsFresh ? 'idle' : 'queued';
     if (!tab.resultsFresh) this.results = null;
     normalizeSelectedSkills(this);
-    this.adapter.recalculate(this);
+    this.attributeData = this.adapter
+      .createBuildContext({
+        build: this.build,
+        patchId: this.patchId,
+        transitionDelays: normalizeTransitionDelays(this.simulationSettings?.transitionDelays)
+      })
+      .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
     if (this.relicComparisonRunner instanceof RelicComparisonRunner) {
       this.relicComparisonRunner.comparisonRelic = this.results?.relicComparisonTarget || '';
       this.relicComparisonRunner.initialStacks = this.results?.relicComparisonInitialStacks || 0;

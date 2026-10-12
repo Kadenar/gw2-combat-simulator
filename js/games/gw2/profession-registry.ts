@@ -1,10 +1,11 @@
+import type { BuildContextModule } from '#gw2/build-context/types.js';
 /**
  * Lazy profession manifest shared by browser pages, simulation workers, and tooling.
  *
  * Registry entries contain only profession metadata and explicit dynamic
  * import functions. Reading this module therefore does not eagerly load any
- * profession implementation. Every profession is bootstrapped through the
- * shared profession app adapter.
+ * profession implementation. Engine sources, headless build contexts, and
+ * browser app adapters have separate lazy entry points.
  */
 
 import type { Gw2AppAdapter } from '#gw2/app/types.js';
@@ -36,6 +37,7 @@ export interface ProfessionRegistryEntry {
   /** Landing-card artwork plus bundled transparent portraits for optimizer character previews. */
   readonly specializationArtwork?: readonly Readonly<{ name: string; image: string; conceptArt?: string }>[];
   /** Lazy profession loader. */
+  readonly loadBuildContext: () => Promise<BuildContextModule>;
   readonly loadProfession: () => Promise<RegisteredProfession>;
   /** Lazy shared-shell adapter loader. */
   readonly loadAppAdapter: () => Promise<Gw2AppAdapter>;
@@ -90,6 +92,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/elementalist/profession.js');
       return module.elementalistProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/elementalist/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/elementalist/app/app-definition.js');
       return module.elementalistAppAdapter;
@@ -139,6 +142,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/mesmer/profession.js');
       return module.mesmerProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/mesmer/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/mesmer/app/app-definition.js');
       return module.mesmerAppAdapter;
@@ -188,6 +192,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/necromancer/profession.js');
       return module.necromancerProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/necromancer/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/necromancer/app/app-definition.js');
       return module.necromancerAppAdapter;
@@ -238,6 +243,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/ranger/profession.js');
       return module.rangerProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/ranger/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/ranger/app/app-definition.js');
       return module.rangerAppAdapter;
@@ -287,6 +293,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/thief/profession.js');
       return module.thiefProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/thief/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/thief/app/app-definition.js');
       return module.thiefAppAdapter;
@@ -336,6 +343,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/engineer/profession.js');
       return module.engineerProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/engineer/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/engineer/app/app-definition.js');
       return module.engineerAppAdapter;
@@ -386,6 +394,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/guardian/profession.js');
       return module.guardianProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/guardian/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/guardian/app/app-definition.js');
       return module.guardianAppAdapter;
@@ -435,6 +444,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/warrior/profession.js');
       return module.warriorProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/warrior/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/warrior/app/app-definition.js');
       return module.warriorAppAdapter;
@@ -483,6 +493,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       const module = await import('#gw2/professions/revenant/profession.js');
       return module.revenantProfession;
     },
+    loadBuildContext: () => import('#gw2/professions/revenant/build/context.js'),
     loadAppAdapter: async () => {
       const module = await import('#gw2/professions/revenant/app/app-definition.js');
       return module.revenantAppAdapter;

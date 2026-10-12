@@ -1,4 +1,4 @@
-import { fetchJsonAsset, getRotationItems } from '#gw2/app/import-export/files.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 
 interface PresetBundle {

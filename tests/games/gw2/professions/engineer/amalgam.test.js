@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
@@ -659,13 +660,26 @@ test('Amalgam app config excludes temporary attributes from Evolve', () => {
     { name: 'Amalgam', traits: '2-2-3' }
   ];
   const app = {
+    patchId: 'current',
     build: toApplicationBuild(canonical),
     skillByName: engineerCatalog.skillsByName,
     attributeWeaponSet: 1
   };
 
-  engineerAppAdapter.recalculate(app);
-  const config = engineerAppAdapter.simulationConfig(app);
+  app.attributeData = engineerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  const config = engineerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
 
   assert.deepEqual(attributeSourcePool(config, 'common'), app.attributeData.attributeSeed.conversionPool);
   assert.equal(app.attributeData.attributes.Ferocity.final - attributeSourcePool(config, 'common').Ferocity, 150);
@@ -681,12 +695,19 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
     { name: 'Amalgam', traits: '2-2-3' }
   ];
   const app = {
+    patchId: 'current',
     build: toApplicationBuild(canonical),
     skillByName: engineerCatalog.skillsByName,
     attributeWeaponSet: 1
   };
 
-  engineerAppAdapter.recalculate(app);
+  app.attributeData = engineerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = engineerAppAdapter.modifierContributionRequest(app);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${canonical.food}`);
 
@@ -730,13 +751,26 @@ test('Amalgam build assumptions map to the canonical runtime configuration', () 
     ];
     canonical.assumptions.inDamagingField = inDamagingField;
     const app = {
+      patchId: 'current',
       adapter: engineerAppAdapter,
       build: toApplicationBuild(canonical),
       skillByName: engineerCatalog.skillsByName,
       attributeWeaponSet: 1
     };
-    engineerAppAdapter.recalculate(app);
-    const config = engineerAppAdapter.simulationConfig(app);
+    app.attributeData = engineerAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+    const config = engineerAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig();
 
     assert.equal(config.professionAssumptions.inDamagingField, inDamagingField);
     assert.equal(Object.hasOwn(config, 'assumptions'), false);

@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
@@ -54,7 +55,13 @@ async function signetApp(name) {
       rotation: []
     }
   };
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   return app;
 }
 
@@ -126,7 +133,13 @@ for (const [name, entries] of Object.entries(signets)) {
 
     assert.deepEqual(app.build, saved);
     app.build.selectedSkillIds = {};
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.equal(
       app.adapter.modifierContributionRequest(app).comparisons.some(({ modifier }) => modifier.type === 'Skill'),
       false
@@ -178,7 +191,13 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
       { type: 'cast', skillId: attack.id },
       { type: 'wait', durationMs: 1000 }
     ];
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const request = app.adapter.modifierContributionRequest(app);
     const comparison = request.comparisons.find(({ modifier }) => modifier.skillId === skillId);
     const outputs = [];
@@ -228,7 +247,13 @@ test('Signet of the Wild contribution includes player and pet passive removal', 
     { type: 'cast', skillId: app.skillByName.get('Long Range Shot').id },
     { type: 'wait', durationMs: 1000 }
   ];
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = app.adapter.modifierContributionRequest(app);
   const comparison = request.comparisons.find(({ modifier }) => modifier.skillId === skillId);
   const snapshots = [request.baseConfig, comparison.config].map((config) => {

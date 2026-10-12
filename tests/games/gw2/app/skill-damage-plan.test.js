@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -22,7 +23,13 @@ const HARBINGER = 'data/gw2/builds/necromancer/b-condi-harbinger.json';
 test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain independently', async () => {
   const app = await headlessApp('engineer', 'data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json');
   app.build.specializations = app.build.specializations.filter((entry) => entry.name === 'Amalgam');
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const saved = structuredClone({ build: app.build, attributes: app.attributeData });
   const controls = skillDamageControls(app);
   for (const key of ['willingHost', 'evolved', 'titanic'])
@@ -103,10 +110,22 @@ test('damage preview weapon scope is independent of Attribute Preview selection'
   app.build.specializations = [{ name: 'Deadeye', traits: '1-1-1' }];
   app.build.weapons = ['Axe', 'Pistol'];
   app.build.alternateWeapons = ['Dagger', 'Pistol'];
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   for (const startingWeaponSet of [1, 2]) {
     app.build.startingWeaponSet = startingWeaponSet;
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const plans = [];
     for (const attributeWeaponSet of [1, 2]) {
       app.attributeWeaponSet = attributeWeaponSet;
@@ -208,7 +227,13 @@ test('profession boon controls seed from the build and update only the detached 
 test('target movement controls equipment Torment independently of skill declarations', async () => {
   const app = await headlessApp('guardian', 'data/gw2/builds/guardian/b-condi-firebrand.json');
   app.build.relic = 'Akeem';
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const saved = structuredClone(app.build);
   const controls = skillDamageControls(app);
   assert.equal(controls.filter((control) => control.key === 'targetMoving').length, 1);
@@ -235,7 +260,16 @@ test('unslotted effects preserve the build loadout instead of manufacturing lega
   const entry = plan.request.occurrences.find((candidate) => candidate.id === unslotted.id);
   assert.ok(entry);
   assert.equal(entry.config.selectedSkillIds, undefined);
-  assert.deepEqual(plan.request.config.selectedSkillIds, app.adapter.simulationConfig(app).selectedSkillIds);
+  assert.deepEqual(
+    plan.request.config.selectedSkillIds,
+    app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig().selectedSkillIds
+  );
 });
 
 test('zero-damage calculations remain visible while calculation failures have a separate explanation', async () => {
@@ -336,7 +370,13 @@ test('Evoker measures both familiar forms using existing initial charge settings
     app.build.evokerElement = element;
     app.build.initialEvokerCharges = 0;
     app.build.initialEvokerEmpowered = 3;
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const saved = structuredClone(app.build);
     const controls = skillDamageControls(app);
     const plan = createSkillDamagePlan(app, controls, simulationConfigValues(app, controls));
@@ -372,7 +412,13 @@ test('Evoker familiar damage follows the preview attunement independently of fam
   ];
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
     app.build.evokerElement = element;
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const saved = structuredClone(app.build);
     const controls = skillDamageControls(app);
     const measurements = [];
@@ -413,7 +459,13 @@ test('cleared preview values remove saved assumptions without altering the build
   const app = await headlessApp('warrior', BLADESWORN);
   app.build.assumptions.protection = true;
   app.build.assumptions.targetConditions.Weakness = 1;
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const controls = skillDamageControls(app);
   const config = createSkillDamagePlan(app, controls, clearedValues(controls)).request.config;
   assert.equal(config.boons.protection, false);

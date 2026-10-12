@@ -41,7 +41,7 @@ test('preview refreshes pick up preset edits, source edits, and removed manifest
   const build = 'data/gw2/builds/revenant/test.json';
   const files = {
     'js/games/gw2/profession-registry.ts': `import { name } from './name.ts';
-      export const professionRegistry = [{ id: 'revenant', loadAppAdapter: async () => ({ name }) }];`,
+      export const professionRegistry = [{ id: 'revenant', loadBuildContext: async () => ({ name }) }];`,
     'js/games/gw2/name.ts': `export const name = 'Original';`,
     'js/games/gw2/app/page/benchmarks.ts': `export const readBenchmarks = (_entry, manifest) => manifest;`,
     'js/games/gw2/app/page/benchmark-preview-generation.ts': `export const createBenchmarkPreview = (adapter, candidate, build) => ({
@@ -85,11 +85,11 @@ test('dev previews are lazy, scoped, cached, invalidated, and retryable', async 
   const files = {
     'js/games/gw2/profession-registry.ts': `import process from 'node:process';
       export const professionRegistry = [
-      { id: 'revenant', loadAppAdapter: async () => {
+      { id: 'revenant', loadBuildContext: async () => {
         await new Promise(resolve => { if (!process.emit(${JSON.stringify(root)}, resolve)) resolve(); });
         return {};
       } },
-      { id: 'mesmer', loadAppAdapter: async () => { throw new Error('Unrequested profession loaded'); } }
+      { id: 'mesmer', loadBuildContext: async () => { throw new Error('Unrequested profession loaded'); } }
     ];`,
     'js/games/gw2/app/page/benchmarks.ts': `export const readBenchmarks = (_entry, manifest) => manifest;`,
     [source]: `let count = 0;

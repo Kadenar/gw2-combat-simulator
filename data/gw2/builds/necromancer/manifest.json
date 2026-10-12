@@ -119,25 +119,25 @@
         "label": "Condition (Pistol / Torch + Greatsword) - Ice Fields",
         "build": "data/gw2/builds/necromancer/b-condi-fields-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-fields-reaper-bench.json",
-        "benchmarkDps": 51909,
+        "benchmarkDps": 51799,
         "upToDate": true,
         "benchmarkApm": 74.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47939, "phase": 47939 },
-          "80-60": { "cumulative": 47266, "phase": 46602 },
-          "60-40": { "cumulative": 47903, "phase": 49225 },
-          "40-20": { "cumulative": 49954, "phase": 57256 },
-          "20-0": { "cumulative": 51909, "phase": 51909 }
+          "100-80": { "cumulative": 47947, "phase": 47947 },
+          "80-60": { "cumulative": 47048, "phase": 46169 },
+          "60-40": { "cumulative": 48458, "phase": 51399 },
+          "40-20": { "cumulative": 49854, "phase": 54899 },
+          "20-0": { "cumulative": 51799, "phase": 51799 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 51909,
+          "benchmarkDps": 51799,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 47939, "phase": 47939 },
-            "80-60": { "cumulative": 47266, "phase": 46602 },
-            "60-40": { "cumulative": 47903, "phase": 49225 },
-            "40-20": { "cumulative": 49954, "phase": 57256 },
-            "20-0": { "cumulative": 51909, "phase": 51909 }
+            "100-80": { "cumulative": 47947, "phase": 47947 },
+            "80-60": { "cumulative": 47048, "phase": 46169 },
+            "60-40": { "cumulative": 48458, "phase": 51399 },
+            "40-20": { "cumulative": 49854, "phase": 54899 },
+            "20-0": { "cumulative": 51799, "phase": 51799 }
           }
         }
       }

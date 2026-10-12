@@ -1,11 +1,7 @@
 /** Defines build presets and selection contracts shared by the build editor and professions. */
-import type { Gw2FinalizedAttributeResult, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
 import type { TargetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
-
-export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
-  activeTraits: CatalogEntity[];
-}
 
 export interface BuildTemplatePreset {
   readonly label: string;
@@ -63,3 +59,16 @@ export interface ProfessionOffhandContext {
 export type ProfessionIsSkillAvailable = (skill: Skill, context?: ProfessionSkillAvailabilityContext) => boolean;
 
 export type ProfessionDefaultOffhand = (context?: ProfessionOffhandContext) => string;
+
+/** Detached facts needed by attribute panels; no editor actions or previous results enter calculation. */
+export type AttributePreviewState = Pick<
+  import('#gw2/app/types.js').ProfessionAppState,
+  | 'build'
+  | 'patchId'
+  | 'simulationSettings'
+  | 'adapter'
+  | 'profession'
+  | 'activeCatalog'
+  | 'attributeWeaponSet'
+  | 'attributeData'
+>;

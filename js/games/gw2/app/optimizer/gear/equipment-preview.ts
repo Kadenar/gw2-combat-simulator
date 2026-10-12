@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
 import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { escapeHtml } from '#ui/shared/html.js';
@@ -27,16 +28,21 @@ export function renderOptimizerPreview(
   const build = structuredClone({ ...request.build, ...candidate?.equipment });
   const activeCatalog = app.profession.catalogFor?.(request.patchId) || app.profession.catalog;
   const preview = {
-    ...app,
+    adapter: app.adapter,
+    profession: app.profession,
+    simulationSettings: app.simulationSettings,
     build,
     patchId: request.patchId,
     activeCatalog,
-    skillByName: activeCatalog.skillsByName,
-    skillById: activeCatalog.skillsById,
     attributeWeaponSet: weaponSet,
-    results: null
-  } as ProfessionAppState;
-  app.adapter.recalculate(preview);
+    attributeData: app.adapter
+      .createBuildContext({
+        build,
+        patchId: request.patchId,
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(weaponSet === 2 ? 2 : 1)
+  };
   const specialization = app.adapter.eliteSpecialization(build);
   const entry = getProfessionEntry(app.adapter.id);
   const artwork = entry?.specializationArtwork?.find(({ name }) => name === specialization)?.conceptArt;

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { cpus, totalmem } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { performance, PerformanceObserver } from 'node:perf_hooks';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import {
@@ -23,7 +23,7 @@ for (const profession of professions.length
   ? professions
   : ['elementalist', 'mesmer', 'necromancer', 'ranger', 'revenant']) {
   const setupStart = performance.now();
-  const adapter = await loadProfessionAppAdapter(profession);
+  const adapter = await loadOptimizerContext(profession);
   const manifest = JSON.parse(await readFile(`data/gw2/builds/${profession}/manifest.json`, 'utf8'));
   const preset = manifest.flatMap((section) => section.presets).find((entry) => entry.rotation);
   const saved = JSON.parse(await readFile(preset.build, 'utf8'));

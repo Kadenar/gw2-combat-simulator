@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -235,8 +236,23 @@ test('template loading resolves duplicate Mesmer skill names before the first si
     'template',
     createButton()
   );
-  mesmerAppAdapter.recalculate(app);
-  const result = mesmerAppAdapter.simulateBuild(app.build.rotation, mesmerAppAdapter.simulationConfig(app));
+  app.attributeData = mesmerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  const result = mesmerAppAdapter.simulateBuild(
+    app.build.rotation,
+    mesmerAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig()
+  );
 
   assert.equal(app.build.rotation[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
   assert.deepEqual(result.warnings, []);
@@ -285,8 +301,23 @@ test('Engineer rotation-only template loading resolves morph slots before simula
       { type: 'cast', skillId: 76806 }
     ]
   });
-  adapter.recalculate(app);
-  const result = adapter.simulateBuild(app.build.rotation, adapter.simulationConfig(app));
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  const result = adapter.simulateBuild(
+    app.build.rotation,
+    adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig()
+  );
   assert.deepEqual(result.warnings, []);
   assert.ok(result.totalDamage > 0);
   undoTemplateLoad(app);

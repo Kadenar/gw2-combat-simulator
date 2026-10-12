@@ -100,7 +100,11 @@ test('dps.report import keeps log-derived waits when replayed casts would be del
   const app = {
     profession,
     activeCatalog: catalog,
-    adapter: { profession, eliteSpecialization: () => 'Core', simulationConfig: () => ({}) },
+    adapter: {
+      profession,
+      eliteSpecialization: () => 'Core',
+      createBuildContext: () => ({ simulationConfig: () => ({}) })
+    },
     build: { rotation: originalRotation }
   };
   const imported = await readDpsReportRotationData(

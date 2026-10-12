@@ -363,10 +363,10 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   (panel.querySelector('[data-role="optimizer-progress"]') as HTMLProgressElement).value = state.count
     ? Number((state.completed * 10000n) / state.count) / 100
     : 0;
-  // Report measured work completed without predicting how long unseen candidates will take.
+  // Rejections include illegal sigil combinations as well as unmet stat requirements.
   panel.querySelector('[data-role="optimizer-counts"]')!.textContent = state.count
     ? runner.request?.search === 'fast'
-      ? `${state.completed.toLocaleString()} candidates checked.${state.completed !== state.simulations ? ` ${state.simulations.toLocaleString()} simulations; ${(state.completed - state.simulations).toLocaleString()} rejected by requirements.` : ''}`
+      ? `${state.completed.toLocaleString()} candidates checked.${state.completed !== state.simulations ? ` ${state.simulations.toLocaleString()} simulations; ${(state.completed - state.simulations).toLocaleString()} rejected by sigil rules or requirements.` : ''}`
       : `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked; ${state.simulations.toLocaleString()} simulations.`
     : '';
 

@@ -14,15 +14,14 @@ import {
   type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
-import type { Gw2Build, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
@@ -38,39 +37,25 @@ export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
  * Composes a native profession's attribute calculator and runtime into the
  * single shared-shell adapter consumed by the browser application.
  */
-export function defineProfessionApp<
-  const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
-  TPresentation extends object = object,
-  TBuild extends Gw2Build = Gw2Build
->({
-  profession: nativeProfession,
+export function defineProfessionApp({
+  profession,
   tooltips,
-  applyBuildAttributeRules,
+  createBuildContext,
   toApplicationBuild,
   rotationImportLookup = (app) => app.activeCatalog,
   storageVersion = 3,
-  storageKey = `gw2-${nativeProfession.id}-simulator-v${storageVersion}`,
-  globalName = `${nativeProfession.id}App`,
+  storageKey = `gw2-${profession.id}-simulator-v${storageVersion}`,
+  globalName = `${profession.id}App`,
   filenames = {
-    build: `${nativeProfession.id}-build.json`,
-    rotation: `${nativeProfession.id}-rotation.json`,
-    eventLog: `${nativeProfession.id}-event-log.csv`
+    build: `${profession.id}-build.json`,
+    rotation: `${profession.id}-rotation.json`,
+    eventLog: `${profession.id}-event-log.csv`
   },
-  resetPrompt = `Reset the ${nativeProfession.name} build, skills, and rotation?`,
-  runtime = {},
+  resetPrompt = `Reset the ${profession.name} build, skills, and rotation?`,
   isSkillAvailable,
   defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || ''
-}: Omit<DefineProfessionAppOptions, 'profession'> & {
-  readonly profession: NativeProfessionContract<TModules, TPresentation, TBuild>;
-}): Readonly<Gw2AppAdapter> {
-  // Apply previews before capturing catalogs and runtime behavior so every browser adapter uses the same patch.
-  const profession = withActivePatchPreview(nativeProfession);
-  const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules, profession.attributeContributions);
-  const runtimeApi = createProfessionRuntime({
-    profession,
-    calculateAttributes,
-    ...runtime
-  });
+}: DefineProfessionAppOptions): Readonly<Gw2AppAdapter> {
+  const runtimeApi = createProfessionRuntime({ profession, createBuildContext });
 
   // Repeated timeline skills share a model; replacing balance declarations naturally selects a fresh cache.
   const skillTooltips = new WeakMap<

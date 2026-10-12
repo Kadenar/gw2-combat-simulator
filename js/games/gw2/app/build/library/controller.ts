@@ -1,6 +1,6 @@
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
-import { fetchJsonAsset } from '#gw2/app/import-export/files.js';
+import { fetchJsonAsset } from '#gw2/integrations/assets.js';
 import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
 import { loadMyBuildEntry, loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
 import {

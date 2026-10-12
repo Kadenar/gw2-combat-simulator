@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig } from '#gw2/app/simulation/build-config.js';
+import { createBuildContext } from '#gw2/professions/mesmer/build/context.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { createElementalistBuildDefaults } from '#gw2/professions/elementalist/build/build.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
@@ -49,15 +50,11 @@ test('simulation config carries the persisted target starting-health percentage'
   const build = createMesmerBuildDefaults();
   build.targetStartingHealthPercent = 49;
 
-  const config = createGw2SimulationConfig({
-    app: {
-      build,
-      adapter: { assumptionControls: [] },
-      skillById: new Map()
-    },
-    attributeData: { attributes: {} },
-    specialization: 'Core'
-  });
+  const config = createBuildContext({
+    build,
+    patchId: 'current',
+    transitionDelays: normalizeTransitionDelays()
+  }).simulationConfig();
 
   assert.equal(config.target.startingHealthFraction, 0.49);
 });
@@ -67,15 +64,11 @@ test('ally calculations always use one strike per second per ally', () => {
 
   build.assumptions.alliedPlayerCount = 3;
   build.assumptions.alliedPlayerStrikesPerSecond = 9;
-  const config = createGw2SimulationConfig({
-    app: {
-      build,
-      adapter: { assumptionControls: [] },
-      skillById: new Map()
-    },
-    attributeData: { attributes: {} },
-    specialization: 'Core'
-  });
+  const config = createBuildContext({
+    build,
+    patchId: 'current',
+    transitionDelays: normalizeTransitionDelays()
+  }).simulationConfig();
 
   assert.deepEqual(config.allies, {
     count: 3,
@@ -85,15 +78,11 @@ test('ally calculations always use one strike per second per ally', () => {
   assert.equal(config.sharePlayerBoonsWithSummons, true);
 
   build.assumptions.sharePlayerBoonsWithSummons = false;
-  const isolatedSummonConfig = createGw2SimulationConfig({
-    app: {
-      build,
-      adapter: { assumptionControls: [] },
-      skillById: new Map()
-    },
-    attributeData: { attributes: {} },
-    specialization: 'Core'
-  });
+  const isolatedSummonConfig = createBuildContext({
+    build,
+    patchId: 'current',
+    transitionDelays: normalizeTransitionDelays()
+  }).simulationConfig();
 
   assert.equal(isolatedSummonConfig.sharePlayerBoonsWithSummons, false);
 });

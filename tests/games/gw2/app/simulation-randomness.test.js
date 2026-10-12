@@ -1,8 +1,13 @@
+import { loadBuildContext } from '#gw2/build-context/load.js';
+const contexts = new Map(
+  await Promise.all(['engineer', 'necromancer'].map(async (id) => [id, await loadBuildContext(id)]))
+);
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import { getBuildExportPayload } from '#gw2/app/import-export/files.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
@@ -41,23 +46,11 @@ import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js'
 const simulateNecromancer = ({ config, rotation }) =>
   runGw2Runtime({ profession: necromancerProfession.runtimeFor(config), config, rotation });
 
-function minimalAttributeData() {
-  return { attributes: {}, activeTraits: [] };
-}
-
-function simulationConfig(profession, build, specialization) {
-  return createGw2SimulationConfig({
-    app: {
-      adapter: {
-        assumptionControls: profession.ui.assumptionControls
-      },
-      build,
-      attributeWeaponSet: 1,
-      skillById: profession.catalog.skillsById
-    },
-    attributeData: minimalAttributeData(),
-    specialization
-  });
+function simulationConfig(profession, build) {
+  return contexts
+    .get(profession.id)
+    .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+    .simulationConfig();
 }
 
 function traitConditionCount(result, traitId) {
@@ -437,6 +430,7 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     skillId: engineerProfession.catalog.skillsByName.get(name).id
   }));
   const app = {
+    patchId: 'current',
     adapter: engineerAppAdapter,
     profession: engineerProfession,
     build,
@@ -446,7 +440,13 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     skillByName: engineerProfession.catalog.skillsByName
   };
 
-  engineerAppAdapter.recalculate(app);
+  app.attributeData = engineerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Keep test setup on the same baseline request/calculation path as the application.
   app.results = engineerAppAdapter.calculateBaselineSimulation(
     engineerAppAdapter.baselineSimulationRequest(app)

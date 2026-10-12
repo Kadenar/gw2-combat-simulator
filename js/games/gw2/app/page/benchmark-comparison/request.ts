@@ -1,38 +1,30 @@
-import { fetchJsonAsset, getRotationItems } from '#gw2/app/import-export/files.js';
-import { deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
-import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
+import type { BuildContextModule } from '#gw2/build-context/types.js';
 import type { ComparisonRequest } from '#gw2/app/page/benchmark-comparison/model.js';
 
 /** Use the same canonical build codec and attribute/configuration pipeline as the workspace and preset checks. */
 export function prepareComparisonRequest(
-  adapter: Gw2AppAdapter,
+  adapter: BuildContextModule,
   buildData: unknown,
   rotationItems: unknown
 ): ComparisonRequest {
   if (!buildData || typeof buildData !== 'object' || Array.isArray(buildData)) throw new Error('Invalid saved build.');
   if (!Array.isArray(rotationItems) || !rotationItems.length) throw new Error('A saved rotation is required.');
   const build = adapter.toApplicationBuild({ ...buildData, rotation: rotationItems });
-  const activeCatalog = adapter.profession.catalogFor?.('current') ?? adapter.profession.catalog;
-  // This preparation seam needs only build state, not a mounted editor or any persisted workspace mutation.
-  const app = {
+  const context = adapter.createBuildContext({
     build,
-    adapter,
-    profession: adapter.profession,
-    activeCatalog,
     patchId: 'current',
-    skillByName: activeCatalog.skillsByName,
-    skillById: activeCatalog.skillsById,
-    attributeWeaponSet: build.startingWeaponSet,
-    results: null
-  } as ProfessionAppState;
-  adapter.recalculate(app);
+    transitionDelays: normalizeTransitionDelays(undefined)
+  });
   return {
     gameId: 'gw2',
-    contentId: adapter.id,
+    contentId: adapter.profession.id,
     rotation: build.rotation,
-    config: deterministicSimulationConfig(adapter.simulationConfig(app))
+    config: deterministicSimulationConfig(context.simulationConfig())
   };
 }
 
@@ -40,7 +32,7 @@ export function prepareComparisonRequest(
 export async function loadComparisonRequest(row: Benchmark, buildData: unknown): Promise<ComparisonRequest> {
   if (!row.rotation) throw new Error('This preset has no saved rotation.');
   const [adapter, rotationData] = await Promise.all([
-    loadProfessionAppAdapter(row.profession),
+    loadBuildContext(row.profession),
     fetchJsonAsset(row.rotation, { optional: true })
   ]);
   if (!adapter) throw new Error(`Unknown profession: ${row.profession}`);

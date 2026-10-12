@@ -1,6 +1,6 @@
 // Detects which parts a saved build file carries and applies only the parts the user chooses.
 
-import { getRotationItems } from '#gw2/app/import-export/files.js';
+import { getRotationItems } from '#gw2/integrations/assets.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { replaceBuild, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 

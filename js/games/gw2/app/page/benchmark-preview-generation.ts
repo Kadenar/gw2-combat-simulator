@@ -1,4 +1,4 @@
-import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import type { BuildContextModule } from '#gw2/build-context/types.js';
 import type { ProfessionSpecialization } from '#gw2/app/build/types.js';
 import type { CatalogEntity } from '#gw2/platform/skills/types.js';
 import type { BenchmarkPreviewData, PreviewIcon } from '#gw2/app/page/benchmark-preview-data.js';
@@ -9,7 +9,7 @@ function displayIcon(entity: CatalogEntity | undefined, name: string): PreviewIc
 
 /** Run the canonical codec during asset generation so derived loadouts (including legends) stay authoritative. */
 export function createBenchmarkPreview(
-  adapter: Gw2AppAdapter,
+  adapter: BuildContextModule,
   candidate: unknown,
   buildPath: string
 ): BenchmarkPreviewData {

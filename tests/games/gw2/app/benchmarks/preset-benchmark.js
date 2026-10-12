@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 // Shared driver for the per-profession benchmark suites in this folder.
 //
 // Each profession has its own `<profession>.test.js` file so a drift or crash
@@ -10,7 +11,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const repoUrl = (path) => new URL(`../../../../../${path}`, import.meta.url);
 
@@ -20,10 +22,10 @@ export function relativeError(actual, expected) {
 
 export async function assertManifestRegressions(
   professionId,
-  simulate = (adapter, rotation, config) => adapter.simulateBuild(rotation, config)
+  simulate = (adapter, rotation, config) => simulateGw2({ profession: adapter.profession, rotation, config })
 ) {
   const manifest = JSON.parse(await readFile(repoUrl(`data/gw2/builds/${professionId}/manifest.json`), 'utf8'));
-  const adapter = await loadProfessionAppAdapter(professionId);
+  const adapter = await loadBuildContext(professionId);
 
   assert.ok(adapter, `${professionId} has no native app adapter`);
   assert.ok(
@@ -60,20 +62,9 @@ export async function assertManifestRegressions(
         rotation
       });
       assert.equal(build.schemaVersion, adapter.profession.createBuildDefaults().schemaVersion, label);
-      // The app object mirrors the real shell: `adapter` exposes the assumption
-      // controls (e.g. the shared `permanentComboField` testing assumption) and
-      // `profession` backs the slot-loadout skill resolution used by config building.
-      const app = {
-        build,
-        adapter,
-        profession: adapter.profession,
-        skillByName: adapter.profession.catalog.skillsByName,
-        skillById: adapter.profession.catalog.skillsById,
-        attributeWeaponSet: 1
-      };
-
-      adapter.recalculate(app);
-      const config = adapter.simulationConfig(app);
+      const config = adapter
+        .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
+        .simulationConfig();
       // Build-only presets still exercise loading and configuration without inventing a benchmark rotation.
       if (!preset.rotation) continue;
       // A migrated family's test supplies its live entry while sharing the unchanged loading and DPS gates.

@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
@@ -521,10 +522,21 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
     attributeWeaponSet: 1
   };
 
-  guardianAppAdapter.recalculate(app);
+  app.attributeData = guardianAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(
-    guardianAppAdapter.simulationConfig(app).attributeInputs.weaponSets[0].commonTotals.conditionDurationBonuses
-      .Burning,
+    guardianAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig().attributeInputs.weaponSets[0].commonTotals.conditionDurationBonuses.Burning,
     0
   );
 });

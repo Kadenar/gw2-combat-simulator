@@ -1,7 +1,7 @@
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { PreviewControl } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { Gw2Config, Gw2InitialBuff } from '#gw2/platform/simulation/config.js';
@@ -13,7 +13,7 @@ const PREVIEW_BUFF_SECONDS = 3600;
  * buffs, and profession fields applied; deterministic runs average critical damage, and the target cannot die.
  */
 export function createSkillDamagePreview(
-  app: ProfessionAppState,
+  app: AttributePreviewState,
   controls: readonly PreviewControl[],
   input: Readonly<Record<string, unknown>>
 ) {

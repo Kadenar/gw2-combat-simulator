@@ -76,6 +76,7 @@ test('Revenant supplemental identities leave simulation mechanics to their owner
 test('modifier contribution candidates include every active Revenant trait', () => {
   const build = createRevenantBuildDefaults();
   const app = {
+    patchId: 'current',
     build,
     attributeData: calculateRevenantAttributes(build, []),
     attributeWeaponSet: 1,
@@ -577,6 +578,7 @@ test('legend palette shows only the destination legend with the shared swap cool
 
   build.rotation = ['__combat_start', 'Swap Legends'];
   const app = {
+    patchId: 'current',
     build,
     adapter,
     profession: revenantProfession,
@@ -623,6 +625,7 @@ test('Revenant utilities and Conduit resources render by their related skills', 
   canonicalBuild.startingLegend = LEGEND.ENTITY;
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
+    patchId: 'current',
     build,
     adapter,
     profession: revenantProfession,
@@ -717,6 +720,7 @@ test('weapon swap changes the active Revenant weapon set', () => {
 
 test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () => {
   const app = {
+    patchId: 'current',
     activeCatalog: revenantCatalog,
     skills: revenantCatalog.skills,
     skillById: revenantCatalog.skillsById,

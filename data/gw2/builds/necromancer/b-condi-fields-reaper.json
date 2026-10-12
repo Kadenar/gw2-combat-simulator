@@ -64,7 +64,7 @@
     "Elite": 10549
   },
   "assumptions": {
-    "simulationMode": "stochastic",
+    "simulationMode": "deterministic",
     "might": 25,
     "fury": true,
     "quickness": true,

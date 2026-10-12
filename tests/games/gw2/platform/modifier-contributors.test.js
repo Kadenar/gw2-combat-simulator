@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -21,7 +22,16 @@ function combined(contributors) {
 
 async function bladesworn() {
   const app = await headlessApp('warrior', BLADESWORN);
-  const config = { ...app.adapter.simulationConfig(app), randomness: { mode: 'deterministic', seed: 7 } };
+  const config = {
+    ...app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    randomness: { mode: 'deterministic', seed: 7 }
+  };
   const rotation = [WARRIOR.SEVER_ARTERY, WARRIOR.GASH, WARRIOR.HAMSTRING].map((skillId) => ({
     type: 'cast',
     skillId

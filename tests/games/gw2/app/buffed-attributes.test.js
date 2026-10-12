@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { attributeSourcePool } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
@@ -47,7 +48,13 @@ function previewApp(name, traitNames = [], specialization = null) {
       selectedSkillIds: {}
     }
   };
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   for (const name of traitNames)
     assert.ok(
       app.attributeData.activeTraits.some((trait) => trait.name === name),
@@ -64,7 +71,16 @@ test('Amalgam previews Titanic Might scaling and both Evolve variants without ch
   for (const doubleHelix of [false, true]) {
     const app = previewApp('engineer', doubleHelix ? ['Double Helix'] : [], 'Amalgam');
     const saved = structuredClone({ build: app.build, attributes: app.attributeData });
-    const pool = attributeSourcePool(app.adapter.simulationConfig(app), 'common');
+    const pool = attributeSourcePool(
+      app.adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .simulationConfig(),
+      'common'
+    );
     const base = stats(app);
     for (const might of [0, 10, 25]) {
       const titanic = stats(app, { might, titanic: 1 });
@@ -100,7 +116,13 @@ test('Aristocracy previews bounded condition duration stacks for every professio
   for (const profession of Object.keys(adapters)) {
     const app = previewApp(profession);
     app.build.relic = 'Aristocracy';
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const original = structuredClone({ build: app.build, attributes: app.attributeData });
     const control = attributeEffectControls(app).find((control) => control.key === 'aristocracy');
     assert.equal(control.max, 5);
@@ -119,7 +141,13 @@ test('Aristocracy previews bounded condition duration stacks for every professio
 
     assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
     app.build.relic = '';
-    app.adapter.recalculate(app);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     assert.ok(!attributeEffectControls(app).some((control) => control.key === 'aristocracy'));
     close(stats(app, { aristocracy: 5 })['Condition Duration'].final, stats(app)['Condition Duration'].final);
   }
@@ -129,7 +157,13 @@ test('boons are independent, bounded, reversible and isolated from the displayed
   const app = previewApp('guardian');
   app.attributeWeaponSet = 2;
   app.build.alternateWeaponPrefixes = ["Assassin's", "Assassin's"];
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const original = structuredClone({ build: app.build, attributes: app.attributeData });
   const base = stats(app);
   for (const might of [0, 5, 25]) {
@@ -158,7 +192,13 @@ test('Catalyst accepts zero, partial and maximum empowerment stacks with the cor
     const app = previewApp('elementalist', empowered ? ['Empowered Empowerment'] : [], 'Catalyst');
     const base = stats(app);
     const pool = catalystAttributePool({
-      config: app.adapter.simulationConfig(app),
+      config: app.adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .simulationConfig(),
       catalog: app.activeCatalog,
       time: 0
     });
@@ -181,13 +221,25 @@ test('Catalyst accepts zero, partial and maximum empowerment stacks with the cor
 test('Elementalist attunement, Fresh Air and hammer orbs are independent and weapon-gated', () => {
   const app = previewApp('elementalist', ['Fresh Air', 'Empowering Flame']);
   app.build.weapons = ['Hammer', ''];
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const base = stats(app);
   assert.equal(stats(app, { freshAir: 1 }).Ferocity.final, base.Ferocity.final + 250);
   assert.equal(stats(app, { attunement: 'Fire' }).Power.final, base.Power.final + 150);
   close(stats(app, { crescentWind: 1 })['Critical Chance'].final, base['Critical Chance'].final + 15);
   app.build.weapons = ['Dagger', 'Focus'];
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.ok(!attributeEffectControls(app).some((control) => control.key === 'crescentWind'));
   close(stats(app, { crescentWind: 1 })['Critical Chance'].final, stats(app)['Critical Chance'].final);
 });
@@ -197,7 +249,13 @@ test('Weaver and Evoker preview elements override detached state and config with
   const weaver = previewApp('elementalist', ['Elemental Polyphony']);
   weaver.build.startAttunement = 'Fire';
   weaver.build.secondaryAttunement = 'Air';
-  weaver.adapter.recalculate(weaver);
+  weaver.attributeData = weaver.adapter
+    .createBuildContext({
+      build: weaver.build,
+      patchId: weaver.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(weaver.simulationSettings?.transitionDelays)
+    })
+    .attributes(weaver.attributeWeaponSet === 2 ? 2 : 1);
   const original = structuredClone(weaver.build);
   const base = stats(weaver, { attunement: 'None', secondaryAttunement: 'None' });
   close(stats(weaver, { secondaryAttunement: 'Air' }).Ferocity.final, base.Ferocity.final + 200);
@@ -247,16 +305,34 @@ test('Shroud preview appears only for relevant traits or Signet of Spite', () =>
 
   const app = previewApp('necromancer');
   app.build.selectedSkillIds.Utility1 = 10622;
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(shroud(app).description, 'Signet of Spite');
   assert.equal(stats(app, { shroud: 1 }).Power.final, stats(app).Power.final - 180);
   delete app.build.selectedSkillIds.Utility1;
-  app.adapter.recalculate(app);
+  app.attributeData = app.adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(shroud(app), undefined);
 
   const scourge = previewApp('necromancer', ['Death Perception'], 'Scourge');
   scourge.build.selectedSkillIds.Utility1 = 10622;
-  scourge.adapter.recalculate(scourge);
+  scourge.attributeData = scourge.adapter
+    .createBuildContext({
+      build: scourge.build,
+      patchId: scourge.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(scourge.simulationSettings?.transitionDelays)
+    })
+    .attributes(scourge.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(shroud(scourge), undefined);
 });
 
@@ -345,7 +421,13 @@ test('player health changes only the isolated stat preview', () => {
     const app = previewApp(profession, traits);
     assert.ok(attributeEffectControls(app).some((control) => control.key === 'playerHealth'));
     const original = structuredClone({ build: app.build, attributes: app.attributeData });
-    const config = app.adapter.simulationConfig(app);
+    const config = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig();
     const low = stats(app, { playerHealth: 50 });
     const high = stats(app, { playerHealth: 51 });
     if (profession === 'thief') {
@@ -358,7 +440,16 @@ test('player health changes only the isolated stat preview', () => {
     assert.deepEqual(stats(app, { playerHealth: 0 }), low);
     assert.deepEqual(stats(app, { playerHealth: 100 }), high);
     assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
-    assert.deepEqual(app.adapter.simulationConfig(app), config);
+    assert.deepEqual(
+      app.adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .simulationConfig(),
+      config
+    );
   }
 });
 
@@ -372,8 +463,27 @@ test('all professions remove legacy player-health assumptions and expose no simu
     assert.equal(Object.hasOwn(app.build.assumptions, 'playerHealthPercent'), false, profession);
     assert.equal(Object.hasOwn(app.build.assumptions, 'playerHealthFraction'), false, profession);
     assert.ok(!app.adapter.assumptionControls.some((control) => control.key === 'playerHealthPercent'), profession);
-    app.adapter.recalculate(app);
-    assert.equal(Object.hasOwn(app.adapter.simulationConfig(app), 'playerHealthFraction'), false, profession);
+    app.attributeData = app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+    assert.equal(
+      Object.hasOwn(
+        app.adapter
+          .createBuildContext({
+            build: app.build,
+            patchId: app.patchId ?? 'current',
+            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          })
+          .simulationConfig(),
+        'playerHealthFraction'
+      ),
+      false,
+      profession
+    );
   }
 });
 
@@ -406,7 +516,13 @@ test('all professions and specializations accept their available controls and re
       for (const choices of ['1-1-1', '2-2-2', '3-3-3']) {
         const app = previewApp(name);
         app.build.specializations = [{ name: specialization.name, traits: choices }];
-        app.adapter.recalculate(app);
+        app.attributeData = app.adapter
+          .createBuildContext({
+            build: app.build,
+            patchId: app.patchId ?? 'current',
+            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          })
+          .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
         const controls = attributeEffectControls(app);
         assert.equal(new Set(controls.map((control) => control.key)).size, controls.length);
         const inputs = Object.fromEntries(

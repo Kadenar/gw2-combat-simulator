@@ -1,4 +1,4 @@
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import {
   previewControlScopes,
@@ -8,7 +8,10 @@ import {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 
 /** Supply the active preview catalog and weapon set without exposing application state to profession hooks. */
-export function attributePreviewContext(app: ProfessionAppState, weaponSet: number): ProfessionAttributePreviewContext {
+export function attributePreviewContext(
+  app: AttributePreviewState,
+  weaponSet: number
+): ProfessionAttributePreviewContext {
   return {
     build: app.build,
     specialization: app.adapter.eliteSpecialization(app.build),
@@ -19,7 +22,7 @@ export function attributePreviewContext(app: ProfessionAppState, weaponSet: numb
 }
 
 /** Combine common boon and equipment inputs with the active profession's conditional controls. */
-export function attributeEffectControls(app: ProfessionAppState): PreviewControl[] {
+export function attributeEffectControls(app: AttributePreviewState): PreviewControl[] {
   const controls: PreviewControl[] = [
     {
       key: 'might',

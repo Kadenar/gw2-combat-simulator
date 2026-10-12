@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { equipmentAttributeConversions } from '#gw2/platform/builds/attribute-inputs.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
@@ -426,7 +427,13 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
 
   const app = { build, attributeWeaponSet: 1, results: null };
 
-  revenantAppAdapter.recalculate(app);
+  app.attributeData = revenantAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const assassin = app.attributeData.attributes;
 
   assert.equal(assassin.Power.traits, 150);
@@ -436,7 +443,13 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   assert.equal(assassin['Healing Power'].traits, 75);
 
   build.selectedLegends = [LEGEND.DWARF, LEGEND.ENTITY];
-  revenantAppAdapter.recalculate(app);
+  app.attributeData = revenantAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const dwarf = app.attributeData.attributes;
 
   assert.equal(dwarf.Power.traits, 75);
@@ -446,7 +459,13 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
 
   // Each selected legend contributes its own pair alongside Entity's all-attribute bonus.
   build.selectedLegends = [LEGEND.CENTAUR, LEGEND.ENTITY];
-  revenantAppAdapter.recalculate(app);
+  app.attributeData = revenantAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.equal(app.attributeData.attributes['Healing Power'].traits, 225);
   assert.equal(app.attributeData.attributes.Concentration.traits, 225);
 });

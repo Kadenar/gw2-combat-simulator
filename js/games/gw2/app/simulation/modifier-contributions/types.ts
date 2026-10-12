@@ -2,17 +2,7 @@
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-
-export type ProfessionModifierType = 'Boon' | 'Target' | 'Sigil' | 'Relic' | 'Food' | 'Utility' | 'Trait' | 'Skill';
-
-export type ProfessionModifier = {
-  readonly id: string;
-  readonly name: string;
-  readonly label: string;
-} & (
-  { readonly type: 'Skill'; readonly skillId: SkillId } | { readonly type: Exclude<ProfessionModifierType, 'Skill'> }
-);
+import type { ProfessionModifier } from '#gw2/build-context/types.js';
 
 export interface ProfessionModifierComparison {
   readonly modifier: ProfessionModifier;

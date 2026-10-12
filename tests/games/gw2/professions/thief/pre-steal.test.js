@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -125,8 +126,23 @@ test('pre-steal persists as a bounded starting resource and is specialization sc
     skillById: profession.catalog.skillsById,
     attributeWeaponSet: 1
   };
-  thiefAppAdapter.recalculate(app);
-  assert.equal(thiefAppAdapter.simulationConfig(app).initialPreSteal, 1);
+  app.attributeData = thiefAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  assert.equal(
+    thiefAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig().initialPreSteal,
+    1
+  );
   for (const specialization of ['Core', 'Daredevil', 'Antiquary', 'Deadeye', 'Specter']) {
     const supported = ['Core', 'Daredevil', 'Deadeye', 'Antiquary'].includes(specialization);
     const result = runThief([], { specialization, initialPreSteal: supported ? 0 : 1 });

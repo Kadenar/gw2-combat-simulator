@@ -139,7 +139,7 @@ const adapter = {
   toApplicationBuild: (value) => structuredClone(value),
   eliteSpecialization: () => 'Core',
   slotLoadout: { normalizeBuild: () => ({}) },
-  recalculate() {}
+  createBuildContext: () => ({ attributes: () => null })
 };
 
 // A minimal editor exercises real tab activation and rotation history without a DOM or combat fixture.

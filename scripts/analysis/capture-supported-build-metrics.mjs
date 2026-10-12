@@ -1,9 +1,10 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 /**
  * Runs the deterministic simulator over every rotation-backed manifest preset and
  * prints the resulting benchmark metrics as JSON.
  *
  * For each requested profession it loads the build manifest, simulates each preset
- * that has a rotation through the profession's app adapter, and records duration,
+ * that has a rotation through the profession's build context, and records duration,
  * DPS, APM, cumulative and phase DPS by target health, total/strike/condition damage, the final damaging packet,
  * and any warnings. Non-killing runs use final overall DPS for both final-band measurements.
  * The output is a stable baseline that other tooling diffs against (see
@@ -18,7 +19,9 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import { targetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 
@@ -62,20 +65,9 @@ export function simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patc
     ...structuredClone(savedBuild),
     rotation: structuredClone(savedRotation.rotation ?? savedRotation)
   });
-  const activeCatalog = adapter.profession.catalogFor(patchId);
-  const app = {
-    build,
-    adapter,
-    patchId,
-    activeCatalog,
-    profession: adapter.profession,
-    skillByName: activeCatalog.skillsByName,
-    skillById: activeCatalog.skillsById,
-    attributeWeaponSet: 1
-  };
-  adapter.recalculate(app);
-  const config = adapter.simulationConfig(app);
-  return { app, result: adapter.simulateBuild(app.build.rotation, config) };
+  const context = adapter.createBuildContext({ build, patchId, transitionDelays: normalizeTransitionDelays() });
+  const config = deterministicSimulationConfig(context.simulationConfig());
+  return { build, result: simulateGw2({ profession: context.profession, rotation: build.rotation, config }) };
 }
 
 async function captureProfession(professionId, gameId, patchId) {
@@ -83,10 +75,10 @@ async function captureProfession(professionId, gameId, patchId) {
   const data = resolveGameData(repoRoot, gameId);
   const [manifest, adapter] = await Promise.all([
     readJson(path.relative(repoRoot, path.join(data.builds, professionId, 'manifest.json'))),
-    loadProfessionAppAdapter(professionId)
+    loadBuildContext(professionId)
   ]);
 
-  if (!adapter) throw new Error(`${professionId} has no native app adapter.`);
+  if (!adapter) throw new Error(`${professionId} has no build-context binding.`);
 
   const metrics = [];
 
@@ -94,7 +86,7 @@ async function captureProfession(professionId, gameId, patchId) {
     for (const preset of section.presets) {
       if (!preset.rotation) continue;
       const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
-      const { app, result } = simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId);
+      const { build, result } = simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId);
       const finalPacket = finalDamagingPacket(result);
 
       metrics.push({
@@ -119,7 +111,7 @@ async function captureProfession(professionId, gameId, patchId) {
         // Reuse the simulator's input accounting rather than estimating actions from saved rotation length.
         ...(patchId === 'current' ? { apm: result.rotationApm.apm } : {}),
         // Measure each band within the same simulation, including its live target-health modifiers.
-        dpsByHealth: targetHealthBandDps(result, app.build.targetHealth, app.build.targetStartingHealthPercent ?? 100),
+        dpsByHealth: targetHealthBandDps(result, build.targetHealth, build.targetStartingHealthPercent ?? 100),
         totalDamage: result.totalDamage,
         strikeDamage: result.strikeDamage,
         conditionDamage: result.conditionDamage,

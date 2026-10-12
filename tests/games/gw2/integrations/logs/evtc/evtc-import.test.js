@@ -242,7 +242,10 @@ test('the browser rotation importer previews compressed .zevtc files before appl
   const originalRotation = [{ type: 'wait', durationMs: 250 }];
   const app = {
     profession: { id: 'mesmer', name: 'Mesmer' },
-    adapter: { eliteSpecialization: () => 'Chronomancer', simulationConfig: () => ({}) },
+    adapter: {
+      eliteSpecialization: () => 'Chronomancer',
+      createBuildContext: () => ({ simulationConfig: () => ({}) })
+    },
     build: { rotation: originalRotation },
     activeCatalog: catalog,
     changed(...args) {
@@ -282,7 +285,10 @@ test('the browser rotation importer previews compressed .zevtc files before appl
     },
     {
       profession: { id: 'mesmer', name: 'Mesmer' },
-      adapter: { eliteSpecialization: () => 'Chronomancer', simulationConfig: () => ({}) },
+      adapter: {
+        eliteSpecialization: () => 'Chronomancer',
+        createBuildContext: () => ({ simulationConfig: () => ({}) })
+      },
       build: {},
       activeCatalog: catalog
     }

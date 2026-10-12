@@ -1,9 +1,9 @@
 /** Measure unique-stat preparation without simulating the enormous Cartesian products it replaces. */
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import { captureGearOptimizerRequest, createOptimizerSpace } from '#gw2/app/optimizer/gear/search.js';
 import { groupOptimizerSpace } from '#gw2/app/optimizer/gear/search-space.js';
 
-const adapter = await loadProfessionAppAdapter('warrior');
+const adapter = await loadOptimizerContext('warrior');
 const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
 for (const prefixes of [
   ["Berserker's", "Assassin's"],
@@ -35,7 +35,7 @@ for (const prefixes of [
 }
 
 // Reproduce the two-prefix Scepter/Dagger search, including nineteen infusion splits.
-const elementalist = await loadProfessionAppAdapter('elementalist');
+const elementalist = await loadOptimizerContext('elementalist');
 const singleSetBuild = elementalist.toApplicationBuild(elementalist.profession.createBuildDefaults());
 singleSetBuild.weapons = ['Scepter', 'Dagger'];
 const combinedRequest = captureGearOptimizerRequest(

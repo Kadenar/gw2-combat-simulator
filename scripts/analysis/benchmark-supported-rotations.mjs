@@ -1,3 +1,5 @@
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 /** Profiles existing manifest rotations after warmup; loading and build preparation stay outside timed runs. */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { Session } from 'node:inspector/promises';
@@ -5,7 +7,7 @@ import { cpus } from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { parseArgs } from 'node:util';
-import { loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
+import { professionOptions } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Usage: node scripts/analysis/benchmark-supported-rotations.mjs [profession ...] > timings.json
@@ -34,7 +36,7 @@ for (const id of professions) {
 const readJson = async (file) => JSON.parse(await readFile(path.join(root, file), 'utf8'));
 const cases = [];
 for (const profession of professions) {
-  const adapter = await loadProfessionAppAdapter(profession);
+  const adapter = await loadBuildContext(profession);
   const manifest = await readJson(`data/gw2/builds/${profession}/manifest.json`);
   for (const section of manifest) {
     for (const preset of section.presets) {
@@ -43,15 +45,11 @@ for (const profession of professions) {
       if (values.filter && !id.toLowerCase().includes(values.filter.toLowerCase())) continue;
       const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
       const build = adapter.toApplicationBuild({ ...savedBuild, rotation: savedRotation.rotation ?? savedRotation });
-      const app = {
+      const context = adapter.createBuildContext({
         build,
-        adapter,
-        profession: adapter.profession,
-        skillByName: adapter.profession.catalog.skillsByName,
-        skillById: adapter.profession.catalog.skillsById,
-        attributeWeaponSet: 1
-      };
-      adapter.recalculate(app);
+        patchId: 'current',
+        transitionDelays: normalizeTransitionDelays()
+      });
       cases.push({
         id,
         profession,
@@ -62,7 +60,7 @@ for (const profession of professions) {
         options: {
           profession: adapter.profession,
           rotation: prefixLength == null ? build.rotation : build.rotation.slice(0, prefixLength),
-          config: adapter.simulationConfig(app),
+          config: context.simulationConfig(),
           output: values.output
         },
         samples: []

@@ -9,7 +9,8 @@ import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { canEquipWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
+import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -148,7 +149,7 @@ function choices(value: string[] | undefined, current: string, names: readonly s
 }
 
 /** Include alternate gear when combat permits it or authored swaps can use it during preparation. */
-export function optimizerWeaponSets(build: Gw2CanonicalBuild, adapter: Gw2AppAdapter): number[] {
+export function optimizerWeaponSets(build: Gw2CanonicalBuild, adapter: OptimizerContext): number[] {
   const canSwap = adapter.profession.resolveProfession({
     specialization: adapter.eliteSpecialization(build)
   }).canSwapWeaponSetsInCombat;
@@ -163,7 +164,7 @@ export function optimizerWeaponSets(build: Gw2CanonicalBuild, adapter: Gw2AppAda
 }
 
 /** Model actual weapon stat budgets; two-handed weapons have one prefix and two sigils. */
-export function optimizerSlots(build: Gw2CanonicalBuild, adapter: Gw2AppAdapter): string[] {
+export function optimizerSlots(build: Gw2CanonicalBuild, adapter: OptimizerContext): string[] {
   const slots = GEAR_SLOTS.filter((slot) => !slot.startsWith('Weapon'));
   for (const set of optimizerWeaponSets(build, adapter)) {
     const weapons = set === 0 ? build.weapons : build.alternateWeapons;
@@ -174,7 +175,7 @@ export function optimizerSlots(build: Gw2CanonicalBuild, adapter: Gw2AppAdapter)
   return slots;
 }
 
-export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2AppAdapter): OptimizerSpace {
+export function createOptimizerSpace(request: GearOptimizerRequest, adapter: OptimizerContext): OptimizerSpace {
   if (request.search !== undefined && !['exact', 'fast'].includes(request.search))
     throw new TypeError('Invalid optimizer search mode.');
   if (
@@ -398,9 +399,8 @@ export function ordinaryEquipmentAt(space: OptimizerSpace, ordinal: bigint): Opt
 }
 
 /** Use the runtime's lower-level path; no presentation, persistence, or secondary analyses run here. */
-export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter: Gw2AppAdapter) {
+export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter: OptimizerContext) {
   createOptimizerSpace(request, adapter);
-  const activeCatalog = adapter.profession.catalogFor?.(request.patchId) || adapter.profession.catalog;
   function prepare(equipment: OptimizerEquipment): Gw2Config;
   function prepare(equipment: OptimizerEquipment, enforceRequirements: true): Gw2Config | null;
   function prepare(equipment: OptimizerEquipment, enforceRequirements = false): Gw2Config | null {
@@ -414,20 +414,12 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
       throw new TypeError('Duplicate sigils within a set or multiple stacking sigils across the build.');
     }
 
-    // The runtime preparation seam reads only these fields; UI methods are deliberately unavailable headlessly.
-    const app = {
+    // Each candidate borrows the captured build and computes only the sets required before rejection.
+    const context = adapter.createBuildContext({
       build: { ...request.build, ...equipment },
-      simulationSettings: request.simulationSettings,
-      adapter,
-      profession: adapter.profession,
-      activeCatalog,
       patchId: request.patchId,
-      skillByName: activeCatalog.skillsByName,
-      skillById: activeCatalog.skillsById,
-      attributeWeaponSet: request.build.startingWeaponSet,
-      results: null
-    } as ProfessionAppState;
-    adapter.recalculate(app);
+      transitionDelays: normalizeTransitionDelays(request.simulationSettings?.transitionDelays)
+    });
     // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
     const limits = request.selections;
     if (
@@ -436,12 +428,8 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
         (key) => limits[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
       )
     ) {
-      const startingAttributes = app.attributeData;
       for (const set of optimizerWeaponSets(request.build, adapter)) {
-        app.attributeWeaponSet = set + 1;
-        if (app.attributeWeaponSet === request.build.startingWeaponSet) app.attributeData = startingAttributes;
-        else adapter.recalculate(app);
-        const attributes = app.attributeData!.attributes;
+        const attributes = context.attributes(set === 0 ? 1 : 2).attributes;
         const toughness = attributes.Toughness.final;
         const boonDuration = attributes['Boon Duration']?.final || 0;
         const quicknessDuration = boonDuration + (attributes['Quickness Duration']?.final || 0);
@@ -454,12 +442,9 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
         )
           return null;
       }
-
-      app.attributeWeaponSet = request.build.startingWeaponSet;
-      app.attributeData = startingAttributes;
     }
 
-    const config = adapter.simulationConfig(app);
+    const config = context.simulationConfig();
     return {
       ...config,
       randomness: { ...config.randomness, mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC }
@@ -467,7 +452,12 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
   }
 
   const evaluate = (equipment: OptimizerEquipment): Gw2SimulationResult =>
-    adapter.simulateBuild(request.build.rotation, prepare(equipment), { observationPolicy: request.observationPolicy });
+    simulateGw2({
+      profession: adapter.profession,
+      rotation: request.build.rotation,
+      config: prepare(equipment),
+      observationPolicy: request.observationPolicy
+    });
   const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
     const config = prepare(equipment, true);
     if (!config) return null;

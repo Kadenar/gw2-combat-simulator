@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
@@ -151,9 +152,23 @@ export function simulationConfigValues(
     else if (control.kind === 'condition') values[control.key] = assumptions.targetConditions?.[control.field ?? ''];
     else if (control.key === 'targetMoving') values[control.key] = assumptions.targetMoving;
     else if (control.key === 'thornsStacks')
-      values[control.key] = app.adapter.simulationConfig(app).initialThornsStacks ?? 0;
+      values[control.key] =
+        app.adapter
+          .createBuildContext({
+            build: app.build,
+            patchId: app.patchId,
+            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          })
+          .simulationConfig().initialThornsStacks ?? 0;
     else if (control.key === 'targetHealth')
-      values[control.key] = (app.adapter.simulationConfig(app).target?.startingHealthFraction ?? 1) * 100;
+      values[control.key] =
+        (app.adapter
+          .createBuildContext({
+            build: app.build,
+            patchId: app.patchId,
+            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          })
+          .simulationConfig().target?.startingHealthFraction ?? 1) * 100;
   }
 
   return normalizeAttributePreview(

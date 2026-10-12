@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -383,7 +384,13 @@ test('Scrapper 1-3-2 converts 13% of Power into Concentration', () => {
     attributeWeaponSet: 1
   };
 
-  engineerAppAdapter.recalculate(app);
+  app.attributeData = engineerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
 
   assert.ok(app.attributeData.activeTraits.some((trait) => trait.name === 'Kinetic Accelerators'));
   assert.equal(

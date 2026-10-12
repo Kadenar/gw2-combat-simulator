@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -94,10 +95,26 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
     results: null
   };
 
-  elementalistAppAdapter.recalculate(app);
-  app.results = runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
-    profession: elementalistProfession
-  });
+  app.attributeData = elementalistAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  app.results = runElementalist(
+    commands,
+    elementalistAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    {
+      profession: elementalistProfession
+    }
+  );
 
   return app;
 }

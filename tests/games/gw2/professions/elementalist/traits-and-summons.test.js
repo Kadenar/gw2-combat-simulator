@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -78,7 +79,13 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
       const result = runElementalist(
         commands,
         {
-          ...elementalistAppAdapter.simulationConfig(app),
+          ...elementalistAppAdapter
+            .createBuildContext({
+              build: app.build,
+              patchId: app.patchId ?? 'current',
+              transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+            })
+            .simulationConfig(),
           selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
         },
         { profession: elementalistProfession }
@@ -118,7 +125,13 @@ test('Persisting Flames extends Flamewall from eight seconds to ten', () => {
     const result = runElementalist(
       commands,
       {
-        ...elementalistAppAdapter.simulationConfig(app),
+        ...elementalistAppAdapter
+          .createBuildContext({
+            build: app.build,
+            patchId: app.patchId ?? 'current',
+            transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+          })
+          .simulationConfig(),
         selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
       },
       { profession: elementalistProfession }
@@ -186,7 +199,13 @@ test("Fox's Fury applies the PvE high-Might burn", () => {
       assumptions: { might: 25 },
       selectedSkillIds: { Heal: 34743, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 25488 }
     });
-    const config = elementalistAppAdapter.simulationConfig(app);
+    const config = elementalistAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig();
     config.boons.quickness = quickness;
     const result = runElementalist(commands, config, { profession: elementalistProfession });
     const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
@@ -859,10 +878,20 @@ test('Flame Barrage cannot apply future projectile burns outside the observation
     rotation: ['Flame Barrage'],
     assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, targetConditions: {} }
   });
-  const result = runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
-    profession: elementalistProfession,
-    observation: { kind: 'tail', durationMs: 1000 }
-  });
+  const result = runElementalist(
+    commands,
+    elementalistAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    {
+      profession: elementalistProfession,
+      observation: { kind: 'tail', durationMs: 1000 }
+    }
+  );
   const burns = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Flame Barrage'
   );

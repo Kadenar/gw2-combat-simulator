@@ -106,7 +106,7 @@ function appFixture() {
     profession: { id: 'engineer', name: 'Engineer' },
     adapter: {
       eliteSpecialization: () => 'Amalgam',
-      simulationConfig: () => ({ selectedMorphSkillIds: [76927, 77104] })
+      createBuildContext: () => ({ simulationConfig: () => ({ selectedMorphSkillIds: [76927, 77104] }) })
     },
     build: {
       selectedSkillIds: { Utility1: 5812 },

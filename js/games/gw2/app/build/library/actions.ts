@@ -1,4 +1,4 @@
-import { fetchJsonAsset, getRotationItems } from '#gw2/app/import-export/files.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
 import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 import { addBuildTab, captureBuildDestination, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';

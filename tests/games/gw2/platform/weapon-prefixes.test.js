@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
@@ -134,7 +135,13 @@ test('runtime stats follow chronological weapon-set swaps', () => {
     skillById: mesmerProfession.catalog.skillsById,
     skillByName: mesmerProfession.catalog.skillsByName
   };
-  const config = mesmerAppAdapter.simulationConfig(app);
+  const config = mesmerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
   const query = createGw2CombatQuery({
     profession: resolveProfessionContract(mesmerProfession, config),
     config,

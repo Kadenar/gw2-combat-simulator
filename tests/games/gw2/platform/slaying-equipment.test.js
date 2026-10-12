@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
@@ -66,6 +67,7 @@ test('slaying selections survive build loading and potion removal comparisons re
   assert.equal(loaded.utility, 'Potion of Slaying');
   assert.deepEqual(loaded.weaponSigils, build.weaponSigils);
   const app = {
+    patchId: 'current',
     build: loaded,
     adapter: mesmerAppAdapter,
     profession: mesmerAppAdapter.profession,
@@ -73,7 +75,13 @@ test('slaying selections survive build loading and potion removal comparisons re
     skillByName: mesmerAppAdapter.profession.catalog.skillsByName,
     skillById: mesmerAppAdapter.profession.catalog.skillsById
   };
-  mesmerAppAdapter.recalculate(app);
+  app.attributeData = mesmerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = mesmerAppAdapter.modifierContributionRequest(app);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Utility:Potion of Slaying');
   assert.equal(request.baseConfig.utility, build.utility);

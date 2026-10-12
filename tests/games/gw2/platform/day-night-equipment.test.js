@@ -3,7 +3,8 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig } from '#gw2/app/simulation/build-config.js';
+import { createBuildContext } from '#gw2/professions/necromancer/build/context.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
@@ -13,15 +14,7 @@ import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/bui
 test('the shared simulation config defaults to day and preserves a night selection', () => {
   const build = createNecromancerBuildDefaults();
   const config = () =>
-    createGw2SimulationConfig({
-      app: {
-        build,
-        adapter: { assumptionControls: [] },
-        skillById: new Map()
-      },
-      attributeData: { attributes: {} },
-      specialization: 'Reaper'
-    });
+    createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() }).simulationConfig();
 
   assert.equal(config().timeOfDay, 'day');
   build.assumptions.timeOfDay = 'night';

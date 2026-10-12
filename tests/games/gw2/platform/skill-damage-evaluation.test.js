@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { playerHealthFraction, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
@@ -60,7 +61,13 @@ test('direct damage does not query activation availability', () => {
 test('Elemental Explosion damage is measurable without stored bullets while combat still requires them', async () => {
   const app = await headlessApp('elementalist', await firstPresetBuildPath('elementalist'));
   const config = {
-    ...app.adapter.simulationConfig(app),
+    ...app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
     pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
     weapons: ['Pistol', 'Warhorn']
   };
@@ -175,7 +182,17 @@ test('unrelated damage reactions are not invoked when measuring a skill', () => 
 
 test('Fractal evaluates its shared payload without a Bleeding prerequisite and without changing target assumptions', async () => {
   const app = await headlessApp('elementalist', await firstPresetBuildPath('elementalist'));
-  const config = { ...app.adapter.simulationConfig(app), relic: 'Fractal', target: { health: 0, conditions: {} } };
+  const config = {
+    ...app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    relic: 'Fractal',
+    target: { health: 0, conditions: {} }
+  };
   const saved = structuredClone(config);
   const [row] = evaluate(
     app.profession,
@@ -286,7 +303,16 @@ test('a shared cache cannot reuse a result from different content', () => {
 test('trait occurrence damage does not inherit trigger probability', async () => {
   const app = await headlessApp('engineer', await firstPresetBuildPath('engineer'));
   const id = ENGINEER_TRAIT_IDS.SHRAPNEL;
-  const config = { ...app.adapter.simulationConfig(app), selectedTraitIds: [id] };
+  const config = {
+    ...app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    selectedTraitIds: [id]
+  };
   const definition = occurrence('shrapnel', {
     source: 'Trait',
     unit: 'occurrence',

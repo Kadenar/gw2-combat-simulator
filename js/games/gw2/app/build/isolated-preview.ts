@@ -1,5 +1,6 @@
-import { attributePreviewContext } from '#gw2/app/build/attribute-effects.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import type { AttributePreviewState } from '#gw2/app/build/types.js';
+import type { BuildAttributes } from '#gw2/build-context/types.js';
 import type {
   AttributePreviewValues,
   PreviewControl,
@@ -8,45 +9,47 @@ import type {
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface IsolatedPreview {
-  readonly preview: ProfessionAppState;
+  readonly preview: { readonly attributeData: BuildAttributes };
   readonly context: ProfessionAttributePreviewInput;
   readonly config: Gw2Config;
 }
 
-/**
- * Builds a detached copy of the app whose build carries preview boons and passive selections, then recalculates its
- * attributes and simulation configuration. Both preview panels use this path; nothing is written back to the app.
- */
+/** Calculates a detached preview build; conditional query controls never alter saved assumptions. */
 export function createIsolatedPreview(
-  app: ProfessionAppState,
+  app: AttributePreviewState,
   controls: readonly PreviewControl[],
   values: AttributePreviewValues,
   boons: Readonly<Record<string, number | boolean>>,
   weaponSet: number
 ): IsolatedPreview {
-  const preview = {
-    ...app,
-    build: {
-      ...structuredClone(app.build),
-      startingWeaponSet: weaponSet,
-      assumptions: {
-        ...app.build.assumptions,
-        ...boons
-      }
-    },
-    results: null
-  } as ProfessionAppState;
+  const build = {
+    ...app.build,
+    selectedSkillIds: { ...app.build.selectedSkillIds },
+    startingWeaponSet: weaponSet,
+    assumptions: { ...app.build.assumptions, ...boons }
+  };
   // Removing a disabled passive before recalculation also updates conversions that use the passive's attributes.
   for (const control of controls) {
     if (control.kind !== 'passive' || values[control.key]) continue;
-    for (const [slot, id] of Object.entries(preview.build.selectedSkillIds)) {
-      if (id === control.skillId) preview.build.selectedSkillIds[slot] = null;
+    for (const [slot, id] of Object.entries(build.selectedSkillIds)) {
+      if (id === control.skillId) build.selectedSkillIds[slot] = null;
     }
   }
 
-  // Common seeds remain independent of health; shared declarations evaluate the preview's health query later.
-  const context = { ...attributePreviewContext(preview, weaponSet), values };
-  app.adapter.recalculate(preview);
-  const config = app.adapter.simulationConfig(preview);
-  return { preview, context, config };
+  // Preview health and conditional state remain explicit query values, outside the build context.
+  const calculation = app.adapter.createBuildContext({
+    build,
+    patchId: app.patchId,
+    transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+  });
+  const attributeData = calculation.attributes(weaponSet === 2 ? 2 : 1);
+  const context = {
+    build,
+    specialization: calculation.specialization,
+    activeTraits: attributeData.activeTraits,
+    weapons: weaponSet === 2 ? build.alternateWeapons : build.weapons,
+    catalog: app.activeCatalog,
+    values
+  };
+  return { preview: { attributeData }, context, config: calculation.simulationConfig() };
 }

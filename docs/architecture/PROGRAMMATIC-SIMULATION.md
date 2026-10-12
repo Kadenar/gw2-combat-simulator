@@ -40,6 +40,36 @@ For dynamic selection, import `loadProfession` from `#gw2/profession-registry.js
 `loadProfession('engineer')`. Registry IDs are lowercase profession names. Loading a profession supplies its catalog and
 runtime factory; it does not load a saved build or UI defaults.
 
+## Running a saved build
+
+Use the profession-bound build context to decode a saved build and calculate its simulation inputs without an app
+adapter. Supply explicit patch and transition settings; the codec remains the saved-input normalization boundary.
+
+```js
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
+const module = await loadBuildContext('engineer');
+const build = module.toApplicationBuild(savedBuild);
+const context = module.createBuildContext({
+  build,
+  patchId: 'current',
+  transitionDelays: normalizeTransitionDelays(undefined)
+});
+const attributes = context.attributes(1);
+const result = simulateGw2({
+  profession: context.profession,
+  rotation: build.rotation,
+  config: context.simulationConfig()
+});
+```
+
+The context borrows immutable inputs for one calculation. Make a new context after editing a build, settings, patch, or
+excluded modifier. Repeated attribute requests reuse at most two results; each config call returns detached nested
+values. The selected patch must be `current` or the bound preview ID. Baseline and comparison owners may apply
+`deterministicSimulationConfig()`; build-context itself preserves the build's randomness settings.
+
 ## Configuration
 
 The entry point is `platform/simulation/simulate.ts`; run options live in `platform/simulation/options.ts` and
@@ -59,7 +89,7 @@ configuration in `platform/simulation/config.ts`, relative to `js/games/gw2/`.
 `config.attributeInputs` contains two weapon-set seeds before profession and temporary contributions. Use
 `baseAttributeInputs(base, alternate?)` for direct scenarios; omitted attributes use level-80 base values and the
 alternate set defaults to the first. Do not pass already calculated totals or the obsolete `stats`/`weaponSetStats`
-fields. The application builds seeds from equipment through `app/simulation/build-config.ts`.
+fields. Canonical builds produce equipment seeds through `build-context/simulation-config.ts`.
 
 Common configuration fields:
 

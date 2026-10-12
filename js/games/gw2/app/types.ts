@@ -1,3 +1,4 @@
+import type { BuildContextFactory } from '#gw2/build-context/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/patches.js';
 import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
 import type { RotationEditingState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
@@ -5,15 +6,10 @@ import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js'
 import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
 import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
-import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
-import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
-import type { RangerConfig } from '#gw2/professions/ranger/types.js';
-import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
-import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
-import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
@@ -30,9 +26,9 @@ import type {
 import type {
   ModifierContribution,
   ModifierContributionResultState,
-  ProfessionModifier,
   ModifierContributionRequest
 } from '#gw2/app/simulation/modifier-contributions/types.js';
+
 import type {
   RandomDistributionSummary,
   RandomDistributionResultState,
@@ -44,19 +40,11 @@ import type {
   RelicComparisonJobRequest,
   RelicComparisonResultState
 } from '#gw2/app/optimizer/relic-comparison/types.js';
-import type {
-  Gw2CanonicalBuild,
-  Gw2CalculateAttributes,
-  ProfessionAssumptionControl,
-  Gw2ApplyBuildAttributeRules
-} from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
-import type {
-  ProfessionAttributeData,
-  ProfessionIsSkillAvailable,
-  ProfessionDefaultOffhand
-} from '#gw2/app/build/types.js';
+import type { ProfessionIsSkillAvailable, ProfessionDefaultOffhand } from '#gw2/app/build/types.js';
+import type { BuildAttributes } from '#gw2/build-context/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
@@ -91,7 +79,7 @@ export interface ProfessionAppState
   specializations: CanonicalCatalog['specializations'];
   resourceDefinitions(specialization: string): ProfessionResourceView[];
   attributeWeaponSet: number;
-  attributeData: ProfessionAttributeData | null;
+  attributeData: BuildAttributes | null;
   results: ProfessionAppResult | null;
   /** Debug capture belongs to this app session and is excluded from persisted build state. */
   damageDiagnostics: boolean;
@@ -141,35 +129,9 @@ export interface ProfessionAppFilenames {
   readonly eventLog: string;
 }
 
-export interface ProfessionRuntimeConfigContext {
-  readonly attributeData: ProfessionAttributeData;
-  readonly specialization: string;
-}
-
-/** Runtime adapters return the configuration fields owned by their profession. */
-export type ProfessionRuntimeConfig =
-  | ElementalistConfig
-  | EngineerConfig
-  | GuardianConfig
-  | NecromancerConfig
-  | RangerConfig
-  | RevenantConfig
-  | ThiefConfig;
-
-export interface ProfessionRuntimeOverrides {
-  readonly buildConfigInputs?: (
-    app: ProfessionAppState,
-    context: ProfessionRuntimeConfigContext
-  ) => Partial<Gw2SimulationConfigOptions>;
-  readonly buildConfigExtras?: (
-    app: ProfessionAppState,
-    context: ProfessionRuntimeConfigContext
-  ) => ProfessionRuntimeConfig;
-}
-
-export interface ProfessionRuntimeOptions extends ProfessionRuntimeOverrides {
+export interface ProfessionRuntimeOptions {
   readonly profession: ProfessionAppContract;
-  readonly calculateAttributes: Gw2CalculateAttributes;
+  readonly createBuildContext: BuildContextFactory;
 }
 
 /** Callers select only the observations and output needed for their analysis. */
@@ -187,8 +149,7 @@ export interface ProfessionRuntimeApi {
     options?: ProfessionSimulationOptions & { output?: 'detailed' }
   ): Gw2SimulationResult;
   eliteSpecialization(build: Gw2CanonicalBuild): string;
-  recalculate(app: ProfessionAppState, disabledTrait?: string | null): void;
-  simulationConfig(app: ProfessionAppState, disabled?: ProfessionModifier | null): Gw2Config;
+  readonly createBuildContext: BuildContextFactory;
   modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
   randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest | null;
@@ -251,7 +212,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
 export interface DefineProfessionAppOptions {
   readonly tooltips: ProfessionTooltips;
   readonly profession: ProfessionAppContract;
-  readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
+  readonly createBuildContext: BuildContextFactory;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly rotationImportLookup?: Gw2AppAdapter['rotationImportLookup'];
   readonly storageVersion?: number;
@@ -259,17 +220,6 @@ export interface DefineProfessionAppOptions {
   readonly globalName?: string;
   readonly filenames?: ProfessionAppFilenames;
   readonly resetPrompt?: string;
-  readonly runtime?: ProfessionRuntimeOverrides;
   readonly isSkillAvailable?: ProfessionIsSkillAvailable;
   readonly defaultOffhand?: ProfessionDefaultOffhand;
-}
-
-export interface Gw2SimulationConfigOptions {
-  readonly app: ProfessionAppState;
-  readonly attributeData: ProfessionAttributeData;
-  readonly attributeDataByWeaponSet?: readonly ProfessionAttributeData[];
-  readonly specialization: string;
-  readonly disabled?: ProfessionModifier | null;
-  readonly selectedTraitIds?: readonly SkillId[];
-  readonly initialResource?: number;
 }

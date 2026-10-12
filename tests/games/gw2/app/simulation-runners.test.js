@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -202,7 +203,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     toApplicationBuild: (build) => build,
     eliteSpecialization: () => 'Core',
     slotLoadout: { normalizeBuild: () => ({}) },
-    recalculate() {},
+    createBuildContext: () => ({ attributes: () => null }),
     buildEditor: {}
   };
   // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
@@ -473,7 +474,13 @@ test('baseline requests refresh a queued reference once, using independent comma
       referenceError: ''
     }
   };
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
 
   assert.equal(adapter.baselineSimulationRequest(app).referenceRotation, undefined);
   app.rotationComparison.referenceStatus = 'queued';

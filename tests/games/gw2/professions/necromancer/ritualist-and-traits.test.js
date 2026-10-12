@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -1266,13 +1267,15 @@ test('Corrupted Talent owns the Harbinger shroud-entry life-force gain', () => {
 
 test('modifier candidates include every active Necromancer trait', () => {
   const build = createNecromancerBuildDefaults();
-  const app = {
-    build,
-    skillByName: necromancerCatalog.skillsByName,
-    attributeWeaponSet: 1
-  };
+  const app = { patchId: 'current', build, skillByName: necromancerCatalog.skillsByName, attributeWeaponSet: 1 };
 
-  necromancerAppAdapter.recalculate(app);
+  app.attributeData = necromancerAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
 
   const activeTraitNames = new Set(app.attributeData.activeTraits.map((trait) => trait.name));
   const candidateNames = new Set(

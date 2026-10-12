@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
@@ -121,7 +122,16 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
   const observedIds = [...comparison.current.events, ...comparison.preview.events].flatMap((event) =>
     [event.skillId, event.sourceId].filter((id): id is string | number => id != null)
   );
-  const overview = app.profession.patchOverviewFor(app.adapter.simulationConfig(app), observedIds);
+  const overview = app.profession.patchOverviewFor(
+    app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId,
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    observedIds
+  );
   const selectedLabel = app.patchId === preview.id ? preview.label : 'Live game data';
   const sourceUrl = httpUrl(preview.sourceUrl);
   // A native disclosure keeps overall DPS visible while detailed changes stay collapsed until requested.

@@ -18,43 +18,19 @@ import {
 import { parseGameOption } from '../../scripts/lib/game-data.mjs';
 import { simulateBenchmarkPreset } from '../../scripts/analysis/capture-supported-build-metrics.mjs';
 
-// Patch selection must precede attributes and config, and mutations from one run cannot contaminate its pair.
-test('capture selects patch catalogs before recalculating independent benchmark state', () => {
-  const catalogs = Object.fromEntries(
-    ['current', 'preview'].map((id) => [
-      id,
-      {
-        skillsByName: new Map([[id, id]]),
-        skillsById: new Map([[1, id]])
-      }
-    ])
-  );
-  const source = { assumptions: { might: 25 } };
-  const rotation = { rotation: [{ skillId: 1 }] };
-  const adapter = {
-    profession: { catalogFor: (id) => catalogs[id] },
-    toApplicationBuild: (build) => build,
-    recalculate(app) {
-      assert.equal(app.activeCatalog, catalogs[app.patchId]);
-      assert.equal(app.skillById.get(1), app.patchId);
-      assert.equal(app.skillByName.get(app.patchId), app.patchId);
-      assert.equal(app.build.assumptions.might, 25);
-      app.attributeData = app.patchId === 'current' ? 100 : 200;
-      app.build.assumptions.might = 0;
-    },
-    simulationConfig: (app) => ({ patchId: app.patchId, power: app.attributeData }),
-    simulateBuild(commands, config) {
-      commands.push({ skillId: 2 });
-      return config;
-    }
-  };
-  assert.deepEqual(simulateBenchmarkPreset(adapter, source, rotation).result, { patchId: 'current', power: 100 });
-  assert.deepEqual(simulateBenchmarkPreset(adapter, source, rotation, 'preview').result, {
-    patchId: 'preview',
-    power: 200
-  });
-  assert.equal(source.assumptions.might, 25);
-  assert.deepEqual(rotation, { rotation: [{ skillId: 1 }] });
+// Each capture decodes detached build and rotation input before invoking the shared headless engine.
+test('capture leaves saved input unchanged and rejects unknown patches', async () => {
+  const { loadBuildContext } = await import('#gw2/build-context/load.js');
+  const module = await loadBuildContext('warrior');
+  const source = module.profession.createBuildDefaults();
+  const snapshot = structuredClone(source);
+  const rotation = { rotation: [] };
+  const { build, result } = simulateBenchmarkPreset(module, source, rotation);
+  assert.ok(Number.isFinite(result.dps));
+  assert.notEqual(build, source);
+  assert.deepEqual(source, snapshot);
+  assert.deepEqual(rotation, { rotation: [] });
+  assert.throws(() => simulateBenchmarkPreset(module, source, rotation, 'missing'), /Unknown patch/);
 });
 
 test('analysis modules stay inert on import and execute their CLI when launched directly', () => {

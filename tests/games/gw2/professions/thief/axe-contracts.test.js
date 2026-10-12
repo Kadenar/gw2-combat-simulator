@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -154,8 +155,20 @@ test('precast autoattack axes survive build loading and initialize a recallable 
     skillById: profession.catalog.skillsById,
     attributeWeaponSet: 1
   };
-  thiefAppAdapter.recalculate(app);
-  const config = thiefAppAdapter.simulationConfig(app);
+  app.attributeData = thiefAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  const config = thiefAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
   assert.equal(config.initialSpinningAxes, 4);
   const initial = runThief([], config);
   const core = observedRuntime(initial).profession.core;

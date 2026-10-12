@@ -1,5 +1,6 @@
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
-import { fetchJsonAsset, getRotationItems, readJsonFile } from '#gw2/app/import-export/files.js';
+import { readJsonFile } from '#gw2/app/import-export/files.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/import-export/logs/evtc-rotation-import.js';
 import {
   readDpsReportRotationData,

@@ -1,32 +1,17 @@
+import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/revenant/build/context.js';
 // Browser-facing Revenant composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../profession.ts.
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
-import { toApplicationBuild } from '#gw2/professions/revenant/build/build.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
-import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
 
 // Exposes Revenant only through the shared browser application contract.
 export const revenantAppAdapter = defineProfessionApp({
   tooltips: revenantTooltips,
-  profession: revenantProfession,
-  applyBuildAttributeRules: createProfessionBuildAttributeRules(revenantCatalog, getActiveTraits),
+  profession,
+  createBuildContext,
   toApplicationBuild,
   resetPrompt: 'Reset the Revenant build, legends, and rotation?',
-  runtime: {
-    buildConfigInputs: (app) => ({
-      initialResource: (app.build as RevenantCanonicalBuild).initialEnergy
-    }),
-    buildConfigExtras: (app) => ({
-      initialEnergy: (app.build as RevenantCanonicalBuild).initialEnergy,
-      selectedLegends: [...(app.build as RevenantCanonicalBuild).selectedLegends],
-      startingLegend: (app.build as RevenantCanonicalBuild).startingLegend
-    })
-  },
   defaultOffhand: preferOffhand('Sword')
 });

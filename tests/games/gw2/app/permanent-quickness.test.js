@@ -3,7 +3,8 @@ import test from 'node:test';
 
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { loadProfessionAppAdapter, professionRegistry } from '#gw2/profession-registry.js';
-import { createGw2SimulationConfig } from '#gw2/app/simulation/build-config.js';
+import { createBuildContext } from '#gw2/professions/guardian/build/context.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 // All application entry paths must agree before attributes or simulations consume the build.
 test('application builds enable permanent quickness and alacrity across professions and legacy assumptions', async () => {
@@ -28,11 +29,11 @@ test('application simulation config always supplies permanent quickness and alac
   const build = createDefaultBuild(adapter);
   for (const assumptions of [{}, { quickness: false, alacrity: false }, { quickness: true, alacrity: true }]) {
     build.assumptions = { ...assumptions, fury: false };
-    const config = createGw2SimulationConfig({
-      app: { build, adapter: { assumptionControls: [] }, skillById: new Map() },
-      attributeData: { attributes: {} },
-      specialization: 'Core'
-    });
+    const config = createBuildContext({
+      build,
+      patchId: 'current',
+      transitionDelays: normalizeTransitionDelays()
+    }).simulationConfig();
     assert.equal(config.boons.quickness, true);
     assert.equal(config.boons.fury, false);
     assert.equal(config.boons.alacrity, true);

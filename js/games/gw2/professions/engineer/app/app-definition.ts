@@ -1,35 +1,16 @@
+import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/engineer/build/context.js';
 // Browser-facing Engineer composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../profession.js.
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
-import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
-import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
 // Exposes Engineer only through the shared browser application contract.
 export const engineerAppAdapter = defineProfessionApp({
   tooltips: engineerTooltips,
-  profession: engineerProfession,
-  applyBuildAttributeRules: createProfessionBuildAttributeRules(engineerCatalog, getActiveTraits),
+  profession,
+  createBuildContext,
   toApplicationBuild,
-  runtime: {
-    // Map persisted Heat to the shared initial-resource runtime input.
-    buildConfigInputs: (app) => ({
-      initialResource: (app.build as EngineerCanonicalBuild).initialHeat
-    }),
-    // Supply specialization-only runtime fields without leaking inactive state into other builds.
-    buildConfigExtras: (app) => {
-      const build = app.build as EngineerCanonicalBuild;
-      return {
-        initialHeat: build.initialHeat,
-        selectedMorphSkillIds: [...build.selectedMorphSkillIds]
-      };
-    }
-  },
   defaultOffhand: preferOffhand('Pistol')
 });

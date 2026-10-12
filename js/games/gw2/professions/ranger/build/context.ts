@@ -1,0 +1,28 @@
+import type { BoundProfession } from '#gw2/build-context/types.js';
+import { bindBuildContext } from '#gw2/build-context/create.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
+export { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
+
+// Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
+export const profession: BoundProfession = withActivePatchPreview(rangerProfession);
+export const createBuildContext = bindBuildContext<RangerCanonicalBuild>(
+  profession,
+  createCalculateAttributes(
+    createProfessionBuildAttributeRules(rangerCatalog, getActiveTraits),
+    profession.attributeContributions
+  ),
+  (build) => ({
+    initialAstralForce: build.initialAstralForce,
+    initialArrows: build.initialArrows,
+    selectedPet: build.selectedPet,
+    selectedPet2: build.selectedPet2,
+    selectedHammerSkillIds: build.selectedHammerSkillIds,
+    initialUntamedState: build.initialUntamedState
+  })
+);

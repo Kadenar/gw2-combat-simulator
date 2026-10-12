@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -21,7 +22,13 @@ export interface AppLogReconstructionOptions {
 export function appLogReconstructionOptions(app: ProfessionAppState): AppLogReconstructionOptions {
   return {
     selectedSkillIds: [...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])],
-    professionConfig: app.adapter.simulationConfig(app)
+    professionConfig: app.adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId,
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig()
   };
 }
 

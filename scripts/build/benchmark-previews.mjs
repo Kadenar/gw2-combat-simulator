@@ -44,7 +44,7 @@ export async function createPreviewGenerator(root) {
           (row) => !requestedPath || benchmarkPreviewPath(row.build) === requestedPath
         );
         if (!rows.length) continue;
-        const adapter = await entry.loadAppAdapter();
+        const adapter = await entry.loadBuildContext();
         for (const row of rows) {
           const fileName = benchmarkPreviewPath(row.build);
           if (assets.has(fileName)) continue;

@@ -326,6 +326,13 @@ future-version errors.
 infusions, sigils, and base derived stats; professions pass their trait/skill deltas to `finalizeBuildAttributes()`,
 which recomputes crit chance, crit damage, boon duration, and condition duration.
 
+Canonical build calculation lives in `build-context/`, outside the application and platform layers. A profession's
+`build/context.ts` exports `createBuildContext({ build, patchId, transitionDelays, disabledModifier? })` and the bound
+profession. `attributes(1 | 2)` caches each requested set; `simulationConfig()` reuses those calculations and returns
+independent equipment seeds and configuration. Callers create a new context after changing any input. Selection uses the
+build's starting state, including Revenant's starting legend. Displayed weapon sets and previous results do not
+participate. Optimizer workers and benchmark requests use the same headless binding as the workspace.
+
 ## Included professions
 
 `js/games/gw2/profession-registry.ts` is the roster source of truth. The [profession guides](../professions/) describe

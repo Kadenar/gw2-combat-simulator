@@ -115,7 +115,11 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
       'error',
       (event) => {
         if (!this.workers.has(worker) || !this.isActive(requestId)) return;
-        this.fail(requestId, event.error ?? event.message);
+        // Browsers can omit crash details (for example, module load failures); keep the failure actionable.
+        this.fail(
+          requestId,
+          event.error ?? (event.message || 'Worker failed to load or run. Reload the page and try again.')
+        );
       },
       { once: true }
     );

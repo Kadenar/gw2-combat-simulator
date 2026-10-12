@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -31,8 +32,23 @@ test('Soulbeast spear diagnostic import loads and simulates with the requested e
     skillById: adapter.profession.catalog.skillsById,
     attributeWeaponSet: 1
   };
-  adapter.recalculate(app);
-  const result = adapter.simulateBuild(build.rotation, adapter.simulationConfig(app));
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
+  const result = adapter.simulateBuild(
+    build.rotation,
+    adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig()
+  );
   assert.ok(Number.isFinite(result.dps) && result.dps > 0);
   // The documented manual opener makes this saved replay valid; no simulator warnings are waived.
   assert.deepEqual(result.warnings, []);

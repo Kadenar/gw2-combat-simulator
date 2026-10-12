@@ -42,7 +42,9 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   });
   const adapter = defineProfessionApp({
     profession,
-    applyBuildAttributeRules: () => {},
+    createBuildContext: () => {
+      throw new Error('This eligibility fixture does not calculate builds.');
+    },
     toApplicationBuild: (build) => build,
     isSkillAvailable: () => {
       filterChecks += 1;

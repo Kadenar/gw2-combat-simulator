@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -39,7 +40,13 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
     attributeWeaponSet: 1
   };
 
-  elementalistAppAdapter.recalculate(app);
+  app.attributeData = elementalistAppAdapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
 
   return { app, commands };
 }
@@ -48,9 +55,19 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
 export function runNative(options) {
   const { app, commands } = createNativeApp(options);
 
-  return runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
-    profession: elementalistProfession
-  });
+  return runElementalist(
+    commands,
+    elementalistAppAdapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    {
+      profession: elementalistProfession
+    }
+  );
 }
 
 /** Prepared application configs run through the same native initialization and observation setup. */

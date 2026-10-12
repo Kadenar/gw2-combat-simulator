@@ -1,4 +1,4 @@
-import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
   assignOptimizerChoice,
   createOptimizerEvaluator,
@@ -9,13 +9,17 @@ import {
   type OptimizerCandidate,
   type OptimizerEquipment
 } from '#gw2/app/optimizer/gear/search.js';
-import { optimizerEquivalenceKey, scoreOptimizerRange } from '#gw2/app/optimizer/gear/search-space.js';
+import {
+  optimizerEquivalenceKey,
+  scoreOptimizerRange,
+  type OptimizerRangeProgress
+} from '#gw2/app/optimizer/gear/search-space.js';
 
 export const OPTIMIZER_SEARCH_BUDGET = 2048;
 const ROUND_SIZE = 256;
 
 /** Sample legal builds, then expand promising neighbors without ever constructing the full stat index. */
-export function createFastOptimizer(request: GearOptimizerRequest, adapter: Gw2AppAdapter) {
+export function createFastOptimizer(request: GearOptimizerRequest, adapter: OptimizerContext) {
   const ordinary = createOptimizerSpace(request, adapter);
   const evaluator = createOptimizerEvaluator(request, adapter);
   const seen = new Set<string>();
@@ -91,12 +95,20 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Gw2A
     space.count = BigInt(candidates.length);
   };
 
-  const evaluateRange = (start: bigint, end: bigint) => {
+  const evaluateRange = (start: bigint, end: bigint, onProgress?: OptimizerRangeProgress) => {
     if (start < 0n || end > space.count || end <= start) throw new RangeError('Invalid optimizer chunk.');
-    return scoreOptimizerRange(ordinary, adapter, evaluator, start, end, (ordinal) => ({
-      equipment: candidates[Number(ordinal)],
-      represented: 1n
-    }));
+    return scoreOptimizerRange(
+      ordinary,
+      adapter,
+      evaluator,
+      start,
+      end,
+      (ordinal) => ({
+        equipment: candidates[Number(ordinal)],
+        represented: 1n
+      }),
+      onProgress
+    );
   };
 
   return { space, evaluator, evaluateRange, refine };

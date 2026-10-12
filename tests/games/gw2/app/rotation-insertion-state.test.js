@@ -1,3 +1,4 @@
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -33,6 +34,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   });
   let previewCount = 0;
   const app = {
+    patchId: 'current',
     build: {
       rotation: [
         { type: 'cast', skillId: 'First' },
@@ -100,13 +102,20 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
       { type: 'wait', durationMs: 1000 }
     ];
     const app = {
+      patchId: 'current',
       adapter,
       build,
       skillByName: adapter.profession.catalog.skillsByName,
       attributeWeaponSet: 1,
       results: null
     };
-    adapter.recalculate(app);
+    app.attributeData = adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     // Publish the baseline explicitly so insertion previews can reuse its planning state.
     const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
     app.results = result;
@@ -134,13 +143,20 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     { type: 'wait', durationMs: 1000 }
   ];
   const app = {
+    patchId: 'current',
     adapter,
     build,
     skillByName: adapter.profession.catalog.skillsByName,
     attributeWeaponSet: 1,
     results: null
   };
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
   const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
   app.results = result;
@@ -150,7 +166,13 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     simulateGw2({
       profession: adapter.profession,
       rotation: build.rotation.slice(0, length),
-      config: adapter.simulationConfig(app),
+      config: adapter
+        .createBuildContext({
+          build: app.build,
+          patchId: app.patchId ?? 'current',
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+        })
+        .simulationConfig(),
       combatStartTime: result.combatStartTime
     });
   const armed = prefix(1);
@@ -175,6 +197,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
     skillId: adapter.profession.catalog.skillsByName.get(name).id
   }));
   const app = {
+    patchId: 'current',
     adapter,
     build,
     skillByName: adapter.profession.catalog.skillsByName,
@@ -182,7 +205,13 @@ test('native insertion previews project weapon set and cooldown state', async ()
     results: null
   };
 
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
   const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
   app.results = result;
@@ -197,9 +226,19 @@ test('native insertion previews project weapon set and cooldown state', async ()
   assert.equal(adapter.rotationPlanningStateAt(app, 3), result.planningState);
 
   // Reusing a tailed result would make recovered cooldowns available too early when appending.
-  app.results = adapter.simulateBuild(build.rotation, adapter.simulationConfig(app), {
-    observationPolicy: { kind: 'tail', durationMs: 20000 }
-  });
+  app.results = adapter.simulateBuild(
+    build.rotation,
+    adapter
+      .createBuildContext({
+        build: app.build,
+        patchId: app.patchId ?? 'current',
+        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+      })
+      .simulationConfig(),
+    {
+      observationPolicy: { kind: 'tail', durationMs: 20000 }
+    }
+  );
   assert.ok(app.results.planningState.atSeconds * 1000 > result.planningState.atSeconds * 1000);
   assert.deepEqual(adapter.rotationPlanningStateAt(app, 3), result.planningState);
   for (const insertionIndex of [null, build.rotation.length]) {
@@ -208,7 +247,13 @@ test('native insertion previews project weapon set and cooldown state', async ()
   }
 
   // Target death clips reporting, but appending still uses the complete planned weapon/cooldown state.
-  const config = adapter.simulationConfig(app);
+  const config = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .simulationConfig();
   app.results = adapter.simulateBuild(build.rotation, {
     ...config,
     target: { ...config.target, health: 1 }

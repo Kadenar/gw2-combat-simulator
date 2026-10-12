@@ -159,7 +159,16 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await expect(criticalDamage).toHaveAccessibleDescription('Uses individual critical rolls for each hit.');
   await page.waitForFunction(() => window.professionApp.build.assumptions.criticalDamageMode === 'rolled');
   expect(
-    await page.evaluate(() => window.professionApp.adapter.simulationConfig(window.professionApp).criticalDamageMode)
+    await page.evaluate(
+      () =>
+        window.professionApp.adapter
+          .createBuildContext({
+            build: window.professionApp.build,
+            patchId: window.professionApp.patchId ?? 'current',
+            transitionDelays: window.professionApp.simulationSettings.transitionDelays
+          })
+          .simulationConfig().criticalDamageMode
+    )
   ).toBe('rolled');
   await expect(seed).toHaveValue('1');
   await seed.fill('3576928633');

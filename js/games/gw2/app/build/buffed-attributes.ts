@@ -1,7 +1,7 @@
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
@@ -22,15 +22,15 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */
 export function calculateBuffedAttributes(
-  app: ProfessionAppState,
+  app: AttributePreviewState,
   input: Readonly<Record<string, unknown>> = {}
-): NonNullable<ProfessionAppState['attributeData']> {
+): NonNullable<AttributePreviewState['attributeData']> {
   return calculatePreview(app, input, attributeEffectControls(app));
 }
 
 /** The damage strip queries the same prepared runtime as its rows, at full player health and without a skill override. */
 export function calculateSkillDamageAttributes(
-  app: ProfessionAppState,
+  app: AttributePreviewState,
   input: Readonly<Record<string, unknown>>,
   controls: readonly PreviewControl[]
 ) {
@@ -81,7 +81,7 @@ export function calculateSkillDamageAttributes(
 }
 
 function calculatePreview(
-  app: ProfessionAppState,
+  app: AttributePreviewState,
   input: Readonly<Record<string, unknown>>,
   controls: readonly PreviewControl[]
 ) {

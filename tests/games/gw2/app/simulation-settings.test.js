@@ -6,7 +6,6 @@ import {
   SIMULATION_SETTINGS_STORAGE_KEY
 } from '#gw2/app/simulation/settings.js';
 import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
-import { createGw2SimulationConfig } from '#gw2/app/simulation/build-config.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { captureGearOptimizerRequest, createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
@@ -59,11 +58,9 @@ test('simulation config snapshots preferences without adding them to imported or
     skillById: mesmerAppAdapter.profession.catalog.skillsById,
     simulationSettings: { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) }
   };
-  const config = createGw2SimulationConfig({
-    app,
-    attributeData: { attributes: {}, activeTraits: [] },
-    specialization: 'Virtuoso'
-  });
+  const config = mesmerAppAdapter
+    .createBuildContext({ build, patchId: 'current', transitionDelays: app.simulationSettings.transitionDelays })
+    .simulationConfig();
   app.simulationSettings.transitionDelays.weaponSwapMs = 200;
   assert.equal(config.transitionDelays.weaponSwapMs, 100);
   assert.equal(JSON.stringify(build), original);
@@ -159,7 +156,13 @@ function settingsWorkspace(t, initialDelay = 0) {
     settle();
   };
 
-  adapter.recalculate(app);
+  app.attributeData = adapter
+    .createBuildContext({
+      build: app.build,
+      patchId: app.patchId ?? 'current',
+      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    })
+    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   settle();
   pin();
   const cached = app.results;

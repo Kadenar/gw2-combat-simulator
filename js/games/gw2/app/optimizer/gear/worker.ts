@@ -21,12 +21,12 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
       await import('#gw2/app/optimizer/gear/search.js');
     if (data.kind === 'init') {
       activeId = data.requestId;
-      const [{ loadProfessionAppAdapter }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
-        import('#gw2/profession-registry.js'),
+      const [{ loadOptimizerContext }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
+        import('#gw2/app/optimizer/gear/context.js'),
         import('#gw2/app/optimizer/gear/search-space.js'),
         import('#gw2/app/optimizer/gear/fast-search.js')
       ]);
-      const adapter = await loadProfessionAppAdapter(data.request.contentId);
+      const adapter = await loadOptimizerContext(data.request.contentId);
       if (!adapter) throw new TypeError('Optimizer profession is unavailable.');
       if (activeId !== data.requestId) return;
       job =
@@ -56,7 +56,20 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
       if (!Number.isSafeInteger(data.chunkId) || !/^\d+$/.test(data.start) || !/^\d+$/.test(data.end))
         throw new TypeError('Invalid optimizer chunk identity.');
       const started = performance.now();
-      const result = job.evaluateRange(BigInt(data.start), BigInt(data.end));
+      let lastProgress = started;
+      // Rejections and simulations have very different costs; keep counts moving within adaptive batches.
+      const result = job.evaluateRange(BigInt(data.start), BigInt(data.end), (completed, represented, simulations) => {
+        const now = performance.now();
+        if (now - lastProgress < 150) return;
+        lastProgress = now;
+        post({
+          kind: 'progress',
+          chunkId: data.chunkId,
+          completed: completed.toString(),
+          represented: represented.toString(),
+          simulations: simulations.toString()
+        });
+      });
       post({ kind: 'chunk', chunkId: data.chunkId, ...result, elapsedMs: performance.now() - started });
       return;
     }

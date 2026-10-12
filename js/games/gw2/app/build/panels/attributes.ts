@@ -1,3 +1,4 @@
+import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
@@ -47,7 +48,7 @@ export function readAttributePreviewValues(container: HTMLElement): AttributePre
 /** Keep preview inputs independent of saved builds, with an optional host below the editor's gear. */
 export function renderAttributeStats(
   container: HTMLElement,
-  app: ProfessionAppState,
+  app: AttributePreviewState,
   input = readAttributePreviewValues(container),
   previewContainer = container
 ): void {
