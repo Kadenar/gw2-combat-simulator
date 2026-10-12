@@ -1,9 +1,9 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { passiveAttribute } from '#gw2/platform/builds/attribute-passives.js';
 import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -344,18 +344,10 @@ const signetPassives = [
 
 /** Signet bonuses never feed conversions and apply only while ready. */
 export function signetAttributeEffects(context: Gw2AttributeContext): readonly Gw2AttributeEffect[] {
-  if (!signetPassives.some(({ id }) => hasSelectedSkillId(context, id))) return [];
-  const bonus = balanceProfileNumber(
-    requireBalanceProfileFromContext(context.balanceContext, PROFILE.signetPassives),
-    'attributeBonus'
+  // Shared passive grants expose their owning skills for contribution analysis and retain native readiness rules.
+  return signetPassives.map(({ id, label }) =>
+    passiveAttribute(context, id, PROFILE.signetPassives, label, 'attributeBonus')
   );
-  return signetPassives.map(({ id, label }) => ({
-    kind: 'flat',
-    to: label,
-    amount: bonus,
-    feedsConversions: false,
-    enabled: hasSelectedSkillId(context, id) && !context.timeline?.skillOnCooldownAt(id, context.time)
-  }));
 }
 
 /** Intrinsic active and passive attributes use live self status and selected signet recharge. */

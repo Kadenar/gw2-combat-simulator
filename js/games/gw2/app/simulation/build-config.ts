@@ -65,13 +65,15 @@ export function createGw2SimulationConfig({
     transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
     specialization,
     selectedTraitIds: selectedTraitIds as readonly SkillId[],
-    selectedSkillIds: app.adapter?.slotLoadout
+    // Removing a skill for contribution analysis also removes its intrinsic passives from every actor.
+    selectedSkillIds: (app.adapter?.slotLoadout
       ? app.adapter.slotLoadout.selectedSkillIds({
           build: app.build,
           specialization,
           professionState: app.results?.planningState?.profession
         })
-      : Object.values(app.build.selectedSkillIds).filter((id): id is SkillId => id !== null),
+      : Object.values(app.build.selectedSkillIds).filter((id): id is SkillId => id !== null)
+    ).filter((id) => disabled?.type !== 'Skill' || id !== disabled.skillId),
     primaryWeapon: app.build.weapons[0],
     secondaryWeapon: app.build.weapons[1],
     weaponSet2Primary: app.build.alternateWeapons[0],

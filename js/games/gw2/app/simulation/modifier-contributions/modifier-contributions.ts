@@ -54,7 +54,12 @@ export function calculateContributionComparisons(
   const baseline = simulateBuild(rotation, baseConfig);
   const contributions: ModifierContribution[] = [];
   for (const { modifier, config } of comparisons) {
-    const without = simulateBuild(rotation, config);
+    // Unequipped skill casts disappear with their active effects, resource rewards, and time cost.
+    const comparisonRotation =
+      modifier.type === 'Skill'
+        ? rotation.filter((command) => command.type !== 'cast' || command.skillId !== modifier.skillId)
+        : rotation;
+    const without = simulateBuild(comparisonRotation, config);
     const dpsIncrease = baseline.dps - without.dps;
     // Contributions are displayed as whole DPS. Do not retain numerical noise
     // that can only render as 0 or -0 in the report.

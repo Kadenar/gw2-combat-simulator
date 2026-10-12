@@ -1,7 +1,8 @@
 import { deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
-import type { ProfessionAppState, ProfessionRuntimeApi } from '#gw2/app/types.js';
+import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type {
@@ -102,7 +103,7 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
 /** Applies the same deterministic and target-health policy to the baseline and every removed modifier. */
 export function createModifierContributionRequest(
   app: ProfessionAppState,
-  contentId: string,
+  profession: ProfessionRuntimeOptions['profession'],
   simulationConfig: ProfessionRuntimeApi['simulationConfig']
 ): ModifierContributionRequest {
   const comparisonConfig = (disabled: ProfessionModifier | null = null): Gw2Config => {
@@ -112,6 +113,28 @@ export function createModifierContributionRequest(
   };
 
   const baseConfig = comparisonConfig();
-  const comparisons = modifierCandidates(app).map((modifier) => ({ modifier, config: comparisonConfig(modifier) }));
-  return { gameId: 'gw2', contentId, rotation: app.build.rotation, baseConfig, comparisons };
+  const candidates = modifierCandidates(app);
+  const runtime = profession.runtimeFor(baseConfig);
+  const selected = selectedSkillIdSet(baseConfig.selectedSkillIds);
+  // Discover passive owners from native attribute declarations, including currently suppressed or zero-valued grants.
+  const passiveIds = new Set(
+    (runtime.attributeContributions?.({ config: baseConfig, time: 0 }) ?? [])
+      .flatMap((contribution) => contribution.attributeEffects ?? [])
+      .flatMap((effect) => (effect.kind === 'flat' && effect.passiveSkillId != null ? [effect.passiveSkillId] : []))
+  );
+  for (const skillId of passiveIds) {
+    if (!selected.has(skillId)) continue;
+    const skill = runtime.catalog.skillsById.get(skillId);
+    if (!skill) continue;
+    candidates.push({
+      id: `Skill:${skillId}`,
+      type: 'Skill',
+      skillId,
+      name: skill.name,
+      label: skill.name
+    });
+  }
+
+  const comparisons = candidates.map((modifier) => ({ modifier, config: comparisonConfig(modifier) }));
+  return { gameId: 'gw2', contentId: profession.id, rotation: app.build.rotation, baseConfig, comparisons };
 }

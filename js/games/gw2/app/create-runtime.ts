@@ -320,7 +320,7 @@ export function createProfessionRuntime({
     eliteSpecialization,
     recalculate,
     simulationConfig,
-    modifierContributionRequest: (app) => createModifierContributionRequest(app, profession.id, simulationConfig),
+    modifierContributionRequest: (app) => createModifierContributionRequest(app, profession, simulationConfig),
     calculateModifierContributions,
     randomDistributionRequest,
     relicComparisonRequest,

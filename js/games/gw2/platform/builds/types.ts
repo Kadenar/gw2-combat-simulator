@@ -112,6 +112,8 @@ interface Gw2AttributeEffectBase {
 
 interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
   readonly kind: 'flat';
+  /** Identifies the equipped skill so contribution analysis can discover attribute-granting skills. */
+  readonly passiveSkillId?: SkillId;
   readonly to: string;
   readonly amount: number;
   /**

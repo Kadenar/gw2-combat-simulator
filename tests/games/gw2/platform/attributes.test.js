@@ -90,7 +90,7 @@ test('modifier requests apply one deterministic health policy to baseline and re
       attributeData: { activeTraits: [] }
     };
     const disabledEffects = [];
-    const request = createModifierContributionRequest(app, 'mesmer', (_app, disabled) => {
+    const request = createModifierContributionRequest(app, mesmerAppAdapter.profession, (_app, disabled) => {
       disabledEffects.push(disabled?.id ?? null);
       return sourceConfig;
     });
