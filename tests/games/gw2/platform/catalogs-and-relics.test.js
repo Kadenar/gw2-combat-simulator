@@ -10,7 +10,7 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
@@ -467,7 +467,7 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
   const context = { relic, effects: captureEffectEmissions().effects };
   const trigger = (at) =>
-    invokeRelicHook(context, 'condition', {
+    context.relic.rules.condition(context, context.relic.state, {
       type: 'condition',
       condition: 'Vulnerability',
       stacks: 1,
@@ -502,7 +502,7 @@ test('Aristocracy accepted applications preserve combat entry and historical sta
     effects: captureEffectEmissions().effects
   };
   const trigger = (at) =>
-    invokeRelicHook(context, 'condition', {
+    context.relic.rules.condition(context, context.relic.state, {
       type: 'condition',
       condition: 'Vulnerability',
       stacks: 1,
@@ -540,7 +540,7 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
   ]) {
     for (const offTarget of [false, true]) {
       const relic = createRelicRuntime('Aristocracy');
-      invokeRelicHook({ relic, effects: captureEffectEmissions().effects }, 'condition', {
+      relic.rules.condition({ relic, effects: captureEffectEmissions().effects }, relic.state, {
         type: 'condition',
         at: 1,
         source: 'Trait',
@@ -600,13 +600,13 @@ test('Brawler requires player-cast Protection or Resolution that reaches the pla
         audience
       };
       event.resolvedAudience = gw2BoonApplicationRecipients({ allies: { count: 1 } }, event);
-      invokeRelicHook(context, 'boon', event);
+      context.relic.rules.boon(context, context.relic.state, event);
       assert.equal(relicStrikeMultiplier(context, { at: 1.5, actorType: 'player' }), activates ? 1.1 : 1, label);
       assert.deepEqual(context.relic.state, activates ? { readyAt: 9 } : { readyAt: 0 }, label);
 
       // A rejected application must leave the next qualifying self application ready to activate.
       if (!activates) {
-        invokeRelicHook(context, 'boon', {
+        context.relic.rules.boon(context, context.relic.state, {
           ...event,
           at: 2,
           actorType: 'player',

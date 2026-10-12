@@ -1,3 +1,4 @@
+import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
 import {
@@ -39,7 +40,6 @@ import {
   type ParsedEvtc
 } from '#gw2/integrations/logs/evtc/types.js';
 import {
-  actionKind,
   findNamedRotationSkill,
   findRotationSkill,
   recordedActionSkill,
@@ -362,23 +362,14 @@ function reconstructWithProfile(
 
   const origin = Math.min(resolved[0].start, combatStart == null ? Number.POSITIVE_INFINITY : combatStart);
   const actions: EvtcRotationAction[] = resolved.map((action) => ({
-    timestampMs: action.start - origin,
-    endTimestampMs: action.end - origin,
-    durationMs: action.end - action.start,
-    expectedDurationMs: action.expectedDurationMs ?? null,
-    rawSkillId: action.rawSkillId,
-    skillId: action.skillId,
-    name: action.name,
-    kind: actionKind(action.skill, action.name),
+    ...rotationActionSummary(action, origin),
     evidence: action.evidence,
     metadataAccurate: action.metadataAccurate,
     eiRule: action.eiRule,
     castOrigin: action.castOrigin,
-    status: action.status,
     ...(action.weaponSet === undefined ? {} : { weaponSet: action.weaponSet }),
     ...(action.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: action.doubleEdgeOutcome }),
-    ...(action.vindicatorDodgeAuto ? { vindicatorDodgeAuto: true } : {}),
-    supportedByCatalog: action.skill != null
+    ...(action.vindicatorDodgeAuto ? { vindicatorDodgeAuto: true } : {})
   }));
   return {
     parserId: `${profile.professionId}:${profile.specializationId}`,

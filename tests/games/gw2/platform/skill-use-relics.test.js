@@ -3,7 +3,6 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -78,7 +77,7 @@ test('Deadeye relic follows player cantrip completions independently of professi
 
   const ctx = observedRuntime(result);
   const until = ctx.buffs.get('relic-deadeye').at(-1).expiresAt;
-  invokeRelicHook(ctx, 'completed', { type: 'action', at: 100, skillId: 940012, actorType: 'summon' });
+  ctx.relic.rules.completed(ctx, ctx.relic.state, { type: 'action', at: 100, skillId: 940012, actorType: 'summon' });
   assert.equal(ctx.buffs.get('relic-deadeye').at(-1).expiresAt, until);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'summon' }), 1);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'effect', ownerActorType: 'player' }), 1.1);
@@ -277,7 +276,7 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
     );
     // A summon completion cannot claim a player relic even once its cooldown is ready.
     const readyAt = ctx.relic.state.readyAt;
-    invokeRelicHook(ctx, 'completed', { type: 'action', at: 100, skillType, actorType: 'summon' });
+    ctx.relic.rules.completed(ctx, ctx.relic.state, { type: 'action', at: 100, skillType, actorType: 'summon' });
     assert.equal(ctx.relic.state.readyAt, readyAt);
 
     assert.deepEqual(

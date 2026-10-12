@@ -360,7 +360,11 @@ export function createGw2CombatQuery({
     ) as unknown as Gw2ResolvedStats;
     // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
     // into the sampled attribute so every downstream condition tick scales with it.
-    const relicConditionDamage = relicConditionDamageBonus(runtime?.relic ? runtime : historicalRelicContext, time);
+    // Query runtimes supply live relic state; the combat query owns the configuration that attribute rules require.
+    const relicConditionDamage = relicConditionDamageBonus(
+      runtime?.relic ? { config, relic: runtime.relic } : historicalRelicContext,
+      time
+    );
     let stats =
       relicConditionDamage > 0
         ? { ...modifiedStats, conditionDamage: modifiedStats.conditionDamage + relicConditionDamage }

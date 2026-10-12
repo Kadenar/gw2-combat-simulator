@@ -1,3 +1,4 @@
+import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
 import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
@@ -347,16 +348,7 @@ export function reconstructDpsReportWithProfile(
   const combatStart = phase.start;
   const origin = Math.min(resolved[0].start, combatStart);
   const actions: DpsReportRotationAction[] = resolved.map((action) => ({
-    timestampMs: action.start - origin,
-    endTimestampMs: action.end - origin,
-    durationMs: action.end - action.start,
-    expectedDurationMs: action.expectedDurationMs ?? null,
-    rawSkillId: action.rawSkillId,
-    skillId: action.skillId,
-    name: action.name,
-    kind: actionKind(action.skill, action.name),
-    status: action.status,
-    supportedByCatalog: action.skill != null,
+    ...rotationActionSummary(action, origin),
     metadataAccurate: action.metadataAccurate,
 
     ...(action.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: action.doubleEdgeOutcome })

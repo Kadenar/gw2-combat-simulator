@@ -1,5 +1,7 @@
 import path from 'node:path';
-import { fetchProfessionSnapshot, writeProfessionSnapshot } from './lib/gw2-profession-snapshot.mjs';
+import { fetchProfessionSnapshot, serializeProfessionSnapshot } from './lib/gw2-profession-snapshot.mjs';
+
+import { writeGeneratedFiles } from './lib/generator-utils.mjs';
 
 const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
 const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
@@ -46,9 +48,15 @@ export function parseProfession(args) {
   return normalizeProfessionName(value);
 }
 
-export async function updateProfessionApiData(
+// Fetch and serialize metadata before any dependent generator is allowed to publish files.
+export async function prepareProfessionApiData(
   professionName,
-  { fetchImpl = fetch, snapshotDate, snapshotConfig, output: requestedOutput, log = console.log } = {}
+  {
+    fetchImpl = fetch,
+    snapshotDate = new Date().toISOString().slice(0, 10),
+    snapshotConfig,
+    output: requestedOutput
+  } = {}
 ) {
   const normalizedProfession = normalizeProfessionName(professionName);
   const omittedSkillIds = SIMULATOR_OMITTED_SKILL_IDS[normalizedProfession] || [];
@@ -95,23 +103,39 @@ export async function updateProfessionApiData(
     }
   }
 
-  await writeProfessionSnapshot({
-    output,
+  const source = serializeProfessionSnapshot({
     professionName: normalizedProfession,
     snapshotDate,
     ...snapshot
   });
-  const traitCount = snapshot.specializations.reduce(
-    (sum, specialization) => sum + specialization.minorTraits.length + specialization.majorTraits.flat().length,
-    0
-  );
+  return {
+    output,
+    ...snapshot,
+    files: [
+      {
+        target: output,
+        source,
+        summary: `${snapshot.skills.length} skills and ${snapshot.specializations.length} specializations`
+      }
+    ]
+  };
+}
 
-  log(
-    `Wrote ${snapshot.skills.length} skills, ${traitCount} traits, ` +
-      `${snapshot.specializations.length} specializations to ${output}.`
-  );
+/**
+ * Run one refresh as a single publication: the snapshot and every output derived from it are prepared and validated
+ * in memory, so a failure in any stage leaves all previously published files untouched.
+ */
+export async function publishProfessionData(prepare, generate, { log } = {}) {
+  const snapshot = await prepare();
+  const generated = generate ? await generate(snapshot) : { files: [] };
 
-  return { output, ...snapshot };
+  await writeGeneratedFiles([...snapshot.files, ...generated.files], { log });
+  return snapshot;
+}
+
+/** Publish a metadata-only refresh when no dependent artifacts are requested. */
+export async function updateProfessionApiData(professionName, options = {}) {
+  return publishProfessionData(() => prepareProfessionApiData(professionName, options), null, options);
 }
 
 export async function main(args = process.argv.slice(2)) {

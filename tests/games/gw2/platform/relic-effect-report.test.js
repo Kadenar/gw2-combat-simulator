@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -30,9 +29,9 @@ for (const [relic, name, hook, skill, extra] of [
       endTime: 12,
       helpers: { skillsById: new Map([[991001, skill]]) },
       engineInitialize(runtime) {
-        invokeRelicHook(
+        runtime.relic.rules[hook](
           runtime,
-          hook,
+          runtime.relic.state,
           {
             type: 'damage',
             at: 0,

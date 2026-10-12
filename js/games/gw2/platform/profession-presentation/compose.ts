@@ -94,16 +94,16 @@ function normalizedCoreUiContext(context: unknown): object {
 
 function deduplicateUiEntries(values: readonly unknown[], callbackName: string): unknown[] {
   const keys = new Set<string>();
+  // Assumptions and preview inputs share key-based identity; conflicting owners must fail before values are saved.
+  const field = callbackName === 'previewControls' || callbackName === 'assumptionControls' ? 'key' : 'id';
   // Validate identity without filtering: every entry survives unless a duplicate is rejected.
   for (const [index, value] of values.entries()) {
     if (!value || typeof value !== 'object') continue;
     const candidate = value as { readonly id?: unknown; readonly key?: unknown };
-    // Preview inputs are persisted within the panel by key; duplicate owners would silently overwrite a value.
-    const identity = callbackName === 'previewControls' ? candidate.key : candidate.id;
+    const identity = candidate[field];
     const key = identity == null ? '' : String(identity);
     if (!key) continue;
     if (keys.has(key)) {
-      const field = callbackName === 'previewControls' ? 'key' : 'id';
       throw new TypeError(`ui.${callbackName} returned duplicate ${field} ${key} at index ${index}.`);
     }
 

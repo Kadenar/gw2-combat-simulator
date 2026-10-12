@@ -2,6 +2,24 @@ import { SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
+/** Selects the eventual damage payload; live callers still own eligibility, cooldowns, and next-hit arming. */
+export function createSigilDamagePayload(
+  id: number,
+  proc: Gw2SigilProc,
+  sourceSkill: string
+): readonly SimulationEventBase[] {
+  const events: SimulationEventBase[] = [];
+  if (proc.effect === 'strike' || proc.effect === 'strike-condition')
+    events.push(createSigilStrikeEvent(id, proc, sourceSkill));
+  if (
+    proc.effect === 'condition' ||
+    proc.effect === 'next-hit-condition' ||
+    (proc.effect === 'strike-condition' && proc.condition)
+  )
+    events.push(createSigilConditionEvent(id, proc, sourceSkill));
+  return events;
+}
+
 /** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */
 export function createCriticalSigilEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   if (proc.effect === 'strike') return createSigilStrikeEvent(id, proc, sourceSkill);

@@ -64,6 +64,13 @@ export interface Gw2ConditionHelpers {
   activeConditionStackCount(context: Gw2RelicContext, condition: string, at: number): number;
 }
 
+/** Pure relic queries expose only their required observations, never emission capabilities. */
+export type Gw2RelicStrikeQueryContext = Readonly<
+  Pick<Gw2RelicContext, 'config' | 'totals' | 'buffs' | 'helpers' | 'precastRelics' | 'relic'>
+>;
+export type Gw2RelicDurationQueryContext = Pick<Gw2RelicContext, 'buffs' | 'relic'>;
+export type Gw2RelicAttributeQueryContext = Pick<Gw2RelicContext, 'config' | 'relic'>;
+
 export interface Gw2RelicRule {
   readonly buffPolicies?: readonly BuffStatePolicy[];
   /** The same per-occurrence payload is called after combat eligibility or directly by the damage calculator. */
@@ -99,7 +106,11 @@ export interface Gw2RelicRule {
   readonly passiveTimeline?: (context: Gw2RelicContext, state: Gw2RelicState, end: number) => unknown;
   readonly boon?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly combo?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
-  readonly strikeMultiplier?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => number;
+  readonly strikeMultiplier?: (
+    context: Gw2RelicStrikeQueryContext,
+    state: Gw2RelicState,
+    event: SimulationEvent
+  ) => number;
   readonly outgoingDamageBonus?: (
     context: Gw2RelicRuntimeContext,
     state: Gw2RelicState,
@@ -119,8 +130,8 @@ export interface Gw2RelicRule {
     event: SimulationEvent,
     skill: Skill | null | undefined
   ) => unknown;
-  readonly conditionDurationBonus?: (context: Gw2RelicContext, state: Gw2RelicState, at: number) => number;
-  readonly conditionDamageBonus?: (context: Gw2RelicContext, state: Gw2RelicState, at: number) => number;
+  readonly conditionDurationBonus?: (context: Gw2RelicDurationQueryContext, state: Gw2RelicState, at: number) => number;
+  readonly conditionDamageBonus?: (context: Gw2RelicAttributeQueryContext, state: Gw2RelicState, at: number) => number;
   readonly condition?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,

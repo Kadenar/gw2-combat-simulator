@@ -13,11 +13,31 @@ Use the npm commands in the root `package.json` for routine workflows.
 Tests and headless scripts use package aliases to load compiled `dist/js` modules directly in Node. Build the modules
 before running them; no custom loader is required.
 
+Profession data refreshes run directly from source with the supported Node version. Use
+`npm run update:profession-data -- --profession <name>` to refresh metadata and dependent generated outputs together.
+Engineer, Revenant, and Ranger load their own supplemental records when selected. Ranger fetches one pet list and the
+pet skills the API serves, with wiki metadata fetched concurrently; pet skills the API rejects are authored in the
+generator and never requested. Its pet output consumes the ID generator's key map. Each complete refresh prepares,
+validates, and formats every output before writing, so API, generation, or formatting failures leave the previous files
+intact. Successful publication reports counts and target paths. Filesystem write failures are reported to the caller;
+publication is not a multi-file filesystem transaction.
+
+Committed `ids.ts` bindings load as TypeScript source and anchor key ownership across API reordering and name changes,
+including blank names. Missing expected exports fail explicitly. New same-name records allocate keys by numeric ID,
+independently of input order. Ranger's authored player and pet key names live in the generator source. Authored fixed
+identities keep supported synthetic actions, procs, and variants that the API omits. Unexpected missing bindings,
+retargeted keys, and collisions fail with the affected map name before publication. An intentional identity removal
+requires updating its consumers and committed declaration together. `npm run generate:engineer-ids` and
+`npm run generate:revenant-ids` regenerate only IDs from committed source metadata and need no compilation step.
+
 ## Validation
 
 Use focused Node tests for engine, profession, and data changes. Run `npm run build:modules` first, then
 `node --test <test-files>`. `npm run check` runs formatting, lint, build, Node tests, type checking, and artifact checks
-without launching browsers.
+without launching browsers. Generator tests
+(`node --test tests/scripts/generator*.test.mjs tests/scripts/generated-identity-preservation.test.mjs tests/scripts/profession-data-refresh.test.mjs`)
+load source fixtures and prepared TypeScript directly, so they require no build and cannot resolve IDs through stale
+`dist` output.
 
 For browser behavior changes, select the affected files with `npm run test:browser -- tests/browser/<name>.spec.js`.
 Browser tests should protect interactions, focus, layout, and browser integration; numerical and profession matrices

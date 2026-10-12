@@ -1,7 +1,8 @@
-import { updateProfessionApiData } from './update-profession-api-data.mjs';
+import { prepareProfessionApiData, publishProfessionData } from './update-profession-api-data.mjs';
 
-export async function updateWarriorApiData(options = {}) {
-  const result = await updateProfessionApiData('Warrior', {
+// Keep Warrior snapshot repairs shared by metadata-only and complete refreshes.
+export async function prepareWarriorApiData(options = {}) {
+  const result = await prepareProfessionApiData('Warrior', {
     ...options,
     snapshotConfig: {
       excludedIds: [62857],
@@ -16,6 +17,11 @@ export async function updateWarriorApiData(options = {}) {
   });
 
   return result;
+}
+
+/** Publish the independently requested metadata-only Warrior refresh. */
+export async function updateWarriorApiData(options = {}) {
+  return publishProfessionData(() => prepareWarriorApiData(options), null, options);
 }
 
 // Refresh only when invoked as a CLI so importing the snapshot API never fetches or writes data.

@@ -1,8 +1,7 @@
-import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { constantName, mapConcurrent } from './lib/generator-utils.mjs';
-import { fetchGw2Api, fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
+import { mapConcurrent } from './lib/generator-utils.mjs';
+import { fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
 
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
 
@@ -38,27 +37,38 @@ const SOULBEAST_FAMILY_SKILL_IDS = Object.freeze({
   'river otter': [80035, 80031]
 });
 
+// Natural attacks shared by every pet of a family; the API lists only each pet's commanded Beast skill.
 const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
-  devourer: [12676, 12673],
-  feline: [12655, 12694, 12657],
+  devourer: [12676],
   'fanged iboga': [43734, 41864, 45262],
   spider: [12724]
 });
-// Modeled pets retain family membership while receiving their specific AI and merged overrides.
+// Modeled pets retain family membership while receiving their specific AI and merged overrides. A pet listed here
+// replaces its family list, so only pets whose natural attacks were measured in logs gain autonomous skills.
 const SIMULATED_PET_SKILL_IDS = Object.freeze({
+  // Wallow uses its own AI skills while retaining the Porcine family for traits.
   Wallow: [64891, 67277, 67084],
+  // Hawk exposes its bird AI separately from the commanded Beast skill.
   Hawk: [12682, 12719, 12720],
   Boar: [12735, 12734, 12738],
   'Aether Hunter': [69822, 70950, 70332],
-  'Raptor Swiftwing': [78335, 78204, 77805]
+  'Raptor Swiftwing': [78335, 78204, 77805],
+  // Other felines keep only their Beast skill until their natural attacks are measured.
+  Tiger: [12655, 12694, 12657],
+  'Carrion Devourer': [12676, 12673],
+  // Jacaranda's AI skills are separate identities from the Soulbeast merge skills of the same name.
+  Jacaranda: [45990, 40487, 41710]
 });
 const SOULBEAST_PET_SKILL_IDS = Object.freeze({ Wallow: [41406, 64882] });
 const AUTONOMOUS_PET_SKILL_IDS = new Set([
   // These API-omitted natural attacks become explicit commands on Untamed.
   12735, 12734, 12738, 69822, 70950, 70332, 78335, 78204, 77805, 12655, 12657, 12676, 12673, 12694, 12703, 43734, 41864,
-  41156, 64891, 67277, 67084, 12682, 12719, 12720
+  41156, 64891, 67277, 67084, 12682, 12719, 12720, 45990, 40487, 41710
 ]);
-// API-omitted pet skills reuse their verified Soulbeast CDN artwork where available.
+// Spit is a family attack rather than a Beast command, but the pet AI does not cast it in the simulation.
+const FAMILY_ONLY_PET_SKILL_IDS = new Set([12724]);
+// API-omitted pet skills reuse their verified Soulbeast CDN artwork where available. Every record here is authored in
+// full because /v2/skills rejects its ID; recharges are the natural-attack intervals measured in unquickened pet logs.
 const SIMULATED_SKILL_FALLBACKS = new Map([
   [
     12735,
@@ -302,50 +312,53 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       recharge: 15,
       petNames: ['Fanged Iboga']
     }
-  ]
-]);
-const SIMULATED_SKILL_OVERRIDES = new Map([
-  // Preserve combat-log recharge corrections when upstream pet metadata differs.
+  ],
+  [
+    45990,
+    {
+      id: 45990,
+      name: 'Root Slap',
+      description: 'Strike your target with roots.',
+      icon: 'https://wiki.guildwars2.com/images/7/7d/Root_Slap.png',
+      recharge: 0,
+      petNames: ['Jacaranda']
+    }
+  ],
   [
     40487,
     {
+      id: 40487,
+      name: 'Call Lightning',
+      description: 'Call lightning to a small area.',
+      // Jacaranda's shared skill artwork stays on ArenaNet's CDN.
+      icon: 'https://render.guildwars2.com/file/731C0827CBB7E4015F3C45B4C49C58B42416BFA8/1770576.png',
       recharge: 15,
-      // Keep Jacaranda's shared skill artwork on ArenaNet's CDN during data refreshes.
-      icon: 'https://render.guildwars2.com/file/731C0827CBB7E4015F3C45B4C49C58B42416BFA8/1770576.png'
+      petNames: ['Jacaranda']
     }
   ],
+  [
+    41710,
+    {
+      id: 41710,
+      name: 'Photosynthesize',
+      description: 'Restore health, gain regeneration, and remove conditions.',
+      icon: 'https://render.guildwars2.com/file/976A0CC4EA0F36C8A4A705FDE22F03D65CD050D1/1770577.png',
+      // The autonomous pet owns this recharge; the merged Soulbeast skill has a separate identity.
+      recharge: 20,
+      petNames: ['Jacaranda']
+    }
+  ]
+]);
+// Authored corrections layered over records the API does return.
+const SIMULATED_SKILL_OVERRIDES = new Map([
   [
     12676,
     {
       icon: 'https://render.guildwars2.com/file/9D3C1CD36EAFF4F4F5E4EB7B41C318771E579C78/103583.png'
     }
   ],
-  [12724, { icon: 'https://render.guildwars2.com/file/B7A1AB65571565525A5C35DBCBEF0326DF65C3FA/104050.png' }],
-  ...SIMULATED_SKILL_FALLBACKS
+  [12724, { icon: 'https://render.guildwars2.com/file/B7A1AB65571565525A5C35DBCBEF0326DF65C3FA/104050.png' }]
 ]);
-const SIMULATED_SKILL_KEY_OVERRIDES = new Map([
-  [12735, 'PORCINE_JAB'],
-  [12734, 'PORCINE_MAUL'],
-  [12738, 'PORCINE_BRUTAL_CHARGE'],
-  [69822, 'AETHER_HUNTER_BITE'],
-  [70950, 'AETHER_HUNTER_LUNGE'],
-  [70332, 'AETHER_HUNTER_LEY_LINE_VORTEX'],
-  [78335, 'RAPTOR_SWIFTWING_CLAW'],
-  [78204, 'RAPTOR_SWIFTWING_SAURIAN_MIGHT'],
-  [77805, 'RAPTOR_SWIFTWING_LEAPING_LIZARD'],
-  [12682, 'BIRD_SLASH'],
-  [12719, 'BIRD_SWOOP'],
-  [12720, 'QUICKENING_SCREECH_PET'],
-  [67277, 'WALLOW_MAUL'],
-  [67084, 'UNDEAD_PLAGUE_PET'],
-  [12655, 'FELINE_SLASH'],
-  [12657, 'FELINE_MAUL'],
-  [12673, 'PET_TAIL_LASH'],
-  [12694, 'FELINE_BITE'],
-  [41864, 'CRIPPLING_ANGUISH_PET'],
-  [45262, 'NARCOTIC_SPORES_PET']
-]);
-
 const SOULBEAST_PET_FAMILY_OVERRIDES = Object.freeze({
   'Aether Hunter': 'aether hunter',
   'Armor Fish': 'armor fish',
@@ -394,59 +407,77 @@ async function fetchWikiPetMetadata(pet) {
   };
 }
 
-// Generates pet records against the same fetched skill snapshot used by the
-// rest of the Ranger refresh, avoiding an import of uncompiled TypeScript.
-export async function generateRangerPetData({ skills: apiSkills }) {
-  const usedNames = new Set();
-  const keyById = new Map();
+/** List one pet's natural attacks ahead of the commanded skills the API reports for it. */
+function petSkillIds(pet, name, family) {
+  return [
+    ...(SIMULATED_PET_SKILL_IDS[name] || SIMULATED_FAMILY_SKILL_IDS[family] || []),
+    ...pet.skills.map((skill) => skill.id)
+  ];
+}
 
-  function keyFor(skill) {
-    const override = SIMULATED_SKILL_KEY_OVERRIDES.get(Number(skill.id));
-    const base = override || constantName(skill.name);
-    const key = usedNames.has(base) ? `${base}_ID_${skill.id}` : base;
-
-    usedNames.add(base);
-    keyById.set(skill.id, key);
-
-    return key;
-  }
-
-  for (const skill of apiSkills) keyFor(skill);
-
-  const petIds = await fetchGw2Api('/pets');
-  // White Moa and its Icy Screech are unsupported; omit the pet before collecting its skills.
-  const pets = (await fetchManyGw2('pets', petIds, { preserveIdOrder: true })).filter((pet) => pet.id !== 14);
-  const wikiMetadata = await mapConcurrent(pets, 8, fetchWikiPetMetadata);
-  const petSkillIds = [
+/** Fetch the superset of commanded and autonomous pet skills once for both Ranger outputs. */
+export async function fetchRangerPetSkills(pets) {
+  const ids = [
     ...new Set([
       ...pets.flatMap((pet) => pet.skills.map((skill) => skill.id)),
       ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat(),
       ...Object.values(SIMULATED_PET_SKILL_IDS).flat()
     ])
   ];
-  const fetchedSkills = await fetchManyGw2('skills', petSkillIds, { preserveIdOrder: true });
+  // Authored records never reach the API: it rejects their IDs, and a batch made only of rejected IDs fails outright.
+  const fetchedSkills = await fetchManyGw2(
+    'skills',
+    ids.filter((id) => !SIMULATED_SKILL_FALLBACKS.has(id)),
+    { preserveIdOrder: true }
+  );
   const fetchedSkillById = new Map(fetchedSkills.map((skill) => [skill.id, skill]));
-  const skills = petSkillIds
-    .map((id) => {
-      const skill = fetchedSkillById.get(id) || SIMULATED_SKILL_FALLBACKS.get(id);
-      const override = SIMULATED_SKILL_OVERRIDES.get(id);
+  const missing = [];
+  const skills = ids.map((id) => {
+    const authored = SIMULATED_SKILL_FALLBACKS.get(id);
+    const fetched = fetchedSkillById.get(id);
 
-      return skill ? { ...skill, ...override } : null;
-    })
-    .filter(Boolean);
+    if (!authored && !fetched) missing.push(id);
+    return authored ?? { ...fetched, ...SIMULATED_SKILL_OVERRIDES.get(id) };
+  });
 
-  for (const skill of skills) keyFor(skill);
+  if (missing.length) throw new Error(`Missing Ranger pet skill records: ${missing.join(', ')}`);
+  return skills;
+}
 
+/** Fetch wiki classifications independently from skill records while preserving pet order. */
+export async function fetchRangerPetMetadata(pets) {
+  return mapConcurrent(pets, 8, fetchWikiPetMetadata);
+}
+
+/** Render pet references exclusively from the validated ID map produced by generateRangerIds. */
+export async function generateRangerPetData({ pets, skills, keyById, wikiMetadata }) {
+  const keyFor = (id) => {
+    const key = keyById.get(id);
+    if (!key) throw new Error(`Ranger pet data references missing skill ID ${id}`);
+    return key;
+  };
+
+  const petProfiles = pets.map((pet, index) => {
+    const name = pet.name.replace(/^Juvenile\s+/, '');
+    const metadata = wikiMetadata[index];
+    const family = String(SOULBEAST_PET_FAMILY_OVERRIDES[name] || metadata.family).toLowerCase();
+
+    return {
+      pet,
+      name,
+      family,
+      archetypeKey: metadata.archetype.toLowerCase(),
+      skillIds: petSkillIds(pet, name, family)
+    };
+  });
   const skillLines = skills.map((skill) => {
     const recharge = skill.recharge || skill.facts?.find((fact) => fact.type === 'Recharge')?.value || 0;
+    // Family attacks belong to every pet that receives them, not only pets whose API record lists the skill.
     const petNames =
-      skill.petNames ||
-      pets
-        .filter((pet) => pet.skills.some((candidate) => candidate.id === skill.id))
-        .map((pet) => pet.name.replace(/^Juvenile\s+/, ''));
+      skill.petNames || petProfiles.filter(({ skillIds }) => skillIds.includes(skill.id)).map(({ name }) => name);
 
     return `  {
-    id: ID.${keyById.get(skill.id)},
+    id: ID.${keyFor(skill.id)},
     name: ${JSON.stringify(skill.name)},
     description: ${JSON.stringify(skill.description || '')},
     icon: ${JSON.stringify(skill.icon || '')},
@@ -456,17 +487,15 @@ export async function generateRangerPetData({ skills: apiSkills }) {
     specialization: "",
     cooldown: ${Number(recharge)},
     petSkill: true,
-    petFamilySkill: ${AUTONOMOUS_PET_SKILL_IDS.has(skill.id)},
+    petFamilySkill: ${AUTONOMOUS_PET_SKILL_IDS.has(skill.id) || FAMILY_ONLY_PET_SKILL_IDS.has(skill.id)},
     petAutonomousSkill: ${AUTONOMOUS_PET_SKILL_IDS.has(skill.id)},
     petNames: ${JSON.stringify(petNames)},
   },`;
   });
-  const petLines = pets.map((pet, index) => {
-    const name = pet.name.replace(/^Juvenile\s+/, '');
-    const metadata = wikiMetadata[index];
-    const family = String(SOULBEAST_PET_FAMILY_OVERRIDES[name] || metadata.family).toLowerCase();
-    const archetypeKey = metadata.archetype.toLowerCase();
+  const petLines = petProfiles.map(({ pet, name, family, archetypeKey, skillIds }) => {
     const archetype = archetypeKey ? `${archetypeKey[0].toUpperCase()}${archetypeKey.slice(1)}` : '';
+    // A merge skill the profession snapshot does not expose yet is dropped with the warning below instead of
+    // aborting the refresh; every reference that is emitted still resolves through the validated ID map.
     const beastmodeSkillIds = [
       ...(SOULBEAST_PET_SKILL_IDS[name] || SOULBEAST_FAMILY_SKILL_IDS[family] || []),
       SOULBEAST_ARCHETYPE_SKILL_IDS[archetypeKey]
@@ -483,20 +512,15 @@ export async function generateRangerPetData({ skills: apiSkills }) {
     description: ${JSON.stringify(pet.description || '')},
     family: ${JSON.stringify(family)},
     archetype: ${JSON.stringify(archetype)},
-    skillIds: [${[
-      ...(SIMULATED_PET_SKILL_IDS[name] || SIMULATED_FAMILY_SKILL_IDS[family] || []),
-      ...pet.skills.map((skill) => skill.id)
-    ]
-      .map((id) => `ID.${keyById.get(id)}`)
-      .join(', ')}],
-    beastmodeSkillIds: [${beastmodeSkillIds.map((id) => `ID.${keyById.get(id)}`).join(', ')}],
+    skillIds: [${skillIds.map((id) => `ID.${keyFor(id)}`).join(', ')}],
+    beastmodeSkillIds: [${beastmodeSkillIds.map((id) => `ID.${keyFor(id)}`).join(', ')}],
   },`;
   });
 
   const source = `// Generated by scripts/data/generate-ranger-pet-data.mjs.
 // Pet identities are absent from the profession skill endpoint and are committed here.
-import { RANGER_SKILL_IDS as ID } from "./ids.js";
-import type { RangerPetDefinition, RangerSkill } from "../types.js";
+import { RANGER_SKILL_IDS as ID } from "#gw2/professions/ranger/data/ids.js";
+import type { RangerPetDefinition, RangerSkill } from "#gw2/professions/ranger/types.js";
 
 export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
 ${skillLines.join('\n')}
@@ -511,6 +535,5 @@ ${petLines.join('\n')}
     new URL('../../js/games/gw2/professions/ranger/data/ranger-pet-data.ts', import.meta.url)
   );
 
-  await writeFile(target, source, 'utf8');
-  console.log(`Wrote ${skills.length} Ranger pet skills and ${pets.length} pets.`);
+  return { files: [{ target, source, summary: `${skills.length} pet skills and ${pets.length} pets` }] };
 }

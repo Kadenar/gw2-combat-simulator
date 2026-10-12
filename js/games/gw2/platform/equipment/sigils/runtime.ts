@@ -1,7 +1,7 @@
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIGIL_IDS, SIGIL_PROCS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
-import { createSigilConditionEvent, createSigilStrikeEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createSigilConditionEvent, createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-events.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SigilProc, Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
@@ -82,17 +82,11 @@ export function applyRuntimeSigils(
       continue;
     }
 
-    if (proc.effect === 'strike' || proc.effect === 'strike-condition')
+    for (const payload of createSigilDamagePayload(id, proc, sourceSkill))
       runtime.effects.emit({
         kind: 'packet',
         cause: event,
-        event: { ...createSigilStrikeEvent(id, proc, sourceSkill), at: event.at }
-      });
-    if (proc.effect === 'condition' || (proc.effect === 'strike-condition' && proc.condition))
-      runtime.effects.emit({
-        kind: 'packet',
-        cause: event,
-        event: { ...createSigilConditionEvent(id, proc, sourceSkill), at: event.at }
+        event: { ...payload, at: event.at }
       });
     if (proc.effect === 'endurance') runtime.endurance.grant(proc.amount ?? 0);
     if (proc.effect === 'severance')

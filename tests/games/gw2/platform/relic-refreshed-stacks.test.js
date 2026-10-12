@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 
 // Isolate the real relic hooks so refresh and transition contracts need no saved rotation.
@@ -12,13 +12,13 @@ function fixture(name, config = {}) {
 // A grant one canonical microsecond in the future cannot affect stats or leak into a completed report.
 test('Thorns and Nourys respect exact grant and reporting boundaries', () => {
   const context = fixture('Thorns');
-  assert.equal(invokeRelicHook(context, 'conditionDamageBonus', 2.999999), 0);
-  assert.equal(invokeRelicHook(context, 'conditionDamageBonus', 3), 30);
+  assert.equal(context.relic.rules.conditionDamageBonus(context, context.relic.state, 2.999999), 0);
+  assert.equal(context.relic.rules.conditionDamageBonus(context, context.relic.state, 3), 30);
   for (const name of ['Thorns', 'Nourys']) {
     const before = fixture(name);
-    invokeRelicHook(before, 'passiveTimeline', 2.999999);
+    before.relic.rules.passiveTimeline(before, before.relic.state, 2.999999);
     assert.deepEqual(before.announcements, []);
-    invokeRelicHook(before, 'passiveTimeline', 3);
+    before.relic.rules.passiveTimeline(before, before.relic.state, 3);
     assert.equal(before.announcements.length, 1);
   }
 });
@@ -27,7 +27,7 @@ test('Thief relic refreshes all stacks at cap and rejects hits outside its weapo
   const context = fixture('Thief');
   const skill = { type: 'Weapon', cooldown: 5 };
   const hit = (at, actorType = 'player', weapon = skill) =>
-    invokeRelicHook(context, 'afterHit', { at, actorType, skillName: 'Fixture weapon' }, weapon);
+    context.relic.rules.afterHit(context, context.relic.state, { at, actorType, skillName: 'Fixture weapon' }, weapon);
   for (const at of [0, 1, 2, 3, 4, 5.001]) hit(at);
   const buff = context.relic.state.refreshedStacks;
   assert.deepEqual(buff, { stacks: 5, expiresAt: 11.04 });
@@ -35,8 +35,8 @@ test('Thief relic refreshes all stacks at cap and rejects hits outside its weapo
   hit(6, 'player', { type: 'Utility', cooldown: 5 });
   hit(6, 'player', { type: 'Weapon', cooldown: 0 });
   assert.deepEqual(context.relic.state.refreshedStacks, buff);
-  assert.equal(invokeRelicHook(context, 'strikeMultiplier', { at: 11.039 }), 1.05);
-  assert.equal(invokeRelicHook(context, 'strikeMultiplier', { at: 11.04 }), 1);
+  assert.equal(context.relic.rules.strikeMultiplier(context, context.relic.state, { at: 11.039 }), 1.05);
+  assert.equal(context.relic.rules.strikeMultiplier(context, context.relic.state, { at: 11.04 }), 1);
   assert.deepEqual(context.relic.state.refreshedStacks, buff, 'queries cannot settle the owner');
   hit(11.04);
   assert.equal(context.relic.state.refreshedStacks.stacks, 1);
@@ -48,7 +48,7 @@ test('Thief relic refreshes all stacks at cap and rejects hits outside its weapo
 test('Bloodstone refreshes Volatility until the fourth blast consumes it and blocks grants during Fervor', () => {
   const context = fixture('Bloodstone');
   const combo = (at, finisherType = 'Blast') =>
-    invokeRelicHook(context, 'combo', { at, finisherType, skillName: 'Fixture blast' });
+    context.relic.rules.combo(context, context.relic.state, { at, finisherType, skillName: 'Fixture blast' });
   combo(0.001);
   assert.deepEqual(context.relic.state.refreshedStacks, { stacks: 1, expiresAt: 10.04 });
   combo(9);
@@ -74,7 +74,7 @@ test('Bloodstone refreshes Volatility until the fourth blast consumes it and blo
 
 test('Thorns preserves its deterministic ramp while reporting finite refreshes after reaching the cap', () => {
   const context = fixture('Thorns', { initialThornsStacks: 9 });
-  invokeRelicHook(context, 'passiveTimeline', 80);
+  context.relic.rules.passiveTimeline(context, context.relic.state, 80);
   const rows = context.announcements.map(({ announcement }) => announcement);
   assert.equal(rows[0].effectState.stacks, 9);
   assert.equal(rows[0].expiresAt, 30);
@@ -92,7 +92,7 @@ test('Thorns preserves its deterministic ramp while reporting finite refreshes a
     [0, 270],
     [48, 300]
   ]) {
-    assert.equal(invokeRelicHook(context, 'conditionDamageBonus', at), damage);
+    assert.equal(context.relic.rules.conditionDamageBonus(context, context.relic.state, at), damage);
   }
 
   assert.deepEqual(context.relic.state, {});

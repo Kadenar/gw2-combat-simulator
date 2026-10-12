@@ -136,6 +136,32 @@
             "20-0": { "cumulative": 34134, "phase": 33966 }
           }
         }
+      },
+      {
+        "label": "Condition Alacrity (Pistol / Torch + Pistol / Pistol)",
+        "build": "data/gw2/builds/guardian/b-condi-alac-willbender-pistol-torch.json",
+        "rotation": "data/gw2/rotations/guardian/r-condi-alac-willbender-pistol-torch-bench.json",
+        "benchmarkDps": 33633,
+        "upToDate": true,
+        "benchmarkApm": 75,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 32282, "phase": 32282 },
+          "80-60": { "cumulative": 32803, "phase": 33358 },
+          "60-40": { "cumulative": 33259, "phase": 34211 },
+          "40-20": { "cumulative": 33630, "phase": 34771 },
+          "20-0": { "cumulative": 33633, "phase": 33633 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 33733,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 32384, "phase": 32384 },
+            "80-60": { "cumulative": 33160, "phase": 34005 },
+            "60-40": { "cumulative": 33644, "phase": 34653 },
+            "40-20": { "cumulative": 33730, "phase": 33985 },
+            "20-0": { "cumulative": 33733, "phase": 33733 }
+          }
+        }
       }
     ]
   },

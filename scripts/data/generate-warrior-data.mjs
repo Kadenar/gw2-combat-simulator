@@ -1,8 +1,6 @@
-import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { constantName as baseConstantName, declaration, mapConcurrent } from './lib/generator-utils.mjs';
-import { fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
+import { generateProfessionIds, mapConcurrent } from './lib/generator-utils.mjs';
 
 const REQUEST_HEADERS = { 'User-Agent': 'gw2-combat-simulator/2.0 Warrior generator' };
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
@@ -108,29 +106,22 @@ async function fetchJson(url) {
   return response.json();
 }
 
-function constantName(value) {
-  const normalized = baseConstantName(value);
-
-  // Warrior generated identifiers reserve a readable prefix for names that begin with a number.
-  return /^\d/.test(normalized) ? `SKILL_${normalized}` : normalized;
-}
-
-function stableEntries(entries) {
-  const result = [];
-  const used = new Set();
-
-  for (const entry of entries) {
-    const base = constantName(entry.name);
-
-    if (!base) continue;
-    const key = used.has(base) ? `${base}_ID_${entry.id}` : base;
-
-    used.add(base);
-    result.push({ ...entry, key });
-  }
-
-  return result;
-}
+// Supported synthetic actions, procs, and variants that upstream snapshots omit.
+const FIXED_SKILLS = [
+  { key: 'MAGEBANE_TETHER', id: 43532 },
+  { key: 'LESSER_SIGNET_OF_MIGHT', id: 29977 },
+  { key: 'WILD_THROW_ALTERNATE', id: 73131, name: 'Wild Throw (alternating projectile packet)' },
+  { key: 'SHARP_DRAGON_SLASH_FORCE', id: 80199, name: 'Dragon Slash—Force (Sharp as the Wind)' },
+  { key: 'SHARP_BLOOMING_FIRE', id: 80212, name: 'Blooming Fire (Sharp as the Wind)' },
+  { key: 'SHARP_EXPLOSIVE_THRUST', id: 80213, name: 'Explosive Thrust (Sharp as the Wind)' },
+  { key: 'SHARP_STEEL_DIVIDE', id: 80238, name: 'Steel Divide (Sharp as the Wind)' },
+  { key: 'SHARP_BREAK_STEP', id: 80241, name: 'Break Step (Sharp as the Wind)' },
+  { key: 'SHARP_DRAGON_SLASH_REACH', id: 80246, name: 'Dragon Slash—Reach (Sharp as the Wind)' },
+  { key: 'SHARP_CYCLONE_TRIGGER', id: 80226, name: 'Cyclone Trigger (Sharp as the Wind)' },
+  { key: 'SHARP_ARTILLERY_SLASH', id: 80274, name: 'Artillery Slash (Sharp as the Wind)' },
+  { key: 'SHARP_DRAGON_SLASH_BOOST', id: 80281, name: 'Dragon Slash—Boost (Sharp as the Wind)' },
+  { key: 'SHARP_SWIFT_CUT', id: 80293, name: 'Swift Cut (Sharp as the Wind)' }
+];
 
 function skillInfobox(wikitext) {
   return String(wikitext || '').match(/\{\{Skill infobox[\s\S]*?\n\}\}/i)?.[0] || '';
@@ -161,65 +152,33 @@ async function wikiWikitext(name) {
   }
 }
 
-function fact(raw, text, type) {
-  return (raw.facts || []).find((candidate) => candidate.text === text && (!type || candidate.type === type));
-}
-
-function normalizeRawSkill(raw, identity) {
+// The skills endpoint rejects every gunsaber ID, so each supplemental record is authored from its wiki identity.
+function supplementalSkill(identity) {
   const overrides = SUPPLEMENTAL_OVERRIDES_BY_ID.get(identity.id) || {};
-
-  if (!raw) {
-    const dragonSlash = identity.name.startsWith('Dragon Slash');
-    const ammo = Number(overrides.ammo || 0);
-    const ammoRecharge = Number(overrides.ammoRecharge || 0);
-    const cooldown = Number(ammo > 0 ? ammoRecharge : dragonSlash ? 1 : 0);
-    const ammoCastLockout = Number(overrides.ammoCastLockout || 0);
-
-    return {
-      id: identity.id,
-      name: identity.name,
-      description: 'Bladesworn gunsaber profession mechanic.',
-      icon: overrides.icon || '',
-      type: 'Bundle',
-      weapon: '',
-      // Missing API records use the same bundle slot for all supplemental skills.
-      slot: 'Weapon_1',
-      specialization: 'Bladesworn',
-      categories: dragonSlash ? ['Burst', 'DragonSlash'] : [],
-      cooldown,
-      ammo,
-      ammoRecharge,
-      ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
-      nextChainId: null,
-      flipSkillId: null,
-      simulatorExcluded: false
-    };
-  }
-
-  const maximumCount = fact(raw, 'Maximum Count', 'Number')?.value || 0;
-  const countRecharge =
-    (raw.facts || []).find((candidate) => candidate.text === 'Count Recharge' && candidate.type === 'Time')?.duration ||
-    0;
-  const ammo = Number(overrides.ammo ?? maximumCount);
-  const ammoRecharge = Number(overrides.ammoRecharge ?? countRecharge);
-  const sourceRecharge = Number(fact(raw, 'Recharge', 'Recharge')?.value || 0);
+  const dragonSlash = identity.name.startsWith('Dragon Slash');
+  const ammo = Number(overrides.ammo || 0);
+  const ammoRecharge = Number(overrides.ammoRecharge || 0);
+  const cooldown = Number(ammo > 0 ? ammoRecharge : dragonSlash ? 1 : 0);
+  const ammoCastLockout = Number(overrides.ammoCastLockout || 0);
 
   return {
-    id: raw.id,
-    name: raw.name,
-    description: raw.description || '',
-    icon: raw.icon || overrides.icon || '',
+    id: identity.id,
+    name: identity.name,
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: overrides.icon || '',
     type: 'Bundle',
     weapon: '',
-    slot: raw.slot || 'Weapon_1',
+    // Gunsaber skills share one bundle slot.
+    slot: 'Weapon_1',
     specialization: 'Bladesworn',
-    categories: raw.categories || [],
-    cooldown: ammo > 0 ? ammoRecharge : sourceRecharge,
+    categories: dragonSlash ? ['Burst', 'DragonSlash'] : [],
+    cooldown,
+    // Field order matches the committed catalog so an unchanged refresh rewrites nothing.
+    ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
     ammo,
     ammoRecharge,
-    ...(ammo > 0 && sourceRecharge > 0 ? { ammoCastLockout: sourceRecharge } : {}),
-    nextChainId: raw.next_chain || null,
-    flipSkillId: raw.flip_skill || null,
+    nextChainId: null,
+    flipSkillId: null,
     simulatorExcluded: false
   };
 }
@@ -237,41 +196,15 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
     if (!skill.id) throw new Error(`Could not resolve ${skill.name} from the Guild Wars 2 Wiki.`);
   }
 
-  // Use shared batching while retaining the generator's source order and API identification.
-  const rawSkills = await fetchManyGw2(
-    'skills',
-    canonicalSkills.map((skill) => skill.id),
-    {
-      preserveIdOrder: true,
-      headers: REQUEST_HEADERS
-    }
-  );
-  const rawById = new Map(rawSkills.map((skill) => [skill.id, skill]));
-  const supplemental = supplementalIds.map((identity) => normalizeRawSkill(rawById.get(identity.id), identity));
+  const supplemental = supplementalIds.map(supplementalSkill);
   const identities = [...canonicalSkills, ...supplemental];
-  const entries = stableEntries(identities);
-
-  const traits = stableEntries(
-    apiSpecializations.flatMap((specialization) => [
-      ...specialization.minorTraits,
-      ...specialization.majorTraits.flat()
-    ])
-  );
-  const idsSource = [
-    '// Generated by scripts/data/generate-warrior-data.mjs.',
-    '// Committed constants keep mechanic references independent from metadata loading.',
-    '',
-    declaration('WARRIOR_SKILL_IDS', entries),
-    '',
-    declaration('WARRIOR_TRAIT_IDS', traits),
-    ''
-  ].join('\n');
-
-  await writeFile(
-    fileURLToPath(new URL('../../js/games/gw2/professions/warrior/data/ids.ts', import.meta.url)),
-    idsSource,
-    'utf8'
-  );
+  const generated = await generateProfessionIds({
+    profession: 'warrior',
+    generator: 'generate-warrior-data',
+    skills: identities,
+    specializations: apiSpecializations,
+    fixedSkills: FIXED_SKILLS
+  });
 
   // Generated skills use the same domain-owned type import as maintained catalogs.
   const supplementalSource = `// Generated by scripts/data/generate-warrior-data.mjs.
@@ -282,13 +215,16 @@ export const WARRIOR_SUPPLEMENTAL_SKILLS: readonly Skill[] = Object.freeze(
 );
 `;
 
-  await writeFile(
-    fileURLToPath(
-      new URL('../../js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)
-    ),
-    supplementalSource,
-    'utf8'
-  );
-  console.log(`Wrote ${entries.length} skill and ${traits.length} trait IDs.`);
-  console.log(`Wrote ${supplemental.length} supplemental Bladesworn skills.`);
+  return {
+    files: [
+      ...generated.files,
+      {
+        target: fileURLToPath(
+          new URL('../../js/games/gw2/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)
+        ),
+        source: supplementalSource,
+        summary: `${supplemental.length} supplemental skills`
+      }
+    ]
+  };
 }

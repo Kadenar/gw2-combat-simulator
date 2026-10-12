@@ -2,7 +2,7 @@ import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
-import { createSigilConditionEvent, createSigilStrikeEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
@@ -120,10 +120,9 @@ export function executeDamageOccurrence(
         inputs
       );
     } else if (sigil && effect.kind === 'sigil') {
-      if (['strike', 'strike-condition'].includes(sigil.effect))
-        runtime.effects.emit({ kind: 'packet', event: createSigilStrikeEvent(effect.id, sigil, occurrence.name) });
-      if (['condition', 'strike-condition', 'next-hit-condition'].includes(sigil.effect))
-        runtime.effects.emit({ kind: 'packet', event: createSigilConditionEvent(effect.id, sigil, occurrence.name) });
+      // Isolated measurement evaluates the earned payload directly, including Doom's eventual next-hit condition.
+      for (const event of createSigilDamagePayload(effect.id, sigil, occurrence.name))
+        runtime.effects.emit({ kind: 'packet', event });
     } else if (effect.kind === 'food')
       createCriticalFoodEffect(runtime, {
         type: 'proc',

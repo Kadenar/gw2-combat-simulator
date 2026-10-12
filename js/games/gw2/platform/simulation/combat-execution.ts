@@ -1,5 +1,4 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import {
   applyRuntimeSigilStrike,
   applyRuntimeSigils,
@@ -98,14 +97,17 @@ export function createCombatExecution<T extends object>(
         relic.rules.completed?.(runtime, relic.state, event);
     },
     action(runtime, event) {
+      // Direct calls retain the rule signatures while sharing the equipped relic's state.
+      const relic = runtime.relic;
       if (!event.cancelled)
-        invokeRelicHook(runtime, 'emitActionEffects', event, skillForEvent(profession.catalog, event));
-      invokeRelicHook(runtime, 'action', event);
+        relic.rules.emitActionEffects?.(runtime, relic.state, event, skillForEvent(profession.catalog, event));
+      relic.rules.action?.(runtime, relic.state, event);
     },
     condition(runtime, event) {
       // The selected relic's optional hook owns condition-trigger eligibility.
-      invokeRelicHook(runtime, 'emitConditionEffects', event);
+      runtime.relic.rules.emitConditionEffects?.(runtime, runtime.relic.state, event);
     },
-    report: (runtime, combatEndTime) => invokeRelicHook(runtime, 'passiveTimeline', combatEndTime)
+    report: (runtime, combatEndTime) =>
+      runtime.relic.rules.passiveTimeline?.(runtime, runtime.relic.state, combatEndTime)
   };
 }

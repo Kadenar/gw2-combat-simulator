@@ -1,6 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 
 export const GW2_API_ROOT = 'https://api.guildwars2.com/v2';
 export const DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS = Object.freeze(['Trident', 'Speargun']);
@@ -362,25 +360,4 @@ export function serializeProfessionSnapshot({ professionName, snapshotDate, spec
     `export const SKILLS: readonly ${professionName}Skill[] = ${JSON.stringify(skills, null, 2)};`,
     ''
   ].join('\n');
-}
-
-// Writes a profession snapshot to a TypeScript file, creating the necessary directories if they do not exist.
-export async function writeProfessionSnapshot({
-  output,
-  professionName,
-  snapshotDate = new Date().toISOString().slice(0, 10),
-  specializations,
-  skills
-}) {
-  const source = serializeProfessionSnapshot({
-    professionName,
-    snapshotDate,
-    specializations,
-    skills
-  });
-
-  await mkdir(path.dirname(output), { recursive: true });
-  await writeFile(output, source, 'utf8');
-
-  return source;
 }

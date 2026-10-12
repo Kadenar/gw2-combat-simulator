@@ -117,19 +117,13 @@ export function inFlightAutoattackCarryover(
   return null;
 }
 
-// Aerial Agility's flip must leave no carryover behind when its window lapses.
-function clearAerialAgilityCarryover(state: ElementalistCoreState): void {
-  if (state.autoattackCarryover?.root === ID.AERIAL_AGILITY) state.autoattackCarryover = null;
-  if (state.pendingAutoattackCarryover?.root === ID.AERIAL_AGILITY) state.pendingAutoattackCarryover = null;
-}
-
 /** Every new stage replaces the old deadline; expiry checks the selected stage. */
 export const elementalistWeaponStateTasks = {
   'elementalist.aerial-agility-expire'(context: ElementalistRuntime, data: unknown): void {
     const state = professionCoreState(context);
     if (state.autoattackChains[ID.AERIAL_AGILITY] !== Number(data)) return;
+    // Carryover producers exclude this slot-three flip, so expiry only resets its chain.
     resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
-    clearAerialAgilityCarryover(state);
   }
 };
 function updateAerialAgilityFlip(

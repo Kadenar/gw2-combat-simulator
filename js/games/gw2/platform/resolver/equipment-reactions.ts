@@ -1,7 +1,6 @@
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_BY_ID, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -68,7 +67,7 @@ function createResolvedCriticalSigilEffects(
   }
 }
 
-/** Resolver-time equipment hooks. Scheduler-owned sigil generation stays out. */
+/** Resolver-time equipment calls preserve each relic hook's typed inputs and owning state. */
 export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionContributions {
   const criticalFoodReaction = criticalProcHandler<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'food.critical-strike',
@@ -100,7 +99,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         order: GW2_REACTION_ORDER.COMMON,
         // All successful combos reach the relic runtime so Steamshrieker can accept leaps as well as blasts.
         handler(ctx, event) {
-          invokeRelicHook(ctx, 'combo', event);
+          ctx.relic.rules.combo?.(ctx, ctx.relic.state, event);
         }
       }
     ],
@@ -111,7 +110,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         handler(ctx, event) {
           // Only standard boons trigger relic boon rules; generic buffs share this stage.
           if (!isStandardBoon(event.kind || event.boon)) return;
-          invokeRelicHook(ctx, 'boon', event);
+          ctx.relic.rules.boon?.(ctx, ctx.relic.state, event);
           // Precast runtimes retain their own buff and cooldown; their rules gate precombat activation.
           for (const relic of ctx.precastRelics || []) {
             relic.rules.boon?.(ctx, relic.state, event);
@@ -131,7 +130,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.damage-resolved',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event) {
-          invokeRelicHook(ctx, 'damageResolved', event);
+          ctx.relic.rules.damageResolved?.(ctx, ctx.relic.state, event);
         }
       },
       {
@@ -145,9 +144,9 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         handler(ctx, event, details = {}) {
           // Eligibility uses the resolved profile even when the authored packet inherited its weapon strength.
           const profile = (details as NativeResolvedDamageDetails).hitContext?.weaponStrength?.profileId;
-          invokeRelicHook(
+          ctx.relic.rules.afterHit?.(
             ctx,
-            'afterHit',
+            ctx.relic.state,
             profile ? { ...event, weaponStrengthProfileId: profile } : event,
             skillForEvent(ctx.helpers, event)
           );
@@ -161,14 +160,14 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         handler(ctx, application, details = {}) {
           // Disable-triggered relics also accept Fear, once its condition is present on the target.
           if (application.condition === 'Fear')
-            invokeRelicHook(ctx, 'control', application, conditionHelpers(ctx, details));
+            ctx.relic.rules.control?.(ctx, ctx.relic.state, application, conditionHelpers(ctx, details));
         }
       },
       {
         id: 'relic.condition',
         order: GW2_REACTION_ORDER.LATE_COMMON,
         handler(ctx, application, details = {}) {
-          invokeRelicHook(ctx, 'condition', application, conditionHelpers(ctx, details));
+          ctx.relic.rules.condition?.(ctx, ctx.relic.state, application, conditionHelpers(ctx, details));
         }
       }
     ],
@@ -177,7 +176,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.control',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details = {}) {
-          invokeRelicHook(ctx, 'control', event, conditionHelpers(ctx, details));
+          ctx.relic.rules.control?.(ctx, ctx.relic.state, event, conditionHelpers(ctx, details));
         }
       }
     ]

@@ -9,7 +9,6 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 
 const self = {
@@ -378,8 +377,8 @@ test('relic proc state survives recording and refreshes replace stack counts', (
     announce: (request) => recordProcStep(context, request.announcement)
   }).effects;
   const hit = (at) => ({ type: 'damage', actorType: 'player', at, skillName: 'Weapon' });
-  invokeRelicHook(context, 'afterHit', hit(0), { type: 'Weapon', cooldown: 1 });
-  invokeRelicHook(context, 'afterHit', hit(1), { type: 'Weapon', cooldown: 1 });
+  context.relic.rules.afterHit(context, context.relic.state, hit(0), { type: 'Weapon', cooldown: 1 });
+  context.relic.rules.afterHit(context, context.relic.state, hit(1), { type: 'Weapon', cooldown: 1 });
   const summary = buildChartSeries({
     rotationEndTime: 8,
     observationEndTime: 8,
@@ -401,7 +400,7 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   thorns.effects = captureEffectEmissions({
     announce: (request) => recordProcStep(thorns, request.announcement)
   }).effects;
-  invokeRelicHook(thorns, 'passiveTimeline', 5);
+  thorns.relic.rules.passiveTimeline(thorns, thorns.relic.state, 5);
   const ramp = buildChartSeries({
     rotationEndTime: 5,
     observationEndTime: 5,

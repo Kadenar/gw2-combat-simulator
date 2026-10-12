@@ -4,8 +4,10 @@ import path from 'node:path';
 import ts from 'typescript';
 
 /** Follow value imports and reexports so indirect dependencies cannot reconnect an owner to module assembly. */
-export function professionSourceGraph(profession) {
-  const root = path.resolve(import.meta.dirname, '../../js/games/gw2/professions', profession);
+export function professionSourceGraph(
+  profession,
+  root = path.resolve(import.meta.dirname, '../../js/games/gw2/professions', profession)
+) {
   const alias = `#gw2/professions/${profession}/`;
   function visit(directory) {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -18,7 +20,13 @@ export function professionSourceGraph(profession) {
         if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
         if (statement.isTypeOnly || statement.importClause?.isTypeOnly) continue;
         const bindings = statement.importClause?.namedBindings ?? statement.exportClause;
-        if (bindings?.elements?.length && bindings.elements.every((binding) => binding.isTypeOnly)) continue;
+        // A default value import still creates an edge when all named bindings are type-only.
+        if (
+          !statement.importClause?.name &&
+          bindings?.elements?.length &&
+          bindings.elements.every((binding) => binding.isTypeOnly)
+        )
+          continue;
         const specifier = statement.moduleSpecifier?.text;
         if (specifier?.startsWith(alias))
           dependencies.push(path.join(root, specifier.slice(alias.length).replace(/\.js$/, '.ts')));
@@ -44,7 +52,7 @@ export function assertIndependentProfessionOwners(
     const relative = path.relative(root, file).replaceAll(path.sep, '/');
     const trace = [...chain, file].map((item) => path.relative(root, item)).join(' -> ');
     assert.ok(graph.has(file), `Missing source: ${trace}`);
-    assert.doesNotMatch(relative, forbidden, trace);
+    if (forbidden != null) assert.doesNotMatch(relative, forbidden, trace);
     assert.ok(!chain.includes(file), `Value-import cycle: ${trace}`);
     if (complete.has(file)) return;
     for (const dependency of graph.get(file)) visit(dependency, [...chain, file]);
