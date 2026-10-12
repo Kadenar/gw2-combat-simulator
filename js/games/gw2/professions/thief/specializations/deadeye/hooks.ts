@@ -115,7 +115,7 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     if (!skill.malicious && !STOLEN_SKILLS.has(skill.id)) return;
-    
+
     const malice = runtime.resourceController.value('malice');
     deadeyeCastFacts.set(cast, {
       malice,
