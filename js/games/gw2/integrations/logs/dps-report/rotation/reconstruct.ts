@@ -34,11 +34,17 @@ import type {
   DpsReportSkillMetadata,
   ParsedDpsReport
 } from '#gw2/integrations/logs/dps-report/types.js';
-import { dpsReportRotationProfile } from '#gw2/integrations/logs/dps-report/rotation/profiles.js';
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
-import type { DpsReportRotationOptions } from '#gw2/integrations/logs/dps-report/rotation/types.js';
 import type { RecordedLogAction, ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+
+/** Selects the player, phase, and build evidence used when reconstructing an imported rotation. */
+export interface DpsReportRotationOptions {
+  readonly playerIndex?: number;
+  readonly phaseIndex?: number;
+  readonly selectedSkillIds?: readonly number[];
+  readonly professionConfig?: Readonly<Record<string, unknown>>;
+}
 
 function automaticProc(metadata: DpsReportSkillMetadata | null): boolean {
   return Boolean(metadata?.isTraitProc || metadata?.isUnconditionalProc || metadata?.isGearProc);
@@ -425,4 +431,16 @@ export function reconstructDpsReportRotation(
   }
 
   return reconstructDpsReportWithProfile(report, profile, catalog, { ...options, playerIndex: player.index });
+}
+
+/** Resolves EI's profession/spec name to the shared combat-log rotation profile. */
+function dpsReportRotationProfile(profession: string): RotationProfessionProfile | null {
+  const name = normalized(profession);
+  return (
+    ROTATION_PROFILES.find(
+      (profile) =>
+        normalized(profile.specializationName) === name ||
+        (profile.specializationId === 'core' && normalized(profile.professionName) === name)
+    ) || null
+  );
 }

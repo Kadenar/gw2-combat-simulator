@@ -1,8 +1,9 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
+import { getActiveTraits as getWarriorActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 
@@ -214,7 +215,7 @@ test('Forceful Greatsword uses active weapon probability, isolated progress and 
 
 test('mixed Warrior weapon sets keep static bonuses and conversion inputs separate', () => {
   const calculate = createCalculateAttributes(
-    applyWarriorBuildAttributeRules,
+    createProfessionBuildAttributeRules(warriorCatalog, getWarriorActiveTraits),
     warriorProfession.attributeContributions
   );
   const build = createWarriorBuildDefaults();
@@ -241,7 +242,7 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
 test('Vigorous Shouts converts Power to Healing Power once in builds and raw runtime stats', () => {
   const build = { specializations: [{ name: 'Tactics', traits: '1-1-2' }] };
   const calculate = createCalculateAttributes(
-    applyWarriorBuildAttributeRules,
+    createProfessionBuildAttributeRules(warriorCatalog, getWarriorActiveTraits),
     warriorProfession.attributeContributions
   );
   const preview = calculate(build).attributes;

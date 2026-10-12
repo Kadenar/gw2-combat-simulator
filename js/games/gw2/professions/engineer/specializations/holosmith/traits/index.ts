@@ -34,7 +34,7 @@ import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/h
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Owns Thermal Release Valve at its established heat and impact boundaries. */
-export const thermalReleaseValve = defineTrait({
+const thermalReleaseValve = defineTrait({
   id: TRAIT.THERMAL_RELEASE_VALVE,
   name: 'Thermal Release Valve',
   balance: {
@@ -52,13 +52,13 @@ export const thermalReleaseValve = defineTrait({
 });
 
 /** Owns the selected Forge autoattack family; skill fragments retain each attack's packets. */
-export const crystalConfigurationStorm = defineTrait({
+const crystalConfigurationStorm = defineTrait({
   id: TRAIT.CRYSTAL_CONFIGURATION_STORM,
   name: 'Crystal Configuration: Storm'
 });
 
 /** Owns Enhanced Capacity Storage Unit at its established heat and impact boundaries. */
-export const enhancedCapacityStorageUnit = defineTrait({
+const enhancedCapacityStorageUnit = defineTrait({
   id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
   name: 'Enhanced Capacity Storage Unit',
   balance: {
@@ -107,7 +107,7 @@ export const enhancedCapacityStorageUnit = defineTrait({
 });
 
 /** Owns Photonic Blasting Module at its established heat and impact boundaries. */
-export const photonicBlastingModule = defineTrait({
+const photonicBlastingModule = defineTrait({
   id: TRAIT.PHOTONIC_BLASTING_MODULE,
   name: 'Photonic Blasting Module',
   balance: {
@@ -127,14 +127,14 @@ export const photonicBlastingModule = defineTrait({
 });
 
 /** Registers the passive heat adjustment consumed by Forge's cadence. */
-export const lightDensityAmplifier = defineTrait({
+const lightDensityAmplifier = defineTrait({
   id: TRAIT.LIGHT_DENSITY_AMPLIFIER,
   name: 'Light Density Amplifier',
   balance: { resourceGain: 1 }
 });
 
 /** Laser's Edge samples live heat after trait-adjusted capacity and overheat state. */
-export const lasersEdge = defineTrait({
+const lasersEdge = defineTrait({
   id: TRAIT.LASERS_EDGE,
   name: "Laser's Edge",
   // The trait balance owns tuning consumed by damage rules and presentation.

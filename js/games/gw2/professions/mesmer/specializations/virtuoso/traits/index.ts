@@ -34,7 +34,7 @@ import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Deadly Blades shares patched tuning with its existing packet and resource boundaries. */
-export const deadlyBlades = defineTrait<MesmerSkill>({
+const deadlyBlades = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(virtuosoBladeCritical, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof virtuosoBladeCritical>) =>
@@ -81,7 +81,7 @@ export const deadlyBlades = defineTrait<MesmerSkill>({
 });
 
 /** Jagged Mind shares patched tuning with its existing packet and resource boundaries. */
-export const jaggedMind = defineTrait<MesmerSkill>({
+const jaggedMind = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(virtuosoBladeCritical, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof virtuosoBladeCritical>) =>
@@ -148,7 +148,7 @@ export const bloodsong = defineTrait<MesmerSkill>({
 });
 
 /** The proc owns its baseline attack; the shared phantasm lifecycle supplies the conversion boundary. */
-export const phantasmalBlades = defineTrait<MesmerSkill>({
+const phantasmalBlades = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTASMAL_BLADES,
   name: 'Phantasmal Blades',
   // Capture the surviving bonus payload per summon batch without changing intrinsic blade conversion.
@@ -170,7 +170,7 @@ export const phantasmalBlades = defineTrait<MesmerSkill>({
 });
 
 /** Keep the rounded build conversion separate from live Fury and direct-simulation attribute adjustments. */
-export const quietIntensity = defineTrait<MesmerSkill>({
+const quietIntensity = defineTrait<MesmerSkill>({
   id: TRAIT.QUIET_INTENSITY,
   name: 'Quiet Intensity',
   balance: { phantasmCriticalChance: 0.15, criticalChance: 0.15, vitalityConversion: 0.1 },
@@ -197,7 +197,7 @@ export const quietIntensity = defineTrait<MesmerSkill>({
 });
 
 /** Targets are always nearby in this simulation; only player strikes receive this multiplier. */
-export const mentalFocus = defineTrait<MesmerSkill>({
+const mentalFocus = defineTrait<MesmerSkill>({
   id: TRAIT.MENTAL_FOCUS,
   name: 'Mental Focus',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -217,7 +217,7 @@ export const mentalFocus = defineTrait<MesmerSkill>({
 });
 
 /** Sharpening Sorrow shares patched tuning with its existing packet and resource boundaries. */
-export const sharpeningSorrow = defineTrait<MesmerSkill>({
+const sharpeningSorrow = defineTrait<MesmerSkill>({
   id: TRAIT.SHARPENING_SORROW,
   name: 'Sharpening Sorrow',
   balance: {
@@ -240,7 +240,7 @@ export const sharpeningSorrow = defineTrait<MesmerSkill>({
 });
 
 /** Infinite Forge shares patched tuning with its existing packet and resource boundaries. */
-export const infiniteForge = defineTrait<MesmerSkill>({
+const infiniteForge = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(virtuosoInitialized, { run: startInfiniteForge }),
     onTriggerPoint(mesmerShatterCompleted, {

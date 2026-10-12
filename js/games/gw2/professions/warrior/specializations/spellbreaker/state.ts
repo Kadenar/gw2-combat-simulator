@@ -13,7 +13,7 @@ export interface SpellbreakerState {
 }
 
 /** Declares Spellbreaker's public fields and inactive values. */
-export const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   attackerInsightExpiries: [],
   magebaneTetherUntil: 0
 } satisfies Partial<SpellbreakerState>);

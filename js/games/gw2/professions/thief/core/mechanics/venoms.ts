@@ -42,11 +42,11 @@ export const VENOMS: readonly VenomDefinition[] = Object.freeze([
   }
 ]);
 
-export function venomForSkill(skillId: SkillId): VenomDefinition | undefined {
+function venomForSkill(skillId: SkillId): VenomDefinition | undefined {
   return VENOMS.find((venom) => venom.skillId === skillId);
 }
 
-export function conditionEffects(profile: BalanceProfile): readonly ConditionEffect[] {
+function conditionEffects(profile: BalanceProfile): readonly ConditionEffect[] {
   return (profile.effects || []).filter((effect): effect is ConditionEffect => effect.type === 'condition');
 }
 

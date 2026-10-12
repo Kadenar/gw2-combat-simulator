@@ -4,7 +4,9 @@
 
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { getActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
 import { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
 import { getMesmerBuildRotationLookup } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -14,7 +16,7 @@ import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
 export const mesmerAppAdapter = defineProfessionApp({
   tooltips: mesmerTooltips,
   profession: mesmerProfession,
-  applyBuildAttributeRules: applyMesmerBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(mesmerCatalog, getActiveTraits),
   toApplicationBuild,
   // Reuse selected-elite name resolution while validating explicit commands against the active patch catalog.
   rotationImportLookup(app) {

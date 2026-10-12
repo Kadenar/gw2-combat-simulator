@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -22,7 +22,7 @@ import {
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Enhance the ranged autoattacks, applying Burning separately for each Dual Shot arrow that hits. */
@@ -184,14 +184,12 @@ export const warriorsSprint = defineTrait({
   ]
 });
 
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
-
 /**
  * Heightened Focus: the first player strike after its internal cooldown that lands while the target is below half
  * health grants Quickness and readies every Burst skill, so execute phases can chain bursts. The adrenaline-scaled
  * outgoing-healing stacks are support-only and intentionally not modeled.
  */
-export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (
     event.actorType !== 'player' ||
     !((event.coefficient || 0) > 0) ||
@@ -236,7 +234,7 @@ export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2Resolv
  * readies it. The simulator commits recharge at completion, before this hook, so the burst is cleared again here when
  * the latest trigger (recovered from the proc deadline) falls inside its cast window.
  */
-export function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (!cast.skill.burst || !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS)) return;
   const readyAt = runtime.procs.deadline(TRAIT.HEIGHTENED_FOCUS);
   if (!(readyAt > 0)) return;
@@ -300,7 +298,7 @@ function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
 
 /** Dragon Slash refunds its captured Flow pool using the elite tuning. */
 function burstMasteryDragonSlash(
-  runtime: MechanicContext<WarriorRuntimeState, WarriorSkill>,
+  runtime: WarriorRuntime,
   cast: RuntimeCast<WarriorSkill>,
   release: { flowSpent: number }
 ): void {

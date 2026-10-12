@@ -1,5 +1,5 @@
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';

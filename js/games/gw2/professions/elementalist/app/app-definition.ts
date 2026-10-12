@@ -1,6 +1,8 @@
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
@@ -31,7 +33,7 @@ function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvai
 export const elementalistAppAdapter = defineProfessionApp({
   tooltips: elementalistTooltips,
   profession: elementalistProfession,
-  applyBuildAttributeRules: applyElementalistBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(elementalistCatalog, getActiveTraits),
   toApplicationBuild,
   runtime: {
     buildConfigExtras: (app) => {

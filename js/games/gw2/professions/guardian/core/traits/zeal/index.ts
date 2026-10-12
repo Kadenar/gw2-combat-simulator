@@ -1,7 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -19,10 +19,8 @@ import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Owns Furious Focus's live tuning and trait behavior. */
 export const furiousFocus = defineTrait({
@@ -230,7 +228,7 @@ export const fieryWrath = defineTrait({
 });
 
 /** Ready Justice activations claim symbol recharge at the permanent Alacrity rate. */
-function placeFuriousFocusSymbol(runtime: Runtime, { cast }: JusticeActivation): void {
+function placeFuriousFocusSymbol(runtime: GuardianRuntime, { cast }: JusticeActivation): void {
   const profile = runtime.helpers.skillsById.get(ID.LESSER_SYMBOL_OF_BLADES)!;
   if (!requireEffect(profile, 'strike', 'Strike')) return;
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
@@ -241,7 +239,7 @@ function placeFuriousFocusSymbol(runtime: Runtime, { cast }: JusticeActivation):
 }
 
 /** Accepted symbol impacts add a Symbolic Avenger stack before Zealot's Resolution decides. */
-function stackSymbolicAvenger(runtime: Runtime, { cause: event }: GuardianStrike): void {
+function stackSymbolicAvenger(runtime: GuardianRuntime, { cause: event }: GuardianStrike): void {
   const state = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SYMBOLIC_AVENGER);
   state.symbolicAvengerExpirations = grantTimedStacks(state.symbolicAvengerExpirations, {
@@ -265,7 +263,7 @@ function stackSymbolicAvenger(runtime: Runtime, { cause: event }: GuardianStrike
 }
 
 /** Zealot's Resolution samples target health before the current hit. */
-function placeZealotsResolutionSymbol(runtime: Runtime, { cause: event, damage }: GuardianStrike): void {
+function placeZealotsResolutionSymbol(runtime: GuardianRuntime, { cause: event, damage }: GuardianStrike): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ZEALOTS_RESOLUTION);
   const health = runtime.config.target?.health ?? 0;
   // Detached previews pin target health; ordinary simulations still evaluate the health before this hit.

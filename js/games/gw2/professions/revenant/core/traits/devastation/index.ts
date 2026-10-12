@@ -329,7 +329,7 @@ function startRevenantAssassinsPresence(runtime: RevenantRuntime, { at: anchor }
   });
 }
 
-export function activeOffhand(context: Gw2ModifierContext): boolean {
+function activeOffhand(context: Gw2ModifierContext): boolean {
   const set = context.runtime?.activeWeaponSet || 1;
   return Boolean(gw2ConfiguredWeaponSet(context.config, set)[1]);
 }

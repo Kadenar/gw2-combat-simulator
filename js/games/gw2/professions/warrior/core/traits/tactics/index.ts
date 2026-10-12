@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -22,10 +22,10 @@ import {
 } from '#gw2/professions/warrior/core/mechanics/combat.js';
 import { warriorActiveBoonCount } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
+const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
 
 /** Convert Power to Healing Power once, preserving the build's existing conversion pool. */
 export const vigorousShouts = defineTrait({
@@ -204,9 +204,7 @@ export const warriorsCunning = defineTrait({
   ]
 });
 
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
-
-export function empowerPulse(runtime: WarriorRuntime): void {
+function empowerPulse(runtime: WarriorRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const might = requireEffect(profile, 'boon', 'might');

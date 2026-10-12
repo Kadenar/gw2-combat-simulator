@@ -1,8 +1,9 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
+import { getActiveTraits as getRangerActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog, rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -25,7 +26,10 @@ test('Ranger registers one canonical owner for cross-specialization traits', () 
 
 // Each call resolves the supplied patch and selected weapon; disabling a trait does not contaminate later calls.
 test('Ranger trait build callbacks use patched values and isolate disabled-trait previews', () => {
-  const calculate = createCalculateAttributes(applyRangerBuildAttributeRules, rangerProfession.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(rangerCatalog, getRangerActiveTraits),
+    rangerProfession.attributeContributions
+  );
   const build = createRangerBuildDefaults();
   build.specializations = [{ name: 'Wilderness Survival', traits: '3-1-1' }];
   build.weapons = ['Dagger', 'Torch'];

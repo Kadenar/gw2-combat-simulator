@@ -49,7 +49,7 @@ import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns Bolstered Bonds tuning and behavior at its established execution boundaries. */
-export const bolsteredBonds = defineTrait({
+const bolsteredBonds = defineTrait({
   attributes: (context) => ({
     attributeEffects: Object.entries(
       bolsteredBondsBonuses(
@@ -94,7 +94,7 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
 });
 
 /** Owns Conductive Armaments tuning and behavior at its established execution boundaries. */
-export const conductiveArmaments = defineTrait({
+const conductiveArmaments = defineTrait({
   triggers: [
     onTriggerPoint(energyCostAccepted, {
       run: (runtime, input: TriggerPointInput<typeof energyCostAccepted>) =>
@@ -106,7 +106,7 @@ export const conductiveArmaments = defineTrait({
 });
 
 /** Owns Enhanced Embodiment tuning and behavior at its established execution boundaries. */
-export const enhancedEmbodiment = defineTrait({
+const enhancedEmbodiment = defineTrait({
   triggers: [
     onTriggerPoint(conduitLegendReset, {
       run: (runtime, input: TriggerPointInput<typeof conduitLegendReset>) =>
@@ -131,7 +131,7 @@ export const enhancedEmbodiment = defineTrait({
 });
 
 /** Owns Expanded Consciousness tuning and behavior at its established execution boundaries. */
-export const expandedConsciousness = defineTrait({
+const expandedConsciousness = defineTrait({
   triggers: [
     onTriggerPoint(affinityGranted, {
       run: (runtime, input: TriggerPointInput<typeof affinityGranted>) =>
@@ -144,7 +144,7 @@ export const expandedConsciousness = defineTrait({
 });
 
 /** Owns Found Purpose tuning and behavior at its established execution boundaries. */
-export const foundPurpose = defineTrait({
+const foundPurpose = defineTrait({
   triggers: [
     onTriggerPoint(conduitLegendSettled, {
       run: (runtime, input: TriggerPointInput<typeof conduitLegendSettled>) =>
@@ -156,14 +156,14 @@ export const foundPurpose = defineTrait({
 });
 
 /** Owns Kinetic Insight tuning and behavior at its established execution boundaries. */
-export const kineticInsight = defineTrait({
+const kineticInsight = defineTrait({
   id: TRAIT.KINETIC_INSIGHT,
   name: 'Kinetic Insight',
   balance: { rechargeMultiplier: 0.8, resourceGain: 2, effects: [] }
 });
 
 /** Owns Lingering Determination tuning and behavior at its established execution boundaries. */
-export const lingeringDetermination = defineTrait({
+const lingeringDetermination = defineTrait({
   triggers: [
     onTriggerPoint(conduitLegendReset, {
       run: (runtime, input: TriggerPointInput<typeof conduitLegendReset>) =>
@@ -176,7 +176,7 @@ export const lingeringDetermination = defineTrait({
 });
 
 /** Owns Mistfire tuning and behavior at its established execution boundaries. */
-export const mistfire = defineTrait({
+const mistfire = defineTrait({
   id: TRAIT.MISTFIRE,
   name: 'Mistfire',
   balance: {
@@ -234,7 +234,7 @@ const numinousDurations = traitAttributeBonuses(CONDUIT_BALANCE_PROFILE_IDS.numi
 }));
 
 /** Owns Numinous Gift tuning and behavior at its established execution boundaries. */
-export const numinousGiftTrait = defineTrait({
+const numinousGiftTrait = defineTrait({
   triggers: [
     onTriggerPoint(cosmicWisdomEntered, {
       // Numinous Gift is Conduit's intrinsic minor: Cosmic Wisdom grants its boons whether or not the trait is listed.
@@ -320,7 +320,7 @@ export const numinousGiftTrait = defineTrait({
 });
 
 /** Owns Shared Wisdom tuning and behavior at its established execution boundaries. */
-export const sharedWisdom = defineTrait({
+const sharedWisdom = defineTrait({
   triggers: [
     onTriggerPoint(entityBoonCompleted, {
       run: (runtime, input: TriggerPointInput<typeof entityBoonCompleted>) => grantEntitySkillBoon(runtime, input.cast)

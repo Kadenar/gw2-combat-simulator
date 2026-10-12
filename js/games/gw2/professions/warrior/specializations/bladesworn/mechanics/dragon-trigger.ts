@@ -2,7 +2,7 @@ import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -21,10 +21,8 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { clamp } from '#kernel/core/numeric.js';
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
 export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = 'dragon trigger charge';
@@ -54,7 +52,7 @@ function requestedDragonCharges(configured: number | undefined, maximumCharges: 
 export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using this skill.';
 
 /** Charge windows own their next actual tick; release or replacement invalidates all remaining wakes by activation ID. */
-export function exitDragonTrigger(runtime: Runtime, at = runtime.time): void {
+export function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): void {
   const state = bladeswornState.from(runtime);
   if (!state.dragonTriggerActive) return;
   runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.DRAGON_TRIGGER)!, at);
@@ -72,7 +70,7 @@ export function exitDragonTrigger(runtime: Runtime, at = runtime.time): void {
 
 /** Schedule charge work from the activation clock so stalls cannot shift the charge grid. */
 
-function scheduleCharge(runtime: Runtime): void {
+function scheduleCharge(runtime: WarriorRuntime): void {
   const state = bladeswornState.from(runtime);
   state.nextDragonChargeAt = canonicalTime(
     state.dragonTriggerStartedAt + dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1)
@@ -85,7 +83,7 @@ function scheduleCharge(runtime: Runtime): void {
 }
 
 /** Entry spends once; the first interval is prepaid, and every subsequent interval checks then spends current Flow. */
-function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime);
   if (!state.gunsaberActive) swapGunsaber(runtime, cast, true);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonTrigger);
@@ -133,7 +131,7 @@ function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
   });
 }
 
-function chargeTick(runtime: Runtime, identity: unknown): void {
+function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
   const state = bladeswornState.from(runtime);
   if (!state.dragonTriggerActive || state.dragonTriggerEventActivationId !== identity) return;
   runtime.resourceController.refresh('dragonCharges');
@@ -187,7 +185,7 @@ function chargeTick(runtime: Runtime, identity: unknown): void {
 }
 
 /** Release captures charge facts before clearing the mode; every packet still uses common miss, interruption, and impact scheduling. */
-export function slashEffects(_runtime: Runtime, cast: RuntimeCast<WarriorSkill>): readonly SkillEffect[] {
+export function slashEffects(_runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): readonly SkillEffect[] {
   const released = dragonSlashRelease(_runtime, cast)!;
   const skill = cast.skill;
   const spent = dragonChargesToAdrenalineSpent(released.charges);
@@ -227,7 +225,7 @@ export function slashEffects(_runtime: Runtime, cast: RuntimeCast<WarriorSkill>)
 }
 
 /** Accepted releases publish captured charge facts before clearing the shared Trigger state, even on cancellation. */
-function captureSlash(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime);
   runtime.resourceController.refresh('dragonCharges');
   const maximum = state.dragonCharges.maximum;
@@ -272,12 +270,12 @@ function captureSlash(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
 }
 
 /** Release facts belong to this run and survive exit for commit traits and detached packets. */
-export function dragonSlashRelease(runtime: MechanicQueriesOf<Runtime>, cast: RuntimeCast<WarriorSkill>) {
+export function dragonSlashRelease(runtime: MechanicQueriesOf<WarriorRuntime>, cast: RuntimeCast<WarriorSkill>) {
   return bladeswornState.from(runtime).dragonSlashReleases.get(cast.id);
 }
 
 /** Capacity follows the selected trait/profile; the existing charge task remains the only grant cadence. */
-const dragonChargePolicy: ResourcePolicy<Runtime> = {
+const dragonChargePolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => bladeswornState.from(runtime).dragonCharges,
   maximum: maximumDragonCharges,

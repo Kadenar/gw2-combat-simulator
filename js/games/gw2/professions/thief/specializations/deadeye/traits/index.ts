@@ -31,7 +31,7 @@ import {
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Owns Be Quick or Be Killed tuning and behavior at the existing execution boundaries. */
-export const beQuickOrBeKilled = defineTrait({
+const beQuickOrBeKilled = defineTrait({
   // Quickness controls both flat attributes in build and live evaluation.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BE_QUICK_OR_BE_KILLED);
@@ -66,7 +66,7 @@ export const beQuickOrBeKilled = defineTrait({
 });
 
 /** Owns Fire for Effect tuning and behavior at the existing execution boundaries. */
-export const fireForEffect = defineTrait({
+const fireForEffect = defineTrait({
   triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantFireForEffect })],
   id: TRAIT.FIRE_FOR_EFFECT,
   name: 'Fire for Effect',
@@ -79,7 +79,7 @@ export const fireForEffect = defineTrait({
 });
 
 /** Owns this trait's modifier eligibility. */
-export const ironSight = defineTrait({
+const ironSight = defineTrait({
   id: TRAIT.IRON_SIGHT,
   name: 'Iron Sight',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -98,7 +98,7 @@ export const ironSight = defineTrait({
 });
 
 /** Owns Maleficent Seven tuning and behavior at the existing execution boundaries. */
-export const maleficentSeven = defineTrait({
+const maleficentSeven = defineTrait({
   triggers: [onTriggerPoint(maliceGained, { run: applyMaleficentSeven })],
   id: TRAIT.MALEFICENT_SEVEN,
   name: 'Maleficent Seven',
@@ -117,7 +117,7 @@ export const maleficentSeven = defineTrait({
 });
 
 /** Owns Malicious Intent tuning and behavior at the existing execution boundaries. */
-export const maliciousIntent = defineTrait({
+const maliciousIntent = defineTrait({
   triggers: [onTriggerPoint(maliceSpent, { run: restoreMaliciousIntent })],
   id: TRAIT.MALICIOUS_INTENT,
   name: 'Malicious Intent',
@@ -127,7 +127,7 @@ export const maliciousIntent = defineTrait({
 });
 
 /** Owns this trait's modifier eligibility. */
-export const oneInTheChamber = defineTrait({
+const oneInTheChamber = defineTrait({
   triggers: [
     onTriggerPoint(deadeyeCastCompleted, {
       when: (_runtime, { cast }: DeadeyeCast) => Boolean(cast.skill.categories?.includes('Cantrip')),
@@ -158,7 +158,7 @@ export const oneInTheChamber = defineTrait({
 });
 
 /** Owns Premeditation tuning and behavior at the existing execution boundaries. */
-export const premeditation = defineTrait({
+const premeditation = defineTrait({
   id: TRAIT.PREMEDITATION,
   name: 'Premeditation',
   modifierRules: [
@@ -200,7 +200,7 @@ export const premeditation = defineTrait({
 });
 
 /** Owns Silent Scope tuning and behavior at the existing execution boundaries. */
-export const silentScope = defineTrait({
+const silentScope = defineTrait({
   triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantSilentScope })],
   id: TRAIT.SILENT_SCOPE,
   name: 'Silent Scope',

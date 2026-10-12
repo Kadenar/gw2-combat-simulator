@@ -1,9 +1,26 @@
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+
+const DEFAULT_TARGET_CONDITIONS: Readonly<Record<string, number | boolean>> = Object.freeze({
+  Bleeding: 1,
+  Burning: true,
+  Torment: 1,
+  Confusion: 1,
+  Poisoned: true,
+  Chilled: true,
+  Crippled: true,
+  Slow: true,
+  Weakness: true,
+  Vulnerability: 25
+});
+
+/** Creates a mutable copy of the default target-condition assumptions. */
+function createDefaultTargetConditions(): Record<string, number | boolean> {
+  return { ...DEFAULT_TARGET_CONDITIONS };
+}
 
 const DEFAULT_TARGET_HEALTH = 4_000_000;
 const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;

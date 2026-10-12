@@ -57,7 +57,7 @@ export const harmonize = defineTrait<MesmerSkill>({
 });
 
 /** Mayhem owns its existing profile and ordered performance consequences. */
-export const mayhem = defineTrait<MesmerSkill>({
+const mayhem = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(troubadourDodgeCompleted, {
       run(runtime, { cast }: TriggerPointInput<typeof troubadourDodgeCompleted>) {
@@ -98,7 +98,7 @@ export const mayhem = defineTrait<MesmerSkill>({
 });
 
 /** Raconteur owns its existing profile and ordered performance consequences. */
-export const raconteur = defineTrait<MesmerSkill>({
+const raconteur = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(troubadourTaleResolved, {
       run: (runtime, input: TriggerPointInput<typeof troubadourTaleResolved>) =>
@@ -113,7 +113,7 @@ export const raconteur = defineTrait<MesmerSkill>({
 });
 
 /** Shredding owns its existing profile and ordered performance consequences. */
-export const shredding = defineTrait<MesmerSkill>({
+const shredding = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(troubadourInstrumentStrike, {
       run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentStrike>) => emitShredding(runtime, input)
@@ -141,7 +141,7 @@ export const shredding = defineTrait<MesmerSkill>({
 });
 
 /** Life of the Party owns its existing profile and ordered performance consequences. */
-export const lifeOfTheParty = defineTrait<MesmerSkill>({
+const lifeOfTheParty = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(troubadourCrescendoResolved, {
       run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>
@@ -226,7 +226,7 @@ export const fortissimo = defineTrait<MesmerSkill>({
 });
 
 /** Call and Response owns its existing profile and ordered performance consequences. */
-export const callAndResponse = defineTrait<MesmerSkill>({
+const callAndResponse = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(troubadourInstrumentCommitted, {
       run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentCommitted>) =>
@@ -242,14 +242,14 @@ export const callAndResponse = defineTrait<MesmerSkill>({
 });
 
 /** Symphonic Resonance owns its existing profile and ordered performance consequences. */
-export const symphonicResonance = defineTrait<MesmerSkill>({
+const symphonicResonance = defineTrait<MesmerSkill>({
   id: TRAIT.SYMPHONIC_RESONANCE,
   name: 'Symphonic Resonance',
   balance: { enduranceRegenerationMultiplier: 1.25 }
 });
 
 /** Altered Chord owns its existing profile and ordered performance consequences. */
-export const alteredChord = defineTrait<MesmerSkill>({
+const alteredChord = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(troubadourCrescendoResolved, {
       run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>

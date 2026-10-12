@@ -1,8 +1,8 @@
 import type { CastDetailContext, EffectOwnershipContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 // Negative checks guard the canonical family, not a separately narrowed test-only alias.
 function ownership(context: EffectOwnershipContext<WarriorSkill>) {
@@ -173,7 +173,7 @@ function readOnlyCollections(
 void readOnlyCollections;
 
 /** Author capabilities expose deliberate operations and concrete data, never another owner's writable storage. */
-function mechanicBoundaries(context: MechanicContext<WarriorRuntimeState, WarriorSkill>) {
+function mechanicBoundaries(context: WarriorRuntime) {
   context.resourceController.replace('motivation', 0);
   context.resourceController.replace('adrenaline', 1);
   context.cooldownController.setReadyAt(1, 2);

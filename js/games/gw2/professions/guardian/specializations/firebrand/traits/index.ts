@@ -18,7 +18,7 @@ import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { effectNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   finalMantraChargeUsed,
@@ -40,11 +40,9 @@ import {
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
@@ -60,7 +58,10 @@ export const swiftScholar = defineTrait({
   // The minor needs no explicit selection, but its rewards still obey trigger isolation; pages remain mechanic-owned.
   triggers: [
     onTriggerPoint(tomeOpened, { requiresSelection: false, run: openSwiftScholarSession }),
-    onTriggerPoint(tomeStowed, { requiresSelection: false, run: (runtime: Runtime) => resetSwiftScholar(runtime) }),
+    onTriggerPoint(tomeStowed, {
+      requiresSelection: false,
+      run: (runtime: GuardianRuntime) => resetSwiftScholar(runtime)
+    }),
     {
       on: 'castStart',
       requiresSelection: false,
@@ -371,7 +372,7 @@ export const firebrandTraits = [
 ];
 
 /** Tome session changes reset only the counter, never refunds earned by accepted casts. */
-function resetSwiftScholar(runtime: Runtime, virtue?: string): void {
+function resetSwiftScholar(runtime: GuardianRuntime, virtue?: string): void {
   const state = firebrandState.from(runtime);
   if (virtue === undefined || state.swiftScholarTome !== virtue) {
     state.swiftScholarTome = virtue ?? '';
@@ -380,7 +381,7 @@ function resetSwiftScholar(runtime: Runtime, virtue?: string): void {
 }
 
 /** A new tome session restarts the count; a ready opening grants Quickness after the shared virtue rewards. */
-function openSwiftScholarSession(runtime: Runtime, { cast, virtue, ready }: TomeOpening): void {
+function openSwiftScholarSession(runtime: GuardianRuntime, { cast, virtue, ready }: TomeOpening): void {
   resetSwiftScholar(runtime, virtue);
   if (!ready) return;
   const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.SWIFT_SCHOLAR);
@@ -407,7 +408,7 @@ function openSwiftScholarSession(runtime: Runtime, { cast, virtue, ready }: Tome
 }
 
 /** Final mantra charges grant pages and the trait's Slow before the mechanic retires the charge. */
-function grantWeightyTerms(runtime: Runtime, { context }: FinalMantraCharge): void {
+function grantWeightyTerms(runtime: GuardianRuntime, { context }: FinalMantraCharge): void {
   applySideEffect(runtime, context, {
     type: 'resourceGrant',
     resource: 'tomePages',
@@ -427,7 +428,7 @@ function sharedDelivery(event: Gw2ResolverEvent): boolean {
 }
 
 /** Delivered Aegis or Stability claims the interval only when its derived boons survive. */
-function grantStalwartSpeed(runtime: Runtime, { cause: boonCause }: FirebrandBuffApplication): void {
+function grantStalwartSpeed(runtime: GuardianRuntime, { cause: boonCause }: FirebrandBuffApplication): void {
   const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED);
   const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
   // Reserve the interval before delivery, so derived boons cannot reenter the proc.
@@ -462,7 +463,7 @@ function grantStalwartSpeed(runtime: Runtime, { cause: boonCause }: FirebrandBuf
 }
 
 /** Delivered Quickness grants the selected allied or self Ashes count once both the charge and Burning survive. */
-function grantQuickfireAshes(runtime: Runtime, { cause: event }: FirebrandBuffApplication): void {
+function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: FirebrandBuffApplication): void {
   const state = firebrandState.from(runtime);
   const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.QUICKFIRE);
@@ -499,7 +500,7 @@ function grantQuickfireAshes(runtime: Runtime, { cause: event }: FirebrandBuffAp
 }
 
 /** Accepted player controls grant the surviving Stoic Demeanor boons. */
-function grantStoicDemeanor(runtime: Runtime, { cause: boonCause }: FirebrandControl): void {
+function grantStoicDemeanor(runtime: GuardianRuntime, { cause: boonCause }: FirebrandControl): void {
   const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STOIC_DEMEANOR);
   const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
   if (!selectedBoons.length) return;
@@ -529,7 +530,7 @@ function grantStoicDemeanor(runtime: Runtime, { cause: boonCause }: FirebrandCon
 }
 
 /** Accepted axe hits apply Bleeding after consuming any Ashes charge. */
-function applyUnrelentingCriticism(runtime: Runtime, { cause: event }: FirebrandStrike): void {
+function applyUnrelentingCriticism(runtime: GuardianRuntime, { cause: event }: FirebrandStrike): void {
   // Keep axe ownership and reaction settlement while the profile owns Bleeding's authored fields.
   emitTraitProfile(runtime, TRAIT.UNRELENTING_CRITICISM, TRAIT.UNRELENTING_CRITICISM, undefined, {
     at: runtime.time,

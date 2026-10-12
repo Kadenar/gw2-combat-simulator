@@ -1,13 +1,13 @@
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { guardianTraitIcon, guardianTraitName } from '#gw2/professions/guardian/core/traits/metadata.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** A triggered symbol owns a distinct activation and schedules only its surviving selected components. */
 export function emitTraitSymbol(
-  runtime: MechanicContext<GuardianRuntimeState, GuardianSkill>,
+  runtime: GuardianRuntime,
   trait: number,
   symbolId: SkillId,
   cause: Gw2ResolverEvent,

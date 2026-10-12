@@ -8,8 +8,7 @@ import {
 } from '#gw2/app/rotation/editing/activation-editor.js';
 import { bindPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import { paletteGroupHtml, paletteSkillHtml, virtualPaletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
-import { gw2ApiText } from '#gw2/app/shared/html.js';
-import { escapeHtml } from '#ui/shared/html.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import {
   formatTimelineDuration,
   formatTimelineSkillTooltip,
@@ -273,8 +272,17 @@ test('timeline skill tooltips include matching and global cast ordinals', () => 
 test('GW2 API text removes presentation tags for native tooltips', () => {
   const description = '<c=@abilitytype>Stances</c> grant protection.<br><c=@reminder>Once per interval.</c>';
 
-  assert.equal(gw2ApiText(description), 'Stances grant protection.\nOnce per interval.');
-  assert.equal(escapeHtml(gw2ApiText('<c=abilitytype>"Glamour" & allies</c>')), '&quot;Glamour&quot; &amp; allies');
+  // Exercise tag removal and escaping through the public tooltip formatter.
+  assert.ok(
+    wikiTooltipAttributes('Stance', description).includes(
+      'data-wiki-description="Stances grant protection.\nOnce per interval."'
+    )
+  );
+  assert.ok(
+    wikiTooltipAttributes('Glamour', '<c=abilitytype>"Glamour" & allies</c>').includes(
+      'data-wiki-description="&quot;Glamour&quot; &amp; allies"'
+    )
+  );
 });
 
 test('palette primitives escape values and render state, ammo, cooldowns, and groups', () => {

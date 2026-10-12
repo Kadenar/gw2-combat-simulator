@@ -5,7 +5,7 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -39,10 +39,14 @@ import {
 } from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderVirtueWindowProfile } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type {
+  GuardianRuntimeState,
+  GuardianSkill,
+  GuardianVirtue,
+  GuardianRuntime
+} from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const PULSE = 'guardian.willbender.pulse';
 const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const VIRTUES = [
@@ -58,7 +62,7 @@ const FLAME_IDS = {
 const flameOwner = (generation: number) => ({ id: 'willbender-flames', generation });
 
 /** Windows open at their authored boundary without predicting hits or resetting partial hit progress. */
-function activate(runtime: Runtime, data: unknown): void {
+function activate(runtime: GuardianRuntime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
   const profile = willbenderVirtueWindowProfile(runtime, virtue);
   const window = requireEffect(profile, 'buff', virtue);
@@ -80,7 +84,7 @@ function activate(runtime: Runtime, data: unknown): void {
 }
 
 /** Same-virtue fields overlap; a different virtue retires all pending work from the prior flame group. */
-function flames(runtime: Runtime, data: unknown): void {
+function flames(runtime: GuardianRuntime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.flames);
   const strike = requireEffect(profile, 'strike', 'Strike');
@@ -117,7 +121,7 @@ function flames(runtime: Runtime, data: unknown): void {
 }
 
 /** Accepted player strikes and Air sigil procs advance each currently open virtue; no scheduler prediction is consulted. */
-function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedDamageDetails): void {
+function hit(runtime: GuardianRuntime, event: Gw2ResolverEvent, details: NativeResolvedDamageDetails): void {
   if (
     !((details.hitContext?.damage ?? 0) > 0) ||
     !(Number(event.coefficient) > 0) ||

@@ -3,7 +3,7 @@ import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
@@ -18,12 +18,9 @@ import {
   type GuardianCastCompletion
 } from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/mechanics/symbols.js';
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Empowering Might's live tuning and trait behavior. */
 export const empoweringMight = defineTrait({
@@ -173,7 +170,7 @@ export const invigoratedBulwark = defineTrait({
  * after its weapon-field selection, because a trait hook would run before Symbol of Ignition's field exists.
  */
 export function writOfPersistenceFields(
-  runtime: MechanicQueriesOf<Runtime>,
+  runtime: MechanicQueriesOf<GuardianRuntime>,
   cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
@@ -191,7 +188,7 @@ export function writOfPersistenceFields(
 
 /** Select authored trait extensions once and leave cancellation, impact delay, and boon sampling to the common runtime. */
 function writOfPersistenceEffects(
-  runtime: MechanicQueriesOf<Runtime>,
+  runtime: MechanicQueriesOf<GuardianRuntime>,
   cast: RuntimeCast<GuardianSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
@@ -266,9 +263,14 @@ function writOfPersistenceEffects(
 }
 
 /** A committed heal claims Protection's interval only when its selected symbol can emit. */
-function placeProtectorsSymbol(runtime: Runtime, { cast }: GuardianCastCompletion): void {
+function placeProtectorsSymbol(runtime: GuardianRuntime, { cast }: GuardianCastCompletion): void {
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
   emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause, {
     fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
   });
+}
+
+/** Field extensions use the authored skill tag; individual damage packets carry their own symbol eligibility. */
+function isGuardianSymbolSkill(skill: GuardianSkill | undefined): boolean {
+  return skill?.tags?.includes('symbol') === true;
 }

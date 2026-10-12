@@ -4,7 +4,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
@@ -13,7 +13,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 export const DETONATE = 'warrior.king-of-fires-detonate';
 
@@ -28,12 +28,12 @@ export function isBerserkerSkill(skill: WarriorSkill): boolean {
   return skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker';
 }
 
-export function armAura(runtime: Runtime, until: number): void {
+export function armAura(runtime: WarriorRuntime, until: number): void {
   const state = berserkerState.from(runtime);
   state.fireAuraUntil = Math.max(state.fireAuraUntil, until);
 }
 
-export function detonate(runtime: Runtime, payload: { activationId: string; skillId: number | string }): void {
+export function detonate(runtime: WarriorRuntime, payload: { activationId: string; skillId: number | string }): void {
   const state = berserkerState.from(runtime);
   if (state.fireAuraUntil <= runtime.time) return;
   const skill = runtime.helpers.skillsById.get(payload.skillId);
@@ -102,10 +102,8 @@ export function detonate(runtime: Runtime, payload: { activationId: string; skil
   }
 }
 
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
-
 /** Query Smash Brawler's extension before the mode owner publishes its deadline. */
-export function smashBrawlerBerserkExtension(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): number {
+export function smashBrawlerBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
   return cast.skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER)
     ? balanceProfileNumber(
         requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER),
@@ -115,7 +113,7 @@ export function smashBrawlerBerserkExtension(runtime: Runtime, cast: RuntimeCast
 }
 
 /** Query Last Blaze's Rage extension without mutating the active mode. */
-export function lastBlazeBerserkExtension(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): number {
+export function lastBlazeBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
   return cast.skill.categories?.includes('Rage') && cast.skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE)
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.LAST_BLAZE), 'durationMultiplier')
     : 0;

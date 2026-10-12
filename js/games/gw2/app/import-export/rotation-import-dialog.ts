@@ -26,7 +26,7 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
-export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
+const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 type RotationImportDestination = 'current' | 'reference';
 
 export interface RotationImportPreview {
@@ -115,7 +115,7 @@ export async function previewDpsReportUrl(
 }
 
 /** Fetches and reconstructs a gw2wingman rotation through the same dps.report preview contract. */
-export async function previewWingmanUrl(
+async function previewWingmanUrl(
   input: string,
   app: ProfessionAppState,
   fetchImplementation: typeof fetch = fetch

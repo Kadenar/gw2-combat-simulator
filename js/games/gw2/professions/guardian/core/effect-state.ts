@@ -1,8 +1,8 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
@@ -23,9 +23,7 @@ export function guardianBuffPolicies(context: unknown): BuffStatePolicy[] {
 }
 
 /** Core observes only its own live stacks; selected elites supply their separate effect pools. */
-export function guardianEffectStates(
-  runtime: MechanicQueriesOf<MechanicContext<GuardianRuntimeState, GuardianSkill>>
-): EffectState[] {
+export function guardianEffectStates(runtime: MechanicQueriesOf<GuardianRuntime>): EffectState[] {
   const core = runtime.profession.core;
   const effects = [
     timedEffectState(

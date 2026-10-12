@@ -1,5 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -17,15 +17,13 @@ import {
   enduringRefrainMultiplier,
   reverberationEchoCount
 } from '#gw2/professions/warrior/specializations/paragon/traits/behavior.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 const ECHO = 'warrior.paragon-command-echo';
 
 /** Each pulse uses the tier before spending, rewards actual spend, and stops when Motivation is exhausted. */
-function pulseRefrain(runtime: Runtime): void {
+function pulseRefrain(runtime: WarriorRuntime): void {
   const state = paragonState.from(runtime);
   const skill = state.activeRefrainId == null ? undefined : runtime.helpers.skillsById.get(state.activeRefrainId);
   const motivation = runtime.resourceController.value('motivation');
@@ -82,7 +80,7 @@ function pulseRefrain(runtime: Runtime): void {
 }
 
 /** A completed chant opens its selected packets and reduces only the other chants' existing recharge. */
-function activateChant(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = paragonState.from(runtime);
   state.activeRefrainId = cast.skill.id;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.chants);
@@ -119,7 +117,7 @@ function activateChant(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void 
 }
 
 /** A consumed echo invalidates its old wake and starts any remaining repeat from the actual consumption time. */
-function consumeEcho(runtime: Runtime, activationId: string): void {
+function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   const state = paragonState.from(runtime);
   const echo = state.commandEchoes[activationId];
   if (!echo) return;
@@ -167,7 +165,7 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
 }
 
 /** Command instances retain independent repeats; a successful burst consumes one repeat from each pending command. */
-function activateCommand(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function activateCommand(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.commands), 'pulseInterval');
   const remaining = reverberationEchoCount(runtime);
   if (interval <= 0 || remaining <= 0) return;

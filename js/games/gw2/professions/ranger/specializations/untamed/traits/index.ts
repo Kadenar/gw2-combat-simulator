@@ -38,7 +38,7 @@ function rangerUnleashed(context: Gw2ModifierContext): boolean {
 }
 
 /** Owns Natural Fortitude's live tuning and trait behavior. */
-export const naturalFortitude = defineTrait({
+const naturalFortitude = defineTrait({
   id: TRAIT.NATURAL_FORTITUDE,
   name: 'Natural Fortitude',
   balance: {
@@ -76,7 +76,7 @@ export const naturalFortitude = defineTrait({
 });
 
 /** Owns Let Loose's live tuning and trait behavior. */
-export const letLoose = defineTrait({
+const letLoose = defineTrait({
   triggers: [
     {
       on: 'castCommit',
@@ -111,7 +111,7 @@ export const letLoose = defineTrait({
 });
 
 /** Owns Blinding Outburst's live tuning and trait behavior. */
-export const blindingOutburst = defineTrait({
+const blindingOutburst = defineTrait({
   id: TRAIT.BLINDING_OUTBURST,
   name: 'Blinding Outburst',
   balance: {
@@ -150,7 +150,7 @@ export const blindingOutburst = defineTrait({
 });
 
 /** Owns Ferocious Symbiosis's live tuning and trait behavior. */
-export const ferociousSymbiosis = defineTrait({
+const ferociousSymbiosis = defineTrait({
   triggers: [
     onTriggerPoint(untamedStrike, {
       run: (runtime, input: TriggerPointInput<typeof untamedStrike>) => triggerFerociousSymbiosis(runtime, input.event)
@@ -202,7 +202,7 @@ export const ferociousSymbiosis = defineTrait({
 });
 
 /** Owns Debilitating Blows's live tuning and trait behavior. */
-export const debilitatingBlows = defineTrait({
+const debilitatingBlows = defineTrait({
   id: TRAIT.DEBILITATING_BLOWS,
   name: 'Debilitating Blows',
   balance: {
@@ -255,7 +255,7 @@ export const debilitatingBlows = defineTrait({
 });
 
 /** Owns Enhancing Impact's live tuning and trait behavior. */
-export const enhancingImpact = defineTrait({
+const enhancingImpact = defineTrait({
   id: TRAIT.ENHANCING_IMPACT,
   name: 'Enhancing Impact',
   balance: {
@@ -304,7 +304,7 @@ export const enhancingImpact = defineTrait({
 });
 
 /** Owns Vow of the Untamed's live tuning and trait behavior. */
-export const vowOfTheUntamed = defineTrait({
+const vowOfTheUntamed = defineTrait({
   id: TRAIT.VOW_OF_THE_UNTAMED,
   name: 'Vow of the Untamed',
   // Trait balance is the single tuning source for modifiers and presentation.

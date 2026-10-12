@@ -1,5 +1,7 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
+import { getActiveTraits as getWarriorActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -247,7 +249,10 @@ test('Chemical Rounds declares base-duration eligibility and respects patch tuni
 // The panel and live query must supply the same equipment source to specialized conversions.
 test('Blood Reaction build and live sources agree for both equipment sets', () => {
   const family = families.warrior;
-  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(warriorCatalog, getWarriorActiveTraits),
+    family.attributeContributions
+  );
   const build = createWarriorBuildDefaults();
   build.specializations = [{ name: 'Berserker', traits: '1-1-1' }];
   build.alternateWeaponPrefixes = ["Assassin's", "Assassin's"];

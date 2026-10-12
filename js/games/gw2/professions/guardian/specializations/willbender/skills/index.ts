@@ -1,11 +1,10 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
@@ -240,7 +239,7 @@ export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, Gu
       ] as const
     ).map(([virtue, activationAt]) => [
       `guardian.start-${virtue}`,
-      (runtime: MechanicContext<GuardianRuntimeState, GuardianSkill>, context: ActionContext<GuardianSkill>) => {
+      (runtime: GuardianRuntime, context: ActionContext<GuardianSkill>) => {
         if (context.kind !== 'cast') return;
         const cast = context.cast;
         const at = canonicalTime(activationAt(cast));

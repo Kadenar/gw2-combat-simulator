@@ -3,7 +3,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -25,10 +25,8 @@ import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/mod
 import { justiceBlinding, type JusticeBlinding } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 const MIGHT = 'guardian.righteous-might';
 
@@ -75,7 +73,7 @@ export const righteousInstincts = defineTrait({
     onTriggerPoint(guardianBuffApplied, {
       when: (_runtime, { cause }: GuardianBuffApplication) =>
         cause.kind === 'resolution' && cause.resolvedAudience?.includesSelf === true,
-      run: (runtime: Runtime, { cause }: GuardianBuffApplication) => startRighteousInstincts(runtime, cause)
+      run: (runtime: GuardianRuntime, { cause }: GuardianBuffApplication) => startRighteousInstincts(runtime, cause)
     })
   ],
   lifetime: { tasks: { [RESOLUTION_EXPIRY]: expireRighteousResolution, [MIGHT]: pulseRighteousMight } }
@@ -285,7 +283,7 @@ export const innerFire = defineTrait({
 });
 
 /** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
-function resolutionDeadline(runtime: Runtime): number {
+function resolutionDeadline(runtime: GuardianRuntime): number {
   const remaining = remainingDurationStackSeconds(runtime.combat.boonApplications('resolution'), runtime.time, {
     includes: (application) => application.resolvedAudience.includesSelf,
     maximum: durationStackingBoonCapSeconds('resolution'),
@@ -295,7 +293,7 @@ function resolutionDeadline(runtime: Runtime): number {
 }
 
 /** Grant the selected Might component without moving its emission outside the Resolution cadence. */
-function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boolean {
+function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): boolean {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
   const effect = requireEffect(profile, 'boon', 'might');
   if (!effect) return false;
@@ -332,7 +330,7 @@ function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boolean {
 }
 
 /** A new self Resolution window starts one cadence; additional applications extend its pool without duplicating ticks. */
-function startRighteousInstincts(runtime: Runtime, event: Gw2ResolverEvent): void {
+function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   const state = runtime.profession.core;
   const active = state.resolutionUntil > runtime.time;
   state.resolutionUntil = resolutionDeadline(runtime);
@@ -356,7 +354,7 @@ function startRighteousInstincts(runtime: Runtime, event: Gw2ResolverEvent): voi
 }
 
 /** Refresh the live Resolution deadline before same-time Might pulses. */
-function expireRighteousResolution(runtime: Runtime, deadline: unknown): void {
+function expireRighteousResolution(runtime: GuardianRuntime, deadline: unknown): void {
   const state = runtime.profession.core;
   if (state.resolutionUntil !== deadline) return;
   state.resolutionUntil = resolutionDeadline(runtime);
@@ -365,7 +363,7 @@ function expireRighteousResolution(runtime: Runtime, deadline: unknown): void {
 }
 
 /** Continue one Might cadence while its generation and Resolution window remain live. */
-function pulseRighteousMight(runtime: Runtime, data: unknown): void {
+function pulseRighteousMight(runtime: GuardianRuntime, data: unknown): void {
   const { generation, event } = data as { generation: number; event: Gw2ResolverEvent };
   const state = runtime.profession.core;
   if (generation !== state.righteousInstinctsGeneration) return;
@@ -379,7 +377,7 @@ function pulseRighteousMight(runtime: Runtime, data: unknown): void {
 }
 
 /** A committed heal claims Resolution's interval only when its selected boon can emit. */
-function grantHealersResolution(runtime: Runtime, { cast }: GuardianCastCompletion): void {
+function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCastCompletion): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEALERS_RESOLUTION);
   // A removed boon leaves this heal's claim ready.
   if (
@@ -396,7 +394,7 @@ function grantHealersResolution(runtime: Runtime, { cast }: GuardianCastCompleti
 }
 
 /** Admit the companion aura before Blind; removing Blind does not remove the independent aura reward. */
-function blindFromJustice(runtime: Runtime, { cause: event, skill, auraTask }: JusticeBlinding): void {
+function blindFromJustice(runtime: GuardianRuntime, { cause: event, skill, auraTask }: JusticeBlinding): void {
   // The independent aura is admitted before Blind; removal of the latter never cancels the former.
   runtime.schedule(auraTask, event.at, event, undefined, -10);
   emitTraitProfile(runtime, TRAIT.JUSTICE_IS_BLIND, TRAIT.JUSTICE_IS_BLIND, event, {

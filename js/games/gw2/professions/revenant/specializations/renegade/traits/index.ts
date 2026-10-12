@@ -42,7 +42,7 @@ import { warbandCompleted } from '#gw2/professions/revenant/specializations/rene
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns All for One tuning and behavior at its established execution boundaries. */
-export const allForOne = defineTrait({
+const allForOne = defineTrait({
   triggers: [
     onTriggerPoint(warbandCompleted, {
       run: (runtime, input: TriggerPointInput<typeof warbandCompleted>) => grantAllForOneEnergy(runtime, input.enhanced)
@@ -67,7 +67,7 @@ export const allForOne = defineTrait({
 });
 
 /** Owns Ambush Commander tuning and behavior at its established execution boundaries. */
-export const ambushCommander = defineTrait({
+const ambushCommander = defineTrait({
   triggers: [
     onTriggerPoint(invocationFervorGranted, {
       requiresSelection: false,
@@ -99,7 +99,7 @@ export const ambushCommander = defineTrait({
 });
 
 /** Owns Ashen Demeanor tuning and behavior at its established execution boundaries. */
-export const ashenDemeanorTrait = defineTrait({
+const ashenDemeanorTrait = defineTrait({
   triggers: [
     onTriggerPoint(renegadeCastCompleted, {
       run: (runtime, input: TriggerPointInput<typeof renegadeCastCompleted>) => ashenDemeanor(runtime, input.cast)
@@ -119,7 +119,7 @@ export const ashenDemeanorTrait = defineTrait({
 });
 
 /** Owns Blood Fury tuning and behavior at its established execution boundaries. */
-export const bloodFury = defineTrait({
+const bloodFury = defineTrait({
   triggers: [
     onTriggerPoint(renegadeBoonApplied, {
       run: (runtime, input: TriggerPointInput<typeof renegadeBoonApplied>) => furyTraits(runtime, input.cause)
@@ -153,7 +153,7 @@ export const bloodFury = defineTrait({
 });
 
 /** Owns the additional protection payload layered on the enhanced order. */
-export const boldReversal = defineTrait({
+const boldReversal = defineTrait({
   id: TRAIT.BOLD_REVERSAL,
   name: 'Bold Reversal',
   balance: {
@@ -175,7 +175,7 @@ export const boldReversal = defineTrait({
 });
 
 /** Owns Brutal Momentum tuning and behavior at its established execution boundaries. */
-export const brutalMomentum = defineTrait({
+const brutalMomentum = defineTrait({
   // Attributes supply the baseline; full endurance adds only the remaining critical chance.
   modifierRules: [
     {
@@ -226,7 +226,7 @@ export const brutalMomentum = defineTrait({
 });
 
 /** Owns Endless Enmity tuning and behavior at its established execution boundaries. */
-export const endlessEnmity = defineTrait({
+const endlessEnmity = defineTrait({
   id: TRAIT.ENDLESS_ENMITY,
   name: 'Endless Enmity',
   balance: {
@@ -270,7 +270,7 @@ export const endlessEnmity = defineTrait({
 });
 
 /** Owns Heartpiercer tuning and behavior at its established execution boundaries. */
-export const heartpiercer = defineTrait({
+const heartpiercer = defineTrait({
   id: TRAIT.HEARTPIERCER,
   name: 'Heartpiercer',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -301,7 +301,7 @@ export const heartpiercer = defineTrait({
 });
 
 /** Owns Lasting Legacy tuning and behavior at its established execution boundaries. */
-export const lastingLegacy = defineTrait({
+const lastingLegacy = defineTrait({
   id: TRAIT.LASTING_LEGACY,
   name: 'Lasting Legacy',
   balance: {
@@ -382,7 +382,7 @@ export const lastingLegacy = defineTrait({
 });
 
 /** Owns Righteous Rebel tuning and behavior at its established execution boundaries. */
-export const righteousRebel = defineTrait({
+const righteousRebel = defineTrait({
   id: TRAIT.RIGHTEOUS_REBEL,
   name: 'Righteous Rebel',
   balance: {
@@ -405,7 +405,7 @@ export const righteousRebel = defineTrait({
 });
 
 /** Owns Vindication tuning and behavior at its established execution boundaries. */
-export const vindication = defineTrait({
+const vindication = defineTrait({
   id: TRAIT.VINDICATION,
   name: 'Vindication',
   balance: {

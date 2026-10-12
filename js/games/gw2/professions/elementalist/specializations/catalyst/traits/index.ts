@@ -59,7 +59,7 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
   duration
 });
 /** Owns Empowering Auras tuning and its existing execution behavior. */
-export const empoweringAuras = defineTrait({
+const empoweringAuras = defineTrait({
   id: TRAIT.EMPOWERING_AURAS,
   name: 'Empowering Auras',
   // New aura rewards obey activation isolation; accepted stacks still retain their lifetime.
@@ -100,7 +100,7 @@ export const empoweringAuras = defineTrait({
   ]
 });
 /** Owns Elemental Epitome tuning and its existing execution behavior. */
-export const elementalEpitome = defineTrait({
+const elementalEpitome = defineTrait({
   id: TRAIT.ELEMENTAL_EPITOME,
   name: 'Elemental Epitome',
   // Aura and combo admission share selection without sharing their independent eligibility rules.
@@ -126,7 +126,7 @@ export const elementalEpitome = defineTrait({
   }
 });
 /** Owns Elemental Synergy tuning and its existing execution behavior. */
-export const elementalSynergy = defineTrait({
+const elementalSynergy = defineTrait({
   id: TRAIT.ELEMENTAL_SYNERGY,
   name: 'Elemental Synergy',
   // Per-element combo rewards are admitted only while trait producers are enabled.
@@ -138,9 +138,9 @@ export const elementalSynergy = defineTrait({
   }
 });
 /** Shares the existing Elemental Empowerment profile's scaling fields without duplicating patch targets. */
-export const empoweredEmpowerment = defineTrait({ id: TRAIT.EMPOWERED_EMPOWERMENT, name: 'Empowered Empowerment' });
+const empoweredEmpowerment = defineTrait({ id: TRAIT.EMPOWERED_EMPOWERMENT, name: 'Empowered Empowerment' });
 /** Owns Elemental Empowerment tuning and its existing execution behavior. */
-export const elementalEmpowerment = defineTrait({
+const elementalEmpowerment = defineTrait({
   attributes: elementalEmpowermentAttributes,
   id: TRAIT.ELEMENTAL_EMPOWERMENT,
   name: 'Elemental Empowerment',
@@ -194,12 +194,12 @@ export const viciousEmpowerment = defineTrait({
   }
 });
 /** Unlocks Catalyst; the energy resource profile owns its capacity. */
-export const depthOfElements = defineTrait({
+const depthOfElements = defineTrait({
   id: TRAIT.DEPTH_OF_ELEMENTS,
   name: 'Depth of Elements'
 });
 /** Owns Energized Elements tuning and its existing execution behavior. */
-export const energizedElements = defineTrait({
+const energizedElements = defineTrait({
   triggers: [
     onTriggerPoint(catalystTransitionObserved, {
       run: (runtime: ElementalistRuntime, { event }: { readonly event: SimulationEvent }) => {
@@ -215,7 +215,7 @@ export const energizedElements = defineTrait({
   }
 });
 /** Owns Spectacular Sphere tuning and its existing execution behavior. */
-export const spectacularSphere = defineTrait({
+const spectacularSphere = defineTrait({
   triggers: [
     onTriggerPoint(sphereDeployed, {
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
@@ -235,7 +235,7 @@ export const spectacularSphere = defineTrait({
   }
 });
 /** Owns Sphere Specialist tuning and its existing execution behavior. */
-export const sphereSpecialist = defineTrait({
+const sphereSpecialist = defineTrait({
   id: TRAIT.SPHERE_SPECIALIST,
   name: 'Sphere Specialist',
   balance: {

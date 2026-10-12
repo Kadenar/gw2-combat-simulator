@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2SimulationConfig } from '#gw2/app/simulation/build-config.js';
-import { DEFAULT_TARGET_CONDITIONS } from '#gw2/platform/builds/default-target-conditions.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { createElementalistBuildDefaults } from '#gw2/professions/elementalist/build/build.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
@@ -21,8 +21,28 @@ test('all profession pages use the shared default target conditions', () => {
     createRevenantBuildDefaults,
     createThiefBuildDefaults
   ]) {
-    assert.deepEqual(createDefaults().assumptions.targetConditions, DEFAULT_TARGET_CONDITIONS);
+    assert.deepEqual(createDefaults().assumptions.targetConditions, {
+      Bleeding: 1,
+      Burning: true,
+      Torment: 1,
+      Confusion: 1,
+      Poisoned: true,
+      Chilled: true,
+      Crippled: true,
+      Slow: true,
+      Weakness: true,
+      Vulnerability: 25
+    });
   }
+});
+
+// Each build owns mutable assumptions so editing one cannot alter future defaults or another build.
+test('default target conditions are isolated between builds', () => {
+  const first = createCommonBuildDefaults();
+  const second = createCommonBuildDefaults();
+  first.assumptions.targetConditions.Vulnerability = 0;
+  assert.equal(second.assumptions.targetConditions.Vulnerability, 25);
+  assert.equal(createCommonBuildDefaults().assumptions.targetConditions.Vulnerability, 25);
 });
 
 test('simulation config carries the persisted target starting-health percentage', () => {

@@ -36,7 +36,7 @@ const COMPASSION = 'revenant.herald-elevated-compassion';
 const ECHO_EXPIRY = 'revenant.herald-echo-expiry';
 
 /** Owns Core Value tuning and behavior at its established execution boundaries. */
-export const coreValue = defineTrait({
+const coreValue = defineTrait({
   id: TRAIT.CORE_VALUE,
   name: 'Core Value',
   balance: { duration: 1 }
@@ -116,7 +116,7 @@ export const draconicEcho = defineTrait({
 });
 
 /** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
-export const elevatedCompassion = defineTrait({
+const elevatedCompassion = defineTrait({
   triggers: [onTriggerPoint(heraldUpkeepSettled, { run: syncCompassion })],
   attributes: traitAttributeEffects(HERALD_ELEVATED_COMPASSION_PROFILE_ID, [
     {
@@ -152,7 +152,7 @@ export const elevatedCompassion = defineTrait({
 });
 
 /** Owns Forceful Persistence tuning and behavior at its established execution boundaries. */
-export const forcefulPersistence = defineTrait({
+const forcefulPersistence = defineTrait({
   id: TRAIT.FORCEFUL_PERSISTENCE,
   name: 'Forceful Persistence',
   balance: { damageIncreasePerStack: 0.1, upkeepDamageIncrease: 0.25 },
@@ -181,7 +181,7 @@ export const forcefulPersistence = defineTrait({
 });
 
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
-export const reinforcedPotency = defineTrait({
+const reinforcedPotency = defineTrait({
   attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
   ]),
@@ -211,7 +211,7 @@ export const reinforcedPotency = defineTrait({
 });
 
 /** Owns Shared Empowerment tuning and behavior at its established execution boundaries. */
-export const sharedEmpowerment = defineTrait({
+const sharedEmpowerment = defineTrait({
   id: TRAIT.SHARED_EMPOWERMENT,
   name: 'Shared Empowerment',
   balance: {

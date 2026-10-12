@@ -1,3 +1,4 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import {
@@ -20,14 +21,15 @@ import {
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
+import { getActiveTraits as getMesmerActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calcAttributes = createCalculateAttributes(
-  applyMesmerBuildAttributeRules,
+  createProfessionBuildAttributeRules(mesmerCatalog, getMesmerActiveTraits),
   mesmerAppAdapter.profession.attributeContributions
 );
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);

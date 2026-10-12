@@ -1,3 +1,4 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 // Inputs are equipment attributes; baseline Might and its trait adjustment share one stage.
 function notorietyAttributes(context, attributes) {
   const facts = attributeContext(
@@ -27,7 +28,7 @@ import {
   migrateRevenantBuild,
   validateRevenantBuild
 } from '#gw2/professions/revenant/build/build.js';
-import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
+import { getActiveTraits as getRevenantActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -48,7 +49,7 @@ import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpe
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(
-  applyRevenantBuildAttributeRules,
+  createProfessionBuildAttributeRules(revenantCatalog, getRevenantActiveTraits),
   revenantProfession.attributeContributions
 );
 

@@ -1,7 +1,9 @@
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
-import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -11,7 +13,7 @@ import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
 export const rangerAppAdapter = defineProfessionApp({
   tooltips: rangerTooltips,
   profession: rangerProfession,
-  applyBuildAttributeRules: applyRangerBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(rangerCatalog, getActiveTraits),
   toApplicationBuild,
   resetPrompt: 'Reset the Ranger build, pet, assumptions, and rotation?',
   runtime: {

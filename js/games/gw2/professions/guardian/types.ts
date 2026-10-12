@@ -1,4 +1,4 @@
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
@@ -63,6 +63,9 @@ export interface GuardianStrikeFields {
   readonly hitIndex?: number;
   readonly totalHits?: number;
 }
+
+/** Shared full mechanic context; read-only and resolver consumers retain their narrower capabilities. */
+export type GuardianRuntime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 export type GuardianResolverContext = MechanicCombatContext & {
   config: GuardianConfig;

@@ -40,7 +40,7 @@ export interface RitualistState {
 }
 
 /** Declares Ritualist's public fields and missing-state defaults, used only when Ritualist is selected. */
-export const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeSpirits: {},
   soulTwistingAvailable: false
 } satisfies Partial<RitualistState>);

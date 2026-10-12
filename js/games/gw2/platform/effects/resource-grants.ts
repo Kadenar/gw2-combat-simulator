@@ -5,7 +5,7 @@ import type { Skill, BalanceProfile } from '#gw2/platform/skills/types.js';
 export type ResourceGrantAction = Extract<SideEffectAction, { type: 'resourceGrant' }> & { readonly id: string };
 
 /** Stable identities expose authored resource rewards without depending on reaction or action ordering. */
-export function resourceGrantActions(actions: readonly SideEffectAction[]): readonly ResourceGrantAction[] {
+function resourceGrantActions(actions: readonly SideEffectAction[]): readonly ResourceGrantAction[] {
   return actions.filter(
     (action): action is ResourceGrantAction => action.type === 'resourceGrant' && typeof action.id === 'string'
   );

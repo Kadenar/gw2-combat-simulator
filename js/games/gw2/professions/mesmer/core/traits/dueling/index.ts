@@ -459,7 +459,7 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
 }
 
 /** Read fixed stack tuning with the parent query cache while the applied stacks remain live. */
-export function prepareFencersFinesse(context: Gw2ModifierContext) {
+function prepareFencersFinesse(context: Gw2ModifierContext) {
   const profile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
   return {
     duration: balanceProfileNumber(profile, 'durationMultiplier'),
@@ -469,10 +469,7 @@ export function prepareFencersFinesse(context: Gw2ModifierContext) {
 }
 
 /** Applied sword stacks retain their contribution even if the current selection changes. */
-export function fencersFinesseFerocity(
-  context: Gw2ModifierContext,
-  facts: ReturnType<typeof prepareFencersFinesse>
-): number {
+function fencersFinesseFerocity(context: Gw2ModifierContext, facts: ReturnType<typeof prepareFencersFinesse>): number {
   return timedStacks(context, 'fencer', facts.duration, facts.maximum) * facts.perStack;
 }
 

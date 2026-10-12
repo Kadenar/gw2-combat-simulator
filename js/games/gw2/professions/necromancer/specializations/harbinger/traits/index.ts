@@ -22,7 +22,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { party } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/audiences.js';
+import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
 import {
   harbingerBlightConsumed,
@@ -41,7 +41,7 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Cascading Corruption tuning and behavior at its existing execution boundaries. */
-export const cascadingCorruption = defineTrait({
+const cascadingCorruption = defineTrait({
   triggers: [
     onTriggerPoint(harbingerBlightConsumed, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerBlightConsumed>) =>
@@ -106,7 +106,7 @@ export const cascadingCorruption = defineTrait({
 });
 
 /** Owns Septic Corruption tuning and behavior at its existing execution boundaries. */
-export const septicCorruption = defineTrait({
+const septicCorruption = defineTrait({
   triggers: [
     onTriggerPoint(harbingerStrike, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
@@ -146,7 +146,7 @@ export const septicCorruption = defineTrait({
 });
 
 /** Owns Doom Approaches tuning and behavior at its existing execution boundaries. */
-export const doomApproaches = defineTrait({
+const doomApproaches = defineTrait({
   triggers: [
     onTriggerPoint(harbingerStrike, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
@@ -186,7 +186,7 @@ export const doomApproaches = defineTrait({
 });
 
 /** Owns Deathly Haste tuning and behavior at its existing execution boundaries. */
-export const deathlyHaste = defineTrait({
+const deathlyHaste = defineTrait({
   triggers: [
     // Only compiled cast admission may start the shroud finisher's party reward.
     {
@@ -227,7 +227,7 @@ export const deathlyHaste = defineTrait({
 });
 
 /** Owns Corrupted Talent tuning and behavior at its existing execution boundaries. */
-export const corruptedTalent = defineTrait({
+const corruptedTalent = defineTrait({
   triggers: [onTriggerPoint(harbingerShroudEntered, { run: grantCorruptedTalent })],
   id: TRAIT.CORRUPTED_TALENT,
   name: 'Corrupted Talent',
@@ -237,7 +237,7 @@ export const corruptedTalent = defineTrait({
 });
 
 /** Owns Implacable Foe tuning and behavior at its existing execution boundaries. */
-export const implacableFoe = defineTrait({
+const implacableFoe = defineTrait({
   triggers: [
     onTriggerPoint(harbingerShroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerShroudEntered>) =>
@@ -280,7 +280,7 @@ export const implacableFoe = defineTrait({
 });
 
 /** Owns Bolstering Brew tuning and behavior at its existing execution boundaries. */
-export const bolsteringBrew = defineTrait({
+const bolsteringBrew = defineTrait({
   triggers: [
     onTriggerPoint(harbingerElixirLaunched, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerElixirLaunched>) =>
@@ -304,7 +304,7 @@ export const bolsteringBrew = defineTrait({
 });
 
 /** Owns Alchemic Vigor tuning and behavior at its existing execution boundaries. */
-export const alchemicVigor = defineTrait({
+const alchemicVigor = defineTrait({
   id: TRAIT.ALCHEMIC_VIGOR,
   name: 'Alchemic Vigor',
   balance: {
@@ -316,7 +316,7 @@ export const alchemicVigor = defineTrait({
 });
 
 /** Owns Twisted Medicine tuning and behavior at its existing execution boundaries. */
-export const twistedMedicine = defineTrait({
+const twistedMedicine = defineTrait({
   id: TRAIT.TWISTED_MEDICINE,
   name: 'Twisted Medicine',
   balance: {
@@ -335,7 +335,7 @@ export const twistedMedicine = defineTrait({
 });
 
 /** Owns Wicked Corruption tuning and behavior at its existing execution boundaries. */
-export const wickedCorruption = defineTrait({
+const wickedCorruption = defineTrait({
   id: TRAIT.WICKED_CORRUPTION,
   name: 'Wicked Corruption',
   balance: {
@@ -369,7 +369,7 @@ export const wickedCorruption = defineTrait({
 });
 
 /** Owns Dark Gunslinger tuning and behavior at its existing execution boundaries. */
-export const darkGunslinger = defineTrait({
+const darkGunslinger = defineTrait({
   id: TRAIT.DARK_GUNSLINGER,
   name: 'Dark Gunslinger',
   balance: {
@@ -432,7 +432,7 @@ function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): void {
     skillWeaponFallback: 'Unequipped',
     attribution: (effect) => ({
       actorType: effect.actorType ?? (skill.type === 'Trait' ? 'effect' : 'player'),
-      audience: party(runtime)
+      audience: necromancerPartyAudience(runtime)
     })
   });
 }
@@ -511,7 +511,7 @@ function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast<Necr
         // Elixir casting owns the timing; Bolstering Brew owns these additional grants.
         source: 'Trait',
         sourceId: TRAIT.BOLSTERING_BREW,
-        audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : undefined
+        audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? necromancerPartyAudience(runtime) : undefined
       })),
       ...harbingerCastEmissionPolicy(cast, cast.skill)
     });

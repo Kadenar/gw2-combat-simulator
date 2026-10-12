@@ -1,25 +1,30 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
+import { getActiveTraits as getElementalistActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
+import { getActiveTraits as getEngineerActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import {
   ENGINEER_TRAIT_IDS as ENGINEER,
   ENGINEER_SKILL_IDS as ENGINEER_SKILLS
 } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
+import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import {
   GUARDIAN_TRAIT_IDS as GUARDIAN,
   GUARDIAN_SKILL_IDS as GUARDIAN_SKILLS
 } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
+import { getActiveTraits as getMesmerActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as MESMER, MESMER_SKILL_IDS as MESMER_SKILLS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { WARRIOR_TRAIT_IDS as WARRIOR } from '#gw2/professions/warrior/data/ids.js';
@@ -76,7 +81,10 @@ test('Luminary definitions preserve eligible build grants and applied armament w
       [GUARDIAN.RADIANT_ARMAMENTS]: { fields: { damageIncrease: 0.1 } }
     }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    family.attributeContributions
+  );
   const build = {
     specializations: [
       { name: 'Luminary', traits: '1-1-1' },
@@ -127,7 +135,10 @@ test('Willbender build definitions read active tuning and honor disabled trait p
       [GUARDIAN.CONCEITED_CURATE]: { fields: { attributeBonus: 240 } }
     }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    family.attributeContributions
+  );
   for (const [choices, name, attribute, baseline, preview] of [
     ['1-1-1', 'Searing Pact', 'Condition Damage', 120, 150],
     ['2-1-1', 'Power for Power', 'Power', 120, 200],
@@ -150,7 +161,10 @@ test('Imbued Haste shares patched attributes between build preview and current r
   const family = patched(guardianProfession, {
     balanceProfiles: { [GUARDIAN.IMBUED_HASTE]: { fields: { attributeBonus: 175 } } }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    family.attributeContributions
+  );
   const build = { specializations: [{ name: 'Firebrand', traits: '1-1-1' }] };
   for (const [patchId, bonus] of [
     ['current', 250],
@@ -196,7 +210,10 @@ test('Guardian Virtues share patched conversion and recharge without reapplying 
       [GUARDIAN.POWER_OF_THE_VIRTUOUS]: { fields: { attributeConversion: 0.11, rechargeMultiplier: 0.5 } }
     }
   });
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    family.attributeContributions
+  );
   const build = { specializations: [{ name: 'Virtues', traits: '1-1-1' }] };
   for (const [patchId, bonus, recharge] of [
     ['current', 70, 25.5],
@@ -235,7 +252,10 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
     }
   });
   const balance = family.balanceContextFor('s4-preview');
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
+    family.attributeContributions
+  );
   const build = {
     specializations: [
       { name: 'Zeal', traits: '1-2-1' },
@@ -271,7 +291,10 @@ test('Engineer Core definitions share patched build grants and preserve static a
   const family = patched(engineerProfession, {
     balanceProfiles: { [ENGINEER.CHEMICAL_ROUNDS]: { fields: { attributeBonus: 180 } } }
   });
-  const calculate = createCalculateAttributes(applyEngineerBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(engineerCatalog, getEngineerActiveTraits),
+    family.attributeContributions
+  );
   const build = { specializations: [{ name: 'Firearms', traits: '1-2-3' }] };
   for (const [patchId, bonus] of [
     ['current', 120],
@@ -333,7 +356,10 @@ test('Elementalist Core definitions preserve patched build grants and disabled-t
       [ELEMENTALIST.ZEPHYRS_SPEED]: { fields: { criticalChance: 0.1 } }
     }
   });
-  const calculate = createCalculateAttributes(applyElementalistBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(elementalistCatalog, getElementalistActiveTraits),
+    family.attributeContributions
+  );
   const build = {
     specializations: [
       { name: 'Fire', traits: '1-1-1' },
@@ -458,7 +484,10 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
     0.4
   );
 
-  const calculate = createCalculateAttributes(applyMesmerBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(mesmerCatalog, getMesmerActiveTraits),
+    family.attributeContributions
+  );
   const build = { specializations: [{ name: 'Virtuoso', traits: '0-0-0' }], assumptions: { fury: true } };
   const live = calculate(build, [], 1, null, null, family.balanceContextFor('current'));
   const preview = calculate(build, [], 1, null, null, family.balanceContextFor('s4-preview'));
@@ -617,7 +646,10 @@ test('Mesmer Core and elite build owners consume patched values with independent
       [MESMER.FLOW_OF_TIME]: { fields: { criticalChance: 0.2 } }
     }
   });
-  const calculate = createCalculateAttributes(applyMesmerBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(mesmerCatalog, getMesmerActiveTraits),
+    family.attributeContributions
+  );
   const build = {
     specializations: [
       { name: 'Chaos', traits: '1-1-1' },

@@ -43,7 +43,7 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
-export const galeSong = defineTrait({
+const galeSong = defineTrait({
   triggers: [
     onTriggerPoint(tempestCastCompleting, {
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
@@ -57,7 +57,7 @@ export const galeSong = defineTrait({
   }
 });
 
-export const latentStamina = defineTrait({
+const latentStamina = defineTrait({
   triggers: [
     onTriggerPoint(tempestTransitionObserved, {
       run: (runtime: ElementalistRuntime, { event, emissionCast }: TempestTransition) =>
@@ -72,7 +72,7 @@ export const latentStamina = defineTrait({
   }
 });
 
-export const tempestuousAria = defineTrait({
+const tempestuousAria = defineTrait({
   triggers: [
     onTriggerPoint(tempestCastCompleted, {
       when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => cast.skill.skillFamily === 'Shout',
@@ -115,7 +115,7 @@ export const tempestuousAria = defineTrait({
   ]
 });
 
-export const invigoratingTorrents = defineTrait({
+const invigoratingTorrents = defineTrait({
   triggers: [
     onTriggerPoint(auraAccepted, {
       run: (runtime: ElementalistResolverContext, { cause }: ElementalistReaction) =>
@@ -132,7 +132,7 @@ export const invigoratingTorrents = defineTrait({
   }
 });
 
-export const elementalBastion = defineTrait({
+const elementalBastion = defineTrait({
   triggers: [
     onTriggerPoint(auraAccepted, {
       run: (runtime: ElementalistResolverContext, { cause }: ElementalistReaction) =>
@@ -146,7 +146,7 @@ export const elementalBastion = defineTrait({
   }
 });
 
-export const unstableConduit = defineTrait({
+const unstableConduit = defineTrait({
   triggers: [
     onTriggerPoint(tempestCastCompleting, {
       when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => Boolean(cast.skill.overload),
@@ -192,7 +192,7 @@ export const unstableConduit = defineTrait({
   }
 });
 
-export const gatheredFocus = defineTrait({
+const gatheredFocus = defineTrait({
   id: TRAIT.GATHERED_FOCUS,
   name: 'Gathered Focus',
   balance: {
@@ -203,7 +203,7 @@ export const gatheredFocus = defineTrait({
   ])
 });
 
-export const hardyConduit = defineTrait({
+const hardyConduit = defineTrait({
   id: TRAIT.HARDY_CONDUIT,
   name: 'Hardy Conduit',
   balance: {
@@ -227,7 +227,7 @@ export const hardyConduit = defineTrait({
   ]
 });
 
-export const harmoniousConduit = defineTrait({
+const harmoniousConduit = defineTrait({
   id: TRAIT.HARMONIOUS_CONDUIT,
   name: 'Harmonious Conduit',
   balance: {
@@ -254,7 +254,7 @@ export const harmoniousConduit = defineTrait({
   ]
 });
 
-export const transcendentTempest = defineTrait({
+const transcendentTempest = defineTrait({
   id: TRAIT.TRANSCENDENT_TEMPEST,
   name: 'Transcendent Tempest',
   balance: {
@@ -303,7 +303,7 @@ export const transcendentTempest = defineTrait({
   ]
 });
 
-export const lucidSingularity = defineTrait({
+const lucidSingularity = defineTrait({
   triggers: [
     onTriggerPoint(tempestCastStarted, {
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>

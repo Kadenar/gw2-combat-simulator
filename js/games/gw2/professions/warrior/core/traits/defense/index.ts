@@ -1,7 +1,7 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -11,7 +11,7 @@ import { burstFirstHit, controlAccepted } from '#gw2/professions/warrior/core/me
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const mercilessHammer = defineTrait({
@@ -121,8 +121,6 @@ export const thickSkin = defineTrait({
     }
   ]
 });
-
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function mercilessHammerControl(runtime: WarriorRuntime): void {

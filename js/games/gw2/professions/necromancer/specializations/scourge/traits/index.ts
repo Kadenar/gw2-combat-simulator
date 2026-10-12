@@ -17,7 +17,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/audiences.js';
+import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
   scourgeBarrierApplied,
   scourgeConditionApplied,
@@ -37,7 +37,7 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Demonic Lore tuning and behavior at its existing execution boundaries. */
-export const demonicLore = defineTrait({
+const demonicLore = defineTrait({
   triggers: [
     onTriggerPoint(scourgeConditionApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeConditionApplied>) =>
@@ -77,7 +77,7 @@ export const demonicLore = defineTrait({
 });
 
 /** Owns Sand Savant tuning and behavior at its existing execution boundaries. */
-export const sandSavant = defineTrait({
+const sandSavant = defineTrait({
   id: TRAIT.SAND_SAVANT,
   name: 'Sand Savant',
   balance: {
@@ -106,7 +106,7 @@ export const sandSavant = defineTrait({
 });
 
 /** Owns Abrasive Grit tuning and behavior at its existing execution boundaries. */
-export const abrasiveGrit = defineTrait({
+const abrasiveGrit = defineTrait({
   triggers: [
     onTriggerPoint(scourgeShadeManifested, {
       when: (runtime: MechanicQueriesOf<NecromancerRuntime>) => hasTrait(runtime, TRAIT.DESERT_EMPOWERMENT),
@@ -136,7 +136,7 @@ export const abrasiveGrit = defineTrait({
 });
 
 /** Owns Desert Empowerment tuning and behavior at its existing execution boundaries. */
-export const desertEmpowerment = defineTrait({
+const desertEmpowerment = defineTrait({
   triggers: [
     onTriggerPoint(scourgeShadeManifested, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeManifested>) =>
@@ -165,7 +165,7 @@ export const desertEmpowerment = defineTrait({
 });
 
 /** Owns Sadistic Searing tuning and behavior at its existing execution boundaries. */
-export const sadisticSearing = defineTrait({
+const sadisticSearing = defineTrait({
   triggers: [
     onTriggerPoint(scourgeShadeCommitted, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeCommitted>) =>
@@ -189,7 +189,7 @@ export const sadisticSearing = defineTrait({
 });
 
 /** Owns Fell Beacon tuning and behavior at its existing execution boundaries. */
-export const fellBeacon = defineTrait({
+const fellBeacon = defineTrait({
   id: TRAIT.FELL_BEACON,
   name: 'Fell Beacon',
   balance: {
@@ -220,7 +220,7 @@ export const fellBeacon = defineTrait({
 });
 
 /** Owns Sand Sage tuning and behavior at its existing execution boundaries. */
-export const sandSage = defineTrait({
+const sandSage = defineTrait({
   // A living shade enables the duration attributes until its expiry.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SAND_SAGE);
@@ -255,7 +255,7 @@ export const sandSage = defineTrait({
 });
 
 /** Owns Nourishing Ashes tuning and behavior at its existing execution boundaries. */
-export const nourishingAshes = defineTrait({
+const nourishingAshes = defineTrait({
   triggers: [
     onTriggerPoint(scourgeConditionApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeConditionApplied>) =>
@@ -271,7 +271,7 @@ export const nourishingAshes = defineTrait({
 });
 
 /** Owns Herald of Sorrow's ordered mechanic integration. */
-export const heraldOfSorrow = defineTrait({
+const heraldOfSorrow = defineTrait({
   id: TRAIT.HERALD_OF_SORROW,
   name: 'Herald of Sorrow',
   hooks: { availability: (runtime, skill, command) => heraldOfSorrowAvailability(runtime, skill, command) }
@@ -387,7 +387,7 @@ function grantBarrierBoon(
       actorType: 'player',
       skillId: cast.skill.id,
       skillName: cast.skill.name,
-      audience: party(runtime),
+      audience: necromancerPartyAudience(runtime),
       name: cast.skill.name
     }
   });

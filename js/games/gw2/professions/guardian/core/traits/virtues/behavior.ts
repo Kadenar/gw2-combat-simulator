@@ -1,15 +1,10 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type {
-  GuardianResolverContext,
-  GuardianRuntimeState,
-  GuardianSkill,
-  GuardianVirtue
-} from '#gw2/professions/guardian/types.js';
+import type { GuardianResolverContext, GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Both emission paths read one trait multiplier without applying ordinary boon-duration scaling twice. */
 export function guardianResolutionMultiplier(context: SelectedContentContext): number {
@@ -55,7 +50,7 @@ export function permeatingWrathThreshold(
 }
 
 /** Dragonhunter keeps pulse scheduling and passive readiness while this owner selects its interval. */
-export function indomitableCourageInterval(runtime: Runtime, baseProfile: BalanceProfile): number {
+export function indomitableCourageInterval(runtime: GuardianRuntime, baseProfile: BalanceProfile): number {
   return balanceProfileNumber(
     hasTrait(runtime, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
       ? requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
@@ -65,7 +60,7 @@ export function indomitableCourageInterval(runtime: Runtime, baseProfile: Balanc
 }
 
 /** Ordinary virtue recharge and Firebrand dormancy share the current trait multiplier. */
-export function powerOfTheVirtuousRechargeMultiplier(runtime: MechanicQueriesOf<Runtime>): number {
+export function powerOfTheVirtuousRechargeMultiplier(runtime: MechanicQueriesOf<GuardianRuntime>): number {
   return hasTrait(runtime, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
     ? balanceProfileNumber(
         requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS),
@@ -78,5 +73,3 @@ export function powerOfTheVirtuousRechargeMultiplier(runtime: MechanicQueriesOf<
 export function battlePresenceSharesBoons(context: unknown): boolean {
   return hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE);
 }
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;

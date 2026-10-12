@@ -29,7 +29,7 @@ import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
 
 /** Danger Time retains its active profile, selection, and original execution boundary. */
-export const dangerTime = defineTrait<MesmerSkill>({
+const dangerTime = defineTrait<MesmerSkill>({
   id: TRAIT.DANGER_TIME,
   name: 'Danger Time',
   balance: {
@@ -51,10 +51,10 @@ export const dangerTime = defineTrait<MesmerSkill>({
 });
 
 /** Delayed Reactions retains its active profile, selection, and original execution boundary. */
-export const delayedReactions = defineTrait<MesmerSkill>({ id: TRAIT.DELAYED_REACTIONS, name: 'Delayed Reactions' });
+const delayedReactions = defineTrait<MesmerSkill>({ id: TRAIT.DELAYED_REACTIONS, name: 'Delayed Reactions' });
 
 /** Flow of Time retains its active profile, selection, and original execution boundary. */
-export const flowOfTime = defineTrait<MesmerSkill>({
+const flowOfTime = defineTrait<MesmerSkill>({
   id: TRAIT.FLOW_OF_TIME,
   name: 'Flow of Time',
   balance: {
@@ -70,7 +70,7 @@ export const flowOfTime = defineTrait<MesmerSkill>({
 });
 
 /** Chronophantasma retains its active profile, selection, and original execution boundary. */
-export const chronophantasma = defineTrait<MesmerSkill>({
+const chronophantasma = defineTrait<MesmerSkill>({
   id: TRAIT.CHRONOPHANTASMA,
   name: 'Chronophantasma',
   // Admit repeat work once for this batch; the illusion owner retains its conversion and delivery lifetime.
@@ -95,7 +95,7 @@ export const chronophantasma = defineTrait<MesmerSkill>({
 });
 
 /** Time Catches Up retains its active profile, selection, and original execution boundary. */
-export const timeCatchesUp = defineTrait<MesmerSkill>({
+const timeCatchesUp = defineTrait<MesmerSkill>({
   id: TRAIT.TIME_CATCHES_UP,
   name: 'Time Catches Up',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -117,7 +117,7 @@ export const timeCatchesUp = defineTrait<MesmerSkill>({
 });
 
 /** Illusionary Reversion retains its active profile, selection, and original execution boundary. */
-export const illusionaryReversion = defineTrait<MesmerSkill>({
+const illusionaryReversion = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
@@ -133,7 +133,7 @@ export const illusionaryReversion = defineTrait<MesmerSkill>({
 });
 
 /** Stretched Time retains its active profile, selection, and original execution boundary. */
-export const stretchedTime = defineTrait<MesmerSkill>({
+const stretchedTime = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
@@ -158,7 +158,7 @@ export const stretchedTime = defineTrait<MesmerSkill>({
 });
 
 /** Seize the Moment retains its active profile, selection, and original execution boundary. */
-export const seizeTheMoment = defineTrait<MesmerSkill>({
+const seizeTheMoment = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
@@ -183,7 +183,7 @@ export const seizeTheMoment = defineTrait<MesmerSkill>({
 });
 
 /** Time Bomb retains its active profile, selection, and original execution boundary. */
-export const timeBomb = defineTrait<MesmerSkill>({
+const timeBomb = defineTrait<MesmerSkill>({
   id: TRAIT.TIME_BOMB,
   name: 'Time Bomb',
   balance: {

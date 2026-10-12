@@ -26,7 +26,7 @@ import {
 } from '#gw2/app/optimizer/gear/search.js';
 
 const stats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>>;
-export const MAX_OPTIMIZER_STAT_TOTALS = 100_000;
+const MAX_OPTIMIZER_STAT_TOTALS = 100_000;
 export interface GroupedOptimizerSpace {
   readonly ordinary: OptimizerSpace;
   readonly statDimensions: readonly OptimizerDimension[];

@@ -13,8 +13,6 @@ import {
 import { PATCHABLE_EFFECT_NUMERIC_FIELDS } from '#gw2/integrations/patches/authoring/fields.js';
 import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 
-type MutableRecord = Record<string, unknown>;
-
 export interface PatchAuthoringSkillGroup {
   readonly key: string;
   readonly label: string;
@@ -438,8 +436,8 @@ export function generatePatchOverview(
   metadata: readonly NativePatchAuthoringMetadata[]
 ): PatchPreview {
   const generated = structuredClone(preview) as PatchPreview;
-  const professions = generated.professions as Record<string, MutableRecord> | undefined;
-  delete (generated as unknown as MutableRecord).notes;
+  const professions = generated.professions as Record<string, Record<string, unknown>> | undefined;
+  delete (generated as unknown as Record<string, unknown>).notes;
   for (const [professionId, patch] of Object.entries(professions || {})) {
     delete patch.notes;
     const professionMetadata = metadata.find((entry) => entry.professionId === professionId);
@@ -478,7 +476,7 @@ function compactValue(value: unknown): unknown {
 
 /** Compacts a preview before saving while preserving its required identity fields. */
 export function compactPatchPreview(preview: PatchPreview): PatchPreview {
-  const compacted = compactValue(structuredClone(preview)) as MutableRecord | undefined;
+  const compacted = compactValue(structuredClone(preview)) as Record<string, unknown> | undefined;
   if (!compacted) return createPatchPreviewDraft();
   compacted.id = preview.id;
   compacted.label = preview.label;

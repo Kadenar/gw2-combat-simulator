@@ -1,3 +1,4 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -8,7 +9,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-qu
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
-import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
+import { getActiveTraits as getRangerActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
@@ -25,7 +26,7 @@ import { describe, test } from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
 const calculateAttributes = createCalculateAttributes(
-  applyRangerBuildAttributeRules,
+  createProfessionBuildAttributeRules(rangerCatalog, getRangerActiveTraits),
   rangerProfession.attributeContributions
 );
 

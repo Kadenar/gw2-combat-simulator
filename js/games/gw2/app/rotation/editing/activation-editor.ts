@@ -67,7 +67,7 @@ export function activationDamageCommitMs(
 }
 
 /** Keeps the configured cutoff visible so users can choose a damage-preserving interruption time up front. */
-export function activationDamageCommitLabel(damageCommitMs: number | null | undefined): string {
+function activationDamageCommitLabel(damageCommitMs: number | null | undefined): string {
   const cutoff = Number(damageCommitMs);
   return damageCommitMs != null && Number.isFinite(cutoff) && cutoff >= 0
     ? `Damage commit cutoff: ${cutoff} ms minimum`
@@ -75,7 +75,7 @@ export function activationDamageCommitLabel(damageCommitMs: number | null | unde
 }
 
 /** Explains when an interrupted UI activation cannot reach any declared damage commit point. */
-export function activationDamageCommitWarning(
+function activationDamageCommitWarning(
   interruptMs: string | number,
   damageCommitMs: number | null | undefined
 ): string {
@@ -190,7 +190,7 @@ export function activationCombatStartRelation(
 }
 
 /** Accepts any positive whole-millisecond travel delay; landing time is not bound to the action tick. */
-export function validateActivationImpactDelayMs(rawValue: string | number): DurationValidation {
+function validateActivationImpactDelayMs(rawValue: string | number): DurationValidation {
   const parsed = Number(rawValue);
   if ((typeof rawValue === 'string' && rawValue.trim() === '') || !Number.isFinite(parsed) || parsed < 1) {
     return { valid: false, error: 'Enter an impact delay of at least 1 ms.' };

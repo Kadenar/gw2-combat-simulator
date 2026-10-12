@@ -1,3 +1,4 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { inertContainer } from '#tests/helpers/dom.js';
@@ -16,7 +17,7 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
+import { getActiveTraits as getRevenantActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
@@ -33,7 +34,7 @@ import { test } from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(
-  applyRevenantBuildAttributeRules,
+  createProfessionBuildAttributeRules(revenantCatalog, getRevenantActiveTraits),
   revenantProfession.attributeContributions
 );
 

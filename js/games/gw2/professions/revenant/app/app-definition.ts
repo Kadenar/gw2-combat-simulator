@@ -3,7 +3,9 @@
 // the engine contract exported by ../profession.ts.
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
-import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { toApplicationBuild } from '#gw2/professions/revenant/build/build.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
@@ -13,7 +15,7 @@ import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js'
 export const revenantAppAdapter = defineProfessionApp({
   tooltips: revenantTooltips,
   profession: revenantProfession,
-  applyBuildAttributeRules: applyRevenantBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(revenantCatalog, getActiveTraits),
   toApplicationBuild,
   resetPrompt: 'Reset the Revenant build, legends, and rotation?',
   runtime: {

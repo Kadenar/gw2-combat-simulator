@@ -1,4 +1,4 @@
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -11,7 +11,6 @@ import type { SpellbreakerState } from '#gw2/professions/warrior/specializations
 import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 
-// Module state is declared beside each state factory; re-export it for existing family type importers.
 interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
   selectedSkillIds?: Record<string, SkillId | null>;
@@ -21,6 +20,7 @@ export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
   initialResource: number;
 }
 
+/** Composes family state from the state contracts owned by Core and each specialization. */
 export interface WarriorState
   extends WarriorCoreState, BerserkerState, SpellbreakerState, BladeswornState, ParagonState {
   /** User-friendly refrain name derived from activeRefrainId for display. */
@@ -57,6 +57,9 @@ export interface WarriorSkill extends Skill {
   readonly dragonSlashMinimumBurningDuration?: number;
   readonly dragonSlashMaximumBurningDuration?: number;
 }
+
+/** Shared full mechanic context; read-only and resolver consumers retain their narrower capabilities. */
+export type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 export type WarriorResolverContext = MechanicCombatContext & {
   profession: WarriorRuntimeState;

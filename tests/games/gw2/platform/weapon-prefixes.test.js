@@ -1,3 +1,4 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
@@ -7,14 +8,15 @@ import { resolveProfessionContract } from '#gw2/platform/profession-definition/c
 import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
+import { getActiveTraits as getMesmerActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calculateAttributes = createCalculateAttributes(
-  applyMesmerBuildAttributeRules,
+  createProfessionBuildAttributeRules(mesmerCatalog, getMesmerActiveTraits),
   mesmerProfession.attributeContributions
 );
 const defaults = () => createDefaultBuild(mesmerAppAdapter);

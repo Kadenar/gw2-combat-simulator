@@ -5,7 +5,7 @@ import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -30,7 +30,7 @@ import {
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const signetMastery = defineTrait({
@@ -406,13 +406,8 @@ export const dualWielding = defineTrait({
   }
 });
 
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
-
 // Trigger Lesser Signet of Might after the first eligible below-half-health strike at that strike's exact timestamp.
-function signetMasteryDamage(
-  context: MechanicContext<WarriorRuntimeState, WarriorSkill>,
-  event: Gw2ResolverEvent
-): void {
+function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): void {
   // The trait retains its threshold and stacking attribute reward; the lesser signet owns Might and recharge.
   if (
     event.actorType !== 'player' ||

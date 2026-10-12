@@ -1,6 +1,6 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 
 /** Only the selected elite supplies its effect policies, using the same caps as its mechanics. */
@@ -17,9 +17,7 @@ export function luminaryBuffPolicies(): BuffStatePolicy[] {
 }
 
 /** Observe the owning pools so consumption, replacement, and expiry agree with combat. */
-export function luminaryEffectStates(
-  runtime: MechanicQueriesOf<MechanicContext<GuardianRuntimeState, GuardianSkill>>
-): EffectState[] {
+export function luminaryEffectStates(runtime: MechanicQueriesOf<GuardianRuntime>): EffectState[] {
   const state = luminaryState.from(runtime);
   const effects: EffectState[] = [];
   // Radiant Armaments replaces its predecessor even when the new weapon grants a shorter window.

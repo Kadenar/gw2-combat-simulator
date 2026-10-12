@@ -4,7 +4,7 @@ import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-s
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -29,10 +29,8 @@ import {
   lethalTempoParameters,
   lethalTempoStacks
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Intrinsic virtue grants share an inclusive stack lifetime and the outgoing additive damage bucket. */
 export const lethalTempo = defineTrait({
@@ -42,11 +40,11 @@ export const lethalTempo = defineTrait({
   triggers: [
     onTriggerPoint(willbenderVirtueOpened, {
       requiresSelection: false,
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       requiresSelection: false,
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
     })
   ],
   hooks: {
@@ -117,7 +115,7 @@ export const lethalTempo = defineTrait({
 });
 
 /** Selects longer Justice and shorter Tempo windows while the shared stack rules retain live tuning. */
-export const tyrantsMomentum = defineTrait({
+const tyrantsMomentum = defineTrait({
   id: TRAIT.TYRANTS_MOMENTUM,
   name: "Tyrant's Momentum",
   balance: {
@@ -131,7 +129,7 @@ export const tyrantsMomentum = defineTrait({
 });
 
 /** Tracks reserved weapon work so earned reductions survive to commitment without moving their origin. */
-export const restorativeVirtues = defineTrait({
+const restorativeVirtues = defineTrait({
   id: TRAIT.RESTORATIVE_VIRTUES,
   name: 'Restorative Virtues',
   balance: {
@@ -142,11 +140,11 @@ export const restorativeVirtues = defineTrait({
   triggers: [
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
         grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, 'vigor', cause, () => ({ recipients: 'self' }))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) => reduceWeapons(runtime, cause)
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => reduceWeapons(runtime, cause)
     })
   ],
   lifetime: {
@@ -170,7 +168,7 @@ export const restorativeVirtues = defineTrait({
 });
 
 /** Virtue activation grants Fury and accepted hit cycles grant party Might. */
-export const holyReckoning = defineTrait({
+const holyReckoning = defineTrait({
   id: TRAIT.HOLY_RECKONING,
   name: 'Holy Reckoning',
   balance: {
@@ -182,18 +180,18 @@ export const holyReckoning = defineTrait({
   triggers: [
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'justice',
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
         grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, 'fury', cause, () => ({ recipients: 'self' }))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
         grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, 'might', cause, () => ({ recipients: 'party' }))
     })
   ]
 });
 
 /** Resolve grants distinct Alacrity packets whose authored recipients can be widened by Battle Presence. */
-export const phoenixProtocol = defineTrait({
+const phoenixProtocol = defineTrait({
   id: TRAIT.PHOENIX_PROTOCOL,
   name: 'Phoenix Protocol',
   balance: {
@@ -214,19 +212,19 @@ export const phoenixProtocol = defineTrait({
   triggers: [
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
         grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, 'alacrity', cause, phoenixAudience(runtime))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
-      run: (runtime: Runtime, { cause }: WillbenderVirtueBoundary) =>
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
         grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, 'alacrity (triggered)', cause, phoenixAudience(runtime))
     })
   ]
 });
 
 /** Only tagged flame strikes receive the multiplier; the panel bonus remains eligible for conversions. */
-export const powerForPower = defineTrait({
+const powerForPower = defineTrait({
   id: TRAIT.POWER_FOR_POWER,
   name: 'Power for Power',
   balance: {
@@ -252,7 +250,7 @@ export const powerForPower = defineTrait({
 });
 
 /** Supplies the panel Vitality bonus before eligible conversions. */
-export const conceitedCurate = defineTrait({
+const conceitedCurate = defineTrait({
   id: TRAIT.CONCEITED_CURATE,
   name: 'Conceited Curate',
   balance: { attributeBonus: 180 },
@@ -262,7 +260,7 @@ export const conceitedCurate = defineTrait({
 });
 
 /** Accepted flame strikes emit the surviving Burning packet independently of virtue counters. */
-export const searingPact = defineTrait({
+const searingPact = defineTrait({
   id: TRAIT.SEARING_PACT,
   name: 'Searing Pact',
   balance: {
@@ -309,7 +307,7 @@ type BoonAudience = { readonly recipients?: string } | undefined;
 
 /** Grants one surviving profile boon on the virtue boundary's cause, under the trait's own identity. */
 function grantVirtueBoon(
-  runtime: Runtime,
+  runtime: GuardianRuntime,
   trait: number,
   name: string,
   cause: Gw2ResolverEvent,
@@ -341,7 +339,7 @@ function grantVirtueBoon(
 }
 
 /** Authored sharing survives without Battle Presence; the trait can still share self-only live effects. */
-function phoenixAudience(runtime: Runtime): (authored: BoonAudience) => BoonAudience {
+function phoenixAudience(runtime: GuardianRuntime): (authored: BoonAudience) => BoonAudience {
   return (authored) => (battlePresenceSharesBoons(runtime) ? { ...authored, recipients: 'party' } : authored);
 }
 
@@ -364,7 +362,7 @@ function gainLethalTempo(
 }
 
 /** Both virtue boundaries grant and report the same inclusive stack window. */
-function tempo(runtime: Runtime, event: Gw2ResolverEvent): void {
+function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   const parameters = lethalTempoParameters(runtime);
   if (!parameters) return;
   const stacks = gainLethalTempo(willbenderState.from(runtime), runtime.time, parameters);
@@ -403,7 +401,7 @@ function tempo(runtime: Runtime, event: Gw2ResolverEvent): void {
 }
 
 /** Earned base work applies to equipped weapon cooldowns and reservations before speed conversion. */
-function reduceWeapons(runtime: Runtime, cause: Gw2ResolverEvent): void {
+function reduceWeapons(runtime: GuardianRuntime, cause: Gw2ResolverEvent): void {
   const state = willbenderState.from(runtime);
   const names = new Set(gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean));
   const matches = (skill: Skill) => skill.type === 'Weapon' && (!names.size || names.has(String(skill.weapon)));

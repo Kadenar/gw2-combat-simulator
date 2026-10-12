@@ -16,7 +16,7 @@ export interface ChargeReleaseEditorRow {
   readonly reason?: string;
 }
 
-export interface ChargeReleaseEditorOptions {
+interface ChargeReleaseEditorOptions {
   readonly anchor: HTMLElement;
   readonly skillName: string;
   readonly icon?: string;

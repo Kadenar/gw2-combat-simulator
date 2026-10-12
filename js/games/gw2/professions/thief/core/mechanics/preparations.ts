@@ -17,7 +17,7 @@ interface TrapDefinition {
   readonly reason: string;
 }
 
-export const THIEF_PREPARATIONS: readonly TrapDefinition[] = Object.freeze([
+const THIEF_PREPARATIONS: readonly TrapDefinition[] = Object.freeze([
   {
     prepareId: ID.PREPARE_THOUSAND_NEEDLES,
     triggerId: ID.THOUSAND_NEEDLES,

@@ -9,7 +9,6 @@ import type { RuntimeProfession } from '#gw2/platform/profession-definition/runt
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { emitEngineerBarSwap } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import {
   HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
@@ -464,3 +463,20 @@ export const photonForgeHooks = {
   tasks: photonForgeTasks,
   eventHandlers: { 'engineer.heat': OBSERVABLE_EVENT_HANDLER }
 } satisfies RuntimeHooks<EngineerRuntimeState, HolosmithSkill>;
+
+/** Publishes Forge bar transitions as sigil swaps so equipment reactions observe entry and exit. */
+function emitEngineerBarSwap(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'sigil_swap',
+      at,
+      source: 'engineer',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      weaponSet: context.activeWeaponSet
+    }
+  });
+}

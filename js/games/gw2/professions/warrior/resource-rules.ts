@@ -1,9 +1,8 @@
-import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
-type Queries = MechanicQueriesOf<Runtime>;
+type Queries = MechanicQueriesOf<WarriorRuntime>;
 
 /** Family rules select burst decisions from the selected state, without registering numeric pool owners. */
 interface WarriorBurstRules {
@@ -50,7 +49,7 @@ export function warriorBurstRules(runtime: Queries): WarriorBurstRules {
 }
 
 /** Authored combat rewards convert adrenaline to Flow for Bladesworn; ordinary hit gains never use this route. */
-export function grantWarriorResource(runtime: Runtime, amount: number): void {
+export function grantWarriorResource(runtime: WarriorRuntime, amount: number): void {
   runtime.resourceController.grant(
     runtime.profession.specialization.kind === 'Bladesworn' ? 'flow' : 'adrenaline',
     amount

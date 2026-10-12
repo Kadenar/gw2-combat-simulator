@@ -17,8 +17,8 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefSkill, ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
 
-export const THIEF_GUILD_ATTACK = 'thief.thieves-guild-attack';
-export const THIEF_GUILD_EXPIRY = 'thief.thieves-guild-expire';
+const THIEF_GUILD_ATTACK = 'thief.thieves-guild-attack';
+const THIEF_GUILD_EXPIRY = 'thief.thieves-guild-expire';
 
 interface GuildAttackWork {
   readonly ownerId: string;

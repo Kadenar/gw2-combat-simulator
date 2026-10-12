@@ -100,7 +100,7 @@ export function bindPaletteInteractions(
 const CONCURRENT_OFFSET_MS = 120;
 
 /** Honors authored interrupt defaults before falling back to the commit point or normal cast time. */
-export function defaultPaletteInterruptMs(skill: Skill | null | undefined): number {
+function defaultPaletteInterruptMs(skill: Skill | null | undefined): number {
   return Math.round(Number(skill?.defaultInterruptMs ?? skill?.interruptCommitMs ?? skill?.castTimeMs ?? 0));
 }
 

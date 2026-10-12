@@ -1,10 +1,11 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
+import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/core/profiles.js';
@@ -21,7 +22,7 @@ import test from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(
-  applyGuardianBuildAttributeRules,
+  createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
   guardianProfession.attributeContributions
 );
 

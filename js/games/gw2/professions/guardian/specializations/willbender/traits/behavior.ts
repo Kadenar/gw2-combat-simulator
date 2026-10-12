@@ -1,7 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import {
   balanceProfileNumber,
   effectNumber,
@@ -12,10 +12,8 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Decodes the selected grant, lifetime, and live cap for a single Tempo trigger. */
 export function lethalTempoParameters(context: unknown) {
@@ -42,7 +40,7 @@ export function lethalTempoStacks(context: Gw2ModifierContext): number {
 }
 
 /** The mechanic opens the chosen profile window at its authored activation boundary. */
-export function willbenderVirtueWindowProfile(runtime: Runtime, virtue: GuardianVirtue) {
+export function willbenderVirtueWindowProfile(runtime: GuardianRuntime, virtue: GuardianVirtue) {
   return requireBalanceProfileFromContext(
     runtime,
     virtue === 'justice' && hasTrait(runtime, TRAIT.TYRANTS_MOMENTUM) ? TRAIT.TYRANTS_MOMENTUM : PROFILE.virtueWindows

@@ -39,7 +39,7 @@ export interface HarbingerState {
 }
 
 /** Declares Harbinger's public fields and missing-state defaults, used only when Harbinger is selected. */
-export const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   blight: 0,
   blightExpiries: [],
   cascadingCorruptionStacks: 0,
@@ -47,7 +47,7 @@ export const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<HarbingerState>);
 
 /** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
-export function createHarbingerState(
+function createHarbingerState(
   config: NecromancerConfig,
   preparation: { balanceContext: ProfessionBalanceContext }
 ): HarbingerState {

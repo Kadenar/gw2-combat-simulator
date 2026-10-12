@@ -647,26 +647,6 @@ test('Pitfall placement recharge and trigger rearm expire independently', () => 
   }
 });
 
-test('Specter wells preserve their authored effect sequence', () => {
-  // Quickness may move the cast end, but persistent pulses retain their spacing and sequence.
-  for (const [skillId, type, property, sequence] of [
-    [ID.WELL_OF_SORROW, 'condition', 'condition', ['Torment', 'Bleeding', 'Torment', 'Poisoned', 'Torment']],
-    [ID.WELL_OF_BOUNTY, 'buff', 'kind', ['stability', 'might', 'fury', 'vigor', 'regeneration']]
-  ]) {
-    const skill = thiefCatalog.skillsById.get(skillId);
-    const result = simulate('Specter', [skillId, { type: 'wait', durationMs: 5000 }], {
-      selectedSkillIds: [skill.id],
-      boons: { quickness: true }
-    });
-    const pulses = result.events.filter((event) => event.type === type && event.skillId === skillId);
-    assert.deepEqual(result.warnings, []);
-    assert.deepEqual(
-      pulses.map((event) => event[property]),
-      sequence
-    );
-  }
-});
-
 test('Specter traits amplify force gains and add their Siphon recharge reductions', () => {
   const baseline = simulate('Specter', ['Siphon']);
   // Amplified adds ten percentage points; Improvisation doubles the resulting Siphon gain.

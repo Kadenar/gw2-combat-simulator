@@ -35,7 +35,7 @@ import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 
 /** Owns Brawler's Tenacity tuning and behavior at the existing execution boundaries. */
-export const brawlersTenacity = defineTrait({
+const brawlersTenacity = defineTrait({
   id: TRAIT.BRAWLERS_TENACITY,
   name: "Brawler's Tenacity",
   triggers: [onTriggerPoint(physicalSkillStarted, { run: grantBrawlersTenacity })],
@@ -45,7 +45,7 @@ export const brawlersTenacity = defineTrait({
 });
 
 /** Owns Bounding Dodger tuning and behavior at the existing execution boundaries. */
-export const boundingDodger = defineTrait({
+const boundingDodger = defineTrait({
   id: TRAIT.BOUNDING_DODGER,
   name: 'Bounding Dodger',
   // The configured dodge choice owns eligibility; new damage-window rewards still obey isolation.
@@ -75,7 +75,7 @@ export const boundingDodger = defineTrait({
 });
 
 /** Owns Lotus Training tuning and behavior at the existing execution boundaries. */
-export const lotusTraining = defineTrait({
+const lotusTraining = defineTrait({
   id: TRAIT.LOTUS_TRAINING,
   name: 'Lotus Training',
   // The configured dodge choice owns eligibility; new damage-window rewards still obey isolation.
@@ -122,7 +122,7 @@ export const lotusTraining = defineTrait({
 });
 
 /** Owns Unhindered Combatant tuning and behavior at the existing execution boundaries. */
-export const unhinderedCombatant = defineTrait({
+const unhinderedCombatant = defineTrait({
   id: TRAIT.UNHINDERED_COMBATANT,
   name: 'Unhindered Combatant',
   balance: {
@@ -131,7 +131,7 @@ export const unhinderedCombatant = defineTrait({
 });
 
 /** Owns Endurance Thief tuning and behavior at the existing execution boundaries. */
-export const enduranceThief = defineTrait({
+const enduranceThief = defineTrait({
   id: TRAIT.ENDURANCE_THIEF,
   name: 'Endurance Thief',
   triggers: [
@@ -146,7 +146,7 @@ export const enduranceThief = defineTrait({
 });
 
 /** Owns this trait's modifier eligibility. */
-export const havocSpecialist = defineTrait({
+const havocSpecialist = defineTrait({
   id: TRAIT.HAVOC_SPECIALIST,
   name: 'Havoc Specialist',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -169,7 +169,7 @@ export const havocSpecialist = defineTrait({
 });
 
 /** Owns Marauder's Resilience tuning and behavior at the existing execution boundaries. */
-export const maraudersResilience = defineTrait({
+const maraudersResilience = defineTrait({
   id: TRAIT.MARAUDERS_RESILIENCE,
   name: "Marauder's Resilience",
   balance: { attributeConversion: 0.07 },
@@ -191,7 +191,7 @@ export const maraudersResilience = defineTrait({
 });
 
 /** Owns Staff Master tuning and behavior at the existing execution boundaries. */
-export const staffMaster = defineTrait({
+const staffMaster = defineTrait({
   id: TRAIT.STAFF_MASTER,
   name: 'Staff Master',
   triggers: [
@@ -223,7 +223,7 @@ export const staffMaster = defineTrait({
 });
 
 /** Owns Weakening Strikes tuning and behavior at the existing execution boundaries. */
-export const weakeningStrikes = defineTrait({
+const weakeningStrikes = defineTrait({
   id: TRAIT.WEAKENING_STRIKES,
   name: 'Weakening Strikes',
   triggers: [

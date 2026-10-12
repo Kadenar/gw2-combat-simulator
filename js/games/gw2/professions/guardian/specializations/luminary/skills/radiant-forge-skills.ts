@@ -1,6 +1,6 @@
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
@@ -16,7 +16,7 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import { canonicalTime } from '#kernel/core/clock.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /**
  * Owns Radiant Forge weapon fragments and supplemental reconstruction identities.
@@ -354,13 +354,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   }
 });
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 export const HAMMER = 'guardian.luminary.hammer';
 export const BOON = 'guardian.luminary.weapon-boon';
 export const BLADE_IMMOBILIZE = 'guardian.luminary.blade-immobilize';
 
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */
-export function glaringBurstDuration(runtime: MechanicQueriesOf<Runtime>, skill: Skill, duration: number): number {
+export function glaringBurstDuration(
+  runtime: MechanicQueriesOf<GuardianRuntime>,
+  skill: Skill,
+  duration: number
+): number {
   const state = luminaryState.from(runtime);
   return state.radiantWeapon === 'blade'
     ? duration * ((state.glaringBurstSwordSlow ? 680 : 440) / (skill.castTimeMs ?? 600))
@@ -381,7 +384,7 @@ export function glaringBurstDetail(context: CastDetailContext<GuardianRuntimeSta
 
 /** Capture the Glaring Burst variant once per accepted attack, then use normal packet materialization. */
 function burstEffects(
-  runtime: Runtime,
+  runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {

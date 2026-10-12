@@ -2,7 +2,6 @@
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
-type MutableRecord = Record<string, unknown>;
 
 /** Numeric balance fields accepted by both the authoring API and sparse patch validation. */
 export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
@@ -361,7 +360,8 @@ function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Rec
               ]
             ]
           : []
-        : (field === 'coefficient' && !effectNumericFieldIsPatchable(field, value as MutableRecord, parent)) ||
+        : (field === 'coefficient' &&
+              !effectNumericFieldIsPatchable(field, value as Record<string, unknown>, parent)) ||
             typeof nested === 'function' ||
             AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) ||
             ['effectVariants', 'when'].includes(field)
@@ -369,7 +369,10 @@ function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Rec
           : [
               [
                 field,
-                withoutRuntimeOnlyAuthoringFields(nested, field === 'ticks' ? (value as MutableRecord) : undefined)
+                withoutRuntimeOnlyAuthoringFields(
+                  nested,
+                  field === 'ticks' ? (value as Record<string, unknown>) : undefined
+                )
               ]
             ]
     )
@@ -407,13 +410,18 @@ export function balanceProfileHasAuthorableControls(profile: Readonly<BalancePro
 function balanceProfileEffectAuthoringReference(
   record: Readonly<Record<string, unknown>>,
   parent?: Readonly<Record<string, unknown>>
-): MutableRecord {
+): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(record).flatMap(([field, value]) => {
       if (field === 'when') return [];
       if (field === 'ticks' && Array.isArray(value)) {
         return [
-          [field, value.map((tick) => balanceProfileEffectAuthoringReference(tick as Readonly<MutableRecord>, record))]
+          [
+            field,
+            value.map((tick) =>
+              balanceProfileEffectAuthoringReference(tick as Readonly<Record<string, unknown>>, record)
+            )
+          ]
         ];
       }
 
@@ -432,7 +440,7 @@ export function balanceProfileAuthoringReference(profile: Readonly<BalanceProfil
     ...(profile.parentId == null ? {} : { parentId: profile.parentId }),
     ...balanceProfilePatchableNumericFields(profile),
     effects: (profile.effects || []).map((effect) =>
-      balanceProfileEffectAuthoringReference(effect as unknown as Readonly<MutableRecord>)
+      balanceProfileEffectAuthoringReference(effect as unknown as Readonly<Record<string, unknown>>)
     )
   } as unknown as BalanceProfile);
 }

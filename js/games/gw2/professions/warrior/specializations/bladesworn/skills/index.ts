@@ -4,7 +4,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -20,12 +20,10 @@ import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warri
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
 
@@ -590,7 +588,11 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
 ]);
 
 /** Artillery spends every captured round while the shared completion consumes its final reserved round. */
-function artilleryEffects(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, sharp: boolean): readonly SkillEffect[] {
+function artilleryEffects(
+  runtime: WarriorRuntime,
+  cast: RuntimeCast<WarriorSkill>,
+  sharp: boolean
+): readonly SkillEffect[] {
   const rounds = warriorAmmunition.get(cast)!.rounds;
   const profile = requireBalanceProfileFromContext(
     runtime,
@@ -624,7 +626,7 @@ function artilleryEffects(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, sha
 }
 
 /** Actual activation upgrades a live cartridge window once; a supercharged window cannot be refreshed by another cast. */
-function activateCartridges(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime);
   // Discard expired occurrences on the next grant so idle expiry needs no queued cleanup.
   state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
@@ -669,7 +671,7 @@ function activateCartridges(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
 }
 
 /** Only resolved positive player explosions emit the selected cartridge condition; derived conditions cannot recurse. */
-export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): void {
+export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
   const state = bladeswornState.from(runtime);
   const window = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
@@ -701,7 +703,7 @@ export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): v
 }
 
 /** Successful commitment restores the longest-recharging round, clearing recharge when the pool becomes full. */
-function tacticalReload(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function tacticalReload(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   for (const id of runtime.cooldownController.ammoSkillIds()) {
     const skill = runtime.helpers.skillsById.get(id);
     if (skill?.specialization === 'Bladesworn') runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);

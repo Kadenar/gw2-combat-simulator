@@ -349,10 +349,15 @@ composition/query exceptions, not places for individual skill or trait implement
 `profession.ts` because `profession.ts` imports `build/`, and `build/` reads the catalog at module load; merging them
 creates an initialization cycle.
 
-Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
-`build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
-never `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
-`professions/shared/` helpers are not a profession. `eslint.config.js` enforces these import boundaries.
+Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`, `types.js`,
+`data/**`, and `profiles.js` files. Log integrations import helpers from `data/`, never `profession.js`, so lazy log
+chunks don't load the whole profession graph. Tests are exempt. The shared `professions/shared/` helpers are not a
+profession. `eslint.config.js` enforces these import boundaries.
+
+Each profession's `app/app-definition.ts` binds its catalog and trait selector through `shared/build-attributes.ts`'s
+`createProfessionBuildAttributeRules`; the shared evaluator owns attribute calculations. Concrete `GuardianRuntime` and
+`WarriorRuntime` types live in their profession's `types.ts`, while query-only and resolver contracts retain their
+narrower capabilities.
 
 ### Module manifest
 

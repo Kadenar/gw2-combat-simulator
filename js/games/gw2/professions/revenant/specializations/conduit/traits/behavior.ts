@@ -79,7 +79,7 @@ export function bolsteredBondsBonuses(
 }
 
 /** Scales the already-selected base recharge at the original mechanic boundary. */
-export const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeState, RevenantSkill>([
+const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeState, RevenantSkill>([
   {
     trait: TRAIT.ENHANCED_EMBODIMENT,
     when: (runtime, skill) => skill.id === ID.SWAP_LEGENDS && runtime.combatStartedAt(),

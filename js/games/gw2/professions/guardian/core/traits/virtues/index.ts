@@ -5,7 +5,7 @@ import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -15,9 +15,7 @@ import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/mod
 import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianResolutionMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Permeating Wrath tuning and behavior at its existing mechanic boundaries. */
 export const permeatingWrath = defineTrait({
@@ -32,7 +30,7 @@ export const inspiredVirtue = defineTrait({
   // Each virtue grants its own party boon.
   triggers: [
     onTriggerPoint(virtueActivated, {
-      run: (runtime: Runtime, { cast, virtue }: VirtueActivation) =>
+      run: (runtime: GuardianRuntime, { cast, virtue }: VirtueActivation) =>
         virtueBuff(
           runtime,
           cast,
@@ -90,7 +88,7 @@ export const virtueOfResolution = defineTrait({
   id: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
   triggers: [
     onTriggerPoint(virtueActivated, {
-      run: (runtime: Runtime, { cast }: VirtueActivation) =>
+      run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
         virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, 'resolution')
     })
   ],
@@ -106,7 +104,7 @@ export const inspiringVirtue = defineTrait({
   id: GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
   triggers: [
     onTriggerPoint(virtueActivated, {
-      run: (runtime: Runtime, { cast }: VirtueActivation) =>
+      run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
         virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'guardian-inspiring-virtue')
     })
   ],
@@ -145,7 +143,7 @@ export const indomitableCourage = defineTrait({
   triggers: [
     onTriggerPoint(virtueActivated, {
       when: (_runtime, { virtue }: VirtueActivation) => virtue === 'courage',
-      run: (runtime: Runtime, { cast }: VirtueActivation) =>
+      run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
         virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'stability')
     })
   ],
@@ -255,7 +253,7 @@ export const battlePresence = defineTrait({ id: GUARDIAN_TRAIT_IDS.BATTLE_PRESEN
 
 /** Committed activation boons sample live attributes and retain their selected component and party ownership. */
 function virtueBuff(
-  runtime: Runtime,
+  runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,
   trait: number,
   kind: string,
@@ -279,7 +277,7 @@ function virtueBuff(
 
 /** Extend Purging Flames before Writ's separate symbol-field adjustment; Core composes both after field selection. */
 export function masterOfConsecrationsFields(
-  runtime: MechanicQueriesOf<Runtime>,
+  runtime: MechanicQueriesOf<GuardianRuntime>,
   cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
@@ -293,7 +291,7 @@ export function masterOfConsecrationsFields(
 }
 
 /** Resolve hammer replacement before the Core weapon-flip availability checks. */
-function glacialHeartAvailability(runtime: MechanicQueriesOf<Runtime>, skill: Skill) {
+function glacialHeartAvailability(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill) {
   const glacial = hasTrait(runtime, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
   if (skill.id === ID.MIGHTY_BLOW && glacial)
     return denySkillCast(

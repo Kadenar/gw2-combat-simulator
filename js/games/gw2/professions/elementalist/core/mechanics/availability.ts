@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { selectedSlotSkillAvailability, denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
@@ -23,10 +24,10 @@ import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/c
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -216,4 +217,14 @@ export function elementalistCoreAvailability(
   }
 
   return ready();
+}
+
+/** Pending damage supplies a wake, never a predicted resource or critical result. */
+export function projectedFreshAirReadyAt(context: MechanicQueriesOf<ElementalistRuntime>, upTo: number): number | null {
+  if (!hasTrait(context, TRAIT.FRESH_AIR)) return null;
+  const core = context.profession.core;
+  if (core.primaryAttunement === 'Air') return null;
+  // Readiness queries ignore elapsed wakes without pruning the live scheduler's candidates.
+  const times = core.freshAirCandidates.filter((at) => at > context.time && at <= upTo);
+  return times.length ? Math.min(...times) : null;
 }

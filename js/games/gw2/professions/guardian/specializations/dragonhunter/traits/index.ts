@@ -2,7 +2,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
@@ -20,12 +20,10 @@ import {
   type DragonhunterCastCompletion,
   type DragonhunterControl
 } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/activations.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Soaring Devastation's tuning and behavior at the existing Dragonhunter boundaries. */
-export const soaringDevastation = defineTrait({
+const soaringDevastation = defineTrait({
   id: TRAIT.SOARING_DEVASTATION,
   name: 'Soaring Devastation',
   balance: {
@@ -43,7 +41,7 @@ export const soaringDevastation = defineTrait({
 });
 
 /** Owns Big Game Hunter's tuning and behavior at the existing Dragonhunter boundaries. */
-export const bigGameHunter = defineTrait({
+const bigGameHunter = defineTrait({
   id: TRAIT.BIG_GAME_HUNTER,
   name: 'Big Game Hunter',
   balance: {
@@ -97,7 +95,7 @@ export const bigGameHunter = defineTrait({
 });
 
 /** Owns Hunter's Determination's tuning and behavior at the existing Dragonhunter boundaries. */
-export const huntersDetermination = defineTrait({
+const huntersDetermination = defineTrait({
   id: TRAIT.HUNTERS_DETERMINATION,
   name: "Hunter's Determination",
   balance: { resourceGain: 100 },
@@ -110,7 +108,7 @@ export const huntersDetermination = defineTrait({
 });
 
 /** Owns Hunter's Premonition's tuning and behavior at the existing Dragonhunter boundaries. */
-export const huntersPremonition = defineTrait({
+const huntersPremonition = defineTrait({
   id: TRAIT.HUNTERS_PREMONITION,
   name: "Hunter's Premonition",
   balance: {
@@ -134,7 +132,7 @@ export const huntersPremonition = defineTrait({
 });
 
 /** Owns Dulled Senses's tuning and behavior at the existing Dragonhunter boundaries. */
-export const dulledSenses = defineTrait({
+const dulledSenses = defineTrait({
   id: TRAIT.DULLED_SENSES,
   name: 'Dulled Senses',
   balance: {
@@ -152,7 +150,7 @@ export const dulledSenses = defineTrait({
 });
 
 /** Owns Defender's Dogma's tuning and behavior at the existing Dragonhunter boundaries. */
-export const defendersDogma = defineTrait({
+const defendersDogma = defineTrait({
   id: TRAIT.DEFENDERS_DOGMA,
   name: "Defender's Dogma",
   balance: { attributeBonus: 180 },
@@ -162,7 +160,7 @@ export const defendersDogma = defineTrait({
 });
 
 /** Owns Heavy Light's tuning and behavior at the existing Dragonhunter boundaries. */
-export const heavyLight = defineTrait({
+const heavyLight = defineTrait({
   id: TRAIT.HEAVY_LIGHT,
   name: 'Heavy Light',
   balance: {
@@ -185,7 +183,7 @@ export const heavyLight = defineTrait({
 });
 
 /** Owns Pure of Sight's tuning and behavior at the existing Dragonhunter boundaries. */
-export const pureOfSight = defineTrait({
+const pureOfSight = defineTrait({
   id: TRAIT.PURE_OF_SIGHT,
   name: 'Pure of Sight',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -203,7 +201,7 @@ export const pureOfSight = defineTrait({
 });
 
 /** Owns Zealot's Aggression's tuning and behavior at the existing Dragonhunter boundaries. */
-export const zealotsAggression = defineTrait({
+const zealotsAggression = defineTrait({
   id: TRAIT.ZEALOTS_AGGRESSION,
   name: "Zealot's Aggression",
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -234,7 +232,7 @@ export const dragonhunterTraits = [
 ];
 
 /** The elite cast grants endurance after its accepted virtue activation rewards. */
-function grantHuntersDetermination(runtime: Runtime, { cast }: DragonhunterCastCompletion): void {
+function grantHuntersDetermination(runtime: GuardianRuntime, { cast }: DragonhunterCastCompletion): void {
   const amount = balanceProfileNumber(
     requireBalanceProfileFromContext(runtime, TRAIT.HUNTERS_DETERMINATION),
     'resourceGain'
@@ -254,7 +252,7 @@ function grantHuntersDetermination(runtime: Runtime, { cast }: DragonhunterCastC
 }
 
 /** Control-triggered Crippled resolves immediately so its reactions share the originating control timestamp. */
-function applyDulledSenses(runtime: Runtime, { cause: event }: DragonhunterControl): void {
+function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
   const dulledSensesProfile = requireBalanceProfileFromContext(runtime, TRAIT.DULLED_SENSES);
   const crippled = requireEffect(dulledSensesProfile, 'condition', 'Crippled');
   if (!crippled) return;
@@ -277,7 +275,7 @@ function applyDulledSenses(runtime: Runtime, { cause: event }: DragonhunterContr
 }
 
 /** Heavy Light's Stability keeps a 1-second internal cooldown that the game tooltip does not expose. */
-function grantHeavyLight(runtime: Runtime, { cause: event }: DragonhunterControl): void {
+function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
   const heavyLightProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEAVY_LIGHT);
   const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
   // Removing Stability leaves Heavy Light's interval unclaimed.

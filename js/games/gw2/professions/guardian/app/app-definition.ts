@@ -3,7 +3,9 @@
 // the engine contract exported by ../profession.ts.
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
-import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { getActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import { toApplicationBuild } from '#gw2/professions/guardian/build/build.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
@@ -13,7 +15,7 @@ import type { GuardianCanonicalBuild } from '#gw2/professions/guardian/types.js'
 export const guardianAppAdapter = defineProfessionApp({
   tooltips: guardianTooltips,
   profession: guardianProfession,
-  applyBuildAttributeRules: applyGuardianBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(guardianCatalog, getActiveTraits),
   toApplicationBuild,
   runtime: {
     buildConfigExtras: (app) => {

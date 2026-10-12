@@ -24,14 +24,14 @@ import { specterState } from '#gw2/professions/thief/specializations/specter/sta
 const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
 
 /** Owns Amplified Siphoning tuning and behavior at the existing execution boundaries. */
-export const amplifiedSiphoning = defineTrait({
+const amplifiedSiphoning = defineTrait({
   id: TRAIT.AMPLIFIED_SIPHONING,
   name: 'Amplified Siphoning',
   balance: { resourceGain: 10 }
 });
 
 /** Owns Dark Sentry tuning and behavior at the existing execution boundaries. */
-export const darkSentry = defineTrait({
+const darkSentry = defineTrait({
   id: TRAIT.DARK_SENTRY,
   name: 'Dark Sentry',
   balance: {
@@ -60,7 +60,7 @@ export const darkSentry = defineTrait({
 });
 
 /** Owns Larcenous Torment tuning and behavior at the existing execution boundaries. */
-export const larcenousTorment = defineTrait({
+const larcenousTorment = defineTrait({
   id: TRAIT.LARCENOUS_TORMENT,
   name: 'Larcenous Torment',
   balance: {
@@ -81,7 +81,7 @@ export const larcenousTorment = defineTrait({
 });
 
 /** Owns Second Opinion tuning and behavior at the existing execution boundaries. */
-export const secondOpinion = defineTrait({
+const secondOpinion = defineTrait({
   id: TRAIT.SECOND_OPINION,
   name: 'Second Opinion',
   balance: {
@@ -116,7 +116,7 @@ export const secondOpinion = defineTrait({
 });
 
 /** All three shroud rewards use compiled cast commitment, independently of intrinsic skill effects. */
-export const shadestep = defineTrait({
+const shadestep = defineTrait({
   id: TRAIT.SHADESTEP,
   name: 'Shadestep',
   balance: {
@@ -155,7 +155,7 @@ export const shadestep = defineTrait({
 });
 
 /** Owns Strength of Shadows tuning and behavior at the existing execution boundaries. */
-export const strengthOfShadows = defineTrait({
+const strengthOfShadows = defineTrait({
   id: TRAIT.STRENGTH_OF_SHADOWS,
   name: 'Strength of Shadows',
   modifierRules: [

@@ -2,7 +2,7 @@ import type { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-spac
 import type { createFastOptimizer } from '#gw2/app/optimizer/gear/fast-search.js';
 import type { GearOptimizerRequest, OptimizerCandidate } from '#gw2/app/optimizer/gear/search.js';
 
-export type GearOptimizerWorkerRequest = { readonly requestId: number } & (
+type GearOptimizerWorkerRequest = { readonly requestId: number } & (
   | { readonly kind: 'init'; readonly request: GearOptimizerRequest }
   | { readonly kind: 'chunk'; readonly chunkId: number; readonly start: string; readonly end: string }
   | { readonly kind: 'verify'; readonly candidates: readonly OptimizerCandidate[] }

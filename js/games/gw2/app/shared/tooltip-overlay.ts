@@ -1,4 +1,3 @@
-import { gw2ApiText } from '#gw2/app/shared/html.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import type { CatalogEntity, Skill, TooltipFact } from '#gw2/platform/skills/types.js';
@@ -375,4 +374,11 @@ export function bindWikiTooltips(): void {
   };
 
   new MutationObserver(refreshTooltip).observe(document.body, { childList: true, subtree: true });
+}
+
+/** Converts GW2 API line breaks and color tags into plain tooltip text. */
+function gw2ApiText(value: unknown): string {
+  return String(value ?? '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?c(?:=[^>]*)?>/gi, '');
 }

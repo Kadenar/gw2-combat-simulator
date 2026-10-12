@@ -4,7 +4,9 @@
 
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
-import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { toApplicationBuild } from '#gw2/professions/thief/build/build.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
@@ -13,7 +15,7 @@ import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
 export const thiefAppAdapter = defineProfessionApp({
   tooltips: thiefTooltips,
   profession: thiefProfession,
-  applyBuildAttributeRules: applyThiefBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(thiefCatalog, getActiveTraits),
   toApplicationBuild,
   resetPrompt: 'Reset the Thief build, assumptions, and rotation?',
   runtime: {

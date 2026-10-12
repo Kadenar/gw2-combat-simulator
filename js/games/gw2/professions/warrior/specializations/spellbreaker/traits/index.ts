@@ -3,7 +3,7 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -26,7 +26,7 @@ import {
   insightStacks,
   spellbreakerStateAt
 } from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
@@ -61,7 +61,7 @@ export const attackersInsight = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const magebaneTether = defineTrait({
+const magebaneTether = defineTrait({
   triggers: [
     onTriggerPoint(spellbreakerStrike, {
       run: (runtime, input: TriggerPointInput<typeof spellbreakerStrike>) =>
@@ -88,7 +88,7 @@ export const magebaneTether = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const noEscape = defineTrait({
+const noEscape = defineTrait({
   id: TRAIT.NO_ESCAPE,
   name: 'No Escape',
   balance: {
@@ -109,7 +109,7 @@ export const noEscape = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const pureStrike = defineTrait({
+const pureStrike = defineTrait({
   id: TRAIT.PURE_STRIKE,
   name: 'Pure Strike',
   balance: {
@@ -130,7 +130,7 @@ export const pureStrike = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const sunAndMoonStyle = defineTrait({
+const sunAndMoonStyle = defineTrait({
   id: TRAIT.SUN_AND_MOON_STYLE,
   name: 'Sun and Moon Style',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -150,7 +150,7 @@ export const sunAndMoonStyle = defineTrait({
 });
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
-export const spellbreakersConviction = defineTrait({
+const spellbreakersConviction = defineTrait({
   id: TRAIT.SPELLBREAKERS_CONVICTION,
   name: "Spellbreaker's Conviction"
 });
@@ -165,7 +165,7 @@ export const warriorSpellbreakerTraits = [
   sunAndMoonStyle
 ] as const;
 
-function reactToSpellbreakerControl(context: Runtime, event: Gw2ResolverEvent): void {
+function reactToSpellbreakerControl(context: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType === 'player') {
     gainAttackersInsight(
       context,
@@ -178,7 +178,7 @@ function reactToSpellbreakerControl(context: Runtime, event: Gw2ResolverEvent): 
 
 // Trigger resolver-side Magebane Tether only from a qualifying player burst hit
 // and record the proc when its cooldown admits a new window.
-function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEvent): void {
+function reactToSpellbreakerDamage(context: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) {
     return;
   }
@@ -199,7 +199,7 @@ function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEvent): v
 }
 
 function gainAttackersInsight(
-  context: Runtime,
+  context: WarriorRuntime,
   state: { attackerInsightExpiries: number[] },
   at: number,
   applications = 1
@@ -219,12 +219,12 @@ function gainAttackersInsight(
   });
 }
 
-function attackerInsightApplications(context: Runtime, event: Gw2ResolverEvent): number {
+function attackerInsightApplications(context: WarriorRuntime, event: Gw2ResolverEvent): number {
   // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
   return ID.KICK == Number(event.skillId) && context.config.target?.defiant === true ? 2 : 1;
 }
 
-function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, event: Gw2ResolverEvent): boolean {
+function triggerMagebaneTether(context: WarriorRuntime, state: SpellbreakerState, event: Gw2ResolverEvent): boolean {
   const at = context.time;
   const skill = context.helpers.skillsById.get(ID.MAGEBANE_TETHER)!;
   // The invoked skill owns recharge while the tether still waits for its next GW2 action tick.
@@ -240,5 +240,3 @@ function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, event
   invokeTraitSkill(context, TRAIT.MAGEBANE_TETHER, skill.id, event);
   return true;
 }
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;

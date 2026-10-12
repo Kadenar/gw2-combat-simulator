@@ -1,4 +1,3 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -12,7 +11,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -21,12 +20,11 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const consumedCharges = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
 /** Select illumination at acceptance so delayed packets cannot borrow a later charge or edit executed history. */
 function illuminatedSpearEffects(
-  runtime: Runtime,
+  runtime: GuardianRuntime,
   cast: RuntimeCast<GuardianSkill>,
   profileId: number | string,
   effects: readonly SkillEffect[]
@@ -108,7 +106,7 @@ function illuminatedSpearEffects(
 }
 
 /** Committed casts grant or consume the current window; an expiry wake can clear only its own deadline. */
-function completeSpearIllumination(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, symbol: boolean): void {
+function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, symbol: boolean): void {
   const state = runtime.profession.core;
   if (consumedCharges.get(cast) === state.spearIlluminatedUntil) {
     state.spearIlluminatedArmed = false;

@@ -7,7 +7,7 @@ import { daredevilState } from '#gw2/professions/thief/specializations/daredevil
 import type { ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // The dodge choice retains trait attribution while its balance profile owns every emitted packet.
-export const DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.freeze({
+const DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.freeze({
   'Bounding Dodger': TRAIT.BOUNDING_DODGER,
   'Lotus Training': TRAIT.LOTUS_TRAINING,
   'Unhindered Combatant': TRAIT.UNHINDERED_COMBATANT
@@ -19,7 +19,7 @@ export function selectedDodgeProfile(runtime: ThiefRuntime): BalanceProfile | un
 }
 
 /** Dodge packets use the in-game skill name of the selected dodge. */
-export function dodgeSkillName(runtime: ThiefRuntime): string {
+function dodgeSkillName(runtime: ThiefRuntime): string {
   const selected = daredevilState.from(runtime).selectedDodge;
   return selected === 'Bounding Dodger' ? 'Bound' : selected === 'Lotus Training' ? 'Impaling Lotus' : selected;
 }

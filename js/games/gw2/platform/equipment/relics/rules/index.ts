@@ -1,7 +1,5 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-/** Assembles the relic rule table from each relic's own module. */
-import { director } from '#gw2/platform/equipment/relics/rules/director.js';
-import { mountBalrior } from '#gw2/platform/equipment/relics/rules/mount-balrior.js';
+import { skillUseStrikeRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { akeem } from '#gw2/platform/equipment/relics/rules/akeem.js';
 import { agony } from '#gw2/platform/equipment/relics/rules/agony.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
@@ -28,9 +26,10 @@ import { thorns } from '#gw2/platform/equipment/relics/rules/thorns.js';
 
 import type { Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 
+/** Assembles specialized rules and directly binds simple heal/elite activation policies. */
 export const RELIC_RULES: Readonly<Record<number, Readonly<Gw2RelicRule>>> = Object.freeze({
-  [RELIC_IDS.DIRECTOR]: director,
-  [RELIC_IDS.MOUNT_BALRIOR]: mountBalrior,
+  [RELIC_IDS.DIRECTOR]: skillUseStrikeRelic('Heal'),
+  [RELIC_IDS.MOUNT_BALRIOR]: skillUseStrikeRelic('Elite'),
   [RELIC_IDS.AGONY]: agony,
   [RELIC_IDS.AKEEM]: akeem,
   [RELIC_IDS.ARISTOCRACY]: aristocracy,

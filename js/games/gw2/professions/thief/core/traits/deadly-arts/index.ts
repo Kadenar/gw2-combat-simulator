@@ -1,3 +1,6 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -15,6 +18,7 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
+  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -33,7 +37,6 @@ import {
   venomsConsumed
 } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
-import { potentPoisonStacks } from '#gw2/professions/thief/core/traits/deadly-arts/poison.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
@@ -530,4 +533,11 @@ function applyPanicStrikePoison(
 
 function poisonTargetConditionCount(context: ThiefResolverContext, at: number): number {
   return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.combat.targetHasCondition(condition, at)).length;
+}
+
+/** Poison-producing traits share the selected stack override while retaining their own profile tuning. */
+function potentPoisonStacks(context: unknown, profile: BalanceProfile, effect: SkillEffect): number {
+  return hasTrait(context, TRAIT.POTENT_POISON)
+    ? balanceProfileNumber(profile, 'playerStacks')
+    : effectNumber(profile, effect, 'stacks');
 }

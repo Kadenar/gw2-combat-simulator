@@ -108,7 +108,7 @@ export function rangerPetPaletteGroup(
 
 // Resolve a valid pet for either UI slot from current build state, falling back to
 // the profession defaults when a saved name is stale.
-export function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
+function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   const state = rangerUiState(context);
   const selected = String(
     slot === 2

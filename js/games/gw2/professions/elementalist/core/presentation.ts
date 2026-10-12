@@ -383,7 +383,7 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
  * Attunement-bound skills are measured from their own attunement: a single-element skill starts in that element in
  * both hands, and a Weaver dual skill ("Fire+Water") starts with its main-hand and off-hand elements.
  */
-export function elementalistAttunementConfig(skill: Skill): Readonly<Record<string, string>> | null {
+function elementalistAttunementConfig(skill: Skill): Readonly<Record<string, string>> | null {
   const attunement = String((skill as { readonly attunement?: unknown }).attunement ?? '');
   const [primary, secondary = primary] = attunement.split('+');
   if (!isElementalistAttunement(primary) || !isElementalistAttunement(secondary)) return null;

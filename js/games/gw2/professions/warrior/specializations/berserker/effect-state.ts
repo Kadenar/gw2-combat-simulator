@@ -1,7 +1,7 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 
@@ -14,9 +14,7 @@ export function berserkerBuffPolicies(): BuffStatePolicy[] {
 }
 
 /** Observe live owner state so consumption and expiry agree with combat. */
-export function berserkerEffectStates(
-  runtime: MechanicQueriesOf<MechanicContext<WarriorRuntimeState, WarriorSkill>>
-): EffectState[] {
+export function berserkerEffectStates(runtime: MechanicQueriesOf<WarriorRuntime>): EffectState[] {
   const state = berserkerState.from(runtime);
   return [
     timedEffectState('berserk', state.berserkActive ? [{ stacks: 1, expiresAt: state.berserkUntil }] : [], 1),

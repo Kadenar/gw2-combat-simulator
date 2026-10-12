@@ -1,5 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -10,14 +10,13 @@ import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/m
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
 const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });
 
 /** Preparation replaces the charge pool once; subsequent recovery uses the shared ammo controller. */
-function arm(runtime: Runtime, definition: MantraDefinition): void {
+function arm(runtime: GuardianRuntime, definition: MantraDefinition): void {
   const normal = runtime.helpers.skillsById.get(definition.normalId)!;
   const flips = runtime.profession.core.availableFlips;
   consumeSkillFlip(flips, definition.finalId);
@@ -30,7 +29,7 @@ function arm(runtime: Runtime, definition: MantraDefinition): void {
 }
 
 /** Exactly one pending wake owns each mantra's next charge or full rearm; rate changes replace that wake. */
-function sync(runtime: Runtime, definition: MantraDefinition): void {
+function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
   const state = firebrandState.from(runtime);
   const previous = state.mantraWakeGenerations[definition.rootId] ?? 0;
   runtime.cancelOwner(owner(definition, previous));
@@ -67,7 +66,7 @@ function sync(runtime: Runtime, definition: MantraDefinition): void {
 }
 
 /** Only equipped PvE mantras start prepared; an omitted selection retains the catalog's all-skills sandbox. */
-export function initializeFirebrandMantras(runtime: Runtime): void {
+export function initializeFirebrandMantras(runtime: GuardianRuntime): void {
   const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   for (const definition of MANTRAS) {
     if (runtime.config.selectedSkillIds !== undefined && !selected.has(definition.rootId)) continue;
@@ -77,13 +76,13 @@ export function initializeFirebrandMantras(runtime: Runtime): void {
 }
 
 /** Alacrity and explicit resets settle the real recharge maps before reprojecting visible flips and wakes. */
-export function refreshFirebrandMantras(runtime: Runtime): void {
+export function refreshFirebrandMantras(runtime: GuardianRuntime): void {
   runtime.cooldownController.refresh(runtime.time);
   for (const definition of MANTRAS)
     if (Object.hasOwn(firebrandState.from(runtime).mantraRechargeReadyAt, definition.rootId)) sync(runtime, definition);
 }
 
-export function firebrandMantraWake(runtime: Runtime, rootId: unknown): void {
+export function firebrandMantraWake(runtime: GuardianRuntime, rootId: unknown): void {
   if (rootId == null) {
     refreshFirebrandMantras(runtime);
     return;
@@ -97,7 +96,7 @@ export function firebrandMantraWake(runtime: Runtime, rootId: unknown): void {
 }
 
 /** Preparation and final variants consult the one normal-charge pool, including its shared cast lockout. */
-export function firebrandMantraAvailability(runtime: MechanicQueriesOf<Runtime>, skill: Skill) {
+export function firebrandMantraAvailability(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill) {
   const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
     [rootId, normalId, finalId].includes(Number(skill.id))
   );
@@ -125,15 +124,15 @@ export const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, Gua
     MANTRAS.flatMap((definition) => [
       [
         `guardian.prepare-mantra-${definition.rootId}`,
-        (runtime: Runtime) => {
+        (runtime: GuardianRuntime) => {
           arm(runtime, definition);
           sync(runtime, definition);
         }
       ],
-      [`guardian.use-mantra-${definition.rootId}`, (runtime: Runtime) => sync(runtime, definition)],
+      [`guardian.use-mantra-${definition.rootId}`, (runtime: GuardianRuntime) => sync(runtime, definition)],
       [
         `guardian.finish-mantra-${definition.rootId}`,
-        (runtime: Runtime, context: ActionContext) => {
+        (runtime: GuardianRuntime, context: ActionContext) => {
           runtime.fireTrigger(finalMantraChargeUsed, { context });
           const flips = runtime.profession.core.availableFlips;
           consumeSkillFlip(flips, definition.normalId);

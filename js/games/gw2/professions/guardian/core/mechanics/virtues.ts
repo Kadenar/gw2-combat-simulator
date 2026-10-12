@@ -2,7 +2,7 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -19,17 +19,15 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import type {
   GuardianResolverContext,
   GuardianResolverEvent,
-  GuardianRuntimeState,
   GuardianSkill,
-  GuardianVirtue
+  GuardianVirtue,
+  GuardianRuntime
 } from '#gw2/professions/guardian/types.js';
 
 /**
  * @fileoverview Implements shared Guardian virtue validation, activation and
  * refresh events, plus the reusable resolver-time Justice burning contract.
  */
-
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** An accepted virtue activation; each owner has already admitted its own readiness and replacement rules. */
 export interface VirtueActivation {
@@ -212,7 +210,7 @@ const LUMINARY_VIRTUES = [
   [GUARDIAN_SKILL_IDS.RADIANT_COURAGE, 'courage']
 ] as const;
 /** Recharge-backed virtue projections follow the shared cast controller, including Alacrity and explicit resets. */
-export function refreshGuardianVirtues(runtime: Runtime): void {
+export function refreshGuardianVirtues(runtime: GuardianRuntime): void {
   const kind = runtime.profession.specialization.kind;
   const virtues =
     kind === 'Core'

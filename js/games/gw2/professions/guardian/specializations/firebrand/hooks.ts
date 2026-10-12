@@ -1,7 +1,7 @@
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -44,15 +44,19 @@ import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guard
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { stoicDemeanorRetainsCourage } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type {
+  GuardianRuntimeState,
+  GuardianSkill,
+  GuardianVirtue,
+  GuardianRuntime
+} from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const COURAGE = 'guardian.firebrand.courage';
 const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
 
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
-function openTome(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
+function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   const state = firebrandState.from(runtime);
   const ready = state.tomeDormantReadyAt[virtue] <= runtime.time;
   state.activeTome = virtue;

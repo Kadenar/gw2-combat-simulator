@@ -4,7 +4,7 @@ import { bloodReactionSource } from '#gw2/professions/warrior/specializations/be
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -25,10 +25,10 @@ import {
   detonate,
   isBerserkerSkill
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
-export const burstOfAggression = defineTrait({
+const burstOfAggression = defineTrait({
   triggers: [
     onTriggerPoint(berserkEntered, {
       requiresSelection: false,
@@ -46,7 +46,7 @@ export const burstOfAggression = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const bloodyRoar = defineTrait({
+const bloodyRoar = defineTrait({
   triggers: [
     onTriggerPoint(berserkEntered, {
       run: (runtime, input: TriggerPointInput<typeof berserkEntered>) => bloodyRoarEntry(runtime, input.cast)
@@ -72,7 +72,7 @@ export const bloodyRoar = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const lastBlaze = defineTrait({
+const lastBlaze = defineTrait({
   id: TRAIT.LAST_BLAZE,
   name: 'Last Blaze',
   balance: {
@@ -99,7 +99,7 @@ export const lastBlaze = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const smashBrawler = defineTrait({
+const smashBrawler = defineTrait({
   id: TRAIT.SMASH_BRAWLER,
   name: 'Smash Brawler',
   balance: {
@@ -121,7 +121,7 @@ export const smashBrawler = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const heatTheSoul = defineTrait({
+const heatTheSoul = defineTrait({
   triggers: [
     onTriggerPoint(berserkerCastCompleted, {
       run: (runtime, input: TriggerPointInput<typeof berserkerCastCompleted>) =>
@@ -141,7 +141,7 @@ export const heatTheSoul = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const kingOfFires = defineTrait({
+const kingOfFires = defineTrait({
   triggers: [
     {
       on: 'damage.resolved',
@@ -260,10 +260,10 @@ export const bloodReaction = defineTrait({
 });
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
-export const primalRage = defineTrait({ id: TRAIT.PRIMAL_RAGE, name: 'Primal Rage' });
+const primalRage = defineTrait({ id: TRAIT.PRIMAL_RAGE, name: 'Primal Rage' });
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
-export const fatalFrenzy = defineTrait({ id: TRAIT.FATAL_FRENZY, name: 'Fatal Frenzy' });
+const fatalFrenzy = defineTrait({ id: TRAIT.FATAL_FRENZY, name: 'Fatal Frenzy' });
 
 /** Register native owners once in declaration order. */
 export const warriorBerserkerTraits = [
@@ -279,7 +279,7 @@ export const warriorBerserkerTraits = [
 ] as const;
 
 /** Own this trait's reward at the accepted mechanic boundary. */
-function burstOfAggressionEntry(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function burstOfAggressionEntry(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_OF_AGGRESSION);
     emitTraitProfile(runtime, TRAIT.BURST_OF_AGGRESSION, TRAIT.BURST_OF_AGGRESSION, undefined, {
@@ -303,7 +303,7 @@ function burstOfAggressionEntry(runtime: Runtime, cast: RuntimeCast<WarriorSkill
 }
 
 /** Own this trait's reward at the accepted mechanic boundary. */
-function bloodyRoarEntry(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function bloodyRoarEntry(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODY_ROAR);
     emitTraitProfile(runtime, TRAIT.BLOODY_ROAR, TRAIT.BLOODY_ROAR, undefined, {
@@ -327,7 +327,7 @@ function bloodyRoarEntry(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
 }
 
 /** Own this trait's reward at the accepted mechanic boundary. */
-function heatTheSoulCompletion(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function heatTheSoulCompletion(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (cast.skill.primalBurst) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEAT_THE_SOUL);
     emitTraitProfile(runtime, TRAIT.HEAT_THE_SOUL, TRAIT.HEAT_THE_SOUL, undefined, {
@@ -354,11 +354,9 @@ function heatTheSoulCompletion(runtime: Runtime, cast: RuntimeCast<WarriorSkill>
 }
 
 /** Own this trait's reward at the accepted mechanic boundary. */
-function kingOfFiresCompletion(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function kingOfFiresCompletion(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (isBerserkerSkill(cast.skill)) {
     berserkerState.from(runtime).completedActivations[cast.id] = runtime.time;
     runtime.schedule(DETONATE, runtime.time, { activationId: cast.id, skillId: cast.skill.id }, undefined, 5);
   }
 }
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;

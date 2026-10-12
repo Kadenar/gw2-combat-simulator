@@ -12,7 +12,7 @@ export const DEADEYE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 /** Canonical defaults also seed state-only previews; runtime initialization applies the selected patch. */
-export const DEADEYE_RESOURCE_PROFILE: BalanceProfile = {
+const DEADEYE_RESOURCE_PROFILE: BalanceProfile = {
   id: DEADEYE_BALANCE_PROFILE_IDS.resources,
   name: 'Deadeye Malice and Mark',
   profileKind: 'mechanic',

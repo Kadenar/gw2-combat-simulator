@@ -1,4 +1,3 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   balanceProfileNumber,
@@ -14,10 +13,9 @@ import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const ASHES = 'guardian.firebrand.ashes';
 export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 
@@ -36,7 +34,7 @@ export function attribution(event: Gw2ResolverEvent) {
 
 /** Live Ashes charges retain their source and original deadline until an eligible allied strike. */
 export function alliedAshes(
-  runtime: Runtime,
+  runtime: GuardianRuntime,
   event: Gw2ResolverEvent,
   count: number,
   duration: number,
@@ -81,12 +79,12 @@ export function alliedAshes(
 }
 
 /** Accepted Ashes casts grant after 560 ms, without exposing charges at acceptance or waiting for animation end. */
-export function startFirebrandAshes(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
+export function startFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   runtime.scheduleForCast(ASHES, canonicalTime(cast.start + 0.56), cast);
 }
 
 /** The application boundary grants Might and installs the selected charge components together. */
-function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
+function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   const event: Gw2ResolverEvent = {
     type: 'buff',
     at: runtime.time,
@@ -143,10 +141,10 @@ function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast<GuardianSkill>)
 }
 
 export const firebrandEffectTasks = {
-  [ASHES](runtime: Runtime, data: unknown) {
+  [ASHES](runtime: GuardianRuntime, data: unknown) {
     grantFirebrandAshes(runtime, (data as { cast: RuntimeCast<GuardianSkill> }).cast);
   },
-  [FIREBRAND_ASHES_EXPIRE](runtime: Runtime) {
+  [FIREBRAND_ASHES_EXPIRE](runtime: GuardianRuntime) {
     expireCharges(firebrandState.from(runtime).ashes, runtime.time);
   }
 };

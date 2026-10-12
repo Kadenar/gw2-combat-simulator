@@ -38,7 +38,7 @@ export interface BladeswornState extends DragonTriggerState {
 }
 
 /** Projection defaults are detached display templates; the projector clones live clocks whenever those fields exist. */
-export const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   flow: createResourceClock(),
   flowStabilizerWindows: [],
   traitPositiveFlowStartedAt: 0,

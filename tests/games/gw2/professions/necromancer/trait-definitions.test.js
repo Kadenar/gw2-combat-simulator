@@ -1,7 +1,9 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
+import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerNativeModules, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -37,7 +39,10 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
     label: 'Necromancer trait owners',
     professions: { necromancer: { balanceProfiles: { [TRAIT.FURIOUS_DEMISE]: { fields: { attributeBonus: 250 } } } } }
   });
-  const calculate = createCalculateAttributes(applyNecromancerBuildAttributeRules, family.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(necromancerCatalog, getNecromancerActiveTraits),
+    family.attributeContributions
+  );
   const build = { specializations: [{ name: 'Curses', traits: '1-1-1' }] };
   const balance = family.balanceContextFor('necromancer-trait-owners');
   const preview = calculate(build, [], 1, null, null, balance).attributes;

@@ -6,14 +6,14 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { Runtime } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
+
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Justice is sampled at hammer impact, allowing a concurrent virtue to empower an already accepted cast. */
-export function hammerImpact(runtime: Runtime, data: unknown): void {
+export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
   const state = luminaryState.from(runtime);
   if (!state.radiantJusticeArmed) return;
   state.radiantJusticeArmed = false;

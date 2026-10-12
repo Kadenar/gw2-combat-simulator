@@ -1,6 +1,6 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -20,12 +20,10 @@ import {
   lastBlazeBerserkExtension,
   smashBrawlerBerserkExtension
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
+import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
-function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = berserkerState.from(runtime);
   const skill = cast.skill;
   if (skill.id === ID.BERSERK) {

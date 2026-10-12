@@ -30,7 +30,7 @@ function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
 }
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
-export const unstoppableUnion = defineTrait({
+const unstoppableUnion = defineTrait({
   triggers: [
     onTriggerPoint(beastmodeChanged, {
       run: (runtime, input: TriggerPointInput<typeof beastmodeChanged>) => applyUnstoppableUnion(runtime, input.skill)
@@ -44,7 +44,7 @@ export const unstoppableUnion = defineTrait({
 });
 
 /** Owns Leader of the Pack's live tuning and trait behavior. */
-export const leaderOfThePack = defineTrait({
+const leaderOfThePack = defineTrait({
   id: TRAIT.LEADER_OF_THE_PACK,
   name: 'Leader of the Pack',
   balance: {
@@ -54,7 +54,7 @@ export const leaderOfThePack = defineTrait({
 });
 
 /** Owns Live Fast's live tuning and trait behavior. */
-export const liveFast = defineTrait({
+const liveFast = defineTrait({
   triggers: [
     onTriggerPoint(mergedBeastHit, {
       run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) => triggerMergedLiveFast(runtime, input.event)
@@ -71,7 +71,7 @@ export const liveFast = defineTrait({
 });
 
 /** Owns Twice as Vicious's live tuning and trait behavior. */
-export const twiceAsVicious = defineTrait({
+const twiceAsVicious = defineTrait({
   id: TRAIT.TWICE_AS_VICIOUS,
   name: 'Twice as Vicious',
   balance: {
@@ -146,7 +146,7 @@ export const twiceAsVicious = defineTrait({
 });
 
 /** Owns Predator's Cunning's live tuning and trait behavior. */
-export const predatorsCunning = defineTrait({
+const predatorsCunning = defineTrait({
   id: TRAIT.PREDATORS_CUNNING,
   name: "Predator's Cunning",
   balance: {
@@ -183,7 +183,7 @@ export const predatorsCunning = defineTrait({
 });
 
 /** Owns Oppressive Superiority's live tuning and trait behavior. */
-export const oppressiveSuperiority = defineTrait({
+const oppressiveSuperiority = defineTrait({
   id: TRAIT.OPPRESSIVE_SUPERIORITY,
   name: 'Oppressive Superiority',
   balance: {
@@ -219,7 +219,7 @@ export const oppressiveSuperiority = defineTrait({
 });
 
 /** Owns Essence of Speed's live tuning and trait behavior. */
-export const essenceOfSpeed = defineTrait({
+const essenceOfSpeed = defineTrait({
   id: TRAIT.ESSENCE_OF_SPEED,
   name: 'Essence of Speed',
   balance: {
@@ -229,7 +229,7 @@ export const essenceOfSpeed = defineTrait({
 });
 
 /** Owns Furious Strength's live tuning and trait behavior. */
-export const furiousStrength = defineTrait({
+const furiousStrength = defineTrait({
   id: TRAIT.FURIOUS_STRENGTH,
   name: 'Furious Strength',
   // Trait balance is the single tuning source for modifiers and presentation.

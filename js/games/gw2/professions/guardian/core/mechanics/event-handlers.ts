@@ -1,7 +1,6 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import type { DamageEvent } from '#gw2/platform/events/events.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { GuardianStrikeFields } from '#gw2/professions/guardian/types.js';
@@ -19,7 +18,7 @@ export function buildGuardianStrike(fields: GuardianStrikeFields): DamageEvent {
 
 /** Child packets retain their activation without copying hostile flags into self-state applications. */
 export function guardianCastCause(
-  runtime: MechanicContext<GuardianRuntimeState, GuardianSkill>,
+  runtime: GuardianRuntime,
   cast: { id: string; skill: Pick<RuntimeCast<GuardianSkill>['skill'], 'id' | 'name'> }
 ): Gw2ResolverEvent {
   return {

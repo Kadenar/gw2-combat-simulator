@@ -7,7 +7,7 @@ import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-de
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { inertContainer } from '#tests/helpers/dom.js';

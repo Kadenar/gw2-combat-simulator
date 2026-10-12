@@ -85,7 +85,7 @@ const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] 
 ]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.
-export const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });

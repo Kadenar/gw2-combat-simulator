@@ -32,7 +32,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Nomad's Endurance owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const nomadsEndurance = defineTrait<MesmerSkill>({
+const nomadsEndurance = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime, input: TriggerPointInput<typeof mesmerShatterCompleted>) => grantNomadsEndurance(runtime, input)
@@ -67,7 +67,7 @@ export const nomadsEndurance = defineTrait<MesmerSkill>({
 });
 
 /** Renewing Oasis owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const renewingOasis = defineTrait<MesmerSkill>({
+const renewingOasis = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mirageCloakGranted, {
       run: (runtime, input: TriggerPointInput<typeof mirageCloakGranted>) => renewingOasisCloak(runtime, input)
@@ -81,7 +81,7 @@ export const renewingOasis = defineTrait<MesmerSkill>({
 });
 
 /** Riddle of Sand owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const riddleOfSand = defineTrait<MesmerSkill>({
+const riddleOfSand = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime, input: TriggerPointInput<typeof mesmerShatterCompleted>) => primeRiddleAfterShatter(runtime, input)
@@ -102,7 +102,7 @@ export const riddleOfSand = defineTrait<MesmerSkill>({
 });
 
 /** Desert Distortion owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const desertDistortion = defineTrait<MesmerSkill>({
+const desertDistortion = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
@@ -117,7 +117,7 @@ export const desertDistortion = defineTrait<MesmerSkill>({
 });
 
 /** Mirage Mantle owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const mirageMantle = defineTrait<MesmerSkill>({
+const mirageMantle = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mirageAmbushAccepted, {
       run: (runtime, input: TriggerPointInput<typeof mirageAmbushAccepted>) => mantleAmbush(runtime, input)
@@ -131,7 +131,7 @@ export const mirageMantle = defineTrait<MesmerSkill>({
 });
 
 /** Phantom Pain owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const phantomPain = defineTrait<MesmerSkill>({
+const phantomPain = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime, input: TriggerPointInput<typeof mesmerShatterCompleted>) => grantPhantomPain(runtime, input)
@@ -179,7 +179,7 @@ export const phantomPain = defineTrait<MesmerSkill>({
 });
 
 /** Dune Cloak owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const duneCloak = defineTrait<MesmerSkill>({
+const duneCloak = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime, input: TriggerPointInput<typeof mesmerShatterCompleted>) => grantDuneCloak(runtime, input)
@@ -199,7 +199,7 @@ export const duneCloak = defineTrait<MesmerSkill>({
 });
 
 /** Clone ambush execution stays mechanical; its selection, lifetime, and gain reactions belong here. */
-export const infiniteHorizon = defineTrait<MesmerSkill>({
+const infiniteHorizon = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mirageResourcesGained, {
       run: (runtime, input: TriggerPointInput<typeof mirageResourcesGained>) => infiniteHorizonGain(runtime, input)
@@ -217,7 +217,7 @@ export const infiniteHorizon = defineTrait<MesmerSkill>({
 });
 
 /** Self-Deception owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const selfDeception = defineTrait<MesmerSkill>({
+const selfDeception = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mirageCastCommitted, {
       run: (runtime, input: TriggerPointInput<typeof mirageCastCommitted>) => selfDeceptionCommitted(runtime, input)

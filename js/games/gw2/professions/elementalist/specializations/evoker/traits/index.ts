@@ -74,7 +74,7 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
 });
 
 /** Owns Evocation tuning at its existing execution boundaries. */
-export const evocation = defineTrait({
+const evocation = defineTrait({
   triggers: [
     onTriggerPoint(evokerEventAccepted, {
       requiresSelection: false,
@@ -90,7 +90,7 @@ export const evocation = defineTrait({
 });
 
 /** Owns Elemental Balance tuning at its existing execution boundaries. */
-export const elementalBalance = defineTrait({
+const elementalBalance = defineTrait({
   triggers: [
     onTriggerPoint(evokerEntryObserved, {
       run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyElementalBalanceEntry(runtime, event)
@@ -107,7 +107,7 @@ export const elementalBalance = defineTrait({
 });
 
 /** Owns Elemental Dynamo tuning at its existing execution boundaries. */
-export const elementalDynamo = defineTrait({
+const elementalDynamo = defineTrait({
   triggers: [
     onTriggerPoint(evokerEntryObserved, {
       run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyElementalDynamoEntry(runtime, event)
@@ -121,7 +121,7 @@ export const elementalDynamo = defineTrait({
 });
 
 /** Owns Specialized Elements tuning at its existing execution boundaries. */
-export const specializedElements = defineTrait({
+const specializedElements = defineTrait({
   triggers: [
     onTriggerPoint(evokerInitialized, {
       run: (runtime: ElementalistRuntime) => initializeSpecializedElements(runtime)
@@ -161,7 +161,7 @@ function applyGalvanicEnchantment(
 }
 
 /** Owns Galvanic Enchantment tuning at its existing execution boundaries. */
-export const galvanicEnchantment = defineTrait({
+const galvanicEnchantment = defineTrait({
   triggers: [
     onTriggerPoint(evokerCastCompleted, {
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
@@ -183,7 +183,7 @@ export const galvanicEnchantment = defineTrait({
 });
 
 /** Owns Enhanced Potency tuning at its existing execution boundaries. */
-export const enhancedPotency = defineTrait({
+const enhancedPotency = defineTrait({
   // Selection gates both elemental bonuses; live boons never become ordinary conversion inputs.
   attributes(context) {
     const config: ElementalistConfig | undefined = context.config;
@@ -233,7 +233,7 @@ export const enhancedPotency = defineTrait({
 });
 
 /** Owns Familiar's Prowess tuning at its existing execution boundaries. */
-export const familiarsProwess = defineTrait({
+const familiarsProwess = defineTrait({
   triggers: [
     onTriggerPoint(evokerCastCompleted, {
       when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => FAMILIAR_ELEMENTS.has(cast.skill.id),
@@ -288,7 +288,7 @@ export const familiarsProwess = defineTrait({
 });
 
 /** Owns Altruistic Aspect tuning at its existing execution boundaries. */
-export const altruisticAspect = defineTrait({
+const altruisticAspect = defineTrait({
   triggers: [
     onTriggerPoint(evokerCastSettled, {
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
@@ -308,7 +308,7 @@ export const altruisticAspect = defineTrait({
 });
 
 /** Focus owns its replacement bonuses; Prowess modifiers consume them during the applied window. */
-export const familiarsFocus = defineTrait({
+const familiarsFocus = defineTrait({
   id: TRAIT.FAMILIARS_FOCUS,
   name: "Familiar's Focus",
   balance: {
@@ -318,7 +318,7 @@ export const familiarsFocus = defineTrait({
 });
 
 /** Owns Familiar's Blessing tuning at its existing execution boundaries. */
-export const familiarsBlessing = defineTrait({
+const familiarsBlessing = defineTrait({
   triggers: [
     onTriggerPoint(evokerCastCompleted, {
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
@@ -333,7 +333,7 @@ export const familiarsBlessing = defineTrait({
 });
 
 /** Fiery Might multiplies strikes against burning targets when selected. */
-export const fieryMight = defineTrait({
+const fieryMight = defineTrait({
   id: TRAIT.FIERY_MIGHT,
   name: 'Fiery Might',
   // Trait balance is the single tuning source for modifiers and presentation.

@@ -137,7 +137,7 @@ export function tooltipProfile(context: ProfessionBalanceContext, id: SkillId): 
   return profile;
 }
 
-export function tooltipRule(context: ProfessionBalanceContext, id: string) {
+function tooltipRule(context: ProfessionBalanceContext, id: string) {
   const rule = context.modifierRulesById.get(id);
   if (!rule) throw new Error(`Missing tooltip modifier: ${id}`);
   return rule;
@@ -241,7 +241,7 @@ export function modifierFact(
 }
 
 /** Display names are cosmetic; matching and source selection always use the authored entity IDs. */
-export function tooltipEffectName(value: string): string {
+function tooltipEffectName(value: string): string {
   return (
     effectNames.get(value.toLowerCase()) || value.replaceAll('-', ' ').replace(/^\w/, (letter) => letter.toUpperCase())
   );

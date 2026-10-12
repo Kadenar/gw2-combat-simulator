@@ -213,7 +213,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2R
 }
 
 /** A delayed engagement keeps the original stance expiry. */
-export function scheduleSharedStance(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+function scheduleSharedStance(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Shared windows use the existing ally attack assumptions and end at half the personal duration.
   if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;

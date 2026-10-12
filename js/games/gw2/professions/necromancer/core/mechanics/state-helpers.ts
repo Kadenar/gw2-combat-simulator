@@ -101,3 +101,12 @@ export function setNecromancerCreatureStrikeScaling(runtime: NecromancerRuntime,
 export function necromancerCreatureStrikeMultiplier(runtime: NecromancerRuntime): number {
   return creatureStrikeScaling.get(runtime)?.() ?? 1;
 }
+
+/** Shares party effects with up to five recipients, including only active minion companions. */
+export function necromancerPartyAudience(runtime: NecromancerRuntime) {
+  return {
+    recipients: 'party' as const,
+    maximumRecipients: 5,
+    eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
+  };
+}

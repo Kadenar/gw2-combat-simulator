@@ -40,7 +40,6 @@ export interface DpsReportDamageDistribution {
 
 export interface DpsReportWeaponSet {
   readonly weapons?: readonly string[];
-  readonly timeframe?: readonly number[];
 }
 
 export interface DpsReportMinion {
@@ -50,14 +49,12 @@ export interface DpsReportMinion {
   readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
 }
 
+/** Consumed player fields only; parsing preserves additional report data without modeling it here. */
 export interface DpsReportPlayer {
   readonly name: string;
   readonly account?: string;
   readonly profession: string;
   readonly group?: number;
-  readonly firstAware?: number;
-  readonly lastAware?: number;
-  readonly activeTimes?: readonly number[];
   readonly buffUptimes?: readonly DpsReportBuffTimeline[];
   readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
   readonly weaponSets?: readonly DpsReportWeaponSet[];
@@ -74,7 +71,6 @@ export interface DpsReportPhase {
   readonly end: number;
   readonly name: string;
   readonly phaseType?: string;
-  readonly encounterPhase?: number;
 }
 
 export interface ParsedDpsReport {

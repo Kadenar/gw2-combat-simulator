@@ -81,7 +81,7 @@ const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
 ] as const satisfies readonly (keyof NecromancerCoreState)[]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.
-export const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });

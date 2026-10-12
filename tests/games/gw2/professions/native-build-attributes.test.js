@@ -1,63 +1,70 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
-import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
+import { getActiveTraits as getEngineerActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
+import { getActiveTraits as getGuardianActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
+import { getActiveTraits as getMesmerActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
+import { getActiveTraits as getNecromancerActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
+import { getActiveTraits as getRevenantActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
+import { getActiveTraits as getThiefActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
+import { getActiveTraits as getWarriorActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Attribute tests construct the same calculators composed into the production adapters.
 const calculateEngineerAttributes = createCalculateAttributes(
-  applyEngineerBuildAttributeRules,
+  createProfessionBuildAttributeRules(engineerCatalog, getEngineerActiveTraits),
   engineerProfession.attributeContributions
 );
 const calculateGuardianAttributes = createCalculateAttributes(
-  applyGuardianBuildAttributeRules,
+  createProfessionBuildAttributeRules(guardianCatalog, getGuardianActiveTraits),
   guardianProfession.attributeContributions
 );
 const calculateMesmerAttributes = createCalculateAttributes(
-  applyMesmerBuildAttributeRules,
+  createProfessionBuildAttributeRules(mesmerCatalog, getMesmerActiveTraits),
   mesmerProfession.attributeContributions
 );
 const calculateNecromancerAttributes = createCalculateAttributes(
-  applyNecromancerBuildAttributeRules,
+  createProfessionBuildAttributeRules(necromancerCatalog, getNecromancerActiveTraits),
   necromancerProfession.attributeContributions
 );
 const calculateRevenantAttributes = createCalculateAttributes(
-  applyRevenantBuildAttributeRules,
+  createProfessionBuildAttributeRules(revenantCatalog, getRevenantActiveTraits),
   revenantProfession.attributeContributions
 );
 const calculateThiefAttributes = createCalculateAttributes(
-  applyThiefBuildAttributeRules,
+  createProfessionBuildAttributeRules(thiefCatalog, getThiefActiveTraits),
   thiefProfession.attributeContributions
 );
 const calculateWarriorAttributes = createCalculateAttributes(
-  applyWarriorBuildAttributeRules,
+  createProfessionBuildAttributeRules(warriorCatalog, getWarriorActiveTraits),
   warriorProfession.attributeContributions
 );
 

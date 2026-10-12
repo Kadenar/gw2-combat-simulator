@@ -20,7 +20,7 @@ export interface ParagonState {
 }
 
 /** Declares Paragon's public fields and inactive values. */
-export const PARAGON_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+const PARAGON_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   motivation: createResourceClock(),
   activeRefrain: ''
 } satisfies Partial<WarriorState>);

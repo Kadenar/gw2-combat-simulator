@@ -29,7 +29,7 @@ import { amalgamMaximumAmmo, morphStrike } from '#gw2/professions/engineer/speci
 import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** Owns Carbolic Composition tuning and its existing Morph/Evolve contribution. */
-export const carbolicComposition = defineTrait({
+const carbolicComposition = defineTrait({
   id: TRAIT.CARBOLIC_COMPOSITION,
   name: 'Carbolic Composition',
   balance: {
@@ -55,7 +55,7 @@ export const carbolicComposition = defineTrait({
 });
 
 /** Owns Double Helix tuning and its existing Morph/Evolve contribution. */
-export const doubleHelix = defineTrait({
+const doubleHelix = defineTrait({
   id: TRAIT.DOUBLE_HELIX,
   name: 'Double Helix',
   hooks: {
@@ -65,7 +65,7 @@ export const doubleHelix = defineTrait({
 });
 
 /** Owns Mercurial Tendencies tuning and its existing Morph/Evolve contribution. */
-export const mercurialTendencies = defineTrait({
+const mercurialTendencies = defineTrait({
   id: TRAIT.MERCURIAL_TENDENCIES,
   name: 'Mercurial Tendencies',
   balance: {
@@ -77,7 +77,7 @@ export const mercurialTendencies = defineTrait({
 });
 
 /** Owns Hybrid Vigor tuning and its existing Morph/Evolve contribution. */
-export const hybridVigor = defineTrait({
+const hybridVigor = defineTrait({
   id: TRAIT.HYBRID_VIGOR,
   name: 'Hybrid Vigor',
   balance: { attributeBonus: 240 },
@@ -87,7 +87,7 @@ export const hybridVigor = defineTrait({
 });
 
 /** Owns Willing Host tuning and its existing Morph/Evolve contribution. */
-export const willingHost = defineTrait({
+const willingHost = defineTrait({
   id: TRAIT.WILLING_HOST,
   name: 'Willing Host',
   balance: {
@@ -115,7 +115,7 @@ export const willingHost = defineTrait({
 });
 
 /** Owns Symbiotic Synergy tuning and its existing Morph/Evolve contribution. */
-export const symbioticSynergy = defineTrait({
+const symbioticSynergy = defineTrait({
   id: TRAIT.SYMBIOTIC_SYNERGY,
   name: 'Symbiotic Synergy',
   // The trait balance owns tuning consumed by damage rules and presentation.
@@ -134,7 +134,7 @@ export const symbioticSynergy = defineTrait({
 });
 
 /** Owns Silver Lining tuning and its existing Morph/Evolve contribution. */
-export const silverLining = defineTrait({
+const silverLining = defineTrait({
   id: TRAIT.SILVER_LINING,
   name: 'Silver Lining',
   // Morph grants its protocol strain; Evolve then skips the strains it would otherwise grant.
@@ -147,7 +147,7 @@ export const silverLining = defineTrait({
 });
 
 /** Owns New Genes tuning and its existing Morph/Evolve contribution. */
-export const newGenes = defineTrait({
+const newGenes = defineTrait({
   id: TRAIT.NEW_GENES,
   name: 'New Genes',
   balance: {
@@ -167,7 +167,7 @@ export const newGenes = defineTrait({
 });
 
 /** Owns Hardened Chrome tuning and its existing Morph/Evolve contribution. */
-export const hardenedChrome = defineTrait({
+const hardenedChrome = defineTrait({
   id: TRAIT.HARDENED_CHROME,
   name: 'Hardened Chrome',
   balance: {

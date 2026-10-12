@@ -3,7 +3,7 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import {
   balanceProfileNumber,
   effectNumber,
@@ -14,10 +14,8 @@ import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/even
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-export type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 export const EXIT = 'guardian.luminary.forge-expiry';
 
@@ -26,7 +24,7 @@ export const EQUIP = 'guardian.luminary.equip-traits';
 export const equipForge = new WeakMap<RuntimeCast<GuardianSkill>, string | null>();
 
 /** Forge exits start real recharge once, using distinct completed weapon equips and the shared rate controller. */
-export function exitForge(runtime: Runtime, cast?: RuntimeCast<GuardianSkill>): void {
+export function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>): void {
   const state = luminaryState.from(runtime);
   if (!state.radiantForge) return;
   const enter = runtime.helpers.skillsById.get(ID.ENTER_RADIANT_FORGE)!;
@@ -85,7 +83,7 @@ export function exitForge(runtime: Runtime, cast?: RuntimeCast<GuardianSkill>): 
 }
 
 /** The form has one exact expiry; a stale expiry cannot close a later entry at the same deadline. */
-export function enterForge(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
+export function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   runtime.cooldownController.clear(cast.skill.id);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.forge);
   const effect = requireEffect(profile, 'buff', 'radiant-forge');

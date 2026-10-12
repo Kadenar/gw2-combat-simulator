@@ -27,8 +27,6 @@ export type AuthoringSection = 'traits' | 'skills' | 'mechanics' | 'overview';
 export type TraitAuthoringView = 'modifiers' | 'effects';
 export type AuthoringStatusKind = 'neutral' | 'success' | 'error';
 
-type DraftRecord = Record<string, unknown>;
-
 interface EditorState {
   payload: AuthoringPayload | null;
   draft: PatchPreview;
@@ -133,26 +131,26 @@ export function prepareEditorStateForRender(): void {
 }
 
 /** Narrows unknown draft values to mutable object records used by sparse edits. */
-function asRecord(value: unknown): DraftRecord | null {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as DraftRecord) : null;
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 }
 
 /** Reuses or creates a nested draft object so edit handlers share one mutation path. */
-function ensureRecord(parent: DraftRecord, key: string): DraftRecord {
+function ensureRecord(parent: Record<string, unknown>, key: string): Record<string, unknown> {
   const existing = asRecord(parent[key]);
   if (existing) return existing;
-  const created: DraftRecord = {};
+  const created: Record<string, unknown> = {};
   parent[key] = created;
   return created;
 }
 
 /** Exposes the typed preview as the mutable record used to author sparse edits. */
-function draftRecord(): DraftRecord {
-  return editorState.draft as unknown as DraftRecord;
+function draftRecord(): Record<string, unknown> {
+  return editorState.draft as unknown as Record<string, unknown>;
 }
 
 /** Finds or lazily creates one profession's sparse patch section. */
-function professionPatch(professionId: string, create = false): DraftRecord | null {
+function professionPatch(professionId: string, create = false): Record<string, unknown> | null {
   const root = draftRecord();
   const professions = create ? ensureRecord(root, 'professions') : asRecord(root.professions);
   if (!professions) return null;
@@ -161,7 +159,7 @@ function professionPatch(professionId: string, create = false): DraftRecord | nu
 }
 
 /** Finds or lazily creates the draft edit for a skill. */
-export function skillEdit(skillId: string, create = false): DraftRecord | null {
+export function skillEdit(skillId: string, create = false): Record<string, unknown> | null {
   const patch = professionPatch(editorState.selectedProfessionId, create);
   if (!patch) return null;
   const skills = create ? ensureRecord(patch, 'skills') : asRecord(patch.skills);
@@ -171,7 +169,7 @@ export function skillEdit(skillId: string, create = false): DraftRecord | null {
 }
 
 /** Finds or lazily creates the draft edit for a runtime balance profile. */
-export function balanceProfileEdit(profileId: string, create = false): DraftRecord | null {
+export function balanceProfileEdit(profileId: string, create = false): Record<string, unknown> | null {
   const patch = professionPatch(editorState.selectedProfessionId, create);
   if (!patch) return null;
   const profiles = create ? ensureRecord(patch, 'balanceProfiles') : asRecord(patch.balanceProfiles);
@@ -181,7 +179,7 @@ export function balanceProfileEdit(profileId: string, create = false): DraftReco
 }
 
 /** Finds or lazily creates the draft edit for a modifier rule. */
-export function modifierEdit(ruleId: string, create = false): DraftRecord | null {
+export function modifierEdit(ruleId: string, create = false): Record<string, unknown> | null {
   const patch = professionPatch(editorState.selectedProfessionId, create);
   if (!patch) return null;
   const rules = create ? ensureRecord(patch, 'modifierRules') : asRecord(patch.modifierRules);
@@ -191,7 +189,7 @@ export function modifierEdit(ruleId: string, create = false): DraftRecord | null
 }
 
 /** Removes an empty nested draft section after its last authored value is cleared. */
-function removeEmptyRecord(parent: DraftRecord | null, key: string): void {
+function removeEmptyRecord(parent: Record<string, unknown> | null, key: string): void {
   const record = parent && asRecord(parent[key]);
   if (record && !Object.keys(record).length) delete parent![key];
 }
@@ -341,7 +339,7 @@ export interface NumericEditInput {
 
 /** Returning a grant value to its baseline prunes only that id/field, retaining sibling resource edits. */
 function setResourceGrantNumericEdit(
-  owner: DraftRecord,
+  owner: Record<string, unknown>,
   input: NumericEditInput,
   numericEdit: ReturnType<typeof numericEditForValue>
 ): void {
@@ -357,11 +355,11 @@ function setResourceGrantNumericEdit(
 /** Applies one effect or tick edit and removes selector-only records when the value is restored. */
 function setEffectNumericEdit(
   input: NumericEditInput,
-  edit: DraftRecord,
+  edit: Record<string, unknown>,
   onEmpty: () => void,
   numericEdit: ReturnType<typeof numericEditForValue>
 ): void {
-  const effects = Array.isArray(edit.effects) ? (edit.effects as DraftRecord[]) : [];
+  const effects = Array.isArray(edit.effects) ? (edit.effects as Record<string, unknown>[]) : [];
   let effect = effects.find((entry) => entry.effectIndex === input.effectIndex && entry.tickIndex === input.tickIndex);
   if (!effect && numericEdit) {
     effect = {

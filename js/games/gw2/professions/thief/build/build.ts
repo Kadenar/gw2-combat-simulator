@@ -6,7 +6,8 @@ import {
   createProfessionBuildCodec,
   normalizeProfessionBuildAssumptions
 } from '#gw2/professions/shared/build-codec.js';
-import { THIEF_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/assumptions.js';
+import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
@@ -20,6 +21,9 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * It normalizes Thief assumptions, initiative, shadow force, and dodge choice,
  * and rejects weapon sets that cannot supply a legal dual-wield slot-3 skill.
  */
+
+/** The persisted codec uses the same Core assumption controls as new build defaults. */
+const THIEF_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([...THIEF_CORE_ASSUMPTION_CONTROLS]);
 
 const THIEF_BUILD_SCHEMA_VERSION = 4;
 const THIEF_PROFESSION_ID = 'thief';

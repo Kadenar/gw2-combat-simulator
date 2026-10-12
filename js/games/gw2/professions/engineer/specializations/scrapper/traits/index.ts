@@ -26,18 +26,14 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 
-export function scrapperMaximumAmmo(
-  context: MaximumAmmoContext<object>,
-  skill: EngineerSkill,
-  maximum: number
-): number {
+function scrapperMaximumAmmo(context: MaximumAmmoContext<object>, skill: EngineerSkill, maximum: number): number {
   return skill.id === ID.FUNCTION_GYRO && context.hasTrait(TRAIT.EX_MACHINA)
     ? Math.max(balanceProfileNumber(context.requireBalanceProfile(TRAIT.EX_MACHINA), 'maximumAmmo'), maximum || 0)
     : maximum;
 }
 
 /** Owns Ex Machina tuning and its existing gameplay boundaries. */
-export const exMachina = defineTrait<EngineerSkill>({
+const exMachina = defineTrait<EngineerSkill>({
   id: TRAIT.EX_MACHINA,
   name: 'Ex Machina',
   balance: { maximumAmmo: 2 },
@@ -48,7 +44,7 @@ export const exMachina = defineTrait<EngineerSkill>({
 const healingSkill = (skill: Skill | undefined) => skill?.type === 'Heal' || skill?.slot === 'Heal';
 
 /** Owns Speed of Synergy tuning and its existing gameplay boundaries. */
-export const speedOfSynergy = defineTrait<EngineerSkill>({
+const speedOfSynergy = defineTrait<EngineerSkill>({
   id: TRAIT.SPEED_OF_SYNERGY,
   name: 'Speed of Synergy',
   balance: {
@@ -105,7 +101,7 @@ export const speedOfSynergy = defineTrait<EngineerSkill>({
 });
 
 /** Owns Gyroscopic Acceleration tuning and its existing gameplay boundaries. */
-export const gyroscopicAcceleration = defineTrait<EngineerSkill>({
+const gyroscopicAcceleration = defineTrait<EngineerSkill>({
   id: TRAIT.GYROSCOPIC_ACCELERATION,
   name: 'Gyroscopic Acceleration',
   balance: {
@@ -125,7 +121,7 @@ export const gyroscopicAcceleration = defineTrait<EngineerSkill>({
 });
 
 /** Owns System Shocker tuning and its existing gameplay boundaries. */
-export const systemShocker = defineTrait<EngineerSkill>({
+const systemShocker = defineTrait<EngineerSkill>({
   id: TRAIT.SYSTEM_SHOCKER,
   name: 'System Shocker',
   balance: {
@@ -176,7 +172,7 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
 });
 
 /** Owns Mass Momentum tuning and its existing gameplay boundaries. */
-export const massMomentum = defineTrait<EngineerSkill>({
+const massMomentum = defineTrait<EngineerSkill>({
   id: TRAIT.MASS_MOMENTUM,
   name: 'Mass Momentum',
   balance: {
@@ -253,7 +249,7 @@ export const appliedForce = defineTrait<EngineerSkill>({
 });
 
 /** Movement boons multiply Object in Motion's player-owned strike bonus. */
-export const objectInMotion = defineTrait<EngineerSkill>({
+const objectInMotion = defineTrait<EngineerSkill>({
   id: TRAIT.OBJECT_IN_MOTION,
   name: 'Object in Motion',
   // The trait balance owns tuning consumed by damage rules and presentation.

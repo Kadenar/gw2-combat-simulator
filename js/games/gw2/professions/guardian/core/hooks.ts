@@ -4,7 +4,7 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
@@ -36,12 +36,16 @@ import { guardianTorchActions } from '#gw2/professions/guardian/core/skills/weap
 import { writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/honor/index.js';
 import { masterOfConsecrationsFields } from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type {
+  GuardianRuntimeState,
+  GuardianSkill,
+  GuardianVirtue,
+  GuardianRuntime
+} from '#gw2/professions/guardian/types.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
-function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
+function completeCoreVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   refreshGuardianVirtues(runtime);
   if (!readyVirtueActivations.has(cast)) return;
   runtime.fireTrigger(virtueActivated, { cast, virtue });
@@ -49,7 +53,7 @@ function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, 
 }
 
 /** Eligible completed skills release the post-Fire lockout; flip transitions remain skill-owned. */
-function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
+function clearTorchLockout(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   const skill = cast.skill;
   // Profession bars and explicitly managed flips retain their specialization's sole transition owner.
   if (

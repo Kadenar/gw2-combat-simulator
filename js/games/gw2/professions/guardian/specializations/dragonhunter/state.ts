@@ -19,7 +19,7 @@ function createDragonhunterState(): GuardianDragonhunterState {
 }
 
 /** Keeps Dragonhunter projection ownership beside the state that produces it. */
-export const DRAGONHUNTER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+const DRAGONHUNTER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   tetherUntil: 0
 } satisfies Partial<GuardianDragonhunterState>);
 

@@ -3,7 +3,8 @@
 // behavior to the engine contract exported by ../profession.js.
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
-import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
@@ -14,7 +15,7 @@ import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.j
 export const necromancerAppAdapter = defineProfessionApp({
   profession: necromancerProfession,
   tooltips: necromancerTooltips,
-  applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(necromancerCatalog, getActiveTraits),
   toApplicationBuild,
   runtime: {
     // Map persisted life force to the shared initial-resource input.

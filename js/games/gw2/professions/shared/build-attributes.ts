@@ -1,7 +1,7 @@
 import { attributeSeedFromCommon } from '#gw2/platform/builds/attribute-inputs.js';
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
 import { finalizeBuildAttributes } from '#gw2/platform/builds/attributes.js';
-import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
+import type { Gw2ApplyBuildAttributeRules, Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
@@ -50,12 +50,13 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
   };
 }
 
-/**
- * Selection and tuning supplied by a profession's build adapter.
- */
-export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
-  readonly activeTraits: readonly TTrait[];
-  readonly profileContext: ProfessionBalanceContext;
+/** Bind profession selection once; each calculation resolves its own traits and selected patch context. */
+export function createProfessionBuildAttributeRules(
+  catalog: CanonicalCatalog,
+  getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly BuildAttributeTrait[]
+): Gw2ApplyBuildAttributeRules {
+  return (common, context) =>
+    finalizeProfessionBuildAttributes(common, createBuildAttributeContext(context, catalog, getActiveTraits), context);
 }
 
 /**
@@ -64,7 +65,7 @@ export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
  */
 export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeTrait>(
   common: Gw2CommonAttributeResult,
-  { activeTraits, profileContext }: FinalizeProfessionBuildAttributesOptions<TTrait>,
+  { activeTraits, profileContext }: BuildAttributeContext<TTrait>,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   // The panel supplies explicit preview facts to the same selected-owner evaluator used by live queries.

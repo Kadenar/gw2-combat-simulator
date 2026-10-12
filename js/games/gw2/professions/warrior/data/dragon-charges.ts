@@ -1,7 +1,7 @@
 /** Dragon Trigger charge timing shared by Bladesworn simulation and combat-log replay. */
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 
-export const DRAGON_TRIGGER_CHARGE_INTERVAL_MS = 240;
+const DRAGON_TRIGGER_CHARGE_INTERVAL_MS = 240;
 
 /** Charges spend Flow every 240 ms; Tactical Reload changes charges gained, not the interval. */
 export function dragonChargeTickOffsetSeconds(tickIndex: number): number {

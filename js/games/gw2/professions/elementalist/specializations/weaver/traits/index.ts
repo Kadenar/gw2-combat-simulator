@@ -36,7 +36,7 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 
 import { elementsOfRageAvailability } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
 
-export const elementalRefreshment = defineTrait({
+const elementalRefreshment = defineTrait({
   id: TRAIT.ELEMENTAL_REFRESHMENT,
   name: 'Elemental Refreshment',
   balance: { attributeBonus: 180 },
@@ -45,7 +45,7 @@ export const elementalRefreshment = defineTrait({
   ])
 });
 
-export const elementalPolyphony = defineTrait({
+const elementalPolyphony = defineTrait({
   // Each distinct active attunement contributes once, including configured hands before runtime exists.
   attributes(context) {
     const config: ElementalistConfig | undefined = context.config;
@@ -96,7 +96,7 @@ export const elementalPolyphony = defineTrait({
   }
 });
 
-export const superiorElements = defineTrait({
+const superiorElements = defineTrait({
   triggers: [onTriggerPoint(weaverCastCompleted, { run: applySuperiorElements })],
   id: TRAIT.SUPERIOR_ELEMENTS,
   name: 'Superior Elements',
@@ -125,7 +125,7 @@ export const superiorElements = defineTrait({
   ]
 });
 
-export const elementalPursuit = defineTrait({
+const elementalPursuit = defineTrait({
   id: TRAIT.ELEMENTAL_PURSUIT,
   name: 'Elemental Pursuit',
   balance: {
@@ -150,7 +150,7 @@ export const elementalPursuit = defineTrait({
   ]
 });
 
-export const weaversProwess = defineTrait({
+const weaversProwess = defineTrait({
   triggers: [
     onTriggerPoint(weaverAttunementCompleted, {
       run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyWeaversProwess(runtime, event)
@@ -163,7 +163,7 @@ export const weaversProwess = defineTrait({
   }
 });
 
-export const swiftRevenge = defineTrait({
+const swiftRevenge = defineTrait({
   triggers: [onTriggerPoint(weaverCastCompleted, { run: applySwiftRevenge })],
   id: TRAIT.SWIFT_REVENGE,
   name: 'Swift Revenge',
@@ -176,7 +176,7 @@ export const swiftRevenge = defineTrait({
   }
 });
 
-export const bolsteredElements = defineTrait({
+const bolsteredElements = defineTrait({
   triggers: [onTriggerPoint(weaverCastCompleted, { run: applyBolsteredElements })],
   id: TRAIT.BOLSTERED_ELEMENTS,
   name: 'Bolstered Elements',
@@ -185,7 +185,7 @@ export const bolsteredElements = defineTrait({
   }
 });
 
-export const elementsOfRage = defineTrait({
+const elementsOfRage = defineTrait({
   triggers: [
     onTriggerPoint(weaverHandsInitialized, {
       run: (runtime: ElementalistRuntime) => initializeElementsOfRage(runtime)
@@ -229,7 +229,7 @@ export const elementsOfRage = defineTrait({
   hooks: { availability: elementsOfRageAvailability }
 });
 
-export const flowState = defineTrait({
+const flowState = defineTrait({
   id: TRAIT.FLOW_STATE,
   name: 'Flow State',
   balance: {

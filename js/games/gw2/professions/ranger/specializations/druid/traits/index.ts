@@ -27,7 +27,7 @@ function naturalBalanceActive(context: Gw2ModifierContext): boolean {
 }
 
 /** Owns Natural Mender's live tuning and trait behavior. */
-export const naturalMender = defineTrait({
+const naturalMender = defineTrait({
   id: TRAIT.NATURAL_MENDER,
   name: 'Natural Mender',
   balance: {
@@ -66,7 +66,7 @@ export const naturalMender = defineTrait({
 });
 
 /** Owns Natural Balance's live tuning and trait behavior. */
-export const naturalBalance = defineTrait({
+const naturalBalance = defineTrait({
   triggers: [onTriggerPoint(avatarExited, { run: (runtime) => applyNaturalBalance(runtime) })],
   id: TRAIT.NATURAL_BALANCE,
   name: 'Natural Balance',
@@ -104,7 +104,7 @@ export const naturalBalance = defineTrait({
 });
 
 /** Owns Grace of the Land's live tuning and trait behavior. */
-export const graceOfTheLand = defineTrait({
+const graceOfTheLand = defineTrait({
   id: TRAIT.GRACE_OF_THE_LAND,
   name: 'Grace of the Land',
   balance: {
@@ -113,7 +113,7 @@ export const graceOfTheLand = defineTrait({
 });
 
 /** Owns Eclipse's live tuning and trait behavior. */
-export const eclipse = defineTrait({
+const eclipse = defineTrait({
   id: TRAIT.ECLIPSE,
   name: 'Eclipse',
   balance: {
@@ -141,7 +141,7 @@ export const eclipse = defineTrait({
 });
 
 /** Owns Blood Moon's live tuning and trait behavior. */
-export const bloodMoon = defineTrait({
+const bloodMoon = defineTrait({
   id: TRAIT.BLOOD_MOON,
   name: 'Blood Moon',
   balance: {

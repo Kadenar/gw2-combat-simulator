@@ -4,9 +4,7 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 // Immutable reservation facts survive resource changes during the cast.
 export const warriorBurstSpends = new WeakMap<RuntimeCast<WarriorSkill>, number>();

@@ -41,7 +41,7 @@ import type { ThiefResolverContext } from '#gw2/professions/thief/types.js';
  * Card Swap is the only source of Reshuffle, so the skill is denied whenever the trait is not selected. Its condition
  * removal on reshuffles and artifact use is outside the damage model and is intentionally not simulated.
  */
-export const cardSwap = defineTrait({
+const cardSwap = defineTrait({
   id: TRAIT.CARD_SWAP,
   name: 'Card Swap',
   hooks: {
@@ -53,7 +53,7 @@ export const cardSwap = defineTrait({
 });
 
 /** Owns Combat High tuning and behavior at the existing execution boundaries. */
-export const combatHigh = defineTrait({
+const combatHigh = defineTrait({
   id: TRAIT.COMBAT_HIGH,
   name: 'Combat High',
   triggers: [
@@ -105,7 +105,7 @@ export const combatHigh = defineTrait({
 });
 
 /** Owns Enterprising Aristocrat tuning and behavior at the existing execution boundaries. */
-export const enterprisingAristocrat = defineTrait({
+const enterprisingAristocrat = defineTrait({
   id: TRAIT.ENTERPRISING_ARISTOCRAT,
   name: 'Enterprising Aristocrat',
   triggers: [onTriggerPoint(artifactActivated, { run: applyEnterprisingAristocrat })],
@@ -113,7 +113,7 @@ export const enterprisingAristocrat = defineTrait({
 });
 
 /** Owns Exhilarating Ephemera tuning and behavior at the existing execution boundaries. */
-export const exhilaratingEphemera = defineTrait({
+const exhilaratingEphemera = defineTrait({
   id: TRAIT.EXHILARATING_EPHEMERA,
   name: 'Exhilarating Ephemera',
   triggers: [onTriggerPoint(artifactActivated, { run: applyExhilaratingEphemera })],
@@ -139,7 +139,7 @@ export const exhilaratingEphemera = defineTrait({
 });
 
 /** Owns Meticulous Custodian tuning and behavior at the existing execution boundaries. */
-export const meticulousCustodian = defineTrait({
+const meticulousCustodian = defineTrait({
   id: TRAIT.METICULOUS_CUSTODIAN,
   name: 'Meticulous Custodian',
   triggers: [
@@ -255,7 +255,7 @@ export const meticulousCustodian = defineTrait({
 });
 
 /** Owns Possessive Hoarder tuning and behavior at the existing execution boundaries. */
-export const possessiveHoarder = defineTrait({
+const possessiveHoarder = defineTrait({
   id: TRAIT.POSSESSIVE_HOARDER,
   name: 'Possessive Hoarder',
   triggers: [onTriggerPoint(artifactActivated, { run: applyPossessiveHoarder })],
@@ -269,7 +269,7 @@ export const possessiveHoarder = defineTrait({
 });
 
 /** Owns Prodigious Pincher tuning and behavior at the existing execution boundaries. */
-export const prodigiousPincher = defineTrait({
+const prodigiousPincher = defineTrait({
   id: TRAIT.PRODIGIOUS_PINCHER,
   name: 'Prodigious Pincher',
   balance: {
@@ -278,14 +278,14 @@ export const prodigiousPincher = defineTrait({
 });
 
 /** Owns Prolific Plunderer tuning and behavior at the existing execution boundaries. */
-export const prolificPlunderer = defineTrait({
+const prolificPlunderer = defineTrait({
   id: TRAIT.PROLIFIC_PLUNDERER,
   name: 'Prolific Plunderer',
   balance: { resourceGain: 1 }
 });
 
 /** Owns Repeat Ransacker tuning and behavior at the existing execution boundaries. */
-export const repeatRansacker = defineTrait({
+const repeatRansacker = defineTrait({
   id: TRAIT.REPEAT_RANSACKER,
   name: 'Repeat Ransacker',
   triggers: [onTriggerPoint(artifactCompleted, { run: applyRepeatRansacker })],
@@ -295,7 +295,7 @@ export const repeatRansacker = defineTrait({
 });
 
 /** Owns Scoundrel's Luck tuning and behavior at the existing execution boundaries. */
-export const scoundrelsLuck = defineTrait({
+const scoundrelsLuck = defineTrait({
   id: TRAIT.SCOUNDRELS_LUCK,
   name: "Scoundrel's Luck",
   triggers: [

@@ -1,8 +1,10 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { smotheringAurasDuration } from '#gw2/professions/elementalist/core/traits/fire/aura-duration.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 export interface ElementalistAuraApplication {
@@ -53,4 +55,12 @@ export function resolveElementalistAura(context: ElementalistRuntime, event: Gw2
 export function acceptElementalistAuraReaction(context: ElementalistRuntime, event: Gw2ResolverEvent): boolean {
   if (event.type === 'aura') insertAura(context, event);
   return context.combatStartTime == null || event.at >= context.combatStartTime;
+}
+
+/** Applies Smothering Auras' profile-driven duration multiplier once. */
+function smotheringAurasDuration(context: unknown, duration: number): number {
+  return hasTrait(context, TRAIT.SMOTHERING_AURAS)
+    ? duration *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SMOTHERING_AURAS), 'durationMultiplier')
+    : duration;
 }

@@ -68,7 +68,7 @@ function activePetIsFeathered(context: RangerModifierContext): boolean {
 }
 
 /** Owns Shrike's live tuning and trait behavior. */
-export const shrike = defineTrait({
+const shrike = defineTrait({
   triggers: [
     onTriggerPoint(missileResolved, {
       run: (runtime, input: TriggerPointInput<typeof missileResolved>) => applyShrike(runtime, input.event)
@@ -92,7 +92,7 @@ export const shrike = defineTrait({
 });
 
 /** Owns Wuthering Wind's live tuning and trait behavior. */
-export const wutheringWind = defineTrait({
+const wutheringWind = defineTrait({
   triggers: [
     onTriggerPoint(cycloneBowCompleted, {
       when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => input.skill.id === ID.BLUSTER,
@@ -110,7 +110,7 @@ export const wutheringWind = defineTrait({
 });
 
 /** Owns Thrill of the Catch's live tuning and trait behavior. */
-export const thrillOfTheCatch = defineTrait({
+const thrillOfTheCatch = defineTrait({
   triggers: [
     onTriggerPoint(galeshotControlAccepted, {
       run: (runtime, input: TriggerPointInput<typeof galeshotControlAccepted>) =>
@@ -126,7 +126,7 @@ export const thrillOfTheCatch = defineTrait({
 });
 
 /** Owns Flock Together's live tuning and trait behavior. */
-export const flockTogether = defineTrait({
+const flockTogether = defineTrait({
   triggers: [
     onTriggerPoint(galeshotCastCompleted, {
       run: (runtime, input: TriggerPointInput<typeof galeshotCastCompleted>) =>
@@ -155,7 +155,7 @@ export const flockTogether = defineTrait({
 });
 
 /** Owns Cloudburst's live tuning and trait behavior. */
-export const cloudburst = defineTrait({
+const cloudburst = defineTrait({
   triggers: [
     onTriggerPoint(cycloneBowCompleted, {
       when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) =>
@@ -176,7 +176,7 @@ export const cloudburst = defineTrait({
 });
 
 /** Owns Gale Force's live tuning and trait behavior. */
-export const galeForce = defineTrait({
+const galeForce = defineTrait({
   triggers: [
     onTriggerPoint(cycloneBowCompleted, {
       when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => input.skill.id === ID.HAWKEYE,
@@ -206,7 +206,7 @@ export const galeForce = defineTrait({
 });
 
 /** Owns Bird of Prey's live tuning and trait behavior. */
-export const birdOfPrey = defineTrait({
+const birdOfPrey = defineTrait({
   id: TRAIT.BIRD_OF_PREY,
   name: 'Bird of Prey',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -228,7 +228,7 @@ export const birdOfPrey = defineTrait({
 });
 
 /** Owns Perilous Skies's live tuning and trait behavior. */
-export const perilousSkies = defineTrait({ id: TRAIT.PERILOUS_SKIES, name: 'Perilous Skies' });
+const perilousSkies = defineTrait({ id: TRAIT.PERILOUS_SKIES, name: 'Perilous Skies' });
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 export const galeshotTraits = [

@@ -1,3 +1,4 @@
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
@@ -9,7 +10,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
+import { getActiveTraits as getThiefActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -132,7 +133,10 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 
 test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {
   const selectedSkillIds = [13062];
-  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(thiefCatalog, getThiefActiveTraits),
+    thiefProfession.attributeContributions
+  );
   const build = createThiefBuildDefaults();
   assert.equal(
     calculate(build, [thiefCatalog.skillsById.get(ID.SIGNET_OF_AGILITY)]).attributes.Precision.final -
@@ -727,7 +731,10 @@ test('guild combat activation starts parallel streams once and replacement retir
 
 // Selected owners honor disabled previews, live patch data, and conditional build assumptions.
 test('No Quarter build contribution follows Fury, disabled selection and the selected patch', () => {
-  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.attributeContributions);
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(thiefCatalog, getThiefActiveTraits),
+    thiefProfession.attributeContributions
+  );
   const build = createThiefBuildDefaults();
   build.specializations = [{ name: 'Critical Strikes', traits: '3-2-1' }];
   build.assumptions.fury = true;

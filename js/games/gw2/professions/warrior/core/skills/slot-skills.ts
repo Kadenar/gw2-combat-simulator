@@ -1,4 +1,3 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -12,10 +11,9 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/wa
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

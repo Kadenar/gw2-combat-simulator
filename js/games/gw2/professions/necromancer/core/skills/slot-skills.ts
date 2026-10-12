@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -16,8 +17,7 @@ import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mec
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { signetsOfSufferingPassive } from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
@@ -623,4 +623,9 @@ export function emitVampirismPassive(runtime: NecromancerRuntime): void {
         damageKind: strike.damageKind || ''
       })
     });
+}
+
+/** Selected signet passives remain active during shroud even while their skill recharges. */
+function signetsOfSufferingPassive(runtime: NecromancerRuntime, inShroud: boolean): boolean {
+  return hasTrait(runtime, TRAIT.SIGNETS_OF_SUFFERING) && inShroud;
 }

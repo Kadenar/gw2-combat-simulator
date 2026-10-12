@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -17,10 +17,10 @@ import {
 } from '#gw2/professions/warrior/specializations/paragon/hooks.js';
 import { startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import { paragonState, type ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
-export const inspiringImplements = defineTrait({
+const inspiringImplements = defineTrait({
   triggers: [
     onTriggerPoint(paragonCastCompleted, {
       run: (runtime, input: TriggerPointInput<typeof paragonCastCompleted>) =>
@@ -54,7 +54,7 @@ export const inspiringImplements = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const invigoratingTempo = defineTrait({
+const invigoratingTempo = defineTrait({
   triggers: [
     onTriggerPoint(motivationSpent, {
       run: (runtime, input: TriggerPointInput<typeof motivationSpent>) => applyInvigoratingTempo(runtime, input.spent)
@@ -68,7 +68,7 @@ export const invigoratingTempo = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const enduringRefrain = defineTrait({
+const enduringRefrain = defineTrait({
   id: TRAIT.ENDURING_REFRAIN,
   name: 'Enduring Refrain',
   balance: {
@@ -78,7 +78,7 @@ export const enduringRefrain = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const feverishPulse = defineTrait({
+const feverishPulse = defineTrait({
   id: TRAIT.FEVERISH_PULSE,
   name: 'Feverish Pulse',
   balance: {
@@ -108,7 +108,7 @@ export const feverishPulse = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const callToAction = defineTrait({
+const callToAction = defineTrait({
   id: TRAIT.CALL_TO_ACTION,
   name: 'Call to Action',
   triggers: [
@@ -134,7 +134,7 @@ export const callToAction = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const rallyTheValiant = defineTrait({
+const rallyTheValiant = defineTrait({
   id: TRAIT.RALLY_THE_VALIANT,
   name: 'Rally the Valiant',
   triggers: [
@@ -161,7 +161,7 @@ export const rallyTheValiant = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const reverberation = defineTrait({
+const reverberation = defineTrait({
   id: TRAIT.REVERBERATION,
   name: 'Reverberation',
   balance: {
@@ -170,7 +170,7 @@ export const reverberation = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const strengtheningStanzas = defineTrait({
+const strengtheningStanzas = defineTrait({
   id: TRAIT.STRENGTHENING_STANZAS,
   name: 'Strengthening Stanzas',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -195,7 +195,7 @@ export const strengtheningStanzas = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const briskPacing = defineTrait({
+const briskPacing = defineTrait({
   id: TRAIT.BRISK_PACING,
   name: 'Brisk Pacing',
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -266,7 +266,7 @@ export const warriorParagonTraits = [
 ] as const;
 
 /** Only Motivation actually spent earns adrenaline. */
-function applyInvigoratingTempo(runtime: Runtime, spent: number): void {
+function applyInvigoratingTempo(runtime: WarriorRuntime, spent: number): void {
   runtime.resourceController.grant(
     'adrenaline',
     spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INVIGORATING_TEMPO), 'resourceGain')
@@ -274,7 +274,7 @@ function applyInvigoratingTempo(runtime: Runtime, spent: number): void {
 }
 
 /** Chant entry reduces the other chants only after opening packets and refrain scheduling. */
-function applyFeverishPulse(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function applyFeverishPulse(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const feverish = requireBalanceProfileFromContext(runtime, TRAIT.FEVERISH_PULSE);
   for (const id of CHANTS) {
     const skill = runtime.helpers.skillsById.get(id);
@@ -288,7 +288,7 @@ function applyFeverishPulse(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
 }
 
 /** Swaps reward resources only after committed bursts consume pending echoes. */
-function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
+function applyInspiringImplements(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (
     cast.skill.inputCategory === 'weapon-swap' &&
     runtime.procs.claim(TRAIT.INSPIRING_IMPLEMENTS, 'warrior.paragon.inspiringImplements', runtime.time)
@@ -300,5 +300,3 @@ function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast<WarriorSki
 }
 
 const CHANTS = [ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM];
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;

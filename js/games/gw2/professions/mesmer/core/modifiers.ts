@@ -5,7 +5,7 @@ import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-
 const modifierParameters = (values: Record<string, number>): Readonly<Record<string, number>> => Object.freeze(values);
 
 // Explicit Core orders keep moved trait multipliers between skill rules and elite multipliers.
-export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'mesmer.event-final-multiplier',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

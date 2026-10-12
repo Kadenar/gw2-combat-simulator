@@ -1,6 +1,6 @@
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { mountRotationWarnings } from '#ui/rotation/warnings.js';
+import { mountRotationWarnings, type RotationWarning } from '#ui/rotation/warnings.js';
 import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
 import {
   createPaletteContext,
@@ -9,12 +9,8 @@ import {
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
 
-export interface RotationWarningItem {
-  readonly message: string;
-  readonly time: string;
-}
-
-export function rotationWarningItems(result: Gw2SimulationResult | null | undefined): RotationWarningItem[] {
+/** Projects simulation diagnostics into the shared renderer's combat-relative warning records. */
+export function rotationWarningItems(result: Gw2SimulationResult | null | undefined): RotationWarning[] {
   return (result?.warnings || []).map((rawWarning) => {
     const message = String(rawWarning);
     // Runtime diagnostics carry absolute simulation time; display it on the same combat-relative clock as the rotation.
@@ -33,7 +29,7 @@ export function rotationWarningItems(result: Gw2SimulationResult | null | undefi
 }
 
 /** Flags equipped skills whose API-style cast time likely still needs simulator calibration. */
-function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarningItem[] {
+function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarning[] {
   const context = createPaletteContext(app);
   const palette = projectPalette(app, context);
   const equippedSkills = [

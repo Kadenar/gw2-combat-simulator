@@ -174,8 +174,6 @@ const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
 const BALANCE_PROFILE_NUMERIC_FIELDS = new Set(PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS);
 const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
-type MutableRecord = Record<string, unknown>;
-
 /** Patch only existing grant numbers, preserving ids, trigger predicates, and the declared condition observation. */
 function patchResourceGrants(
   actions: readonly ResourceGrantAction[],
@@ -198,8 +196,8 @@ function patchResourceGrants(
       const key = parts.pop()!;
       let target = (typeof action.amount === 'object' && 'parameters' in action.amount
         ? action.amount.parameters
-        : action) as unknown as MutableRecord;
-      for (const part of parts) target = target[part] as MutableRecord;
+        : action) as unknown as Record<string, unknown>;
+      for (const part of parts) target = target[part] as Record<string, unknown>;
       target[key] = applyNumEdit(values[field]!, edit, `${label}.${id}.${field}`);
     }
 
@@ -260,7 +258,7 @@ function patchEffects(owner: Skill | BalanceProfile, edit: SkillPatchEdit, label
 }
 
 /** Applies one numeric edit at a validated direct or dotted path on a cloned catalog record. */
-function patchSkillNumericField(skill: MutableRecord, field: string, edit: NumEdit, skillName: string): void {
+function patchSkillNumericField(skill: Record<string, unknown>, field: string, edit: NumEdit, skillName: string): void {
   const segments = field.split('.');
   const key = segments.pop()!;
   let owner = skill;
@@ -270,7 +268,7 @@ function patchSkillNumericField(skill: MutableRecord, field: string, edit: NumEd
       throw new TypeError(`Skill ${skillName} does not expose ${field}.`);
     }
 
-    owner = value as MutableRecord;
+    owner = value as Record<string, unknown>;
   }
 
   if (owner[key] == null) {
@@ -294,7 +292,7 @@ function numericValue(value: unknown, label: string): number {
 }
 
 /** Applies a validated replacement, guarded replacement, multiplier, or additive numeric edit. */
-export function applyNumEdit(current: number, edit: NumEdit, label = 'Patched value'): number {
+function applyNumEdit(current: number, edit: NumEdit, label = 'Patched value'): number {
   const value = numericValue(current, `${label} live value`);
   let result: number;
   if (typeof edit === 'number') {
@@ -477,7 +475,12 @@ function tickMatches(tick: StrikeTick | ConditionTick, patch: EffectPatch): bool
 }
 
 /** Applies supported numeric effect edits to one effect or tick object. */
-function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: string, parent?: MutableRecord): void {
+function patchNumericFields(
+  target: Record<string, unknown>,
+  patch: EffectPatch,
+  label: string,
+  parent?: Record<string, unknown>
+): void {
   for (const field of EFFECT_NUMERIC_FIELDS) {
     const edit = patch[field];
     if (edit == null) continue;
@@ -507,7 +510,7 @@ function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): Sk
     patchResourceGrants(effectResourceGrants(effect), patch.resourceGrants, label);
   }
 
-  const mutable = effect as unknown as MutableRecord;
+  const mutable = effect as unknown as Record<string, unknown>;
   const sourceTicks = effectTicks(effect);
   const maximumRecipients = patch.audience?.maximumRecipients;
   if (maximumRecipients != null) {
@@ -558,7 +561,7 @@ function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): Sk
       throw new TypeError(`${label} tick ${index} did not match.`);
     }
 
-    const tick = { ...ticks[index] } as MutableRecord;
+    const tick = { ...ticks[index] } as Record<string, unknown>;
     patchNumericFields(tick, patch, `${label}.ticks[${index}]`, mutable);
     ticks[index] = tick as unknown as StrikeTick | ConditionTick;
   }
@@ -618,8 +621,12 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
   }
 
   const effects: EffectPatch[] = [];
-  const recordChanges = (live: MutableRecord, patched: MutableRecord, selector: EffectPatch): void => {
-    const changes: MutableRecord = {};
+  const recordChanges = (
+    live: Record<string, unknown>,
+    patched: Record<string, unknown>,
+    selector: EffectPatch
+  ): void => {
+    const changes: Record<string, unknown> = {};
     for (const field of EFFECT_NUMERIC_FIELDS) {
       if (typeof live[field] === 'number' && live[field] !== patched[field]) {
         changes[field] = { from: live[field], to: patched[field] };
@@ -641,7 +648,7 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
         : {}),
       ...(from !== to && from != null && to != null ? { audience: { maximumRecipients: { from, to } } } : {})
     };
-    recordChanges(live as unknown as MutableRecord, patched as unknown as MutableRecord, selector);
+    recordChanges(live as unknown as Record<string, unknown>, patched as unknown as Record<string, unknown>, selector);
     for (const [tickIndex, tick] of (effectTicks(live) || []).entries()) {
       recordChanges(tick, effectTicks(patched)![tickIndex], { effectIndex, tickIndex });
     }
@@ -662,7 +669,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   const ownerLabel = `${label} skill=${skill.id} (${skill.name})`;
   const clone = cloneCatalogData(skill);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
-  const mutable = clone as unknown as MutableRecord;
+  const mutable = clone as unknown as Record<string, unknown>;
   // Placement changes drive equipment eligibility, utility selection, and weapon-based trait rules together.
   if (edit.placement != null) {
     const placement = edit.placement;
@@ -705,7 +712,7 @@ function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, labe
   if (edit.placement != null) throw new TypeError(`${ownerLabel} cannot change skill placement.`);
   const clone = cloneCatalogData(profile);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
-  const mutable = clone as unknown as MutableRecord;
+  const mutable = clone as unknown as Record<string, unknown>;
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),
     ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })

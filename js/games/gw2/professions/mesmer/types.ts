@@ -30,7 +30,7 @@ import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specialization
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-// Module state is declared beside each state factory; re-export it for existing family type importers.
+/** Composes family state from the state contracts owned by Core and each specialization. */
 interface MesmerProfessionState
   extends MesmerCoreState, MesmerChronomancerState, MesmerMirageState, MesmerVirtuosoState, MesmerTroubadourState {}
 

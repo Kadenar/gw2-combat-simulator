@@ -21,7 +21,7 @@ import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mecha
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /** Accepted Chill admits Bleeding only through the selected, enabled trait trigger. */
-export const deathlyChill = defineTrait({
+const deathlyChill = defineTrait({
   id: TRAIT.DEATHLY_CHILL,
   name: 'Deathly Chill',
   balance: {
@@ -42,7 +42,7 @@ export const deathlyChill = defineTrait({
 });
 
 /** Critical-hit admission is isolated from completion of an already emitted Nova strike. */
-export const chillingNova = defineTrait({
+const chillingNova = defineTrait({
   id: TRAIT.CHILLING_NOVA,
   name: 'Chilling Nova',
   balance: {
@@ -118,7 +118,7 @@ export const chillingNova = defineTrait({
 });
 
 /** Accepted Fear admits its Chill through the same compiled condition stage as other trait producers. */
-export const shiversOfDread = defineTrait({
+const shiversOfDread = defineTrait({
   id: TRAIT.SHIVERS_OF_DREAD,
   name: 'Shivers of Dread',
   balance: {
@@ -139,7 +139,7 @@ export const shiversOfDread = defineTrait({
 });
 
 /** Owns Augury of Death tuning and behavior at its existing execution boundaries. */
-export const auguryOfDeath = defineTrait({
+const auguryOfDeath = defineTrait({
   id: TRAIT.AUGURY_OF_DEATH,
   name: 'Augury of Death',
   balance: {
@@ -179,7 +179,7 @@ export const auguryOfDeath = defineTrait({
 });
 
 /** Selected chilled-target hits claim the existing cooldown before granting life force. */
-export const chillingVictory = defineTrait({
+const chillingVictory = defineTrait({
   id: TRAIT.CHILLING_VICTORY,
   name: 'Chilling Victory',
   balance: {
@@ -209,7 +209,7 @@ export const chillingVictory = defineTrait({
 });
 
 /** Only standard boons actually delivered to self admit a life-force reward. */
-export const blightersBoon = defineTrait({
+const blightersBoon = defineTrait({
   id: TRAIT.BLIGHTERS_BOON,
   name: "Blighter's Boon",
   balance: {
@@ -230,7 +230,7 @@ export const blightersBoon = defineTrait({
 });
 
 /** Owns Decimate Defenses tuning and behavior at its existing execution boundaries. */
-export const decimateDefenses = defineTrait({
+const decimateDefenses = defineTrait({
   id: TRAIT.DECIMATE_DEFENSES,
   name: 'Decimate Defenses',
   balance: {
@@ -259,7 +259,7 @@ export const decimateDefenses = defineTrait({
 });
 
 /** Life Reap admits shroud recharge reductions independently of Onslaught's passive attribute policy. */
-export const reapersOnslaught = defineTrait({
+const reapersOnslaught = defineTrait({
   // Reaper Shroud enables Ferocity through the shared trait evaluator.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.REAPERS_ONSLAUGHT);
@@ -322,7 +322,7 @@ export const coldShoulder = defineTrait({
 });
 
 /** Owns Soul Eater tuning and behavior at its existing execution boundaries. */
-export const soulEater = defineTrait({
+const soulEater = defineTrait({
   id: TRAIT.SOUL_EATER,
   name: 'Soul Eater',
   // Trait balance is the single tuning source for modifiers and presentation.

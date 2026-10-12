@@ -8,7 +8,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -30,11 +30,11 @@ import {
   resolveSharpAsTheWindSkillId,
   runtimeBuffActive
 } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
-export const unseenSword = defineTrait({
+const unseenSword = defineTrait({
   triggers: [
     onTriggerPoint(gunsaberEntered, {
       run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
@@ -55,7 +55,7 @@ export const unseenSword = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const sharpAsTheWind = defineTrait({
+const sharpAsTheWind = defineTrait({
   triggers: [
     onTriggerPoint(gunsaberEntered, {
       run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
@@ -75,7 +75,7 @@ export const sharpAsTheWind = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const riversFlow = defineTrait({
+const riversFlow = defineTrait({
   triggers: [
     onTriggerPoint(gunsaberEntered, {
       run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
@@ -94,7 +94,7 @@ export const riversFlow = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const dragonscaleDefense = defineTrait({
+const dragonscaleDefense = defineTrait({
   id: TRAIT.DRAGONSCALE_DEFENSE,
   name: 'Dragonscale Defense',
   balance: {
@@ -148,7 +148,7 @@ export const fierceAsFire = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const lushForest = defineTrait({
+const lushForest = defineTrait({
   triggers: [
     onTriggerPoint(ammunitionCommitted, {
       run: (runtime, input: TriggerPointInput<typeof ammunitionCommitted>) =>
@@ -163,7 +163,7 @@ export const lushForest = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const daringDragon = defineTrait({
+const daringDragon = defineTrait({
   id: TRAIT.DARING_DRAGON,
   name: 'Daring Dragon',
   balance: {
@@ -194,7 +194,7 @@ export const daringDragon = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const gunsAndGlory = defineTrait({
+const gunsAndGlory = defineTrait({
   // Only live self applications enable Guns and Glory.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY);
@@ -227,10 +227,10 @@ export const gunsAndGlory = defineTrait({
 });
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
-export const gunXSword = defineTrait({ id: TRAIT.GUN_X_SWORD, name: 'Gun X Sword' });
+const gunXSword = defineTrait({ id: TRAIT.GUN_X_SWORD, name: 'Gun X Sword' });
 
 /** Add the selected stun to the authored Dragon Slash release. */
-export const unyieldingDragon = defineTrait({
+const unyieldingDragon = defineTrait({
   id: TRAIT.UNYIELDING_DRAGON,
   name: 'Unyielding Dragon',
   hooks: {
@@ -267,7 +267,7 @@ export const warriorBladeswornTraits = [
   gunsAndGlory
 ] as const;
 
-function gunsaberEntryReward(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, trait: number): void {
+function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, trait: number): void {
   if (runtime.hasExplicitCombatStart && !runtime.combatActive) return;
   const state = bladeswornState.from(runtime);
   if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.bladesworn.gunsaberSwapTrait'))) return;
@@ -371,7 +371,7 @@ function gunsaberEntryReward(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, 
 
 /** Accepted ammunition spend grants Fire stacks before recharge reduction. */
 function fierceAsFireAmmo(
-  runtime: Runtime,
+  runtime: WarriorRuntime,
   cast: RuntimeCast<WarriorSkill>,
   spent: { readonly rounds: number; readonly startedFull: boolean }
 ): void {
@@ -402,7 +402,7 @@ function fierceAsFireAmmo(
 
 /** Full magazines reduce only the currently visible bar after committed spend. */
 function lushForestAmmo(
-  runtime: Runtime,
+  runtime: WarriorRuntime,
   cast: RuntimeCast<WarriorSkill>,
   spent: { readonly rounds: number; readonly startedFull: boolean }
 ): void {
@@ -457,7 +457,7 @@ function lushForestAmmo(
 }
 
 /** Explosions extend the granted Glory window before cartridge reactions run. */
-function gunsAndGloryExplosion(runtime: Runtime, event: Gw2ResolverEvent): void {
+function gunsAndGloryExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   const state = bladeswornState.from(runtime);
   {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.GUNS_AND_GLORY);
@@ -491,5 +491,3 @@ function gunsAndGloryExplosion(runtime: Runtime, event: Gw2ResolverEvent): void 
     }
   }
 }
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;

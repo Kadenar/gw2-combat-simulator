@@ -7,7 +7,7 @@ import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -30,7 +30,7 @@ import {
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorResolverContext, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorResolverContext, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Using a healing skill grants self boons even when the player is already at full health. */
 export const restorativeStrength = defineTrait({
@@ -354,8 +354,6 @@ export const greatFortitude = defineTrait({
     };
   }
 });
-
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2ResolverEvent): void {
   if (Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE || event.kind !== 'peak-performance') return;

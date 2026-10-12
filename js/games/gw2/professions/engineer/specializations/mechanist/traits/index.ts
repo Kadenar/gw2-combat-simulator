@@ -30,7 +30,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 const BARRIER_ENGINE_TASK = 'engineer.barrier-engine';
 
 /** Owns Jade Cannons command selection and existing trait behavior. */
-export const jadeCannons = defineTrait({
+const jadeCannons = defineTrait({
   id: TRAIT.MECH_ARMS_JADE_CANNONS,
   name: 'Jade Cannons',
   balance: {
@@ -57,7 +57,7 @@ export const jadeCannons = defineTrait({
 });
 
 /** Owns Rocket Punch command selection and existing trait behavior. */
-export const mechFighter = defineTrait({
+const mechFighter = defineTrait({
   id: TRAIT.MECH_FIGHTER,
   name: 'Rocket Punch',
   balance: {
@@ -71,7 +71,7 @@ export const mechFighter = defineTrait({
 });
 
 /** Owns Mech Arms: High-Impact Drivers command selection and existing trait behavior. */
-export const highImpactDrivers = defineTrait({
+const highImpactDrivers = defineTrait({
   id: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
   name: 'Mech Arms: High-Impact Drivers',
   balance: {
@@ -84,7 +84,7 @@ export const highImpactDrivers = defineTrait({
 });
 
 /** Owns Mech Arms: Single-Edge Cutters command selection and existing trait behavior. */
-export const singleEdgeCutters = defineTrait({
+const singleEdgeCutters = defineTrait({
   id: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
   name: 'Mech Arms: Single-Edge Cutters',
   balance: {
@@ -97,7 +97,7 @@ export const singleEdgeCutters = defineTrait({
 });
 
 /** Owns Jade Dynamo command selection and existing trait behavior. */
-export const jadeDynamo = defineTrait({
+const jadeDynamo = defineTrait({
   id: TRAIT.MECH_CORE_JADE_DYNAMO,
   name: 'Jade Dynamo',
   balance: {
@@ -122,7 +122,7 @@ export const jadeDynamo = defineTrait({
 });
 
 /** Owns Mech Core: J-Drive command selection and existing trait behavior. */
-export const jDrive = defineTrait({
+const jDrive = defineTrait({
   id: TRAIT.MECH_CORE_J_DRIVE,
   name: 'Mech Core: J-Drive',
   balance: { rechargeMultiplier: 0.76, damageIncrease: 0.18, conditionDamageIncrease: 0.12, effects: [] },
@@ -135,7 +135,7 @@ export const jDrive = defineTrait({
 });
 
 /** Barrier Engine supplies its command and a combat-only passive barrier independent of mech attacks. */
-export const barrierEngine = defineTrait({
+const barrierEngine = defineTrait({
   id: TRAIT.MECH_CORE_BARRIER_ENGINE,
   name: 'Mech Core: Barrier Engine',
   balance: {
@@ -160,7 +160,7 @@ export const barrierEngine = defineTrait({
 });
 
 /** Owns Mech Frame: Conductive Alloys command selection and existing trait behavior. */
-export const conductiveAlloys = defineTrait({
+const conductiveAlloys = defineTrait({
   id: TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
   name: 'Mech Frame: Conductive Alloys',
   // Each selected frame owns its improved inheritance rather than sharing another frame's tuning.
@@ -168,7 +168,7 @@ export const conductiveAlloys = defineTrait({
 });
 
 /** Accepted player and mech barriers grant alacrity with one shared cooldown per recipient. */
-export const channelingConduits = defineTrait({
+const channelingConduits = defineTrait({
   id: TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
   name: 'Mech Frame: Channeling Conduits',
   balance: {
@@ -182,7 +182,7 @@ export const channelingConduits = defineTrait({
 });
 
 /** Owns Mech Frame: Variable Mass Distributor command selection and existing trait behavior. */
-export const variableMassDistributor = defineTrait({
+const variableMassDistributor = defineTrait({
   id: TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
   name: 'Mech Frame: Variable Mass Distributor',
   balance: { precisionCap: 2500 },

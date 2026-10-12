@@ -1,14 +1,13 @@
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
-type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 /** A surviving burst claims its activation once before ordered trait rewards; Dragon Slash keeps its completion reward. */
 export const burstFirstHit = defineTriggerPoint<{ readonly event: Gw2ResolverEvent; readonly skill: WarriorSkill }>(
   'warrior.burst-first-hit',

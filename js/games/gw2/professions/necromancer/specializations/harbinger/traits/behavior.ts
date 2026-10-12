@@ -3,7 +3,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { party } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/audiences.js';
+import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
@@ -24,7 +24,9 @@ export function doomApproachesBlightProfile(runtime: NecromancerRuntime) {
 
 /** Only delivered boon packets expand to party recipients. */
 export function twistedMedicineAudience(runtime: NecromancerRuntime, effect: SkillEffect) {
-  return effect.type === 'boon' && hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : effect.audience;
+  return effect.type === 'boon' && hasTrait(runtime, TRAIT.TWISTED_MEDICINE)
+    ? necromancerPartyAudience(runtime)
+    : effect.audience;
 }
 
 /** Selects and materializes Doom Approaches before the skill scheduler owns the resulting pulses. */

@@ -20,7 +20,7 @@ import {
   scourgeBuffPolicies,
   scourgeEffectStates
 } from '#gw2/professions/necromancer/specializations/scourge/effect-state.js';
-import { party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/audiences.js';
+import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
   scourgeBarrierApplied,
   scourgeConditionApplied,
@@ -278,7 +278,7 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
     [BARRIER](runtime, data) {
       const { cast, event } = data as { cast: RuntimeCast<NecromancerSkill>; event: Gw2ResolverEvent };
       runtime.fireTrigger(scourgeBarrierApplied, { cast, at: runtime.time, activationId: cast.id });
-      const packet = assertSimulationEvent({ ...event, audience: party(runtime) });
+      const packet = assertSimulationEvent({ ...event, audience: necromancerPartyAudience(runtime) });
       runtime.effects.emit({
         kind: 'packet',
         event: { ...packet, kind: String(packet.kind), duration: Number(packet.duration) },

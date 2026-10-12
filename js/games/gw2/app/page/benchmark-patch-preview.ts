@@ -14,7 +14,7 @@ interface MeasuredPatchBenchmark {
 }
 
 /** TBD rows deliberately carry no preview measurement, so they cannot enter numerical rankings. */
-export type PatchBenchmark =
+type PatchBenchmark =
   | MeasuredPatchBenchmark
   | {
       readonly build: Benchmark;
@@ -100,7 +100,7 @@ export function patchBenchmarks(
 }
 
 /** Keep small nonzero changes readable instead of rounding them to an apparently unchanged result. */
-export function patchPercent(value: number): string {
+function patchPercent(value: number): string {
   if (!value) return '0.00%';
   return `${value > 0 ? '+' : '−'}${Math.abs(value) < 0.01 ? '<0.01' : Math.abs(value).toFixed(2)}%`;
 }

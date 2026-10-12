@@ -4,7 +4,9 @@
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
-import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
+import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
@@ -13,7 +15,7 @@ import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js'
 export const engineerAppAdapter = defineProfessionApp({
   tooltips: engineerTooltips,
   profession: engineerProfession,
-  applyBuildAttributeRules: applyEngineerBuildAttributeRules,
+  applyBuildAttributeRules: createProfessionBuildAttributeRules(engineerCatalog, getActiveTraits),
   toApplicationBuild,
   runtime: {
     // Map persisted Heat to the shared initial-resource runtime input.

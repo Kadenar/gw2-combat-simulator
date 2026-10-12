@@ -4,7 +4,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -33,14 +33,13 @@ import {
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const AURA_DETONATE = 'guardian.luminary.aura-detonate';
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
 
 /** Completed stance casts emit the surviving party boon and hostile Blind components. */
-export const shimmeringStances = defineTrait({
+const shimmeringStances = defineTrait({
   id: TRAIT.SHIMMERING_STANCES,
   name: 'Shimmering Stances',
   balance: {
@@ -71,7 +70,7 @@ export const shimmeringStances = defineTrait({
 });
 
 /** Consumes only a live aura with a surviving strike, preserving detonation priority and already-scheduled work. */
-export const sovereignOfLight = defineTrait({
+const sovereignOfLight = defineTrait({
   id: TRAIT.SOVEREIGN_OF_LIGHT,
   name: 'Sovereign of Light',
   balance: {
@@ -79,7 +78,7 @@ export const sovereignOfLight = defineTrait({
   },
   triggers: [
     onTriggerPoint(luminaryCastStarted, {
-      run(runtime: Runtime, input: LuminaryCast) {
+      run(runtime: GuardianRuntime, input: LuminaryCast) {
         const { cast } = input;
         if (detonator(cast.skill)) scheduleDetonation(runtime, input);
         // Forge entry admits its replacement aura after detonation, through the same isolated producer.
@@ -101,14 +100,14 @@ export const sovereignOfLight = defineTrait({
         const skill = cause.skillId == null ? undefined : runtime.helpers.skillsById.get(cause.skillId);
         return Boolean(skill && detonator(skill));
       },
-      run: (runtime: Runtime, { cause }: LightAuraGrant) => detonate(runtime, cause)
+      run: (runtime: GuardianRuntime, { cause }: LightAuraGrant) => detonate(runtime, cause)
     })
   ],
   lifetime: { tasks: { [AURA_DETONATE]: (runtime, data) => detonate(runtime, data as Gw2ResolverEvent) } }
 });
 
 /** Accepted equips install the weapon-tagged window; only its latest live hammer grants damage. */
-export const radiantArmaments = defineTrait({
+const radiantArmaments = defineTrait({
   id: TRAIT.RADIANT_ARMAMENTS,
   name: 'Radiant Armaments',
   balance: {
@@ -141,7 +140,7 @@ export const radiantArmaments = defineTrait({
 });
 
 /** Delayed equips extend the capped damage window without revoking already-applied buffs. */
-export const empoweredArmaments = defineTrait({
+const empoweredArmaments = defineTrait({
   id: TRAIT.EMPOWERED_ARMAMENTS,
   name: 'Empowered Armaments',
   balance: {
@@ -165,7 +164,7 @@ export const empoweredArmaments = defineTrait({
 });
 
 /** Completed equips grant the authored party boon package at the delayed reward boundary. */
-export const resplendentWeaponry = defineTrait({
+const resplendentWeaponry = defineTrait({
   id: TRAIT.RESPLENDENT_WEAPONRY,
   name: 'Resplendent Weaponry',
   balance: {
@@ -179,7 +178,7 @@ export const resplendentWeaponry = defineTrait({
 });
 
 /** Completed equips reduce real virtue recharge and refresh the shared readiness projection. */
-export const illuminatingInspiration = defineTrait({
+const illuminatingInspiration = defineTrait({
   id: TRAIT.ILLUMINATING_INSPIRATION,
   name: 'Illuminating Inspiration',
   balance: { rechargeReduction: 4 },
@@ -187,7 +186,7 @@ export const illuminatingInspiration = defineTrait({
 });
 
 /** Supplies eligible Vitality before build conversions. */
-export const lightsGift = defineTrait({
+const lightsGift = defineTrait({
   id: TRAIT.LIGHTS_GIFT,
   name: "Light's Gift",
   balance: { attributeBonus: 180 },
@@ -197,7 +196,7 @@ export const lightsGift = defineTrait({
 });
 
 /** Virtue reset targets and reporting share this behavior-only trait owner. */
-export const masterAtArms = defineTrait({
+const masterAtArms = defineTrait({
   id: TRAIT.MASTER_AT_ARMS,
   name: 'Master-at-Arms',
   triggers: [
@@ -218,7 +217,7 @@ export const luminaryTraits = [
 ];
 
 /** Luminary activation sources detonate a live aura at their impact, ahead of any replacement aura. */
-function scheduleDetonation(runtime: Runtime, { cast }: LuminaryCast): void {
+function scheduleDetonation(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   const skill = cast.skill;
   const at =
     skill.radiantForgeSkill || skill.id === ID.PIERCING_STANCE || skill.id === ID.DARING_ADVANCE
@@ -234,7 +233,7 @@ function scheduleDetonation(runtime: Runtime, { cast }: LuminaryCast): void {
 }
 
 /** The accepted equip animation grants its armament window after earlier cast-start effects. */
-function startRadiantArmaments(runtime: Runtime, { cast }: LuminaryCast): void {
+function startRadiantArmaments(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   // Armament damage starts with the accepted equip animation, independently of its completion rewards.
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_ARMAMENTS);
   const effect = requireEffect(profile, 'buff', 'radiant-armaments');
@@ -273,13 +272,13 @@ const MASTER_AT_ARMS_WEAPONS: Readonly<Record<number, readonly SkillId[]>> = {
 };
 
 /** The committed virtue resets its matching radiant weapons right after arming them. */
-function rechargeRadiantWeapons(runtime: Runtime, { context }: RadiantVirtueArming): void {
+function rechargeRadiantWeapons(runtime: GuardianRuntime, { context }: RadiantVirtueArming): void {
   const skillIds = MASTER_AT_ARMS_WEAPONS[Number(context.skill.id)];
   if (skillIds) applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: [...skillIds] });
 }
 
 /** Reports the selected virtue reset after its Core activation traits have run. */
-function reportMasterAtArms(runtime: Runtime, { cast }: LuminaryCast): void {
+function reportMasterAtArms(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   runtime.effects.emit({
     kind: 'announcement',
     announcement: {
@@ -294,7 +293,7 @@ function reportMasterAtArms(runtime: Runtime, { cast }: LuminaryCast): void {
 }
 
 /** Completed equips grant the authored party boon package at the delayed reward boundary. */
-function grantResplendentWeaponry(runtime: Runtime, { cast }: LuminaryCast): void {
+function grantResplendentWeaponry(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   // The accepted equip is the cause; the profile owns the party boon package.
   const cause = guardianCastCause(runtime, cast);
   emitTraitProfile(runtime, TRAIT.RESPLENDENT_WEAPONRY, TRAIT.RESPLENDENT_WEAPONRY, cause, {
@@ -311,7 +310,7 @@ function grantResplendentWeaponry(runtime: Runtime, { cast }: LuminaryCast): voi
 }
 
 /** Completed equips extend the capped damage window without revoking already-applied buffs. */
-function extendEmpoweredArmaments(runtime: Runtime, { cast }: LuminaryCast): void {
+function extendEmpoweredArmaments(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   const cause = guardianCastCause(runtime, cast);
   const state = luminaryState.from(runtime);
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERED_ARMAMENTS);
@@ -338,7 +337,7 @@ function extendEmpoweredArmaments(runtime: Runtime, { cast }: LuminaryCast): voi
 }
 
 /** Completed equips reduce real virtue recharge and refresh the shared readiness projection. */
-function reduceVirtueRecharge(runtime: Runtime, { cast }: LuminaryCast): void {
+function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   const reduction = balanceProfileNumber(
     requireBalanceProfileFromContext(runtime, TRAIT.ILLUMINATING_INSPIRATION),
     'rechargeReduction'
@@ -360,7 +359,7 @@ function reduceVirtueRecharge(runtime: Runtime, { cast }: LuminaryCast): void {
 }
 
 /** A surviving strike consumes the aura before queuing its hostile outcome, even on a miss. */
-function detonate(runtime: Runtime, event: Gw2ResolverEvent): void {
+function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   const state = luminaryState.from(runtime);
   if (state.lightAuraUntil <= runtime.time) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOVEREIGN_OF_LIGHT);

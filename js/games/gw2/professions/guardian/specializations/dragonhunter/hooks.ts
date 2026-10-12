@@ -2,7 +2,7 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -30,10 +30,9 @@ import { reactToDragonhunterJusticeHit } from '#gw2/professions/guardian/special
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import { bigGameHunterTetherDuration } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
-import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const COURAGE = 'guardian.dragonhunter.courage';
 const FURIOUS = 'guardian.dragonhunter.furious-focus';
@@ -72,7 +71,7 @@ const couragePulse = createPassiveCourageTask({
 });
 
 /** A landed spear attaches after commitment; failed hostile outcomes cannot arm the follow-up or create burning. */
-function attachTether(runtime: Runtime, data: unknown): void {
+function attachTether(runtime: GuardianRuntime, data: unknown): void {
   if (runtime.deathTime != null) return;
   const event = data as Gw2ResolverEvent;
   const state = dragonhunterState.from(runtime);
@@ -92,7 +91,7 @@ function attachTether(runtime: Runtime, data: unknown): void {
 }
 
 /** Only the current tether schedules another pulse; replacing or breaking it invalidates already queued work. */
-function tetherBurn(runtime: Runtime, data: unknown): void {
+function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
   const pulse = data as { event: Gw2ResolverEvent; activationId: string | null; deadline: number };
   const state = dragonhunterState.from(runtime);
   if (

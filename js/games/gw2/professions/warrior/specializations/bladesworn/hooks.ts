@@ -1,6 +1,6 @@
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -35,12 +35,10 @@ import {
   cartridgeExplosion
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-
-type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
+import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Only actual player explosions extend Glory or create cartridge Burning; neither derived condition can recurse. */
-function explosion(runtime: Runtime, event: Gw2ResolverEvent): void {
+function explosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
 
   runtime.fireTrigger(explosionAccepted, { event });

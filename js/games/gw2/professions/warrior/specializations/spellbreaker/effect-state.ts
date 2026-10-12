@@ -1,5 +1,5 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import {
   balanceProfileFromContext,
@@ -7,7 +7,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 
@@ -26,9 +26,7 @@ export function spellbreakerBuffPolicies(context: unknown): BuffStatePolicy[] {
 }
 
 /** Observe live owner state so consumption and expiry agree with combat. */
-export function spellbreakerEffectStates(
-  runtime: MechanicQueriesOf<MechanicContext<WarriorRuntimeState, WarriorSkill>>
-): EffectState[] {
+export function spellbreakerEffectStates(runtime: MechanicQueriesOf<WarriorRuntime>): EffectState[] {
   const state = spellbreakerState.from(runtime);
   return [
     timedEffectState(
