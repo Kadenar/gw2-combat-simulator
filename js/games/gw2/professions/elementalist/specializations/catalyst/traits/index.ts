@@ -3,7 +3,6 @@ import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/sp
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -291,11 +290,7 @@ function applySphereStartTraits(
   }
 }
 
-function applyEnergizedElements(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): boolean {
+function applyEnergizedElements(context: ElementalistRuntime, event: SimulationEvent): boolean {
   // Energized Elements refunds energy and grants fury on every attunement swap.
   if (event.type === 'elementalist.attunement') {
     const state = catalystState.from(context);
@@ -311,7 +306,6 @@ function applyEnergizedElements(
         at: event.at,
         fullEnd: event.at,
         effect: { type: 'boon', name: 'Fury' },
-        cast: emissionCast,
         attribution: {
           source: 'Energized Elements',
           sourceId: event.sourceId,

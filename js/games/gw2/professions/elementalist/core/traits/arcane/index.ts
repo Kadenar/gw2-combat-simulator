@@ -392,11 +392,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
 }
 
 /** Grants Elemental Lockdown's attunement-specific boon after a classified control event. */
-function applyElementalLockdown(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
+function applyElementalLockdown(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = professionCoreState(context);
   const elementalLockdownProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_LOCKDOWN);
   // Claim the existing owner-local timer before any derived effect.
@@ -415,7 +411,6 @@ function applyElementalLockdown(
     effect: { type: 'boon', name: attunement },
     skillId: event.skillId ?? event.sourceId,
     skillName: 'Elemental Lockdown',
-    cast: emissionCast,
     priority: 0,
     attribution: {
       source: 'Trait',

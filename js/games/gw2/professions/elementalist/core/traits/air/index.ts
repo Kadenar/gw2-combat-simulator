@@ -374,11 +374,7 @@ function applyInscriptionPostCast(context: ElementalistRuntime, { cast }: Elemen
 }
 
 /** Materializes Lightning Rod from a classified player control event. */
-function applyLightningRod(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
+function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent): void {
   const sourceId = event.skillId ?? event.sourceId;
   const lightningRodProfile = requireBalanceProfileFromContext(context, TRAIT.LIGHTNING_ROD);
   const lightningRodStrike = requireEffect(lightningRodProfile, 'strike', 'Lightning Rod');
@@ -387,7 +383,6 @@ function applyLightningRod(
       at: event.at,
       fullEnd: event.at,
       effect: { type: 'strike', name: 'Lightning Rod' },
-      cast: emissionCast,
       skillWeaponFallback: 'Unequipped',
       attribution: {
         source: 'Lightning Rod',
@@ -409,7 +404,6 @@ function applyLightningRod(
       effect: { type: 'condition', name: 'Lightning Rod' },
       skillId: sourceId,
       skillName: 'Lightning Rod',
-      cast: emissionCast,
       attribution: { source: 'Lightning Rod', sourceId: sourceId, actorType: 'player', triggeredBy: '' },
       transform: (event) => ({ ...event, name: 'Lightning Rod' + ' \u2014 ' + event.condition }),
       receipt: true

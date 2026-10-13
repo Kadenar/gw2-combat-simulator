@@ -83,8 +83,7 @@ export function applyWeaveSelfAttunement(
   at: number,
   target: ElementalistAttunement,
   source: string,
-  sourceId: Skill['id'],
-  emissionCast?: EffectDelivery['cast']
+  sourceId: Skill['id']
 ): void {
   const state = weaverState.from(context);
   if (!(state.weaveSelfUntil > at)) return;
@@ -96,20 +95,17 @@ export function applyWeaveSelfAttunement(
   const remaining = Math.max(0, state.weaveSelfUntil - at);
   if (target === 'Fire' || target === 'Air') {
     context.effects.emit(
-      elementalistBuffRequest(
-        {
-          skill: elementalistEventSkill(context, source, sourceId),
-          at,
-          source,
-          sourceId,
-          actorType: 'player',
-          kind: `weave self ${target.toLowerCase()}`,
-          stacks: 1,
-          duration: remaining,
-          skillName: source
-        },
-        emissionCast
-      )
+      elementalistBuffRequest({
+        skill: elementalistEventSkill(context, source, sourceId),
+        at,
+        source,
+        sourceId,
+        actorType: 'player',
+        kind: `weave self ${target.toLowerCase()}`,
+        stacks: 1,
+        duration: remaining,
+        skillName: source
+      })
     );
   }
 
@@ -120,20 +116,17 @@ export function applyWeaveSelfAttunement(
   state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     context.effects.emit(
-      elementalistBuffRequest(
-        {
-          skill: elementalistEventSkill(context, source, sourceId),
-          at,
-          source,
-          sourceId,
-          actorType: 'player',
-          kind,
-          stacks: 1,
-          duration: perfectWeaveDuration,
-          skillName: source
-        },
-        emissionCast
-      )
+      elementalistBuffRequest({
+        skill: elementalistEventSkill(context, source, sourceId),
+        at,
+        source,
+        sourceId,
+        actorType: 'player',
+        kind,
+        stacks: 1,
+        duration: perfectWeaveDuration,
+        skillName: source
+      })
     );
   }
 }

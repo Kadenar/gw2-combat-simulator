@@ -4,7 +4,6 @@ import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/c
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
@@ -76,11 +75,7 @@ export function grantElectricEnchantments(
 
 // Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
-function emitElectricEnchantment(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
+function emitElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
   // Charge admission is stateful; the profile owns both payloads and their authored strike rules.
   const profile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
   const strike = requireEffect(profile, 'strike', 'Galvanic Enchantment');
@@ -97,7 +92,6 @@ function emitElectricEnchantment(
     emitTraitProfile(context, TRAIT.GALVANIC_ENCHANTMENT, TRAIT.GALVANIC_ENCHANTMENT, event, {
       at: event.at,
       fullEnd: event.at,
-      cast: emissionCast,
       effect: { type: 'strike', name: 'Galvanic Enchantment' },
       activationId: context.combat.allocateEffectActivation('elementalist.effect:'),
       skillWeaponFallback: 'Unequipped',
@@ -108,7 +102,6 @@ function emitElectricEnchantment(
     emitTraitProfile(context, TRAIT.GALVANIC_ENCHANTMENT, TRAIT.GALVANIC_ENCHANTMENT, event, {
       at: event.at,
       fullEnd: event.at,
-      cast: emissionCast,
       effect: { type: 'condition', name: 'Burning' },
       attribution,
       transform: (packet) => ({
@@ -127,17 +120,13 @@ function emitElectricEnchantment(
 }
 
 /** Consumes one currently active grant at an accepted hit, preferring the earliest expiry. */
-export function consumeElectricEnchantment(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
+export function consumeElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
   expireElectricEnchantments(state, context.time);
   const grant = state.electricEnchantmentGrants.find(
     (candidate) => event.at >= canonicalTime(candidate.at) && consumeCharge(candidate, event.at)
   );
-  if (grant) emitElectricEnchantment(context, event, emissionCast);
+  if (grant) emitElectricEnchantment(context, event);
 }
 
 /** Preview executes the combat payload directly, without requiring or spending a live charge. */

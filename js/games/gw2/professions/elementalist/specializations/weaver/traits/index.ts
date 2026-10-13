@@ -4,7 +4,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
@@ -258,36 +257,29 @@ export const weaverTraits = [
 ];
 
 /** Seed the opener only after the mechanic has assigned both starting hands. */
-function initializeElementsOfRage(context: ElementalistRuntime, emissionCast?: EffectDelivery['cast']): void {
+function initializeElementsOfRage(context: ElementalistRuntime): void {
   const core = professionCoreState(context),
     state = weaverState.from(context);
   if (core.primaryAttunement === state.secondaryAttunement) {
     const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
     context.effects.emit(
-      elementalistBuffRequest(
-        {
-          skill: elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'),
-          at: context.time,
-          source: 'Starting Attunement',
-          sourceId: 'starting-attunement',
-          actorType: 'player',
-          kind: 'elements of rage',
-          stacks: 1,
-          duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
-          skillName: 'Starting Attunement'
-        },
-        emissionCast
-      )
+      elementalistBuffRequest({
+        skill: elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'),
+        at: context.time,
+        source: 'Starting Attunement',
+        sourceId: 'starting-attunement',
+        actorType: 'player',
+        kind: 'elements of rage',
+        stacks: 1,
+        duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+        skillName: 'Starting Attunement'
+      })
     );
   }
 }
 
 /** Fully attuned setup swaps may carry Rage into combat before Weave Self observes the transition. */
-function applyElementsOfRageAttunement(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
+function applyElementsOfRageAttunement(context: ElementalistRuntime, event: SimulationEvent): void {
   const at = event.at,
     target = event.to,
     previous = event.from,
@@ -297,30 +289,23 @@ function applyElementsOfRageAttunement(
   if (target === previous || unravelActive) {
     const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
     context.effects.emit(
-      elementalistBuffRequest(
-        {
-          skill: elementalistEventSkill(context, source, sourceId),
-          at,
-          source,
-          sourceId,
-          actorType: 'player',
-          kind: 'elements of rage',
-          stacks: 1,
-          duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
-          skillName: source
-        },
-        emissionCast
-      )
+      elementalistBuffRequest({
+        skill: elementalistEventSkill(context, source, sourceId),
+        at,
+        source,
+        sourceId,
+        actorType: 'player',
+        kind: 'elements of rage',
+        stacks: 1,
+        duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+        skillName: source
+      })
     );
   }
 }
 
 /** Resistance follows the in-combat transition and precedes Core's Bountiful Power accounting. */
-function applyWeaversProwess(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
+function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEvent): void {
   const at = event.at,
     target = event.to,
     previous = event.from,
@@ -334,7 +319,6 @@ function applyWeaversProwess(
         at: at,
         fullEnd: at,
         effect: { type: 'boon', name: 'Resistance' },
-        cast: emissionCast,
         attribution: {
           source: "Weaver's Prowess",
           sourceId: sourceId,

@@ -7,7 +7,6 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -365,11 +364,7 @@ export const evokerTraits = [
 ];
 
 /** Accepted Burning in Fire consumes Ignite's existing pulse interval only when its Might packet survives. */
-function applyEvocationBurning(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
+function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
   if (event.type === 'condition' && event.condition === 'Burning' && state.element === 'Fire') {
     const evocationProfile = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
@@ -387,7 +382,6 @@ function applyEvocationBurning(
         at: event.at,
         fullEnd: event.at,
         effect: { type: 'boon', name: 'Fire Familiar' },
-        cast: emissionCast,
         attribution: {
           source: 'Fire Familiar',
           sourceId: sourceId,

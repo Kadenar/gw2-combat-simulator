@@ -1,13 +1,12 @@
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { ElementalKind } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
+/** Elemental impacts carry their own activation identity so elite effects follow the summon action. */
 export interface ElementalStrikeBoundary {
   readonly summonGeneration: number;
   readonly element: ElementalKind;
   readonly companionId: string;
   readonly activationId: string;
-  readonly emissionCast?: EffectDelivery['cast'];
 }
 
 interface ElementalLifecycleObserver {

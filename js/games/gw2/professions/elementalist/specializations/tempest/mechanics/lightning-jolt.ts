@@ -38,34 +38,30 @@ function consumeElementalLightningJolt(context: ElementalistRuntime, strike: Ele
   if (!charge || charge.summonGeneration !== strike.summonGeneration) return;
   state.pendingLightningJolt = null;
   context.effects.emit(
-    elementalistStrikeRequest(
-      context,
-      {
-        activationId: `${strike.activationId}:lightning-jolt`,
-        at: context.time,
-        source: `${strike.element} Elemental`,
-        sourceId: charge.skillId,
-        actorType: 'summon',
-        skillId: charge.skillId,
-        skillName: 'Lightning Jolt',
-        name: 'Lightning Jolt',
-        coefficient: charge.coefficient,
-        hits: 1,
-        canCrit: false,
-        skillWeapon: 'Unequipped',
-        weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
-        independentSummonStrike: true,
-        summonInheritsAttributes: false,
-        summonBasePower: ELEMENTAL_LIGHTNING_JOLT_PROFILE.basePower,
-        summonBasePrecision: 1000,
-        summonBaseFerocity: 0,
-        summonUsesMight: false,
-        summonUsesEquipmentModifiers: false,
-        summonUsesProfessionModifiers: false,
-        summonOwner: strike.companionId
-      },
-      strike.emissionCast
-    )
+    elementalistStrikeRequest(context, {
+      activationId: `${strike.activationId}:lightning-jolt`,
+      at: context.time,
+      source: `${strike.element} Elemental`,
+      sourceId: charge.skillId,
+      actorType: 'summon',
+      skillId: charge.skillId,
+      skillName: 'Lightning Jolt',
+      name: 'Lightning Jolt',
+      coefficient: charge.coefficient,
+      hits: 1,
+      canCrit: false,
+      skillWeapon: 'Unequipped',
+      weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
+      independentSummonStrike: true,
+      summonInheritsAttributes: false,
+      summonBasePower: ELEMENTAL_LIGHTNING_JOLT_PROFILE.basePower,
+      summonBasePrecision: 1000,
+      summonBaseFerocity: 0,
+      summonUsesMight: false,
+      summonUsesEquipmentModifiers: false,
+      summonUsesProfessionModifiers: false,
+      summonOwner: strike.companionId
+    })
   );
 }
 

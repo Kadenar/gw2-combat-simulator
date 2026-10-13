@@ -147,7 +147,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
   context.fireTrigger(weaverHandsChanged, { event });
-  applyWeaveSelfAttunement(context, at, target, source, sourceId, undefined);
+  applyWeaveSelfAttunement(context, at, target, source, sourceId);
   // Pre-combat setup swaps must not generate trait procs.
   if (canonicalTime(at) < (context.combatStartTime || 0)) return;
   context.fireTrigger(weaverAttunementCompleted, { event });
