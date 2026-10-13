@@ -64,7 +64,12 @@ export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationE
             }
           : {})
       }
-    : { ...event, summonOwner: rangerPetCompanionId(context), independentConditionOwner: true };
+    : {
+        ...event,
+        summonOwner: rangerPetCompanionId(context),
+        entityName: context.profession.core.activePet,
+        independentConditionOwner: true
+      };
 }
 
 /** Pet scheduling generations are separate from the lifetime of each companion's emitted effects. */
@@ -247,6 +252,7 @@ function emitPetSkill(
   cast?: RuntimeCast<RangerSkill>
 ): void {
   const companionId = rangerPetCompanionId(context);
+  const entityName = context.profession.core.activePet;
   const timing = RANGER_PET_SKILL_TIMINGS[String(skill.id)];
   const quickness = petBoonActive(context, 'quickness');
   for (const effect of skill.effects ?? []) {
@@ -295,7 +301,8 @@ function emitPetSkill(
         )
           return null;
         // Ranger-stat exceptions retain caster provenance too, so their pet-owned trait children cannot migrate on swap.
-        return { ...prepareRangerPetEvent(context, event), summonOwner: companionId, at, icon: skill.icon };
+        // Capture the name with the caster so delayed packets cannot borrow a replacement pet's label.
+        return { ...prepareRangerPetEvent(context, event), entityName, summonOwner: companionId, at, icon: skill.icon };
       }
     });
   }

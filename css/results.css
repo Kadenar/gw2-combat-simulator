@@ -802,6 +802,17 @@
   margin-top: 6px;
 }
 
+/* Named owners form a second heading level while keeping subtotals aligned with skill columns. */
+.res-entity-group-heading {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 11px;
+}
+
+.res-entity-group-heading .res-skill-group-name {
+  padding-left: 8px;
+}
+
 .res-skill-group-heading span:nth-child(n + 2) {
   text-align: right;
   color: var(--text-dim);

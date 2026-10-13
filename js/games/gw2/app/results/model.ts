@@ -120,6 +120,7 @@ export function buildChartSeries(
           sourceId: event.sourceId,
           actorType: event.actorType,
           summonKind: event.summonKind,
+          entityName: event.entityName,
           source: event.source,
           parentSkill: event.parentSkillName,
           name: event.name

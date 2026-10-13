@@ -1171,6 +1171,27 @@ test('skill damage rows group player damage before owned entities', () => {
   assert.match(html, /aria-label="Entities DPS: 30">30</);
 });
 
+// Entity subtotals remain readable and names are escaped independently of skill labels.
+test('entity damage renders named subsections beneath the combined entity total', () => {
+  const container = inertContainer();
+  mountDamageBreakdown(container, {
+    skillRows: [
+      { name: 'Shared attack', group: 'Entities', entityName: 'Pet <A>', total: 30 },
+      { name: 'Shared attack', group: 'Entities', entityName: 'Pet B', total: 20 }
+    ],
+    skillColumns: [
+      { key: 'name', label: 'Skill' },
+      { key: 'total', label: 'Total', numeric: true }
+    ],
+    conditions: []
+  });
+  assert.match(container.innerHTML, /data-entity-group="Pet &lt;A&gt;"/);
+  assert.match(container.innerHTML, /data-entity-group="Pet B"/);
+  assert.match(container.innerHTML, /aria-label="Entities Total: 50"/);
+  assert.match(container.innerHTML, /aria-label="Pet &lt;A&gt; Total: 30"/);
+  assert.match(container.innerHTML, /aria-label="Pet B Total: 20"/);
+});
+
 test('randomized DPS range waits for its calculate button', () => {
   const runButton = {};
   const container = {

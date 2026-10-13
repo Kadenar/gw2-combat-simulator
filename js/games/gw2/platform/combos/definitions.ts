@@ -9,6 +9,8 @@ const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
   'ownerActorType',
   'summonKind',
   'summonOwner',
+  // Combo conditions belong to the named finisher owner, including a pet that has since swapped out.
+  'entityName',
   'independentSummonStrike',
   'independentConditionOwner',
   'summonInheritsAttributes',

@@ -13,6 +13,7 @@ export interface SkillBreakdownRow {
   readonly skillId: SkillId | null;
   readonly sourceId: SkillId | null;
   readonly actorType: SimulationActorType;
+  readonly entityName: string;
   readonly group: 'Player' | 'Entities' | 'Environment';
   readonly strike: number;
   readonly condition: number;
@@ -24,7 +25,7 @@ export interface SkillBreakdownRow {
   readonly average: number | null;
   readonly dct: number | null;
   readonly procDamage: readonly { sourceSkill: string; total: number; dps: number }[];
-  // Stable identity shared with the chart's per-hit series (`group|name`), so a
+  // Stable identity shared with the chart's per-hit series, so a
   // clicked breakdown row can highlight its own damage over time.
   readonly key: string;
   // Fraction of eligible strikes with successful seeded critical rolls (0-1), or null when the
@@ -44,6 +45,7 @@ interface GroupedSkillBreakdown {
   skillId: SkillId | null;
   sourceId: SkillId | null;
   actorType: SimulationActorType;
+  entityName: string;
   group: 'Player' | 'Entities' | 'Environment';
   strike: number;
   condition: number;
@@ -81,9 +83,12 @@ function breakdownDisplayName(
   return name.endsWith(CHRONOPHANTASMA_SUFFIX) ? name.slice(0, -CHRONOPHANTASMA_SUFFIX.length) : name;
 }
 
-const skillBreakdownKey = (group: 'Player' | 'Entities' | 'Environment', name: string): string => `${group}|${name}`;
+// Include the named owner so shared pet skills cannot merge rows or their hit inspectors.
+const skillBreakdownKey = (group: string, name: string, entityName: string): string =>
+  entityName ? `${group}|${entityName}|${name}` : `${group}|${name}`;
 
 interface BreakdownAttribution {
+  readonly entityName: string;
   readonly group: 'Player' | 'Entities' | 'Environment';
   readonly name: string;
   readonly sourceSkill: string;
@@ -105,6 +110,7 @@ function attributeBreakdownEntry(entry: Gw2DamageBreakdownEntry): BreakdownAttri
   const group = breakdownGroup(actorType);
   const name = breakdownDisplayName(entry, sourceSkill, parentSkill, group, String(entry.damageBreakdownName || ''));
   return {
+    entityName: actorType === 'summon' ? entry.entityName || '' : '',
     group,
     name,
     sourceSkill,
@@ -118,7 +124,7 @@ function attributeBreakdownEntry(entry: Gw2DamageBreakdownEntry): BreakdownAttri
 
 // Identity shared between a breakdown entry and the resolved damage/condition
 // events it aggregates, mirroring the resolver's own breakdown key
-// (`identityId|actor|parentSkill|name`). Using the full identity — not just the
+// (`identityId|actor|parentSkill|name|entityName`). Using the full identity — not just the
 // name — keeps sibling rows of one skill (e.g. a cast strike vs its field
 // pulses) from collapsing into one chart bucket.
 export function skillDamageIdentityKey(fields: {
@@ -126,6 +132,7 @@ export function skillDamageIdentityKey(fields: {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType | null;
   readonly summonKind?: string | null;
+  readonly entityName?: string | null;
   readonly source?: string | null;
   readonly parentSkill?: string | null;
   readonly name?: string | null;
@@ -134,7 +141,8 @@ export function skillDamageIdentityKey(fields: {
   const actorIdentity = fields.summonKind
     ? `${fields.actorType ?? ''}:${fields.summonKind}`
     : (fields.actorType ?? fields.source ?? '');
-  return `${String(identityId)}|${String(actorIdentity)}|${fields.parentSkill || ''}|${fields.name || ''}`;
+  const entityName = fields.actorType === 'summon' ? fields.entityName || '' : '';
+  return `${String(identityId)}|${String(actorIdentity)}|${fields.parentSkill || ''}|${fields.name || ''}|${entityName}`;
 }
 
 // Maps each resolved event identity to the grouped skill row key it belongs to,
@@ -148,13 +156,14 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
       sourceId: entry.sourceId,
       actorType: entry.actorType,
       summonKind: entry.summonKind,
+      entityName: entry.entityName,
       source: entry.source,
       parentSkill: entry.parentSkill,
       name: entry.name
     });
     if (keyByIdentity.has(identity)) continue;
-    const { group, name } = attributeBreakdownEntry(entry);
-    keyByIdentity.set(identity, skillBreakdownKey(group, name));
+    const { group, name, entityName } = attributeBreakdownEntry(entry);
+    keyByIdentity.set(identity, skillBreakdownKey(group, name, entityName));
   }
 
   return keyByIdentity;
@@ -191,27 +200,33 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
   const actionCounts = new Map<string, number>();
   const actionCountsById = new Map<string, number>();
   const actionCountsByEventName = new Map<string, number>();
+  // Actions and damage use the same owner scope, including commands shared by two pets.
+  const actionKey = (name: string, entityName: string): string => JSON.stringify([entityName, name]);
   for (const event of result.events || []) {
     if (event.type !== 'action') continue;
     // Renamed contributions match accepted actions by ID, then event display name;
     // derive these counts here instead of transporting them on every contribution.
-    const id = String(event.skillId ?? event.sourceId);
-    const eventName = event.name || event.skillName || String(event.sourceId);
-    actionCountsById.set(id, (actionCountsById.get(id) || 0) + 1);
-    actionCountsByEventName.set(eventName, (actionCountsByEventName.get(eventName) || 0) + 1);
-    const name = String(event.skillName || event.name || event.sourceId);
-    actionDurations.set(
-      name,
-      (actionDurations.get(name) || 0) + Math.max(0, Number(event.endsAt || event.at) - Number(event.at || 0))
-    );
-    actionCounts.set(name, (actionCounts.get(name) || 0) + 1);
+    const entityName = event.actorType === 'summon' ? event.entityName || '' : '';
+    // Some pet commands deal player-owned damage; retain their combined action totals for those rows.
+    for (const scope of entityName ? ['', entityName] : ['']) {
+      const id = actionKey(String(event.skillId ?? event.sourceId), scope);
+      const eventName = actionKey(event.name || event.skillName || String(event.sourceId), scope);
+      actionCountsById.set(id, (actionCountsById.get(id) || 0) + 1);
+      actionCountsByEventName.set(eventName, (actionCountsByEventName.get(eventName) || 0) + 1);
+      const name = actionKey(String(event.skillName || event.name || event.sourceId), scope);
+      actionDurations.set(
+        name,
+        (actionDurations.get(name) || 0) + Math.max(0, Number(event.endsAt || event.at) - Number(event.at || 0))
+      );
+      actionCounts.set(name, (actionCounts.get(name) || 0) + 1);
+    }
   }
 
   const grouped = new Map<string, GroupedSkillBreakdown>();
   for (const entry of result.breakdown || []) {
-    const { group, name, sourceSkill, parentSkill, icon, skillId, sourceId, actorType } =
+    const { group, name, sourceSkill, parentSkill, icon, skillId, sourceId, actorType, entityName } =
       attributeBreakdownEntry(entry);
-    const groupKey = skillBreakdownKey(group, name);
+    const groupKey = skillBreakdownKey(group, name, entityName);
     const current = grouped.get(groupKey) || {
       name,
       sourceSkill,
@@ -221,6 +236,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
       skillId,
       sourceId,
       actorType,
+      entityName,
       group,
       strike: 0,
       condition: 0,
@@ -243,7 +259,9 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     current.critHits += Number(entry.critHits || 0);
     current.critEligibleHits += Number(entry.critEligibleHits || 0);
     const contributionCasts =
-      actionCountsById.get(String(entry.skillId ?? entry.sourceId)) ?? actionCountsByEventName.get(entry.name) ?? 0;
+      actionCountsById.get(actionKey(String(entry.skillId ?? entry.sourceId), entityName)) ??
+      actionCountsByEventName.get(actionKey(entry.name, entityName)) ??
+      0;
     current.fallbackCasts = Math.max(current.fallbackCasts, contributionCasts);
     grouped.set(groupKey, current);
   }
@@ -251,11 +269,13 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
   return [...grouped.values()]
     .map((entry): SkillBreakdownRow => {
       const procCount =
-        procCounts.get(skillBreakdownKey(entry.group, entry.name)) || equipmentProcCounts.get(entry.name) || 0;
+        procCounts.get(skillBreakdownKey(entry.group, entry.name, entry.entityName)) ||
+        equipmentProcCounts.get(entry.name) ||
+        0;
       // Prefer source-name counts; renamed contributions use ID/display-name counts.
       // Child effects and proc-only rows cannot borrow casts from their triggering skill ID.
       // A shared row can contain distinct range variants; count each source's actions once.
-      const sources = [...entry.sourceSkills];
+      const sources = [...entry.sourceSkills].map((source) => actionKey(source, entry.entityName));
       const casts = sources.some((source) => actionCounts.has(source))
         ? sources.reduce((total, source) => total + Number(actionCounts.get(source) || 0), 0)
         : entry.parentSkill || procCount > 0
@@ -267,13 +287,14 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
       const averageCount = casts || procCount;
       return {
         name: entry.name,
-        key: skillBreakdownKey(entry.group, entry.name),
+        key: skillBreakdownKey(entry.group, entry.name, entry.entityName),
         sourceSkill: entry.sourceSkill,
         parentSkill: entry.parentSkill,
         icon: entry.icon,
         skillId: entry.skillId,
         sourceId: entry.sourceId,
         actorType: entry.actorType,
+        entityName: entry.entityName,
         group: entry.group,
         strike: entry.strike,
         condition: entry.condition,
@@ -281,7 +302,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
         procCount,
         total,
         dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0)),
-        procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name)) || [])].map(
+        procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name, entry.entityName)) || [])].map(
           ([sourceSkill, damage]) => ({
             sourceSkill,
             total: damage,

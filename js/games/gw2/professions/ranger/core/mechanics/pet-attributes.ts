@@ -71,6 +71,7 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonBaseExpertise: attributes.expertise,
     summonBaseHealingPower: attributes.healingPower,
     summonOwner: rangerPetCompanionId(context),
+    entityName: professionCoreState(context).activePet,
     summonCriticalChance: (attributes.precision - 1000) / 2100,
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
     summonDamagePerCoefficient:

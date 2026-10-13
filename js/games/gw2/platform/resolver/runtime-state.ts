@@ -120,7 +120,9 @@ export function createGw2ResolverRuntimeState({
       const actorIdentity = source?.summonKind
         ? `${source.actorType}:${source.summonKind}`
         : (source?.actorType ?? source?.source ?? '');
-      const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}` : name;
+      // Named summons keep separate contributions even when both pets use the same skill.
+      const entityName = source?.actorType === 'summon' ? source.entityName || '' : '';
+      const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}|${entityName}` : name;
       const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
         name,
         sourceSkill,
@@ -131,6 +133,7 @@ export function createGw2ResolverRuntimeState({
         sourceId,
         actorType: source?.actorType,
         summonKind: source?.summonKind,
+        entityName,
         source: source?.source,
         damage: 0,
         strikeDamage: 0,

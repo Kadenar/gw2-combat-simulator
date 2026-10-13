@@ -257,6 +257,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly comboFields?: readonly OwnedComboDescriptor[];
   readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly summonKind?: string;
+  /** Display owner captured at emission so named entities remain distinct after swaps. */
+  readonly entityName?: string;
   /** Pets and mech keep their own condition rounding; other summons share the player packet. */
   readonly independentConditionOwner?: boolean;
   readonly name?: string;

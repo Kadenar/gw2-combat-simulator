@@ -7,7 +7,37 @@ import {
 } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { RANGER_SKILL_IDS as RANGER_SKILL } from '#gw2/professions/ranger/data/ids.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+
+// Pet swaps retain separate ownership through resolution, table grouping, and chart lookup.
+test('pet swaps keep attacks attributed to each named pet', () => {
+  const pets = ['Carrion Devourer', 'Jacaranda'];
+  const result = runRanger(
+    [
+      { type: 'combat-start' },
+      { type: 'wait', durationMs: 4000 },
+      RANGER_SKILL.PET_SWAP,
+      { type: 'wait', durationMs: 4000 }
+    ],
+    { selectedPet: pets[0], selectedPet2: pets[1] }
+  );
+  assert.deepEqual(result.warnings, []);
+  const rows = skillBreakdownRows(result).filter((row) => row.group === 'Entities');
+  assert.deepEqual(new Set(rows.map((row) => row.entityName)), new Set(pets));
+  const keys = skillDamageKeyByIdentity(result);
+  const chart = buildChartSeries(result);
+  for (const row of rows) {
+    assert.ok(chart.skillDamage[row.key]?.length);
+    const events = result.resolvedEvents.filter(
+      (event) => keys.get(skillDamageIdentityKey({ ...event, parentSkill: event.parentSkillName })) === row.key
+    );
+    assert.ok(events.length);
+    assert.ok(events.every((event) => event.entityName === row.entityName));
+  }
+});
 
 // One trait can apply the same condition from different triggers; a trigger without a skill ID must stay independent.
 test('same-named trait applications do not lend a skill ID or icon to another trigger', () => {

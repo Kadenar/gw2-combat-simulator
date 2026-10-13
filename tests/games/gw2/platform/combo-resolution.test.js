@@ -83,6 +83,32 @@ function resolve(events, config = {}) {
   });
 }
 
+// Shared finishers must retain their named owners through combo materialization and damage aggregation.
+test('combo conditions keep same-named attacks separated by entity', () => {
+  const pets = ['Carrion Devourer', 'Whiptail Devourer'];
+  const result = resolve([
+    field('fire:pets', 'Fire'),
+    ...pets.map((entityName, index) =>
+      finisher(
+        `pet:${index}`,
+        { kind: 'field-id', fieldId: 'fire:pets' },
+        {
+          actorType: 'summon',
+          entityName,
+          summonOwner: `pet:${index}`,
+          skillName: 'Twin Darts'
+        }
+      )
+    )
+  ]);
+  const conditions = result.resolvedEvents.filter((event) => event.type === 'condition');
+  assert.deepEqual(new Set(conditions.map((event) => event.entityName)), new Set(pets));
+  const rows = skillBreakdownRows(result);
+  assert.deepEqual(new Set(rows.map((row) => row.entityName)), new Set(pets));
+  assert.ok(rows.every((row) => row.name === 'Twin Darts' && row.group === 'Entities'));
+  assert.equal(new Set(rows.map((row) => row.key)).size, pets.length);
+});
+
 test('combo boon resolution samples changing live concentration instead of configured stats', () => {
   const events = [
     field('fire:duration', 'Fire'),

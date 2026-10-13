@@ -290,6 +290,7 @@ export interface Gw2DamageBreakdownEntry {
   sourceId?: import('#gw2/platform/skills/types.js').SkillId;
   actorType?: SimulationActorType;
   summonKind?: string;
+  entityName?: string;
   source?: string;
   damage: number;
   strikeDamage: number;

@@ -27,7 +27,9 @@ export function petDerivedConditionMetadata(
   // even when ArcDPS attributes the triggering command strike to the player.
   return {
     ...rangerPetCombatMetadata(context),
-    summonOwner: event.summonOwner ?? rangerPetCompanionId(context)
+    summonOwner: event.summonOwner ?? rangerPetCompanionId(context),
+    // Child conditions retain the triggering pet's name across a same-time swap.
+    entityName: event.entityName ?? context.profession.core.activePet
   };
 }
 

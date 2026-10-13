@@ -79,10 +79,8 @@ function skillRowsHtml(
     (left, right) => (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3)
   );
   const summaryColumns = new Set(['strike', 'condition', 'total', 'damagePercent', 'dps']);
-  return groupNames
-    .map((group) => {
-      const groupRows = grouped.get(group) || [];
-      return `<div class="res-skill-group-heading" data-skill-group="${escapeHtml(group)}">
+  const headingHtml = (group: string, groupRows: readonly ResultRow[], entity = false): string =>
+    `<div class="res-skill-group-heading${entity ? ' res-entity-group-heading' : ''}" ${entity ? 'data-entity-group' : 'data-skill-group'}="${escapeHtml(group)}">
       ${columns
         .map((column) => {
           if (column.key === 'name') {
@@ -100,7 +98,34 @@ function skillRowsHtml(
           return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${formatted}`)}">${escapeHtml(formatted)}</span>`;
         })
         .join('')}
-    </div>${groupRows.map((row) => skillRowHtml(row, columns, options)).join('')}`;
+    </div>`;
+  return groupNames
+    .map((group) => {
+      const groupRows = grouped.get(group) || [];
+      const heading = headingHtml(group, groupRows);
+      if (group !== 'Entities' || !groupRows.some((row) => row.entityName)) {
+        return heading + groupRows.map((row) => skillRowHtml(row, columns, options)).join('');
+      }
+
+      // Keep each named entity's skills together after sorting and show its own damage subtotal.
+      const entities = new Map<string, ResultRow[]>();
+      for (const row of groupRows) {
+        const name = String(row.entityName || 'Other entities');
+        const entityRows = entities.get(name) || [];
+        entityRows.push(row);
+        entities.set(name, entityRows);
+      }
+
+      return (
+        heading +
+        [...entities]
+          .map(
+            ([name, entityRows]) =>
+              headingHtml(name, entityRows, true) +
+              entityRows.map((row) => skillRowHtml(row, columns, options)).join('')
+          )
+          .join('')
+      );
     })
     .join('');
 }
