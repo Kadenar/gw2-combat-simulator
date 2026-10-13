@@ -102,7 +102,8 @@ export const rightHandStrength = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus'),
-          feedsConversions: 'none',
+          // Only the one-handed Power bonus feeds conversions; the passive Precision stays excluded.
+          feedsConversions: 'all',
           enabled: oneHandedMainHand
         }
       ]

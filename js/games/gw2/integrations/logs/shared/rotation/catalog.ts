@@ -2,6 +2,7 @@ import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/type
 import type { RotationActionKind } from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
+import { resolveWarriorInterruptCommit } from '#gw2/professions/warrior/data/dual-wielding.js';
 
 export type RotationCatalog = Pick<CanonicalCatalog, 'skills'> &
   Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName' | 'balanceProfilesById'>>;
@@ -109,6 +110,42 @@ export function recordedActionSkill(action: RecordedActionIdentity, context: Rot
     context.catalog,
     context.profile
   );
+}
+
+/** Resolve conditional cutoffs from the replay's equipped set, sharing the simulation's profession rule. */
+export function createRotationSkillResolver(
+  context: RotationCatalogContext & {
+    readonly professionConfig?: Readonly<Record<string, unknown>>;
+    readonly recordedActions: readonly (RecordedActionIdentity & {
+      readonly start: number;
+      readonly eventIndex: number;
+    })[];
+  }
+): (
+  action: RecordedActionIdentity & { readonly start: number; readonly eventIndex: number },
+  skill?: Skill | null
+) => Skill | null {
+  // Only actual equipped-weapon swaps change the offhand; temporary profession bars do not.
+  const swaps =
+    context.profile.professionId === 'warrior'
+      ? context.recordedActions.filter((action) => {
+          const skill = recordedActionSkill(action, context);
+          return (
+            skill?.inputCategory === 'weapon-swap' ||
+            ['swap weapons', 'weapon swap'].includes(normalizedName(action.rawName))
+          );
+        })
+      : [];
+  return (action, skill = recordedActionSkill(action, context)) => {
+    if (!skill || context.profile.professionId !== 'warrior') return skill;
+    let activeSet = context.professionConfig?.startingWeaponSet === 2 ? 2 : 1;
+    for (const swap of swaps) {
+      if (swap.start < action.start || (swap.start === action.start && swap.eventIndex < action.eventIndex))
+        activeSet = activeSet === 1 ? 2 : 1;
+    }
+
+    return resolveWarriorInterruptCommit(skill, context.professionConfig, activeSet);
+  };
 }
 
 export function findNamedRotationSkill(

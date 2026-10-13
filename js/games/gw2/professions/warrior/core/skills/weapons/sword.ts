@@ -7,6 +7,9 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.HAMSTRING]: {
     castTimeMs: 400,
     dualWieldCastTimeMs: 320,
+    // Dual Wielding advances the slash's commit point when its offhand requirement is met.
+    interruptCommitMs: 320,
+    dualWieldInterruptCommitMs: 200,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -110,6 +113,8 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.IMPALE]: {
     castTimeMs: 333,
+    // Use the measured dual-wield activation while an eligible offhand is equipped.
+    dualWieldCastTimeMs: 360,
     effects: [
       {
         type: 'strike',

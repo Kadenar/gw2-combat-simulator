@@ -159,7 +159,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 600,
     dualWieldCastTimeMs: 480,
     // Committed interrupted casts keep the cartridge window consumed by later explosions.
-    interruptCommitMs: 480
+    interruptCommitMs: 400
   },
   // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
   [ID.SWIFT_CUT]: {

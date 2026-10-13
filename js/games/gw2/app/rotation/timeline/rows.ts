@@ -133,24 +133,12 @@ export function timelineRowsView(
       weaponLine: null
     }) ?? null;
   const hasSecondWeaponSet = Boolean(build.alternateWeapons?.[0]);
-  // Executed transitions distinguish legal precombat swaps from rejected inputs and kit exits.
-  const swappedActivations = new Set(
-    (results?.events ?? [])
-      .filter(
-        (event) =>
-          event.type === 'weapon_set' &&
-          event.skillId != null &&
-          app.skillById.get(event.skillId)?.inputCategory === 'weapon-swap'
-      )
-      .map((event) => event.activationId)
-  );
   const rows = timelineWeaponRows(rotation, {
     startingWeaponSet,
     startingWeaponLine,
     isWeaponSwap(_entry, index) {
-      // Pending rows keep the starting set until execution confirms a transition, including implicit combat entry.
-      const activation = steps.get(index)?.activationId;
-      return hasSecondWeaponSet && activation != null && swappedActivations.has(activation);
+      // Step observations preserve confirmed swaps after target death without predicting rejected inputs or kit exits.
+      return hasSecondWeaponSet && steps.get(index)?.weaponSwapTo != null;
     },
     skillName: (entry) => resolveEntrySkill(app, entry)?.name || rotationEntryName(entry),
     weaponLineTransition: (entry, current, index) => {

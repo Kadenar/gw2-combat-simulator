@@ -76,6 +76,37 @@ const stats = (app, input = {}) => {
   return calculateSkillDamageAttributes(app, { ...clearedValues(controls), ...input }, controls).attributes;
 };
 
+// Insight contributes temporary attributes without feeding conversions or mutating the saved build.
+test('Spellbreaker previews share capped Insight stacks independently of Signet Mastery', () => {
+  const app = previewApp('warrior', ['Signet Mastery', 'Great Fortitude'], 'Spellbreaker');
+  app.build.utility = 'Superior Sharpening Stone';
+  app.attributeData = app.adapter.createBuildContext({ build: app.build, patchId: 'current' }).attributes(1);
+  const saved = structuredClone(app.build);
+  const controls = skillDamageControls(app);
+  for (const calculate of [
+    (values) => calculateBuffedAttributes(app, values).attributes,
+    (values) => calculateSkillDamageAttributes(app, values, controls).attributes
+  ]) {
+    const values = { ...clearedValues(controls), signetMastery: 5 };
+    const base = calculate(values);
+    for (const [input, stacks] of [
+      [0, 0],
+      [3, 3],
+      [5, 5],
+      [8, 5]
+    ]) {
+      const active = calculate({ ...values, attackersInsight: input });
+      for (const name of ['Power', 'Precision', 'Ferocity']) {
+        assert.equal(active[name].final - base[name].final, stacks * 50, name);
+      }
+
+      assert.equal(active.Vitality.final, base.Vitality.final);
+    }
+  }
+
+  assert.deepEqual(app.build, saved);
+});
+
 // Native signet cooldown and active-buff states must agree in both previews for every Warrior specialization.
 test('Signet of Fury replaces passive Precision with active Precision and Ferocity', () => {
   for (const specialization of ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']) {

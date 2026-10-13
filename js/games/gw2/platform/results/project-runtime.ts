@@ -61,7 +61,20 @@ export function projectRuntimeResult<T extends object>(
       )
       .map((event) => [event.activationId, event])
   );
+  // Keep actual equipment transitions on authored steps beyond the combat event window; bar refreshes are excluded.
+  const weaponSwaps = new Map(
+    executed
+      .filter(
+        (event) =>
+          event.type === 'weapon_set' &&
+          event.skillId != null &&
+          profession.catalog.skillsById.get(event.skillId)?.inputCategory === 'weapon-swap'
+      )
+      .map((event) => [event.activationId, event.weaponSet])
+  );
   const steps = runtime.steps.map((step) => {
+    const weaponSwapTo = weaponSwaps.get(step.activationId);
+    if (weaponSwapTo != null) step = { ...step, weaponSwapTo };
     const action = companionActions.get(step.activationId);
     if (step.invalid || !action || typeof action.endsAt !== 'number' || typeof action.fullEndsAt !== 'number')
       return step;

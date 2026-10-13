@@ -17,6 +17,24 @@ import { canonicalTime } from '#kernel/core/clock.js';
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.SIGNET_OF_STAMINA]: {
+    // The instant signet restores endurance and activates signet traits; incoming conditions are outside scope.
+    castTimeMs: 0,
+    cooldown: 20,
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          id: 'endurance-restored',
+          label: 'Endurance restored',
+          resource: 'endurance',
+          amount: 50
+        }
+      }
+    ],
+    effects: []
+  },
   [ID.THROW_BOLAS]: {
     // Bolas immobilizes on impact and always finishes a projectile combo in an eligible field.
     castTimeMs: 520,
@@ -261,7 +279,9 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.KICK]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
-    castTimeMs: 842,
+    // Use the measured activation and require the kick to commit before accepting an interruption.
+    castTimeMs: 840,
+    interruptCommitMs: 600,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

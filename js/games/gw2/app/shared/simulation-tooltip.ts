@@ -97,6 +97,7 @@ effectNames.set('fresh-air', 'Fresh Air');
 // Match named buff IDs to their display names so generated facts keep the granting skill or trait icon.
 effectNames.set('fierce-as-fire', 'Fierce as Fire');
 effectNames.set('signet-mastery', 'Signet Mastery');
+effectNames.set('attackers-insight', "Attacker's Insight");
 effectNames.set('lesser-sic-em-pet', 'Lesser "Sic \'Em!" (pet)');
 effectNames.set('lesser-sic-em', 'Lesser "Sic \'Em!" (merged)');
 // Show the strike variant without repeating its owning skill or exposing its patch key.
@@ -480,6 +481,13 @@ export function describeSimulationSkill(
     ...(skill.effects || []).flatMap((effect) => effect.comboFields || [])
   ];
   for (const field of new Map(comboFields.map((field) => [JSON.stringify(field), field])).values()) {
+    // Tab-specific fields own their durations so the base descriptor cannot contradict the selected variant.
+    if (
+      model.factTabs?.some((tab) =>
+        tab.facts.some((fact) => fact.name === 'Combo field' && fact.detail.split(' · ')[0] === field.fieldType)
+      )
+    )
+      continue;
     facts.push({
       name: 'Combo field',
       detail: `${String(field.fieldType)}${typeof field.duration === 'number' ? ` · ${tooltipDecimal(field.duration)}s` : ''}`

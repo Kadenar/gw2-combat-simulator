@@ -168,6 +168,8 @@ const daringDragon = defineTrait({
   name: 'Daring Dragon',
   balance: {
     resourceCostMultiplier: 2,
+    // Use the provisional five-charge Force estimate from the alacrity report
+    coefficientMultiplier: 0.65,
     effects: [
       {
         name: 'alacrity',

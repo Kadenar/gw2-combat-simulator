@@ -1,7 +1,11 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { referenceCastTimeMs, strikePacketOffsets } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import {
+  normalizedName as normalized,
+  recordedActionSkill,
+  createRotationSkillResolver
+} from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -38,6 +42,8 @@ export { referenceCastTimeMs };
 export function createStrikePacketMatcher(
   context: EvtcProfessionReconstructionContext
 ): (action: EvtcRecordedRotationAction) => StrikePacketValidation {
+  // Packet validation reads the cast's selected cutoff, including its active equipped weapon set.
+  const resolveSkill = createRotationSkillResolver(context);
   const names = new Map(context.log.skills.map((skill) => [skill.id, skill.name.trim()]));
   const availableNames = new Set([...names.values()].map((name) => normalized(name)));
   const directEvents = context.log.events
@@ -55,7 +61,7 @@ export function createStrikePacketMatcher(
   return (action) => {
     const cached = cache.get(action);
     if (cached) return cached;
-    const skill = skillForAction(context, action);
+    const skill = resolveSkill(action);
     const runtimeDurationMs = skill ? referenceCastTimeMs(skill) : 0;
     const packets: ExpectedStrikePacket[] = skill
       ? (skill.effects || []).flatMap((effect) => {

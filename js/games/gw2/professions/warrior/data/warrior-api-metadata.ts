@@ -2149,6 +2149,23 @@ export const SKILLS: readonly WarriorSkill[] = [
     flipSkillId: null
   },
   {
+    id: 14479,
+    name: 'Signet of Stamina',
+    description:
+      'Signet Passive: Faster endurance regeneration.\nSignet Active: Cure all conditions and gain endurance. Gain additional endurance for each condition cured.',
+    icon: 'https://render.guildwars2.com/file/3763DF075356FE2A22A56915EB0B982B32F3FBA3/104128.png',
+    type: 'Utility',
+    weapon: '',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['Signet'],
+    cooldown: 20,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null
+  },
+  {
     id: 14482,
     name: 'Hammer Shock',
     description: 'Smash the ground and send out a crippling wave.',

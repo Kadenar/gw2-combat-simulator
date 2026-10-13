@@ -243,7 +243,7 @@ test('Dragon Trigger entry covers the first interval and later charges spend Flo
     'Bladesworn',
     [
       ID.DRAGON_TRIGGER,
-      { type: 'wait', durationMs: dragonChargeTickOffsetSeconds(2) * 1000 },
+      { type: 'wait', durationMs: dragonChargeTickOffsetSeconds(2, false) * 1000 },
       { type: 'combat-start' }
     ],
     { initialResource: 100 }
@@ -321,15 +321,15 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
 
 test('Dragon Trigger spends Flow at fixed 240 ms intervals', () => {
   assert.deepEqual(
-    Array.from({ length: 10 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1) * 1000),
+    Array.from({ length: 10 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1, false) * 1000),
     [240, 480, 720, 960, 1200, 1440, 1680, 1920, 2160, 2400]
   );
   assert.deepEqual(
-    Array.from({ length: 5 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1) * 1000),
+    Array.from({ length: 5 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1, false) * 1000),
     [240, 480, 720, 960, 1200]
   );
-  assert.equal(dragonChargesForDurationMs(1240, 10, 1), 5);
-  assert.equal(dragonChargesForDurationMs(720, 10, 2), 6);
+  assert.equal(dragonChargesForDurationMs(1240, 10, 1, false), 5);
+  assert.equal(dragonChargesForDurationMs(720, 10, 2, false), 6);
 
   for (const [rotation, expectedSeconds] of [
     [[ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], 2.4],

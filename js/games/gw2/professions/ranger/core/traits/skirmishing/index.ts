@@ -276,7 +276,8 @@ export const stridersStrength = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'),
-          feedsConversions: 'none'
+          // Both the permanent and sword-dependent Power bonuses feed conversions.
+          feedsConversions: 'all'
         }
       ]
     };

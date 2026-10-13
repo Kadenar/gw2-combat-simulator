@@ -41,6 +41,7 @@ import {
 } from '#gw2/integrations/logs/evtc/types.js';
 import {
   findNamedRotationSkill,
+  createRotationSkillResolver,
   findRotationSkill,
   recordedActionSkill,
   resolvedActionIdentity,
@@ -344,14 +345,19 @@ function reconstructWithProfile(
     normalized,
     combatStart
   );
+  // Use normalized swaps for both packet evidence and replay; raw bar-change signals may have been removed.
+  const timingContext = { ...professionContext, recordedActions: completeOpener };
+  const resolveSkill = createRotationSkillResolver(timingContext);
   const resolved = applyObservedInterruptTiming(
     completeOpener,
     catalog,
     profile,
-    createStrikePacketMatcher(professionContext)
+    createStrikePacketMatcher(timingContext)
   )
     .filter(inEncounter)
     .map((action) => resolveAction(action, catalog, profile))
+    // Capture the same conditional cutoff used by runtime cancellation and replay occupancy.
+    .map((action) => ({ ...action, skill: resolveSkill(action, action.skill) }))
     .filter((action) => action.skill?.simulatorExcluded !== true);
 
   // Direct effect timestamps anchor instant inputs, including ammo flips; later idle time cannot move those inputs.
@@ -391,7 +397,7 @@ function reconstructWithProfile(
     rotation: buildRotation(resolved, origin, combatStart),
     warnings: [
       ...warningList(actions),
-      ...missingInterruptCommitWarnings(professionContext, resolved),
+      ...missingInterruptCommitWarnings(timingContext, resolved),
       // A Gaze snapshot proves an existing mark, but cannot reconstruct the missing opener or its stored resources.
       ...(profile.specializationId === 'deadeye' &&
       log.events.some(

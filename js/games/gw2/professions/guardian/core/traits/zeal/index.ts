@@ -169,11 +169,18 @@ export const zealousBlade = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(
-            zealousBladeProfile,
-            mainHand === 'Greatsword' ? 'weaponAttributeBonus' : 'attributeBonus'
-          ),
+          amount: balanceProfileNumber(zealousBladeProfile, 'attributeBonus'),
           feedsConversions: 'none'
+        },
+        {
+          // Only the extra greatsword Power feeds conversions; retain the profile's total weapon bonus.
+          kind: 'flat',
+          to: 'Power',
+          amount:
+            balanceProfileNumber(zealousBladeProfile, 'weaponAttributeBonus') -
+            balanceProfileNumber(zealousBladeProfile, 'attributeBonus'),
+          feedsConversions: 'all',
+          enabled: mainHand === 'Greatsword'
         }
       ]
     };

@@ -167,7 +167,7 @@ export const evasiveArcana = defineTrait({
 });
 
 export const arcaneLightning = defineTrait({
-  // Only an active Arcane Lightning application contributes Ferocity.
+  // Active Arcane Lightning supplies conversion-eligible Ferocity for the duration of its application.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING);
 
@@ -177,7 +177,7 @@ export const arcaneLightning = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: 'none',
+          feedsConversions: 'all',
           enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
         }
       ]

@@ -351,14 +351,20 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
         77361
       ],
       warrior: [
-        14368, 14372, 14392, 14403, 14406, 14408, 14409, 14412, 14413, 14479, 14528, 14575, 41919, 43745, 45380, 62804,
-        76769, 76934
+        14368, 14372, 14392, 14403, 14406, 14408, 14409, 14412, 14413, 14528, 14575, 41919, 43745, 45380, 62804, 76769,
+        76934
       ]
     });
 
     // The profession updater owns these exclusions so refreshing generated data cannot restore unsupported skills.
     for (const [professionName, skillIds] of Object.entries(omittedSkillsByProfession)) {
       const fixture = omittedProfessionFixture(skillIds, professionName);
+      // Signet of Stamina remains supported when refreshing the Warrior catalog used by Paragon presets.
+      if (professionName === 'warrior') {
+        fixture.profession.skills.push({ id: 14479 });
+        fixture.skills.push({ id: 14479, name: 'Signet of Stamina', type: 'Utility', slot: 'Utility', facts: [] });
+      }
+
       // Supported Guardian shouts must survive the same import filter that removes unsupported skills.
       if (professionName === 'guardian') {
         for (const id of [9084, 9152]) {
@@ -408,6 +414,10 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
       );
       if (professionName === 'engineer') {
         assert.equal(snapshot.skills.find((skill) => skill.id === 63095).description, 'Fire the cannon.');
+      }
+
+      if (professionName === 'warrior') {
+        assert.ok(snapshot.skills.some((skill) => skill.id === 14479));
       }
 
       if (professionName === 'guardian') {

@@ -62,6 +62,43 @@ test('Ritualist tooltip packet roles survive balance-profile removals', () => {
   }
 });
 
+// Tier-specific fields follow the selected balance profile without repeating the base field above the tabs.
+test('Combustive Shot tooltip tabs own their patched field durations', async () => {
+  const { warriorProfession } = await import('#gw2/professions/warrior/profession.js');
+  const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
+  const { WARRIOR_CORE_BALANCE_PROFILE_IDS: profiles } = await import('#gw2/professions/warrior/core/profiles.js');
+  const context = withPatchPreview(warriorProfession, {
+    id: 'burst-field-preview',
+    label: 'Burst field preview',
+    professions: {
+      warrior: { balanceProfiles: { [profiles.combustiveShot]: { fields: { durationPerTier: 4 } } } }
+    }
+  }).balanceContextFor('burst-field-preview');
+  const tooltip = describeSimulationSkill(
+    context,
+    context.catalog.skillsByName.get('Combustive Shot'),
+    warriorTooltips
+  );
+  assert.equal(
+    tooltip.facts.some(({ name }) => name === 'Combo field'),
+    false
+  );
+  assert.deepEqual(
+    tooltip.factTabs.map(({ label }) => label),
+    ['Burst tier 1', 'Burst tier 2', 'Burst tier 3']
+  );
+  for (const [index, tab] of tooltip.factTabs.entries()) {
+    const field = tab.facts.find(({ name }) => name === 'Combo field');
+    assert.equal(field.detail, `Fire · ${(index + 1) * 4}s`);
+    assert.equal(
+      tooltipFactIcon(field.name),
+      'https://render.guildwars2.com/file/A513F3653D33FBA4220D2D307799F8A327A36A3B/156656.png'
+    );
+    assert.ok(tab.facts.some(({ name }) => name === 'Strike damage'));
+    assert.ok(tab.facts.some(({ name }) => name === 'Burning'));
+  }
+});
+
 // Raw Scourge costs are rounded only for display, with the same digit grouping as the in-game facts.
 test('Scourge life-force tooltip costs display whole points', () => {
   const context = withPatchPreview(necromancerProfession, null).balanceContextFor();

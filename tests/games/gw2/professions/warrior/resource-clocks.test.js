@@ -21,6 +21,27 @@ function run(config, rotation = [], profiles = {}) {
   return result;
 }
 
+// The equipped signet grants its active resource and suspends its passive until recharge, while retaining trait procs.
+test('Signet of Stamina restores endurance, triggers Signet Mastery, and gates passive regeneration on recharge', () => {
+  const config = {
+    specialization: 'Core',
+    selectedSkillIds: [ID.SIGNET_OF_STAMINA],
+    selectedTraitIds: [TRAIT.SIGNET_MASTERY],
+    initialEndurance: 0
+  };
+  const passive = run(config, [{ type: 'wait', durationMs: 4000 }]);
+  assert.equal(passive.planningState.profession.endurance.value, 30);
+  const vigor = run({ ...config, boons: { vigor: true } }, [{ type: 'wait', durationMs: 4000 }]);
+  assert.equal(vigor.planningState.profession.endurance.value, 40);
+  const active = run(config, ['Signet of Stamina', { type: 'wait', durationMs: 4000 }]);
+  assert.equal(active.planningState.profession.endurance.value, 70);
+  assert.ok(active.resolvedEvents.some((event) => event.kind === 'signet-mastery' && event.stacks === 1));
+  const runtime = observedRuntime(active);
+  runtime.endurance.spend(70);
+  runtime.cooldownController.setReadyAt(ID.SIGNET_OF_STAMINA, runtime.time + 2);
+  assert.equal(runtime.endurance.readyAt(50), runtime.time + 7.36);
+});
+
 test('selected Warrior clocks seed against patched caps without an earlier factory or Core clamp', () => {
   for (const [specialization, key, profile, maximum] of [
     ['Core', 'adrenaline', CORE.resources, 60],

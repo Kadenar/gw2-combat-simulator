@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 4,
+  "profession": "warrior",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Grieving",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Viper's",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "weapons": ["Longbow", ""],
+  "alternateWeapons": ["Sword", "Sword"],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Geomancy", "Smoldering"],
+    ["Torment", "Earth"]
+  ],
+  "relic": "Fractal",
+  "food": "Spherified Cilantro Oyster Soup",
+  "utility": "Toxic Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Condition Damage",
+      "count": 15
+    },
+    {
+      "stat": "Expertise",
+      "count": 3
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Strength",
+      "traits": "3-3-1"
+    },
+    {
+      "name": "Arms",
+      "traits": "2-3-3"
+    },
+    {
+      "name": "Paragon",
+      "traits": "1-1-2"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 14389,
+    "Utility1": 14479,
+    "Utility2": 14410,
+    "Utility3": 14404,
+    "Elite": 14355
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Crippled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialResource": 0,
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetArmor": 2597,
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"]
+}

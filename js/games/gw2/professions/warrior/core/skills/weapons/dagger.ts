@@ -8,6 +8,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.KEEN_STRIKE]: {
     interruptCommitMs: 280,
+    // Dual Wielding uses the measured commit point for the faster slash.
+    dualWieldInterruptCommitMs: 240,
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -81,6 +83,8 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.DISRUPTING_STAB]: {
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
+    // Dual Wielding uses the measured commit point when its offhand requirement is met.
+    dualWieldInterruptCommitMs: 200,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 160, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

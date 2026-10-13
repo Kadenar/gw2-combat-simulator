@@ -1,4 +1,6 @@
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -13,6 +15,7 @@ import {
   warriorBurstTier
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
+import { resolveWarriorInterruptCommit } from '#gw2/professions/warrior/data/dual-wielding.js';
 import {
   burstCompleted,
   castStarting,
@@ -36,6 +39,10 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 
 /** Core dispatches shared burst packets through the burst rules selected by the Warrior family. */
 const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  // Resolve against the active set before acceptance so all cast effects use the same cutoff.
+  resolveCastSkill(runtime, skill) {
+    return resolveWarriorInterruptCommit(skill, runtime.config, runtime.activeWeaponSet);
+  },
   /** Hold the passive disabled for Off and Active previews while preserving the equipped signet. */
   prepareDamageState(runtime, _skill, inputs) {
     if ('signetOfFury' in inputs && inputs.signetOfFury !== 'passive')
@@ -99,11 +106,23 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   endurance: {
     state: (runtime) => runtime.profession.core.endurance,
     maximum: () => 100,
-    regenerationRate(runtime, vigor) {
+    regenerationBoundaries: (runtime) => [
+      gw2CooldownReadyAt(runtime.cooldownController.readyAt(ID.SIGNET_OF_STAMINA) ?? 0)
+    ],
+    regenerationRate(runtime, vigor, at) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+      // A ready, equipped signet adds to Vigor's regeneration bonus, subject to the shared 100% bonus cap.
+      const stamina =
+        selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_STAMINA) &&
+        at >= gw2CooldownReadyAt(runtime.cooldownController.readyAt(ID.SIGNET_OF_STAMINA) ?? 0)
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(runtime, PROFILE.signetPassives),
+              'enduranceRegenerationBonus'
+            )
+          : 0;
       return (
         balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
-        (vigor ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1)
+        Math.min(2, (vigor ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1) + stamina)
       );
     }
   },

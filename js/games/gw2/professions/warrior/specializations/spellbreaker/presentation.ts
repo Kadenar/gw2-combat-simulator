@@ -1,4 +1,7 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
@@ -19,6 +22,14 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
   /** Spellbreaker's starting cap belongs to its own resource profile; Core applies the shared configuration field. */
   previewControls(context) {
     const preview = createPreviewControls(context);
+    // Insight uses native timed stacks in both isolated previews, separate from combat-earned stacks.
+    preview.trait("Attacker's Insight", {
+      key: 'attackersInsight',
+      kind: 'special',
+      scope: ['attributes', 'damage'],
+      max: preview.maximumStacks("Attacker's Insight"),
+      description: 'Power / Precision / Ferocity per active stack'
+    });
     // Expose held combat bonuses to isolated damage calculations.
     preview.trait('Magebane Tether', {
       key: 'magebaneTether',
@@ -40,6 +51,13 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
       description: 'Adrenaline before setup; bursts use the Spellbreaker tier'
     });
     return preview.controls;
+  },
+  /** Seed only the detached attribute state so preview stacks never enter saved assumptions. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    readProfessionSpecializationState<SpellbreakerState>(
+      context.professionState,
+      'Spellbreaker'
+    )!.attackerInsightExpiries = Array.from({ length: Number(context.values.attackersInsight) || 0 }, () => Infinity);
   },
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {

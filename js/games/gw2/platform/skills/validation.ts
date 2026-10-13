@@ -60,6 +60,7 @@ const SKILL_FIELDS = new Set([
   'dragonSlashMinimumCoefficient',
   'dragonTriggerSkill',
   'dualWieldCastTimeMs',
+  'dualWieldInterruptCommitMs',
   'dualWieldOpener',
   'duration',
   'durationMultiplier',
@@ -369,6 +370,16 @@ export function normalizeSkill<TSkill extends Skill>(
     throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
   }
 
+  // Conditional cutoffs obey the same fixed, non-negative timing contract as the default.
+  const dualWieldInterruptCommitMs =
+    merged.dualWieldInterruptCommitMs == null ? null : Number(merged.dualWieldInterruptCommitMs);
+  if (
+    dualWieldInterruptCommitMs != null &&
+    (!(dualWieldInterruptCommitMs >= 0) || !Number.isFinite(dualWieldInterruptCommitMs))
+  ) {
+    throw new TypeError(`Skill ${id} has an invalid dualWieldInterruptCommitMs.`);
+  }
+
   // Commit is the safe default; only explicitly classified channels retain packets individually.
   const interruptMode = merged.interruptMode == null ? 'commit' : String(merged.interruptMode);
   if (interruptMode !== 'commit' && interruptMode !== 'per-packet') {
@@ -478,6 +489,7 @@ export function normalizeSkill<TSkill extends Skill>(
     ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
     interruptMode,
     ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
+    ...(dualWieldInterruptCommitMs == null ? {} : { dualWieldInterruptCommitMs }),
     lockouts: normalizeLockouts(merged.lockouts, id)
   };
   const normalized: Partial<TSkill> = {

@@ -18,6 +18,7 @@
 import { readFile } from 'node:fs/promises';
 
 import { loadProfession } from '#gw2/profession-registry.js';
+import { loadBuildContext } from '#gw2/build-context/load.js';
 import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import {
   detectDpsReportRotationPlayers,
@@ -84,15 +85,23 @@ if (buildPath) {
 
 const profession = await loadProfession(selected.professionId);
 const phaseIndex = requestedPhase == null ? 0 : Number(requestedPhase);
+// Resolve saved specialization choices into selected trait IDs, matching the application importer's active build.
+let professionConfig;
+if (buildPath) {
+  const adapter = await loadBuildContext(selected.professionId);
+  if (!adapter) throw new TypeError(`No build context for ${selected.professionId}.`);
+  professionConfig = adapter
+    .createBuildContext({ build: adapter.toApplicationBuild(build), patchId: 'current' })
+    .simulationConfig();
+}
+
 // Feed active-build selections into generic ID resolution so polymorphic
 // skills (such as Amalgam protocols) use the simulator's selected variant.
 const result = reconstructDpsReportRotation(report, profession?.catalog || null, {
   playerIndex: selected.index,
   phaseIndex,
   selectedSkillIds: build.selectedMorphSkillIds || [],
-  // Profession recovery uses active state such as Revenant's starting legend;
-  // passing the build keeps inference evidence-based across different reports.
-  professionConfig: build
+  professionConfig
 });
 const output = {
   metadata: {

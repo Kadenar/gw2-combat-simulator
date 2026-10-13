@@ -32,20 +32,21 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
   },
   attributes: ({ balanceContext, loadout }) => {
     const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.CHAOTIC_PERSISTENCE);
+    // Regeneration enables both flat grants and their participation in utility and trait conversions.
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'expertiseBonus'),
-          feedsConversions: 'none',
+          feedsConversions: 'all',
           enabled: loadout.assumptions.regeneration !== false
         },
         {
           kind: 'flat',
           to: 'Concentration',
           amount: balanceProfileNumber(profile, 'concentrationBonus'),
-          feedsConversions: 'none',
+          feedsConversions: 'all',
           enabled: loadout.assumptions.regeneration !== false
         }
       ]

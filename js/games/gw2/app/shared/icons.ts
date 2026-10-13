@@ -66,6 +66,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Berserk: 'https://render.guildwars2.com/file/1354D8FC07F9F859DC7F0E7B61C0724FD4927C4E/1058638.png',
   'Fierce as Fire': 'https://render.guildwars2.com/file/630362D11956CB69199DE9CE0EEA03232DC9DA38/2491547.png',
   'Signet Mastery': 'https://render.guildwars2.com/file/3D117C0158CD7A55BE740D6B072807A3121C90A1/1012775.png',
+  // Insight's buff fact uses the owning trait icon instead of the generic attribute icon.
+  "Attacker's Insight": 'https://render.guildwars2.com/file/211512491566A15FDCE3E1B64A010445F1EB39E5/1770023.png',
   'Ashes of the Just': 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Epilogue-%20Ashes%20of%20the%20Just.png',
   'Lethal Tempo': 'https://render.guildwars2.com/file/08351965141B6F3013600B3B9CC7F880DEFF05D4/2479325.png',
   'Enchanted Daggers': 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',

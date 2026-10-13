@@ -58,6 +58,7 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   WHIRLWIND_ATTACK: 14447, // Whirlwind Attack
   FORCEFUL_SHOT: 14544, // Forceful Shot
   EXPLOSIVE_SHELL: 14472, // Explosive Shell
+  SIGNET_OF_STAMINA: 14479, // Signet of Stamina
   HAMMER_SHOCK: 14482, // Hammer Shock
   RAMPAGE: 14483, // Rampage
   IMPALE: 14498, // Impale

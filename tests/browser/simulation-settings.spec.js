@@ -1,5 +1,59 @@
 import { expect, test } from '@playwright/test';
 
+// Native target and delay edits must preserve row layout through worker results, including swaps after target death.
+test('weapon-swap line breaks survive settings that end combat before the remaining rotation', async ({ page }) => {
+  await page.goto('/warrior.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build = app.adapter.toApplicationBuild({
+      ...app.profession.createBuildDefaults(),
+      weapons: ['Axe', ''],
+      alternateWeapons: ['Axe', ''],
+      startingWeaponSet: 1,
+      targetHealth: 0,
+      rotation: [
+        { type: 'combat-start' },
+        { type: 'cast', skillId: app.skillByName.get('Chop').id },
+        { type: 'wait', durationMs: 1000 },
+        { type: 'cast', skillId: app.skillByName.get('Swap Weapons').id },
+        { type: 'wait', durationMs: 10000 },
+        { type: 'cast', skillId: app.skillByName.get('Swap Weapons').id },
+        { type: 'wait', durationMs: 1000 }
+      ]
+    });
+    app.changed();
+  });
+  const assertRows = async () => {
+    await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+    await expect(page.locator('#rotation-timeline > .rot-row')).toHaveCount(3);
+    const positions = await page.locator('#rotation-timeline > .rot-row').evaluateAll((rows) =>
+      rows.map((row) => ({
+        top: row.getBoundingClientRect().top,
+        indexes: [...row.querySelectorAll('.rot-skill[data-idx]')].map((skill) => Number(skill.dataset.idx))
+      }))
+    );
+    expect(positions.map(({ indexes }) => indexes)).toEqual([[0, 1, 2, 3], [4, 5], [6]]);
+    expect(positions[1].top).toBeGreaterThan(positions[0].top);
+    expect(positions[2].top).toBeGreaterThan(positions[1].top);
+  };
+
+  await assertRows();
+  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  const health = page.locator('#target-hp');
+  await health.fill('1');
+  await health.press('Tab');
+  await assertRows();
+  expect(await page.evaluate(() => window.professionApp.results.deathTime)).not.toBeNull();
+  const delay = page.locator('#simulation-weaponSwapMs');
+  await delay.fill('100');
+  await delay.press('Tab');
+  await assertRows();
+  await health.fill('0');
+  await health.press('Tab');
+  await assertRows();
+});
+
 // A native settings edit must invalidate an inactive tab and let the worker replace both cached comparison results.
 test('returning to a cached tab refreshes Current and Reference after a shared delay edit', async ({ page }) => {
   await page.goto('/mesmer.html');

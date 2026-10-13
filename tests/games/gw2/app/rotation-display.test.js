@@ -406,6 +406,51 @@ test('rotation proc overlay preferences persist independently', () => {
   assert.equal(readStoredTimelineOverlayVisibility(root, 'gw2-rotation-overlay-sovereign-of-light-procs'), true);
 });
 
+// Target death ends combat reporting, but the remaining authored rotation still needs its executed set boundaries.
+test('timeline preserves weapon-swap rows after target death in editable and reference views', async () => {
+  const adapter = await loadProfessionAppAdapter('warrior');
+  const profession = adapter.profession;
+  const rotation = [
+    { type: 'combat-start' },
+    { type: 'cast', skillId: profession.catalog.skillsByName.get('Chop').id },
+    { type: 'wait', durationMs: 1000 },
+    { type: 'cast', skillId: profession.catalog.skillsByName.get('Swap Weapons').id },
+    { type: 'wait', durationMs: 10000 },
+    { type: 'cast', skillId: profession.catalog.skillsByName.get('Swap Weapons').id },
+    { type: 'wait', durationMs: 1000 }
+  ];
+  const build = {
+    ...profession.createBuildDefaults(),
+    weapons: ['Axe', ''],
+    alternateWeapons: ['Axe', ''],
+    startingWeaponSet: 1,
+    rotation
+  };
+  const config = { specialization: 'Core', primaryWeapon: 'Axe', weaponSet2Primary: 'Axe', target: { health: 1 } };
+  const results = runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
+  assert.deepEqual(results.warnings, []);
+  assert.ok(results.deathTime != null && results.deathTime < results.steps[3].start / 1000);
+  assert.equal(
+    results.events.some((event) => event.type === 'weapon_set'),
+    false
+  );
+  const app = {
+    adapter: { ...adapter, eliteSpecialization: () => 'Core' },
+    profession,
+    build,
+    skills: profession.catalog.skills,
+    skillById: profession.catalog.skillsById,
+    skillByName: profession.catalog.skillsByName
+  };
+  for (const readOnly of [false, true]) {
+    const rows = timelineRowsView(app, build, results, readOnly, new Set(), false).rows;
+    assert.deepEqual(
+      rows.map((row) => Number(row.key.split(':')[0])),
+      [1, 2, 1]
+    );
+  }
+});
+
 // Shared weapon_set notifications include bar refreshes; only actual swaps may change equipment row ownership.
 test('timeline keeps tome and kit transitions on their equipped set and follows real precombat swaps', async () => {
   for (const [id, specialization, actions, expected] of [

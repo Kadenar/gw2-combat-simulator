@@ -1,4 +1,5 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
@@ -18,7 +19,7 @@ const CHARGE_TICK = 'warrior.dragon-charge';
 const TRIGGER_EXPIRY = 'warrior.dragon-trigger-expiry';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { clamp } from '#kernel/core/numeric.js';
@@ -82,7 +83,8 @@ export function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): v
 function scheduleCharge(runtime: WarriorRuntime): void {
   const state = bladeswornState.from(runtime);
   state.nextDragonChargeAt = canonicalTime(
-    state.dragonTriggerStartedAt + dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1)
+    state.dragonTriggerStartedAt +
+      dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1, hasTrait(runtime, TRAIT.DARING_DRAGON))
   );
   if (
     state.nextDragonChargeAt <= state.dragonTriggerChargeDeadline &&
@@ -238,13 +240,19 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
   const state = bladeswornState.from(runtime);
   runtime.resourceController.refresh('dragonCharges');
   const maximum = state.dragonCharges.maximum;
+  // Scale Force's maximum before interpolating charges so Daring Dragon uses its chosen damage endpoint.
+  const maximumCoefficient =
+    (cast.skill.dragonSlashMaximumCoefficient ?? 0) *
+    (cast.skill.id === ID.DRAGON_SLASH_FORCE && hasTrait(runtime, TRAIT.DARING_DRAGON)
+      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.DARING_DRAGON), 'coefficientMultiplier')
+      : 1);
   const release = {
     charges: state.dragonCharges.value,
     maximum,
     flowSpent: state.dragonTriggerFlowSpent,
     coefficient: dragonSlashCoefficient(
       cast.skill.dragonSlashMinimumCoefficient ?? 0,
-      cast.skill.dragonSlashMaximumCoefficient ?? 0,
+      maximumCoefficient,
       state.dragonCharges.value,
       maximum
     )
@@ -272,7 +280,10 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
       flowAfter: state.flow.value,
       coefficient: release.coefficient,
       chargingSeconds: runtime.time - state.dragonTriggerStartedAt,
-      maximumChargingSeconds: dragonChargeTickOffsetSeconds(Math.ceil(release.maximum / state.dragonChargesPerInterval))
+      maximumChargingSeconds: dragonChargeTickOffsetSeconds(
+        Math.ceil(release.maximum / state.dragonChargesPerInterval),
+        hasTrait(runtime, TRAIT.DARING_DRAGON)
+      )
     }
   });
   exitDragonTrigger(runtime);

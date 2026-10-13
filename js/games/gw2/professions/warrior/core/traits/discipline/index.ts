@@ -114,7 +114,8 @@ export const axeMastery = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.AXE_MASTERY),
             weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
-          feedsConversions: 'none',
+          // Both the base Ferocity and the equipped-axe bonus participate in conversions.
+          feedsConversions: 'all',
           enabled: true
         }
       ]

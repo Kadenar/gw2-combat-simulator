@@ -437,6 +437,7 @@ test('Daring Dragon changes actual charge cost/cap and completion boons while Sh
   assert.ok(burning.every((event) => event.actorType === 'player'));
   const alacrity = result.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.DARING_DRAGON);
   assert.equal(alacrity.resolvedAudience.alliedPlayerCount, 4);
+  assert.equal(alacrity.duration, 10);
   assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.DRAGONSCALE_DEFENSE));
   for (const offTarget of [false, true]) {
     const controlled = run([combat, 'Dragon Trigger', slash(1, { offTarget })], {
@@ -451,6 +452,66 @@ test('Daring Dragon changes actual charge cost/cap and completion boons while Sh
       !offTarget
     );
   }
+});
+
+// Reload changes charge yield, while Daring Dragon still spends Flow once per paid conversion interval.
+test('Daring Dragon with Tactical Reload caps charges and preserves entry and conversion costs', () => {
+  const result = run(['Tactical Reload', 'Dragon Trigger', slash(10), combat], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.DARING_DRAGON],
+    selectedSkillIds: [ID.TACTICAL_RELOAD]
+  });
+  assert.deepEqual(result.warnings, []);
+  const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
+  const release = result.events.find((event) => event.reason === 'profession mechanic');
+  assert.equal(entry.amount, -15);
+  assert.equal(entry.maximumCharges, 5);
+  assert.equal(release.chargesReached, 5);
+  assert.equal(release.flowSpent, 20);
+  close(state(result).flow.value, 65);
+  assert.equal(state(result).dragonTriggerActive, false);
+});
+
+// Force's provisional endpoint belongs to Daring Dragon and must not change other builds or Slash variants.
+test('Daring Dragon applies its provisional Force endpoint before capturing the release', () => {
+  for (const [skillId, traits, charges, expected] of [
+    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON], 1, 1.16],
+    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON], 3, (1.16 + 13.26) / 2],
+    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON], 5, 13.26],
+    [ID.DRAGON_SLASH_FORCE, [], 10, 20.4],
+    [ID.DRAGON_SLASH_FORCE, [TRAIT.DARING_DRAGON, TRAIT.SHARP_AS_THE_WIND], 5, 3],
+    [ID.DRAGON_SLASH_BOOST, [TRAIT.DARING_DRAGON], 5, 16.3],
+    [ID.DRAGON_SLASH_REACH, [TRAIT.DARING_DRAGON], 5, 10.21]
+  ]) {
+    const result = run([combat, 'Dragon Trigger', { skillId, releaseAtCharges: charges }], {
+      initialResource: 100,
+      selectedTraitIds: traits
+    });
+    assert.deepEqual(result.warnings, []);
+    const release = result.events.find((event) => event.reason === 'profession mechanic');
+    close(release.coefficient, expected);
+    const hit = result.resolvedEvents.find((event) => event.type === 'damage');
+    close(hit.coefficient, expected);
+  }
+});
+
+// Keep the assumed endpoint adjustable through the trait's balance profile.
+test('Daring Dragon Force endpoint responds to balance patches', () => {
+  const patched = withPatchPreview(warriorProfession, {
+    id: 'daring-force',
+    label: 'Daring Force endpoint',
+    professions: {
+      warrior: { balanceProfiles: { [TRAIT.DARING_DRAGON]: { fields: { coefficientMultiplier: 0.75 } } } }
+    }
+  });
+  const result = run(
+    [combat, 'Dragon Trigger', slash(5)],
+    { initialResource: 100, selectedTraitIds: [TRAIT.DARING_DRAGON], patchId: 'daring-force' },
+    patched
+  );
+  assert.deepEqual(result.warnings, []);
+  close(result.events.find((event) => event.reason === 'profession mechanic').coefficient, 15.3);
+  close(result.resolvedEvents.find((event) => event.type === 'damage').coefficient, 15.3);
 });
 
 test('Tactical Reload restores existing ammunition and doubles charges only for the next Dragon Trigger entry', () => {

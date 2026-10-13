@@ -1,5 +1,29 @@
 import { expect, test } from '@playwright/test';
 
+// Native Insight input updates the isolated panel without changing the saved build.
+test('Spellbreaker Insight preview accepts stacks independently of the build', async ({ page }) => {
+  await page.goto('/warrior.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.specializations = [{ name: 'Spellbreaker', traits: '1-3-3' }];
+    app.changed();
+  });
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  const saved = await page.evaluate(() => JSON.stringify(window.professionApp.build));
+  const preview = page.locator('#attribute-preview');
+  await preview.locator('summary').click();
+  const insight = preview.getByRole('spinbutton', { name: "Attacker's Insight", exact: true });
+  const attributes = page.locator('#attributes-list .attr-current');
+  const initial = await attributes.allTextContents();
+  await insight.fill('3');
+  await expect(insight).toHaveValue('3');
+  expect(await attributes.allTextContents()).not.toEqual(initial);
+  await insight.fill('0');
+  expect(await attributes.allTextContents()).toEqual(initial);
+  expect(await page.evaluate(() => JSON.stringify(window.professionApp.build))).toBe(saved);
+});
+
 // General duration stays visible; rune-specific bonuses remain visible even when Details is collapsed.
 test('condition details show exceptions and preview controls sit beside attribute values', async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 1000 });

@@ -1,5 +1,6 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   dragonChargesForDurationMs,
   dragonChargeTickOffsetSeconds
@@ -27,7 +28,12 @@ const DRAGON_SLASH_IDS: ReadonlySet<number> = new Set([
 const TACTICAL_RELOAD_DURATION_MS = 10_000;
 
 /** Removes Dragon Trigger's duplicate bar-change signal and transfers its observed charge tier to Dragon Slash. */
-function reconstructDragonTriggerActions(actions: readonly RecordedLogAction[]): readonly RecordedLogAction[] {
+function reconstructDragonTriggerActions(
+  actions: readonly RecordedLogAction[],
+  daringDragon: boolean
+): readonly RecordedLogAction[] {
+  // Infer charge holds against the active build's cap and clock, so Daring Dragon never imports ten-charge intent.
+  const maximumCharges = daringDragon ? 5 : 10;
   const filtered = actions.filter(
     (action) =>
       action.rawSkillId !== ID.UNSHEATHE_GUNSABER ||
@@ -53,12 +59,15 @@ function reconstructDragonTriggerActions(actions: readonly RecordedLogAction[]):
       if (tacticalReload) tacticalReloadUntil = Number.NEGATIVE_INFINITY;
       const replayDurationMs = quantizeGw2ActionTimingMs(action.end - action.start);
       pendingReleaseAtCharges =
-        replayDurationMs > 0 ? dragonChargesForDurationMs(replayDurationMs, 10, tacticalReload ? 2 : 1) : null;
+        replayDurationMs > 0
+          ? dragonChargesForDurationMs(replayDurationMs, maximumCharges, tacticalReload ? 2 : 1, daringDragon)
+          : null;
       // Keep observed time beyond the inferred charge threshold as a hold, not a slower charge interval.
       const chargeMs =
         pendingReleaseAtCharges == null
           ? replayDurationMs
-          : dragonChargeTickOffsetSeconds(Math.ceil(pendingReleaseAtCharges / (tacticalReload ? 2 : 1))) * 1000;
+          : dragonChargeTickOffsetSeconds(Math.ceil(pendingReleaseAtCharges / (tacticalReload ? 2 : 1)), daringDragon) *
+            1000;
       pendingReleaseDelayMs = Math.max(0, replayDurationMs - chargeMs);
       return replayDurationMs > 0 ? { ...action, replayDurationMs } : action;
     }
@@ -111,6 +120,7 @@ export function reconstructWarriorDpsReportActions(
           (transition) =>
             action.start >= transition.start && action.start - transition.start <= DUPLICATE_SWAP_WINDOW_MS
         )
-    )
+    ),
+    hasTrait(context.professionConfig, TRAIT.DARING_DRAGON)
   );
 }

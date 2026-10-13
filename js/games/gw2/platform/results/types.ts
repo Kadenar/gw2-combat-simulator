@@ -24,6 +24,8 @@ export interface SimulationStep {
   readonly start: number;
   readonly end: number;
   readonly activationId?: string;
+  /** Destination of a confirmed equipment swap, retained even after target death ends combat reporting. */
+  readonly weaponSwapTo?: number;
   readonly fullCastMs?: number;
   readonly interrupted?: boolean;
   /** Millisecond timestamp through which this cast still reserves its execution lane after ending. */

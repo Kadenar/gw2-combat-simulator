@@ -9,6 +9,7 @@ import {
 } from '#gw2/integrations/logs/shared/rotation/model.js';
 import {
   actionKind,
+  createRotationSkillResolver,
   findNamedRotationSkill,
   normalizedName as normalized,
   recordedActionSkill,
@@ -334,9 +335,17 @@ export function reconstructDpsReportWithProfile(
     profile.specializationId === 'conduit'
       ? alignConduitHazeCombatOffset(professionActions, catalog, phase.start)
       : professionActions;
+  const resolveSkill = createRotationSkillResolver({
+    profile,
+    catalog,
+    recordedActions: combatAligned,
+    professionConfig: options.professionConfig
+  });
   const resolved = applyCastInterrupts(
     combatAligned
       .map((action) => resolveAction(action, profile, catalog, options.selectedSkillIds))
+      // Resolve before replay spacing checks so imports use the cast's equipped-offhand cutoff.
+      .map((action) => ({ ...action, skill: resolveSkill(action, action.skill) }))
       .sort(compareResolvedActions)
       // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.
       .filter((action) => action.skill?.simulatorExcluded !== true)

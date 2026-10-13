@@ -43,6 +43,8 @@ export interface WarriorSkill extends Skill {
    * Only skills with this value receive a Dual Wielding cast-time adjustment.
    */
   readonly dualWieldCastTimeMs?: number;
+  /** Fixed commit cutoff while Dual Wielding is active; independent of cast-duration scaling. */
+  readonly dualWieldInterruptCommitMs?: number;
   readonly adrenalineCost?: number;
   readonly burst?: boolean;
   readonly primalBurst?: boolean;

@@ -269,22 +269,21 @@ export const warriorTooltips: ProfessionTooltips = {
     },
     [ID.COMBUSTIVE_SHOT]: (balanceContext) => {
       const profile = tooltipProfile(balanceContext, CORE.combustiveShot);
+      // Burst tiers are alternatives; keep each field duration with its own damage and burning payload.
       return {
         description:
-          'Spend adrenaline to create a fire field that repeatedly strikes and burns your target. Higher burst tiers add pulses and extend the field; each listed tier is an alternative.',
-        facts: [
-          profileFact(balanceContext, CORE.combustiveShot, 'pulseInterval', 'Pulse interval', tooltipSeconds),
-          ...[1, 2, 3].flatMap((tier) => [
-            ...simulationEffectFacts(
-              profile.effects?.map((effect) => ({ ...effect, applications: tier + 1 })),
-              `burst tier ${tier}`
-            ).facts,
+          'Spend adrenaline to create a fire field that repeatedly strikes and burns your target. Higher burst tiers add pulses and extend the field.',
+        facts: [profileFact(balanceContext, CORE.combustiveShot, 'pulseInterval', 'Pulse interval', tooltipSeconds)],
+        factTabs: [1, 2, 3].map((tier) => ({
+          label: `Burst tier ${tier}`,
+          facts: [
+            ...simulationEffectFacts(profile.effects?.map((effect) => ({ ...effect, applications: tier + 1 }))).facts,
             {
-              name: `Fire field at burst tier ${tier}`,
-              detail: tooltipSeconds(tier * tooltipNumber(profile, 'durationPerTier'))
+              name: 'Combo field',
+              detail: `Fire · ${tooltipSeconds(tier * tooltipNumber(profile, 'durationPerTier'))}`
             }
-          ])
-        ]
+          ]
+        }))
       };
     },
     [ID.DRAGONS_ROAR]: (balanceContext) => ({
@@ -366,6 +365,10 @@ export const warriorTooltips: ProfessionTooltips = {
     ),
 
     // Signet attributes live in mechanic profiles, separate from the active skill packets.
+    [ID.SIGNET_OF_STAMINA]: skillTooltip(
+      'Passively increases endurance regeneration while ready. Activation restores endurance and triggers signet traits.',
+      [fromProfile(CORE.signetPassives, 'enduranceRegenerationBonus', 'Passive endurance regeneration', tooltipPercent)]
+    ),
     [ID.SIGNET_OF_MIGHT]: skillTooltip('Passively grants power while ready. Activation grants might.', [
       fromProfile(CORE.signetPassives, 'attributeBonus', 'Passive power')
     ]),
@@ -798,11 +801,16 @@ export const warriorTooltips: ProfessionTooltips = {
       'Dragon Slash applies a stun control event, triggering supported control-dependent traits.'
     ),
     [TRAIT.DARING_DRAGON]: traitTooltip(
-      'Dragon Trigger charges with fewer bullets and spends more flow per bullet. Releasing Dragon Slash grants alacrity to the party.',
+      'Dragon Trigger charges with fewer bullets and spends more flow per bullet. Releasing Dragon Slash grants alacrity to the party. Force uses a provisional maximum damage coefficient estimated from the power alacrity benchmark; its partial-charge curve and the other Slash variants remain unverified.',
       [
         fromProfile(BLADESWORN.dragonTrigger, 'minimumStacks', 'Maximum Dragon Trigger charges with Daring Dragon'),
         fromProfile(BLADESWORN.dragonTrigger, 'maximumStacks', 'Maximum Dragon Trigger charges without Daring Dragon'),
-        ['resourceCostMultiplier', 'Flow cost per charge multiplier', (value) => `${tooltipDecimal(value)}×`]
+        ['resourceCostMultiplier', 'Flow cost per charge multiplier', (value) => `${tooltipDecimal(value)}×`],
+        [
+          'coefficientMultiplier',
+          'Force maximum coefficient multiplier (estimated)',
+          (value) => `${tooltipDecimal(value)}×`
+        ]
       ]
     ),
     [TRAIT.RALLY_THE_VALIANT]: traitTooltip('Starting a non-chant burst while a refrain is active grants motivation.', [

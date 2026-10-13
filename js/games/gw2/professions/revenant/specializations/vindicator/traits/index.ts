@@ -41,7 +41,8 @@ const empireDivided = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: 'none',
+          // The full-health Power grant participates in utility and profession conversions.
+          feedsConversions: 'all',
           enabled: playerHealthFraction(context) > balanceProfileNumber(profile, 'threshold')
         }
       ]

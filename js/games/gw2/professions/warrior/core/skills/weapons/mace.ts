@@ -112,6 +112,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
     interruptCommitMs: 440,
+    dualWieldInterruptCommitMs: 360,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

@@ -199,12 +199,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       : quantizeMs(observedGapMs);
     const aftercastWaitMs = pendingAftercast ? quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo) : 0;
     pendingAftercast = null;
-    // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
-    // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
     if (alignWaitsToSimulatorTiming) {
-      // Skip local jitter without shifting later source timestamps; the next eligible wait absorbs the difference.
-      if (!retainedTimingJitter && waitMs > 0) appendWait(waitMs);
+      // The projection already accounts for occupied time; preserve any remaining rounded source gap.
+      if (waitMs > 0) appendWait(waitMs);
     } else {
+      // Without a runtime projection, tolerate source jitter around the occupied aftercast boundary.
       appendWait(aftercastWaitMs + (!retainedTimingJitter && waitMs > 0 ? waitMs : 0));
     }
 
@@ -319,12 +318,14 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
         effectiveRuntimeMs < runtimeMs && retainsReplayCastLockout(action.skill, effectiveRuntimeMs)
           ? runtimeMs
           : effectiveRuntimeMs;
+      // A mechanic can occupy a recorded interval while its entry command still uses the instant lane.
+      const runtimeInstant = action.skill?.castTimeMs === 0;
       const projectedStart: number =
         command.concurrentOffsetMs != null
           ? Math.max(projectedTime, (projectedPreviousCastStart ?? origin) + command.concurrentOffsetMs)
           : independent
             ? Math.max(projectedTime, projectedIndependentReadyAt)
-            : instant
+            : runtimeInstant
               ? Math.max(projectedTime, projectedInstantReadyAt)
               : Math.max(projectedTime, projectedBlockingEnd);
       projectedTime = projectedStart;

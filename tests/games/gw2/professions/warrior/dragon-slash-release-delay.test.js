@@ -2,7 +2,7 @@ import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 
@@ -83,6 +83,24 @@ test('release holds add to actual charge completion with and without Tactical Re
     const score = run([...setup, slash(10, 80)], {}, 'score');
     close(score.totalDamage, held.totalDamage);
     close(score.rotationEndTime, held.rotationEndTime);
+  }
+});
+
+// Daring Dragon's earlier charge threshold owns the hold and cooldown start without another Flow payment.
+test('Daring Dragon holds begin at the five-charge threshold and release starts recharge', () => {
+  for (const reload of [false, true]) {
+    const config = { selectedTraitIds: [TRAIT.DARING_DRAGON] };
+    const setup = [combat, ...(reload ? ['Tactical Reload'] : []), 'Dragon Trigger'];
+    const result = run([...setup, slash(5, 80)], config);
+    assert.deepEqual(result.warnings, []);
+    const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
+    const released = release(result);
+    close(released.at - entry.at, (reload ? 0.68 : 1.16) + 0.08);
+    assert.equal(released.chargesReached, 5);
+    assert.equal(released.flowSpent, reload ? 20 : 40);
+    assert.equal(observedRuntime(result).profession.specialization.state.dragonTriggerActive, false);
+    const recharge = observedRuntime(result).cooldownController.readyAt(ID.DRAGON_TRIGGER);
+    assert.ok(recharge > released.at);
   }
 });
 

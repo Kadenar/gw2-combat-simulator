@@ -1,10 +1,9 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { warriorDualWieldingActive } from '#gw2/professions/warrior/data/dual-wielding.js';
 
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -34,7 +33,7 @@ import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const signetMastery = defineTrait({
-  // Read live signet stacks without adding their Ferocity to ordinary conversion inputs.
+  // Active Signet Mastery Ferocity feeds conversions; its contribution expires with the live stacks.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SIGNET_MASTERY);
 
@@ -46,7 +45,7 @@ export const signetMastery = defineTrait({
           amount:
             warriorActiveBuffStacks(context, 'signet-mastery', balanceProfileNumber(profile, 'maximumStacks')) *
             balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: 'none',
+          feedsConversions: 'all',
           enabled: true
         }
       ]
@@ -80,7 +79,7 @@ export const signetMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstPrecision = defineTrait({
-  // The accepted Burst Precision window controls its flat Ferocity.
+  // The accepted Burst Precision window supplies conversion-eligible Ferocity until it expires.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BURST_PRECISION);
 
@@ -90,7 +89,7 @@ export const burstPrecision = defineTrait({
           kind: 'flat',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: 'none',
+          feedsConversions: 'all',
           enabled: warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
         }
       ]
@@ -368,14 +367,16 @@ export const blademaster = defineTrait({
           kind: 'flat',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: 'none',
+          // Permanent Expertise feeds utility conversions even when no sword is equipped.
+          feedsConversions: 'all',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Condition Damage',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: 'none',
+          // The sword bonus joins conversion inputs only while its weapon requirement is satisfied.
+          feedsConversions: 'all',
           enabled: warriorWieldingWeapon(context, 'Sword')
         }
       ]
@@ -396,12 +397,7 @@ export const dualWielding = defineTrait({
   hooks: {
     castDurationMs(runtime, skill, durationMs) {
       const measured = Number(skill.dualWieldCastTimeMs);
-      const offhand = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet)[1];
-      return measured > 0 &&
-        hasTrait(runtime, TRAIT.DUAL_WIELDING) &&
-        ['Axe', 'Dagger', 'Mace', 'Sword'].includes(String(offhand))
-        ? measured
-        : durationMs;
+      return measured > 0 && warriorDualWieldingActive(runtime.config, runtime.activeWeaponSet) ? measured : durationMs;
     }
   }
 });

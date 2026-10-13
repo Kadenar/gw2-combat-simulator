@@ -31,7 +31,8 @@ for (const [name, specialization, traits, extra, key, expected] of [
   ['ranger', 'Untamed', ['Natural Fortitude'], {}, 'vitality', 1290],
   ['revenant', 'Core', ['Versed in Stone'], {}, 'power', 1130],
   ['thief', 'Specter', ['Second Opinion'], { conditionDamage: 1000 }, 'healingPower', 83],
-  ['warrior', 'Core', ['Forceful Greatsword', 'Great Fortitude'], {}, 'ferocity', 112]
+  // Both Forceful Greatsword grants feed Great Fortitude while the greatsword is equipped.
+  ['warrior', 'Core', ['Forceful Greatsword', 'Great Fortitude'], {}, 'ferocity', 124]
 ])
   test(`${name}: ordinary attributes agree with declarations and repeated queries`, () => {
     const { family } = families[name];

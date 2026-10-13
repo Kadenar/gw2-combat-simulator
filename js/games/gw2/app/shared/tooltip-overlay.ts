@@ -103,6 +103,7 @@ export function bindWikiTooltips(): void {
   let pointerInteraction = false;
 
   const cancelClose = () => clearTimeout(closeTimer);
+
   const close = () => {
     clearTimeout(openTimer);
     cancelClose();
@@ -110,15 +111,15 @@ export function bindWikiTooltips(): void {
     trigger = null;
     returnFocus = null;
     if (panel.matches(':popover-open')) panel.hidePopover();
-    clearTimeout(openTimer);
     panel.hidden = true;
   };
 
+  // Give the pointer time to cross to the card; entering either surface cancels dismissal.
   const scheduleClose = () => {
     cancelClose();
     closeTimer = setTimeout(() => {
-      if (!panel.matches(':hover') && !panel.contains(document.activeElement)) close();
-    }, 180);
+      if (!trigger?.matches(':hover') && !panel.matches(':hover') && !panel.contains(document.activeElement)) close();
+    }, 500);
   };
 
   // Reposition after changing tabs because alternative payloads can have different heights.
@@ -146,8 +147,13 @@ export function bindWikiTooltips(): void {
       return;
     }
 
+    // Tall F-key cards scroll on the roomier side instead of covering their own hover trigger.
+    const above = Math.max(0, rect.top - 14);
+    const below = Math.max(0, window.innerHeight - rect.bottom - 14);
+    const placeBelow = height <= below || (height > above && below >= above);
+    panel.style.maxHeight = `${placeBelow ? below : above}px`;
     panel.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))}px`;
-    panel.style.top = `${Math.max(8, Math.min(rect.bottom + 6 + height <= window.innerHeight - 8 ? rect.bottom + 6 : rect.top - height - 6, window.innerHeight - height - 8))}px`;
+    panel.style.top = `${placeBelow ? rect.bottom + 6 : rect.top - panel.offsetHeight - 6}px`;
   };
 
   // Tabs expose one alternative at a time and keep only the selected tab in the keyboard tab order.
@@ -267,9 +273,8 @@ export function bindWikiTooltips(): void {
   document.addEventListener('pointerover', (event) => {
     if (event.pointerType === 'touch') return;
     const element = findTrigger(event.target);
+    if (element) cancelClose();
     if (element && element !== trigger) {
-      // A new hover owns the overlay; the previous icon's delayed close must not cancel this opening.
-      cancelClose();
       clearTimeout(openTimer);
       // Delay the first inspection, then follow adjacent choices immediately while browsing the same menu.
       const menu = element.closest('.searchable-dropdown');
@@ -278,8 +283,9 @@ export function bindWikiTooltips(): void {
         return;
       }
 
-      // Retire the old card before scheduling its replacement so a queued scroll cannot cancel the new hover.
-      close();
+      // Crossing another palette icon must not dismiss the card before the user can reach its tabs.
+      const palette = element.closest('.rotation-palette');
+      if (!trigger || !palette?.contains(trigger)) close();
       openTimer = setTimeout(
         () => {
           if (element.isConnected && element.matches(':hover')) show(element);
@@ -292,7 +298,7 @@ export function bindWikiTooltips(): void {
     const element = findTrigger(event.target);
     if (element && !element.contains(event.relatedTarget as Node | null)) {
       clearTimeout(openTimer);
-      if (element === trigger) scheduleClose();
+      if (trigger) scheduleClose();
     }
   });
   document.addEventListener('focusin', (event) => {
@@ -311,7 +317,10 @@ export function bindWikiTooltips(): void {
   document.addEventListener('focusout', (event) => {
     if (findTrigger(event.target) === trigger || panel.contains(event.target as Node)) scheduleClose();
   });
-  panel.addEventListener('pointerenter', cancelClose);
+  panel.addEventListener('pointerenter', () => {
+    clearTimeout(openTimer);
+    cancelClose();
+  });
   panel.addEventListener('pointerleave', scheduleClose);
   // Enter the portal's tabs or wiki link in logical order; Escape returns focus without selecting anything.
   document.addEventListener(

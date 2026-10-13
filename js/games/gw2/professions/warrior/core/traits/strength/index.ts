@@ -299,7 +299,8 @@ export const forcefulGreatsword = defineTrait({
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD),
             'weaponAttributeBonus'
           ),
-          feedsConversions: 'none',
+          // The greatsword bonus feeds the same conversion pool as the permanent Power grant.
+          feedsConversions: 'all',
           enabled: weapons.includes('Greatsword')
         }
       ]

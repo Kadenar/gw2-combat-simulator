@@ -91,6 +91,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     name: 'Warrior Signet Passives',
     profileKind: 'mechanic',
     attributeBonus: 180,
+    enduranceRegenerationBonus: 0.5,
     effects: []
   },
   {

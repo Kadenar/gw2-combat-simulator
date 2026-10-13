@@ -273,6 +273,48 @@ test('weapon-spell skill cards refresh ally charges when Wielders Boon changes',
   }
 });
 
+// Burst alternatives switch by keyboard and mouse while shared resource facts stay visible.
+test('Combustive Shot burst tabs show one field with the combo icon', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(async () => {
+    const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
+    const adapter = await loadProfessionAppAdapter('warrior');
+    const skill = adapter.profession.catalog.skillsByName.get('Combustive Shot');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `<button ${skillTooltipAttributes(skill, adapter.skillTooltip(skill))}>Inspect Combustive Shot</button>`;
+    document.body.append(wrapper);
+  });
+  const trigger = page.getByRole('button', { name: 'Inspect Combustive Shot', exact: true });
+  await trigger.focus();
+  await trigger.press('Tab');
+  const panel = page.locator('#wiki-tooltip');
+  const first = panel.getByRole('tab', { name: 'Burst tier 1', exact: true });
+  const second = panel.getByRole('tab', { name: 'Burst tier 2', exact: true });
+  const third = panel.getByRole('tab', { name: 'Burst tier 3', exact: true });
+  await expect(first).toBeFocused();
+  await first.press('ArrowRight');
+  await expect(second).toBeFocused();
+  await expect(second).toHaveAttribute('aria-selected', 'true');
+  await third.click();
+  await expect(third).toHaveAttribute('aria-selected', 'true');
+  await expect(panel.getByRole('tabpanel')).toHaveCount(1);
+  await expect(panel.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', await third.getAttribute('id'));
+  const field = panel.locator('.wiki-tooltip-fact:visible').filter({ hasText: 'Combo field' });
+  await expect(field).toHaveCount(1);
+  await expect(field.locator('img')).toHaveAttribute(
+    'src',
+    'https://render.guildwars2.com/file/A513F3653D33FBA4220D2D307799F8A327A36A3B/156656.png'
+  );
+  await expect(
+    panel.locator('.wiki-tooltip-effects > .wiki-tooltip-fact').filter({ hasText: 'Minimum adrenaline' })
+  ).toBeVisible();
+  const bounds = await panel.boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(844);
+});
+
 // Blight alternatives remain exclusive, keyboard-accessible, and reset when inspecting another skill.
 test('Harbinger effect tabs switch payloads while retaining shared costs', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
