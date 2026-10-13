@@ -8,6 +8,50 @@ import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/in
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
+import { createRotationSkillResolver } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
+
+test('Warrior replay preserves idle gaps with the selected trait and active offhand', () => {
+  // A faster selected variant must not consume the recorded gap in the importer's scheduler projection.
+  const skill = { id: 1000, name: 'Fixture Warrior action', castTimeMs: 800, dualWieldCastTimeMs: 400 };
+  const profile = ROTATION_PROFILES.find((candidate) => candidate.professionId === 'warrior');
+  for (const [selectedTraitIds, secondaryWeapon, startingWeaponSet, occupiedMs] of [
+    [[WARRIOR_TRAIT_IDS.DUAL_WIELDING], 'Dagger', 1, 400],
+    [[WARRIOR_TRAIT_IDS.DUAL_WIELDING], 'Shield', 1, 800],
+    [[WARRIOR_TRAIT_IDS.DUAL_WIELDING], 'Shield', 2, 400],
+    [[], 'Dagger', 1, 800]
+  ]) {
+    const actions = [0, occupiedMs + 200].map((start, eventIndex) => ({
+      start,
+      end: start + occupiedMs,
+      eventIndex,
+      rawSkillId: skill.id,
+      rawName: skill.name,
+      skillId: skill.id,
+      name: skill.name
+    }));
+    const resolveSkill = createRotationSkillResolver({
+      profile,
+      catalog: { skills: [skill] },
+      recordedActions: actions,
+      professionConfig: { selectedTraitIds, secondaryWeapon, startingWeaponSet, weaponSet2Secondary: 'Sword' }
+    });
+    const rotation = buildReplayTimeline(
+      actions.map((action) => ({ ...action, skill: resolveSkill(action) })),
+      0,
+      null,
+      {
+        alignWaitsToSimulatorTiming: true,
+        commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
+      }
+    );
+    assert.deepEqual(
+      rotation.filter((command) => command.type === 'wait'),
+      [{ type: 'wait', durationMs: 200 }]
+    );
+  }
+});
 
 // Minimal skills expose a recharge the recorded casts violate without depending on benchmark rotations.
 const catalog = createCanonicalCatalog({

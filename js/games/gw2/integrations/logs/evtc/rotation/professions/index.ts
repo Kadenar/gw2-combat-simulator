@@ -1,7 +1,12 @@
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { effectEvidence } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { effectEvidence, isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import {
+  SIGNET_OF_MIGHT_PASSIVE_ID,
+  signetOfMightProcAt
+} from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
+import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
@@ -102,6 +107,26 @@ function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcR
 export function reconstructProfessionActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
+  // Passive uptime disambiguates the shared manual/lesser signet effect without inferring casts from build choices.
+  const signetPassiveStates: Array<readonly [number, number]> =
+    context.profile.professionId === 'warrior'
+      ? context.log.events
+          .flatMap((event): Array<readonly [number, number]> => {
+            if (event.skillId !== SIGNET_OF_MIGHT_PASSIVE_ID) return [];
+            if (event.target === context.playerAddress && isBuffApply(context.log, event, true))
+              return [[event.time, 1]];
+            // The passive is nonstacking, so a single-stack removal also ends its active state.
+            if (
+              event.source === context.playerAddress &&
+              (isBuffRemoveAll(context.log, event) ||
+                event.stateChange === 71 ||
+                (event.stateChange === 0 && event.activation === 0 && event.buffRemove !== 0))
+            )
+              return [[event.time, 0]];
+            return [];
+          })
+          .sort((left, right) => left[0] - right[0])
+      : [];
   const represented = { ...context, recordedActions: mesmerCloakActions(context) };
   // Packet spacing only selects the represented Path of Scars range variant; it never creates a cast.
   const originals = engineerKitActions(represented).map((action, index, actions) => {
@@ -128,6 +153,11 @@ export function reconstructProfessionActions(
   });
   const recordedActions = originals.map((action, index) => ({
     ...action,
+    ...(action.rawSkillId === WARRIOR_SKILL_IDS.SIGNET_OF_MIGHT &&
+    action.status === 'instant' &&
+    signetOfMightProcAt(action.start, signetPassiveStates)
+      ? { canonicalSkillId: WARRIOR_SKILL_IDS.LESSER_SIGNET_OF_MIGHT }
+      : {}),
     eventIndex: index,
     sourceActionIndex: index,
     rawName: action.rawName === 'Swap Weapons' ? 'Weapon Swap' : action.rawName,

@@ -17,7 +17,11 @@ claim of complete parity or the latest upstream version. Pinned source links liv
   Untamed commands prefer the selected player's owned pet animations, including F2, over duplicate player markers;
   Soulbeast retains the player rotation. Apply the same source selection to EVTC pet animations.
 - Shared normalization maps represented actions into simulator inputs. Keep `sourceActions`, normalized `actions`, and
-  replay commands distinct so a replay change can't silently rewrite evidence.
+  replay commands distinct so a replay change can't silently rewrite evidence. Warrior replay uses the selected Dual
+  Wielding duration for its active offhand when projecting idle waits. Signet of Fury buff markers covered by an
+  animation corroborate that cast. A Signet of Might visual is treated as a lesser-signet trait proc only when the
+  selected player's passive is active and does not disappear within the following 50 ms; missing passive evidence
+  preserves the supplied activation. Raw source actions remain available in both cases.
 - Missing setup stays missing. Initial buffs, existing minions, later skills, damage totals, and simulation requirements
   do not justify inventing casts. Preserve the single opener notice and independent actionable warnings.
 

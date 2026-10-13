@@ -279,9 +279,10 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.KICK]: {
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
-    // Use the measured activation and require the kick to commit before accepting an interruption.
+    // Once Kick commits, an interruption preserves its effects and full cast lockout.
     castTimeMs: 840,
-    interruptCommitMs: 600,
+    interruptCommitMs: 560,
+    retainsCastLockoutAfterInterrupt: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

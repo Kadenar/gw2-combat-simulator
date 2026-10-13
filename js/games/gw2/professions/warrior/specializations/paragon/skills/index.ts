@@ -25,7 +25,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     // Successful activation replaces the refrain; each pulse selects its recipe before spending.
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }],
     effects: [],
-    castTimeMs: 167,
+    castTimeMs: 320,
+    dualWieldCastTimeMs: 240,
     adrenalineCost: 10,
     burst: true,
     categories: ['Burst', 'Chant']
@@ -101,7 +102,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     // Successful activation replaces the refrain; each pulse selects its recipe before spending.
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }],
     effects: [],
-    castTimeMs: 167,
+    castTimeMs: 320,
+    dualWieldCastTimeMs: 240,
     adrenalineCost: 10,
     burst: true,
     categories: ['Burst', 'Chant']
@@ -110,7 +112,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     // Successful activation replaces the refrain; each pulse selects its recipe before spending.
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.chant-activate' } }],
     effects: [],
-    castTimeMs: 167,
+    castTimeMs: 320,
+    dualWieldCastTimeMs: 240,
     adrenalineCost: 10,
     burst: true,
     categories: ['Burst', 'Chant']

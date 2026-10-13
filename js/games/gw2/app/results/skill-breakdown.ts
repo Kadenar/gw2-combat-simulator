@@ -250,19 +250,19 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
 
   return [...grouped.values()]
     .map((entry): SkillBreakdownRow => {
+      const procCount =
+        procCounts.get(skillBreakdownKey(entry.group, entry.name)) || equipmentProcCounts.get(entry.name) || 0;
       // Prefer source-name counts; renamed contributions use ID/display-name counts.
-      // Child effects are not casts of their parent even when they preserve its skill ID.
+      // Child effects and proc-only rows cannot borrow casts from their triggering skill ID.
       // A shared row can contain distinct range variants; count each source's actions once.
       const sources = [...entry.sourceSkills];
       const casts = sources.some((source) => actionCounts.has(source))
         ? sources.reduce((total, source) => total + Number(actionCounts.get(source) || 0), 0)
-        : entry.parentSkill
+        : entry.parentSkill || procCount > 0
           ? 0
           : entry.fallbackCasts;
       const total = entry.strike + entry.condition;
       const castTime = sources.reduce((total, source) => total + Number(actionDurations.get(source) || 0), 0);
-      const procCount =
-        procCounts.get(skillBreakdownKey(entry.group, entry.name)) || equipmentProcCounts.get(entry.name) || 0;
       // Proc-only rows have no cast events, so use their canonical activation count for average damage.
       const averageCount = casts || procCount;
       return {

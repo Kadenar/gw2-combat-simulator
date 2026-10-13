@@ -108,12 +108,11 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     )
   },
   [ID.RIPOSTE]: {
-    castTimeMs: 1500,
+    castTimeMs: 2400,
     effects: []
   },
   [ID.IMPALE]: {
-    castTimeMs: 333,
-    // Use the measured dual-wield activation while an eligible offhand is equipped.
+    castTimeMs: 420,
     dualWieldCastTimeMs: 360,
     effects: [
       {
@@ -140,7 +139,8 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.RIP]: {
-    castTimeMs: 500,
+    castTimeMs: 680,
+    dualWieldCastTimeMs: 420,
     effects: [
       {
         type: 'strike',
@@ -156,15 +156,10 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.ADRENALINE_RUSH]: {
-    castTimeMs: 333,
+    // Adrenaline Rush instantly grants its resource without striking the target.
+    castTimeMs: 0,
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 3 } }],
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1
-      }
-    ]
+    effects: []
   },
   [ID.REND]: {
     castTimeMs: 960,

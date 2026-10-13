@@ -77,6 +77,16 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
   // trait icon before that ID can incorrectly select the trigger's icon.
   if (matchingProc?.type === 'trait_proc' && procIcon) return procIcon;
 
+  // Trait-owned rows such as Bloodlust keep the trigger's skill ID even without a proc announcement.
+  // Match the source and displayed trait name before looking up the triggering weapon skill's icon.
+  const sourceTrait = (app.attributeData?.activeTraits || []).find(
+    (candidate) =>
+      row.sourceId != null &&
+      candidate.id === row.sourceId &&
+      (candidate.name === row.sourceSkill || candidate.name === breakdownName)
+  );
+  if (sourceTrait?.icon) return String(sourceTrait.icon);
+
   for (const id of [row.skillId, row.sourceId]) {
     if (id == null) continue;
     const skill = app.skillById?.get(id) || app.skills.find((candidate) => String(candidate.id) === String(id));

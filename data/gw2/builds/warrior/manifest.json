@@ -232,26 +232,56 @@
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 43641,
+        "benchmarkDps": 42912,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-dagger",
-        "benchmarkApm": 62.9,
+        "benchmarkApm": 62.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 46500, "phase": 46500 },
-          "80-60": { "cumulative": 44161, "phase": 42037 },
-          "60-40": { "cumulative": 43364, "phase": 41864 },
-          "40-20": { "cumulative": 42797, "phase": 41169 },
-          "20-0": { "cumulative": 43641, "phase": 47292 }
+          "100-80": {
+            "cumulative": 45885,
+            "phase": 45885
+          },
+          "80-60": {
+            "cumulative": 43162,
+            "phase": 40701
+          },
+          "60-40": {
+            "cumulative": 42515,
+            "phase": 41170
+          },
+          "40-20": {
+            "cumulative": 42094,
+            "phase": 40883
+          },
+          "20-0": {
+            "cumulative": 42912,
+            "phase": 46535
+          }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 43641,
+          "benchmarkDps": 42912,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 46500, "phase": 46500 },
-            "80-60": { "cumulative": 44161, "phase": 42037 },
-            "60-40": { "cumulative": 43364, "phase": 41864 },
-            "40-20": { "cumulative": 42797, "phase": 41169 },
-            "20-0": { "cumulative": 43641, "phase": 47292 }
+            "100-80": {
+              "cumulative": 45885,
+              "phase": 45885
+            },
+            "80-60": {
+              "cumulative": 43162,
+              "phase": 40701
+            },
+            "60-40": {
+              "cumulative": 42515,
+              "phase": 41170
+            },
+            "40-20": {
+              "cumulative": 42094,
+              "phase": 40883
+            },
+            "20-0": {
+              "cumulative": 42912,
+              "phase": 46535
+            }
           }
         }
       },

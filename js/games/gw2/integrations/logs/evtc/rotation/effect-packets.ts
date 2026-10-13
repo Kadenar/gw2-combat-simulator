@@ -62,6 +62,7 @@ export function createStrikePacketMatcher(
     const cached = cache.get(action);
     if (cached) return cached;
     const skill = resolveSkill(action);
+    const authoredSkill = skillForAction(context, action);
     const runtimeDurationMs = skill ? referenceCastTimeMs(skill) : 0;
     const packets: ExpectedStrikePacket[] = skill
       ? (skill.effects || []).flatMap((effect) => {
@@ -82,7 +83,8 @@ export function createStrikePacketMatcher(
             (Array.isArray(effect.ticks) && effect.ticks.length > 0) ||
             effect.timingAnchor != null ||
             effect.timingScale != null;
-          return strikePacketOffsets(skill, effect, runtimeDurationMs).map((offsetMs) => ({
+          // Resolve replay occupancy without replacing the authored reference used to scale the skill's effects.
+          return strikePacketOffsets(authoredSkill ?? skill, effect, runtimeDurationMs).map((offsetMs) => ({
             signalName,
             offsetMs,
             timingExplicit,

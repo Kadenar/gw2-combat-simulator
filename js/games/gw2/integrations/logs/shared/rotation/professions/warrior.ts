@@ -27,6 +27,31 @@ const DRAGON_SLASH_IDS: ReadonlySet<number> = new Set([
 ]);
 const TACTICAL_RELOAD_DURATION_MS = 10_000;
 
+export const SIGNET_OF_MIGHT_PASSIVE_ID = 14444;
+
+/** A real activation suppresses the passive; a shared visual while it stays active belongs to the lesser signet. */
+export function signetOfMightProcAt(at: number, passiveStates: readonly (readonly [number, number])[]): boolean {
+  let active = false;
+  for (const [time, stacks] of passiveStates) {
+    if (time > at + 50) break;
+    if (time <= at) active = stacks > 0;
+    else if (stacks <= 0) return false;
+  }
+
+  return active;
+}
+
+/** An overlapping Signet of Fury buff marker corroborates its animation rather than representing another input. */
+function removeSignetOfFuryMarkers(actions: readonly RecordedLogAction[]): readonly RecordedLogAction[] {
+  const animations = actions.filter((action) => action.rawSkillId === ID.SIGNET_OF_FURY && action.end > action.start);
+  return actions.filter(
+    (action) =>
+      action.rawSkillId !== ID.SIGNET_OF_FURY ||
+      action.status !== 'instant' ||
+      !animations.some((animation) => animation.start <= action.start && action.start <= animation.end)
+  );
+}
+
 /** Removes Dragon Trigger's duplicate bar-change signal and transfers its observed charge tier to Dragon Slash. */
 function reconstructDragonTriggerActions(
   actions: readonly RecordedLogAction[],
@@ -89,7 +114,10 @@ export function reconstructWarriorDpsReportActions(
   context: LogActionNormalizationContext
 ): readonly RecordedLogAction[] {
   const composites = mergeCompositeActions(
-    context.recordedActions,
+    // Trait-owned lesser signets are simulated from their trigger, never replayed as manual utility inputs.
+    removeSignetOfFuryMarkers(context.recordedActions).filter(
+      (action) => action.canonicalSkillId !== ID.LESSER_SIGNET_OF_MIGHT
+    ),
     [
       {
         startId: REND_ANIMATION_ID,

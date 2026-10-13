@@ -429,7 +429,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     skillWeapon: 'Sword',
-    castTimeMs: 500,
+    castTimeMs: 520,
     dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
     burst: true,

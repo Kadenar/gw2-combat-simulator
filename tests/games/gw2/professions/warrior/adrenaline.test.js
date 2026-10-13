@@ -3,6 +3,27 @@ import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
+test('Adrenaline Rush grants adrenaline without damage or on-hit resource gains', () => {
+  // The utility grant must remain independent of target contact and respect the adrenaline cap.
+  for (const [initialResource, expected] of [
+    [0, 3],
+    [29, 30]
+  ]) {
+    const config = { specialization: 'Core', initialResource, primaryWeapon: 'Sword', secondaryWeapon: 'Sword' };
+    const result = observeGw2Runtime({
+      profession: warriorProfession.runtimeFor(config),
+      config,
+      rotation: ['Adrenaline Rush']
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(observedRuntime(result).profession.core.adrenaline.value, expected);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'damage'),
+      false
+    );
+  }
+});
+
 test('an unaffordable burst cannot partially spend the live adrenaline pool', () => {
   // Acceptance owns spending: insufficient resources reject the command without changing its pool.
   const config = { specialization: 'Core', initialResource: 6, primaryWeapon: 'Axe' };

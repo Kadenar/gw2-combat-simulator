@@ -39,6 +39,11 @@ import type {
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import type { RecordedLogAction, ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import {
+  SIGNET_OF_MIGHT_PASSIVE_ID,
+  signetOfMightProcAt
+} from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
+import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 
 /** Selects the player, phase, and build evidence used when reconstructing an imported rotation. */
 export interface DpsReportRotationOptions {
@@ -113,6 +118,7 @@ function recordedActions(
   catalog: RotationCatalog | null
 ): RecordedLogAction[] {
   const actions: RecordedLogAction[] = [];
+  const signetPassiveStates = player.buffUptimes?.find((buff) => buff.id === SIGNET_OF_MIGHT_PASSIVE_ID)?.states ?? [];
   // Untamed commands use pet animations when present; player F2 markers can occur after the pet has already started.
   // Other specializations retain the player rotation, including merged Beast skills.
   const petGroups =
@@ -145,7 +151,14 @@ function recordedActions(
         eventIndex,
         isSwap: metadata?.isSwap === true,
         metadataAccurate: metadata?.isNotAccurate !== true,
-        expectedDurationMs: duration + Math.max(0, Number(cast.timeGained || 0))
+        expectedDurationMs: duration + Math.max(0, Number(cast.timeGained || 0)),
+        // EI's shared signet visual is a trait proc when the equipped signet's passive never switches off.
+        ...(profile.professionId === 'warrior' &&
+        group.id === WARRIOR_SKILL_IDS.SIGNET_OF_MIGHT &&
+        duration === 0 &&
+        signetOfMightProcAt(cast.castTime, signetPassiveStates)
+          ? { canonicalSkillId: WARRIOR_SKILL_IDS.LESSER_SIGNET_OF_MIGHT }
+          : {})
       });
       eventIndex += 1;
     }
