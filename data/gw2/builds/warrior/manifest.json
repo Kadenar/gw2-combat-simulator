@@ -319,25 +319,25 @@
         "build": "data/gw2/builds/warrior/b-power-alac-paragon-sword-axe-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-alac-paragon-sword-axe-dagger-mace-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-alacrity-paragon-sword-axe-dagger-mace",
-        "upToDate": false,
-        "benchmarkDps": 33155,
+        "upToDate": true,
+        "benchmarkDps": 33516,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 33937, "phase": 33937 },
-          "80-60": { "cumulative": 33552, "phase": 33175 },
-          "60-40": { "cumulative": 33702, "phase": 34007 },
-          "40-20": { "cumulative": 33515, "phase": 32963 },
-          "20-0": { "cumulative": 33155, "phase": 33155 }
+          "100-80": { "cumulative": 33875, "phase": 33875 },
+          "80-60": { "cumulative": 33318, "phase": 32778 },
+          "60-40": { "cumulative": 33624, "phase": 34251 },
+          "40-20": { "cumulative": 33743, "phase": 34101 },
+          "20-0": { "cumulative": 33516, "phase": 33516 }
         },
-        "benchmarkApm": 66.2,
+        "benchmarkApm": 63.5,
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 33155,
+          "benchmarkDps": 33516,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 33937, "phase": 33937 },
-            "80-60": { "cumulative": 33552, "phase": 33175 },
-            "60-40": { "cumulative": 33702, "phase": 34007 },
-            "40-20": { "cumulative": 33515, "phase": 32963 },
-            "20-0": { "cumulative": 33155, "phase": 33155 }
+            "100-80": { "cumulative": 33875, "phase": 33875 },
+            "80-60": { "cumulative": 33318, "phase": 32778 },
+            "60-40": { "cumulative": 33624, "phase": 34251 },
+            "40-20": { "cumulative": 33743, "phase": 34101 },
+            "20-0": { "cumulative": 33516, "phase": 33516 }
           }
         }
       },

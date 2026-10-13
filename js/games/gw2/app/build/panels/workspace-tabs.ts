@@ -8,6 +8,9 @@ import { clamp } from '#kernel/core/numeric.js';
 const CHEVRON_ICON =
   '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
 
+const PIN_ICON =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6l-1 7 4 4v2H6v-2l4-4-1-7Zm3 13v6"/></svg>';
+
 /** Give build actions consistent decorative icons while their visible labels remain the accessible names. */
 function buildActionIcon(paths: string): string {
   return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
@@ -141,8 +144,8 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
 }
 
 /**
- * Keeps one editor mounted behind a single switcher, so the strip stays the same width however many builds are
- * open. File actions stay as explicit buttons beside it instead of collapsing into an overflow menu.
+ * Keeps one editor mounted with a switcher for all builds and persistent shortcuts for pinned builds.
+ * File actions stay as explicit buttons beside it instead of collapsing into an overflow menu.
  */
 export function mountBuildTabs(app: ProfessionAppState): void {
   if (!app.workspace || document.getElementById('build-workspace-tabs')) return;
@@ -182,6 +185,7 @@ export function mountBuildTabs(app: ProfessionAppState): void {
       <button type="button" data-build-tab-action="new">New blank build</button>
       <button type="button" data-build-tab-action="browse" ${library}>Browse templates…</button>
     </div>
+    <div class="build-pinned-tabs" role="group" aria-label="Pinned builds" hidden></div>
     <div class="build-tab-notice" role="status" hidden></div>`;
   // Keep build switching and file actions inside the sticky header in every simulator view.
   header.append(strip);
@@ -203,7 +207,7 @@ export function mountBuildTabs(app: ProfessionAppState): void {
       menu.style.left = `${clamp(innerWidth - menu.offsetWidth - 8, 8, bounds.left)}px`;
       menu.style.top = `${clamp(innerHeight - menu.offsetHeight - 8, 8, bounds.bottom + 4)}px`;
       // Open on the current build so keyboard users start from where they are, even in a scrolled list.
-      const current = menu.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
+      const current = menu.querySelector<HTMLButtonElement>('[data-build-tab-action="select"][aria-pressed="true"]');
       current?.scrollIntoView({ block: 'nearest' });
       (current ?? menu.querySelector<HTMLButtonElement>('button:not(:disabled)'))?.focus({ preventScroll: true });
     });
@@ -214,6 +218,19 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     const action = button.dataset.buildTabAction;
     // Rows name their own build; the remaining actions always apply to the build being edited.
     const id = button.dataset.buildTabId || app.workspace.activeTabId;
+    // Pinning keeps the chosen build in reach without switching editors or dismissing the open build list.
+    if (action === 'pin') {
+      const tab = app.workspace.tabs.find((entry) => entry.id === id);
+      if (!tab) return;
+      tab.pinned = !tab.pinned;
+      saveBuildWorkspace(app);
+      renderBuildTabs(app);
+      [...strip.querySelectorAll<HTMLButtonElement>('[data-build-tab-action="pin"]')]
+        .find((entry) => entry.dataset.buildTabId === id)
+        ?.focus({ preventScroll: true });
+      return;
+    }
+
     if (action === 'close') {
       confirmBuildClose(app, id, button);
       return;
@@ -255,6 +272,36 @@ export function mountBuildTabs(app: ProfessionAppState): void {
   renderBuildTabs(app);
 }
 
+/** Reuse shortcut buttons so simulation refreshes preserve keyboard focus and the strip's scroll position. */
+function renderPinnedBuildTabs(app: ProfessionAppState, container: HTMLElement): void {
+  const workspace = app.workspace!;
+  const pinned = workspace.tabs.filter((tab) => tab.pinned);
+  const ids = new Set(pinned.map((tab) => tab.id));
+  for (const button of container.querySelectorAll<HTMLButtonElement>('button')) {
+    if (!ids.has(button.dataset.buildTabId!)) button.remove();
+  }
+
+  pinned.forEach((tab, index) => {
+    let button = [...container.querySelectorAll<HTMLButtonElement>('button')].find(
+      (entry) => entry.dataset.buildTabId === tab.id
+    );
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'build-pinned-tab';
+      button.dataset.buildTabAction = 'select';
+      button.dataset.buildTabId = tab.id;
+      button.innerHTML = `${PIN_ICON}<span></span>`;
+    }
+
+    button.querySelector('span')!.textContent = tab.name;
+    button.title = tab.name;
+    button.setAttribute('aria-pressed', String(tab.id === workspace.activeTabId));
+    if (container.children[index] !== button) container.insertBefore(button, container.children[index] ?? null);
+  });
+  container.hidden = pinned.length === 0;
+}
+
 /** Names are escaped; the switcher labels the build being edited and its menu lists every open build. */
 export function renderBuildTabs(app: ProfessionAppState): void {
   if (!app.workspace || typeof document === 'undefined') return;
@@ -275,10 +322,11 @@ export function renderBuildTabs(app: ProfessionAppState): void {
       const name = escapeHtml(tab.name);
       const id = escapeHtml(tab.id);
       // The final build always stays open, so its close control is present but unavailable.
-      return `<div class="build-tab${selected ? ' is-active' : ''}"><button type="button" data-build-tab-action="select" data-build-tab-id="${id}" aria-pressed="${selected}" title="${name}"><svg class="build-tab-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg><span>${name}</span></button><button type="button" class="build-tab-close" data-build-tab-action="close" data-build-tab-id="${id}" aria-label="Close ${name}" title="Close"${count === 1 ? ' disabled' : ''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+      return `<div class="build-tab${selected ? ' is-active' : ''}"><button type="button" data-build-tab-action="select" data-build-tab-id="${id}" aria-pressed="${selected}" title="${name}"><svg class="build-tab-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg><span>${name}</span></button><button type="button" class="build-tab-pin" data-build-tab-action="pin" data-build-tab-id="${id}" aria-pressed="${tab.pinned}" aria-label="${tab.pinned ? 'Unpin' : 'Pin'} ${name}" title="${tab.pinned ? 'Unpin build' : 'Pin build'}">${PIN_ICON}</button><button type="button" class="build-tab-close" data-build-tab-action="close" data-build-tab-id="${id}" aria-label="Close ${name}" title="Close"${count === 1 ? ' disabled' : ''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
     })
     .join('');
   list.scrollTop = scrollTop;
+  renderPinnedBuildTabs(app, strip.querySelector<HTMLElement>('.build-pinned-tabs')!);
   const notice = strip.querySelector<HTMLElement>('.build-tab-notice')!;
   notice.textContent = workspace.storageError || '';
   notice.hidden = !workspace.storageError;

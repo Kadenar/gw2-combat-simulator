@@ -28,6 +28,7 @@ type BuildTabSession = Pick<ProfessionAppState, keyof ReturnType<typeof emptyBui
 export interface BuildTab {
   id: string;
   name: string;
+  pinned: boolean;
   build: Gw2CanonicalBuild;
   templateBuild?: Gw2CanonicalBuild;
   templateUndoResetBuild?: Gw2CanonicalBuild;
@@ -46,6 +47,7 @@ export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', pat
   return {
     id: crypto.randomUUID(),
     name: name.trim().slice(0, 80) || 'New build',
+    pinned: false,
     build,
     patchId,
     session: emptyBuildTabSession(),
@@ -80,6 +82,8 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
             continue;
           const tab = createBuildTab(replaceBuild(entry.build, adapter), entry.name);
           tab.id = entry.id;
+          // Pins are a workspace preference; only an explicit boolean enables a persistent shortcut.
+          tab.pinned = entry.pinned === true;
           // Keep the loaded template as a durable reset target without discarding tabs with invalid snapshots.
           try {
             if (entry.templateBuild?.profession === adapter.id) {
@@ -171,9 +175,10 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
       JSON.stringify({
         version: 1,
         activeTabId: workspace.activeTabId,
-        tabs: workspace.tabs.map(({ id, name, build, templateBuild, patchId }) => ({
+        tabs: workspace.tabs.map(({ id, name, pinned, build, templateBuild, patchId }) => ({
           id,
           name,
+          pinned,
           patchId,
           build: app.profession.migrateBuild(build),
           templateBuild: templateBuild ? app.profession.migrateBuild(templateBuild) : undefined
