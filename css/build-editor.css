@@ -2659,13 +2659,12 @@ body[data-profession='revenant'] .workspace-build-choices .selectable-skills-pan
   margin-top: 2px;
 }
 
-/* Dropdown */
+/* Anchor every skill picker to the bottom-left of its skill icon. */
 .sbar-dropdown {
   display: none;
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   margin-top: 4px;
   background: var(--bg-panel);
   border: 1px solid var(--border-light);
