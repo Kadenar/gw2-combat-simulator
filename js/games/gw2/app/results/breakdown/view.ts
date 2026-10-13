@@ -1,6 +1,7 @@
 import { escapeHtml } from '#ui/shared/html.js';
 import { resultNumber as number } from '#gw2/app/results/formatting.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
+import type { EntityConditionDamage } from '#gw2/app/results/skill-breakdown.js';
 import { bindConditionInspectors, renderSkillInspector } from '#gw2/app/results/breakdown/inspectors.js';
 import {
   prepareDamageBreakdown,
@@ -54,7 +55,9 @@ function skillRowHtml(row: ResultRow, columns: readonly ResultColumn[], options:
 function skillRowsHtml(
   rows: readonly ResultRow[],
   columns: readonly ResultColumn[],
-  options: DamageBreakdownOptions
+  options: DamageBreakdownOptions,
+  entityConditions: readonly EntityConditionDamage[],
+  expandedEntities: ReadonlySet<string>
 ): string {
   const hasGroups = rows.some((row) => typeof row.group === 'string' && row.group.trim());
   if (!hasGroups) {
@@ -95,6 +98,11 @@ function skillRowsHtml(
           const formatted = column.format ? String(column.format(total)) : number(total);
           const label = column.label || column.key;
           const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
+          if (entity && column.key === 'condition' && entityConditions.some((row) => row.entityName === group)) {
+            // A native button makes the subtotal operable with mouse, Enter, and Space without selecting a skill.
+            return `<span class="res-skill-group-total${classAttr}"><button type="button" class="res-entity-condition-toggle" data-entity-conditions-toggle="${escapeHtml(group)}" aria-expanded="${expandedEntities.has(group)}" aria-label="${escapeHtml(`${group} condition damage breakdown: ${formatted}`)}"><span aria-hidden="true">${expandedEntities.has(group) ? '&#9662;' : '&#9656;'}</span> ${escapeHtml(formatted)}</button></span>`;
+          }
+
           return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${formatted}`)}">${escapeHtml(formatted)}</span>`;
         })
         .join('')}
@@ -122,12 +130,33 @@ function skillRowsHtml(
           .map(
             ([name, entityRows]) =>
               headingHtml(name, entityRows, true) +
+              entityConditionsHtml(name, entityConditions, expandedEntities.has(name)) +
               entityRows.map((row) => skillRowHtml(row, columns, options)).join('')
           )
           .join('')
       );
     })
     .join('');
+}
+
+/** Disclose each condition's contribution without widening the main damage table. */
+function entityConditionsHtml(
+  entityName: string,
+  conditions: readonly EntityConditionDamage[],
+  expanded: boolean
+): string {
+  const rows = conditions.filter((row) => row.entityName === entityName);
+  if (!rows.length) return '';
+  return `<div class="res-entity-conditions" data-entity-conditions-panel="${escapeHtml(entityName)}" role="region" aria-label="${escapeHtml(`${entityName} condition damage breakdown`)}"${expanded ? '' : ' hidden'}>
+    <div class="res-entity-conditions-title">${escapeHtml(entityName)} condition damage</div>
+    <table><thead><tr><th scope="col">Condition</th><th scope="col">Damage</th><th scope="col">DPS</th><th scope="col">Share of pet condition damage</th></tr></thead>
+    <tbody>${rows
+      .map((row) => {
+        const icon = MODIFIER_EFFECT_ICONS[row.name];
+        return `<tr><th scope="row"><span class="res-skill">${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(row.name)}</span></th><td>${number(row.damage)}</td><td>${number(row.dps)}</td><td><div class="res-entity-condition-share"><span class="res-entity-condition-track" aria-hidden="true"><span style="width: ${Math.max(0, Math.min(100, row.share))}%"></span></span><span>${row.share.toFixed(1)}%</span></div></td></tr>`;
+      })
+      .join('')}</tbody></table>
+  </div>`;
 }
 
 function skillHeaderHtml(columns: readonly ResultColumn[], sortState: ResultSortState): string {
@@ -150,6 +179,8 @@ export function mountDamageBreakdown(
   if (!container) return;
   const { skillRows, conditionGroups, conditionTotalShare } = prepareDamageBreakdown(model);
   const { skillColumns, conditions, chartSeries } = model;
+  const entityConditions = model.entityConditions || [];
+  const expandedEntities = new Set<string>();
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
     direction: options.sortState?.direction || null
@@ -170,7 +201,7 @@ export function mountDamageBreakdown(
         <div class="res-hdr res-hdr-sortable" data-role="skill-header">
           ${skillHeaderHtml(skillColumns, sortState)}
         </div>
-        <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options)}</div>
+        <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options, entityConditions, expandedEntities)}</div>
       </div>
     </div>`
           : ''
@@ -234,9 +265,10 @@ export function mountDamageBreakdown(
     const sorted = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
     const rowsElement = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
     if (rowsElement) {
-      rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options);
+      rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options, entityConditions, expandedEntities);
       // Re-rendering discards row handlers; rebind selection and reapply it.
       bindSkillSelection();
+      bindEntityConditions();
     }
 
     const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
@@ -254,6 +286,24 @@ export function mountDamageBreakdown(
         sortState = nextResultSortState(sortState.column, sortState.direction, cell.dataset.sortCol || '');
         options.onSortStateChange?.({ ...sortState });
         renderSortedRows();
+      };
+    }
+  };
+
+  // Keep independent disclosures open across sorting without rebuilding or moving keyboard focus on toggle.
+  const bindEntityConditions = (): void => {
+    for (const button of container.querySelectorAll<HTMLButtonElement>('[data-entity-conditions-toggle]')) {
+      button.onclick = () => {
+        const name = button.dataset.entityConditionsToggle!;
+        const expanded = !expandedEntities.has(name);
+        if (expanded) expandedEntities.add(name);
+        else expandedEntities.delete(name);
+        button.setAttribute('aria-expanded', String(expanded));
+        const arrow = button.querySelector('span');
+        if (arrow) arrow.textContent = expanded ? '\u25be' : '\u25b8';
+        for (const panel of container.querySelectorAll<HTMLElement>('[data-entity-conditions-panel]')) {
+          if (panel.dataset.entityConditionsPanel === name) panel.hidden = !expanded;
+        }
       };
     }
   };
@@ -291,5 +341,6 @@ export function mountDamageBreakdown(
 
   bindSort();
   bindSkillSelection();
+  bindEntityConditions();
   bindConditionInspectors(container, chartSeries);
 }

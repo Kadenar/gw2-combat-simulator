@@ -9,7 +9,7 @@ import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { entityConditionBreakdown, skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
 import { renderPatchComparison } from '#gw2/integrations/patches/view.js';
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
@@ -167,6 +167,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         : null
   };
   const breakdown: DamageBreakdownModel = {
+    entityConditions: entityConditionBreakdown(result),
     chartSeries: charts.chartSeries,
     skillRows,
     // Proc records use absolute milliseconds; align them with the damage charts' DPS clock.

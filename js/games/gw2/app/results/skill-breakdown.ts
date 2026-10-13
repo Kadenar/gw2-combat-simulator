@@ -4,6 +4,41 @@ import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 
+export interface EntityConditionDamage {
+  readonly entityName: string;
+  readonly name: string;
+  readonly damage: number;
+  readonly dps: number;
+  readonly share: number;
+}
+
+/** Split actual condition payouts by named owner, using the report's DPS window and each owner's condition total. */
+export function entityConditionBreakdown(result: Gw2ResolverResult): EntityConditionDamage[] {
+  const entities = new Map<string, Map<string, number>>();
+  for (const event of result.resolvedEvents || []) {
+    if (event.type !== 'condition' || event.actorType !== 'summon' || !event.entityName || !event.condition) continue;
+    const damage = Number(event.damage || 0);
+    if (damage <= 0) continue;
+    const conditions = entities.get(event.entityName) || new Map<string, number>();
+    conditions.set(event.condition, (conditions.get(event.condition) || 0) + damage);
+    entities.set(event.entityName, conditions);
+  }
+
+  const duration = Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0));
+  return [...entities].flatMap(([entityName, conditions]) => {
+    const total = [...conditions.values()].reduce((sum, damage) => sum + damage, 0);
+    return [...conditions]
+      .map(([name, damage]) => ({
+        entityName,
+        name,
+        damage,
+        dps: damage / duration,
+        share: (damage / total) * 100
+      }))
+      .sort((left, right) => right.damage - left.damage);
+  });
+}
+
 export interface SkillBreakdownRow {
   readonly [field: string]: unknown;
   readonly name: string;

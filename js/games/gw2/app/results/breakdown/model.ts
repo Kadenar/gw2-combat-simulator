@@ -1,6 +1,6 @@
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import type { SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
+import type { EntityConditionDamage, SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
 
 export interface ResultRow {
   readonly name: string;
@@ -43,6 +43,7 @@ export interface ResultConditionTotal {
 
 /** Carries only damage rows and the observation data needed by their inspectors. */
 export interface DamageBreakdownModel {
+  readonly entityConditions?: readonly EntityConditionDamage[];
   readonly skillRows: readonly ResultRow[];
   readonly skillColumns: readonly ResultColumn[];
   readonly conditions: readonly ResultCondition[];

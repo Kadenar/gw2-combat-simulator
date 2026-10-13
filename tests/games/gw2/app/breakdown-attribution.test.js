@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  entityConditionBreakdown,
   skillBreakdownRows,
   skillDamageIdentityKey,
   skillDamageKeyByIdentity
@@ -11,6 +12,39 @@ import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { RANGER_SKILL_IDS as RANGER_SKILL } from '#gw2/professions/ranger/data/ids.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+
+// The condition composition uses resolved payouts, isolates owners, and shares the report's observation window.
+test('entity condition contributions combine skills without mixing player damage or other owners', () => {
+  const condition = (entityName, name, damage, extra = {}) => ({
+    type: 'condition',
+    actorType: 'summon',
+    entityName,
+    condition: name,
+    damage,
+    ...extra
+  });
+  const rows = entityConditionBreakdown({
+    dpsWindow: 2,
+    rotationEndTime: 100,
+    resolvedEvents: [
+      condition('Pet A', 'Bleeding', 20, { skillName: 'Attack' }),
+      condition('Pet A', 'Bleeding', 40, { skillName: 'Trait' }),
+      condition('Pet A', 'Poisoned', 20),
+      condition('Pet B', 'Bleeding', 10),
+      condition('Pet A', 'Burning', 999, { actorType: 'player' }),
+      condition('Pet A', 'Burning', 999, { actorType: 'environment' }),
+      condition('', 'Burning', 999),
+      condition('Pet A', 'Torment', 0),
+      condition('Pet A', 'Burning', 999, { type: 'damage' })
+    ]
+  });
+  assert.deepEqual(rows, [
+    { entityName: 'Pet A', name: 'Bleeding', damage: 60, dps: 30, share: 75 },
+    { entityName: 'Pet A', name: 'Poisoned', damage: 20, dps: 10, share: 25 },
+    { entityName: 'Pet B', name: 'Bleeding', damage: 10, dps: 5, share: 100 }
+  ]);
+  assert.deepEqual(entityConditionBreakdown({ resolvedEvents: [], dpsWindow: 0 }), []);
+});
 
 // Pet swaps retain separate ownership through resolution, table grouping, and chart lookup.
 test('pet swaps keep attacks attributed to each named pet', () => {

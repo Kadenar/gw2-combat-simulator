@@ -1192,6 +1192,31 @@ test('entity damage renders named subsections beneath the combined entity total'
   assert.match(container.innerHTML, /aria-label="Pet B Total: 20"/);
 });
 
+// Only named entities with condition payouts expose the compact, initially collapsed composition panel.
+test('entity condition subtotals disclose escaped condition labels, damage, DPS, and owner-relative shares', () => {
+  const container = inertContainer();
+  mountDamageBreakdown(container, {
+    skillRows: [
+      { name: 'Mixed attack', group: 'Entities', entityName: 'Pet <A>', condition: 80, total: 100 },
+      { name: 'Strike', group: 'Entities', entityName: 'Pet B', condition: 0, total: 20 }
+    ],
+    skillColumns: SKILL_COLS,
+    conditions: [],
+    entityConditions: [
+      { entityName: 'Pet <A>', name: 'Bleeding', damage: 60, dps: 30, share: 75 },
+      { entityName: 'Pet <A>', name: 'Condition <B>', damage: 20, dps: 10, share: 25 }
+    ]
+  });
+  assert.match(container.innerHTML, /data-entity-conditions-toggle="Pet &lt;A&gt;" aria-expanded="false"/);
+  assert.doesNotMatch(container.innerHTML, /data-entity-conditions-toggle="Pet B"/);
+  assert.match(container.innerHTML, /data-entity-conditions-panel="Pet &lt;A&gt;"[^>]* hidden/);
+  assert.match(container.innerHTML, /Share of pet condition damage/);
+  assert.match(container.innerHTML, /Condition &lt;B&gt;/);
+  assert.match(container.innerHTML, /<td>60<\/td><td>30<\/td>/);
+  assert.match(container.innerHTML, /width: 75%/);
+  assert.match(container.innerHTML, /75\.0%/);
+});
+
 test('randomized DPS range waits for its calculate button', () => {
   const runButton = {};
   const container = {

@@ -813,6 +813,91 @@
   padding-left: 8px;
 }
 
+/* Expand named owners' condition totals in place while preserving the main table's column widths. */
+.res-entity-condition-toggle {
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--condi);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.res-entity-condition-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.res-entity-conditions {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--condi) 4%, transparent);
+  overflow-x: auto;
+}
+
+.res-entity-conditions-title {
+  margin-bottom: 8px;
+  color: var(--text-bright);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.res-entity-conditions table {
+  width: 100%;
+  max-width: 680px;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.res-entity-conditions th,
+.res-entity-conditions td {
+  padding: 5px 8px;
+  text-align: right;
+}
+
+.res-entity-conditions th:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.res-entity-conditions thead {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.res-entity-conditions tbody th {
+  font-weight: 400;
+}
+
+.res-entity-condition-share {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.res-entity-condition-share > span:last-child {
+  min-width: 44px;
+}
+
+.res-entity-condition-track {
+  width: 140px;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.res-entity-condition-track > span {
+  display: block;
+  height: 100%;
+  background: var(--condi);
+}
+
 .res-skill-group-heading span:nth-child(n + 2) {
   text-align: right;
   color: var(--text-dim);
