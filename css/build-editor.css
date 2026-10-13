@@ -1,6 +1,6 @@
 /* Owns build templates, equipment, attributes, traits, and skill-selection layouts. */
 
-/* One switcher holds every open build, so the strip keeps the same width at any build count. */
+/* The switcher holds every open build; optional pinned shortcuts occupy their own bounded row. */
 .build-workspace-tabs {
   /* Span a full row below navigation and help. */
   width: 100%;
@@ -13,8 +13,8 @@
 
 .build-switcher {
   display: flex;
-  /* Long names truncate inside the control instead of pushing the file actions off the row. */
-  flex: 0 1 auto;
+  /* Reserve a wider selector for build names, shrinking when DPS and file actions need room. */
+  flex: 0 1 440px;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -207,13 +207,67 @@
   visibility: visible;
 }
 
-.build-tab > .build-tab-close {
+.build-tab > :is(.build-tab-close, .build-tab-pin) {
   display: grid;
   flex: 0 0 34px;
   place-items: center;
   width: 34px;
   padding: 0;
   color: var(--text-dim);
+}
+
+.build-tab > .build-tab-pin[aria-pressed='true'] {
+  /* Mark pinned builds with the icon color so the selected row remains the main visual emphasis. */
+  color: var(--accent);
+}
+
+/* A scrollable shortcut row keeps any number of pins reachable without widening the page or growing the header. */
+.build-pinned-tabs:not([hidden]) {
+  display: flex;
+  flex: 1 1 100%;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 2px;
+}
+
+.build-pinned-tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  /* Give pinned names more room while keeping each shortcut within narrow screens. */
+  min-width: min(240px, 100%);
+  max-width: min(400px, 100%);
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-panel-alt);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.build-pinned-tab > svg {
+  flex: 0 0 auto;
+}
+
+.build-pinned-tab > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.build-pinned-tab:is(:hover, [aria-pressed='true']) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.build-pinned-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .build-tab > .build-tab-close:hover:not(:disabled) {
@@ -316,7 +370,7 @@
   overflow-wrap: anywhere;
 }
 
-.build-workspace-tabs:has(.build-tab-notice:not([hidden])) {
+.build-workspace-tabs:has(.build-tab-notice:not([hidden]), .build-pinned-tabs:not([hidden])) {
   flex-wrap: wrap;
 }
 
