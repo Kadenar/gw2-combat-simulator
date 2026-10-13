@@ -24,6 +24,7 @@ import { renderGearOptimizer } from '#gw2/app/optimizer/gear/panel.js';
 import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
 import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';
+import { mountPatchPreviewControls } from '#gw2/integrations/patches/view.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
@@ -160,11 +161,8 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   async init(): Promise<void> {
-    // Patch-preview controls load only when an authored preview is active, keeping the default startup chunk-free.
-    if (this.profession.preview) {
-      const { mountPatchPreviewControls } = await import('#gw2/integrations/patches/view.js');
-      mountPatchPreviewControls(this);
-    }
+    // Offer version selection only when the profession has an authored balance preview.
+    if (this.profession.preview) mountPatchPreviewControls(this);
 
     this.baselineSimulationRunner.warmup();
     bindSessionControls(this);

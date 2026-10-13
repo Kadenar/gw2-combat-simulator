@@ -11,6 +11,7 @@ import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
+import { renderPatchComparison } from '#gw2/integrations/patches/view.js';
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
@@ -221,11 +222,8 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       (container) => mountModifierContributions(container, modifiers)
     ),
     afterAnalysisRender(container) {
-      // The patch comparison module loads only when an authored preview can produce a comparison.
-      if (!app.profession?.preview) return;
-      void import('#gw2/integrations/patches/view.js').then(({ renderPatchComparison }) =>
-        renderPatchComparison(container, app)
-      );
+      // Mount the comparison in the same paint as the tables so patch switches cannot briefly collapse its space.
+      if (app.profession?.preview) renderPatchComparison(container, app);
     }
   };
 }
