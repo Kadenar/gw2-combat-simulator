@@ -45,6 +45,8 @@ export interface WarriorSkill extends Skill {
   readonly dualWieldCastTimeMs?: number;
   /** Fixed commit cutoff while Dual Wielding is active; independent of cast-duration scaling. */
   readonly dualWieldInterruptCommitMs?: number;
+  /** Measured cast-start packet offsets keyed by authored offset; replaces proportional scaling for this skill. */
+  readonly dualWieldEffectOffsetsMs?: Readonly<Record<number, number>>;
   readonly adrenalineCost?: number;
   readonly burst?: boolean;
   readonly primalBurst?: boolean;

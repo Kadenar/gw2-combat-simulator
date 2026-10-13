@@ -268,6 +268,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly duration?: number;
   readonly stacks?: number;
   readonly weaponSet?: number;
+  /** Swap strikes retain outgoing attributes and weapon traits while equipped sigils use the destination set. */
+  readonly weaponSwapFromSet?: number;
   readonly procType?: string;
   readonly sourceSkill?: string;
   readonly detail?: string;

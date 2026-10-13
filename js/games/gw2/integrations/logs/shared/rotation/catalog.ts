@@ -3,7 +3,7 @@ import type { RotationActionKind } from '#gw2/integrations/logs/shared/rotation/
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 import {
-  resolveWarriorInterruptCommit,
+  resolveWarriorDualWieldSkill,
   warriorDualWieldingActive
 } from '#gw2/professions/warrior/data/dual-wielding.js';
 
@@ -147,7 +147,7 @@ export function createRotationSkillResolver(
         activeSet = activeSet === 1 ? 2 : 1;
     }
 
-    const resolved = resolveWarriorInterruptCommit(skill, context.professionConfig, activeSet);
+    const resolved = resolveWarriorDualWieldSkill(skill, context.professionConfig, activeSet);
     const durationMs = Number(resolved.dualWieldCastTimeMs);
     // Wait projection must use the same active-offhand duration as replay or faster casts erase recorded idle gaps.
     return durationMs > 0 && warriorDualWieldingActive(context.professionConfig, activeSet)

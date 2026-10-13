@@ -12,6 +12,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     dualWieldInterruptCommitMs: 240,
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
+    dualWieldEffectOffsetsMs: { 280: 200 },
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -45,6 +46,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.FOCUSED_SLASH]: {
     castTimeMs: 360,
     dualWieldCastTimeMs: 240,
+    dualWieldEffectOffsetsMs: { 280: 200 },
     effects: [
       {
         type: 'strike',
@@ -60,9 +62,11 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 0.6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        // The slash retains 40 ms of recovery at either measured attack speed.
+        coefficient: 0.6,
+        atMs: -40,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -74,15 +78,18 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        // The impact follows the full cast's recovery boundary, independent of an interruption.
+        coefficient: 1.5,
+        atMs: -40,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.DISRUPTING_STAB]: {
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
+    dualWieldEffectOffsetsMs: { 160: 120 },
     dualWieldInterruptCommitMs: 160,
     retainsCastLockoutAfterInterrupt: true,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -105,8 +112,8 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ammoCastLockout: 1,
     castTimeMs: 520,
     dualWieldCastTimeMs: 400,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    // Damage and daze share the measured 80 ms recovery at both attack speeds.
+    effects: impactEffects({ atMs: -80, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5

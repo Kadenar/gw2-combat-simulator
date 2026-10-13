@@ -302,9 +302,9 @@ export function createGw2CombatQuery({
 
   const activeSigilSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined) =>
     gw2SigilSet(config, activeWeaponSetAt(time, runtime));
-  const activeConfigAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): Gw2Config => {
-    return activeConfigForWeaponSet(activeWeaponSetAt(time, runtime));
-  };
+  // Swap strikes sample outgoing attributes and profession conditions without rolling back the equipped sigils.
+  const attributeWeaponSetAt = (time: number, event: SimulationEvent | null, runtime: Gw2QueryRuntime | null): number =>
+    event?.weaponSwapFromSet ?? activeWeaponSetAt(time, runtime);
 
   const hookContext = (
     time: number,
@@ -318,27 +318,32 @@ export function createGw2CombatQuery({
       damageContributors,
       durationContributors
     }: HookContextOptions = {}
-  ): Gw2ModifierContext => ({
-    profession: activeProfession,
-    config: activeConfigAt(time, runtime),
-    attributePreviewPlayerHealthFraction,
-    time,
-    event,
-    skillId: event?.skillId ?? null,
-    sourceId: event?.sourceId ?? null,
-    actorType: event ? gw2EventActorType(event) : null,
-    condition,
-    traits,
-    query: query ?? undefined,
-    timeline,
-    events,
-    runtime,
-    damageInputs,
-    conditionSample,
-    criticalChanceContributors,
-    damageContributors,
-    durationContributors
-  });
+  ): Gw2ModifierContext => {
+    const weaponSet = attributeWeaponSetAt(time, event, runtime);
+    // Project only the profession query view; equipment queries and the live runtime retain the destination set.
+    const modifierRuntime = event?.weaponSwapFromSet == null ? runtime : { ...runtime, activeWeaponSet: weaponSet };
+    return {
+      profession: activeProfession,
+      config: activeConfigForWeaponSet(weaponSet),
+      attributePreviewPlayerHealthFraction,
+      time,
+      event,
+      skillId: event?.skillId ?? null,
+      sourceId: event?.sourceId ?? null,
+      actorType: event ? gw2EventActorType(event) : null,
+      condition,
+      traits,
+      query: query ?? undefined,
+      timeline,
+      events,
+      runtime: modifierRuntime,
+      damageInputs,
+      conditionSample,
+      criticalChanceContributors,
+      damageContributors,
+      durationContributors
+    };
+  };
 
   const statsAt = (
     time: number,
@@ -346,7 +351,7 @@ export function createGw2CombatQuery({
     runtime: Gw2QueryRuntime | null = null
   ): Gw2ResolvedStats => {
     if (event?.type === 'condition') event = conditionOwnerEvent(event);
-    const activeWeaponSet = activeWeaponSetAt(time, runtime);
+    const activeWeaponSet = attributeWeaponSetAt(time, event, runtime);
     const input = hookContext(time, { event, runtime });
     // The profession owns attribute-fact construction; professions without declarations incur no attribute-context work.
     const contributions = activeProfession.attributeContributions?.(input) ?? [];

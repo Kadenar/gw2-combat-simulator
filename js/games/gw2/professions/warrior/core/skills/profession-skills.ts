@@ -433,8 +433,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
     burst: true,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    // Bloodthirster's strike and bleeding retain 80 ms of recovery with or without Dual Wielding.
+    effects: impactEffects({ atMs: -80, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2

@@ -7,25 +7,25 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-greatsword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
-        "benchmarkDps": 43843,
+        "benchmarkDps": 43848,
         "upToDate": true,
         "benchmarkApm": 54.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 56685, "phase": 56685 },
-          "80-60": { "cumulative": 45484, "phase": 37873 },
-          "60-40": { "cumulative": 44124, "phase": 41641 },
-          "40-20": { "cumulative": 43878, "phase": 43165 },
-          "20-0": { "cumulative": 43843, "phase": 43843 }
+          "100-80": { "cumulative": 56694, "phase": 56694 },
+          "80-60": { "cumulative": 45491, "phase": 37878 },
+          "60-40": { "cumulative": 44131, "phase": 41648 },
+          "40-20": { "cumulative": 43775, "phase": 42736 },
+          "20-0": { "cumulative": 43848, "phase": 43848 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42288,
+          "benchmarkDps": 42293,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 55376, "phase": 55376 },
-            "80-60": { "cumulative": 42872, "phase": 34975 },
-            "60-40": { "cumulative": 42542, "phase": 41896 },
-            "40-20": { "cumulative": 42738, "phase": 43341 },
-            "20-0": { "cumulative": 42288, "phase": 42288 }
+            "100-80": { "cumulative": 55385, "phase": 55385 },
+            "80-60": { "cumulative": 42879, "phase": 34980 },
+            "60-40": { "cumulative": 42548, "phase": 41903 },
+            "40-20": { "cumulative": 42745, "phase": 43348 },
+            "20-0": { "cumulative": 42293, "phase": 42293 }
           }
         }
       },
@@ -88,25 +88,25 @@
         "build": "data/gw2/builds/revenant/b-power-alac-renegade-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-greatsword-sword-sword",
-        "benchmarkDps": 35492,
+        "benchmarkDps": 35486,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44617, "phase": 44617 },
-          "80-60": { "cumulative": 35766, "phase": 29749 },
-          "60-40": { "cumulative": 34820, "phase": 33087 },
-          "40-20": { "cumulative": 35235, "phase": 36562 },
-          "20-0": { "cumulative": 35492, "phase": 36558 }
+          "100-80": { "cumulative": 44559, "phase": 44559 },
+          "80-60": { "cumulative": 35745, "phase": 29753 },
+          "60-40": { "cumulative": 34808, "phase": 33091 },
+          "40-20": { "cumulative": 35257, "phase": 36692 },
+          "20-0": { "cumulative": 35486, "phase": 36441 }
         },
         "benchmarkApm": 54.1,
         "upToDate": true,
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 35492,
+          "benchmarkDps": 35486,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 44617, "phase": 44617 },
-            "80-60": { "cumulative": 35766, "phase": 29749 },
-            "60-40": { "cumulative": 34820, "phase": 33087 },
-            "40-20": { "cumulative": 35235, "phase": 36562 },
-            "20-0": { "cumulative": 35492, "phase": 36558 }
+            "100-80": { "cumulative": 44559, "phase": 44559 },
+            "80-60": { "cumulative": 35745, "phase": 29753 },
+            "60-40": { "cumulative": 34808, "phase": 33091 },
+            "40-20": { "cumulative": 35257, "phase": 36692 },
+            "20-0": { "cumulative": 35486, "phase": 36441 }
           }
         }
       },
@@ -259,25 +259,25 @@
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
-        "benchmarkDps": 42714,
+        "benchmarkDps": 42720,
         "upToDate": true,
         "benchmarkApm": 65.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 56754, "phase": 56754 },
-          "80-60": { "cumulative": 43728, "phase": 35626 },
-          "60-40": { "cumulative": 41444, "phase": 37284 },
-          "40-20": { "cumulative": 40558, "phase": 38111 },
-          "20-0": { "cumulative": 42714, "phase": 53855 }
+          "100-80": { "cumulative": 56764, "phase": 56764 },
+          "80-60": { "cumulative": 43731, "phase": 35626 },
+          "60-40": { "cumulative": 41449, "phase": 37290 },
+          "40-20": { "cumulative": 40563, "phase": 38117 },
+          "20-0": { "cumulative": 42720, "phase": 53864 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42714,
+          "benchmarkDps": 42720,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 56754, "phase": 56754 },
-            "80-60": { "cumulative": 43728, "phase": 35626 },
-            "60-40": { "cumulative": 41444, "phase": 37284 },
-            "40-20": { "cumulative": 40558, "phase": 38111 },
-            "20-0": { "cumulative": 42714, "phase": 53855 }
+            "100-80": { "cumulative": 56764, "phase": 56764 },
+            "80-60": { "cumulative": 43731, "phase": 35626 },
+            "60-40": { "cumulative": 41449, "phase": 37290 },
+            "40-20": { "cumulative": 40563, "phase": 38117 },
+            "20-0": { "cumulative": 42720, "phase": 53864 }
           }
         }
       }

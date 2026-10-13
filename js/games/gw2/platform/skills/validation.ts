@@ -60,6 +60,7 @@ const SKILL_FIELDS = new Set([
   'dragonSlashMinimumCoefficient',
   'dragonTriggerSkill',
   'dualWieldCastTimeMs',
+  'dualWieldEffectOffsetsMs',
   'dualWieldInterruptCommitMs',
   'dualWieldOpener',
   'duration',
@@ -350,6 +351,21 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
+  // Measured packet schedules must contain finite non-negative offsets before any cast selects them.
+  if (merged.dualWieldEffectOffsetsMs != null) {
+    const offsets = merged.dualWieldEffectOffsetsMs;
+    if (
+      typeof offsets !== 'object' ||
+      Array.isArray(offsets) ||
+      Object.entries(offsets).some(
+        ([from, to]) =>
+          !Number.isFinite(Number(from)) || Number(from) < 0 || typeof to !== 'number' || !Number.isFinite(to) || to < 0
+      )
+    ) {
+      throw new TypeError(`Skill ${id} has invalid dualWieldEffectOffsetsMs.`);
+    }
+  }
+
   // Direct catalog consumers must enforce ownership even without a profession-specific normalizer.
   validateComboOwnership(merged, `Skill ${id} (${merged.name})`);
   const quicknessCastTimeMs = merged.quicknessCastTimeMs == null ? null : Number(merged.quicknessCastTimeMs);

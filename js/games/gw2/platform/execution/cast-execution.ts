@@ -95,6 +95,7 @@ export function createCastExecution<T extends object>(
     const cancelled = cast.cancelled;
     // Ordinary swaps commit one actual set transition before completion hooks and queued equipment reactions.
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) {
+      const weaponSwapFromSet = runtime.activeWeaponSet;
       runtime.activeWeaponSet = runtime.activeWeaponSet === 1 ? 2 : 1;
       resetAutoattackChains(runtime);
       runtime.effects.emit({
@@ -108,7 +109,9 @@ export function createCastExecution<T extends object>(
           skillId: cast.skill.id,
           skillName: cast.skill.name,
           activationId: cast.id,
-          weaponSet: runtime.activeWeaponSet
+          weaponSet: runtime.activeWeaponSet,
+          // Equipment procs resolve later, after completion observers have already seen the new set.
+          weaponSwapFromSet
         }
       });
       lockTransitionInput(runtime, 'weaponSwapMs', cast.skill);

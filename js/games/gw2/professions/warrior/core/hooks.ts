@@ -15,7 +15,7 @@ import {
   warriorBurstTier
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { resolveWarriorInterruptCommit } from '#gw2/professions/warrior/data/dual-wielding.js';
+import { resolveWarriorDualWieldSkill } from '#gw2/professions/warrior/data/dual-wielding.js';
 import {
   burstCompleted,
   castStarting,
@@ -41,7 +41,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   // Resolve against the active set before acceptance so all cast effects use the same cutoff.
   resolveCastSkill(runtime, skill) {
-    return resolveWarriorInterruptCommit(skill, runtime.config, runtime.activeWeaponSet);
+    return resolveWarriorDualWieldSkill(skill, runtime.config, runtime.activeWeaponSet);
   },
   /** Hold the passive disabled for Off and Active previews while preserving the equipped signet. */
   prepareDamageState(runtime, _skill, inputs) {

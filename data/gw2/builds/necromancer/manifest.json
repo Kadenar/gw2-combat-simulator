@@ -100,7 +100,7 @@
           "100-80": { "cumulative": 44636, "phase": 44636 },
           "80-60": { "cumulative": 43456, "phase": 42314 },
           "60-40": { "cumulative": 42144, "phase": 39790 },
-          "40-20": { "cumulative": 44317, "phase": 52573 },
+          "40-20": { "cumulative": 44316, "phase": 52573 },
           "20-0": { "cumulative": 43599, "phase": 43599 }
         },
         "patchPreview": {
@@ -110,7 +110,7 @@
             "100-80": { "cumulative": 44636, "phase": 44636 },
             "80-60": { "cumulative": 43456, "phase": 42314 },
             "60-40": { "cumulative": 42144, "phase": 39790 },
-            "40-20": { "cumulative": 44317, "phase": 52573 },
+            "40-20": { "cumulative": 44316, "phase": 52573 },
             "20-0": { "cumulative": 43599, "phase": 43599 }
           }
         }

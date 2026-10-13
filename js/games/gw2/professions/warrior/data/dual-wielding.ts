@@ -10,13 +10,38 @@ export function warriorDualWieldingActive(config: Gw2Config | undefined, activeW
   return hasTrait(config, TRAIT.DUAL_WIELDING) && ['Axe', 'Dagger', 'Mace', 'Sword'].includes(String(offhand));
 }
 
-/** Capture the measured cutoff on a cast-local skill so interruption consumers never rescale it or query later state. */
-export function resolveWarriorInterruptCommit<TSkill extends WarriorSkill>(
+/** Capture measured commitment and packet timing on the cast-local skill, shared by replay and log reconstruction. */
+export function resolveWarriorDualWieldSkill<TSkill extends WarriorSkill>(
   skill: TSkill,
   config: Gw2Config | undefined,
   activeWeaponSet: number
 ): TSkill {
-  return skill.dualWieldInterruptCommitMs != null && warriorDualWieldingActive(config, activeWeaponSet)
-    ? { ...skill, interruptCommitMs: skill.dualWieldInterruptCommitMs }
-    : skill;
+  if (!warriorDualWieldingActive(config, activeWeaponSet)) return skill;
+  const offsets = skill.dualWieldEffectOffsetsMs;
+  if (!offsets && skill.dualWieldInterruptCommitMs == null) return skill;
+  // Fixed recovery anchors already follow the full cast end; only explicitly measured start offsets are replaced.
+  const effects = offsets
+    ? skill.effects?.map((effect) => {
+        if (effect.timingAnchor !== 'castStart') return effect;
+        const measured = (atMs: number): number => {
+          const value = offsets[atMs];
+          if (!Number.isFinite(value)) throw new TypeError(`${skill.name} has no Dual Wielding offset for ${atMs} ms.`);
+          return value;
+        };
+
+        return {
+          ...effect,
+          timingScale: 'fixed' as const,
+          ...(effect.atMs == null ? {} : { atMs: measured(effect.atMs) }),
+          ...(Array.isArray(effect.ticks)
+            ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: measured(tick.atMs) })) }
+            : {})
+        };
+      })
+    : skill.effects;
+  return {
+    ...skill,
+    ...(skill.dualWieldInterruptCommitMs == null ? {} : { interruptCommitMs: skill.dualWieldInterruptCommitMs }),
+    ...(offsets ? { effects } : {})
+  };
 }

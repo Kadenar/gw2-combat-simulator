@@ -86,7 +86,14 @@ export function applyRuntimeSigils(
       runtime.effects.emit({
         kind: 'packet',
         cause: event,
-        event: { ...payload, at: event.at }
+        event: {
+          ...payload,
+          at: event.at,
+          // Only the immediate swap strike samples the outgoing set; delayed conditions keep their live queries.
+          ...(trigger === 'swap' && payload.type === 'damage' && event.weaponSwapFromSet != null
+            ? { weaponSwapFromSet: event.weaponSwapFromSet }
+            : {})
+        }
       });
     if (proc.effect === 'endurance') runtime.endurance.grant(proc.amount ?? 0);
     if (proc.effect === 'severance')

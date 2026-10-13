@@ -124,6 +124,8 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 12,
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
+    // Both strikes and Quickness arrive at the measured impact, before cast recovery.
+    dualWieldEffectOffsetsMs: { 400: 280 },
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

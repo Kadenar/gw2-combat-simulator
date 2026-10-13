@@ -10,8 +10,8 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     // Dual Wielding advances the slash's commit point when its offhand requirement is met.
     interruptCommitMs: 320,
     dualWieldInterruptCommitMs: 200,
-    // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    // The slash and its conditions precede full recovery by 160 ms at either attack speed.
+    effects: impactEffects({ atMs: -160, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.2
@@ -33,6 +33,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.SEVER_ARTERY]: {
     castTimeMs: 360,
     dualWieldCastTimeMs: 280,
+    dualWieldEffectOffsetsMs: { 200: 160 },
     // Require the slash to commit before an interrupted cast can deal damage.
     interruptCommitMs: 320,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -52,6 +53,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.GASH]: {
     castTimeMs: 520,
     dualWieldCastTimeMs: 360,
+    dualWieldEffectOffsetsMs: { 280: 240 },
     interruptCommitMs: 360,
     retainsCastLockoutAfterInterrupt: true,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -114,7 +116,8 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.IMPALE]: {
     castTimeMs: 420,
     dualWieldCastTimeMs: 360,
-    effects: [
+    // The projectile and its immediate payload precede full recovery; later cripple pulses retain their own schedule.
+    effects: impactEffects({ atMs: -40, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
@@ -132,16 +135,19 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
         stacks: 1,
         duration: 1,
         applications: 5,
+        atMs: 0,
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
-    ]
+    ])
   },
   [ID.RIP]: {
     castTimeMs: 680,
     dualWieldCastTimeMs: 420,
-    effects: [
+    dualWieldEffectOffsetsMs: { 440: 320 },
+    // Rip's impact is measured separately from its user-selected cast duration.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 2,
@@ -153,7 +159,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
         duration: 5,
         stacks: 10
       }
-    ]
+    ])
   },
   [ID.ADRENALINE_RUSH]: {
     // Adrenaline Rush instantly grants its resource without striking the target.
@@ -164,6 +170,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.REND]: {
     castTimeMs: 960,
     dualWieldCastTimeMs: 720,
+    dualWieldEffectOffsetsMs: { 440: 320 },
     // Interrupted replay keeps every Rend packet after its two-part attack commits.
     interruptCommitMs: 920,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -174,7 +181,11 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 880, coefficient: 2.5 }],
+        // The follow-up retains 80 ms of recovery with either attack speed, preserving its buff-expiry ordering.
+        atMs: -80,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        coefficient: 2.5,
         name: 'Rend — Follow-Up Damage'
       },
       {
@@ -183,7 +194,12 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 6, duration: 6 }]
+        atMs: -80,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        condition: 'Bleeding',
+        stacks: 6,
+        duration: 6
       }
     ])
   }

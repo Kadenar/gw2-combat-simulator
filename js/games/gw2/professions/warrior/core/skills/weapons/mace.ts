@@ -54,6 +54,8 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     // Tremor refreshes Crushing Blow when its cast completes.
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
+    // The travelling impacts retain their observed spacing instead of scaling every packet proportionally.
+    dualWieldEffectOffsetsMs: { 440: 320, 520: 360 },
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -111,6 +113,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.CRUSHING_BLOW]: {
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
+    dualWieldEffectOffsetsMs: { 440: 320 },
     interruptCommitMs: 440,
     dualWieldInterruptCommitMs: 360,
     // Share impact timing while preserving independent payloads and declaration order.
