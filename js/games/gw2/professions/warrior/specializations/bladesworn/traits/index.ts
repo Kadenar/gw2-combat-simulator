@@ -377,29 +377,25 @@ function fierceAsFireAmmo(
   cast: RuntimeCast<WarriorSkill>,
   spent: { readonly rounds: number; readonly startedFull: boolean }
 ): void {
-  {
-    {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FIERCE_AS_FIRE);
-      emitTraitProfile(runtime, TRAIT.FIERCE_AS_FIRE, TRAIT.FIERCE_AS_FIRE, undefined, {
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.FIERCE_AS_FIRE,
-          actorType: 'effect',
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id
-        },
-        // Each spent round grants the selected authored stack count.
-        transform: (event) => ({
-          ...event,
-          name: traitProfile.name,
-          stacks: Number(event.stacks) * spent.rounds,
-          priority: 0
-        }),
-        effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
-      });
-    }
-  }
+  const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FIERCE_AS_FIRE);
+  emitTraitProfile(runtime, TRAIT.FIERCE_AS_FIRE, TRAIT.FIERCE_AS_FIRE, undefined, {
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.FIERCE_AS_FIRE,
+      actorType: 'effect',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    // Each spent round grants the selected authored stack count.
+    transform: (event) => ({
+      ...event,
+      name: traitProfile.name,
+      stacks: Number(event.stacks) * spent.rounds,
+      priority: 0
+    }),
+    effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
+  });
 }
 
 /** Full magazines reduce only the currently visible bar after committed spend. */

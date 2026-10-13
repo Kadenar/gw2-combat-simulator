@@ -153,19 +153,17 @@ export const evokerSkillCommitTasks: NonNullable<
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
-    {
-      context.resourceController.replace('empoweredCharges', 0);
-      emitResource(context, cast, skill, state);
-    }
+
+    context.resourceController.replace('empoweredCharges', 0);
+    emitResource(context, cast, skill, state);
   },
   'elementalist.evoker.rejuvenate'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
-    {
-      context.resourceController.grant('familiarCharges', state.familiarCharges.maximum);
-      emitResource(context, cast, skill, state);
-    }
+
+    context.resourceController.grant('familiarCharges', state.familiarCharges.maximum);
+    emitResource(context, cast, skill, state);
   },
   'elementalist.evoker.hares-agility'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;

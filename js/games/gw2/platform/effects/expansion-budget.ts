@@ -38,7 +38,10 @@ export interface EffectExpansionBudget {
   reserve(count: number, label: string): void;
 }
 
-/** One runtime shares this cumulative budget across emitted packets and expanded condition-stack records. */
+/**
+ * One runtime shares this cumulative budget across emitted packets and expanded condition-stack records.
+ * Tests lower the limit to verify atomic rejection and cumulative accounting with small batches.
+ */
 export function createEffectExpansionBudget(limit = MAX_EFFECT_EXPANSION): EffectExpansionBudget {
   let remaining = requireEffectExpansionCount(limit, 'Effect expansion budget');
   return {

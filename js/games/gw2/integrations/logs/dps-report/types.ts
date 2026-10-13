@@ -4,11 +4,10 @@ import type {
   RotationReconstructionBase
 } from '#gw2/integrations/logs/shared/rotation/model.js';
 
+/** Models only metadata consumed by rotation reconstruction; raw report extras remain unmodeled. */
 export interface DpsReportSkillMetadata {
   readonly name: string;
-  readonly autoAttack?: boolean;
   readonly isSwap?: boolean;
-  readonly isInstantCast?: boolean;
   readonly isTraitProc?: boolean;
   readonly isUnconditionalProc?: boolean;
   readonly isGearProc?: boolean;
@@ -32,12 +31,6 @@ export interface DpsReportBuffTimeline {
   readonly states?: readonly (readonly [number, number])[];
 }
 
-export interface DpsReportDamageDistribution {
-  readonly id: number;
-  readonly hits?: number;
-  readonly connectedHits?: number;
-}
-
 export interface DpsReportWeaponSet {
   readonly weapons?: readonly string[];
 }
@@ -46,7 +39,6 @@ export interface DpsReportMinion {
   readonly name: string;
   readonly id?: number;
   readonly rotation?: readonly DpsReportRotationGroup[];
-  readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
 }
 
 /** Consumed player fields only; parsing preserves additional report data without modeling it here. */
@@ -56,7 +48,6 @@ export interface DpsReportPlayer {
   readonly profession: string;
   readonly group?: number;
   readonly buffUptimes?: readonly DpsReportBuffTimeline[];
-  readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
   readonly weaponSets?: readonly DpsReportWeaponSet[];
   readonly minions?: readonly DpsReportMinion[];
   readonly rotation: readonly DpsReportRotationGroup[];
@@ -70,7 +61,6 @@ export interface DpsReportPhase {
   readonly start: number;
   readonly end: number;
   readonly name: string;
-  readonly phaseType?: string;
 }
 
 export interface ParsedDpsReport {
@@ -80,9 +70,7 @@ export interface ParsedDpsReport {
   readonly name?: string;
   readonly fightName?: string;
   readonly arcVersion?: string;
-  readonly gW2Build?: number;
   readonly duration?: string;
-  readonly durationMS?: number;
   readonly success?: boolean;
   readonly players: readonly DpsReportPlayer[];
   readonly targets?: readonly DpsReportTarget[];

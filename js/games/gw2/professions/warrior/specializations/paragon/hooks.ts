@@ -96,28 +96,25 @@ function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>)
   );
   startRefrain(runtime);
   const kinds = paragonRefrains[Number(cast.skill.id)].openingBoons;
-  {
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: profile,
-      effects: (profile.effects ?? []).filter(
-        (effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))
-      ),
-      attribution: {
-        source: 'Paragon',
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        activationId: cast.id
-      },
-      transform: (event) => ({
-        ...event,
-        name: cast.skill.name + ' — ' + event.kind,
-        audience: { recipients: 'party' }
-      })
-    });
-  }
+
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
+    effects: (profile.effects ?? []).filter((effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))),
+    attribution: {
+      source: 'Paragon',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({
+      ...event,
+      name: cast.skill.name + ' — ' + event.kind,
+      audience: { recipients: 'party' }
+    })
+  });
 
   runtime.fireTrigger(chantActivated, { cast });
 }

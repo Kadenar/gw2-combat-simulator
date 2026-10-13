@@ -518,6 +518,7 @@ export interface ProfessionOption {
   readonly name: string;
 }
 
+/** Lists profession identities for benchmark tooling and tests without loading profession modules. */
 export const professionOptions: readonly ProfessionOption[] = professionRegistry.map(({ id, name }) => ({ id, name }));
 
 /**
@@ -536,7 +537,8 @@ export async function loadProfession(professionId: string): Promise<RegisteredPr
 }
 
 /**
- * Lazily loads a profession's shared-shell adapter, or `null` for an unknown ID.
+ * Loads a profession's shared-shell adapter for tests, or `null` for an unknown ID.
+ * Keeps test setup on the same lazy adapter path used by registered application entries.
  */
 export async function loadProfessionAppAdapter(professionId: string): Promise<Gw2AppAdapter | null> {
   const entry = getProfessionEntry(professionId);

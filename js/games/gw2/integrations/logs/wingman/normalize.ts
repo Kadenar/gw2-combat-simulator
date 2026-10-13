@@ -81,7 +81,6 @@ function normalizeSkillMap(rawMap: Record<string, unknown>): Record<string, unkn
     result[key] = {
       name: metadata.name,
       icon: metadata.icon,
-      autoAttack: metadata.aa === true,
       isSwap: metadata.isSwap === true,
       isNotAccurate: metadata.notAccurate === true,
       isTraitProc: metadata.traitProc === true,
@@ -111,7 +110,7 @@ function normalizePlayer(value: unknown, phaseIndex: number): Record<string, unk
   };
 }
 
-/** Converts a gw2wingman getJson payload into the same shape dps-report/parser.ts validates. */
+/** Converts the Wingman fields consumed by reconstruction into the shape dps-report/parser.ts validates. */
 export function normalizeWingmanReport(value: unknown): unknown {
   if (!record(value) || typeof value.error === 'string') {
     throw new WingmanError('REPORT_ERROR', `gw2wingman error: ${record(value) ? value.error : 'invalid payload'}`);
@@ -134,8 +133,6 @@ export function normalizeWingmanReport(value: unknown): unknown {
     eliteInsightsVersion: value.parser,
     fightName: value.fightName,
     arcVersion: value.arcVersion,
-    gW2Build: value.gw2Build,
-    durationMS: phases[phaseIndex]?.end,
     players: value.players.map((player) => normalizePlayer(player, phaseIndex)),
     phases,
     skillMap: normalizeSkillMap(value.skillMap as Record<string, unknown>)

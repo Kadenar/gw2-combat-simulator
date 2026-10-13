@@ -313,7 +313,7 @@ function warningList(actions: readonly DpsReportRotationAction[]): string[] {
   return warnings;
 }
 
-export function reconstructDpsReportWithProfile(
+function reconstructDpsReportWithProfile(
   report: ParsedDpsReport,
   profile: RotationProfessionProfile,
   catalog: RotationCatalog | null = null,

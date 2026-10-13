@@ -454,7 +454,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     },
     moveEntry: () => false,
     insertEntries,
-    resolvePaletteEntry: (name, drag) => ({
+    resolvePaletteEntry: (_name, drag) => ({
       type: 'cast',
       skillId: drag.skillId,
       interruptAfterMs: 100

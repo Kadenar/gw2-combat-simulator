@@ -86,7 +86,7 @@ test('comparison party defaults read saved assumptions and overrides preserve th
 test('changing allies invalidates only that simulation and restores its saved default independently', async () => {
   const jobs = [];
   const runner = new ComparisonRunner(
-    async (preset, signal, count) => {
+    async (preset, _signal, count) => {
       jobs.push({ preset, count });
       return result();
     },
@@ -152,7 +152,7 @@ test('comparison runner bounds concurrency, retains successful caches, and isola
 test('cancellation aborts active work and stale completions cannot overwrite restarted results', async () => {
   const jobs = [];
   const runner = new ComparisonRunner(
-    (preset, signal) => {
+    (_preset, signal) => {
       const pending = deferred();
       jobs.push({ signal, ...pending });
       return pending.promise;

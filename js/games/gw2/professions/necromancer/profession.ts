@@ -40,5 +40,3 @@ export const necromancerProfession = defineNativeProfession({
     ]
   }
 });
-
-export default necromancerProfession;

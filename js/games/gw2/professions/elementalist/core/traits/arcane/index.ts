@@ -536,24 +536,22 @@ function applyArcaneProwess(
   sourceId: Skill['id'],
   emissionCast?: EffectDelivery['cast']
 ): void {
-  {
-    emitTraitProfile(context, TRAIT.ARCANE_PROWESS, TRAIT.ARCANE_PROWESS, undefined, {
-      at: at,
-      fullEnd: at,
-      effect: { type: 'boon', name: 'Might' },
-      skillId: sourceId,
-      skillName: 'Arcane Prowess',
-      cast: emissionCast,
-      priority: 0,
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.ARCANE_PROWESS,
-        actorType: 'player',
-        name: 'Arcane Prowess',
-        priority: 0
-      }
-    });
-  }
+  emitTraitProfile(context, TRAIT.ARCANE_PROWESS, TRAIT.ARCANE_PROWESS, undefined, {
+    at: at,
+    fullEnd: at,
+    effect: { type: 'boon', name: 'Might' },
+    skillId: sourceId,
+    skillName: 'Arcane Prowess',
+    cast: emissionCast,
+    priority: 0,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.ARCANE_PROWESS,
+      actorType: 'player',
+      name: 'Arcane Prowess',
+      priority: 0
+    }
+  });
 }
 
 /** Grants Elemental Attunement's boon matching the element just entered. */

@@ -159,37 +159,36 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
     [SB.deadlyArchetype, { attributeBonus: 175, weaponAttributeBonus: 125 }],
     [SB.ferociousArchetype, { attributeBonus: 999, weaponAttributeBonus: 999 }]
   ]);
-  {
-    for (const merged of [false, true]) {
-      const input = {
-        power: 1000,
-        ferocity: 0,
-        conditionDamage: 0,
-        precision: 1000,
-        vitality: 1000
-      };
-      const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
-        {
-          config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
-          catalog: { balanceProfilesById: profiles },
-          runtime: {
-            profession: {
-              core: { activePet: 'Lynx' },
-              specialization: { kind: 'Soulbeast', state: { beastmodeActive: merged } }
-            }
+
+  for (const merged of [false, true]) {
+    const input = {
+      power: 1000,
+      ferocity: 0,
+      conditionDamage: 0,
+      precision: 1000,
+      vitality: 1000
+    };
+    const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
+      {
+        config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
+        catalog: { balanceProfilesById: profiles },
+        runtime: {
+          profession: {
+            core: { activePet: 'Lynx' },
+            specialization: { kind: 'Soulbeast', state: { beastmodeActive: merged } }
           }
-        },
-        input
-      );
-      assert.deepEqual(actual, {
-        power: 1000,
-        ferocity: 0,
-        conditionDamage: merged ? 175 : 0,
-        precision: merged ? 1125 : 1000,
-        vitality: 1050
-      });
-      assert.equal(input.power, 1000);
-    }
+        }
+      },
+      input
+    );
+    assert.deepEqual(actual, {
+      power: 1000,
+      ferocity: 0,
+      conditionDamage: merged ? 175 : 0,
+      precision: merged ? 1125 : 1000,
+      vitality: 1050
+    });
+    assert.equal(input.power, 1000);
   }
 });
 

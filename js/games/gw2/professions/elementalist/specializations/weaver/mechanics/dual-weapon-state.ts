@@ -131,58 +131,55 @@ export const weaverPistolSideEffects: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      context.effects.emit(
-        elementalistProfiledConditionRequest(
-          context,
-          at,
-          PROFILE.frostfireFlurry,
-          'Water',
-          skill.name,
-          skill.id,
-          undefined,
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+
+    context.effects.emit(
+      elementalistProfiledConditionRequest(
+        context,
+        at,
+        PROFILE.frostfireFlurry,
+        'Water',
+        skill.name,
+        skill.id,
+        undefined,
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   },
   'elementalist.weaver.pistol.plasma-fire'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      context.effects.emit(
-        elementalistProfiledConditionRequest(
-          context,
-          at,
-          PROFILE.purblindingPlasma,
-          'Fire',
-          skill.name,
-          skill.id,
-          undefined,
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+
+    context.effects.emit(
+      elementalistProfiledConditionRequest(
+        context,
+        at,
+        PROFILE.purblindingPlasma,
+        'Fire',
+        skill.name,
+        skill.id,
+        undefined,
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   },
   'elementalist.weaver.pistol.meteor-earth'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      context.effects.emit(
-        elementalistProfiledConditionRequest(
-          context,
-          at,
-          PROFILE.moltenMeteor,
-          'Earth',
-          skill.name,
-          skill.id,
-          undefined,
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+
+    context.effects.emit(
+      elementalistProfiledConditionRequest(
+        context,
+        at,
+        PROFILE.moltenMeteor,
+        'Earth',
+        skill.name,
+        skill.id,
+        undefined,
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   },
   'elementalist.weaver.pistol.finesse-water'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
@@ -230,40 +227,38 @@ export const weaverPistolSideEffects: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      context.effects.emit(
-        elementalistControlRequest(
-          {
-            at,
-            source: skill.name,
-            sourceId: skill.id,
-            actorType: 'player',
-            skillName: skill.name,
-            skillId: skill.id,
-            controlKind: 'crowd-control'
-          },
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+
+    context.effects.emit(
+      elementalistControlRequest(
+        {
+          at,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: 'player',
+          skillName: skill.name,
+          skillId: skill.id,
+          controlKind: 'crowd-control'
+        },
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   },
   'elementalist.weaver.pistol.enervating-earth'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      context.effects.emit(
-        elementalistProfiledConditionRequest(
-          context,
-          at,
-          PROFILE.enervatingEarth,
-          'Earth',
-          skill.name,
-          skill.id,
-          undefined,
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+
+    context.effects.emit(
+      elementalistProfiledConditionRequest(
+        context,
+        at,
+        PROFILE.enervatingEarth,
+        'Earth',
+        skill.name,
+        skill.id,
+        undefined,
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   }
 };

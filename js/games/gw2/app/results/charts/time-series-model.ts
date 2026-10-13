@@ -353,7 +353,8 @@ function buildEffectSeries(
   const effectTypes: Record<string, ChartEffectType> = {};
   const effectUnits: Record<string, string> = {};
   const effectSummaries: Record<string, ChartEffectSummary> = {};
-  const label = (kind: string, _category: ChartEffectType, name?: string): string =>
+  // Explicit track names take precedence; unnamed tracks use the shared effect label.
+  const label = (kind: string, name?: string): string =>
     name ?? effectName(kind, { type: 'buff', kind, at: 0, source: 'effect' });
   const valueAt = (track: (typeof report.tracks)[number], at: number): number => {
     const state = effectStateAt(report, track, at);
@@ -407,10 +408,10 @@ function buildEffectSeries(
     }
   }
 
-  const generation = new Map(Object.entries(boonGeneration.boons).map(([kind, value]) => [label(kind, 'boon'), value]));
+  const generation = new Map(Object.entries(boonGeneration.boons).map(([kind, value]) => [label(kind), value]));
   for (const kind of Object.keys(boonGeneration.boons)) {
     const tracks = report.tracks.filter((track) => track.kind === kind && track.origin === 'party-projection');
-    const name = label(kind, 'boon');
+    const name = label(kind);
     effectTypes[name] = 'boon';
     if (tracks.some((track) => track.measure === 'remaining-duration')) effectUnits[name] = 's';
     const alliedTimes = [
@@ -445,9 +446,7 @@ function buildEffectSeries(
         name,
         {
           ...value,
-          maximumStacks:
-            report.tracks.find((track) => label(track.kind, track.category, track.name) === name)?.countLimit ??
-            undefined
+          maximumStacks: report.tracks.find((track) => label(track.kind, track.name) === name)?.countLimit ?? undefined
         }
       ])
     ),

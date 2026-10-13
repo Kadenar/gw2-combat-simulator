@@ -45,5 +45,3 @@ export const revenantProfession = defineNativeProfession({
     ]
   }
 });
-
-export default revenantProfession;

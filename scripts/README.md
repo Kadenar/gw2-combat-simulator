@@ -79,6 +79,25 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
 
 - `npm run build:modules && node scripts/analysis/capture-supported-build-metrics.mjs [profession...]` prints current
   deterministic preset metrics as JSON.
+- `npm run build:modules && node scripts/analysis/benchmark-gear-optimizer.mjs [profession...]` measures optimizer
+  setup, candidate preparation, simulation, serialization, and a small grouped search using the first rotation-backed
+  preset for each profession. Defaults to Elementalist, Mesmer, Necromancer, Ranger, and Revenant. JSON output includes
+  timings, memory/GC measurements, simulation warnings, and Git revision/working-tree state. For CPU or heap profiles,
+  add Node's `--cpu-prof` or `--heap-prof` before the script path and direct output to `.scratch/` with
+  `--cpu-prof-dir=.scratch` or `--heap-prof-dir=.scratch`.
+- `npm run build:modules && node scripts/analysis/benchmark-gear-optimizer-space.mjs` measures search-space grouping
+  without simulating candidates. It compares two- and three-prefix Warrior spaces and an Elementalist Scepter/Dagger
+  space with equipment and infusion choices. JSON lines report assignment counts and preparation time; hitting the
+  preparation memory limit in the Warrior cases is reported as `preparationStopped`.
+- `node scripts/analysis/benchmark-gear-optimizer-browser.mjs [profession...]` measures real browser optimizer pools
+  with one, two, and four workers, checks consistent winners and search coverage, and measures cancellation. Requires
+  Chrome and a free local port 4179; it starts and stops its own Vite server. Defaults to Elementalist, Necromancer, and
+  Ranger, using their first rotation-backed presets. Three runs per worker count produce median timing, frame-gap, and
+  memory measurements as JSON; progress goes to stderr. This benchmark can take several minutes.
+- `npm run build:modules && node scripts/analysis/measure-engine-ownership.mjs` compares detailed, score-only, and
+  available isolated-skill execution timings across fixed Warrior, Guardian, Engineer, and Mesmer mechanic scenarios. It
+  validates each scenario before timing and prints total and engine-phase measurements as JSON. It accepts no arguments
+  and uses ten warmups followed by nine samples of twenty runs per mode.
 - `npm run build:modules && node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>` inspects a
   local ArcDPS log. Add `--summary` or the documented `--debug-*` filters to narrow the output.
 - `npm run build:modules && node scripts/analysis/reconstruct-evtc-rotation.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>`

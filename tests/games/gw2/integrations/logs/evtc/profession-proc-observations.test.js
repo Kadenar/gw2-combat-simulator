@@ -235,7 +235,6 @@ test('matches Shrapnel only when expertise-scaled Bleeding and Crippled applicat
   );
 
   assert.deepEqual(result, {
-    targetAddress: TARGET,
     explosionHits: 4,
     matchedApplications: 2,
     observedProcRate: 0.5,
@@ -307,7 +306,6 @@ test('matches profile-owned Serrated Steel duration against critical hits', () =
   );
 
   assert.deepEqual(result, {
-    targetAddress: TARGET,
     criticalHits: 5,
     matchedApplications: 2,
     observedProcRate: 0.4,
@@ -337,7 +335,6 @@ test('matches expertise-scaled 3-second Barbed Precision applications against cr
   );
 
   assert.deepEqual(result, {
-    targetAddress: TARGET,
     criticalHits: 3,
     matchedApplications: 1,
     observedProcRate: 1 / 3,
@@ -441,8 +438,6 @@ test('pairs player-attributed Sharper Images applications across Signet of Midni
   );
 
   assert.deepEqual(result, {
-    targetAddress: TARGET,
-    cloneCriticalHits: 2,
     matchedApplications: 2,
     observedProcRate: 1,
     expectedProcChance: 1,
@@ -480,13 +475,11 @@ test('matches Sharpened Edges with separate player and equipped-pet expertise', 
   );
 
   assert.deepEqual(result, {
-    targetAddress: TARGET,
     criticalHits: 4,
     playerCriticalHits: 2,
     petCriticalHits: 2,
     matchedApplications: 3,
     playerMatchedApplications: 1,
-    petMatchedApplications: 2,
     observedProcRate: 0.75,
     expectedProcChance: 0.33,
     expectedApplications: 1.32,

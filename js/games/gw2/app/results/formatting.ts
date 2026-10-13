@@ -7,9 +7,10 @@ export function signedInteger(value: unknown): string {
   return `${normalized > 0 ? '+' : ''}${normalized.toLocaleString()}`;
 }
 
-export function signedFixed(value: unknown, digits = 2): string {
+/** Signed contributions use two decimals and suppress negative zero after rounding. */
+export function signedFixed(value: unknown): string {
   const numeric = Number(value || 0);
-  const threshold = 0.5 / 10 ** digits;
+  const threshold = 0.5 / 10 ** 2;
   const normalized = Math.abs(numeric) < threshold ? 0 : numeric;
-  return `${normalized > 0 ? '+' : ''}${normalized.toFixed(digits)}`;
+  return `${normalized > 0 ? '+' : ''}${normalized.toFixed(2)}`;
 }

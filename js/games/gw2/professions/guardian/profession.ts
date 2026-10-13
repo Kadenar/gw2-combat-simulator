@@ -31,5 +31,3 @@ export const guardianProfession = defineNativeProfession({
     ]
   }
 });
-
-export default guardianProfession;

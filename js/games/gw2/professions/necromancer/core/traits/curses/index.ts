@@ -358,34 +358,33 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
       const profile = requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION);
       const effect = requireEffect(profile, 'condition', 'Bleeding');
       if (!effect) return;
-      {
-        /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
-          context,
-          TRAIT.BARBED_PRECISION,
-          TRAIT.BARBED_PRECISION,
-          undefined,
-          {
-            at: event.at,
-            fullEnd: event.at,
-            effect: { type: 'condition', name: 'Bleeding' },
-            settlement: 'reaction',
-            attribution: {
-              source: 'Trait',
-              sourceId: TRAIT.BARBED_PRECISION,
-              actorType: 'effect',
-              skillName: 'Barbed Precision',
-              triggeredBy: event.skillName,
-              ownerActorType: 'player',
-              name: 'Barbed Precision' + ' - ' + String(effect.condition),
-              metadata: { procCount: 1 }
-            }
+
+      /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+        context,
+        TRAIT.BARBED_PRECISION,
+        TRAIT.BARBED_PRECISION,
+        undefined,
+        {
+          at: event.at,
+          fullEnd: event.at,
+          effect: { type: 'condition', name: 'Bleeding' },
+          settlement: 'reaction',
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BARBED_PRECISION,
+            actorType: 'effect',
+            skillName: 'Barbed Precision',
+            triggeredBy: event.skillName,
+            ownerActorType: 'player',
+            name: 'Barbed Precision' + ' - ' + String(effect.condition),
+            metadata: { procCount: 1 }
           }
-        );
-        context.effects.emit({
-          kind: 'announcement',
-          announcement: { type: 'trait', name: 'Barbed Precision', at: event.at, sourceSkill: event.skillName }
-        });
-      }
+        }
+      );
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: { type: 'trait', name: 'Barbed Precision', at: event.at, sourceSkill: event.skillName }
+      });
     }
   }
 });
@@ -397,66 +396,64 @@ function applyChillingDarkness(context: NecromancerResolverContext, event: Necro
   // Chill, so a removed packet leaves it ready.
   if (!effect || !context.procs.claimCooldown('chillingDarkness', event.at, balanceProfileNumber(profile, 'cooldown')))
     return;
-  {
-    /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
-      context,
-      TRAIT.CHILLING_DARKNESS,
-      TRAIT.CHILLING_DARKNESS,
-      undefined,
-      {
-        at: event.at,
-        fullEnd: event.at,
-        effect: { type: 'condition', name: 'Chilled' },
-        settlement: 'reaction',
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.CHILLING_DARKNESS,
-          actorType: 'effect',
-          skillName: 'Chilling Darkness',
-          triggeredBy: event.skillName,
-          ownerActorType: 'player',
-          name: 'Chilling Darkness' + ' - ' + effect.condition || 'Chilled'
-        }
+
+  /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+    context,
+    TRAIT.CHILLING_DARKNESS,
+    TRAIT.CHILLING_DARKNESS,
+    undefined,
+    {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Chilled' },
+      settlement: 'reaction',
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.CHILLING_DARKNESS,
+        actorType: 'effect',
+        skillName: 'Chilling Darkness',
+        triggeredBy: event.skillName,
+        ownerActorType: 'player',
+        name: 'Chilling Darkness' + ' - ' + effect.condition || 'Chilled'
       }
-    );
-    context.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'trait', name: 'Chilling Darkness', at: event.at, sourceSkill: event.skillName }
-    });
-  }
+    }
+  );
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: 'Chilling Darkness', at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.INSIDIOUS_DISRUPTION);
   const effect = requireEffect(profile, 'condition', 'Torment');
   if (!effect) return;
-  {
-    /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
-      context,
-      TRAIT.INSIDIOUS_DISRUPTION,
-      TRAIT.INSIDIOUS_DISRUPTION,
-      undefined,
-      {
-        at: event.at,
-        fullEnd: event.at,
-        effect: { type: 'condition', name: 'Torment' },
-        settlement: 'reaction',
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.INSIDIOUS_DISRUPTION,
-          actorType: 'effect',
-          skillName: 'Insidious Disruption',
-          triggeredBy: event.skillName,
-          ownerActorType: 'player',
-          name: 'Insidious Disruption' + ' - ' + String(effect.condition)
-        }
+
+  /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+    context,
+    TRAIT.INSIDIOUS_DISRUPTION,
+    TRAIT.INSIDIOUS_DISRUPTION,
+    undefined,
+    {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Torment' },
+      settlement: 'reaction',
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.INSIDIOUS_DISRUPTION,
+        actorType: 'effect',
+        skillName: 'Insidious Disruption',
+        triggeredBy: event.skillName,
+        ownerActorType: 'player',
+        name: 'Insidious Disruption' + ' - ' + String(effect.condition)
       }
-    );
-    context.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'trait', name: 'Insidious Disruption', at: event.at, sourceSkill: event.skillName }
-    });
-  }
+    }
+  );
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: 'Insidious Disruption', at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 /** Emits furious demise at the ordered post-entry boundary. */

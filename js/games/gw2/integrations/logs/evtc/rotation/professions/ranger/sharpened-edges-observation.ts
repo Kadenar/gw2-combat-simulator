@@ -28,13 +28,11 @@ export interface RangerSharpenedEdgesPetObservation {
 }
 
 export interface RangerSharpenedEdgesObservation {
-  readonly targetAddress: bigint;
   readonly criticalHits: number;
   readonly playerCriticalHits: number;
   readonly petCriticalHits: number;
   readonly matchedApplications: number;
   readonly playerMatchedApplications: number;
-  readonly petMatchedApplications: number;
   readonly observedProcRate: number;
   readonly expectedProcChance: number;
   readonly expectedApplications: number;
@@ -151,13 +149,11 @@ export function analyzeRangerSharpenedEdgesObservation(
   const matchedApplications = playerMatchedApplications + petMatchedApplications;
 
   return {
-    targetAddress,
     criticalHits,
     playerCriticalHits,
     petCriticalHits,
     matchedApplications,
     playerMatchedApplications,
-    petMatchedApplications,
     observedProcRate: matchedApplications / criticalHits,
     expectedProcChance,
     expectedApplications: criticalHits * expectedProcChance,

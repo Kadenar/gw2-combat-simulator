@@ -70,7 +70,10 @@ function contribution(
   ];
 }
 
-/** Merge equal integer totals after each slot, retaining coverage and the smallest representative assignment. */
+/**
+ * Merge equal integer totals after each slot, retaining coverage and the smallest representative assignment.
+ * A smaller totalLimit lets tests exercise the production memory rejection without allocating 100,000 totals.
+ */
 export function groupOptimizerSpace(
   ordinary: OptimizerSpace,
   adapter: OptimizerContext,

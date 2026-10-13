@@ -216,9 +216,6 @@ export interface DefineProfessionAppOptions {
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly rotationImportLookup?: Gw2AppAdapter['rotationImportLookup'];
   readonly storageVersion?: number;
-  readonly storageKey?: string;
-  readonly globalName?: string;
-  readonly filenames?: ProfessionAppFilenames;
   readonly resetPrompt?: string;
   readonly isSkillAvailable?: ProfessionIsSkillAvailable;
   readonly defaultOffhand?: ProfessionDefaultOffhand;

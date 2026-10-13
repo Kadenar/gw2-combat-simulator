@@ -71,7 +71,6 @@ interface CreateGw2CombatQueryOptions {
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly resolvedTimelineEvents?: readonly SimulationEvent[];
-  readonly traits?: ReadonlySet<string | number>;
   /** Isolated stat previews may vary health; simulation configs cannot supply this query-only input. */
   readonly attributePreviewPlayerHealthFraction?: number;
 }
@@ -144,7 +143,6 @@ export function createGw2CombatQuery({
   skillOnCooldown,
   events = [],
   resolvedTimelineEvents,
-  traits = normalizeSelectedTraitIds(config.selectedTraitIds),
   attributePreviewPlayerHealthFraction
 }: CreateGw2CombatQueryOptions = {}): Readonly<Gw2CombatQuery> {
   if (!profession?.id) {
@@ -152,8 +150,8 @@ export function createGw2CombatQuery({
   }
 
   const activeProfession = profession;
-  // Build selection is fixed for this query; later runs may reuse and edit the caller's selection Set.
-  traits = new Set(traits);
+  // Snapshot the canonical build selection so later edits cannot change an existing query's trait membership.
+  const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
   const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({
     config,

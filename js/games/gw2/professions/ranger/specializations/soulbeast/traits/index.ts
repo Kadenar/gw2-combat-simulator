@@ -262,13 +262,11 @@ export const soulbeastTraits = [
 
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.LIVE_FAST);
-    const fury = requireEffect(profile, 'boon', 'fury');
-    const quickness = requireEffect(profile, 'boon', 'quickness');
-    if (fury) context.effects.emit(rangerBuffRequest(event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST));
-    if (quickness) context.effects.emit(rangerBuffRequest(event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST));
-  }
+  const profile = requireBalanceProfileFromContext(context, TRAIT.LIVE_FAST);
+  const fury = requireEffect(profile, 'boon', 'fury');
+  const quickness = requireEffect(profile, 'boon', 'quickness');
+  if (fury) context.effects.emit(rangerBuffRequest(event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST));
+  if (quickness) context.effects.emit(rangerBuffRequest(event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST));
 }
 
 // Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.

@@ -44,17 +44,18 @@ export function defineProfessionApp({
   toApplicationBuild,
   rotationImportLookup = (app) => app.activeCatalog,
   storageVersion = 3,
-  storageKey = `gw2-${profession.id}-simulator-v${storageVersion}`,
-  globalName = `${profession.id}App`,
-  filenames = {
-    build: `${profession.id}-build.json`,
-    rotation: `${profession.id}-rotation.json`,
-    eventLog: `${profession.id}-event-log.csv`
-  },
   resetPrompt = `Reset the ${profession.name} build, skills, and rotation?`,
   isSkillAvailable,
   defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || ''
 }: DefineProfessionAppOptions): Readonly<Gw2AppAdapter> {
+  // Storage and export identities follow the profession; only the saved-build schema version varies.
+  const storageKey = `gw2-${profession.id}-simulator-v${storageVersion}`;
+  const globalName = `${profession.id}App`;
+  const filenames = Object.freeze({
+    build: `${profession.id}-build.json`,
+    rotation: `${profession.id}-rotation.json`,
+    eventLog: `${profession.id}-event-log.csv`
+  });
   const runtimeApi = createProfessionRuntime({ profession, createBuildContext });
 
   // Repeated timeline skills share a model; replacing balance declarations naturally selects a fresh cache.
@@ -109,7 +110,7 @@ export function defineProfessionApp({
       ),
     storageKey,
     globalName,
-    filenames: Object.freeze({ ...filenames }),
+    filenames,
     resetPrompt,
     specializations: profession.catalog.specializations,
     weaponData: createProfessionWeaponData(profession.catalog, {

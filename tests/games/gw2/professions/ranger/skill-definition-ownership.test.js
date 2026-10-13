@@ -240,20 +240,18 @@ test('Signet of the Wild evaluates readiness and preserves pet launch snapshots'
   const ranger = rangerProfession.runtimeFor({ specialization: 'Core' });
   const bonus = rangerCatalog.balanceProfilesById.get(PROFILE.signetOfTheWild).attributeBonus;
   for (const selected of [false, true]) {
-    {
-      for (const ready of [false, true]) {
-        const context = {
-          catalog: rangerCatalog,
-          config: {
-            selectedSkillIds: selected ? [12491] : [],
-            selectedTraitIds: []
-          },
-          time: 0,
-          timeline: { skillOnCooldownAt: () => !ready }
-        };
-        const result = ranger.modifyAttributes(context, { ferocity: 0 });
-        assert.equal(result.ferocity, selected && ready ? bonus : 0);
-      }
+    for (const ready of [false, true]) {
+      const context = {
+        catalog: rangerCatalog,
+        config: {
+          selectedSkillIds: selected ? [12491] : [],
+          selectedTraitIds: []
+        },
+        time: 0,
+        timeline: { skillOnCooldownAt: () => !ready }
+      };
+      const result = ranger.modifyAttributes(context, { ferocity: 0 });
+      assert.equal(result.ferocity, selected && ready ? bonus : 0);
     }
   }
 

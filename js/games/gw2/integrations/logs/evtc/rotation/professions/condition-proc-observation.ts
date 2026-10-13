@@ -20,7 +20,6 @@ export const EVTC_CRITICAL_RESULT = 1;
 export const EVTC_DURATION_TOLERANCE_MS = 50;
 
 export interface CriticalBleedingProcObservation {
-  readonly targetAddress: bigint;
   readonly criticalHits: number;
   readonly matchedApplications: number;
   readonly observedProcRate: number;
@@ -191,7 +190,6 @@ export function analyzeCriticalBleedingProcObservation(
     matchedDurationsMs
   ).length;
   return {
-    targetAddress,
     criticalHits,
     matchedApplications,
     observedProcRate: matchedApplications / criticalHits,
@@ -202,18 +200,16 @@ export function analyzeCriticalBleedingProcObservation(
 }
 
 /** Pairs two condition streams one-to-one so a lone duration collision cannot be counted as a compound proc. */
-export function countPairedApplications(
-  first: readonly ParsedEvtcEvent[],
-  second: readonly ParsedEvtcEvent[],
-  toleranceMs = EVTC_DURATION_TOLERANCE_MS
-): number {
+export function countPairedApplications(first: readonly ParsedEvtcEvent[], second: readonly ParsedEvtcEvent[]): number {
   const left = [...first].sort((a, b) => a.time - b.time);
   const right = [...second].sort((a, b) => a.time - b.time);
   let rightIndex = 0;
   let matches = 0;
   for (const event of left) {
-    while (rightIndex < right.length && right[rightIndex].time < event.time - toleranceMs) rightIndex += 1;
-    if (rightIndex >= right.length || Math.abs(right[rightIndex].time - event.time) > toleranceMs) continue;
+    while (rightIndex < right.length && right[rightIndex].time < event.time - EVTC_DURATION_TOLERANCE_MS)
+      rightIndex += 1;
+    if (rightIndex >= right.length || Math.abs(right[rightIndex].time - event.time) > EVTC_DURATION_TOLERANCE_MS)
+      continue;
     matches += 1;
     rightIndex += 1;
   }

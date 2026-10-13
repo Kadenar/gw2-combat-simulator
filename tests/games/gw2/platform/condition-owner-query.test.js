@@ -10,6 +10,7 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 // Exercise the production query so player ownership reaches attributes, equipment, and real trait hooks.
 const config = {
+  selectedTraitIds: [TRAIT.POTENT_POISON],
   attributeInputs: baseAttributeInputs({
     power: 2000,
     conditionDamage: 1000,
@@ -23,8 +24,7 @@ const config = {
 function query() {
   return createGw2CombatQuery({
     profession: resolveProfessionContract(thiefProfession, { specialization: 'Core' }),
-    config,
-    traits: new Set([TRAIT.POTENT_POISON])
+    config
   });
 }
 

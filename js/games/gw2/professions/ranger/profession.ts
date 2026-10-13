@@ -21,5 +21,3 @@ export const rangerProfession = defineNativeProfession({
   weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
   modules: rangerNativeModules
 });
-
-export default rangerProfession;

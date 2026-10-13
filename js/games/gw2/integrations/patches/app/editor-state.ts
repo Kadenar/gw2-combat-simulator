@@ -223,9 +223,9 @@ export function selectedModule(): NativePatchAuthoringModule | null {
 }
 
 /** Marks the in-memory draft unsaved and updates its neutral status message. */
-export function markDirty(message = 'Unsaved changes'): void {
+export function markDirty(): void {
   editorState.dirty = true;
-  setEditorStatus(message, 'neutral');
+  setEditorStatus('Unsaved changes', 'neutral');
 }
 
 /** Counts edited entities for profession navigation badges. */

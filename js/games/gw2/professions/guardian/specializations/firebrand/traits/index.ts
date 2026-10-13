@@ -97,19 +97,18 @@ export const swiftScholar = defineTrait({
       const refund = refundByCast.get(cast) ?? 0;
       if (refund > 0) {
         runtime.resourceController.grant('tomePages', refund);
-        {
-          runtime.effects.emit({
-            kind: 'announcement',
-            announcement: {
-              type: 'trait',
-              name: 'Swift Scholar',
-              at: runtime.time,
-              sourceSkill: skill.name,
-              detail: `+${refund} tome pages`,
-              icon: guardianTraitIcon(TRAIT.SWIFT_SCHOLAR)
-            }
-          });
-        }
+
+        runtime.effects.emit({
+          kind: 'announcement',
+          announcement: {
+            type: 'trait',
+            name: 'Swift Scholar',
+            at: runtime.time,
+            sourceSkill: skill.name,
+            detail: `+${refund} tome pages`,
+            icon: guardianTraitIcon(TRAIT.SWIFT_SCHOLAR)
+          }
+        });
       }
     }
   }
@@ -239,19 +238,18 @@ const weightyTerms = defineTrait({
           const profile = requireBalanceProfileFromContext(runtime, TRAIT.WEIGHTY_TERMS);
           const gain = balanceProfileNumber(profile, 'resourceGain');
           // The final-charge trigger owns the rewards; the completed cast retains the proc report.
-          {
-            runtime.effects.emit({
-              kind: 'announcement',
-              announcement: {
-                type: 'trait',
-                name: 'Weighty Terms',
-                at: runtime.time,
-                sourceSkill: skill.name,
-                detail: `+${gain} tome pages`,
-                icon: guardianTraitIcon(TRAIT.WEIGHTY_TERMS)
-              }
-            });
-          }
+
+          runtime.effects.emit({
+            kind: 'announcement',
+            announcement: {
+              type: 'trait',
+              name: 'Weighty Terms',
+              at: runtime.time,
+              sourceSkill: skill.name,
+              detail: `+${gain} tome pages`,
+              icon: guardianTraitIcon(TRAIT.WEIGHTY_TERMS)
+            }
+          });
         }
       }
     }

@@ -45,7 +45,6 @@ export function createGw2ResolverRuntimeState({
   queue,
   effects,
   professionState = {},
-  warnings = [],
   onFirstDamage,
   reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
@@ -67,7 +66,8 @@ export function createGw2ResolverRuntimeState({
     helpers,
     queue,
     effects,
-    warnings,
+    // Each resolution pass collects its own warnings without sharing mutable state with another run.
+    warnings: [],
     breakdown: new Map(),
     conditions: new Map(),
     environmentDamage: 0,
@@ -261,7 +261,6 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly queue: Gw2EventQueue;
   readonly effects: EffectEmissionService;
   readonly professionState?: object;
-  readonly warnings?: string[];
   readonly onFirstDamage?: Gw2ConditionResolution['startDamageClock'];
   readonly reactions?: Gw2ResolverReactionRegistry;
 }

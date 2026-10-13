@@ -50,7 +50,7 @@ export function elementalistEventSkill(
   return context.helpers.skillsById.get(sourceId) || { id: sourceId, name: source };
 }
 
-/** Select a surviving profile boon; the shared service owns expansion and live duration. */
+/** Select a surviving profile boon at ordinary priority; retain its authored audience and cast context. */
 export function elementalistProfiledBuffRequest(
   context: ElementalistRuntime,
   at: number,
@@ -58,8 +58,6 @@ export function elementalistProfiledBuffRequest(
   effectName: string,
   source: string,
   sourceId: Skill['id'],
-  priority = 0,
-  recipients: 'self' | 'party' = 'self',
   emissionCast?: EffectDelivery['cast']
 ): ProfileEmission {
   const profile = requireBalanceProfileFromContext(context, profileId);
@@ -72,7 +70,7 @@ export function elementalistProfiledBuffRequest(
     at,
     fullEnd: at,
     cast: emissionCast,
-    priority,
+    priority: 0,
     attribution: {
       source: profile.profileKind === 'trait' ? 'Trait' : source,
       sourceId: profile.profileKind === 'trait' ? profile.id : sourceId,
@@ -83,8 +81,7 @@ export function elementalistProfiledBuffRequest(
     transform: (event) => ({
       ...event,
       name: source,
-      priority,
-      ...(recipients === 'party' ? { audience: { recipients: 'party', maximumRecipients: 5 } } : {})
+      priority: 0
     })
   };
 }

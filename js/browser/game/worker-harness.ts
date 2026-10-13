@@ -22,7 +22,6 @@ interface GameWorkerEndpointOptions<TDriver, TMessage extends GameWorkerRequestE
     message: TMessage,
     postUpdate: (payload: object) => void
   ) => object | Promise<object>;
-  readonly echo?: (message: TMessage) => object;
   readonly loadDriver?: (address: GameContentAddress) => Promise<TDriver | null>;
   readonly scope?: DedicatedWorkerScope<TMessage>;
 }
@@ -35,13 +34,13 @@ async function loadWorkerDriver<TDriver>({ gameId, contentId }: GameContentAddre
 /** Installs the shared worker protocol with stable job identity and serialized errors. */
 export function createGameWorkerEndpoint<TDriver, TMessage extends GameWorkerRequestEnvelope<GameContentAddress>>({
   calculate,
-  echo = () => ({}),
   loadDriver = loadWorkerDriver<TDriver>,
   scope = self as unknown as DedicatedWorkerScope<TMessage>
 }: GameWorkerEndpointOptions<TDriver, TMessage>): void {
   scope.addEventListener('message', async ({ data }) => {
     const post = (payload: object): void => {
-      scope.postMessage({ ...echo(data), ...payload, requestId: data.requestId });
+      // Progress, results, and errors share the submitted job identity.
+      scope.postMessage({ ...payload, requestId: data.requestId });
     };
 
     try {

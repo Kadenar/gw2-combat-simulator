@@ -21,12 +21,9 @@ export function cloneRotation(rotation: readonly RotationCommand[]): RotationCom
   return rotation.map((command) => ({ ...command }));
 }
 
-/** Starts a new history around the supplied rotation so an atomic role swap cannot undo into the other side. */
-export function resetRotationHistory(
-  app: ProfessionAppState,
-  rotation: readonly RotationCommand[] = app.build.rotation
-): void {
-  app._rotationHistory = { undo: [], redo: [], current: cloneRotation(rotation) };
+/** Starts history at the active rotation so an atomic role swap cannot undo into the other side. */
+export function resetRotationHistory(app: ProfessionAppState): void {
+  app._rotationHistory = { undo: [], redo: [], current: cloneRotation(app.build.rotation) };
 }
 
 function sameRotation(left: readonly RotationCommand[], right: readonly RotationCommand[]): boolean {

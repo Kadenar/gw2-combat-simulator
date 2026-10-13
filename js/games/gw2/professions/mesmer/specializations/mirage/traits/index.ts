@@ -88,7 +88,7 @@ const riddleOfSand = defineTrait<MesmerSkill>({
     }),
     onTriggerPoint(mirageInitialized, {
       requiresSelection: false,
-      run: (runtime, input: TriggerPointInput<typeof mirageInitialized>) => initializeRiddle(runtime, input)
+      run: (runtime) => initializeRiddle(runtime)
     }),
     onTriggerPoint(mirageAmbushAccepted, {
       run: (runtime, input: TriggerPointInput<typeof mirageAmbushAccepted>) => riddleAmbush(runtime, input)
@@ -316,10 +316,8 @@ function infiniteHorizonCloak(
   state: MesmerRuntime,
   { at, duration, delivery }: TriggerPointInput<typeof mirageCloakGranted>
 ): void {
-  {
-    mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
-    createMirageMechanics(state).executeCloneAmbushes(at, professionCoreState(state).clones, delivery);
-  }
+  mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
+  createMirageMechanics(state).executeCloneAmbushes(at, professionCoreState(state).clones, delivery);
 }
 
 /** Preserve riddle of sand at its accepted mechanic boundary. */
@@ -431,7 +429,7 @@ function infiniteHorizonGain(state: MesmerRuntime, { gain }: TriggerPointInput<t
 }
 
 /** Preserve riddle of sand at its accepted mechanic boundary. */
-function initializeRiddle(state: MesmerRuntime, _input: TriggerPointInput<typeof mirageInitialized>): void {
+function initializeRiddle(state: MesmerRuntime): void {
   // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
   mirageState.from(state).riddleOfSandReady =
     hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&

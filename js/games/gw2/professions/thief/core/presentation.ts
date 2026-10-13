@@ -26,13 +26,13 @@ export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> 
   return context.professionState ?? {};
 }
 
-export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {
+export function thiefStealPaletteGroups() {
   // Keep the base stolen-skill pool beside Steal so choices stay discoverable before and after they are granted.
   return [
     {
       id: 'thief-profession',
       label: 'F',
-      skillIds: [professionSkillId],
+      skillIds: [ID.STEAL],
       color: '#9a535c',
       resourceAnchor: true,
       stackId: 'thief-stolen-skills',

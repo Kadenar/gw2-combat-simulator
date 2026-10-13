@@ -303,28 +303,23 @@ function burstMasteryDragonSlash(
   cast: RuntimeCast<WarriorSkill>,
   release: { flowSpent: number }
 ): void {
-  {
-    runtime.resourceController.grant(
-      'flow',
-      release.flowSpent *
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY), 'bladeswornResourceGain')
-    );
-    {
-      {
-        const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
-        emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {
-          attribution: {
-            source: 'Trait',
-            sourceId: TRAIT.BURST_MASTERY,
-            actorType: 'effect',
-            skillId: cast.skill.id,
-            skillName: cast.skill.name,
-            activationId: cast.id
-          },
-          transform: (event) => ({ ...event, name: traitProfile.name, stacks: event.stacks, priority: 5 }),
-          effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
-        });
-      }
-    }
-  }
+  runtime.resourceController.grant(
+    'flow',
+    release.flowSpent *
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY), 'bladeswornResourceGain')
+  );
+
+  const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+  emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.BURST_MASTERY,
+      actorType: 'effect',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({ ...event, name: traitProfile.name, stacks: event.stacks, priority: 5 }),
+    effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
+  });
 }

@@ -12,11 +12,7 @@ import {
 import { bindElementalistFamilyUi } from '#gw2/professions/elementalist/family-presentation.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
-export {
-  ELEMENTALIST_NATIVE_CATALOG_OPTIONS,
-  elementalistCatalog,
-  elementalistNativeModules
-} from '#gw2/professions/elementalist/catalog.js';
+export { elementalistCatalog, elementalistNativeModules } from '#gw2/professions/elementalist/catalog.js';
 
 /**
  * Family definition for the Elementalist: binds the build codec, the ordered native
@@ -54,5 +50,3 @@ export const elementalistProfession = defineNativeProfession({
   presentation: bindElementalistFamilyUi,
   catalog: ELEMENTALIST_NATIVE_CATALOG_OPTIONS
 });
-
-export default elementalistProfession;

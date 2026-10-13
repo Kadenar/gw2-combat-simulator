@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { targetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
+import { targetHealthBandDps } from '../../scripts/analysis/health-band-dps.mjs';
 
 const phases = (values) => Object.fromEntries(Object.entries(values).map(([band, metrics]) => [band, metrics.phase]));
 const cumulative = (values) =>

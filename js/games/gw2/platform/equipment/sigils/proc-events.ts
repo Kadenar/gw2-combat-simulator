@@ -45,7 +45,7 @@ function commonSigilEvent(
 }
 
 /** Builds the canonical strike packet shared by scheduler and resolver sigils. */
-export function createSigilStrikeEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
+function createSigilStrikeEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   return {
     ...commonSigilEvent(id, sourceSkill),
     type: 'damage',

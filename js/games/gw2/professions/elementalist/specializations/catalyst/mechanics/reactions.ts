@@ -15,7 +15,6 @@ export function applyShatteringIce(context: MechanicCombatContext, event: Gw2Res
     state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, event.duration || 0));
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
     context.procs.setDeadline('elementalist.catalyst.shatteringIce', 0);
-    return;
   }
 }
 

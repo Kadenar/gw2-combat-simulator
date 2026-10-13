@@ -735,38 +735,44 @@ test('profession condition-duration hooks remain under the GW2 cap', () => {
   assert.equal(burning.effectiveDuration, 2);
 });
 
-test('stationary torment uses the current PvE formula', () => {
-  const defaults = defaultSimulationConfig();
-  const result = simulateMesmer(
-    ['Ether Bolt', { name: '__wait', waitMs: 2000 }],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      primaryWeapon: 'Scepter',
-      secondaryWeapon: 'Pistol',
-      initialResource: 0,
-      attributeInputs: baseAttributeInputs({
-        ...defaults.attributeInputs.weaponSets[0].commonTotals,
-        conditionDamage: 1000,
-        expertise: 0
-      }),
-      boons: {
-        ...defaults.boons,
-        might: 0
-      },
-      target: {
-        ...defaults.target,
-        conditions: { ...defaults.target.conditions, Vulnerability: 0 },
-        vulnerability: 0,
-        moving: false,
-        activatingSkills: false,
-        confusionActivationsPerSecond: 0
-      }
-    })
-  );
-  const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
+// Target movement selects the canonical Torment formula through the production resolver.
+for (const [moving, expectedDamage] of [
+  [false, 122],
+  [true, 82]
+]) {
+  test(`Torment uses the ${moving ? 'moving' : 'stationary'} target formula`, () => {
+    const defaults = defaultSimulationConfig();
+    const result = simulateMesmer(
+      ['Ether Bolt', { name: '__wait', waitMs: 2000 }],
+      defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: 'Pistol',
+        initialResource: 0,
+        attributeInputs: baseAttributeInputs({
+          ...defaults.attributeInputs.weaponSets[0].commonTotals,
+          conditionDamage: 1000,
+          expertise: 0
+        }),
+        boons: {
+          ...defaults.boons,
+          might: 0
+        },
+        target: {
+          ...defaults.target,
+          conditions: { ...defaults.target.conditions, Vulnerability: 0 },
+          vulnerability: 0,
+          moving,
+          activatingSkills: false,
+          confusionActivationsPerSecond: 0
+        }
+      })
+    );
+    const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
 
-  assert.equal(torment.damageTicks.find((tick) => tick.fraction === 1).damage, 122);
-});
+    assert.equal(torment.damageTicks.find((tick) => tick.fraction === 1).damage, expectedDamage);
+  });
+}
 
 test('static and condition-specific duration bonuses reach the resolver', () => {
   const defaults = defaultSimulationConfig();

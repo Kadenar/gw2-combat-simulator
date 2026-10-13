@@ -10,7 +10,7 @@ import {
   generateProfessionIds,
   writeGeneratedFiles,
   constantName,
-  declaration,
+  declarations,
   mapConcurrent,
   stableEntries,
   traitIdentities
@@ -57,7 +57,7 @@ test('committed identity bindings survive reordered and newly inserted same-name
     assert.equal(ids.HARRIERS_TOSS_ID_73006, 73006);
     assert.equal(ids.MAUL_SOULBEAST, 41800);
     assert.equal(ids.MAUL, 9);
-    assert.doesNotThrow(() => declaration('IDS', entries, committed));
+    assert.doesNotThrow(() => declarations([{ name: 'IDS', entries, committed }]));
   }
 });
 
@@ -74,19 +74,24 @@ test('named declaration validation reports all ambiguous, invalid, missing, and 
       ['Twin ID 2', 3]
     ]
   ])
-    assert.throws(() => declaration('SKILLS', stableEntries(records, {}), {}), /SKILLS: duplicate key TWIN_ID_2/);
+    assert.throws(
+      () => declarations([{ name: 'SKILLS', entries: stableEntries(records, {}), committed: {} }]),
+      /SKILLS: duplicate key TWIN_ID_2/
+    );
   assert.throws(
     () =>
-      declaration(
-        'SKILLS',
-        [
-          { key: 'FIXED', id: 1 },
-          { key: 'FIXED', id: 2 },
-          { key: '1_INVALID', id: 3 },
-          { key: 'OTHER', id: 4 }
-        ],
-        { FIXED: 1, MISSING: 5 }
-      ),
+      declarations([
+        {
+          name: 'SKILLS',
+          entries: [
+            { key: 'FIXED', id: 1 },
+            { key: 'FIXED', id: 2 },
+            { key: '1_INVALID', id: 3 },
+            { key: 'OTHER', id: 4 }
+          ],
+          committed: { FIXED: 1, MISSING: 5 }
+        }
+      ]),
     (error) => {
       for (const text of [
         'SKILLS:',
@@ -153,7 +158,7 @@ test('blank names retain committed IDs and new names allocate independently of i
     ],
     committed
   );
-  assert.doesNotThrow(() => declaration('IDS', entries, committed));
+  assert.doesNotThrow(() => declarations([{ name: 'IDS', entries, committed }]));
   const records = [
     ['New', 4],
     ['New', 3],
@@ -166,7 +171,10 @@ test('blank names retain committed IDs and new names allocate independently of i
 
 test('missing committed exports fail explicitly before any generation', async (context) => {
   assert.throws(() => stableEntries([], undefined), /required committed identity map/);
-  assert.throws(() => declaration('IDS', [], undefined), /IDS: required committed identity map/);
+  assert.throws(
+    () => declarations([{ name: 'IDS', entries: [], committed: undefined }]),
+    /IDS: required committed identity map/
+  );
   const { published, writes } = mockGeneratorFiles(context);
   published.set(rangerIdsTarget, 'export const RENAMED_SKILL_IDS = {}; export const RANGER_TRAIT_IDS = {};');
   await assert.rejects(

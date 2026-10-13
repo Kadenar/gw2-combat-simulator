@@ -16,8 +16,9 @@ export function thiefStealthed(runtime: MechanicQueriesOf<ThiefRuntime>, at = ru
   return core.stealthStartedAt <= at && core.stealthUntil > at && core.revealedUntil <= at;
 }
 
-/** A specialization-granted stealth-attack charge is usable outside stealth until it expires. */
-export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>, at = runtime.time): boolean {
+/** A specialization-granted stealth-attack charge is usable outside stealth until it expires at the live clock. */
+export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
+  const at = runtime.time;
   const elite = runtime.profession.specialization;
   return (
     (elite.kind === 'Deadeye' || elite.kind === 'Antiquary') &&
@@ -29,7 +30,8 @@ export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>
  * Extends stealth up to its cap unless Revealed blocks entry. Enter-stealth traits fire only on a transition from an
  * unstealthed state.
  */
-export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, duration: number, at = runtime.time): void {
+export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, duration: number): void {
+  const at = runtime.time;
   if (!(duration > 0)) return;
   const core = runtime.profession.core;
   if (core.revealedUntil > at) return;

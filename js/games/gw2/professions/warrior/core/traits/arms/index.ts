@@ -130,7 +130,7 @@ export const bloodlust = defineTrait({
   triggers: [
     onTriggerPoint(critical, {
       run: (runtime, input: TriggerPointInput<typeof critical>) =>
-        bloodlustCritical(runtime, input.event, input.opportunity, input.firstBurst)
+        bloodlustCritical(runtime, input.event, input.opportunity)
     })
   ],
   id: TRAIT.BLOODLUST,
@@ -182,7 +182,7 @@ export const furious = defineTrait({
   triggers: [
     onTriggerPoint(critical, {
       run: (runtime, input: TriggerPointInput<typeof critical>) =>
-        furiousCritical(runtime, input.event, input.opportunity, input.firstBurst)
+        furiousCritical(runtime, input.event, input.opportunity)
     })
   ],
   id: TRAIT.FURIOUS,
@@ -488,41 +488,38 @@ function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): vo
 function bloodlustCritical(
   runtime: WarriorRuntime,
   event: Gw2ResolverEvent,
-  opportunity: ReturnType<typeof criticalOpportunity>,
-  _firstBurst: boolean
+  opportunity: ReturnType<typeof criticalOpportunity>
 ): void {
-  {
-    const proc = advanceCriticalProc(opportunity, {
-      id: 'warrior.core.bloodlust',
-      at: runtime.time,
-      chanceOnCriticalHit: procChanceFromContext(runtime, TRAIT.BLOODLUST),
-      randomStream: 'warrior.bloodlust',
-      roll: (chance, stream) => runtime.random.roll(chance, stream)
-    });
-    if (proc) {
-      const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
-      const bleeding = requireEffect(profile, 'condition', 'Bleeding');
-      if (bleeding) {
-        emitTraitProfile(runtime, TRAIT.BLOODLUST, TRAIT.BLOODLUST, event, {
-          attribution: {
-            source: 'Trait',
-            sourceId: TRAIT.BLOODLUST,
-            actorType: 'effect',
-            skillId: event.skillId,
-            skillName: event.skillName
-          },
-          transform: (packet) => ({
-            ...packet,
-            priority: 5,
-            stacks: proc.quantity * Number(packet.stacks),
-            name: 'Bloodlust \u2014 Bleeding',
-            skillName: 'Bloodlust',
-            triggeredBy: event.skillName,
-            metadata: { procCount: proc.quantity }
-          }),
-          effects: (candidate) => candidate === bleeding
-        });
-      }
+  const proc = advanceCriticalProc(opportunity, {
+    id: 'warrior.core.bloodlust',
+    at: runtime.time,
+    chanceOnCriticalHit: procChanceFromContext(runtime, TRAIT.BLOODLUST),
+    randomStream: 'warrior.bloodlust',
+    roll: (chance, stream) => runtime.random.roll(chance, stream)
+  });
+  if (proc) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
+    const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+    if (bleeding) {
+      emitTraitProfile(runtime, TRAIT.BLOODLUST, TRAIT.BLOODLUST, event, {
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.BLOODLUST,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          stacks: proc.quantity * Number(packet.stacks),
+          name: 'Bloodlust \u2014 Bleeding',
+          skillName: 'Bloodlust',
+          triggeredBy: event.skillName,
+          metadata: { procCount: proc.quantity }
+        }),
+        effects: (candidate) => candidate === bleeding
+      });
     }
   }
 }
@@ -531,8 +528,7 @@ function bloodlustCritical(
 function furiousCritical(
   runtime: WarriorRuntime,
   event: Gw2ResolverEvent,
-  opportunity: ReturnType<typeof criticalOpportunity>,
-  _firstBurst: boolean
+  opportunity: ReturnType<typeof criticalOpportunity>
 ): void {
   const criticals = opportunity.sampledCriticals;
   if (criticals > 0) {

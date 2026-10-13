@@ -21,5 +21,3 @@ export const warriorProfession = defineNativeProfession({
   modules: warriorNativeModules,
   catalog: WARRIOR_NATIVE_CATALOG_OPTIONS
 });
-
-export default warriorProfession;

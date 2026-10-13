@@ -38,7 +38,8 @@ function checkboxControl(root: Document, options: CheckboxControlOptions): HTMLL
 }
 
 /** Places timeline-only preferences in Simulation Config while keeping them separate from simulation inputs. */
-export function mountRotationDisplayControls(app: ProfessionAppState, root: Document = document): void {
+export function mountRotationDisplayControls(app: ProfessionAppState): void {
+  const root = document;
   const container = root.getElementById('perma-boons');
   if (!container) return;
   root.documentElement.setAttribute('data-show-transition-delays', String(rotationTransitionDelayVisibility(root)));

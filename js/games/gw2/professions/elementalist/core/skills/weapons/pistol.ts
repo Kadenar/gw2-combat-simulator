@@ -526,21 +526,14 @@ export const pistolSideEffectHandlers: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      context.effects.emit(
-        elementalistProfiledBuffRequest(
-          context,
-          at,
-          PROFILE.ragingRicochet,
-          'Fire',
-          skill.name,
-          skill.id,
-          undefined,
-          undefined,
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+
+    context.effects.emit(
+      elementalistProfiledBuffRequest(context, at, PROFILE.ragingRicochet, 'Fire', skill.name, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      })
+    );
   },
   'elementalist.pistol.searing-salvo'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
@@ -646,34 +639,33 @@ export const pistolSideEffectHandlers: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    {
-      // The projectile finisher is a separate non-weapon activation from the
-      // pistol strike, so downstream combo damage must not reuse its roll.
-      context.effects.emit(
-        elementalistStrikeRequest(
-          context,
-          {
-            at,
-            source: skill.name,
-            sourceId: skill.id,
-            actorType: 'effect',
-            skillName: skill.name,
-            skillId: skill.id,
-            coefficient: 0,
-            canCrit: false,
-            activationId: `${cast.id}:boulder-finisher`,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ]
-          },
-          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-        )
-      );
-    }
+
+    // The projectile finisher is a separate non-weapon activation from the
+    // pistol strike, so downstream combo damage must not reuse its roll.
+    context.effects.emit(
+      elementalistStrikeRequest(
+        context,
+        {
+          at,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: 'effect',
+          skillName: skill.name,
+          skillId: skill.id,
+          coefficient: 0,
+          canCrit: false,
+          activationId: `${cast.id}:boulder-finisher`,
+          comboFinishers: [
+            {
+              ownerId: 'elementalist',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   }
 };
 

@@ -386,19 +386,18 @@ function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
       source: 'guardian'
     }
   });
-  {
-    runtime.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'trait',
-        name: 'Sovereign of Light',
-        at: runtime.time,
-        sourceSkill: event.skillName ?? '',
-        detail: 'Light aura detonated',
-        icon: guardianTraitIcon(TRAIT.SOVEREIGN_OF_LIGHT)
-      }
-    });
-  }
+
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Sovereign of Light',
+      at: runtime.time,
+      sourceSkill: event.skillName ?? '',
+      detail: 'Light aura detonated',
+      icon: guardianTraitIcon(TRAIT.SOVEREIGN_OF_LIGHT)
+    }
+  });
 }
 
 /** Only Luminary activation sources can consume a preexisting aura. */

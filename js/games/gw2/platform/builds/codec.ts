@@ -328,7 +328,7 @@ function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
     Gw2BuildExtraFieldDescriptor
   ][]) {
     const value = build[field];
-    let valid = false;
+    let valid: boolean;
     if (descriptor.type === 'enum') {
       valid = typeof value === 'string' && descriptor.values.includes(value);
     } else {

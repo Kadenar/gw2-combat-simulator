@@ -22,7 +22,7 @@ import path from 'node:path';
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import { targetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
+import { targetHealthBandDps } from './health-band-dps.mjs';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 
 const DEFAULT_PROFESSIONS = [

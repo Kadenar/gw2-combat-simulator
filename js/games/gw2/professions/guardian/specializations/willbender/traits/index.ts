@@ -385,19 +385,18 @@ function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
       triggeredBy: event.skillName
     }
   });
-  {
-    runtime.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'trait',
-        name: 'Lethal Tempo',
-        at: runtime.time,
-        sourceSkill: event.skillName,
-        detail: `${stacks}/${parameters.maximumStacks} stacks`,
-        icon: guardianTraitIcon(TRAIT.LETHAL_TEMPO)
-      }
-    });
-  }
+
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Lethal Tempo',
+      at: runtime.time,
+      sourceSkill: event.skillName,
+      detail: `${stacks}/${parameters.maximumStacks} stacks`,
+      icon: guardianTraitIcon(TRAIT.LETHAL_TEMPO)
+    }
+  });
 }
 
 /** Earned base work applies to equipped weapon cooldowns and reservations before speed conversion. */

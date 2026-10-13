@@ -338,26 +338,24 @@ function applyDhuumfire(
     return;
   }
 
-  {
-    /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
-      context,
-      TRAIT.DHUUMFIRE,
-      TRAIT.DHUUMFIRE,
-      undefined,
-      {
-        at: event.at,
-        effect: { type: 'condition', name: 'Burning' },
-        settlement: 'reaction',
-        attribution: { skillName: 'Dhuumfire', triggeredBy: event.skillName, ownerActorType: 'player' },
-        // Shroud skills may supply a duration variant; all remaining fields stay authored.
-        transform: (packet) => ({ ...packet, name: 'Dhuumfire - ' + packet.condition, duration: effect.duration })
-      }
-    );
-    context.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'trait', name: 'Dhuumfire', at: event.at, sourceSkill: event.skillName }
-    });
-  }
+  /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+    context,
+    TRAIT.DHUUMFIRE,
+    TRAIT.DHUUMFIRE,
+    undefined,
+    {
+      at: event.at,
+      effect: { type: 'condition', name: 'Burning' },
+      settlement: 'reaction',
+      attribution: { skillName: 'Dhuumfire', triggeredBy: event.skillName, ownerActorType: 'player' },
+      // Shroud skills may supply a duration variant; all remaining fields stay authored.
+      transform: (packet) => ({ ...packet, name: 'Dhuumfire - ' + packet.condition, duration: effect.duration })
+    }
+  );
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: 'Dhuumfire', at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 function applyUnyieldingBlast(
@@ -370,31 +368,30 @@ function applyUnyieldingBlast(
   const profile = requireBalanceProfileFromContext(context, TRAIT.UNYIELDING_BLAST);
   const effect = requireEffect(profile, 'condition', 'Vulnerability');
   if (!effect) return;
-  {
-    /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
-      context,
-      TRAIT.UNYIELDING_BLAST,
-      TRAIT.UNYIELDING_BLAST,
-      undefined,
-      {
-        at: event.at,
-        fullEnd: event.at,
-        effect: { type: 'condition', name: 'Vulnerability' },
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.UNYIELDING_BLAST,
-          actorType: 'effect',
-          skillName: 'Unyielding Blast',
-          triggeredBy: event.skillName,
-          name: 'Unyielding Blast'
-        }
+
+  /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+    context,
+    TRAIT.UNYIELDING_BLAST,
+    TRAIT.UNYIELDING_BLAST,
+    undefined,
+    {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Vulnerability' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.UNYIELDING_BLAST,
+        actorType: 'effect',
+        skillName: 'Unyielding Blast',
+        triggeredBy: event.skillName,
+        name: 'Unyielding Blast'
       }
-    );
-    context.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'trait', name: 'Unyielding Blast', at: event.at, sourceSkill: event.skillName }
-    });
-  }
+    }
+  );
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: 'Unyielding Blast', at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 /** Accepted non-summon fear grants life force under one cooldown; missed and travelling packets grant nothing. */

@@ -21,5 +21,3 @@ export const engineerProfession = defineNativeProfession({
   modules: engineerNativeModules,
   weaponSkillMatchesSet: engineerWeaponSkillMatchesSet
 });
-
-export default engineerProfession;

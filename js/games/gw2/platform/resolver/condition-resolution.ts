@@ -69,14 +69,8 @@ export function createGw2ConditionResolution({
   }
 
   function conditionRate(ctx: Gw2ResolverRuntime, name: string, conditionDamage: number): number {
-    // Torment switches formula entirely for a moving target. Confusion keeps
-    // its passive tick and adds configured activation damage as an average rate.
-    if (name === 'Torment' && ctx.config.target?.moving) {
-      const formula = CONDITION_FORMULAS.Torment;
-      return formula.base + formula.scaling * conditionDamage;
-    }
-
-    let rate = conditionTickDamage(name, conditionDamage);
+    // The shared formula owns Torment's target-motion branch; Confusion adds configured activation damage below.
+    let rate = conditionTickDamage(name, conditionDamage, { stationary: !ctx.config.target?.moving });
     if (name === 'Confusion') {
       const formula = CONDITION_FORMULAS.Confusion;
       rate +=

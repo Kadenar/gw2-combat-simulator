@@ -56,19 +56,17 @@ export function emitTraitSymbol(
     });
   }
 
-  {
-    runtime.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'trait',
-        name: symbol.name,
-        at: runtime.time,
-        sourceSkill: cause.skillName,
-        detail: guardianTraitName(trait),
-        icon: guardianTraitIcon(trait)
-      }
-    });
-  }
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: symbol.name,
+      at: runtime.time,
+      sourceSkill: cause.skillName,
+      detail: guardianTraitName(trait),
+      icon: guardianTraitIcon(trait)
+    }
+  });
 
   return true;
 }

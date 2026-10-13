@@ -1,5 +1,4 @@
 export {
   detectDpsReportRotationPlayers,
-  reconstructDpsReportRotation,
-  reconstructDpsReportWithProfile
+  reconstructDpsReportRotation
 } from '#gw2/integrations/logs/dps-report/rotation/reconstruct.js';

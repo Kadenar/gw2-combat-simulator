@@ -119,11 +119,6 @@ export function declarations(maps) {
   );
 }
 
-/** Validate and render a single named map. */
-export function declaration(name, entries, committed) {
-  return declarations([{ name, entries, committed }])[0];
-}
-
 /** Assemble the common profession ID artifact and require both named exports before allocating any keys. */
 export async function generateProfessionIds({
   profession,

@@ -19,24 +19,22 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
   const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
 
   for (const boon of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
-    {
-      const packet = buildMesmerPacket({
-        type: 'buff',
-        at,
-        kind: String(boon.boon || ''),
-        stacks: Number(boon.stacks),
-        duration: Number(boon.duration),
-        skillName: skill.name,
-        sourceSkill: skill.name,
-        ...partyRecipients
-      });
-      context.effects.emit({
-        kind: 'packet',
-        event: packet,
-        owner: mesmerPacketOwner(packet),
-        priority: Number(packet.priority ?? 0)
-      });
-    }
+    const packet = buildMesmerPacket({
+      type: 'buff',
+      at,
+      kind: String(boon.boon || ''),
+      stacks: Number(boon.stacks),
+      duration: Number(boon.duration),
+      skillName: skill.name,
+      sourceSkill: skill.name,
+      ...partyRecipients
+    });
+    context.effects.emit({
+      kind: 'packet',
+      event: packet,
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
+    });
   }
 
   if (eligible && profileId) {

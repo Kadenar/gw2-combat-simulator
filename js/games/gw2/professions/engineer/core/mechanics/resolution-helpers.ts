@@ -17,8 +17,6 @@ interface QueueDamageOptions {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
-  readonly at?: number;
-  readonly canCrit?: boolean;
   readonly explosion?: boolean;
   // The impact supplies timing, and the shared runtime generates the attempt identity.
   readonly comboFinisher?: {
@@ -30,8 +28,6 @@ interface QueueDamageOptions {
     readonly preferredFieldTypes?: readonly ComboFieldType[];
     readonly ambiguousFieldSelection?: 'none' | 'oldest';
   };
-  readonly weaponStrength?: number;
-  readonly weaponStrengthProfileId?: string;
 }
 
 interface QueueBuffOptions {
@@ -39,8 +35,6 @@ interface QueueBuffOptions {
   readonly kind: string;
   readonly stacks: number;
   readonly duration: number;
-  readonly sourceId?: SkillId | null;
-  readonly actorType?: SimulationActorType;
 }
 
 interface ApplyConditionOptions {
@@ -68,7 +62,7 @@ export function resolverSkill(
   return context.helpers.skillsById.get(skillId);
 }
 
-/** Builds an owned strike whose finisher is attempted by the shared runtime at impact. */
+/** Builds a crit-eligible strike at the triggering impact; shared resolution selects strength and attempts finishers. */
 export function buildEngineerStrike(
   event: EngineerResolverEvent,
   {
@@ -78,16 +72,12 @@ export function buildEngineerStrike(
     sourceId = event.skillId,
     actorType = 'player',
     ownerActorType,
-    at = event.at,
-    canCrit = true,
     explosion = false,
-    comboFinisher,
-    weaponStrength,
-    weaponStrengthProfileId
+    comboFinisher
   }: QueueDamageOptions
 ): SimulationEventBase {
   return buildResolverStrike({
-    at,
+    at: event.at,
     skillName: name,
     coefficient,
 
@@ -100,7 +90,7 @@ export function buildEngineerStrike(
     skillId: actorType === 'player' ? event.skillId : undefined,
     ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
     skillWeapon,
-    canCrit,
+    canCrit: true,
     explosion,
     ...(comboFinisher
       ? {
@@ -117,16 +107,14 @@ export function buildEngineerStrike(
           ]
         }
       : {}),
-    ...(weaponStrength == null ? {} : { weaponStrength }),
-    ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
     triggeredBy: event.skillName
   });
 }
 
-/** Builds base-duration buff data; the shared service samples live duration when the grant executes. */
+/** Builds a player-owned buff from the triggering skill; shared delivery samples duration when the grant executes. */
 export function buildEngineerBuff(
   event: EngineerResolverEvent,
-  { name, kind, stacks, duration, sourceId = event.skillId, actorType = 'player' }: QueueBuffOptions
+  { name, kind, stacks, duration }: QueueBuffOptions
 ): SimulationEventBase {
   return buildResolverBuff({
     at: event.at,
@@ -134,9 +122,9 @@ export function buildEngineerBuff(
     kind,
     stacks,
     duration,
-    source: actorType === 'effect' ? 'Trait' : 'engineer',
-    sourceId: sourceId ?? event.skillId ?? event.sourceId,
-    actorType,
+    source: 'engineer',
+    sourceId: event.skillId ?? event.sourceId,
+    actorType: 'player',
     triggeredBy: event.skillName
   });
 }

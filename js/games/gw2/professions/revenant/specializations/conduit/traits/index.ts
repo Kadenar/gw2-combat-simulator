@@ -434,25 +434,23 @@ function grantLingeringDetermination(runtime: RevenantRuntime, combat: boolean):
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  {
-    emitTraitProfile(runtime, TRAIT.MISTFIRE, PROFILE.mistfire, undefined, {
-      effects: (effect) => effect.type === 'strike' || effect.type === 'condition',
-      attribution: {
-        source: 'revenant',
-        sourceId: TRAIT.MISTFIRE,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillId: TRAIT.MISTFIRE,
-        skillName: 'Mistfire',
-        activationId: cast.id
-      },
-      transform: (event) => ({
-        ...event,
-        name: event.type === 'damage' ? 'Mistfire' : 'Mistfire — Burning',
-        skillWeapon: 'Unequipped'
-      })
-    });
-  }
+  emitTraitProfile(runtime, TRAIT.MISTFIRE, PROFILE.mistfire, undefined, {
+    effects: (effect) => effect.type === 'strike' || effect.type === 'condition',
+    attribution: {
+      source: 'revenant',
+      sourceId: TRAIT.MISTFIRE,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: TRAIT.MISTFIRE,
+      skillName: 'Mistfire',
+      activationId: cast.id
+    },
+    transform: (event) => ({
+      ...event,
+      name: event.type === 'damage' ? 'Mistfire' : 'Mistfire — Burning',
+      skillWeapon: 'Unequipped'
+    })
+  });
 }
 
 /** Reward a selected cap crossing once; further grants at full affinity cannot repeat the Energy gain. */

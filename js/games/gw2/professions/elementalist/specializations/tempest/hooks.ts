@@ -219,16 +219,13 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
   availability,
   prepareEvent,
   onCastStart(runtime, cast) {
-    {
-      onCastStart(runtime, cast, cast.skill);
-      runtime.fireTrigger(tempestCastStarted, { cast });
-    }
+    onCastStart(runtime, cast, cast.skill);
+    runtime.fireTrigger(tempestCastStarted, { cast });
   },
   onCastCommit(runtime, cast) {
     // The engine admits committed casts here, including overloads whose remaining aftercast was cancelled.
-    {
-      onCastCommit(runtime, cast, cast.skill);
-      runtime.fireTrigger(tempestCastCompleted, { cast });
-    }
+
+    onCastCommit(runtime, cast, cast.skill);
+    runtime.fireTrigger(tempestCastCompleted, { cast });
   }
 };

@@ -202,8 +202,7 @@ export function relicComparisonChartSvg(
 /** Shows both relic curves at the fight duration nearest the hovered chart position. */
 export function bindRelicComparisonChartHover(
   container: HTMLElement | null | undefined,
-  model: RelicComparisonModel,
-  options: RelicComparisonChartOptions = {}
+  model: RelicComparisonModel
 ): void {
   const svg = container?.querySelector<SVGSVGElement>('[data-role="relic-comparison-chart"]');
   const tooltip = container?.querySelector<HTMLElement>('[data-role="relic-comparison-tooltip"]');
@@ -212,7 +211,7 @@ export function bindRelicComparisonChartHover(
   const plotPoints = comparisonPlotPoints(model);
   const startMs = plotPoints[0].tMs;
   const endMs = model.durationMs;
-  const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
+  const opponentLabel = relicLabel(model.opponentRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
   svg.onmouseleave = () => {

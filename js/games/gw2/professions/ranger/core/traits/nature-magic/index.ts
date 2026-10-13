@@ -423,27 +423,25 @@ function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void 
 
 /** Applies the trait at the accepted Beast-skill boundary. */
 function applyRejuvenation(context: RangerRuntime, skill: RangerSkill): void {
-  {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.REJUVENATION);
-    const effect = requireEffect(profile, 'boon', 'regeneration');
-    // The cooldown gates only regeneration, so a removed boon leaves the trait ready.
-    if (effect && context.procs.claim(TRAIT.REJUVENATION, 'ranger.core.rejuvenation', context.time)) {
-      const kind = String(effect.boon);
-      emitTraitProfile(context, TRAIT.REJUVENATION, TRAIT.REJUVENATION, undefined, {
-        at: context.time,
-        fullEnd: context.time,
-        effect: { type: 'boon', name: 'regeneration' },
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.REJUVENATION,
-          actorType: 'effect',
-          skillId: TRAIT.REJUVENATION,
-          skillName: 'Rejuvenation',
-          name: `Rejuvenation - ${kind}`,
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
-          triggeredBy: skill.name
-        }
-      });
-    }
+  const profile = requireBalanceProfileFromContext(context, TRAIT.REJUVENATION);
+  const effect = requireEffect(profile, 'boon', 'regeneration');
+  // The cooldown gates only regeneration, so a removed boon leaves the trait ready.
+  if (effect && context.procs.claim(TRAIT.REJUVENATION, 'ranger.core.rejuvenation', context.time)) {
+    const kind = String(effect.boon);
+    emitTraitProfile(context, TRAIT.REJUVENATION, TRAIT.REJUVENATION, undefined, {
+      at: context.time,
+      fullEnd: context.time,
+      effect: { type: 'boon', name: 'regeneration' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.REJUVENATION,
+        actorType: 'effect',
+        skillId: TRAIT.REJUVENATION,
+        skillName: 'Rejuvenation',
+        name: `Rejuvenation - ${kind}`,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        triggeredBy: skill.name
+      }
+    });
   }
 }

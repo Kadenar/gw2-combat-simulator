@@ -89,20 +89,17 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
     }
   },
   onCastCommit(runtime, cast) {
-    {
-      onCastCommit(runtime, cast, cast.skill);
-      // This tail follows the skill-declared intrinsic tasks, retaining reset -> deferred grants -> final trait order.
-      runtime.scheduleForCast('elementalist.evoker.finish-commit', runtime.time, cast, {}, undefined, -101);
-    }
+    onCastCommit(runtime, cast, cast.skill);
+    // This tail follows the skill-declared intrinsic tasks, retaining reset -> deferred grants -> final trait order.
+    runtime.scheduleForCast('elementalist.evoker.finish-commit', runtime.time, cast, {}, undefined, -101);
   },
   tasks: {
     ...evokerSkillCommitTasks,
     'elementalist.evoker.finish-commit'(runtime, data) {
       const { cast } = data as SkillTaskData<ElementalistSkill>;
-      {
-        finishEvokerCast(runtime, cast);
-        runtime.fireTrigger(evokerCastSettled, { cast });
-      }
+
+      finishEvokerCast(runtime, cast);
+      runtime.fireTrigger(evokerCastSettled, { cast });
 
       delete evokerState.from(runtime).cancelledFamiliarActivations[cast.id];
     }

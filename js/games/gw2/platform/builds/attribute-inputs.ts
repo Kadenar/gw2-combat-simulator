@@ -42,7 +42,10 @@ export const ATTRIBUTE_NAMES = Object.freeze({
   healingPower: 'Healing Power'
 } as const);
 
-/** Direct callers explicitly author base stats, all eligible for ordinary conversions; calculated totals are not inputs. */
+/**
+ * Direct callers explicitly author base stats, all eligible for ordinary conversions; calculated totals are not inputs.
+ * Tests use distinct base and alternate seeds to exercise the same weapon-set input contract as equipment builds.
+ */
 export function baseAttributeInputs(base: Gw2Stats = {}, alternate: Gw2Stats = base): Gw2AttributeInputs {
   const seed = (stats: Gw2Stats): Gw2AttributeSeed => {
     const commonTotals = {

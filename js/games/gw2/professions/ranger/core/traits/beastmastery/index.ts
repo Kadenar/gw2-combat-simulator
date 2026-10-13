@@ -410,70 +410,64 @@ function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent):
 
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent): void {
-  {
-    const profile = context.helpers.skillsById.get(ID.LESSER_SIC_EM)!;
-    // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
-    const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
-    if (lesserSicEm && !context.cooldownController.isOnCooldown(profile.id, context.time)) {
-      context.cooldownController.startRecharge(profile, context.time);
-      const duration = effectNumber(profile, lesserSicEm, 'duration');
-      context.effects.emit({
-        attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
-        kind: 'announcement',
-        announcement: {
-          type: 'trait',
-          name: 'Lesser "Sic \'Em!"',
-          at: event.at,
-          sourceSkill: event.skillName,
-          detail: `${duration}s, +${Number((effectNumber(profile, lesserSicEm, 'damageIncreasePerStack') * 100).toFixed(6))}% strike damage`,
-          icon: profile.icon
-        }
-      });
-      invokeTraitSkill(context, TRAIT.GO_FOR_THE_THROAT, profile.id, event, {
-        effect: { type: 'buff', name: 'lesser-sic-em' }
-      });
-      context.fireTrigger(mergedCommandApplied, {
-        skill: { id: ID.LESSER_SIC_EM, categories: ['Command'] },
-        at: event.at
-      });
-    }
+  const profile = context.helpers.skillsById.get(ID.LESSER_SIC_EM)!;
+  // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
+  const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
+  if (lesserSicEm && !context.cooldownController.isOnCooldown(profile.id, context.time)) {
+    context.cooldownController.startRecharge(profile, context.time);
+    const duration = effectNumber(profile, lesserSicEm, 'duration');
+    context.effects.emit({
+      attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Lesser "Sic \'Em!"',
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: `${duration}s, +${Number((effectNumber(profile, lesserSicEm, 'damageIncreasePerStack') * 100).toFixed(6))}% strike damage`,
+        icon: profile.icon
+      }
+    });
+    invokeTraitSkill(context, TRAIT.GO_FOR_THE_THROAT, profile.id, event, {
+      effect: { type: 'buff', name: 'lesser-sic-em' }
+    });
+    context.fireTrigger(mergedCommandApplied, {
+      skill: { id: ID.LESSER_SIC_EM, categories: ['Command'] },
+      at: event.at
+    });
   }
 }
 
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_EYES);
-    const blind = requireEffect(profile, 'condition', 'Blind');
-    // The cooldown gates only the blind, so a removed blind leaves it ready.
-    if (blind && context.procs.claim(TRAIT.GO_FOR_THE_EYES, 'ranger.soulbeast.goForTheEyes', event.at)) {
-      emitTraitProfile(context, TRAIT.GO_FOR_THE_EYES, TRAIT.GO_FOR_THE_EYES, undefined, {
-        at: event.at,
-        fullEnd: event.at,
-        effect: { type: 'condition', name: 'Blind' },
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.GO_FOR_THE_EYES,
-          actorType: 'effect',
-          ownerActorType: 'player',
-          skillId: TRAIT.GO_FOR_THE_EYES,
-          skillName: 'Go for the Eyes',
-          triggeredBy: event.skillName
-        },
-        transform: (packet) => ({ ...packet, name: 'Go for the Eyes' + ' — ' + packet.condition })
-      });
-    }
+  const profile = requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_EYES);
+  const blind = requireEffect(profile, 'condition', 'Blind');
+  // The cooldown gates only the blind, so a removed blind leaves it ready.
+  if (blind && context.procs.claim(TRAIT.GO_FOR_THE_EYES, 'ranger.soulbeast.goForTheEyes', event.at)) {
+    emitTraitProfile(context, TRAIT.GO_FOR_THE_EYES, TRAIT.GO_FOR_THE_EYES, undefined, {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Blind' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.GO_FOR_THE_EYES,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: TRAIT.GO_FOR_THE_EYES,
+        skillName: 'Go for the Eyes',
+        triggeredBy: event.skillName
+      },
+      transform: (packet) => ({ ...packet, name: 'Go for the Eyes' + ' — ' + packet.condition })
+    });
   }
 }
 
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedWiltingStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.WILTING_STRIKE);
-    const weakness = requireEffect(profile, 'condition', 'Weakness');
-    if (weakness)
-      context.effects.emit(rangerConditionRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));
-  }
+  const profile = requireBalanceProfileFromContext(context, TRAIT.WILTING_STRIKE);
+  const weakness = requireEffect(profile, 'condition', 'Weakness');
+  if (weakness)
+    context.effects.emit(rangerConditionRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));
 }
 
 /** Extends player boons for a completed command only at the merged Soulbeast boundary. */

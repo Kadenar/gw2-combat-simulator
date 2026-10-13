@@ -483,8 +483,6 @@ function applyLatentStamina(
         });
       }
     }
-
-    return;
   }
 }
 

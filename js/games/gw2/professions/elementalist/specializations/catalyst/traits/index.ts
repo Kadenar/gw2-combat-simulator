@@ -244,49 +244,48 @@ function applySphereStartTraits(
 ): void {
   // Spectacular Sphere pays party quickness plus the attunement's boon on deployment.
   // Sphere Specialist scales these procedural payouts once, separately from authored sphere packets.
-  {
-    const durationMultiplier = sphereSpecialistDuration(context);
-    const spectacularSphereProfile = requireBalanceProfileFromContext(context, TRAIT.SPECTACULAR_SPHERE);
-    const quickness = requireEffect(spectacularSphereProfile, 'boon', 'Quickness');
-    if (quickness) {
-      emitTraitProfile(context, TRAIT.SPECTACULAR_SPHERE, TRAIT.SPECTACULAR_SPHERE, undefined, {
-        at: cast.start,
-        fullEnd: cast.start,
-        effect: { type: 'boon', name: 'Quickness' },
-        // Sphere traits scale the authored base duration before the live boon-duration transaction.
-        transform: (packet) => ({ ...packet, duration: Number(packet.duration) * durationMultiplier }),
-        cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-        attribution: {
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          skillName: skill.name,
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
-          skillId: skill.id,
-          name: skill.name
-        }
-      });
-    }
 
-    const profiledBoon = requireEffect(spectacularSphereProfile, 'boon', String(skill.attunement));
-    if (profiledBoon) {
-      emitTraitProfile(context, TRAIT.SPECTACULAR_SPHERE, TRAIT.SPECTACULAR_SPHERE, undefined, {
-        at: cast.start,
-        fullEnd: cast.start,
-        effect: { type: 'boon', name: String(skill.attunement) },
-        transform: (packet) => ({ ...packet, duration: Number(packet.duration) * durationMultiplier }),
-        cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
-        attribution: {
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          skillName: skill.name,
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
-          skillId: skill.id,
-          name: skill.name
-        }
-      });
-    }
+  const durationMultiplier = sphereSpecialistDuration(context);
+  const spectacularSphereProfile = requireBalanceProfileFromContext(context, TRAIT.SPECTACULAR_SPHERE);
+  const quickness = requireEffect(spectacularSphereProfile, 'boon', 'Quickness');
+  if (quickness) {
+    emitTraitProfile(context, TRAIT.SPECTACULAR_SPHERE, TRAIT.SPECTACULAR_SPHERE, undefined, {
+      at: cast.start,
+      fullEnd: cast.start,
+      effect: { type: 'boon', name: 'Quickness' },
+      // Sphere traits scale the authored base duration before the live boon-duration transaction.
+      transform: (packet) => ({ ...packet, duration: Number(packet.duration) * durationMultiplier }),
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: {
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        skillName: skill.name,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        skillId: skill.id,
+        name: skill.name
+      }
+    });
+  }
+
+  const profiledBoon = requireEffect(spectacularSphereProfile, 'boon', String(skill.attunement));
+  if (profiledBoon) {
+    emitTraitProfile(context, TRAIT.SPECTACULAR_SPHERE, TRAIT.SPECTACULAR_SPHERE, undefined, {
+      at: cast.start,
+      fullEnd: cast.start,
+      effect: { type: 'boon', name: String(skill.attunement) },
+      transform: (packet) => ({ ...packet, duration: Number(packet.duration) * durationMultiplier }),
+      cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+      attribution: {
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        skillName: skill.name,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        skillId: skill.id,
+        name: skill.name
+      }
+    });
   }
 }
 

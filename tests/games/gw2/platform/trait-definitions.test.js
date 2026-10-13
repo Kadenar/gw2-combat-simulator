@@ -217,7 +217,7 @@ test('attribute phases sample declarations once per query and refresh after a sa
   assert.equal(first.power, 1820);
 });
 
-// Reusing a caller's selection Set across runs must not couple their compiled attribute contributors.
+// Reusing a build's selection array across runs must not couple their compiled attribute contributors.
 test('attribute selection is fixed per query and rebuilt for a new run', () => {
   const family = familyWith(
     moduleWith([
@@ -231,14 +231,14 @@ test('attribute selection is fixed per query and rebuilt for a new run', () => {
       })
     ])
   );
-  const config = { attributeInputs: baseAttributeInputs() };
-  const traits = new Set([101]);
+  const selectedTraitIds = [101];
+  const config = { attributeInputs: baseAttributeInputs(), selectedTraitIds };
   const profession = family.runtimeFor(config);
-  const first = createGw2CombatQuery({ profession, config, traits });
-  const notYetSampled = createGw2CombatQuery({ profession, config, traits });
+  const first = createGw2CombatQuery({ profession, config });
+  const notYetSampled = createGw2CombatQuery({ profession, config });
   assert.equal(first.statsAt(0).power, 1020);
-  traits.clear();
-  const second = createGw2CombatQuery({ profession, config, traits });
+  selectedTraitIds.length = 0;
+  const second = createGw2CombatQuery({ profession, config });
   assert.equal(second.statsAt(0).power, 1000);
   assert.equal(first.statsAt(1).power, 1020);
   assert.equal(notYetSampled.statsAt(1).power, 1020);

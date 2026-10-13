@@ -1,15 +1,14 @@
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 
-/** Clone boons reach the party while player packets keep their authored audience. */
+/** Clone boons reach the five-player party while player boons apply to self. */
 export function buildMirageBoon(
   at: number,
   boon: StatusEffect,
   sourceSkill: string,
-  actorType: 'player' | 'summon' = 'player',
-  recipients: 'self' | 'party' = 'self'
+  actorType: 'player' | 'summon' = 'player'
 ) {
-  const boonRecipients = actorType === 'summon' ? 'party' : recipients;
+  const boonRecipients = actorType === 'summon' ? 'party' : 'self';
   return buildMesmerPacket({
     type: 'buff',
     at,

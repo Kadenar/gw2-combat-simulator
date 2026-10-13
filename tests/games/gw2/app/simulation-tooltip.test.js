@@ -1050,7 +1050,7 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
 
 // Invocation trait facts follow patched call skills instead of a removed duplicate balance profile.
 test('Song of the Mists tooltip reads patched core invocation skills', async () => {
-  const { default: revenant } = await import('#gw2/professions/revenant/profession.js');
+  const { revenantProfession: revenant } = await import('#gw2/professions/revenant/profession.js');
   const { revenantTooltips } = await import('#gw2/professions/revenant/app/tooltips.js');
   const { REVENANT_SKILL_IDS: skillIds, REVENANT_TRAIT_IDS: traitIds } =
     await import('#gw2/professions/revenant/data/ids.js');
@@ -1134,7 +1134,7 @@ test('profession trait declarations resolve without missing references or invali
     'ranger',
     'elementalist'
   ]) {
-    const { default: source } = await import(`#gw2/professions/${name}/profession.js`);
+    const { [`${name}Profession`]: source } = await import(`#gw2/professions/${name}/profession.js`);
     const declarations = (await import(`#gw2/professions/${name}/app/tooltips.js`))[`${name}Tooltips`];
     const context = withPatchPreview(source, null).balanceContextFor();
     for (const entity of context.catalog.traits) {
@@ -1148,7 +1148,7 @@ test('profession trait declarations resolve without missing references or invali
 
 // Conditional and recipient-dependent values remain distinct in the rendered facts.
 test('handler-owned tooltips distinguish conditional values and recipients', async () => {
-  const { default: warrior } = await import('#gw2/professions/warrior/profession.js');
+  const { warriorProfession: warrior } = await import('#gw2/professions/warrior/profession.js');
   const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
   const warriorContext = withPatchPreview(warrior, null).balanceContextFor();
   const sundering = describeSimulationTrait(warriorContext, { id: 1316, name: 'Sundering Burst' }, warriorTooltips);

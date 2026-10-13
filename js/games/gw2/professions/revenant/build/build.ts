@@ -71,15 +71,6 @@ const revenantBuildCodec = createProfessionBuildCodec<RevenantCanonicalBuild>({
       minimum: 0,
       maximum: 100
     }
-  },
-  // Dodge replacements come from traits and Alliance starts on Luxon; discard obsolete choices on every load.
-  normalizeExtra(
-    build: RevenantCanonicalBuild & { selectedDodge?: unknown; selectedDodgeSkillId?: unknown; allianceSide?: unknown }
-  ) {
-    delete build.selectedDodge;
-    delete build.selectedDodgeSkillId;
-    delete build.allianceSide;
-    return build;
   }
 });
 

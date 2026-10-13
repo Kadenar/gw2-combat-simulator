@@ -616,18 +616,16 @@ function applyInscriptionAirEntry(
   skill: Skill,
   emissionCast?: EffectDelivery['cast']
 ): void {
-  {
-    emitTraitProfile(context, TRAIT.INSCRIPTION, TRAIT.INSCRIPTION, undefined, {
-      at: at,
-      fullEnd: at,
-      effect: { type: 'boon', name: 'Air Entry' },
-      skillId: skill.id,
-      skillName: skill.name,
-      cast: emissionCast,
-      priority: 0,
-      attribution: { source: 'Trait', sourceId: TRAIT.INSCRIPTION, actorType: 'player', name: skill.name, priority: 0 }
-    });
-  }
+  emitTraitProfile(context, TRAIT.INSCRIPTION, TRAIT.INSCRIPTION, undefined, {
+    at: at,
+    fullEnd: at,
+    effect: { type: 'boon', name: 'Air Entry' },
+    skillId: skill.id,
+    skillName: skill.name,
+    cast: emissionCast,
+    priority: 0,
+    attribution: { source: 'Trait', sourceId: TRAIT.INSCRIPTION, actorType: 'player', name: skill.name, priority: 0 }
+  });
 }
 
 /** A familiar-triggered Air entry refreshes Fresh Air without requiring a preceding different element. */
@@ -637,24 +635,22 @@ function applyFreshAirSyntheticEntry(
   skill: Skill,
   emissionCast?: EffectDelivery['cast']
 ): void {
-  {
-    const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
-    const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
-    if (freshAir) {
-      emitTraitProfile(context, TRAIT.FRESH_AIR, TRAIT.FRESH_AIR, undefined, {
-        at: at,
-        fullEnd: at,
-        effect: { type: 'buff', name: 'fresh-air' },
-        cast: emissionCast,
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.FRESH_AIR,
-          actorType: 'player',
-          skillName: skill.name,
-          skillId: skill.id,
-          name: skill.name
-        }
-      });
-    }
+  const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
+  const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
+  if (freshAir) {
+    emitTraitProfile(context, TRAIT.FRESH_AIR, TRAIT.FRESH_AIR, undefined, {
+      at: at,
+      fullEnd: at,
+      effect: { type: 'buff', name: 'fresh-air' },
+      cast: emissionCast,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.FRESH_AIR,
+        actorType: 'player',
+        skillName: skill.name,
+        skillId: skill.id,
+        name: skill.name
+      }
+    });
   }
 }

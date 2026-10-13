@@ -106,29 +106,21 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
 });
 
 test('Bane Signet Power follows recharge and Perfect Inscriptions from canonical attribute seeds', () => {
-  {
-    for (const traited of [false, true]) {
-      const bonus = 180 * (traited ? 1.2 : 1);
-      const result = createObservedProfessionSimulator(guardianProfession, {
-        ...config,
-        attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, power: 2000 }),
-        selectedSkillIds: [9093],
-        selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS] : []
-      })(undefined, [
-        'Orb of Wrath',
-        'Bane Signet',
-        'Orb of Wrath',
-        { type: 'wait', durationMs: 40000 },
-        'Orb of Wrath'
-      ]);
-      assert.deepEqual(result.warnings, []);
-      const [before, during, after] = result.resolvedEvents.filter(
-        (event) => event.type === 'damage' && event.skillName === 'Orb of Wrath'
-      );
-      // Identical attacks isolate the passive Power contribution from all other damage factors.
-      assert.equal(before.damage, after.damage);
-      assertFlooredDamageMultiplier(during.damage, before.damage, traited ? 1 : 2000 / (2000 + bonus));
-    }
+  for (const traited of [false, true]) {
+    const bonus = 180 * (traited ? 1.2 : 1);
+    const result = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, power: 2000 }),
+      selectedSkillIds: [9093],
+      selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS] : []
+    })(undefined, ['Orb of Wrath', 'Bane Signet', 'Orb of Wrath', { type: 'wait', durationMs: 40000 }, 'Orb of Wrath']);
+    assert.deepEqual(result.warnings, []);
+    const [before, during, after] = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillName === 'Orb of Wrath'
+    );
+    // Identical attacks isolate the passive Power contribution from all other damage factors.
+    assert.equal(before.damage, after.damage);
+    assertFlooredDamageMultiplier(during.damage, before.damage, traited ? 1 : 2000 / (2000 + bonus));
   }
 });
 

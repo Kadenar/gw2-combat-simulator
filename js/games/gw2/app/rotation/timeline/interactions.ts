@@ -42,14 +42,13 @@ export function getSkillDropInsertionIndex(skillElement: HTMLElement, clientX: n
   return clientX < rect.left + rect.width / 2 ? index : index + 1;
 }
 
-/** Binds timeline drag, drop, removal, and editor controls to rendered entries. */
+/** Binds timeline controls and keeps drag cleanup inside the event handlers that own it. */
 export function bindTimelineInteractions(
   root: HTMLElement | null | undefined,
   options: TimelineInteractionOptions
 ):
   | {
       readonly applyDrop: (insertAt: number) => boolean;
-      readonly cleanup: (element: HTMLElement | null | undefined) => void;
     }
   | undefined {
   if (!root) return;
@@ -235,5 +234,5 @@ export function bindTimelineInteractions(
   bindEdit('.rot-double-edge-badge', options.onEditDoubleEdgeOutcome);
   bindEdit('.rot-edit-wait, .rot-wait-badge', options.onEditWait);
 
-  return { applyDrop, cleanup };
+  return { applyDrop };
 }

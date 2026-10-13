@@ -116,12 +116,8 @@ export async function previewDpsReportUrl(
 }
 
 /** Fetches and reconstructs a gw2wingman rotation through the same dps.report preview contract. */
-async function previewWingmanUrl(
-  input: string,
-  app: ProfessionAppState,
-  fetchImplementation: typeof fetch = fetch
-): Promise<RotationImportPreview> {
-  const imported = await readWingmanRotationUrl(input, app, fetchImplementation);
+async function previewWingmanUrl(input: string, app: ProfessionAppState): Promise<RotationImportPreview> {
+  const imported = await readWingmanRotationUrl(input, app);
   return {
     rotation: imported.rotation,
     actionCount: imported.actionCount,

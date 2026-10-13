@@ -466,47 +466,45 @@ function forcefulGreatswordCritical(
   event: Gw2ResolverEvent,
   opportunity: ReturnType<typeof criticalOpportunity>
 ): void {
-  {
-    const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
-    const chance = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
-      'procChance'
-    );
-    const proc = advanceCriticalProc(opportunity, {
-      id: 'warrior.core.forceful-greatsword',
-      at: runtime.time,
-      chanceOnCriticalHit: Math.min(
-        1,
-        chance *
-          (weapons.includes('Greatsword')
-            ? balanceProfileNumber(
-                requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
-                'weaponProcChanceMultiplier'
-              )
-            : 1)
-      ),
-      randomStream: 'warrior.forceful-greatsword',
-      roll: (chance, stream) => runtime.random.roll(chance, stream)
+  const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
+  const chance = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
+    'procChance'
+  );
+  const proc = advanceCriticalProc(opportunity, {
+    id: 'warrior.core.forceful-greatsword',
+    at: runtime.time,
+    chanceOnCriticalHit: Math.min(
+      1,
+      chance *
+        (weapons.includes('Greatsword')
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
+              'weaponProcChanceMultiplier'
+            )
+          : 1)
+    ),
+    randomStream: 'warrior.forceful-greatsword',
+    roll: (chance, stream) => runtime.random.roll(chance, stream)
+  });
+  if (proc) {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD);
+    emitTraitProfile(runtime, TRAIT.FORCEFUL_GREATSWORD, TRAIT.FORCEFUL_GREATSWORD, event, {
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.FORCEFUL_GREATSWORD,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      transform: (packet) => ({
+        ...packet,
+        priority: 5,
+        name: traitProfile.name,
+        stacks: proc.quantity * Number(packet.stacks)
+      }),
+      effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
     });
-    if (proc) {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD);
-      emitTraitProfile(runtime, TRAIT.FORCEFUL_GREATSWORD, TRAIT.FORCEFUL_GREATSWORD, event, {
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.FORCEFUL_GREATSWORD,
-          actorType: 'effect',
-          skillId: event.skillId,
-          skillName: event.skillName
-        },
-        transform: (packet) => ({
-          ...packet,
-          priority: 5,
-          name: traitProfile.name,
-          stacks: proc.quantity * Number(packet.stacks)
-        }),
-        effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type)
-      });
-    }
   }
 }
 
@@ -516,26 +514,22 @@ function berserkersPowerDragonSlash(
   cast: RuntimeCast<WarriorSkill>,
   adrenalineSpent: number
 ): void {
-  {
-    {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
-      emitTraitProfile(runtime, TRAIT.BERSERKERS_POWER, TRAIT.BERSERKERS_POWER, undefined, {
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.BERSERKERS_POWER,
-          actorType: 'effect',
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id
-        },
-        transform: (event) => ({
-          ...event,
-          name: traitProfile.name,
-          stacks: (adrenalineSpent / 10) * balanceProfileNumber(traitProfile, 'stackMultiplier') + Number(event.stacks),
-          priority: 5
-        }),
-        effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
-      });
-    }
-  }
+  const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
+  emitTraitProfile(runtime, TRAIT.BERSERKERS_POWER, TRAIT.BERSERKERS_POWER, undefined, {
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.BERSERKERS_POWER,
+      actorType: 'effect',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({
+      ...event,
+      name: traitProfile.name,
+      stacks: (adrenalineSpent / 10) * balanceProfileNumber(traitProfile, 'stackMultiplier') + Number(event.stacks),
+      priority: 5
+    }),
+    effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
+  });
 }

@@ -44,7 +44,8 @@ function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | nu
   };
 }
 
-export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext, offsetMs = 0): RotationCommand[] {
+/** The combined palette action starts the active autoattack concurrently with dodge takeoff. */
+export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext): RotationCommand[] {
   const autoattack = activeAutoattack(context);
   if (!autoattack) return [];
   return [
@@ -55,8 +56,8 @@ export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext, o
     {
       type: 'cast',
       skillId: autoattack.id,
-      // Pay endurance at takeoff, then place the auto inside the jump using its relative offset.
-      concurrentOffsetMs: Math.max(0, Math.round(offsetMs || 0))
+      // Pay endurance at takeoff before the concurrent auto starts inside the jump.
+      concurrentOffsetMs: 0
     }
   ];
 }

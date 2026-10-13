@@ -307,33 +307,32 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
     !context.procs.claimCooldown('necromancer.scourge.demonicLore', event.at, balanceProfileNumber(profile, 'cooldown'))
   )
     return;
-  {
-    /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
-      context,
-      TRAIT.DEMONIC_LORE,
-      TRAIT.DEMONIC_LORE,
-      undefined,
-      {
-        at: event.at,
-        fullEnd: event.at,
-        effect: { type: 'condition', name: 'Burning' },
-        settlement: 'reaction',
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.DEMONIC_LORE,
-          actorType: 'effect',
-          skillName: 'Demonic Lore',
-          triggeredBy: event.skillName,
-          ownerActorType: 'player',
-          name: 'Demonic Lore' + ' - ' + String(effect.condition)
-        }
+
+  /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
+    context,
+    TRAIT.DEMONIC_LORE,
+    TRAIT.DEMONIC_LORE,
+    undefined,
+    {
+      at: event.at,
+      fullEnd: event.at,
+      effect: { type: 'condition', name: 'Burning' },
+      settlement: 'reaction',
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.DEMONIC_LORE,
+        actorType: 'effect',
+        skillName: 'Demonic Lore',
+        triggeredBy: event.skillName,
+        ownerActorType: 'player',
+        name: 'Demonic Lore' + ' - ' + String(effect.condition)
       }
-    );
-    context.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'trait', name: 'Demonic Lore', at: event.at, sourceSkill: event.skillName }
-    });
-  }
+    }
+  );
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: 'Demonic Lore', at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 /** Burning rewards follow Demonic Lore at the same accepted condition boundary. */

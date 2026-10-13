@@ -30,5 +30,3 @@ export const thiefProfession = defineNativeProfession({
   },
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet
 });
-
-export default thiefProfession;

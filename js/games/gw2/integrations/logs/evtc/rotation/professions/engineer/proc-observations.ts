@@ -34,7 +34,6 @@ const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
 ]);
 
 export interface EngineerShrapnelObservation {
-  readonly targetAddress: bigint;
   readonly explosionHits: number;
   readonly matchedApplications: number;
   readonly observedProcRate: number;
@@ -137,7 +136,6 @@ export function analyzeEngineerShrapnelObservation(
   const matchedApplications = countPairedApplications(bleeding, crippled);
 
   return {
-    targetAddress,
     explosionHits,
     matchedApplications,
     observedProcRate: matchedApplications / explosionHits,

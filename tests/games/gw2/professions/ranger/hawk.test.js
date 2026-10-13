@@ -85,28 +85,26 @@ test('Lacerating Slash applies six bleeding stacks across two hits', () => {
 test('pet Screech scales only with Lingering Magic while merged Screech uses player boon duration', () => {
   const concentrationBonus = rangerCatalog.balanceProfilesById.get(TRAIT.LINGERING_MAGIC).attributeBonus;
   for (const trait of [false, true]) {
-    {
-      const result = runRanger([ID.QUICKENING_SCREECH_PET, wait(1000)], {
-        ...hawk,
-        attributeInputs: baseAttributeInputs({
-          concentration: 1500,
-          boonDurationBonus: 50,
-          boonDurationBonuses: { Swiftness: 50 }
-        }),
-        selectedTraitIds: trait ? [TRAIT.LINGERING_MAGIC] : [],
-        allies: { count: 4 }
-      });
-      assert.deepEqual(result.warnings, []);
-      const boon = result.resolvedEvents.find(
-        (event) => event.type === 'buff' && event.skillId === ID.QUICKENING_SCREECH_PET
-      );
-      assert.equal(boon.duration, 10 * (1 + (trait ? concentrationBonus : 0) / 1500));
-      assert.equal(boon.resolvedAudience.includesSelf, true);
-      // The casting pet and ranger occupy two of the five recipient slots.
-      assert.equal(boon.resolvedAudience.alliedPlayerCount, 3);
-      assert.equal(boon.resolvedAudience.recipientCount, 5);
-      assert.equal(boon.actorType, 'summon');
-    }
+    const result = runRanger([ID.QUICKENING_SCREECH_PET, wait(1000)], {
+      ...hawk,
+      attributeInputs: baseAttributeInputs({
+        concentration: 1500,
+        boonDurationBonus: 50,
+        boonDurationBonuses: { Swiftness: 50 }
+      }),
+      selectedTraitIds: trait ? [TRAIT.LINGERING_MAGIC] : [],
+      allies: { count: 4 }
+    });
+    assert.deepEqual(result.warnings, []);
+    const boon = result.resolvedEvents.find(
+      (event) => event.type === 'buff' && event.skillId === ID.QUICKENING_SCREECH_PET
+    );
+    assert.equal(boon.duration, 10 * (1 + (trait ? concentrationBonus : 0) / 1500));
+    assert.equal(boon.resolvedAudience.includesSelf, true);
+    // The casting pet and ranger occupy two of the five recipient slots.
+    assert.equal(boon.resolvedAudience.alliedPlayerCount, 3);
+    assert.equal(boon.resolvedAudience.recipientCount, 5);
+    assert.equal(boon.actorType, 'summon');
   }
 
   const merged = runRanger([ID.QUICKENING_SCREECH], {

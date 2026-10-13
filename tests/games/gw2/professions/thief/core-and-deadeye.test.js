@@ -197,7 +197,9 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
     assert.equal(state.bonusStealthAttack.expiresAt, 9);
     const before = structuredClone(state.bonusStealthAttack);
     for (const at of [8, 9, 10]) {
-      assert.equal(thiefBonusStealthAttack(context, at), at < 9);
+      // Runtime admission and the palette must agree before, at, and after the charge expires.
+      runtime.time = at;
+      assert.equal(thiefBonusStealthAttack(context), at < 9);
       const skill = runtime.helpers.skillsByName.get(deadeye ? 'Malicious Backstab' : 'Backstab');
       assert.equal(
         thiefProfession.ui.paletteOverride(

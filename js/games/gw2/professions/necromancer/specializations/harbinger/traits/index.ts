@@ -500,22 +500,20 @@ function applyCascadingCorruption(
 
 /** Elixir boons are chosen at launch, after the shared Blight transaction. */
 function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOLSTERING_BREW);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: cast.skill,
-      effects: (profile.effects ?? []).map((effect) => ({
-        ...effect,
-        atMs: 0,
-        // Elixir casting owns the timing; Bolstering Brew owns these additional grants.
-        source: 'Trait',
-        sourceId: TRAIT.BOLSTERING_BREW,
-        audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? necromancerPartyAudience(runtime) : undefined
-      })),
-      ...harbingerCastEmissionPolicy(cast, cast.skill)
-    });
-  }
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOLSTERING_BREW);
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: cast.skill,
+    effects: (profile.effects ?? []).map((effect) => ({
+      ...effect,
+      atMs: 0,
+      // Elixir casting owns the timing; Bolstering Brew owns these additional grants.
+      source: 'Trait',
+      sourceId: TRAIT.BOLSTERING_BREW,
+      audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? necromancerPartyAudience(runtime) : undefined
+    })),
+    ...harbingerCastEmissionPolicy(cast, cast.skill)
+  });
 }
 
 /** Entry grants follow the new form state and precede the first Blight deadline. */

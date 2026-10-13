@@ -313,19 +313,18 @@ function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): bool
     preserveName: true,
     transform: (packet) => ({ ...packet, causalOrder: event.causalOrder ?? event.eventOrder })
   });
-  {
-    runtime.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'trait',
-        name: profile.name,
-        at: runtime.time,
-        sourceSkill: 'Resolution',
-        detail: 'Resolution active',
-        icon: guardianTraitIcon(TRAIT.RIGHTEOUS_INSTINCTS)
-      }
-    });
-  }
+
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: profile.name,
+      at: runtime.time,
+      sourceSkill: 'Resolution',
+      detail: 'Resolution active',
+      icon: guardianTraitIcon(TRAIT.RIGHTEOUS_INSTINCTS)
+    }
+  });
 
   return true;
 }

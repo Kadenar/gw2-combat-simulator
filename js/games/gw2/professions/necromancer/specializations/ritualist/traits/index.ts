@@ -214,18 +214,16 @@ function summonExplosiveGrowth(
 
 /** Summon boons follow the shared creature reactions and precede autonomous scheduling. */
 function applyEmpoweringSpirits(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, key: string): void {
-  {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERING_SPIRITS);
-    for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
-      const effect = requireEffect(profile, 'boon', kind);
-      if (effect) {
-        runtime.effects.emit({
-          kind: 'profile',
-          profile: profile,
-          effects: [effect],
-          ...ritualistPartyBoonPolicy(runtime, cast)
-        });
-      }
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERING_SPIRITS);
+  for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
+    const effect = requireEffect(profile, 'boon', kind);
+    if (effect) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: profile,
+        effects: [effect],
+        ...ritualistPartyBoonPolicy(runtime, cast)
+      });
     }
   }
 }

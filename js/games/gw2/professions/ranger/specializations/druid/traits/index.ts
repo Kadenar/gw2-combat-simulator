@@ -184,22 +184,20 @@ export const druidTraits = [naturalMender, naturalBalance, graceOfTheLand, eclip
 
 /** Fires at the Avatar transition before chain reset and swap reactions. */
 function applyNaturalBalance(runtime: RangerRuntime): void {
-  {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_BALANCE);
-    const effect = requireEffect(profile, 'buff', 'natural-balance');
-    if (effect)
-      emitTraitProfile(runtime, TRAIT.NATURAL_BALANCE, TRAIT.NATURAL_BALANCE, undefined, {
-        at: runtime.time,
-        fullEnd: runtime.time,
-        effect: { type: 'buff', name: 'natural-balance' },
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.NATURAL_BALANCE,
-          skillId: TRAIT.NATURAL_BALANCE,
-          skillName: 'Natural Balance',
-          actorType: 'player',
-          name: 'Natural Balance'
-        }
-      });
-  }
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_BALANCE);
+  const effect = requireEffect(profile, 'buff', 'natural-balance');
+  if (effect)
+    emitTraitProfile(runtime, TRAIT.NATURAL_BALANCE, TRAIT.NATURAL_BALANCE, undefined, {
+      at: runtime.time,
+      fullEnd: runtime.time,
+      effect: { type: 'buff', name: 'natural-balance' },
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.NATURAL_BALANCE,
+        skillId: TRAIT.NATURAL_BALANCE,
+        skillName: 'Natural Balance',
+        actorType: 'player',
+        name: 'Natural Balance'
+      }
+    });
 }

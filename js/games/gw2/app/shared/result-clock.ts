@@ -14,10 +14,7 @@ export function formatTimelineTime(timeMs: unknown, referenceMs: unknown = 0, di
   return `${normalized.toFixed(digits)}s`;
 }
 
-export function formatResultTimelineTime(
-  timeMs: unknown,
-  result: Gw2SimulationResult | null | undefined,
-  digits = 3
-): string {
-  return formatTimelineTime(timeMs, resultCombatReferenceMs(result), digits);
+/** Result timestamps use millisecond precision relative to the observed combat start. */
+export function formatResultTimelineTime(timeMs: unknown, result: Gw2SimulationResult | null | undefined): string {
+  return formatTimelineTime(timeMs, resultCombatReferenceMs(result), 3);
 }

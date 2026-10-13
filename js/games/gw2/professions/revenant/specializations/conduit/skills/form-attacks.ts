@@ -1,5 +1,4 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -14,7 +13,8 @@ export const UPKEEP_DAGGERS = 'revenant.conduit-upkeep-daggers';
 // A cast started in Dervish form keeps its scythe through form expiry or a concurrent legend swap.
 export const dervishCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
 
-export function lesserDaggers(runtime: RevenantRuntime, source: Skill, cause?: Gw2ResolverEvent): void {
+/** Active Assassin form emits an independent dagger proc for a completed skill or upkeep pulse. */
+export function lesserDaggers(runtime: RevenantRuntime, source: Skill): void {
   if (!revenantConduitFormIsActive(conduitState.from(runtime), 'Assassin', runtime.time)) return;
   const skill = runtime.helpers.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
   if (!skill) throw new Error('Missing Lesser Enchanted Daggers skill declaration.');
@@ -34,7 +34,6 @@ export function lesserDaggers(runtime: RevenantRuntime, source: Skill, cause?: G
       skillName: skill.name,
       triggeredBy: source.name
     },
-    cause,
     transform: (event) => ({
       ...event,
       name: 'Lesser Enchanted Daggers',

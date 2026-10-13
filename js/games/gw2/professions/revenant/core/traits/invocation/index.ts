@@ -217,22 +217,20 @@ export const spiritBoon = defineTrait({
 
 /** Runs the trait at its original ordered mechanic boundary. */
 function invokeInvokersRage(runtime: RevenantRuntime): void {
-  {
-    const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.INVOKERS_RAGE);
-    emitTraitProfile(runtime, TRAIT.INVOKERS_RAGE, invocationProfile.id, undefined, {
-      preserveName: true,
-      effects: (effect) => (invocationProfile.effects ?? []).includes(effect),
-      attribution: (effect) => ({
-        activationId: `legend-invocation:${TRAIT.INVOKERS_RAGE}:${runtime.time}`,
-        source: 'Trait',
-        sourceId: TRAIT.INVOKERS_RAGE,
-        actorType: effect.actorType || 'player',
-        skillId: invocationProfile.id,
-        skillName: invocationProfile.name
-      }),
-      skillWeaponFallback: 'Unequipped'
-    });
-  }
+  const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.INVOKERS_RAGE);
+  emitTraitProfile(runtime, TRAIT.INVOKERS_RAGE, invocationProfile.id, undefined, {
+    preserveName: true,
+    effects: (effect) => (invocationProfile.effects ?? []).includes(effect),
+    attribution: (effect) => ({
+      activationId: `legend-invocation:${TRAIT.INVOKERS_RAGE}:${runtime.time}`,
+      source: 'Trait',
+      sourceId: TRAIT.INVOKERS_RAGE,
+      actorType: effect.actorType || 'player',
+      skillId: invocationProfile.id,
+      skillName: invocationProfile.name
+    }),
+    skillWeaponFallback: 'Unequipped'
+  });
 }
 
 /** Runs the trait at its original ordered mechanic boundary. */

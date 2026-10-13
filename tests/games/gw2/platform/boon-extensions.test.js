@@ -225,27 +225,26 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
   ]) {
     const config = { specialization, selectedTraitIds: [], boons: { vigor: false } };
     const simulate = specialization === 'Mirage' ? runMesmer : runElementalist;
-    {
-      for (const [at, expected] of [
-        [3, 22.5],
-        [5, 35]
-      ]) {
-        const result = simulate([{ type: 'wait', durationMs: at * 1000 }], config, {
-          profession,
-          initialize(runtime) {
-            runtime.endurance.spend(100);
-            runtime.effects.emit({ kind: 'packet', event: buff(0, 2, self, 'vigor') });
-            runtime.effects.emit({ kind: 'packet', event: { ...buff(1, 2, self, 'vigor'), type: 'boon_extension' } });
-          }
-        });
-        assert.equal(
-          (specialization === 'Mirage'
-            ? observedRuntime(result).profession.specialization.state
-            : observedRuntime(result).profession.core
-          ).endurance.value,
-          expected
-        );
-      }
+
+    for (const [at, expected] of [
+      [3, 22.5],
+      [5, 35]
+    ]) {
+      const result = simulate([{ type: 'wait', durationMs: at * 1000 }], config, {
+        profession,
+        initialize(runtime) {
+          runtime.endurance.spend(100);
+          runtime.effects.emit({ kind: 'packet', event: buff(0, 2, self, 'vigor') });
+          runtime.effects.emit({ kind: 'packet', event: { ...buff(1, 2, self, 'vigor'), type: 'boon_extension' } });
+        }
+      });
+      assert.equal(
+        (specialization === 'Mirage'
+          ? observedRuntime(result).profession.specialization.state
+          : observedRuntime(result).profession.core
+        ).endurance.value,
+        expected
+      );
     }
   }
 });

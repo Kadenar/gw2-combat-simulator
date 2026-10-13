@@ -5,12 +5,11 @@ import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 /** GW2 completes calculated cast durations on 40 ms action-tick boundaries. */
 export const GW2_ACTION_TICK_MS = 40;
 
-/** Rounds a positive duration up to the next server/action interval. */
-export function quantizeGw2ActionDurationUp(value: number, interval = GW2_ACTION_TICK_MS): number {
+/** Rounds a positive duration up to the fixed GW2 action tick without admitting an earlier boundary. */
+export function quantizeGw2ActionDurationUp(value: number): number {
   if (!(value > 0)) return 0;
   // Integer clock units preserve exact boundaries without admitting an earlier action tick.
-  const intervalKey = timeKey(interval / 1000);
-  if (intervalKey <= 0) throw new RangeError('Action intervals must span at least one canonical microsecond.');
+  const intervalKey = timeKey(GW2_ACTION_TICK_MS / 1000);
   return (Math.ceil(timeKey(value / 1000) / intervalKey) * intervalKey) / 1000;
 }
 

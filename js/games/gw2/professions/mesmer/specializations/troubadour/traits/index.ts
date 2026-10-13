@@ -663,75 +663,47 @@ function resolveAlteredChord(
   context: MesmerRuntime,
   { skill, damageAt, delivery, lastInstrument }: TriggerPointInput<typeof troubadourCrescendoResolved>
 ): void {
-  {
-    if (lastInstrument === 'Lute') {
-      const alteredChordProfile = requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD);
-      // The activation owns its status row without changing the status's post-strike priority.
-      const proc = context.effects.emit({
-        receipt: true,
-        ...delivery,
-        kind: 'announcement',
-        log: true,
-        attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
-        announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Lute' }
+  if (lastInstrument === 'Lute') {
+    const alteredChordProfile = requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD);
+    // The activation owns its status row without changing the status's post-strike priority.
+    const proc = context.effects.emit({
+      receipt: true,
+      ...delivery,
+      kind: 'announcement',
+      log: true,
+      attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
+      announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Lute' }
+    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'buff',
+        at: damageAt,
+        source: 'Trait',
+        sourceId: TRAIT.ALTERED_CHORD,
+        skillId: TRAIT.ALTERED_CHORD,
+        skillName: alteredChordProfile.name,
+        sourceSkill: skill.name,
+        // Altered Chord must not modify the Crescendo strike that triggered it.
+        priority: 5,
+        kind: 'altered-chord',
+        stacks: 1,
+        duration: balanceProfileNumber(alteredChordProfile, 'durationMultiplier')
       });
-      {
-        const packet = buildMesmerPacket({
-          type: 'buff',
-          at: damageAt,
-          source: 'Trait',
-          sourceId: TRAIT.ALTERED_CHORD,
-          skillId: TRAIT.ALTERED_CHORD,
-          skillName: alteredChordProfile.name,
-          sourceSkill: skill.name,
-          // Altered Chord must not modify the Crescendo strike that triggered it.
-          priority: 5,
-          kind: 'altered-chord',
-          stacks: 1,
-          duration: balanceProfileNumber(alteredChordProfile, 'durationMultiplier')
-        });
-        context.effects.emit({
-          ...delivery,
-          kind: 'packet',
-          cause: proc,
-          event: packet,
-          owner: mesmerPacketOwner(packet),
-          priority: Number(packet.priority ?? 0)
-        });
-      }
-    } else if (lastInstrument === 'Flute') {
-      const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, 'Confusion');
-      if (condition)
-        buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {
-          skillId: skill.id
-        }).forEach((packet) => {
-          context.effects.emit({
-            ...delivery,
-            kind: 'packet',
-            event: packet,
-            owner: mesmerPacketOwner(packet),
-            priority: Number(packet.priority ?? 0)
-          });
-        });
-      if (condition)
-        context.effects.emit({
-          ...delivery,
-          kind: 'announcement',
-          log: true,
-          attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
-          announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Flute' }
-        });
-    } else if (lastInstrument === 'Drum') {
-      {
-        const packet = buildMesmerPacket({
-          type: 'control',
-          at: damageAt,
-          skillId: skill.id,
-          skillName: skill.name,
-          source: 'Player',
-          sourceId: TRAIT.ALTERED_CHORD,
-          actorType: 'player'
-        });
+      context.effects.emit({
+        ...delivery,
+        kind: 'packet',
+        cause: proc,
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+  } else if (lastInstrument === 'Flute') {
+    const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, 'Confusion');
+    if (condition)
+      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {
+        skillId: skill.id
+      }).forEach((packet) => {
         context.effects.emit({
           ...delivery,
           kind: 'packet',
@@ -739,16 +711,42 @@ function resolveAlteredChord(
           owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
-      }
-
+      });
+    if (condition)
       context.effects.emit({
         ...delivery,
         kind: 'announcement',
         log: true,
         attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
-        announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Drum' }
+        announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Flute' }
+      });
+  } else if (lastInstrument === 'Drum') {
+    {
+      const packet = buildMesmerPacket({
+        type: 'control',
+        at: damageAt,
+        skillId: skill.id,
+        skillName: skill.name,
+        source: 'Player',
+        sourceId: TRAIT.ALTERED_CHORD,
+        actorType: 'player'
+      });
+      context.effects.emit({
+        ...delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
       });
     }
+
+    context.effects.emit({
+      ...delivery,
+      kind: 'announcement',
+      log: true,
+      attribution: { source: 'Trait', sourceId: TRAIT.ALTERED_CHORD, actorType: 'effect' },
+      announcement: { type: 'trait', name: 'Altered Chord', at: damageAt, sourceSkill: skill.name, detail: 'Drum' }
+    });
   }
 }
 
@@ -757,23 +755,21 @@ function queueFortissimoNotes(
   context: MesmerRuntime,
   { at }: TriggerPointInput<typeof troubadourCrescendoResolved>
 ): void {
-  {
-    const fortissimoProfile = requireBalanceProfileFromContext(context, TRAIT.FORTISSIMO);
-    const applications = balanceProfileNumber(fortissimoProfile, 'maximumStacks');
-    const interval = balanceProfileNumber(fortissimoProfile, 'pulseInterval');
-    const resourceGain = balanceProfileNumber(fortissimoProfile, 'resourceGain');
-    for (let index = 1; index <= applications; index += 1) {
-      createMesmerIllusionRewards(context).queueResources(
-        at + index * interval,
-        resourceGain,
-        mesmerActivePrimaryWeapon(context),
-        'Fortissimo',
-        {
-          traitId: TRAIT.FORTISSIMO,
-          traitName: 'Fortissimo'
-        }
-      );
-    }
+  const fortissimoProfile = requireBalanceProfileFromContext(context, TRAIT.FORTISSIMO);
+  const applications = balanceProfileNumber(fortissimoProfile, 'maximumStacks');
+  const interval = balanceProfileNumber(fortissimoProfile, 'pulseInterval');
+  const resourceGain = balanceProfileNumber(fortissimoProfile, 'resourceGain');
+  for (let index = 1; index <= applications; index += 1) {
+    createMesmerIllusionRewards(context).queueResources(
+      at + index * interval,
+      resourceGain,
+      mesmerActivePrimaryWeapon(context),
+      'Fortissimo',
+      {
+        traitId: TRAIT.FORTISSIMO,
+        traitName: 'Fortissimo'
+      }
+    );
   }
 }
 

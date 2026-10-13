@@ -283,19 +283,15 @@ function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): v
 }
 
 function restoreMaliciousIntent(runtime: ThiefRuntime): void {
-  {
-    runtime.resourceController.grant(
-      'malice',
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
-    );
-    runtime.fireTrigger(maliceGained, { cast: null });
-  }
+  runtime.resourceController.grant(
+    'malice',
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
+  );
+  runtime.fireTrigger(maliceGained, { cast: null });
 }
 
 function grantOneInTheChamber(runtime: ThiefRuntime): void {
-  {
-    storeThiefStolenSkillChoices(runtime, stolenSkillGrant(runtime));
-  }
+  storeThiefStolenSkillChoices(runtime, stolenSkillGrant(runtime));
 }
 
 function grantSilentScope(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {

@@ -16,7 +16,6 @@ test('game worker endpoints route by game and content and serialize errors', asy
   };
   createGameWorkerEndpoint({
     scope,
-    echo: ({ revision }) => ({ revision }),
     async loadDriver({ contentId }) {
       if (contentId === 'missing') return null;
 
@@ -31,19 +30,19 @@ test('game worker endpoints route by game and content and serialize errors', asy
     }
   });
 
-  await listener({ data: { requestId: 17, revision: 4, request: { gameId: 'fake', contentId: 'engineer' } } });
-  await listener({ data: { requestId: 18, revision: 5, request: { gameId: 'fake', contentId: 'missing' } } });
-  await listener({ data: { requestId: 19, revision: 6, request: { gameId: 'fake', contentId: 'load-failure' } } });
+  await listener({ data: { requestId: 17, request: { gameId: 'fake', contentId: 'engineer' } } });
+  await listener({ data: { requestId: 18, request: { gameId: 'fake', contentId: 'missing' } } });
+  await listener({ data: { requestId: 19, request: { gameId: 'fake', contentId: 'load-failure' } } });
   await listener({
-    data: { requestId: 20, revision: 7, request: { gameId: 'fake', contentId: 'engineer', fail: true } }
+    data: { requestId: 20, request: { gameId: 'fake', contentId: 'engineer', fail: true } }
   });
 
   assert.deepEqual(posted, [
-    { requestId: 17, revision: 4, progress: 0.5 },
-    { requestId: 17, revision: 4, output: 'complete' },
-    { requestId: 18, revision: 5, error: 'No worker driver for fake/missing.' },
-    { requestId: 19, revision: 6, error: 'Adapter import failed.' },
-    { requestId: 20, revision: 7, error: 'Simulation failed.' }
+    { requestId: 17, progress: 0.5 },
+    { requestId: 17, output: 'complete' },
+    { requestId: 18, error: 'No worker driver for fake/missing.' },
+    { requestId: 19, error: 'Adapter import failed.' },
+    { requestId: 20, error: 'Simulation failed.' }
   ]);
 });
 

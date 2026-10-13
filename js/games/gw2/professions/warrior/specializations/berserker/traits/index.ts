@@ -292,50 +292,46 @@ export const warriorBerserkerTraits = [
 
 /** Own this trait's reward at the accepted mechanic boundary. */
 function burstOfAggressionEntry(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_OF_AGGRESSION);
-    emitTraitProfile(runtime, TRAIT.BURST_OF_AGGRESSION, TRAIT.BURST_OF_AGGRESSION, undefined, {
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.BURST_OF_AGGRESSION,
-        actorType: 'effect',
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name
-      },
-      transform: (event) => ({
-        ...event,
-        name: profile.name,
-        duration: event.duration,
-        audience: { recipients: 'self' }
-      }),
-      effects: (effect) => effect.type === 'boon'
-    });
-  }
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_OF_AGGRESSION);
+  emitTraitProfile(runtime, TRAIT.BURST_OF_AGGRESSION, TRAIT.BURST_OF_AGGRESSION, undefined, {
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.BURST_OF_AGGRESSION,
+      actorType: 'effect',
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name
+    },
+    transform: (event) => ({
+      ...event,
+      name: profile.name,
+      duration: event.duration,
+      audience: { recipients: 'self' }
+    }),
+    effects: (effect) => effect.type === 'boon'
+  });
 }
 
 /** Own this trait's reward at the accepted mechanic boundary. */
 function bloodyRoarEntry(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODY_ROAR);
-    emitTraitProfile(runtime, TRAIT.BLOODY_ROAR, TRAIT.BLOODY_ROAR, undefined, {
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.BLOODY_ROAR,
-        actorType: 'effect',
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name
-      },
-      transform: (event) => ({
-        ...event,
-        name: profile.name,
-        duration: event.duration,
-        audience: { recipients: 'self' }
-      }),
-      effects: (effect) => effect.type === 'boon'
-    });
-  }
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODY_ROAR);
+  emitTraitProfile(runtime, TRAIT.BLOODY_ROAR, TRAIT.BLOODY_ROAR, undefined, {
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.BLOODY_ROAR,
+      actorType: 'effect',
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name
+    },
+    transform: (event) => ({
+      ...event,
+      name: profile.name,
+      duration: event.duration,
+      audience: { recipients: 'self' }
+    }),
+    effects: (effect) => effect.type === 'boon'
+  });
 }
 
 /** Own this trait's reward at the accepted mechanic boundary. */

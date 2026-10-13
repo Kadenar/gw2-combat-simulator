@@ -75,7 +75,7 @@ test('invalid transitions do not emit input recovery', () => {
     name: 'Denied Transition',
     catalog,
     hooks: {
-      availability: (context, skill) =>
+      availability: (_context, skill) =>
         skill.id === 2
           ? { ready: false, retryAt: null, reason: 'Unavailable', code: 'fixture.denied' }
           : { ready: true }

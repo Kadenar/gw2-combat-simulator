@@ -371,13 +371,11 @@ function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerSh
 
 /** Start the passive only after Virtuoso has installed its blade lifecycle; pulses schedule their own successor. */
 function startInfiniteForge(context: MesmerRuntime): void {
-  {
-    const interval = balanceProfileNumber(
-      requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE),
-      'pulseInterval'
-    );
-    if (interval > 0) context.schedule('mesmer.infinite-forge', interval, undefined, undefined, -20);
-  }
+  const interval = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE),
+    'pulseInterval'
+  );
+  if (interval > 0) context.schedule('mesmer.infinite-forge', interval, undefined, undefined, -20);
 }
 
 /** Blade critical rewards preserve Deadly Blades before Jagged Mind and each packet's original actor ownership. */

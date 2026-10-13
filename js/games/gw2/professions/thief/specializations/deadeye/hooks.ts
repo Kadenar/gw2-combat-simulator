@@ -37,7 +37,9 @@ const DEADEYE_COMPLETE = 'thief.deadeye-complete';
 // A malicious attack's damage bonus uses the malice it was cast with, even after its first hit spends it.
 const maliceSnapshots = new WeakMap<object, Map<string, number>>();
 
-function marked(runtime: ThiefRuntime, at = runtime.time): boolean {
+/** Malice rewards and cast snapshots require a mark still active at the live combat clock. */
+function marked(runtime: ThiefRuntime): boolean {
+  const at = runtime.time;
   const state = deadeyeState.from(runtime);
   return Boolean(state.markedTargetId) && state.markExpiresAt > at;
 }

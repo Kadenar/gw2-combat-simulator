@@ -669,8 +669,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   for (const selected of [false, true]) {
     const query = createGw2CombatQuery({
       profession: resolveProfessionContract(rangerProfession, { specialization: 'Core' }),
-      config: {},
-      traits: new Set(selected ? [TRAIT.POISON_MASTER] : [])
+      config: { selectedTraitIds: selected ? [TRAIT.POISON_MASTER] : [] }
     });
     assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'player' }), selected ? 1.25 : 1);
     assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'summon', independentConditionOwner: true }), 1);

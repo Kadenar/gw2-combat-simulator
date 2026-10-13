@@ -256,8 +256,9 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
 }
 
 const integer = (value: number): string => Math.round(value).toLocaleString('en-US');
-const percent = (fraction: number, digits = 1): string => `${(fraction * 100).toFixed(digits)}%`;
-const factor = (value: number): string => `×${value.toFixed(3)}`;
+// Preview percentages share one decimal so critical chance and critical damage read consistently.
+const percent = (fraction: number): string => `${(fraction * 100).toFixed(1)}%`;
+const factor = (value: number): string => `x${value.toFixed(3)}`;
 const signedPercent = (fraction: number): string => `${fraction >= 0 ? '+' : ''}${(fraction * 100).toFixed(1)}%`;
 
 /** Stats with this panel's values; a changed value names its no-preview baseline, as the Attribute Preview does. */

@@ -50,5 +50,3 @@ export const mesmerProfession = defineNativeProfession({
     ]
   }
 });
-
-export default mesmerProfession;

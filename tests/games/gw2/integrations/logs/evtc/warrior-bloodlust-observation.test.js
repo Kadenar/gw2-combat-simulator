@@ -104,7 +104,6 @@ test('compares critical packets with duration-matched Bloodlust applications on 
   );
 
   assert.deepEqual(result, {
-    targetAddress: TARGET,
     criticalHits: 5,
     matchedApplications: 2,
     observedProcRate: 0.4,

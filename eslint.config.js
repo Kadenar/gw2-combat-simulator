@@ -118,6 +118,9 @@ export default [
     },
 
     rules: {
+      // Reject redundant control-flow scaffolding left behind by removed branches.
+      'no-lone-blocks': 'error',
+      'no-useless-return': 'error',
       '@stylistic/padding-line-between-statements': [
         'error',
         // Blank line after block-like statements, including ordinary braced if statements.

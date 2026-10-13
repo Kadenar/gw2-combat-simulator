@@ -21,8 +21,6 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 export interface MesmerSharperImagesObservation {
-  readonly targetAddress: bigint;
-  readonly cloneCriticalHits: number;
   readonly matchedApplications: number;
   readonly observedProcRate: number;
   readonly expectedProcChance: number;
@@ -113,8 +111,6 @@ export function analyzeMesmerSharperImagesObservation(
   const expectedProcChance = 1;
 
   return {
-    targetAddress,
-    cloneCriticalHits: criticalHits.length,
     matchedApplications,
     observedProcRate: matchedApplications / criticalHits.length,
     expectedProcChance,
