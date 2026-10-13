@@ -32,6 +32,7 @@ import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profe
 import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
 import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
+import { swordFlipLifecycle } from '#gw2/professions/warrior/core/skills/weapons/sword.js';
 
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource, warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
@@ -209,5 +210,6 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 /** Install the complete skill lifecycle so new signet callbacks retain their owner automatically. */
 export const warriorCoreHooks = composeRuntimeHooks<WarriorRuntimeState, WarriorSkill>([
   coreLifecycle,
+  swordFlipLifecycle,
   signetOfRageLifecycle
 ]);

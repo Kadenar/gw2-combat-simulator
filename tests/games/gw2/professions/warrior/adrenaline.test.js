@@ -13,7 +13,7 @@ test('Adrenaline Rush grants adrenaline without damage or on-hit resource gains'
     const result = observeGw2Runtime({
       profession: warriorProfession.runtimeFor(config),
       config,
-      rotation: ['Adrenaline Rush']
+      rotation: ['Riposte', 'Adrenaline Rush']
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(observedRuntime(result).profession.core.adrenaline.value, expected);

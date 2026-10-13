@@ -2,6 +2,9 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HAMSTRING]: {
@@ -110,11 +113,24 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     )
   },
   [ID.RIPOSTE]: {
+    // Release the block early by default so its follow-up can be selected within the original channel window.
+    defaultInterruptMs: 200,
+    interruptCommitMs: 80,
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime, cast) => runtime.time < cast.fullEnd,
+        do: { type: 'warrior.riposte-arm' }
+      }
+    ],
     castTimeMs: 2400,
     effects: []
   },
   [ID.IMPALE]: {
-    castTimeMs: 420,
+    // Expose Rip for the embedded sword's lifetime, independently of Impale's recharge.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.RIP, durationSec: 4 } }],
+    // Use the reviewed cast durations, with the shorter recovery selected by Dual Wielding.
+    castTimeMs: 440,
     dualWieldCastTimeMs: 360,
     // The projectile and its immediate payload precede full recovery; later cripple pulses retain their own schedule.
     effects: impactEffects({ atMs: -40, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -143,6 +159,8 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.RIP]: {
+    // Accepting the follow-up restores Impale's tile even when Rip is subsequently canceled.
+    sideEffects: [{ on: 'castStart', do: { type: 'flipConsume', skillId: ID.RIP } }],
     castTimeMs: 680,
     dualWieldCastTimeMs: 420,
     dualWieldEffectOffsetsMs: { 440: 320 },
@@ -164,7 +182,10 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.ADRENALINE_RUSH]: {
     // Adrenaline Rush instantly grants its resource without striking the target.
     castTimeMs: 0,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 3 } }],
+    sideEffects: [
+      { on: 'castStart', do: { type: 'flipConsume', skillId: ID.ADRENALINE_RUSH } },
+      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 3 } }
+    ],
     effects: []
   },
   [ID.REND]: {
@@ -204,3 +225,36 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   }
 });
+
+/** Sword follow-ups share their live windows with the palette and cannot be used outside those windows. */
+export const swordFlipLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  sideEffectHandlers: {
+    'warrior.riposte-arm'(runtime, context) {
+      if (context.kind === 'cast') runtime.armFlip(ID.ADRENALINE_RUSH, { expiresAt: context.cast.fullEnd });
+    }
+  },
+  availability(runtime, skill) {
+    if (skill.weapon !== 'Sword') return { ready: true };
+    const block = weaponFlipBlock(
+      runtime.profession.core.availableFlips,
+      runtime.helpers.skillsById,
+      skill,
+      runtime.time
+    );
+    if (block?.kind === 'closed')
+      return {
+        ready: false,
+        retryAt: null,
+        code: 'warrior.sword-flip-inactive',
+        reason: `${skill.name} requires an active ${block.parent.name}.`
+      };
+    if (block?.kind === 'open')
+      return {
+        ready: false,
+        retryAt: null,
+        code: 'warrior.sword-flip-active',
+        reason: `${skill.name} is replaced by its active follow-up.`
+      };
+    return { ready: true };
+  }
+};
