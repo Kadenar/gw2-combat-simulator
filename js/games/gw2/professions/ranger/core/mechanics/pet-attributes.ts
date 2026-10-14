@@ -4,7 +4,7 @@ import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import { criticalChanceFractionFromPrecision, STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
@@ -72,7 +72,8 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonBaseHealingPower: attributes.healingPower,
     summonOwner: rangerPetCompanionId(context),
     entityName: professionCoreState(context).activePet,
-    summonCriticalChance: (attributes.precision - 1000) / 2100,
+    // Pets crit like players: the level-80 base chance plus Precision above the baseline, matching the pet panel.
+    summonCriticalChance: criticalChanceFractionFromPrecision(attributes.precision),
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
     summonDamagePerCoefficient:
       ((2880 * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)

@@ -308,26 +308,16 @@ function emitPetSkill(
   }
 }
 
-/** A manual command reserves the pet's own lane without delaying independent player casts. */
+/** Commands preempt autonomous activity on every specialization, but wait for earlier manual commands. */
 function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   const state = context.profession.core;
-  const profile = rangerPetAutoProfile(state.activePet);
-  const interruptsAI = rangerPetSkillsRequireCommands(context.config.specialization || 'Core');
-  const opening = interruptsAI ? undefined : profile?.opening || profile?.basic;
-  const openingEnd =
-    opening && state.petAutoOpeningBasic && state.petAutoNextAt > context.time
-      ? state.petAutoNextAt +
-        petRecovery(opening.id, opening.recovery, petBoonActive(context, 'quickness')) +
-        (profile?.openingRecoveryDelay || 0)
-      : 0;
   return gw2CooldownReadyAt(
     Math.max(
       context.time,
-      interruptsAI && state.petAutoAction ? context.time : state.petAutoBusyUntil,
+      state.petAutoAction ? context.time : state.petAutoBusyUntil,
       state.petCommandReadyAt,
       petCommandRechargeReadyAt(context, skill.id),
-      petAutonomousRechargeReadyAt(context, skill.id),
-      openingEnd
+      petAutonomousRechargeReadyAt(context, skill.id)
     )
   );
 }
@@ -432,9 +422,9 @@ export const rangerPetTasks = {
   [PET_COMMAND_START_TASK](context: RangerRuntime, data: unknown): void {
     let { cast } = data as { cast: RuntimeCast<RangerSkill> };
     const state = context.profession.core;
-    // Command-controlled pets preempt AI windups and recovery, cancelling only unlaunched AI effects.
+    // Every Ranger pet command preempts AI windups and recovery; manual commands never set petAutoAction.
     // Launched effects survive command interruption but remain bound to the companion's lifetime.
-    if (rangerPetSkillsRequireCommands(context.config.specialization || 'Core') && state.petAutoAction) {
+    if (state.petAutoAction) {
       context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
       if (state.petAutoAction.endsAt > context.time) {
         // Publish a lifecycle transition; shared emission references remain immutable.

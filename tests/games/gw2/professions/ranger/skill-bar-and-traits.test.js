@@ -966,18 +966,15 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     );
   }
 
-  const twinDartsBleeding = rangerCatalog.skillsById
-    .get(ID.TWIN_DARTS)
-    .effects.find(({ type, condition, ticks }) =>
-      type === 'condition' ? condition === 'Bleeding' || ticks?.some((tick) => tick.condition === 'Bleeding') : false
-    );
-
-  assert.deepEqual(
-    twinDartsBleeding.ticks.map(({ stacks, duration }) => [stacks, duration]),
-    [
-      [1, 2],
-      [1, 2]
-    ]
+  // Arachnophobia extends each pet-owned bleed by 25% without changing its one-stack payload.
+  const twinDartsBleeding = devourer.resolvedEvents.filter(
+    ({ type, skillId, condition }) => type === 'condition' && skillId === ID.TWIN_DARTS && condition === 'Bleeding'
+  );
+  assert.ok(twinDartsBleeding.length > 0);
+  assert.ok(
+    twinDartsBleeding.every(
+      ({ stacks, duration, effectiveDuration }) => stacks === 1 && duration === 4 && effectiveDuration === 5
+    )
   );
 
   const familyAttackDoesNotArmPoisonMaster = simulate(

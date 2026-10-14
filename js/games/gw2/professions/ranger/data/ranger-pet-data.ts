@@ -357,8 +357,8 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
 
     cooldown: 15,
     petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
     petNames: ['Fanged Iboga']
   },
   {
@@ -1260,7 +1260,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     categories: ['Pet'],
     specialization: '',
 
-    cooldown: 15,
+    cooldown: 12,
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -1322,8 +1322,8 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
 
     cooldown: 20,
     petSkill: true,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Fanged Iboga']
   },
   {

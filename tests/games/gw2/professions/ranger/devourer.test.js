@@ -13,7 +13,7 @@ const config = {
 };
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
-// Each projectile carries half the skill's coefficient and one of its two total bleeding stacks.
+// Each projectile owns one full-duration bleed; splitting the strike coefficient must not halve condition duration.
 test('Twin Darts splits damage and bleeding between its two pet-owned projectiles', () => {
   const result = runRanger(['__combat_start', wait(1600)], config);
   assert.deepEqual(result.warnings, []);
@@ -28,8 +28,8 @@ test('Twin Darts splits damage and bleeding between its two pet-owned projectile
   assert.deepEqual(
     bleeds.map(({ stacks, duration }) => [stacks, duration]),
     [
-      [1, 2],
-      [1, 2]
+      [1, 4],
+      [1, 4]
     ]
   );
   assert.ok(packets.every(({ actorType }) => actorType === 'summon'));

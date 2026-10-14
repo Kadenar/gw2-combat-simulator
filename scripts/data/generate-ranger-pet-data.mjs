@@ -63,7 +63,7 @@ const SOULBEAST_PET_SKILL_IDS = Object.freeze({ Wallow: [41406, 64882] });
 const AUTONOMOUS_PET_SKILL_IDS = new Set([
   // These API-omitted natural attacks become explicit commands on Untamed.
   12735, 12734, 12738, 69822, 70950, 70332, 78335, 78204, 77805, 12655, 12657, 12676, 12673, 12694, 12703, 43734, 41864,
-  41156, 64891, 67277, 67084, 12682, 12719, 12720, 45990, 40487, 41710
+  45262, 64891, 67277, 67084, 12682, 12719, 12720, 45990, 40487, 41710
 ]);
 // Spit is a family attack rather than a Beast command, but the pet AI does not cast it in the simulation.
 const FAMILY_ONLY_PET_SKILL_IDS = new Set([12724]);
@@ -332,7 +332,8 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       description: 'Call lightning to a small area.',
       // Jacaranda's shared skill artwork stays on ArenaNet's CDN.
       icon: 'https://render.guildwars2.com/file/731C0827CBB7E4015F3C45B4C49C58B42416BFA8/1770576.png',
-      recharge: 15,
+      // An Untamed command with Pack Alpha repeats every 9.6 s in the pet-only log: 12 s before the trait.
+      recharge: 12,
       petNames: ['Jacaranda']
     }
   ],

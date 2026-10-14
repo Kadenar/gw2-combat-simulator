@@ -14,6 +14,9 @@ export const fractal = defineRelic({
   condition(ctx, state, application, { activeConditionStackCount }) {
     if (
       application.condition !== 'Bleeding' ||
+      // Only bleeding the player owns arms the relic. Pets and the mech own the bleeding they apply, so their
+      // applications never trigger it; other summons share the player's condition packets and still do.
+      (application.actorType === 'summon' && application.independentConditionOwner === true) ||
       !isInternalCooldownReady(application.at, state.readyAt) ||
       activeConditionStackCount(ctx, 'Bleeding', application.at) - (application.stacks || 0) < REQUIRED_BLEEDING
     ) {

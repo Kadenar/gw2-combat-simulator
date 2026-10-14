@@ -17,6 +17,18 @@ const cast = (start = 0, end = 400) => [
   event({ time: end, stateChange: 68, skillId: 1000, value: end - start, activation: 5 })
 ];
 
+test('EVTC reads Condition Damage independently of hitbox width', () => {
+  // Adjacent agent fields must stay distinct when importing recorded attribute scores.
+  const bytes = expandedEvtcFixture();
+  const agentStart = 20;
+  bytes.writeUInt16LE(600, agentStart + 20);
+  bytes.writeUInt16LE(24, agentStart + 22);
+  bytes.writeUInt16LE(1000, agentStart + 24);
+  const agent = parseEvtc(bytes).agents[0];
+  assert.equal(agent.healing, 600);
+  assert.equal(agent.condition, 1000);
+});
+
 // Golem damage starts the observation window, while an aborted auto remains a pre-combat input.
 test('golem combat start follows damage inside a cast instead of the initial player combat snapshot', () => {
   const target = { ...log().agents[0], address: 0x2000n, profession: 16199, elite: 0xffffffff };

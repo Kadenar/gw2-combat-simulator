@@ -12,7 +12,7 @@
       "26 instant casts were inferred using explicit Elite Insights rules.",
       "1 animation has no matching stop event."
     ],
-    "notes": "Recorded combat commands are unchanged parser output. Preparation is authored from the Snow Crows opener: Sharpening Stone, enter/release Celestial Avatar for Natural Balance, two dodges, and Viper's Nest. A pre-combat cooldown reset is an explicit benchmark setup assumption to allow the recorded early Sharpening Stone reuse; it is not recovered from EVTC. The final Natural Convergence has no stop event and retains the parser's default handling.",
+    "notes": "Recorded combat commands retain parser output except the opening Poisonous Cloud: its inferred instant marker is replaced by a precast 40 ms into Instinctive Engage, 760 ms before combat. The pet's animation-stop record occurs 723 ms after combat with 1483 ms elapsed, placing the actual start before combat; this lets the command launch before the opening pet swap. Preparation is authored from the Snow Crows opener: Sharpening Stone, enter/release Celestial Avatar for Natural Balance, two dodges, and Viper's Nest. A pre-combat cooldown reset is an explicit benchmark setup assumption to allow the recorded early Sharpening Stone reuse; it is not recovered from EVTC. The final Natural Convergence has no stop event and retains the parser's default handling.",
     "preparation": [
       {
         "type": "cast",
@@ -76,13 +76,13 @@
       "skillId": 46123
     },
     {
-      "type": "combat-start",
-      "concurrentOffsetMs": 800
-    },
-    {
       "type": "cast",
       "skillId": 12675,
-      "concurrentOffsetMs": 840
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 800
     },
     {
       "type": "cast",

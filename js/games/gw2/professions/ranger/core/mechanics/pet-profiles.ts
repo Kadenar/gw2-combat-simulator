@@ -367,12 +367,16 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freez
   'Fanged Iboga': {
     openingDelay: 0.44,
     quicknessOpeningRecoveryDelay: 0.8,
-    basic: { id: ID.CONSUMING_BITE, recovery: 1.87 },
+    basic: { id: ID.CONSUMING_BITE, recovery: 1.8 },
+    // The Iboga casts Narcotic Spores and Crippling Anguish on its own; Fang Grapple is its Beast command and fires
+    // only when the Ranger issues it. Spores never repeated sooner than their recharge plus cast in the unbuffed
+    // pet-only log, so the autonomous interval carries both. Crippling Anguish recharges in 10 s but the pet delays
+    // it behind other actions; this interval reproduces the 14.8 s average of that 675 s log.
     specials: [
-      { id: ID.CRIPPLING_ANGUISH_PET, recovery: 1.8, cooldown: 20 },
-      { id: ID.FANG_GRAPPLE, recovery: 2.4, cooldown: 20 }
+      { id: ID.NARCOTIC_SPORES_PET, recovery: 1.56, cooldown: 16.5 },
+      { id: ID.CRIPPLING_ANGUISH_PET, recovery: 1.8, cooldown: 14 }
     ],
-    commandRecovery: { [ID.NARCOTIC_SPORES_PET]: 1.84 }
+    commandRecovery: { [ID.FANG_GRAPPLE]: 2.4 }
   },
   Tiger: {
     ignoresAlacrity: true,
@@ -387,9 +391,11 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freez
   },
   Jacaranda: {
     openingDelay: 0.44,
-    basic: { id: ID.JACARANDA_ROOT_SLAP, recovery: 1.6 },
+    // Root Slap repeats every 1.64 s in the unbuffed pet-only and benchmark logs.
+    basic: { id: ID.JACARANDA_ROOT_SLAP, recovery: 1.64 },
     // Damage-only AI has no healing demand; Photosynthesize remains available to explicit pet commands.
-    specials: [{ id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 15 }],
+    // Call Lightning shares the 12 s recharge an Untamed command shows (9.6 s with Pack Alpha).
+    specials: [{ id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 12 }],
     commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 }
   }
 });

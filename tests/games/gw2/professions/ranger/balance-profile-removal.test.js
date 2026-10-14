@@ -292,7 +292,7 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
         extend: (native) => ({
           catalog: patched(native.catalog, {
             [TRAIT.PACK_ALPHA]: { fields: { rechargeMultiplier: 0.5 } },
-            [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 7 } }
+            [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 5 } }
           })
         }),
         initialize(runtime) {
@@ -319,6 +319,7 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
     assert.ok(cast);
     const progress = observedRuntime(result).profession.core.petAutoRecharges[String(ID.CRIPPLING_ANGUISH_PET)];
     assert.equal(progress.startedAt, cast.at);
-    assert.equal(progress.work, quickness ? 7 : 10);
+    // Unquickened work is the 14 s autonomous interval scaled by the patched Pack Alpha multiplier.
+    assert.equal(progress.work, quickness ? 5 : 7);
   }
 });

@@ -367,7 +367,8 @@ export const hiddenBarbs = defineTrait({
           requireBalanceProfileFromContext(context, TRAIT.HIDDEN_BARBS),
           'conditionDamageMultiplier'
         ),
-      when: (context) => context.condition === 'Bleeding'
+      // Hidden Barbs boosts the Ranger's bleeding, including owned effects, without amplifying pet bleeds.
+      when: (context) => context.condition === 'Bleeding' && isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });

@@ -159,13 +159,13 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         ]
       },
       {
-        // The tooltip's two Bleeding stacks are split across the two projectiles, one per hit.
+        // Each projectile applies one full four-second bleed; Arachnophobia's pet expertise extends it to five.
         type: 'condition',
         ticks: [840, 920].map((atMs) => ({
           atMs,
           condition: 'Bleeding',
           stacks: 1,
-          duration: 2
+          duration: 4
         })),
         source: 'ranger-pet',
         actorType: 'summon'

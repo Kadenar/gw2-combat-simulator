@@ -320,7 +320,8 @@ test('Ranger builds migrate and validate against the canonical catalog', () => {
 
   assert.deepEqual(
     withoutAutonomousPetCasts.rotation.map((command) => command.skillId),
-    [ID.POISONOUS_CLOUD, ID.NARCOTIC_SPORES_PET]
+    // Each pet keeps only its Beast command; the Iboga casts Narcotic Spores on its own.
+    [ID.POISONOUS_CLOUD, ID.FANG_GRAPPLE]
   );
 });
 
@@ -389,7 +390,8 @@ test('precombat pet F2 starts combat before Go for the Throat applies', () => {
   assert.equal(proc.start, goForTheThroat.combatStartTime * 1000);
   assert.equal(goForTheThroat.firstHitTime, goForTheThroat.combatStartTime);
   assert.equal(f2Damage(goForTheThroat), f2Damage(baseline));
-  assert.ok(Math.abs(slashDamage(goForTheThroat) / slashDamage(baseline) - 1.4) < 1e-9);
+  // Each strike is floored separately, so the 40% bonus is checked within one packet of rounding.
+  assertFlooredDamageMultiplier(slashDamage(goForTheThroat), slashDamage(baseline), 1.4);
 });
 
 test('Soulbeast condition modifiers and duration bonuses use their actual targets', () => {
@@ -578,7 +580,8 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   assert.equal(poison.end, Math.round(poisonAction.endsAt * 1000));
   assert.equal(pointBlankShot.start, rapidFire.end);
   assert.equal(poisonAction.actorType, 'summon');
-  assert.equal(poisonAction.at > rapidFire.start / 1000, true);
+  // The command takes priority over the pending AI opener while the player starts independently.
+  assert.equal(poisonAction.at, rapidFire.start / 1000);
   assert.equal(
     result.events.some(
       (event) =>
@@ -701,20 +704,21 @@ test('Ranger pet commands require received Alacrity', () => {
     selectedPet: 'Fanged Iboga',
     boons: { alacrity: true }
   };
-  const playerAlacrity = simulate('Core', ['Narcotic Spores'], config);
-  // Pet commands can start concurrently, so wait for the heal to copy the player's Alacrity first.
+  // Fang Grapple is the Iboga's Beast command; its other skills are the pet's own casts outside Untamed.
+  const playerAlacrity = simulate('Core', ['Fang Grapple'], config);
+  // Wait for the heal to copy Alacrity while leaving enough boon duration to cover command recharge.
   const petAlacrity = simulate(
     'Core',
-    ['"We Heal As One!"', { type: 'wait', durationMs: 1500 }, 'Narcotic Spores'],
+    ['"We Heal As One!"', { type: 'wait', durationMs: 400 }, 'Fang Grapple'],
     config
   );
   const rechargeMs = (result) => {
-    const step = result.steps.find((candidate) => candidate.skill === 'Narcotic Spores');
+    const step = result.steps.find((candidate) => candidate.skill === 'Fang Grapple');
 
     return result.planningState.cooldowns[step.skillId].readyAt - step.end;
   };
 
-  assert.equal(rechargeMs(playerAlacrity), 15000);
+  assert.equal(rechargeMs(playerAlacrity), 20000);
   assert.equal(rechargeMs(petAlacrity) < rechargeMs(playerAlacrity), true);
   const petAlacrityApplication = petAlacrity.events.find(
     (event) => event.type === 'buff' && event.kind === 'alacrity' && event.resolvedAudience.includesSummons
@@ -1887,7 +1891,8 @@ test('Unleashed pet strikes retain their own weapon profile, attributes, and fam
       attributeInputs: baseAttributeInputs({ power: 5000, precision: 3000, ferocity: 2000 }),
       weapons: ['Hammer', '']
     });
-    const criticalMultiplier = 1 + ((2211 - 1000) / 2100) * 0.5;
+    // Tiger's 2,211 Precision adds to the 5% base critical chance every level-80 pet has.
+    const criticalMultiplier = 1 + (0.05 + (2211 - 1000) / 2100) * 0.5;
     assert.equal(baseline.weaponStrengthProfileId, 'summon.weapon-type-1');
     assert.equal(baseline.damage, Math.floor(((coefficient * 2553.5 * 1524) / 2597) * criticalMultiplier));
     assert.equal(geared.damage, baseline.damage);

@@ -280,7 +280,7 @@ test('Jacaranda exposes its pet skills, recharge, coefficients, and summon attri
 
   const callLightning = rangerCatalog.skillsById.get(ID.JACARANDA_CALL_LIGHTNING);
 
-  assert.equal(callLightning.cooldown, 15);
+  assert.equal(callLightning.cooldown, 12);
   assert.equal(
     callLightning.effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
     2.5
@@ -357,17 +357,19 @@ test('Carrion Devourer packets use its level-80 attributes', () => {
   );
 });
 
-test('Poisonous Cloud retains player ownership and combat-entry gating', () => {
-  // Starting combat during projectile travel retains the first impact and its aligned poison field.
+test('precast Poisonous Cloud retains player ownership across combat entry and pet retirement', () => {
+  // A precast cloud starts before combat and its player-owned damage survives replacement of the casting pet.
   const result = simulate(
     [
       'Celestial Avatar',
       'Poisonous Cloud',
       { type: 'combat-start', concurrentOffsetMs: 1040 },
+      { type: 'cast', skillId: ID.PET_SWAP, concurrentOffsetMs: 1600 },
       { type: 'wait', durationMs: 10000 }
     ],
     {
       selectedPet: 'Carrion Devourer',
+      selectedPet2: 'Jacaranda',
       selectedTraitIds: [],
       attributeInputs: baseAttributeInputs({ conditionDamage: 0, expertise: 0 })
     }
@@ -385,6 +387,11 @@ test('Poisonous Cloud retains player ownership and combat-entry gating', () => {
     poison.every(({ stacks, duration, effectiveDuration }) => stacks === 1 && duration === 6 && effectiveDuration === 6)
   );
   assert.ok(strikes[0].at > result.combatStartTime);
+  const retirement = result.events.find(({ type, action }) => type === 'marker' && action === 'companion-retired');
+  assert.ok(retirement);
+  assert.ok(strikes.some(({ at, damage }) => at > retirement.at && damage > 0));
+  assert.ok(poison.some(({ at, damage }) => at > retirement.at && damage > 0));
+  assert.ok(packets.every(({ summonOwner }) => summonOwner === retirement.summonOwner));
 
   const twinDarts = rangerCatalog.skillsById.get(ID.TWIN_DARTS);
   const tailLash = rangerCatalog.skillsById.get(ID.PET_TAIL_LASH);
@@ -407,6 +414,51 @@ test('pet commands do not reserve the player cast lane', () => {
 
   assert.equal(command.start, 0);
   assert.equal(playerSkill.start, 0);
+});
+
+test('Hidden Barbs boosts only player-owned bleeding', () => {
+  // Resolve the same condition with and without the trait so pet modifier inheritance cannot leak the player bonus.
+  for (const ownership of [
+    { actorType: 'player' },
+    { actorType: 'effect', ownerActorType: 'player' },
+    {
+      actorType: 'summon',
+      independentConditionOwner: true,
+      summonUsesProfessionModifiers: true,
+      summonBaseConditionDamage: 1000
+    },
+    { actorType: 'effect', ownerActorType: 'summon', summonUsesProfessionModifiers: true }
+  ]) {
+    for (const condition of ['Bleeding', 'Poisoned']) {
+      const damage = (selectedTraitIds) =>
+        resolveTestGw2Events({
+          profession: rangerProfession,
+          config: { ...baseConfig, specialization: 'Druid', selectedTraitIds },
+          endTime: 3,
+          events: [
+            {
+              at: 0,
+              type: 'condition',
+              condition,
+              duration: 1,
+              stacks: 1,
+              source: 'ranger',
+              sourceId: 'fixture.hidden-barbs',
+              skillName: 'Ownership fixture',
+              ...ownership
+            }
+          ]
+        }).resolvedEvents.find((event) => event.sourceId === 'fixture.hidden-barbs').damage;
+      const base = damage([]);
+      const boosted = damage([TRAIT.HIDDEN_BARBS]);
+      const playerOwned = (ownership.ownerActorType ?? ownership.actorType) === 'player';
+      assert.ok(base > 0);
+      assert.ok(
+        Math.abs(boosted - base * (playerOwned && condition === 'Bleeding' ? 1.2 : 1)) <= 1,
+        JSON.stringify({ ownership, condition, base, boosted })
+      );
+    }
+  }
 });
 
 test('Poison Master remains player-scaled and Poisonous Strikes inherits its attacker', () => {
