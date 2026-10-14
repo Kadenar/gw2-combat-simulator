@@ -166,6 +166,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   // Log adapters use this scheduler projection when source cast boundaries differ from serial replay timing.
   let projectedTime = origin;
   let projectedReservedEnd = origin;
+  // Mirrors the scheduler's Wait rule: overlappable companion commands never hold a Wait, every other cast does.
+  let projectedWaitJoinEnd = origin;
   let projectedBlockingEnd = origin;
   let projectedInstantReadyAt = origin;
   let projectedIndependentReadyAt = origin;
@@ -176,14 +178,14 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     if (!(waitMs > 0)) return;
     rotation.push({ type: 'wait', durationMs: waitMs });
     if (alignWaitsToSimulatorTiming) {
-      projectedTime = Math.max(projectedTime, projectedReservedEnd) + waitMs;
+      projectedTime = Math.max(projectedTime, projectedWaitJoinEnd) + waitMs;
     }
   };
 
   const appendPendingAftercastWait = (): void => {
     if (!pendingAftercast) return;
     const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeMs(pendingAftercast.until - Math.max(projectedTime, projectedReservedEnd))
+      ? quantizeMs(pendingAftercast.until - Math.max(projectedTime, projectedWaitJoinEnd))
       : quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo);
     appendWait(waitMs);
     pendingAftercast = null;
@@ -195,7 +197,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const retainedTimingJitter =
       retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
     const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeMs(nextActionAt - Math.max(projectedTime, projectedReservedEnd))
+      ? quantizeMs(nextActionAt - Math.max(projectedTime, projectedWaitJoinEnd))
       : quantizeMs(observedGapMs);
     const aftercastWaitMs = pendingAftercast ? quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo) : 0;
     pendingAftercast = null;
@@ -239,7 +241,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       else appendObservedIdle(at);
       appendWait(
         alignWaitsToSimulatorTiming
-          ? quantizeMs(actionReplayEnd - Math.max(projectedTime, projectedReservedEnd))
+          ? quantizeMs(actionReplayEnd - Math.max(projectedTime, projectedWaitJoinEnd))
           : quantizeMs(actionReplayEnd - at)
       );
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
@@ -265,13 +267,16 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     const instant = actionReplayEnd <= at;
     const independent = action.skill?.independentCast === true || action.independentTimeline === true;
+    // An overlappable companion command animates beside the player, so a Wait placed during it idles only the player.
+    const overlappingCompanion =
+      action.skill?.independentCast === true && action.skill.independentCastCanOverlap === true;
     // Swaps can overlap dodge without cancelling it; delaying them also delays the next swap's cooldown.
     const swapDuringDodge = activeCast != null && actionKind(activeCast.skill, activeCast.name) === 'dodge';
     const concurrent =
       (action.name !== 'Swap Weapons' || swapDuringDodge) &&
       (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
-    // A companion can open before the player's first cast. Anchor that overlap to rotation start;
+    // A companion that holds Waits can open before the player's first cast. Anchor that overlap to rotation start;
     // a serial wait would incorrectly wait for the companion's entire animation.
     if (alignWaitsToSimulatorTiming && previousCastStart == null && projectedCompanionEnd > origin && at > origin) {
       command.concurrentOffsetMs = quantizeMs(at - origin);
@@ -286,8 +291,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       at > projectedBlockingEnd &&
       projectedCompanionEnd > projectedBlockingEnd
     ) {
-      // A player gap inside a companion cast must not become a Wait, which joins both lanes.
+      // A player gap inside a companion cast that holds Waits must not become a Wait, which joins both lanes.
       // Anchor the next input to the player instead, preserving the gap without waiting for the companion.
+      // Gaps beside overlappable companion commands never reach here: they stay ordinary, editable Waits.
       command.concurrentOffsetMs = quantizeMs(at - projectedPreviousCastStart);
       pendingAftercast = null;
       activeCastEnd = at;
@@ -330,13 +336,21 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
               : Math.max(projectedTime, projectedBlockingEnd);
       projectedTime = projectedStart;
       projectedReservedEnd = Math.max(projectedReservedEnd, projectedStart + retainedRuntimeMs);
+      if (!overlappingCompanion) {
+        projectedWaitJoinEnd = Math.max(projectedWaitJoinEnd, projectedStart + retainedRuntimeMs);
+      }
+
       if (independent) {
         // Companion boons can differ from the player's. Avoid joining this lane until even its unaccelerated
         // reservation is behind the player; relative player offsets work for either companion duration.
-        projectedCompanionEnd = Math.max(
-          projectedCompanionEnd,
-          projectedStart + quantizeGw2ActionDurationUp(Math.max(retainedRuntimeMs, action.skill?.castTimeMs ?? 0))
-        );
+        // Only companions that hold Waits need this guard.
+        if (!overlappingCompanion) {
+          projectedCompanionEnd = Math.max(
+            projectedCompanionEnd,
+            projectedStart + quantizeGw2ActionDurationUp(Math.max(retainedRuntimeMs, action.skill?.castTimeMs ?? 0))
+          );
+        }
+
         if (action.skill?.independentCastCanOverlap !== true) {
           projectedIndependentReadyAt = Math.max(projectedIndependentReadyAt, projectedStart + retainedRuntimeMs);
         }

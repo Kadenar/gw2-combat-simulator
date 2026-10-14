@@ -128,6 +128,60 @@ test('player gaps do not join an inferred companion cast with a different boon s
   assert.ok(rotation.some((command) => command.type === 'wait'));
 });
 
+// An overlappable companion command (a Ranger pet's Beast skill) never holds a Wait, so player gaps beside it import
+// as ordinary Waits. Cast-time player skills must not be tagged concurrent just because a pet is animating.
+test('player gaps beside an overlappable companion command stay editable waits', () => {
+  const companion = {
+    id: 3,
+    name: 'Companion',
+    independentCast: true,
+    independentCastCanOverlap: true,
+    quicknessCastTimeMs: 1200,
+    castTimeMs: 2000
+  };
+  const player = { id: 4, name: 'Player', castTimeMs: 400 };
+  const actions = [
+    { start: 0, end: 400, skill: player },
+    { start: 200, end: 200, skill: companion },
+    { start: 800, end: 1200, skill: player },
+    { start: 1600, end: 2000, skill: player },
+    { start: 2800, end: 3200, skill: player },
+    { start: 3600, end: 4000, skill: player }
+  ].map((action, eventIndex) => ({ ...action, eventIndex, name: action.skill.name, skillId: action.skill.id }));
+  const rotation = buildReplayTimeline(actions, 0, null, {
+    alignWaitsToSimulatorTiming: true,
+    hasObservedCastTime: (action) => action.skill !== companion,
+    commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
+  });
+  assert.deepEqual(
+    rotation.filter(
+      (command) => command.type === 'cast' && command.skillId === player.id && command.concurrentOffsetMs != null
+    ),
+    []
+  );
+  for (const companionDuration of [1.2, 2]) {
+    const cursor = new RotationCursor(rotation);
+    let now = 0;
+    const starts = [];
+    while (cursor.command) {
+      const command = cursor.command;
+      if (command.type === 'wait') {
+        now = cursor.requestAt(now) + command.durationMs / 1000;
+        cursor.acceptWait(now);
+        continue;
+      }
+
+      const skill = command.skillId === companion.id ? companion : player;
+      now = cursor.requestAt(now, skill);
+      const end = now + (skill === companion ? companionDuration : 0.4);
+      if (skill === player) starts.push(now);
+      cursor.acceptCast(skill, command, now, end, end);
+    }
+
+    assert.deepEqual(starts, [0, 0.8, 1.6, 2.8, 3.6]);
+  }
+});
+
 test('dps.report import keeps log-derived waits when replayed casts would be delayed', async () => {
   let initializations = 0;
   const profession = defineProfession({

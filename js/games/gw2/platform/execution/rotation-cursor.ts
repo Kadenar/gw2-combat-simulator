@@ -12,6 +12,8 @@ export class RotationCursor {
   private independentReadyAt = 0;
   private blockingEnd = 0;
   private reservedEnd = 0;
+  // Overlappable companion commands run beside the player, so they extend the rotation without holding a Wait.
+  private overlappingEnd = 0;
   private waitUntil = 0;
   private requestedAt: number | null = null;
   selfStunUntil = 0;
@@ -31,7 +33,7 @@ export class RotationCursor {
 
   /** Lane completion remains a wake after the final command; recurring combat work cannot extend it. */
   endTime(): number {
-    return Math.max(this.serialReadyAt, this.reservedEnd, this.waitUntil);
+    return Math.max(this.serialReadyAt, this.reservedEnd, this.overlappingEnd, this.waitUntil);
   }
 
   /** Compute an authored request once, then let actual readiness delay it without backdating an overlap. */
@@ -53,14 +55,20 @@ export class RotationCursor {
       if (independent && !skill.independentCastCanOverlap) at = Math.max(at, this.independentReadyAt);
     } else if (command?.type === 'combat-start' && command.concurrentOffsetMs != null && this.hasPreviousCast) {
       at = Math.max(at, this.previousCastStart + command.concurrentOffsetMs / 1000);
+    } else if (command?.type === 'wait') {
+      // A Wait idles the player: it follows the player's lanes and any companion cast that cannot overlap, but never
+      // an overlappable companion command still animating beside the player.
+      at = Math.max(at, this.serialReadyAt, this.reservedEnd);
     } else at = Math.max(at, this.endTime());
     this.requestedAt = canonicalTime(at);
     return this.requestedAt;
   }
 
-  /** Accepted independent casts occupy only their own lane; authored waits still join every outstanding cast. */
+  /** Accepted independent casts occupy only their own lane; authored waits join every cast that cannot overlap. */
   acceptCast(skill: Skill, command: CastCommand, start: number, effectiveEnd: number, laneEnd: number): void {
-    this.reservedEnd = Math.max(this.reservedEnd, laneEnd);
+    if (skill.independentCast && skill.independentCastCanOverlap)
+      this.overlappingEnd = Math.max(this.overlappingEnd, laneEnd);
+    else this.reservedEnd = Math.max(this.reservedEnd, laneEnd);
     if (skill.independentCast) {
       if (!skill.independentCastCanOverlap) this.independentReadyAt = Math.max(this.independentReadyAt, laneEnd);
     } else {

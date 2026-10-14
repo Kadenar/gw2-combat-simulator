@@ -38,6 +38,14 @@ const catalog = createCanonicalCatalog({
       defaultInterruptMs: 500,
       canCastConcurrently: false,
       effects: []
+    },
+    {
+      id: 990010,
+      name: 'Overlapping Independent',
+      independentCast: true,
+      independentCastCanOverlap: true,
+      castTimeMs: 1500,
+      effects: []
     }
   ],
   weapons: ['Sword']
@@ -208,6 +216,18 @@ test('explicit overlaps use the previous player start and waits join independent
   assert.ok(result.events.some((event) => event.type === 'buff' && event.at === 0.52));
   const backdated = run([cast(990003), wait(1000), cast(990001, { concurrentOffsetMs: 100 })]);
   assert.match(backdated.warnings[0], /cannot backdate/);
+});
+
+// A Wait idles the player. An overlappable companion command animates beside the player, so it must not postpone
+// the Wait or the cast after it, yet the rotation still ends only once that companion animation finishes.
+test('waits ignore overlappable companion commands, which still extend the rotation end', () => {
+  const result = run([cast(990010), wait(100), cast(990002)]);
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.planningState.profession.accepted, [
+    ['Overlapping Independent', 0],
+    ['Spend', 0.12]
+  ]);
+  assert.equal(result.rotationEndTime, 1.52);
 });
 
 // Reporting follows the activation identity after deferral without retiming the player's command reservations.
