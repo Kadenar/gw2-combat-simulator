@@ -2,60 +2,6 @@ import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-export interface SkillTimingOccurrence {
-  readonly startMs: number;
-  readonly intervalMs: number | null;
-}
-
-export interface SkillTimingAnalysis {
-  readonly occurrences: readonly SkillTimingOccurrence[];
-  readonly useCount: number;
-  readonly averageIntervalMs: number | null;
-  readonly fastestIntervalMs: number | null;
-  readonly slowestIntervalMs: number | null;
-}
-
-/** Groups completed casts by stable ID so every interval is measured only against the same skill. */
-export function skillTimingAnalyses(
-  skillIds: readonly SkillId[] = [],
-  steps: readonly SimulationStep[] = []
-): SkillTimingAnalysis[] {
-  const seen = new Set<SkillId>();
-  return skillIds
-    .filter((skillId) => {
-      if (seen.has(skillId)) return false;
-      seen.add(skillId);
-      return true;
-    })
-    .map((skillId) => {
-      const matches = steps
-        .filter(
-          (step) =>
-            !step.invalid &&
-            step.skillId === skillId &&
-            Number.isInteger(Number(step.ri)) &&
-            Number.isFinite(Number(step.start))
-        )
-        .sort((left, right) => Number(left.start) - Number(right.start) || Number(left.ri) - Number(right.ri));
-      const occurrences = matches.map((step, index): SkillTimingOccurrence => ({
-        startMs: Number(step.start),
-        intervalMs: index === 0 ? null : Number(step.start) - Number(matches[index - 1].start)
-      }));
-      const intervals = occurrences
-        .map((occurrence) => occurrence.intervalMs)
-        .filter((interval): interval is number => interval != null);
-      return {
-        occurrences,
-        useCount: occurrences.length,
-        averageIntervalMs: intervals.length
-          ? intervals.reduce((total, interval) => total + interval, 0) / intervals.length
-          : null,
-        fastestIntervalMs: intervals.length ? Math.min(...intervals) : null,
-        slowestIntervalMs: intervals.length ? Math.max(...intervals) : null
-      };
-    });
-}
-
 export interface WeaponSetDurationOptions {
   readonly startingWeaponSet?: number;
   readonly timelineEndMs?: number;

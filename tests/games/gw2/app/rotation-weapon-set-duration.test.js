@@ -1,101 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { formatTimelineTime } from '#gw2/app/shared/result-clock.js';
-import {
-  skillTimingAnalyses,
-  weaponSetActiveSegments,
-  weaponSetDurationTotals
-} from '#gw2/app/rotation/timeline/timing/model.js';
+import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/weapon-set-duration.js';
 
-const FIRE_BOMB_ID = 5823;
-const SHRAPNEL_GRENADE_ID = 5807;
 const SWAP_WEAPONS_ID = -1;
 
 function step(ri, skillId, start, end = start, skill = String(skillId)) {
   return { ri, skillId, skill, start, end };
 }
-
-test('interleaved timing checks remain independent and preserve negative precast starts', () => {
-  const analyses = skillTimingAnalyses(
-    [FIRE_BOMB_ID, SHRAPNEL_GRENADE_ID],
-    [
-      step(0, FIRE_BOMB_ID, -1120, -1120, 'Fire Bomb'),
-      step(1, SHRAPNEL_GRENADE_ID, 1040, 1040, 'Shrapnel Grenade'),
-      step(2, SHRAPNEL_GRENADE_ID, 6280, 6280, 'Shrapnel Grenade'),
-      step(3, FIRE_BOMB_ID, 6960, 6960, 'Fire Bomb'),
-      step(4, SHRAPNEL_GRENADE_ID, 12800, 12800, 'Shrapnel Grenade'),
-      step(5, FIRE_BOMB_ID, 14960, 14960, 'Fire Bomb')
-    ]
-  );
-  const [fireBomb, shrapnelGrenade] = analyses;
-
-  assert.deepEqual(
-    fireBomb.occurrences.map(({ startMs, intervalMs }) => [startMs, intervalMs]),
-    [
-      [-1120, null],
-      [6960, 8080],
-      [14960, 8000]
-    ]
-  );
-  assert.deepEqual(
-    shrapnelGrenade.occurrences.map(({ startMs, intervalMs }) => [startMs, intervalMs]),
-    [
-      [1040, null],
-      [6280, 5240],
-      [12800, 6520]
-    ]
-  );
-  assert.equal(fireBomb.averageIntervalMs, 8040);
-  assert.equal(fireBomb.fastestIntervalMs, 8000);
-  assert.equal(fireBomb.slowestIntervalMs, 8080);
-  assert.equal(shrapnelGrenade.averageIntervalMs, 5880);
-  assert.equal(shrapnelGrenade.fastestIntervalMs, 5240);
-  assert.equal(shrapnelGrenade.slowestIntervalMs, 6520);
-  assert.equal(formatTimelineTime(fireBomb.occurrences[0].startMs, 0, 3), '-1.120s');
-  assert.deepEqual(
-    fireBomb.occurrences.slice(1).map(({ intervalMs }) => formatTimelineTime(intervalMs, 0, 3)),
-    ['8.080s', '8.000s']
-  );
-  assert.deepEqual(
-    shrapnelGrenade.occurrences.slice(1).map(({ intervalMs }) => formatTimelineTime(intervalMs, 0, 3)),
-    ['5.240s', '6.520s']
-  );
-});
-
-test('timing summaries handle zero, one, and multiple stable-ID uses', () => {
-  const [zero, one, multiple] = skillTimingAnalyses(
-    [10, 20, 30],
-    [
-      step(0, 20, 250, 250, 'Same display name'),
-      step(1, 30, 1000, 1000, 'Same display name'),
-      step(2, 99, 2500, 2500, 'Same display name'),
-      step(3, 30, 4000, 4000, 'Same display name'),
-      { ...step(4, 30, 9000), invalid: true }
-    ]
-  );
-
-  assert.deepEqual(
-    [zero, one].map((analysis) => [
-      analysis.useCount,
-      analysis.averageIntervalMs,
-      analysis.fastestIntervalMs,
-      analysis.slowestIntervalMs
-    ]),
-    [
-      [0, null, null, null],
-      [1, null, null, null]
-    ]
-  );
-  assert.equal(multiple.useCount, 2);
-  assert.deepEqual(
-    multiple.occurrences.map(({ intervalMs }) => intervalMs),
-    [null, 3000]
-  );
-  assert.equal(multiple.averageIntervalMs, 3000);
-  assert.equal(multiple.fastestIntervalMs, 3000);
-  assert.equal(multiple.slowestIntervalMs, 3000);
-});
 
 test('one usable weapon set owns the full timeline', () => {
   // No-swap professions retain the selected starting set even when a swap action is present.

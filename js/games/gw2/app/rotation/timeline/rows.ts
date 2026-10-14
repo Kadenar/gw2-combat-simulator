@@ -49,7 +49,7 @@ import {
   traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
-import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/timing/model.js';
+import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/weapon-set-duration.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';

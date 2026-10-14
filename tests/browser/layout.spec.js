@@ -399,45 +399,6 @@ test('a palette wait drop opens its editor and the timeline can edit the inserte
   await expect(timeline.locator('.rot-wait-badge')).toContainText('120ms');
 });
 
-test('timing skill selection submits the picker and details expand below DPS', async ({ page }) => {
-  await openSimulator(page);
-  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-
-  const picker = page.locator('.timing-check-picker');
-  await picker.locator(':scope > summary').click();
-  const swapWeapons = picker.getByRole('button', { name: 'Swap Weapons' });
-  const bladecall = picker.getByRole('button', { name: 'Bladecall' });
-  const actionGroup = swapWeapons.locator('..');
-  const weaponGroup = bladecall.locator('..');
-  await expect(swapWeapons.locator('img')).toHaveAttribute('src', /Weapon_Swap_Button\.png/);
-  await expect(actionGroup.locator('.timing-check-picker-group-label')).toHaveText('Actions');
-  await expect(weaponGroup.locator('.timing-check-picker-group-label')).toHaveText('Weapon bar · Slot 2');
-  const search = picker.getByRole('searchbox', { name: 'Search skills' });
-  await search.pressSequentially('Bladecall');
-  await expect(swapWeapons).toBeHidden();
-  await expect(actionGroup).toBeHidden();
-  await expect(bladecall).toBeVisible();
-  await bladecall.click();
-
-  await expect(picker).not.toHaveAttribute('open', '');
-  await expect(page.locator('.timing-check-chip')).toContainText('Bladecall');
-  expect(await page.evaluate(() => Object.hasOwn(window.professionApp.build, 'timingCheckSkillIds'))).toBe(false);
-  const details = page.locator('.rotation-timing-details-wrap');
-  await expect(details).not.toHaveAttribute('open', '');
-  await expect(page.locator('#rotation-dps-summary + #rotation-timing-details')).toBeAttached();
-  await details.locator(':scope > summary').click();
-  await expect(details).toHaveAttribute('open', '');
-  const skillDetails = details.locator('.timing-skill-details');
-  await expect(skillDetails).toHaveCount(1);
-  await skillDetails.locator(':scope > summary').click();
-  const widths = await skillDetails.evaluate((element) => ({
-    body: element.querySelector('.timing-skill-detail-body').getBoundingClientRect().width,
-    table: element.querySelector('table').getBoundingClientRect().width
-  }));
-  expect(widths.table).toBeLessThan(widths.body);
-});
-
 // Component styles must keep hidden controls out of layout and reserve a motion-safe loading chart.
 test('relic comparison controls and loading layout survive a narrow host', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });

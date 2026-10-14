@@ -3,7 +3,6 @@ import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline-o
 import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
-import { renderTimingAnalysis } from '#gw2/app/rotation/timeline/timing/view.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
@@ -120,7 +119,6 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   const rotation = build.rotation;
   const resultIsExplicit = Object.hasOwn(options, 'result');
   const results = resultIsExplicit ? options.result || null : currentTimelineResults(app);
-  if (!readOnly && options.root === undefined) renderTimingAnalysis(app, results);
   // Keyed reconciliation retains unchanged rows and may replace changed editor anchors.
   if (!readOnly) closeFloatingEditor();
   const element = options.root === undefined ? document.getElementById('rotation-timeline') : options.root;
