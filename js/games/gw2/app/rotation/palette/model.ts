@@ -3,10 +3,10 @@ import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   rotationHotkeyActionForSkillName,
-  rotationHotkeyActionForSkillSlot,
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction
 } from '#gw2/app/rotation/hotkeys.js';
+import { inputControlForSkillSlot } from '#gw2/platform/skills/input-controls.js';
 import { activeSpecialization, palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import { ACTION_ICONS } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
@@ -799,8 +799,8 @@ export function paletteSkillView(
     tooltip: app.adapter.skillTooltip(skill, app.patchId, app.build),
     skillId: skill.id,
     hotkeyAction:
-      String(skill.hotkeyAction || '') ||
-      rotationHotkeyActionForSkillSlot(skill.slot) ||
+      String(skill.inputControl || '') ||
+      inputControlForSkillSlot(skill.slot) ||
       rotationHotkeyActionForSkillName(skill.name),
     icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
     variantBadge: String(skill.variantBadge || ''),

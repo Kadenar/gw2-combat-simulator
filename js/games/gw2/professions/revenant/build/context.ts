@@ -1,3 +1,5 @@
+import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
+import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import type { BoundProfession } from '#gw2/build-context/types.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -22,5 +24,6 @@ export const createBuildContext = bindBuildContext<RevenantCanonicalBuild>(
     initialEnergy: build.initialEnergy,
     selectedLegends: build.selectedLegends,
     startingLegend: build.startingLegend
-  })
+  }),
+  { assumptionControls: REVENANT_ASSUMPTION_CONTROLS, resolveSkillLoadout: resolveRevenantSkillLoadout }
 );

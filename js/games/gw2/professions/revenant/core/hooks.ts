@@ -1,3 +1,4 @@
+import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
@@ -161,6 +162,12 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 
 const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  /** Legend utilities resolve against the legend active at input acceptance. */
+  resolveInputControl(context, skill) {
+    const bar = context.config.skillInputBars?.find((bar) => bar.id === context.profession.core.activeLegendId);
+    const control = bar && controlOnSkillBar(context.helpers, skill, bar);
+    return control ? { control } : undefined;
+  },
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {

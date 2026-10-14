@@ -1,4 +1,5 @@
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
+import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import {
   validateActionIds,
   validateEffectReactions,
@@ -79,7 +80,6 @@ const SKILL_FIELDS = new Set([
   'gunsaberSkill',
   'heatGain',
   'heatLoss',
-  'hotkeyAction',
   'icon',
   'id',
   'impactDelay',
@@ -88,6 +88,7 @@ const SKILL_FIELDS = new Set([
   'initialStateOnly',
   'initiativeCost',
   'inputCategory',
+  'inputControl',
   'instrument',
   'interruptCommitMs',
   'interruptMode',
@@ -351,6 +352,10 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
+
+  // Input observations accept only canonical control identifiers.
+  if (merged.inputControl != null && !INPUT_CONTROL_IDS.includes(merged.inputControl))
+    throw new TypeError(`Skill ${id} has invalid inputControl.`);
   // Measured packet schedules must contain finite non-negative offsets before any cast selects them.
   if (merged.dualWieldEffectOffsetsMs != null) {
     const offsets = merged.dualWieldEffectOffsetsMs;

@@ -16,7 +16,8 @@ export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze<Skill>({
   specialization: 'Vindicator',
   castTimeMs: VINDICATOR_AIRBORNE_MS + VINDICATOR_LANDING_MS,
   paletteAction: true,
-  hotkeyAction: 'dodge',
+  // The recorded jump is the same physical dodge input as the synthetic action.
+  inputControl: 'dodge',
 
   resourceCost: 50,
   cost: { resource: 'endurance' as const },

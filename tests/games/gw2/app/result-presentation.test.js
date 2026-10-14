@@ -284,6 +284,7 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
       combatEndTime: 1,
       totalDamage: 100,
       dps: 100,
+      inputTrace: { version: 1, start: 0, end: 1, actions: [] },
       ...effectFields([], 1),
       get effectReport() {
         chartReads++;
@@ -300,6 +301,8 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
     mountSimulationSection(summary, model.summary);
     assert.match(summary.innerHTML, /Player DPS/);
     assert.match(summary.innerHTML, />100</);
+    assert.match(summary.innerHTML, /Input activity &middot; 0.00 actions\/s/);
+    assert.doesNotMatch(summary.innerHTML, /input-activity-body|input-kb-svg|data-rating|input-meter/);
   }
 
   // A direct #analysis load also prepares charts before navigation sets the body dataset.

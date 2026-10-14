@@ -80,6 +80,12 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   reserveRecharge?(runtime: MechanicContext<T, TSkill>, skill: TSkill, work: number): number;
   /** Selects the companion incarnation once at acceptance for received-boon recharge. */
   rechargeCompanionId?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill): string | undefined;
+  /** Resolve controls before state changes; null excludes movement-only commands, undefined uses the standard bar. */
+  resolveInputControl?(
+    context: MechanicQueryContext<T, TSkill>,
+    skill: TSkill,
+    command: CastCommand
+  ): import('#gw2/platform/results/input-trace.js').InputControl | null | undefined;
   /** Resolve contextual inputs such as swapping out of a kit before checking cast eligibility. */
   resolveCastSkill?(context: MechanicQueryContext<T, TSkill>, skill: TSkill): TSkill;
   /** Restricts equipped-set changes after combat entry, independently of temporary bars. */

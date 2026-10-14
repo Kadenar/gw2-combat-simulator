@@ -34,6 +34,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   readonly facts: import('#gw2/platform/combat/history/executed-facts.js').ExecutedFactsReader;
   readonly observations: import('#gw2/platform/combat/history/executed-facts.js').ExecutedFactsWriter;
   readonly steps: SimulationStep[];
+  readonly inputActions: import('#gw2/platform/results/input-trace.js').InputAction[];
   resourceController: ResourceController;
   endurance: EnduranceController;
   readonly hasExplicitCombatStart: boolean;

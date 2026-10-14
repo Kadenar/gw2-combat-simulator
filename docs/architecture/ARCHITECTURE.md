@@ -333,6 +333,11 @@ independent equipment seeds and configuration. Callers create a new context afte
 build's starting state, including Revenant's starting legend. Displayed weapon sets and previous results do not
 participate. Optimizer workers and benchmark requests use the same headless binding as the workspace.
 
+Each binding supplies a pure skill-loadout resolver and profession assumption definitions directly. Build context never
+reads `profession.ui`: starting-bar skills feed attributes, while every selected bar retains its slot positions in the
+input-tracing configuration. Fixed-loadout presentation builds selectors and labels from the same resolved bar facts.
+The build codec and simulation configuration share the composition of profession and common assumption defaults.
+
 ## Included professions
 
 `js/games/gw2/profession-registry.ts` is the roster source of truth. The [profession guides](../professions/) describe

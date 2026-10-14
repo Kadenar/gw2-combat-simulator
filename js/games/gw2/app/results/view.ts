@@ -1,3 +1,4 @@
+import { mountInputActivity } from '#gw2/app/input-profile/results.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
@@ -213,7 +214,10 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   };
 
   return {
-    summary: resultSection((container) => mountResultSummary(container, summary)),
+    summary: resultSection(
+      (container) => mountResultSummary(container, summary),
+      (container) => mountInputActivity(container, result.inputTrace)
+    ),
     headerDps: metrics.find((metric) => metric.className === 'dps')?.value,
     workspace: resultSection((container) => mountRandomDistribution(container, rng, rngOptions)),
     analysis: resultSection(

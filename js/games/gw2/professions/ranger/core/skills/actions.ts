@@ -25,6 +25,8 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: ID.PET_SWAP,
     name: 'Swap Pets',
+    // Pet swapping occupies the fourth profession control on the active pet bar.
+    inputControl: 'profession-4',
     description: 'Swap your active pet and trigger pet-swap traits.',
     icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     type: 'Action',

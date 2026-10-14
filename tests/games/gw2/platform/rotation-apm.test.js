@@ -1,3 +1,5 @@
+import { analyzeInputTrace } from '#gw2/input/analysis.js';
+import { createInputProfile } from '#gw2/input/profile.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -148,7 +150,14 @@ test('rolling 5s and 10s windows report sustained peaks with their actual timest
     ...Array(6).fill('Instant'),
     { type: 'wait', durationMs: 8500 }
   ];
-  const { metrics } = analyze(rotation);
+  const { metrics, scheduled } = analyze(rotation);
+  const activity = analyzeInputTrace(scheduled.inputTrace, createInputProfile());
+  assert.deepEqual(activity.windows[0], {
+    start: metrics.peak5s.startSeconds,
+    end: metrics.peak5s.endSeconds,
+    count: metrics.peak5s.actionCount,
+    rate: metrics.peak5s.apm / 60
+  });
   assert.deepEqual(metrics.peak5s, { startSeconds: 7.52, endSeconds: 12.52, actionCount: 12, apm: 144 });
   assert.deepEqual(metrics.peak10s, { startSeconds: 7.52, endSeconds: 17.52, actionCount: 12, apm: 72 });
   assert.equal(analyze(['Replacement']).metrics.peak5s, null);

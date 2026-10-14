@@ -2,23 +2,27 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  ROTATION_HOTKEY_ENABLED_STORAGE_KEY,
-  ROTATION_HOTKEY_STORAGE_KEY,
   activeRotationMouseHotkeyAction,
   activeRotationHotkeyAction,
-  defaultRotationHotkeyBindings,
-  duplicateRotationHotkeyCodes,
-  formatRotationHotkey,
   formatRotationHotkeyBadge,
+  rotationHotkeyActionForSkillName,
+  rotationLoadoutHotkeyActions,
+  rotationUtilityHotkeyAction
+} from '#gw2/app/rotation/hotkeys.js';
+import {
+  defaultInputBindings,
+  duplicateInputBindings,
+  formatInputBinding,
+  normalizeInputBindings,
+  inputControlForBinding
+} from '#gw2/input/bindings.js';
+import { inputControlForSkillSlot } from '#gw2/platform/skills/input-controls.js';
+import {
+  ROTATION_HOTKEY_ENABLED_STORAGE_KEY,
+  ROTATION_HOTKEY_STORAGE_KEY,
   loadRotationHotkeyBindings,
   loadRotationHotkeysEnabled,
-  normalizeRotationHotkeyBindings,
-  rotationHotkeyActionForCode,
-  rotationHotkeyActionForSkillName,
-  rotationHotkeyActionForSkillSlot,
   rotationHotkeyStatusLabel,
-  rotationLoadoutHotkeyActions,
-  rotationUtilityHotkeyAction,
   saveRotationHotkeyBindings,
   saveRotationHotkeysEnabled
 } from '#gw2/app/rotation/hotkeys.js';
@@ -26,7 +30,8 @@ import { gw2KeyboardCode, gw2MouseCode, parseGw2HotkeyBindingsXml } from '#gw2/i
 import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 
 test('rotation hotkeys default to the Guild Wars 2 skill-bar keys', () => {
-  assert.deepEqual(defaultRotationHotkeyBindings(), {
+  assert.deepEqual(defaultInputBindings(), {
+    dodge: 'KeyV',
     'weapon-swap': 'Backquote',
     'weapon-1': 'Digit1',
     'weapon-2': 'Digit2',
@@ -58,7 +63,7 @@ test('rotation hotkey overrides are normalized and persisted globally', () => {
       values.set(key, value);
     }
   };
-  const bindings = normalizeRotationHotkeyBindings({
+  const bindings = normalizeInputBindings({
     'weapon-1': 'KeyQ',
     'slot-7': '',
     'profession-1': 'not a keyboard code',
@@ -103,11 +108,11 @@ test('rotation hotkey toolbar labels include the current state', () => {
 test('skill slots resolve to weapon, utility, and profession actions', () => {
   assert.equal(rotationHotkeyActionForSkillName('Swap Weapons'), 'weapon-swap');
   assert.equal(rotationHotkeyActionForSkillName('Weapon Skill 1'), '');
-  assert.equal(rotationHotkeyActionForSkillSlot('Weapon_3'), 'weapon-3');
-  assert.equal(rotationHotkeyActionForSkillSlot('Profession_5'), 'profession-5');
-  assert.equal(rotationHotkeyActionForSkillSlot('Profession_7'), 'profession-7');
-  assert.equal(rotationHotkeyActionForSkillSlot('Utility'), '');
-  assert.equal(rotationHotkeyActionForSkillSlot('Weapon_6'), '');
+  assert.equal(inputControlForSkillSlot('Weapon_3'), 'weapon-3');
+  assert.equal(inputControlForSkillSlot('Profession_5'), 'profession-5');
+  assert.equal(inputControlForSkillSlot('Profession_7'), 'profession-7');
+  assert.equal(inputControlForSkillSlot('Utility'), '');
+  assert.equal(inputControlForSkillSlot('Weapon_6'), '');
   assert.equal(rotationUtilityHotkeyAction(0), 'slot-6');
   assert.equal(rotationUtilityHotkeyAction(4), 'slot-10');
   assert.equal(rotationUtilityHotkeyAction(5), '');
@@ -132,19 +137,19 @@ test('fixed loadout flips retain their parent utility hotkey', () => {
 });
 
 test('hotkey lookup, duplicate detection, and labels use keyboard codes', () => {
-  const bindings = defaultRotationHotkeyBindings();
+  const bindings = defaultInputBindings();
 
   bindings['weapon-1'] = 'KeyQ';
   bindings['weapon-2'] = 'KeyQ';
 
-  assert.equal(rotationHotkeyActionForCode(bindings, 'KeyQ'), 'weapon-1');
-  assert.deepEqual(duplicateRotationHotkeyCodes(bindings), ['KeyQ']);
-  assert.equal(formatRotationHotkey('Digit6'), '6');
-  assert.equal(formatRotationHotkey('KeyQ'), 'Q');
-  assert.equal(formatRotationHotkey('Numpad4'), 'Numpad 4');
-  assert.equal(formatRotationHotkey('Mouse5'), 'Mouse 5');
-  assert.equal(formatRotationHotkey('Ctrl+Alt+NumpadMultiply'), 'Ctrl+Alt+NumpadMultiply');
-  assert.equal(formatRotationHotkey(''), 'Unbound');
+  assert.equal(inputControlForBinding(bindings, 'KeyQ'), 'weapon-1');
+  assert.deepEqual(duplicateInputBindings(bindings), ['KeyQ']);
+  assert.equal(formatInputBinding('Digit6'), '6');
+  assert.equal(formatInputBinding('KeyQ'), 'Q');
+  assert.equal(formatInputBinding('Numpad4'), 'Numpad 4');
+  assert.equal(formatInputBinding('Mouse5'), 'Mouse 5');
+  assert.equal(formatInputBinding('Ctrl+Alt+NumpadMultiply'), 'Ctrl+Alt+NumpadMultiply');
+  assert.equal(formatInputBinding(''), 'Unbound');
 });
 
 test('palette hotkey labels stay compact for large key names and modifiers', () => {
@@ -155,7 +160,7 @@ test('palette hotkey labels stay compact for large key names and modifiers', () 
 });
 
 test('rotation keys are captured only while the rotation builder is active', () => {
-  const bindings = defaultRotationHotkeyBindings();
+  const bindings = defaultInputBindings();
   const f5 = {
     code: 'F5',
     isComposing: false,
@@ -171,7 +176,7 @@ test('rotation keys are captured only while the rotation builder is active', () 
 });
 
 test('rotation hotkeys match imported modifier combinations exactly', () => {
-  const bindings = defaultRotationHotkeyBindings();
+  const bindings = defaultInputBindings();
   bindings['weapon-1'] = 'Alt+Shift+NumpadMultiply';
   const event = {
     code: 'NumpadMultiply',
@@ -187,7 +192,7 @@ test('rotation hotkeys match imported modifier combinations exactly', () => {
 });
 
 test('rotation hotkeys recognize standard side mouse buttons while active', () => {
-  const bindings = defaultRotationHotkeyBindings();
+  const bindings = defaultInputBindings();
   bindings['slot-6'] = 'Mouse5';
   bindings['slot-7'] = 'Ctrl+Mouse4';
   const mouse5 = { button: 4, ctrlKey: false, altKey: false, shiftKey: false, metaKey: false };

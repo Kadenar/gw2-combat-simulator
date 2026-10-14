@@ -1,3 +1,4 @@
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { BoundProfession } from '#gw2/build-context/types.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -19,5 +20,6 @@ export const createBuildContext = bindBuildContext<MesmerCanonicalBuild>(
   ),
   (build, specialization) => ({
     initialResource: specialization === 'Virtuoso' || specialization === 'Troubadour' ? build.initialResource : 0
-  })
+  }),
+  { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
 );

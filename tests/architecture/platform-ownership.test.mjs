@@ -50,7 +50,7 @@ test('platform imports preserve declaration, composition, history, and presentat
   const { edges } = await platformGraph();
   for (const { file, specifier } of edges) {
     const label = `${file} -> ${specifier}`;
-    assert.doesNotMatch(specifier, /^#gw2\/(professions|app|integrations)\//, label);
+    assert.doesNotMatch(specifier, /^#gw2\/(professions|app|integrations|input)\//, label);
     if (!/^(simulation|skill-damage)\//.test(file)) {
       assert.doesNotMatch(
         specifier,

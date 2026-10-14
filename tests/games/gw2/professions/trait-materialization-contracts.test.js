@@ -98,8 +98,9 @@ for (const [name, family, trait, effect, event, config] of [
             },
         { event, config }
       );
+      // Inspect the injected strike's proc independently of a companion's own Opening Strike entitlement.
       const packets = result.resolvedEvents.filter(
-        (packet) => packet.sourceId === trait && packet.type === 'condition'
+        (packet) => packet.sourceId === trait && packet.type === 'condition' && packet.triggeredBy === event.skillName
       );
       assert.equal(packets.length > 0, !removed);
       if (!removed) {

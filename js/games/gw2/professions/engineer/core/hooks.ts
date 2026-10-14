@@ -1,3 +1,5 @@
+import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
+import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -93,6 +95,19 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,
   // The swap input leaves a kit first; only a subsequent precombat input changes equipped sets.
+  /** Toolbelt buttons follow the currently equipped heal/utility slot, including their flip skills. */
+  resolveInputControl(context, skill) {
+    const parent =
+      skill.toolbeltParentId ??
+      (skill.flipParentId != null ? context.helpers.skillsById.get(skill.flipParentId)?.toolbeltParentId : undefined);
+    if (parent == null) return undefined;
+    const bar = context.config.skillInputBars?.[0];
+    const parentSkill = context.helpers.skillsById.get(parent);
+    const slot = bar && parentSkill ? controlOnSkillBar(context.helpers, parentSkill, bar) : null;
+    return slot?.startsWith('slot-')
+      ? { control: `profession-${Number(slot.slice(5)) - 5}` as InputControlId }
+      : { control: null, unresolvedReason: 'Toolbelt parent is not in the selected utility bar.' };
+  },
   resolveCastSkill(context, skill) {
     const kit = context.profession.core.activeKit;
     if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !kit) return skill;

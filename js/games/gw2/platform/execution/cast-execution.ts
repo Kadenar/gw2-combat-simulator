@@ -1,3 +1,4 @@
+import { activationInputKind, resolveInputControl } from '#gw2/platform/results/input-trace.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
@@ -201,6 +202,15 @@ export function createCastExecution<T extends object>(
   /** Enqueue basic authored packets at acceptance; only dispatch can change combat state. */
   function acceptCast(skill: Skill, command: CastCommand): void {
     const start = runtime.time;
+    // Resolve before recharge reservations or cast effects can mutate the active bar.
+    const manualInput = runtime.reporting && activationInputKind(profession.catalog, skill, command) === 'manual';
+    const professionInput = manualInput
+      ? profession.resolveInputControl?.(runtime.mechanicQueries, skill, command)
+      : null;
+    const inputControl =
+      professionInput === undefined
+        ? resolveInputControl(profession.catalog, skill, command, config.skillInputBars)
+        : professionInput;
     const baseDurationMs =
       skill.independentCast && (config.boons?.quickness || query.timeline.buffStacksAt('quickness', start, 0, 1) > 0)
         ? summonQuicknessCastTimeMs(skill)
@@ -252,6 +262,16 @@ export function createCastExecution<T extends object>(
       ammo,
       cancelled
     });
+    if (inputControl)
+      runtime.inputActions.push({
+        ...inputControl,
+        activationId: cast.id,
+        rotationIndex: cursor.index,
+        at: start,
+        order: runtime.inputActions.length,
+        skillId: skill.id,
+        skillName: skill.name
+      });
     if (!inFlight.has(skill.id)) inFlight.set(skill.id, new Set());
     inFlight.get(skill.id)!.add(cast.id);
     for (const lockout of skill.lockouts ?? [])

@@ -89,6 +89,10 @@ test('Paralyzing Venom belongs to one pet, expires, and is consumed by its next 
         attributeInputs: baseAttributeInputs({ expertise: 1500 })
       },
       {
+        // Only injected strikes may consume venom; autonomous web attacks also apply unrelated immobilizes.
+        extend: (native) => ({
+          tasks: { ...native.tasks, 'ranger.pet-autonomous-skill': () => {} }
+        }),
         initialize(runtime) {
           const pet = rangerPetCombatMetadata(runtime);
           for (const [at, actorType, offTarget] of [

@@ -1,27 +1,11 @@
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '#gw2/platform/builds/assumptions.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionAssumptionControl, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
   readonly assumptionControls?: readonly ProfessionAssumptionControl[];
-}
-
-/**
- * Combines profession controls with the shared randomness control once so
- * build defaults, migration, and validation use the same platform-owned schema.
- */
-function buildAssumptionControls(
-  controls: readonly ProfessionAssumptionControl[] = []
-): readonly ProfessionAssumptionControl[] {
-  const professionKeys = new Set(controls.map((control) => control.key));
-  return [
-    ...controls,
-    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS.filter((control) => !professionKeys.has(control.key)),
-    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS.filter((control) => !professionKeys.has(control.key))
-  ];
 }
 
 /** Normalizes the assumptions persisted by a profession build definition. */

@@ -199,6 +199,11 @@ export const revenantLegendLoadout = Object.freeze({
   }
 }) satisfies Gw2SlotLoadout<RevenantCanonicalBuild>;
 
+/** Headless builds resolve both selected legends from the saved starting state, without creating a view. */
+export function resolveRevenantSkillLoadout(build: Readonly<RevenantCanonicalBuild>, specialization: string) {
+  return baseRevenantLegendLoadout.resolve({ build, specialization });
+}
+
 export function revenantLegend(legendId: string): RevenantLegend | null {
   return REVENANT_LEGENDS.find((legend) => legend.id === legendId) || null;
 }

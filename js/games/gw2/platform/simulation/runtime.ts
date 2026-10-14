@@ -265,6 +265,7 @@ export function runRuntime<T extends object>(
     facts: facts.reader,
     observations: facts.writer,
     steps: [],
+    inputActions: [],
     hasExplicitCombatStart: explicitCombat,
     combatStartTime: combatStartTime == null ? null : canonicalTime(combatStartTime),
     combatStartPending: markers.length > 0 || (combatStartTime != null && combatStartTime > 0),

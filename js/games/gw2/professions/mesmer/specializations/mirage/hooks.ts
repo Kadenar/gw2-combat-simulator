@@ -1,3 +1,4 @@
+import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillTaskAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -25,6 +26,10 @@ type TriggerData = { cast: RuntimeCast<MesmerSkill>; trigger: SkillTask };
 /** Cloak, mirror pickup, and endurance execute at actual command and owned-task boundaries. */
 export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   buffPolicies: mirageBuffPolicies,
+  resolveInputControl(_context, skill) {
+    // Walking through a mirror is simulated as a command, but adds no discrete key press.
+    return skill.id === MESMER_SKILL_IDS.PICK_UP_MIRAGE_MIRROR ? null : undefined;
+  },
   initialize(runtime) {
     runtime.fireTrigger(mirageInitialized, {});
   },

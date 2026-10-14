@@ -23,6 +23,7 @@ export type RuntimeHooks<State extends object, TSkill extends Skill = Skill> = P
     | 'castDetail'
     | 'modifySkillId'
     | 'resolveCastSkill'
+    | 'resolveInputControl'
     | 'modifyComboFields'
     | 'modifyEffects'
     | 'boonDuration'
@@ -109,6 +110,15 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       let detail: string | undefined;
       for (const hook of hooks) detail = hook.castDetail?.(context, cast) ?? detail;
       return detail;
+    },
+    resolveInputControl(context, skill, command) {
+      // The most specific module can resolve controls that replace Core bars.
+      for (const hook of [...hooks].reverse()) {
+        const resolved = hook.resolveInputControl?.(context, skill, command);
+        if (resolved !== undefined) return resolved;
+      }
+
+      return undefined;
     },
     resolveCastSkill(context, skill) {
       for (const hook of hooks) skill = hook.resolveCastSkill?.(context, skill) ?? skill;

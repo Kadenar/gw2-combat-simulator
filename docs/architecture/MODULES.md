@@ -609,7 +609,24 @@ load and simulate. Architecture and typecheck tests enforce cross-module ownersh
 `load.ts` caches profession module loading through the registry; `create.ts` binds the synchronous factory and owns at
 most one calculation per weapon set per context. `simulation-config.ts` assembles common inputs from equipment seeds,
 never finalized profession totals. Each `professions/<name>/build/context.ts` binds the codec, preview-aware profession,
-attribute calculator, and typed starting-resource mapping. The browser adapter consumes that binding directly.
+attribute calculator, typed starting-resource mapping, assumption definitions, and pure skill-loadout resolver. The
+browser adapter consumes that binding directly. `platform/builds/skill-loadout.ts` defines resolved bar facts and the
+ordinary five-slot resolver; fixed loadouts expose the same facts without constructing their presentation views.
+`professions/shared/build-assumptions.ts` composes common defaults for both build codecs and simulation configuration.
+Build-context calculations do not access `profession.ui`.
 
 `integrations/assets.ts` contains JSON fetching and rotation payload decoding shared by browser and headless request
 loaders. Export dialogs remain in `app/import-export/files.ts`.
+
+### Rotation input activity
+
+`platform/skills/input-controls.ts` owns logical player control IDs; `platform/results/input-trace.ts` captures and
+projects accepted manual inputs independently of physical bindings. APM derives its manual action counts and peaks from
+that trace. Platform never imports `gw2/input/`.
+
+`js/games/gw2/input/` owns the physical binding grammar, default bindings, sparse profile validation, shared keyboard
+geometry, and input activity analysis. `app/rotation/hotkeys.ts` owns editor event routing and compact badges;
+`app/shared/input-binding-capture.ts` shares native capture between editor and profile dialogs. `app/input-profile/`
+owns session bindings with optional local persistence, editing, lazy activity analysis, keyboard and chart rendering,
+and timeline highlighting. Transition rankings require repeated positive-gap pairs; simultaneous inputs are reported
+separately. Shared rolling-window accounting keeps APM peaks and activity sections consistent.

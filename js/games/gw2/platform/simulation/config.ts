@@ -30,6 +30,8 @@ export interface Gw2Config {
   readonly sigilSets?: readonly Gw2SigilSet[];
   readonly selectedTraitIds?: readonly (string | number)[];
   readonly selectedSkillIds?: Gw2SelectedSkillLoadout;
+  /** Logical bar positions for accepted-input observation; contains no personal key bindings. */
+  readonly skillInputBars?: readonly import('#gw2/platform/results/input-trace.js').InputSkillBar[];
   readonly relic?: string;
   readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;

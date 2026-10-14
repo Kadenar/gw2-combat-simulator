@@ -1,3 +1,5 @@
+import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { BoundProfession } from '#gw2/build-context/types.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -24,5 +26,6 @@ export const createBuildContext = bindBuildContext<RangerCanonicalBuild>(
     selectedPet2: build.selectedPet2,
     selectedHammerSkillIds: build.selectedHammerSkillIds,
     initialUntamedState: build.initialUntamedState
-  })
+  }),
+  { assumptionControls: RANGER_ASSUMPTION_CONTROLS, resolveSkillLoadout: resolveSelectedSkillLoadout }
 );

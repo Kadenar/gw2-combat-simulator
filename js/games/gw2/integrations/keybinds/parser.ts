@@ -1,11 +1,10 @@
+import { inputBindingForKey } from '#gw2/input/bindings.js';
 /** Converts GW2's exported keybind XML into rotation-builder hotkey bindings. */
-import type {
-  RotationHotkeyAction,
-  RotationHotkeyBindings,
-  RotationHotkeyImportResult
-} from '#gw2/app/rotation/hotkeys.js';
+import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
+import type { InputBindings, InputBindingImportResult } from '#gw2/input/bindings.js';
 
-const ACTION_BY_GW2_ID: Readonly<Record<string, RotationHotkeyAction>> = Object.freeze({
+const ACTION_BY_GW2_ID: Readonly<Record<string, InputControlId>> = Object.freeze({
+  '16': 'dodge',
   '17': 'weapon-swap',
   '18': 'weapon-1',
   '19': 'weapon-2',
@@ -107,15 +106,16 @@ function parseAttributes(source: string): Record<string, string> {
   return attributes;
 }
 
-function hotkeyActionFromName(name: string): RotationHotkeyAction | null {
+function hotkeyActionFromName(name: string): InputControlId | null {
   const normalized = name.trim().replace(/\s+/g, ' ').toLowerCase();
+  if (normalized === 'dodge') return 'dodge';
   if (normalized === 'swap weapons' || normalized === 'weapon swap') return 'weapon-swap';
   const numbered = /^(weapon|utility|profession) skill ([1-7])$/.exec(normalized);
   if (numbered) {
     const index = Number(numbered[2]);
-    if (numbered[1] === 'weapon' && index <= 5) return `weapon-${index}` as RotationHotkeyAction;
-    if (numbered[1] === 'utility' && index <= 3) return `slot-${index + 6}` as RotationHotkeyAction;
-    if (numbered[1] === 'profession') return `profession-${index}` as RotationHotkeyAction;
+    if (numbered[1] === 'weapon' && index <= 5) return `weapon-${index}` as InputControlId;
+    if (numbered[1] === 'utility' && index <= 3) return `slot-${index + 6}` as InputControlId;
+    if (numbered[1] === 'profession') return `profession-${index}` as InputControlId;
   }
 
   if (normalized === 'healing skill' || normalized === 'heal skill') return 'slot-6';
@@ -123,7 +123,7 @@ function hotkeyActionFromName(name: string): RotationHotkeyAction | null {
   return null;
 }
 
-function hotkeyActionForAttributes(attributes: Record<string, string>): RotationHotkeyAction | null {
+function hotkeyActionForAttributes(attributes: Record<string, string>): InputControlId | null {
   return ACTION_BY_GW2_ID[attributes.id] || hotkeyActionFromName(attributes.name || '');
 }
 
@@ -141,58 +141,62 @@ export function gw2KeyboardCode(button: string | undefined): string | null {
 export function gw2MouseCode(button: string | undefined): string | null {
   if (!button || !/^\d+$/.test(button)) return null;
   const mouseButton = Number(button);
-  return mouseButton === 3 || mouseButton === 4 ? `Mouse${mouseButton + 1}` : null;
+  return ({ 2: 'Mouse3', 3: 'Mouse4', 4: 'Mouse5' } as Record<number, string>)[mouseButton] ?? null;
 }
 
 function hotkeyWithModifiers(code: string, rawModifier: string | undefined): string | null {
   const modifier = rawModifier === undefined || rawModifier === '' ? 0 : Number(rawModifier);
   if (!Number.isInteger(modifier) || modifier < 0 || modifier > 7) return null;
-  const parts: string[] = [];
-  if (modifier & 2) parts.push('Ctrl');
-  if (modifier & 4) parts.push('Alt');
-  if (modifier & 1) parts.push('Shift');
-  parts.push(code);
-  return parts.join('+');
+  return inputBindingForKey(code, {
+    ctrlKey: Boolean(modifier & 2),
+    altKey: Boolean(modifier & 4),
+    shiftKey: Boolean(modifier & 1)
+  });
 }
 
-function bindingForAttributes(attributes: Record<string, string>): string | null {
+/** Preserve alternatives for profile review while the editor retains its established primary preference. */
+function bindingsForAttributes(attributes: Record<string, string>): { binding: string | null; options: string[] } {
   const candidates = [
     { device: attributes.device, button: attributes.button, modifier: attributes.mod },
     { device: attributes.device2, button: attributes.button2, modifier: attributes.mod2 }
   ];
-  for (const candidate of candidates) {
-    const code =
-      candidate.device === 'Keyboard'
-        ? gw2KeyboardCode(candidate.button)
-        : candidate.device === 'Mouse'
-          ? gw2MouseCode(candidate.button)
-          : null;
-    const hotkey = code ? hotkeyWithModifiers(code, candidate.modifier) : null;
-    if (hotkey) return hotkey;
-  }
-
-  const hasAssignedDevice = candidates.some(({ device }) => Boolean(device) && device !== 'None');
-  return hasAssignedDevice ? null : '';
+  const options = [
+    ...new Set(
+      candidates.flatMap((candidate) => {
+        const code =
+          candidate.device === 'Keyboard'
+            ? gw2KeyboardCode(candidate.button)
+            : candidate.device === 'Mouse'
+              ? gw2MouseCode(candidate.button)
+              : null;
+        const hotkey = code ? hotkeyWithModifiers(code, candidate.modifier) : null;
+        return hotkey ? [hotkey] : [];
+      })
+    )
+  ];
+  return { binding: options[0] ?? (candidates.some(({ device }) => device && device !== 'None') ? null : ''), options };
 }
 
 /**
  * Imports only simulator combat actions, preferring GW2's primary supported binding and falling back to its secondary one.
  */
-export function parseGw2HotkeyBindingsXml(xml: string): RotationHotkeyImportResult {
+export function parseGw2HotkeyBindingsXml(xml: string): InputBindingImportResult {
   if (!/<InputBindings(?:\s|>)/i.test(xml) || !/<\/InputBindings\s*>/i.test(xml)) {
     throw new Error('This is not a Guild Wars 2 InputBindings XML file.');
   }
 
-  const bindings: Partial<RotationHotkeyBindings> = {};
-  const imported = new Set<RotationHotkeyAction>();
-  const skipped = new Set<RotationHotkeyAction>();
+  const bindings: Partial<InputBindings> = {};
+  const bindingOptions: InputBindingImportResult['bindingOptions'] = {};
+  const imported = new Set<InputControlId>();
+  const skipped = new Set<InputControlId>();
   const actionPattern = /<action\b([^>]*)\/?\s*>/gi;
   let match: RegExpExecArray | null;
   while ((match = actionPattern.exec(xml))) {
     const attributes = parseAttributes(match[1]);
     const action = hotkeyActionForAttributes(attributes);
     if (!action) continue;
-    const binding = bindingForAttributes(attributes);
+    const { binding, options } = bindingsForAttributes(attributes);
+    bindingOptions[action] = options;
     if (binding === null) {
       if (!imported.has(action)) skipped.add(action);
       continue;
@@ -205,6 +209,7 @@ export function parseGw2HotkeyBindingsXml(xml: string): RotationHotkeyImportResu
 
   return {
     bindings,
+    bindingOptions,
     importedActions: [...imported],
     skippedActions: [...skipped]
   };

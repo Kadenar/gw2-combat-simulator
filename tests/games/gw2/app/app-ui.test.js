@@ -965,7 +965,8 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
         strikeDamage: 100,
         conditionDamage: 0,
         randomDistributionRequested: true,
-        randomDistributionTrials: 500
+        randomDistributionTrials: 500,
+        inputTrace: { version: 1, start: 0, end: 1, actions: [] }
       },
       runRandomDistribution() {
         runCount += 1;
@@ -989,6 +990,9 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   runButton.onclick();
   assert.equal(runCount, 1);
   assert.match(summaryStrip.innerHTML, /Baseline Player DPS/);
+  // Collapsed input summaries render as markup without needing a browser document or chart nodes.
+  assert.match(summaryStrip.innerHTML, /Input activity &middot; 0.00 actions\/s/);
+  assert.doesNotMatch(summaryStrip.innerHTML, /input-activity-body|input-kb-svg|data-rating|input-meter/);
 });
 
 test('Guardian is exposed by the profession selector and app composition', async () => {

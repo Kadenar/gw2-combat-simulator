@@ -1,3 +1,5 @@
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -33,6 +35,19 @@ export const untamedHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     };
   },
   availability: untamedCastAvailability,
+  /** Natural pet commands occupy F1/F2/F3 on the currently selected pet, with the beast skill in F2. */
+  resolveInputControl(context, skill) {
+    if (!skill.petSkill) return undefined;
+    const ids = context.profession.core.activePetSkillIds.filter((id) =>
+      rangerPetSkillCommandable(context.helpers.skillsById.get(id), 'Untamed')
+    );
+    const beastIndex = ids.findIndex((id) => !context.helpers.skillsById.get(id)?.petAutonomousSkill);
+    if (beastIndex > 1) ids.splice(1, 0, ...ids.splice(beastIndex, 1));
+    const index = ids.indexOf(skill.id);
+    return index >= 0 && index < 3
+      ? { control: `profession-${index + 1}` as InputControlId }
+      : { control: null, unresolvedReason: 'Pet command is not on the active Untamed bar.' };
+  },
   sideEffectHandlers: {
     'ranger.ambush-consume'(runtime) {
       untamedState.from(runtime).ambushReadyUntil = 0;

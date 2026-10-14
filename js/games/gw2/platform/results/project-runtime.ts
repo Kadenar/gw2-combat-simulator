@@ -1,3 +1,4 @@
+import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
@@ -86,17 +87,23 @@ export function projectRuntimeResult<T extends object>(
       interrupted: canonicalTime(action.endsAt) < canonicalTime(action.fullEndsAt)
     };
   });
+  // Project accepted commands once so APM and binding activity share the same action population.
+  const inputTrace = projectInputTrace(
+    runtime.inputActions,
+    explicitCombat ? (runtime.combatStartTime ?? 0) : 0,
+    runtime.rotationEndTime
+  );
   const result = {
     ...buildCombatResult(runtime, score, executed),
     output: 'detailed' as const,
     // Output consumers may edit their observations without changing accepted command history.
     steps: structuredClone(steps),
+    inputTrace,
     rotationApm: rotationApm(
       {
         steps,
         events: executed,
-        rotationEndTime: runtime.rotationEndTime,
-        combatStartTime: explicitCombat ? (runtime.combatStartTime ?? null) : null
+        inputTrace
       },
       execution.driver.cursor.commands,
       profession.catalog

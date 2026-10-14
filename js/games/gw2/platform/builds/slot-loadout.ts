@@ -1,5 +1,6 @@
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
+import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 /**
  * Shared model for profession slot skills chosen as fixed packages rather than
  * as independent skills (for example, a Revenant legend and its entire bar).
@@ -120,6 +121,7 @@ export interface FixedSlotLoadout<TBuild extends object = Record<string, unknown
   skillChildren?(context: SlotLoadoutContext, skillId: SkillId): readonly SkillId[];
   normalizeBuild(build: TBuild, context?: SlotLoadoutContext): Partial<TBuild>;
   validateBuild(build: TBuild, context?: SlotLoadoutContext): string[];
+  resolve(context?: SlotLoadoutContext): ResolvedSkillLoadout;
   view(context?: SlotLoadoutContext): SlotLoadoutView;
   updateBuild(build: TBuild, selectorKey: string, value: unknown, context?: SlotLoadoutContext): TBuild;
   selectedSkillIds(context?: SlotLoadoutContext): number[];
@@ -261,10 +263,20 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
       : stableId((context.build as BuildRecord | undefined)?.[startingKey] || selected[0]);
   }
 
+  /** Resolve selected bars without constructing selectors, labels, or palette entries. */
+  function resolve(context: SlotLoadoutContext = {}) {
+    const selected = normalizedSelection(context.build || {}, context);
+    const requestedActive = activeId(context, selected);
+    return {
+      activeBarId: selected.includes(requestedActive) ? requestedActive : selected[0],
+      bars: selected.map((id) => ({ id, skillIds: [...(byId.get(id)?.skillIds || [])] }))
+    } satisfies ResolvedSkillLoadout;
+  }
+
   function view(context: SlotLoadoutContext = {}): SlotLoadoutView {
     const build = context.build || {};
-    const selected = normalizedSelection(build, context);
-    const active = activeId(context, selected);
+    const resolved = resolve(context);
+    const selected = resolved.bars.map((bar) => bar.id);
     const legal = legalEntries(context);
     const options: SlotLoadoutSelectorOption[] = legal.map((entry) => ({
       value: entry.id,
@@ -293,15 +305,15 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
       });
     }
 
-    const bars: SlotLoadoutBar[] = selected.map((value) => {
+    const bars: SlotLoadoutBar[] = resolved.bars.map(({ id: value, skillIds }) => {
       const entry = byId.get(value);
       return {
         id: value,
         label: entry?.name || value,
         compactLabel: entry?.compactName || entry?.name || value,
         icon: entry?.icon || '',
-        active: value === active,
-        skillIds: [...(entry?.skillIds || [])]
+        active: value === resolved.activeBarId,
+        skillIds
       };
     });
     return {
@@ -344,7 +356,8 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   }
 
   function selectedSkillIds(context: SlotLoadoutContext = {}): number[] {
-    return view(context).activeBar?.skillIds || [];
+    const resolved = resolve(context);
+    return resolved.bars.find((bar) => bar.id === resolved.activeBarId)?.skillIds || [];
   }
 
   function paletteGroups(context: SlotLoadoutContext = {}): SlotLoadoutPaletteGroup[] {
@@ -375,6 +388,7 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
     entries,
     normalizeBuild,
     validateBuild,
+    resolve,
     view,
     updateBuild,
     selectedSkillIds,

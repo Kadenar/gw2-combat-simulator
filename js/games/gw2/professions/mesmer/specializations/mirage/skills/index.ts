@@ -664,6 +664,8 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
   {
     id: ID.DODGE_MIRAGE_CLOAK,
     name: 'Dodge / Mirage Cloak',
+    // Mirage replaces the dodge effect without changing its physical input.
+    inputControl: 'dodge',
     description:
       'Spend 50 endurance. Mirage gains Mirage Cloak and an ambush window; Infinite Horizon commands active clones to ambush.',
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
@@ -687,6 +689,7 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
     id: ID.PICK_UP_MIRAGE_MIRROR,
     mirrorPayload: { profileId: 'mesmer.mirage.mechanics', skillId: ID.MIRAGE_MIRROR_DAMAGE, name: 'Mirage Mirror' },
     name: 'Pick Up Mirage Mirror',
+    // Pickup is a movement mechanic, not an additional skill-bar key press.
     description: 'Pick up an available Mirage Mirror, damaging nearby enemies and gaining Mirage Cloak.',
     icon: 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
     type: 'Action',

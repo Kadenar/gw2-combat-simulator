@@ -49,6 +49,8 @@ export function createDodgeSkill(
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
     type: 'Action',
     slot: 'Action',
+    // The dodge key drives editor shortcuts and input-activity tracing for every profession's dodge.
+    inputControl: 'dodge',
     castTimeMs: 800,
     cooldown: 0,
     ...overrides,

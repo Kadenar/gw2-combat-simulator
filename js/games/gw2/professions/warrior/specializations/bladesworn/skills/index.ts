@@ -417,7 +417,8 @@ function sharpAsTheWindVariant(id: number, parentId: number, name: string, overr
     description: 'Sharp as the Wind condition variant.',
     icon: parent?.icon || '',
     type: parent?.type || 'Bundle',
-    slot: 'Action',
+    // Trait replacements retain their occupied Gunsaber or Dragon Trigger control.
+    slot: parent?.slot,
     specialization: 'Bladesworn',
     castTimeMs: 0,
     cooldown: 0,

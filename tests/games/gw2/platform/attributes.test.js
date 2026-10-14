@@ -1,3 +1,4 @@
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -73,7 +74,8 @@ test('build contexts calculate each requested weapon set once and detach configu
         activeTraits: [{ id: 1, name: 'Trait' }]
       };
     },
-    () => ({})
+    () => ({}),
+    { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
   );
   const input = { build: createDefaultBuild(), patchId: 'current', transitionDelays: normalizeTransitionDelays() };
   for (const type of [null, 'Trait', 'Boon', 'Sigil', 'Food', 'Skill']) {

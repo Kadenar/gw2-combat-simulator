@@ -1,3 +1,4 @@
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { BoundProfession } from '#gw2/build-context/types.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -17,5 +18,6 @@ export const createBuildContext = bindBuildContext<GuardianCanonicalBuild>(
     createProfessionBuildAttributeRules(guardianCatalog, getActiveTraits),
     profession.attributeContributions
   ),
-  (build) => ({ initialTomePages: build.initialTomePages })
+  (build) => ({ initialTomePages: build.initialTomePages }),
+  { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
 );

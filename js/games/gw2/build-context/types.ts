@@ -1,4 +1,9 @@
-import type { Gw2CanonicalBuild, Gw2FinalizedAttributeResult } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2CanonicalBuild,
+  Gw2FinalizedAttributeResult,
+  ProfessionAssumptionControl
+} from '#gw2/platform/builds/types.js';
+import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -21,6 +26,12 @@ export type ProfessionModifier = {
 
 export interface BuildAttributes extends Readonly<Gw2FinalizedAttributeResult> {
   readonly activeTraits: readonly CatalogEntity[];
+}
+
+/** Explicit build dependencies keep headless configuration independent of lazy profession presentation. */
+export interface BuildContextDeclarations<TBuild extends Gw2CanonicalBuild> {
+  readonly assumptionControls: readonly ProfessionAssumptionControl[];
+  readonly resolveSkillLoadout: (build: Readonly<TBuild>, specialization: string) => ResolvedSkillLoadout;
 }
 
 /** A context borrows an immutable build for one calculation; callers create a new context after edits. */

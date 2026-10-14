@@ -5,20 +5,18 @@ import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import type {
-  Gw2CalculateAttributes,
-  Gw2CanonicalBuild,
-  ProfessionAssumptionControl
-} from '#gw2/platform/builds/types.js';
+import type { Gw2CalculateAttributes, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   BuildAttributes,
   BuildContextFactory,
   BuildContextProfession,
+  BuildContextDeclarations,
   WeaponSet
 } from '#gw2/build-context/types.js';
 import { createGw2SimulationConfig } from '#gw2/build-context/simulation-config.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 
 // Common equipment, target, patch, and assumption fields cannot be replaced by a profession contribution.
 type ProfessionConfigFields = Pick<
@@ -67,9 +65,11 @@ type ProfessionConfig = Partial<ProfessionConfigFields> & {
 export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
   profession: BuildContextProfession,
   calculateAttributes: Gw2CalculateAttributes,
-  professionConfig: (build: Readonly<TBuild>, specialization: string) => ProfessionConfig
+  professionConfig: (build: Readonly<TBuild>, specialization: string) => ProfessionConfig,
+  declarations: BuildContextDeclarations<TBuild>
 ): BuildContextFactory<TBuild> {
   const eliteNames = new Set(profession.catalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name));
+  const assumptionControls = buildAssumptionControls(declarations.assumptionControls);
   return ({ build: inputBuild, patchId, transitionDelays, disabledModifier: disabled }) => {
     if (patchId !== 'current' && (!profession.preview || patchId !== profession.preview.id)) {
       throw new TypeError(`Unknown patch: ${patchId}`);
@@ -85,11 +85,12 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
       build = { ...build, assumptions: { ...build.assumptions, [key]: key === 'might' ? 0 : false } };
     } else if (disabled?.type === 'Food') build = { ...build, food: '' };
     else if (disabled?.type === 'Utility') build = { ...build, utility: '' };
+    // Attribute passives use the starting bar; input tracing also needs the other selected bars after swaps.
+    const loadout = declarations.resolveSkillLoadout(build, specialization);
     const selectedSkillIds = Object.freeze(
-      (profession.ui.slotLoadout
-        ? profession.ui.slotLoadout.selectedSkillIds({ build, specialization })
-        : Object.values(build.selectedSkillIds).filter((id): id is SkillId => id !== null)
-      ).filter((id) => disabled?.type !== 'Skill' || id !== disabled.skillId)
+      (loadout.bars.find((bar) => bar.id === loadout.activeBarId)?.skillIds ?? [])
+        .filter((id): id is SkillId => id !== null)
+        .filter((id) => disabled?.type !== 'Skill' || id !== disabled.skillId)
     );
     const selectedSkills = selectedSkillIds
       .map((id) => catalog.skillsById.get(id))
@@ -122,6 +123,13 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
         const sets = [attributes(1), attributes(2)] as const;
         // Config consumers may mutate their snapshot without corrupting cached seeds or the source build.
         return {
+          // Preserve selected positions, including every fixed loadout, for live input-control resolution.
+          skillInputBars: loadout.bars.map((bar) => ({
+            id: bar.id,
+            slots: Object.fromEntries(
+              bar.skillIds.flatMap((id, index) => (id === null ? [] : [[`slot-${index + 6}`, id]]))
+            )
+          })),
           ...createGw2SimulationConfig({
             build,
             patchId,
@@ -131,7 +139,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
             disabled,
             selectedSkillIds,
             selectedTraitIds: sets[0].activeTraits.map((trait) => trait.id).filter((id): id is SkillId => id != null),
-            assumptionControls: profession.ui.assumptionControls as readonly ProfessionAssumptionControl[]
+            assumptionControls
           }),
           ...structuredClone(professionConfig(build, specialization))
         };

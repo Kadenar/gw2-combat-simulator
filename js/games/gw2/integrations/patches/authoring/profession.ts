@@ -345,8 +345,7 @@ export function withPatchPreview<
       : overlayRuntime(familyForPreview().runtimeFor(config));
   };
 
-  return Object.freeze({
-    ...family,
+  const services = {
     preview,
     catalogFor,
     balanceContextFor,
@@ -372,5 +371,15 @@ export function withPatchPreview<
     resolveProfession,
     runtimeFor,
     previewModifierRuleTargets: previewModifierRules.targets
-  }) as NativePatchAuthoringContract<TModules, TPresentation, TBuild>;
+  };
+  // Preserve lazy family getters: decorating a headless profession must not initialize its presentation.
+  return Object.freeze(
+    Object.defineProperties(
+      {},
+      {
+        ...Object.getOwnPropertyDescriptors(family),
+        ...Object.getOwnPropertyDescriptors(services)
+      }
+    )
+  ) as NativePatchAuthoringContract<TModules, TPresentation, TBuild>;
 }

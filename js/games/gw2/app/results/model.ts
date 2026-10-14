@@ -25,7 +25,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
   const metrics = baseResultSummaryMetrics(normalizedResult);
 
   metrics.splice(1, 0, timelineIdleTimeMetric(result));
-  // Keep input effort next to duration, using execution time rather than the resolver's DPS clock.
+  // Keep input activity next to duration, using execution time rather than the resolver's DPS clock.
   const apm = result.rotationApm;
   if (apm) {
     const share = (value: number, total: number): string =>

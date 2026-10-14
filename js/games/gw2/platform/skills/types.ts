@@ -35,7 +35,8 @@ export interface Skill extends CatalogEntity {
   readonly autoattack?: boolean;
   /** Imported state reconstruction executes for playback but never represents a player input. */
   readonly initialStateOnly?: boolean;
-  /** Explicit input that replaces a weapon or profession bar, for rotation effort summaries. */
+  /** Explicit control for synthetic actions whose metadata has no physical bar slot. */
+  readonly inputControl?: import('#gw2/platform/skills/input-controls.js').InputControlId;
   readonly inputCategory?: 'weapon-swap' | 'bar-swap';
   readonly description?: string;
   readonly icon?: string;

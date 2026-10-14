@@ -1,7 +1,8 @@
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { isAutoattackSkill } from '#gw2/platform/skills/autoattack-chain-index.js';
+import { rankedInputWindows } from '#gw2/platform/results/input-windows.js';
+import { activationInputKind, type InputTrace } from '#gw2/platform/results/input-trace.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 export interface RotationApm {
@@ -37,45 +38,25 @@ function occupiedSeconds(intervals: [number, number][]): number {
   return total;
 }
 
-/** Finds the busiest complete rolling window; timestamps are relative to the rotation's counting boundary. */
-function peakApm(starts: readonly number[], duration: number, windowSeconds: number): RotationApmPeak | null {
-  if (duration < windowSeconds) return null;
-  let peak = { startSeconds: 0, endSeconds: windowSeconds, actionCount: 0, apm: 0 };
-  let right = 0;
-  for (let left = 0; left < starts.length; left += 1) {
-    const atEnd = starts[left] >= duration - windowSeconds;
-    const startSeconds = Math.min(starts[left], duration - windowSeconds);
-    const endSeconds = atEnd ? duration : startSeconds + windowSeconds;
-    // Ordinary windows are half-open; the final window includes an instant input at execution end.
-    while (
-      right < starts.length &&
-      (starts[right] < endSeconds || (endSeconds === duration && starts[right] === duration))
-    )
-      right += 1;
-    const actionCount = right - left;
-    if (actionCount > peak.actionCount)
-      peak = { startSeconds, endSeconds, actionCount, apm: (actionCount * 60) / windowSeconds };
-    if (atEnd) break;
-  }
-
-  return peak;
+/** Project the canonical trace window into APM units; the activity chart uses the same window counts. */
+function peakApm(trace: InputTrace, seconds: number): RotationApmPeak | null {
+  const peak = rankedInputWindows(trace, seconds)[0];
+  return peak ? { startSeconds: peak.start, endSeconds: peak.end, actionCount: peak.count, apm: peak.rate * 60 } : null;
 }
 
-/** Counts activations against the driver's canonical commands so reporting shares execution's input identities. */
+/** Manual counts come from accepted inputs; executed events supply autoattack and animation occupancy details. */
 export function rotationApm(
   executed: {
     steps: readonly SimulationStep[];
     events: readonly Gw2ResolverEvent[];
-    rotationEndTime: number;
-    combatStartTime: number | null;
+    inputTrace: InputTrace;
   },
   commands: readonly RotationCommand[],
   catalog: CanonicalCatalog
 ): RotationApm {
-  const { events, steps } = executed;
+  const { events, steps, inputTrace } = executed;
   // An explicit combat boundary excludes precasts; otherwise input accounting begins at zero.
-  const start = executed.combatStartTime ?? 0;
-  const end = executed.rotationEndTime;
+  const { start, end } = inputTrace;
   const durationSeconds = Math.max(0, end - start);
   // Action events retain exact seconds; step display timestamps are rounded to milliseconds.
   const activations = new Map(
@@ -84,12 +65,9 @@ export function rotationApm(
       .map((event) => [event.activationId, event])
   );
   const seen = new Set<string>();
-  const starts: { at: number; instant: boolean }[] = [];
   const castIntervals: [number, number][] = [];
   const autoattackIntervals: [number, number][] = [];
   let autoattackCount = 0;
-  let weaponSwapCount = 0;
-  let barSwapCount = 0;
   for (const step of steps) {
     const command = commands[step.ri];
     if (step.invalid || !step.activationId || command?.type !== 'cast' || command.initialStateDurationMs != null)
@@ -107,7 +85,7 @@ export function rotationApm(
     )
       continue;
     seen.add(step.activationId);
-    const autoattack = isAutoattackSkill(catalog, skill);
+    const autoattack = activationInputKind(catalog, skill, command) === 'autoattack';
     const castEnd = Number(activation.endsAt);
     // Precasts may still occupy the player inside combat; only their activation is excluded from input counts.
     if (!skill.independentCast && castEnd > start) {
@@ -116,30 +94,27 @@ export function rotationApm(
       if (autoattack) autoattackIntervals.push(interval);
     }
 
-    if (activation.at < start) continue;
-    if (autoattack) {
-      autoattackCount += 1;
-      continue;
-    }
-
-    // Independent pet commands and concurrent/ammo uses each keep their own cast reservation identity.
-    starts.push({ at: activation.at - start, instant: Number(activation.fullEndsAt) === activation.at });
-    weaponSwapCount += Number(skill.inputCategory === 'weapon-swap');
-    barSwapCount += Number(skill.inputCategory === 'bar-swap');
+    if (activation.at >= start && autoattack) autoattackCount += 1;
   }
 
-  const activationTimes = starts.map((entry) => entry.at).sort((a, b) => a - b);
+  // Movement-only commands never enter the trace. Queued commands count at acceptance, even if their animation is later.
+  const actionCount = inputTrace.actions.length;
+  const categoryCount = (category: string): number =>
+    inputTrace.actions.filter((input) => catalog.skillsById.get(input.skillId)?.inputCategory === category).length;
   return {
-    actionCount: starts.length,
+    actionCount,
     durationSeconds,
-    apm: durationSeconds > 0 ? (starts.length * 60) / durationSeconds : null,
+    apm: durationSeconds > 0 ? (actionCount * 60) / durationSeconds : null,
     autoattackCount,
     autoattackTimeSeconds: occupiedSeconds(autoattackIntervals),
     castingTimeSeconds: occupiedSeconds(castIntervals),
-    instantActionCount: starts.filter((entry) => entry.instant).length,
-    weaponSwapCount,
-    barSwapCount,
-    peak5s: peakApm(activationTimes, durationSeconds, 5),
-    peak10s: peakApm(activationTimes, durationSeconds, 10)
+    instantActionCount: inputTrace.actions.filter((input) => {
+      const activation = activations.get(input.activationId);
+      return activation && Number(activation.fullEndsAt) === activation.at;
+    }).length,
+    weaponSwapCount: categoryCount('weapon-swap'),
+    barSwapCount: categoryCount('bar-swap'),
+    peak5s: peakApm(inputTrace, 5),
+    peak10s: peakApm(inputTrace, 10)
   };
 }
