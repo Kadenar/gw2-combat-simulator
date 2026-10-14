@@ -395,16 +395,7 @@ function ensureControls(controller: RotationHotkeyController): void {
     heading.append(button);
   }
 
-  // Profile editing is independent of editor shortcuts and loads only when requested.
-  const profileButton = heading.ownerDocument.createElement('button');
-  profileButton.type = 'button';
-  profileButton.className = 'btn btn-io';
-  profileButton.textContent = 'Keybind profile';
-  profileButton.addEventListener('click', async () => {
-    const { showInputProfileDialog } = await import('#gw2/app/input-profile/view.js');
-    showInputProfileDialog(heading.ownerDocument);
-  });
-  button.after(profileButton);
+  // This toolbar configures editor hotkeys; the separate activity profile is opened from its result panel.
   controller.button = button;
   setRotationHotkeysActive(controller, controller.active);
 }
