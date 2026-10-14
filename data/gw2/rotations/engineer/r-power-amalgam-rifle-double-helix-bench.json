@@ -5,7 +5,7 @@
     "benchmarkDamage": 3975911,
     "benchmarkDps": 43612.252509186634,
     "timingSource": "EVTC animation activations, weapon swaps, and direct skill effects",
-    "note": "Throw Mine, Bomb Kit, Evolve, and the opening bombs are reconstructed from initial EVTC state; combat begins during Galvanic Bomb."
+    "note": "Default rotation updated from the user-supplied engineer-rotation.json; source-log benchmark values remain reference measurements."
   },
   "rotation": [
     {
@@ -14,7 +14,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 5000
+      "durationMs": 9000
     },
     {
       "type": "cast",
@@ -30,11 +30,11 @@
     },
     {
       "type": "cast",
-      "skillId": 76651
+      "skillId": 5823
     },
     {
       "type": "cast",
-      "skillId": 5823
+      "skillId": 76651
     },
     {
       "type": "cast",
@@ -101,12 +101,20 @@
       "skillId": 6161
     },
     {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
       "type": "cast",
       "skillId": 6162
     },
     {
       "type": "cast",
       "skillId": 6005
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -138,7 +146,12 @@
     },
     {
       "type": "cast",
-      "skillId": 6110
+      "skillId": 6110,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -156,7 +169,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6004
+      "skillId": 6004,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -173,8 +187,16 @@
       "skillId": 5842
     },
     {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
       "type": "cast",
       "skillId": 6111
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
     },
     {
       "type": "cast",
@@ -244,11 +266,20 @@
     },
     {
       "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
       "skillId": 6153
     },
     {
       "type": "cast",
       "skillId": 5805
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -305,7 +336,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6110
+      "skillId": 6110,
+      "concurrentOffsetMs": 480
     },
     {
       "type": "cast",
@@ -337,7 +369,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6004
+      "skillId": 6004,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -410,6 +443,10 @@
       "concurrentOffsetMs": 280
     },
     {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
       "type": "cast",
       "skillId": 5807
     },
@@ -435,12 +472,17 @@
       "skillId": 6161
     },
     {
-      "type": "cast",
-      "skillId": 6162
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
       "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 0
     },
     {
       "type": "cast",
@@ -471,7 +513,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6110
+      "skillId": 6110,
+      "concurrentOffsetMs": 480
     },
     {
       "type": "cast",
@@ -489,11 +532,13 @@
     },
     {
       "type": "cast",
-      "skillId": 6004
+      "skillId": 6004,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
-      "skillId": 6003
+      "skillId": 6003,
+      "interruptAfterMs": 720
     },
     {
       "type": "cast",
@@ -505,12 +550,21 @@
       "skillId": 5842
     },
     {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
       "type": "cast",
       "skillId": 6111
     },
     {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
       "type": "cast",
-      "skillId": 6003
+      "skillId": 6003,
+      "interruptAfterMs": 720
     },
     {
       "type": "cast",
@@ -608,6 +662,10 @@
       "skillId": 6005
     },
     {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 600
@@ -637,7 +695,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6110
+      "skillId": 6110,
+      "concurrentOffsetMs": 480
     },
     {
       "type": "cast",
@@ -669,7 +728,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6004
+      "skillId": 6004,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -725,6 +785,10 @@
       "skillId": 76651
     },
     {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
       "type": "cast",
       "skillId": 76705
     },
@@ -753,6 +817,10 @@
     {
       "type": "cast",
       "skillId": 5809
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
     },
     {
       "type": "cast",
@@ -785,6 +853,10 @@
       "skillId": 5812
     },
     {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
       "type": "cast",
       "skillId": 5823
     },
@@ -800,7 +872,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6110
+      "skillId": 6110,
+      "concurrentOffsetMs": 480
     },
     {
       "type": "cast",
@@ -818,7 +891,8 @@
     },
     {
       "type": "cast",
-      "skillId": 6004
+      "skillId": 6004,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -835,8 +909,16 @@
       "skillId": 5842
     },
     {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
       "type": "cast",
       "skillId": 6111
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
     },
     {
       "type": "cast",

@@ -91,25 +91,25 @@
         "label": "Power (Rifle - Double Helix)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
-        "benchmarkDps": 43731,
+        "benchmarkDps": 43592,
         "upToDate": true,
-        "benchmarkApm": 116.3,
+        "benchmarkApm": 115.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 46968, "phase": 46968 },
-          "80-60": { "cumulative": 44975, "phase": 43116 },
-          "60-40": { "cumulative": 44564, "phase": 43732 },
-          "40-20": { "cumulative": 43472, "phase": 40479 },
-          "20-0": { "cumulative": 43731, "phase": 43731 }
+          "100-80": { "cumulative": 46388, "phase": 46388 },
+          "80-60": { "cumulative": 44373, "phase": 42438 },
+          "60-40": { "cumulative": 44316, "phase": 44203 },
+          "40-20": { "cumulative": 43277, "phase": 40410 },
+          "20-0": { "cumulative": 43592, "phase": 44903 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42341,
+          "benchmarkDps": 42143,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 46593, "phase": 46593 },
-            "80-60": { "cumulative": 43738, "phase": 41084 },
-            "60-40": { "cumulative": 43591, "phase": 43303 },
-            "40-20": { "cumulative": 42337, "phase": 38917 },
-            "20-0": { "cumulative": 42341, "phase": 42341 }
+            "100-80": { "cumulative": 45904, "phase": 45904 },
+            "80-60": { "cumulative": 43457, "phase": 41146 },
+            "60-40": { "cumulative": 43309, "phase": 43017 },
+            "40-20": { "cumulative": 42140, "phase": 38928 },
+            "20-0": { "cumulative": 42143, "phase": 42143 }
           }
         }
       },
