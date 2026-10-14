@@ -1,3 +1,4 @@
+import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Canine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -6,6 +7,70 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
+  [ID.CANINE_BITE]: {
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.335,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      }
+    ],
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.quicknessCastTimeMs,
+    petSkill: true
+  },
+  // Natural Crippling Leap uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
+  [ID.CANINE_CRIPPLING_LEAP]: {
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.67,
+        source: 'ranger-pet',
+        actorType: 'summon',
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            ownerActorType: 'summon',
+            finisherType: 'Leap'
+          }
+        ]
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 5,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      }
+    ],
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.quicknessCastTimeMs,
+    petSkill: true
+  },
+  // Natural Brutal Charge uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
+  [ID.CANINE_BRUTAL_CHARGE]: {
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.67,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      },
+      {
+        type: 'control',
+        controlKind: 'knockdown',
+        duration: 2,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      }
+    ],
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
+    petSkill: true
+  },
   [ID.INTIMIDATING_HOWL]: {
     effects: [
       {

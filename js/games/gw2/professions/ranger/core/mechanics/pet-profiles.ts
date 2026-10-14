@@ -1,7 +1,11 @@
+import {
+  RANGER_PET_SKILL_TIMINGS,
+  rangerPetSkillTiming
+} from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
-interface RangerPetAttributes {
+export interface RangerPetAttributes {
   readonly power: number;
   readonly precision: number;
   readonly toughness: number;
@@ -19,6 +23,7 @@ export interface PetAutoSkill {
 }
 
 export interface PetAutoProfile {
+  readonly weaponStrength?: number;
   readonly openingDelay: number;
   readonly openingRecoveryDelay?: number;
   readonly quicknessOpeningRecoveryDelay?: number;
@@ -112,6 +117,496 @@ const PET_BASE_ATTRIBUTES: Readonly<Record<string, RangerPetAttributes>> = Objec
     vitality: 2211,
     conditionDamage: 400,
     healingPower: 1200
+  },
+  'Jungle Stalker': {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  Lynx: {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Krytan Drakehound': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Brown Bear': {
+    power: 1524,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 4959,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Salamander Drake': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 600
+  },
+  'Alpine Wolf': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Snow Leopard': {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  Raven: {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 0
+  },
+  Jaguar: {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Marsh Drake': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 600
+  },
+  'Blue Moa': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Pink Moa': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Black Moa': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Red Moa': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Ice Drake': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 600
+  },
+  'River Drake': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 600
+  },
+  Murellow: {
+    power: 1524,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 4959,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Fern Hound': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Black Bear': {
+    power: 1524,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 4959,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Polar Bear': {
+    power: 1524,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 4959,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  Arctodus: {
+    power: 1524,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 4959,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 1200
+  },
+  'Whiptail Devourer': {
+    power: 1524,
+    precision: 1524,
+    toughness: 2898,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Lashtail Devourer': {
+    power: 1524,
+    precision: 1524,
+    toughness: 2898,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  Hyena: {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  Wolf: {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  Owl: {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 0
+  },
+  Eagle: {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 0
+  },
+  'White Raven': {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Forest Spider': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Jungle Spider': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Cave Spider': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Black Widow Spider': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  Warthog: {
+    power: 1524,
+    precision: 1180,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 600
+  },
+  Siamoth: {
+    power: 1524,
+    precision: 1180,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 600
+  },
+  'Reef Drake': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 600
+  },
+  Smokescale: {
+    power: 1524,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Electric Wyvern': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 2898,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Fire Wyvern': {
+    power: 1868,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 2898,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 0
+  },
+  Bristleback: {
+    power: 1868,
+    precision: 1524,
+    toughness: 2898,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  Cheetah: {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Sand Lion': {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Rock Gazelle': {
+    power: 1661,
+    precision: 1524,
+    toughness: 2898,
+    vitality: 3242,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  'White Tiger': {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  Phoenix: {
+    power: 1868,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2898,
+    ferocity: 0,
+    conditionDamage: 700,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Siege Turtle': {
+    power: 1524,
+    precision: 1524,
+    toughness: 2211,
+    vitality: 4959,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Sky-Chak Striker': {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 400,
+    expertise: 0,
+    healingPower: 0
+  },
+  Spinegazer: {
+    power: 1868,
+    precision: 1524,
+    toughness: 2898,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  Warclaw: {
+    power: 1524,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
+  },
+  'Janthiri Bee': {
+    power: 1524,
+    precision: 1524,
+    toughness: 1524,
+    vitality: 3585,
+    ferocity: 0,
+    conditionDamage: 1000,
+    expertise: 0,
+    healingPower: 0
   }
 });
 
@@ -120,194 +615,21 @@ export function rangerPetBaseAttributes(petName: string): RangerPetAttributes {
   return PET_BASE_ATTRIBUTES[petName] || DEFAULT_PET_BASE_ATTRIBUTES;
 }
 
-// Measured pet timelines override the generic action-rate model; recovery includes the next-action gap.
-// Tiger, Wallow, and Hawk have measured unbuffed timelines; Wallow/Hawk Quickness uses standard action-rate scaling.
-export const RANGER_PET_SKILL_TIMINGS: Readonly<
-  Record<
-    string,
-    {
-      castTimeMs: number;
-      quicknessCastTimeMs: number;
-      recoveryMs: number;
-      quicknessRecoveryMs: number;
-      unbuffedImpactMs: Readonly<Record<number, number>>;
-    }
-  >
-> = Object.freeze({
-  // Maul, Brutal Charge, and Lunge keep their unquickened motion; Vortex only accelerates its damage pulses.
-  [ID.PORCINE_JAB]: {
-    castTimeMs: 1400,
-    quicknessCastTimeMs: 960,
-    recoveryMs: 1480,
-    quicknessRecoveryMs: 1040,
-    unbuffedImpactMs: { '240': 320 }
-  },
-  [ID.PORCINE_MAUL]: {
-    castTimeMs: 1200,
-    quicknessCastTimeMs: 1200,
-    recoveryMs: 1280,
-    quicknessRecoveryMs: 1280,
-    unbuffedImpactMs: { '600': 600 }
-  },
-  [ID.PORCINE_BRUTAL_CHARGE]: {
-    castTimeMs: 1840,
-    quicknessCastTimeMs: 1840,
-    recoveryMs: 1920,
-    quicknessRecoveryMs: 1920,
-    unbuffedImpactMs: { '1080': 1080 }
-  },
-  [ID.FORAGE_ROCK]: {
-    castTimeMs: 1200,
-    quicknessCastTimeMs: 880,
-    recoveryMs: 1240,
-    quicknessRecoveryMs: 880,
-    unbuffedImpactMs: {}
-  },
-  [ID.AETHER_HUNTER_BITE]: {
-    castTimeMs: 2040,
-    quicknessCastTimeMs: 1400,
-    recoveryMs: 2120,
-    quicknessRecoveryMs: 1480,
-    unbuffedImpactMs: { '280': 440 }
-  },
-  [ID.AETHER_HUNTER_LUNGE]: {
-    castTimeMs: 1480,
-    quicknessCastTimeMs: 1480,
-    recoveryMs: 1560,
-    quicknessRecoveryMs: 1560,
-    unbuffedImpactMs: { '200': 200 }
-  },
-  [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: {
-    castTimeMs: 4040,
-    quicknessCastTimeMs: 4040,
-    recoveryMs: 4160,
-    quicknessRecoveryMs: 4160,
-    unbuffedImpactMs: { '0': 0, '680': 1000, '1360': 2000, '2040': 3000, '2720': 4000 }
-  },
-  [ID.DIMENSION_BREACH]: {
-    castTimeMs: 3000,
-    quicknessCastTimeMs: 2040,
-    recoveryMs: 3040,
-    quicknessRecoveryMs: 2120,
-    unbuffedImpactMs: { '880': 1280 }
-  },
-  [ID.RAPTOR_SWIFTWING_CLAW]: {
-    castTimeMs: 1600,
-    quicknessCastTimeMs: 1040,
-    recoveryMs: 1680,
-    quicknessRecoveryMs: 1120,
-    unbuffedImpactMs: { '440': 680, '680': 1000 }
-  },
-  [ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT]: {
-    castTimeMs: 2200,
-    quicknessCastTimeMs: 1480,
-    recoveryMs: 2280,
-    quicknessRecoveryMs: 1600,
-    unbuffedImpactMs: { '760': 1120 }
-  },
-  [ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]: {
-    castTimeMs: 3120,
-    quicknessCastTimeMs: 2120,
-    recoveryMs: 3200,
-    quicknessRecoveryMs: 2240,
-    unbuffedImpactMs: { '1240': 1840 }
-  },
-  [ID.PIERCING_SHRIEK]: {
-    castTimeMs: 1800,
-    quicknessCastTimeMs: 1240,
-    recoveryMs: 1920,
-    quicknessRecoveryMs: 1320,
-    unbuffedImpactMs: { '560': 800 }
-  },
-  [ID.BIRD_SLASH]: {
-    castTimeMs: 2600,
-    quicknessCastTimeMs: 1760,
-    recoveryMs: 2680,
-    quicknessRecoveryMs: 1800,
-    unbuffedImpactMs: { 280: 400, 320: 480 }
-  },
-  [ID.LACERATING_SLASH]: {
-    castTimeMs: 2600,
-    quicknessCastTimeMs: 1760,
-    recoveryMs: 2720,
-    quicknessRecoveryMs: 1840,
-    unbuffedImpactMs: { 280: 400, 320: 480 }
-  },
-  [ID.BIRD_SWOOP]: {
-    castTimeMs: 2280,
-    quicknessCastTimeMs: 1520,
-    recoveryMs: 2360,
-    quicknessRecoveryMs: 1600,
-    unbuffedImpactMs: { 520: 760 }
-  },
-  [ID.QUICKENING_SCREECH_PET]: {
-    castTimeMs: 2280,
-    quicknessCastTimeMs: 1520,
-    recoveryMs: 2360,
-    quicknessRecoveryMs: 1600,
-    unbuffedImpactMs: { 520: 760 }
-  },
-  // The focused Wallow log separates early impacts from animation stops and the next AI decision.
-  [ID.VAMPIRIC_BITE]: {
-    castTimeMs: 1400,
-    quicknessCastTimeMs: 960,
-    recoveryMs: 1480,
-    quicknessRecoveryMs: 1000,
-    unbuffedImpactMs: { 240: 360 }
-  },
-  [ID.WALLOW_MAUL]: {
-    castTimeMs: 2560,
-    quicknessCastTimeMs: 1720,
-    recoveryMs: 2640,
-    quicknessRecoveryMs: 1760,
-    unbuffedImpactMs: { 680: 1000 }
-  },
-  [ID.UNDEAD_PLAGUE_PET]: {
-    castTimeMs: 1200,
-    quicknessCastTimeMs: 800,
-    recoveryMs: 1280,
-    quicknessRecoveryMs: 880,
-    // Quickness changes the windup; the emitted cloud still pulses once per second.
-    unbuffedImpactMs: { 640: 920, 1640: 1920, 2640: 2920, 3640: 3920, 4640: 4920 }
-  },
-  [ID.BLOODTHIRSTY_CHARGE]: {
-    castTimeMs: 2480,
-    quicknessCastTimeMs: 1680,
-    recoveryMs: 3880,
-    quicknessRecoveryMs: 2600,
-    unbuffedImpactMs: { 400: 560 }
-  },
-  [ID.FELINE_SLASH]: {
-    castTimeMs: 1200,
-    quicknessCastTimeMs: 840,
-    recoveryMs: 1280,
-    quicknessRecoveryMs: 920,
-    unbuffedImpactMs: { 280: 400 }
-  },
-  [ID.FELINE_BITE]: {
-    castTimeMs: 1080,
-    quicknessCastTimeMs: 760,
-    recoveryMs: 1200,
-    quicknessRecoveryMs: 840,
-    unbuffedImpactMs: { 400: 560 }
-  },
-  [ID.FELINE_MAUL]: {
-    castTimeMs: 1200,
-    quicknessCastTimeMs: 880,
-    recoveryMs: 1280,
-    quicknessRecoveryMs: 960,
-    unbuffedImpactMs: { 360: 520, 560: 760 }
-  },
-  [ID.FURIOUS_POUNCE]: {
-    // The input completes at impact; the pet's separate recovery includes the rest of its animation.
-    castTimeMs: 1560,
-    quicknessCastTimeMs: 1080,
-    // Unquickened log activations resume attacks at 2600 ms; impact remains earlier at 1560 ms.
-    recoveryMs: 2600,
-    quicknessRecoveryMs: 1760,
-    unbuffedImpactMs: { 1080: 1560 }
-  }
-});
+/** Natural skill membership and wiki recharge use the same timing lookup for every pet. */
+function profile(petName: string, actions: readonly (readonly [SkillId, number])[]): PetAutoProfile {
+  const skills = actions.map(([id, cooldown]) => {
+    const timing = rangerPetSkillTiming(petName, id);
+    if (!timing) throw new Error(`Missing pet skill timing: ${petName} / ${id}`);
+    return { id, recovery: timing.recoveryMs / 1000, ...(cooldown ? { cooldown } : {}) };
+  });
+  return {
+    ...(skills[0]!.id === ID.WYVERN_WING_SWIPE ? { weaponStrength: 2615.5 } : {}),
+    openingDelay: 0.44,
+    basic: skills[0]!,
+    specials: skills.slice(1),
+    commandRecovery: {}
+  };
+}
 
 const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freeze({
   // Untamed commands the specials; other specializations use the shared ready-special scheduler.
@@ -397,7 +719,220 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freez
     // Call Lightning shares the 12 s recharge an Untamed command shows (9.6 s with Pack Alpha).
     specials: [{ id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 12 }],
     commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 }
-  }
+  },
+  'Jungle Stalker': profile('Jungle Stalker', [
+    [ID.FELINE_SLASH, 0],
+    [ID.FELINE_BITE, 8],
+    [ID.FELINE_MAUL, 16]
+  ]),
+  Lynx: profile('Lynx', [
+    [ID.FELINE_SLASH, 0],
+    [ID.FELINE_BITE, 8],
+    [ID.FELINE_MAUL, 16]
+  ]),
+  'Krytan Drakehound': profile('Krytan Drakehound', [
+    [ID.CANINE_BITE, 0],
+    [ID.CANINE_CRIPPLING_LEAP, 10],
+    [ID.CANINE_BRUTAL_CHARGE, 18]
+  ]),
+  'Brown Bear': profile('Brown Bear', [[ID.URSINE_SLASH, 0]]),
+  'Salamander Drake': profile('Salamander Drake', [
+    [ID.DRAKE_BITE, 0],
+    [ID.DRAKE_TAIL_SWIPE, 16]
+  ]),
+  'Alpine Wolf': profile('Alpine Wolf', [
+    [ID.CANINE_BITE, 0],
+    [ID.CANINE_CRIPPLING_LEAP, 10],
+    [ID.CANINE_BRUTAL_CHARGE, 18]
+  ]),
+  'Snow Leopard': profile('Snow Leopard', [
+    [ID.FELINE_SLASH, 0],
+    [ID.FELINE_BITE, 8],
+    [ID.FELINE_MAUL, 16]
+  ]),
+  Raven: profile('Raven', [
+    [ID.BIRD_SLASH, 0],
+    [ID.BIRD_SWOOP, 8],
+    [ID.QUICKENING_SCREECH_PET, 20]
+  ]),
+  Jaguar: profile('Jaguar', [
+    [ID.FELINE_SLASH, 0],
+    [ID.FELINE_BITE, 8],
+    [ID.FELINE_MAUL, 16]
+  ]),
+  'Marsh Drake': profile('Marsh Drake', [
+    [ID.DRAKE_BITE, 0],
+    [ID.DRAKE_TAIL_SWIPE, 16]
+  ]),
+  'Blue Moa': profile('Blue Moa', [
+    [ID.MOA_PECK, 0],
+    [ID.MOA_FRENZIED_ATTACK, 20]
+  ]),
+  'Pink Moa': profile('Pink Moa', [
+    [ID.MOA_PECK, 0],
+    [ID.MOA_FRENZIED_ATTACK, 20]
+  ]),
+  'Black Moa': profile('Black Moa', [
+    [ID.MOA_PECK, 0],
+    [ID.MOA_FRENZIED_ATTACK, 20]
+  ]),
+  'Red Moa': profile('Red Moa', [
+    [ID.MOA_PECK, 0],
+    [ID.MOA_FRENZIED_ATTACK, 20]
+  ]),
+  'Ice Drake': profile('Ice Drake', [
+    [ID.DRAKE_BITE, 0],
+    [ID.DRAKE_TAIL_SWIPE, 16]
+  ]),
+  'River Drake': profile('River Drake', [
+    [ID.DRAKE_BITE, 0],
+    [ID.DRAKE_TAIL_SWIPE, 16]
+  ]),
+  Murellow: profile('Murellow', [[ID.URSINE_SLASH, 0]]),
+  'Fern Hound': profile('Fern Hound', [
+    [ID.CANINE_BITE, 0],
+    [ID.CANINE_CRIPPLING_LEAP, 10],
+    [ID.CANINE_BRUTAL_CHARGE, 18]
+  ]),
+  'Black Bear': profile('Black Bear', [[ID.URSINE_SLASH, 0]]),
+  'Polar Bear': profile('Polar Bear', [[ID.URSINE_SLASH, 0]]),
+  Arctodus: profile('Arctodus', [[ID.URSINE_SLASH, 0]]),
+  'Whiptail Devourer': profile('Whiptail Devourer', [[ID.TWIN_DARTS, 0]]),
+  'Lashtail Devourer': profile('Lashtail Devourer', [[ID.TWIN_DARTS, 0]]),
+  Hyena: profile('Hyena', [
+    [ID.CANINE_BITE, 0],
+    [ID.CANINE_CRIPPLING_LEAP, 10],
+    [ID.CANINE_BRUTAL_CHARGE, 18]
+  ]),
+  Wolf: profile('Wolf', [
+    [ID.CANINE_BITE, 0],
+    [ID.CANINE_CRIPPLING_LEAP, 10],
+    [ID.CANINE_BRUTAL_CHARGE, 18]
+  ]),
+  Owl: profile('Owl', [
+    [ID.BIRD_SLASH, 0],
+    [ID.BIRD_SWOOP, 8],
+    [ID.QUICKENING_SCREECH_PET, 20]
+  ]),
+  Eagle: profile('Eagle', [
+    [ID.BIRD_SLASH, 0],
+    [ID.BIRD_SWOOP, 8],
+    [ID.QUICKENING_SCREECH_PET, 20]
+  ]),
+  'White Raven': profile('White Raven', [
+    [ID.BIRD_SLASH, 0],
+    [ID.BIRD_SWOOP, 8],
+    [ID.QUICKENING_SCREECH_PET, 20]
+  ]),
+  'Forest Spider': profile('Forest Spider', [
+    [ID.SPIT, 0],
+    [ID.SPIDER_POISON_GAS, 15],
+    [ID.SPIDER_ENTANGLING_WEB, 20]
+  ]),
+  'Jungle Spider': profile('Jungle Spider', [
+    [ID.SPIT, 0],
+    [ID.SPIDER_POISON_GAS, 15],
+    [ID.SPIDER_ENTANGLING_WEB, 20]
+  ]),
+  'Cave Spider': profile('Cave Spider', [
+    [ID.SPIT, 0],
+    [ID.SPIDER_POISON_GAS, 15],
+    [ID.SPIDER_ENTANGLING_WEB, 20]
+  ]),
+  'Black Widow Spider': profile('Black Widow Spider', [
+    [ID.SPIT, 0],
+    [ID.SPIDER_POISON_GAS, 15],
+    [ID.SPIDER_ENTANGLING_WEB, 20]
+  ]),
+  Warthog: profile('Warthog', [
+    [ID.PORCINE_JAB, 0],
+    [ID.PORCINE_MAUL, 10],
+    [ID.PORCINE_BRUTAL_CHARGE, 24]
+  ]),
+  Siamoth: profile('Siamoth', [
+    [ID.PORCINE_JAB, 0],
+    [ID.PORCINE_MAUL, 10],
+    [ID.PORCINE_BRUTAL_CHARGE, 24]
+  ]),
+  Pig: profile('Pig', [
+    [ID.PORCINE_JAB, 0],
+    [ID.PORCINE_MAUL, 10],
+    [ID.PORCINE_BRUTAL_CHARGE, 24]
+  ]),
+  'Reef Drake': profile('Reef Drake', [
+    [ID.DRAKE_BITE, 0],
+    [ID.DRAKE_TAIL_SWIPE, 16]
+  ]),
+  Smokescale: profile('Smokescale', [
+    [ID.SMOKESCALE_BITE, 0.25],
+    [ID.SMOKESCALE_TAKEDOWN, 10],
+    [ID.SMOKESCALE_SMOKE_ASSAULT, 20]
+  ]),
+  'Electric Wyvern': profile('Electric Wyvern', [
+    [ID.WYVERN_WING_SWIPE, 0],
+    [ID.WYVERN_TAIL_LASH, 12],
+    [ID.WYVERN_WING_BUFFET, 25]
+  ]),
+  'Fire Wyvern': profile('Fire Wyvern', [
+    [ID.WYVERN_WING_SWIPE, 0],
+    [ID.WYVERN_TAIL_LASH, 12],
+    [ID.WYVERN_WING_BUFFET, 25]
+  ]),
+  Bristleback: profile('Bristleback', [
+    [ID.BRISTLEBACK_SPIKE_SHOOT, 0],
+    [ID.BRISTLEBACK_SHARPEN_SPINES, 20],
+    [ID.BRISTLEBACK_RAIN_OF_SPIKES, 18]
+  ]),
+  Cheetah: profile('Cheetah', [
+    [ID.FELINE_SLASH, 0],
+    [ID.FELINE_BITE, 8],
+    [ID.FELINE_MAUL, 16]
+  ]),
+  'Sand Lion': profile('Sand Lion', [
+    [ID.FELINE_SLASH, 0],
+    [ID.FELINE_BITE, 8],
+    [ID.FELINE_MAUL, 16]
+  ]),
+  'Rock Gazelle': profile('Rock Gazelle', [
+    [ID.ROCK_GAZELLE_HEADBUTT, 0],
+    [ID.ROCK_GAZELLE_KICK, 8],
+    [ID.ROCK_GAZELLE_CHARGE, 15]
+  ]),
+  'White Tiger': profile('White Tiger', [
+    [ID.FELINE_SLASH, 0],
+    [ID.FELINE_BITE, 8],
+    [ID.FELINE_PHASE_POUNCE, 16]
+  ]),
+  Phoenix: profile('Phoenix', [
+    [ID.PHOENIX_WICKED_BITE, 0],
+    [ID.PHOENIX_DASH, 20],
+    [ID.PHOENIX_WING_BUFFET, 20]
+  ]),
+  'Siege Turtle': profile('Siege Turtle', [
+    [ID.TURTLE_JADE_CANNON, 0],
+    [ID.TURTLE_HEAVY_SHOT, 20],
+    [ID.TURTLE_SLAM, 25]
+  ]),
+  'Sky-Chak Striker': profile('Sky-Chak Striker', [
+    [ID.CHAK_UNLEASH_ENERGY, 0],
+    [ID.CHAK_ELECTROCUTE, 12],
+    [ID.CHAK_SPIT_GOOP, 20]
+  ]),
+  Spinegazer: profile('Spinegazer', [
+    [ID.SPINEGAZER_EVIL_EYE, 0],
+    [ID.SPINEGAZER_TORMENTING_VISIONS, 20],
+    [ID.SPINEGAZER_STARING_VOID, 15]
+  ]),
+  Warclaw: profile('Warclaw', [
+    [ID.WARCLAW_SLASH, 0],
+    [ID.WARCLAW_BATTLE_MAUL, 15],
+    [ID.WARCLAW_BOP, 18]
+  ]),
+  'Janthiri Bee': profile('Janthiri Bee', [
+    [ID.JANTHIRI_BEE_NIBBLE, 0],
+    [ID.JANTHIRI_BEE_BUMBLE, 24],
+    [ID.JANTHIRI_BEE_STINGING_SORROW, 20]
+  ])
 });
 
 export function rangerPetAutoProfile(petName: string): PetAutoProfile | null {

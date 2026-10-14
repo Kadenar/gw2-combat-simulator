@@ -74,24 +74,41 @@ describe('Ranger skill-bar selections', () => {
           names,
           [...names].sort((a, b) => a.localeCompare(b, 'en'))
         );
-        assert.ok(entries.every((option) => Boolean(option.warning) === (section === 'Unsupported')));
+        if (section === 'Unsupported')
+          assert.deepEqual(
+            entries.map((option) => option.value),
+            ['River Otter']
+          );
+        assert.ok(entries.every((option) => option.wikiPage === `Juvenile ${option.label}`));
       }
+    }
+  });
+
+  // Calibration warnings describe missing attack measurements without misclassifying supported pets.
+  test('pet selections distinguish support from missing impact calibration', () => {
+    const groups = rangerProfession.ui.skillBarGroups({
+      build: createRangerBuildDefaults(),
+      specialization: 'Core',
+      catalog: rangerCatalog
+    });
+    for (const group of groups.filter((group) => group.id.startsWith('ranger-pet-'))) {
+      const options = new Map(group.selections[0].optionEntries.map((option) => [option.value, option]));
+      for (const name of ['Shark', 'Armor Fish', 'Blue Jellyfish', 'Red Jellyfish', 'Rainbow Jellyfish'])
+        assert.equal(options.has(name), false);
+      assert.equal(options.get('Tiger').warning, undefined);
+      assert.equal(options.get('Hawk').warning, undefined);
+      assert.equal(options.get('White Tiger').group, 'Supported');
+      assert.match(options.get('White Tiger').warning, /Phase Pounce/);
+      assert.doesNotMatch(options.get('White Tiger').warning, /Slash|Bite/);
+      assert.match(options.get('Jacaranda').warning, /Root Slap/);
+      assert.doesNotMatch(options.get('Bristleback').warning, /Sharpen Spines/);
+      assert.equal(options.get('River Otter').warning, 'River Otter is not modeled.');
     }
   });
 
   // Both build slots report missing combat profiles across every Ranger specialization.
   test('pet warnings follow modeled combat support in either selection', () => {
-    const modeledPets = new Set([
-      'Carrion Devourer',
-      'Fanged Iboga',
-      'Hawk',
-      'Tiger',
-      'Wallow',
-      'Jacaranda',
-      'Boar',
-      'Aether Hunter',
-      'Raptor Swiftwing'
-    ]);
+    const unmodeledPets = new Set(['River Otter']);
     for (const specialization of ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']) {
       for (const pet of RANGER_PETS) {
         const build = { ...createRangerBuildDefaults(), selectedPet: pet.name, selectedPet2: pet.name };
@@ -102,7 +119,7 @@ describe('Ranger skill-bar selections', () => {
         for (const group of groups) {
           assert.equal(
             group.className.includes('ranger-pet-unmodeled'),
-            !modeledPets.has(pet.name),
+            unmodeledPets.has(pet.name),
             `${specialization}: ${group.id}: ${pet.name}`
           );
         }
@@ -137,7 +154,7 @@ describe('Ranger skill-bar selections', () => {
     );
     assert.deepEqual(
       petGroups.map((group) => group.className),
-      ['ranger-pet ranger-pet-1 ranger-pet-unmodeled', 'ranger-pet ranger-pet-2 ranger-pet-unmodeled']
+      ['ranger-pet ranger-pet-1', 'ranger-pet ranger-pet-2']
     );
     assert.equal(pet1Group.layout, 'ranger-mechanics ranger-soulbeast-mechanics');
     assert.equal(pet2Group.layout, 'ranger-mechanics ranger-soulbeast-mechanics');
@@ -877,7 +894,13 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
   assert.equal(rapidHits[1].criticalChance < 1, true);
   assert.equal(
     opening.resolvedEvents
-      .filter((event) => event.sourceId === TRAIT.OPENING_STRIKE && event.condition === 'Vulnerability')
+      // The pet now spends its own opener; this assertion isolates the player's Rapid Fire grant.
+      .filter(
+        (event) =>
+          event.sourceId === TRAIT.OPENING_STRIKE &&
+          event.condition === 'Vulnerability' &&
+          event.triggeredBy === 'Rapid Fire'
+      )
       .reduce((sum, event) => sum + event.stacks, 0),
     5
   );
@@ -900,7 +923,10 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
 
   assert.equal(
     rearmed.resolvedEvents
-      .filter((event) => event.sourceId === TRAIT.OPENING_STRIKE)
+      .filter(
+        (event) =>
+          event.sourceId === TRAIT.OPENING_STRIKE && ['Rapid Fire', "Winter's Bite"].includes(event.triggeredBy)
+      )
       .reduce((sum, event) => sum + event.stacks, 0),
     10
   );
@@ -938,7 +964,7 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   assert.equal(stolen.flatStrikeBase, 3255);
   assert.equal(stolen.flatStrikePowerCoeff, 0.05);
 
-  const spider = simulate('Core', ['Spit', { type: 'wait', durationMs: 4000 }], {
+  const spider = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 4000 }], {
     selectedPet: 'Forest Spider',
     selectedTraitIds: [TRAIT.ARACHNOPHOBIA]
   });
@@ -977,14 +1003,10 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     )
   );
 
-  const familyAttackDoesNotArmPoisonMaster = simulate(
-    'Core',
-    ['__combat_start', 'Spit', { type: 'wait', durationMs: 4000 }],
-    {
-      selectedPet: 'Forest Spider',
-      selectedTraitIds: [TRAIT.POISON_MASTER]
-    }
-  );
+  const familyAttackDoesNotArmPoisonMaster = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 4000 }], {
+    selectedPet: 'Forest Spider',
+    selectedTraitIds: [TRAIT.POISON_MASTER]
+  });
 
   assert.equal(
     familyAttackDoesNotArmPoisonMaster.resolvedEvents.some((event) => event.sourceId === TRAIT.POISON_MASTER),

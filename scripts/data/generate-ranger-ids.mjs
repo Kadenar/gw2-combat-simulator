@@ -1,3 +1,4 @@
+import { RANGER_PET_SKILL_KEYS } from './ranger-pet-skills.mjs';
 import { generateProfessionIds } from './lib/generator-utils.mjs';
 
 // Synthetic actions and supported variants absent from both API and supplemental records.
@@ -18,32 +19,8 @@ const FIXED_SKILLS = [
 
 // Authored player/pet distinctions remain rebuildable when a generated binding is removed or first introduced.
 const SKILL_KEYS = {
-  12525: 'MAUL_SOULBEAST',
-  12655: 'FELINE_SLASH',
-  12657: 'FELINE_MAUL',
-  12673: 'PET_TAIL_LASH',
-  12694: 'FELINE_BITE',
+  ...RANGER_PET_SKILL_KEYS,
   46629: 'MAUL_BASE',
-  12682: 'BIRD_SLASH',
-  12719: 'BIRD_SWOOP',
-  12720: 'QUICKENING_SCREECH_PET',
-  45990: 'JACARANDA_ROOT_SLAP',
-  40487: 'JACARANDA_CALL_LIGHTNING',
-  41710: 'JACARANDA_PHOTOSYNTHESIZE',
-  41864: 'CRIPPLING_ANGUISH_PET',
-  45262: 'NARCOTIC_SPORES_PET',
-  64891: 'VAMPIRIC_BITE',
-  67277: 'WALLOW_MAUL',
-  67084: 'UNDEAD_PLAGUE_PET',
-  12735: 'PORCINE_JAB',
-  12734: 'PORCINE_MAUL',
-  12738: 'PORCINE_BRUTAL_CHARGE',
-  69822: 'AETHER_HUNTER_BITE',
-  70950: 'AETHER_HUNTER_LUNGE',
-  70332: 'AETHER_HUNTER_LEY_LINE_VORTEX',
-  78335: 'RAPTOR_SWIFTWING_CLAW',
-  78204: 'RAPTOR_SWIFTWING_SAURIAN_MIGHT',
-  77805: 'RAPTOR_SWIFTWING_LEAPING_LIZARD',
   76807: 'QUARRYS_PERIL'
 };
 

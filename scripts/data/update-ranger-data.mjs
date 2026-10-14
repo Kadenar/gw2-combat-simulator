@@ -5,9 +5,11 @@ import { prepareProfessionApiData, publishProfessionData } from './update-profes
 
 /** Derive the Ranger ID map and pet data from one profession snapshot and one shared pet snapshot. */
 async function generateRangerData(snapshot) {
-  // Share one snapshot, omitting unsupported White Moa and Icy Screech from both generated outputs.
+  // Keep land-capable pets only; White Moa remains excluded with its unsupported Icy Screech.
   const petIds = await fetchGw2Api('/pets');
-  const pets = (await fetchManyGw2('pets', petIds, { preserveIdOrder: true })).filter((pet) => pet.id !== 14);
+  const pets = (await fetchManyGw2('pets', petIds, { preserveIdOrder: true })).filter(
+    (pet) => ![14, 21, 40, 41, 42, 43].includes(pet.id)
+  );
   // Both stages depend only on the shared pet list, so fetch them concurrently.
   const [skills, wikiMetadata] = await Promise.all([fetchRangerPetSkills(pets), fetchRangerPetMetadata(pets)]);
   const identities = await generateRangerIds(snapshot, skills);

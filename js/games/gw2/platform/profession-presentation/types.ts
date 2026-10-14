@@ -230,6 +230,8 @@ interface ProfessionSkillBarSelection {
 }
 
 export interface ProfessionSkillBarSelectionOption {
+  /** Wiki destination can differ from the concise selection label. */
+  readonly wikiPage?: string;
   /** Optional named section; search hides sections without matching choices. */
   readonly group?: string;
   readonly value: string;

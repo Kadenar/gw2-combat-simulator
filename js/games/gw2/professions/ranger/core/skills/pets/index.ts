@@ -11,10 +11,7 @@ import { RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS } from '#gw2/professions/range
 import { RANGER_CORE_DRAKE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/drake.js';
 import { RANGER_CORE_AVIAN_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/avian.js';
 import { RANGER_CORE_MOA_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/moa.js';
-import { RANGER_CORE_SHARK_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/shark.js';
 import { RANGER_CORE_SPIDER_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/spider.js';
-import { RANGER_CORE_ARMOR_FISH_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/armor-fish.js';
-import { RANGER_CORE_JELLYFISH_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/jellyfish.js';
 import { RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/smokescale.js';
 import { RANGER_CORE_WYVERN_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/wyvern.js';
 import { RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/bristleback.js';
@@ -40,10 +37,7 @@ export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   ...RANGER_CORE_DRAKE_PET_SKILL_MECHANICS,
   ...RANGER_CORE_AVIAN_PET_SKILL_MECHANICS,
   ...RANGER_CORE_MOA_PET_SKILL_MECHANICS,
-  ...RANGER_CORE_SHARK_PET_SKILL_MECHANICS,
   ...RANGER_CORE_SPIDER_PET_SKILL_MECHANICS,
-  ...RANGER_CORE_ARMOR_FISH_PET_SKILL_MECHANICS,
-  ...RANGER_CORE_JELLYFISH_PET_SKILL_MECHANICS,
   ...RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS,
   ...RANGER_CORE_WYVERN_PET_SKILL_MECHANICS,
   ...RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS,

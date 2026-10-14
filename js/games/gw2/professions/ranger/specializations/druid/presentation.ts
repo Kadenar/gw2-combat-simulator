@@ -45,9 +45,15 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
         };
     },
     paletteGroups: (context: RangerUiContext) => [
-      rangerPetPaletteGroup(catalog, context),
+      // Keep Astral Force beside pet swap so the meter does not consume another palette row.
+      {
+        ...rangerPetPaletteGroup(catalog, context, { stackId: 'ranger-druid' }),
+        resourceIds: ['astral-force'],
+        resourcePlacement: 'beside' as const
+      },
       {
         id: 'ranger-druid-profession',
+        stackId: 'ranger-druid',
         label: 'Avatar',
         skillIds: [ID.CELESTIAL_AVATAR, ID.RELEASE_CELESTIAL_AVATAR, ...AVATAR_SKILLS],
         color: '#75c5c5',

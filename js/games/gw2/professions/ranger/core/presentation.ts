@@ -16,6 +16,7 @@ import type {
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
+import { rangerPetSkillTiming } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { rangerPetAutoProfile } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
@@ -215,14 +216,37 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
       const specialization = uiSpecialization(context);
       // Put supported pets first, with alphabetical choices within each combat-support section.
       const petOptions = RANGER_PETS.map((option) => {
-        const supported = rangerPetAutoProfile(option.name) !== null;
+        const profile = rangerPetAutoProfile(option.name);
+        // Flag missing autonomous impact measurements independently of combat support; utility skills need none.
+        const missingImpacts = profile
+          ? [
+              ...new Set(
+                [profile.basic, ...(profile.opening ? [profile.opening] : []), ...profile.specials].map(
+                  (skill) => skill.id
+                )
+              )
+            ]
+              .filter((id) =>
+                catalog.skillsById
+                  .get(id)
+                  ?.effects?.some((effect) => ['strike', 'condition', 'control'].includes(effect.type))
+              )
+              .filter((id) => !Object.keys(rangerPetSkillTiming(option.name, id)?.unbuffedImpactMs ?? {}).length)
+              .map((id) => catalog.skillsById.get(id)!.name)
+          : [];
+        const supported = profile !== null;
         return {
           value: option.name,
           label: option.name,
+          wikiPage: `Juvenile ${option.name}`,
           icon: option.icon,
           description: option.description,
           group: supported ? 'Supported' : 'Unsupported',
-          warning: supported ? undefined : `${option.name} is not modeled.`
+          warning: !supported
+            ? `${option.name} is not modeled.`
+            : missingImpacts.length
+              ? `${option.name} lacks calibrated autonomous impact timing for: ${missingImpacts.join(', ')}.`
+              : undefined
         };
       }).sort((a, b) => a.group.localeCompare(b.group, 'en') || a.label.localeCompare(b.label, 'en'));
       // Each specialization gets a stable layout hook without Core naming specific elite mechanics.

@@ -1,4 +1,9 @@
+import {
+  RANGER_PET_SKILL_TIMINGS,
+  rangerPetSkillTiming
+} from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -19,7 +24,6 @@ import {
   rangerPetCompanionId
 } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import {
-  RANGER_PET_SKILL_TIMINGS,
   rangerPetAutoProfile,
   type PetAutoProfile,
   type PetAutoSkill
@@ -94,14 +98,21 @@ export function rangerPetCastDurationMs(
   durationMs: number
 ): number {
   if (!skill.petSkill) return durationMs;
+  const petName = context.profession.core.activePet;
+  const definition = RANGER_PET_SKILL_TIMINGS[skill.id];
+  // Pet-specific measurements override cast metadata; shared baselines retain authored skill tuning.
+  const timing =
+    definition?.petNames || definition?.petOverrides?.[petName] ? rangerPetSkillTiming(petName, skill.id) : undefined;
   return quantizeGw2ActionDurationUp(
-    petBoonActive(context, 'quickness') ? summonQuicknessCastTimeMs(skill) : (skill.castTimeMs ?? 0)
+    petBoonActive(context, 'quickness')
+      ? (timing?.quicknessCastTimeMs ?? summonQuicknessCastTimeMs(skill))
+      : (timing?.castTimeMs ?? skill.castTimeMs ?? 0)
   );
 }
 
 /** Measured recovery overrides include decision gaps; unmeasured attacks retain their authored action-rate model. */
-function petRecovery(skillId: string | number, recovery: number, quickness: boolean): number {
-  const timing = RANGER_PET_SKILL_TIMINGS[String(skillId)];
+function petRecovery(petName: string, skillId: string | number, recovery: number, quickness: boolean): number {
+  const timing = rangerPetSkillTiming(petName, skillId);
   return (
     quantizeGw2ActionDurationUp(
       timing
@@ -118,8 +129,13 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
   const profile = rangerPetAutoProfile(context.profession.core.activePet);
   const skillId = cast.skill.id;
   const special = profile?.specials.find((entry) => entry.id === skillId);
-  if (RANGER_PET_SKILL_TIMINGS[String(skillId)] || special)
-    return petRecovery(skillId, special?.recovery ?? 0, petBoonActive(context, 'quickness'));
+  if (rangerPetSkillTiming(context.profession.core.activePet, skillId) || special)
+    return petRecovery(
+      context.profession.core.activePet,
+      skillId,
+      special?.recovery ?? 0,
+      petBoonActive(context, 'quickness')
+    );
   return (
     quantizeGw2ActionDurationUp((profile?.commandRecovery[String(skillId)] ?? cast.effectiveEnd - cast.start) * 1000) /
     1000
@@ -146,6 +162,7 @@ export function resetRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
   // A replaced or merged pet cannot carry an unspent venom into the next companion generation.
   state.paralyzingVenomUntil = 0;
+  state.petSharpenSpines = grantCharges(0, 0);
   context.cancelOwner(owner(context));
   context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
   state.petAutoGeneration += 1;
@@ -185,6 +202,34 @@ export function consumeParalyzingVenom(context: RangerRuntime, event: Gw2Resolve
       actorType: 'summon',
       skillId: ID.PARALYZING_VENOM,
       skillName: 'Paralyzing Venom',
+      activationId: event.activationId
+    },
+    transform: (packet) => ({ ...packet, ...rangerPetCombatMetadata(context) })
+  });
+}
+
+/** Only the currently armed Bristleback's landed strikes can spend its expiring bleed charges. */
+export function consumePetSharpenSpines(context: RangerRuntime, event: Gw2ResolverEvent): void {
+  const state = context.profession.core;
+  if (
+    !state.petActive ||
+    state.activePet !== 'Bristleback' ||
+    event.actorType !== 'summon' ||
+    event.source !== 'ranger-pet' ||
+    event.summonOwner !== rangerPetCompanionId(context) ||
+    !(Number(event.coefficient) > 0) ||
+    !consumeCharge(state.petSharpenSpines, context.time)
+  )
+    return;
+  context.effects.emit({
+    kind: 'profile',
+    profile: requireBalanceProfileFromContext(context, PROFILE.petSharpenSpines),
+    attribution: {
+      source: 'ranger-pet',
+      sourceId: ID.BRISTLEBACK_SHARPEN_SPINES,
+      actorType: 'summon',
+      skillId: ID.BRISTLEBACK_SHARPEN_SPINES,
+      skillName: 'Sharpen Spines',
       activationId: event.activationId
     },
     transform: (packet) => ({ ...packet, ...rangerPetCombatMetadata(context) })
@@ -253,7 +298,7 @@ function emitPetSkill(
 ): void {
   const companionId = rangerPetCompanionId(context);
   const entityName = context.profession.core.activePet;
-  const timing = RANGER_PET_SKILL_TIMINGS[String(skill.id)];
+  const timing = rangerPetSkillTiming(entityName, skill.id);
   const quickness = petBoonActive(context, 'quickness');
   for (const effect of skill.effects ?? []) {
     if (
@@ -354,11 +399,13 @@ export const rangerPetTasks = {
     const quickness = petBoonActive(context, 'quickness');
     const selected = autonomousSkill(context, profile, quickness);
     const skill = context.helpers.skillsById.get(selected.id);
-    const recovery = petRecovery(selected.id, selected.recovery, quickness);
+    const recovery = petRecovery(state.activePet, selected.id, selected.recovery, quickness);
     if (skill) {
       const fullEnd = gw2CooldownReadyAt(
         context.time +
-          (RANGER_PET_SKILL_TIMINGS[String(selected.id)] ? rangerPetCastDurationMs(context, skill, 0) / 1000 : recovery)
+          (rangerPetSkillTiming(state.activePet, selected.id)
+            ? rangerPetCastDurationMs(context, skill, 0) / 1000
+            : recovery)
       );
       // Combat activation identity is independent of event and announcement allocation.
       const activationId = `ranger-pet:${++state.petAutoSequence}`;

@@ -59,7 +59,7 @@ function selectionOptionsHtml(app: ProfessionAppState, options: readonly Profess
     const entries = sections.get(name) || [];
     entries.push(`<button type="button" class="dd-item" data-selection-value="${esc(option.value)}"${
       option.skillId == null ? '' : ` data-skill-id="${esc(option.skillId)}"`
-    } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId, app.build)) : wikiTooltipAttributes(option.label)}>
+    } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId, app.build)) : wikiTooltipAttributes(option.label, option.description, option.wikiPage)}>
         <img src="${esc(option.icon || '')}" alt="">
         <span>${esc(option.label)}</span>
         ${selectionWarningHtml(option.warning)}
@@ -105,7 +105,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
       return `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
-          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}${selectedEntry?.warning ? `. ${esc(selectedEntry.warning)}` : ''}" ${selectedSkill ? skillTooltipAttributes(selectedSkill, app.adapter.skillTooltip(selectedSkill, app.patchId, app.build)) : wikiTooltipAttributes(display.name)}>
+          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}${selectedEntry?.warning ? `. ${esc(selectedEntry.warning)}` : ''}" ${selectedSkill ? skillTooltipAttributes(selectedSkill, app.adapter.skillTooltip(selectedSkill, app.patchId, app.build)) : wikiTooltipAttributes(display.name, selectedEntry?.description, selectedEntry?.wikiPage)}>
               <img src="${esc(display.icon || '')}" alt="">
               ${selectionWarningHtml(selectedEntry?.warning)}
           </button>

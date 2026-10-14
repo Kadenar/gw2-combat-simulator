@@ -7,7 +7,7 @@ import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalChanceFractionFromPrecision, STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
+import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/signet-passives.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
@@ -56,6 +56,8 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
 /** Pet combat packets always retain the active companion's identity and trait-derived attributes. */
 export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverContext) {
   const attributes = rangerPetAttributes(context);
+  // New families may declare a different pet weapon without changing established damage baselines.
+  const weaponStrength = rangerPetAutoProfile(professionCoreState(context).activePet)?.weaponStrength ?? 2880;
   return {
     weaponStrength: undefined,
     weaponStrengthProfileId: undefined,
@@ -76,7 +78,7 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonCriticalChance: criticalChanceFractionFromPrecision(attributes.precision),
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
     summonDamagePerCoefficient:
-      ((2880 * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)
+      ((weaponStrength * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)
   };
 }
 

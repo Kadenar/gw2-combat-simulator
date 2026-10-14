@@ -2,6 +2,47 @@
 // Committed constants keep mechanic references independent from metadata loading.
 
 export const RANGER_SKILL_IDS = Object.freeze({
+  CANINE_BITE: 12660, // Bite
+  CANINE_CRIPPLING_LEAP: 12661, // Crippling Leap
+  CANINE_BRUTAL_CHARGE: 12662, // Brutal Charge
+  URSINE_SLASH: 12663, // Slash
+  DRAKE_BITE: 12668, // Bite
+  DRAKE_TAIL_SWIPE: 12671, // Tail Swipe
+  MOA_PECK: 12659, // Peck
+  MOA_FRENZIED_ATTACK: 12707, // Frenzied Attack
+  SPIDER_POISON_GAS: 12725, // Poison Gas
+  SPIDER_ENTANGLING_WEB: 12654, // Entangling Web
+  SMOKESCALE_BITE: 31312, // Bite
+  SMOKESCALE_TAKEDOWN: 31430, // Takedown
+  SMOKESCALE_SMOKE_ASSAULT: 31854, // Smoke Assault
+  WYVERN_WING_SWIPE: 31520, // Wing Swipe
+  WYVERN_TAIL_LASH: 31613, // Tail Lash
+  WYVERN_WING_BUFFET: 31321, // Wing Buffet
+  BRISTLEBACK_SPIKE_SHOOT: 31679, // Spike Shoot
+  BRISTLEBACK_SHARPEN_SPINES: 31599, // Sharpen Spines
+  BRISTLEBACK_RAIN_OF_SPIKES: 31775, // Rain of Spikes
+  ROCK_GAZELLE_HEADBUTT: 44733, // Headbutt
+  ROCK_GAZELLE_KICK: 43593, // Kick
+  ROCK_GAZELLE_CHARGE: 44051, // Charge
+  FELINE_PHASE_POUNCE: 63891, // Phase Pounce
+  PHOENIX_WICKED_BITE: 63541, // Wicked Bite
+  PHOENIX_DASH: 64070, // Dash
+  PHOENIX_WING_BUFFET: 65209, // Wing Buffet
+  TURTLE_JADE_CANNON: 65032, // Jade Cannon
+  TURTLE_HEAVY_SHOT: 63502, // Heavy Shot
+  TURTLE_SLAM: 67179, // Slam
+  CHAK_UNLEASH_ENERGY: 71510, // Unleash Energy
+  CHAK_ELECTROCUTE: 71501, // Electrocute
+  CHAK_SPIT_GOOP: 71532, // Spit Goop
+  SPINEGAZER_EVIL_EYE: 72603, // Evil Eye
+  SPINEGAZER_TORMENTING_VISIONS: 72527, // Tormenting Visions
+  SPINEGAZER_STARING_VOID: 72652, // Staring Void
+  WARCLAW_SLASH: 73429, // Slash
+  WARCLAW_BATTLE_MAUL: 74252, // Battle Maul
+  WARCLAW_BOP: 73376, // Bop
+  JANTHIRI_BEE_NIBBLE: 75419, // Nibble
+  JANTHIRI_BEE_BUMBLE: 75661, // Bumble
+  JANTHIRI_BEE_STINGING_SORROW: 76021, // Stinging Sorrow
   LESSER_MUDDY_TERRAIN: 13938,
   LESSER_CALL_OF_THE_WILD: 29449,
   PET_SWAP: -4,
@@ -243,7 +284,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   ELECTROCUTE_ID_12699: 12699, // Electrocute
   POISON_CLOUD_ID_12687: 12687, // Poison Cloud
   POISONOUS_MAUL: 12690, // Poisonous Maul
-  FEEDING_FRENZY: 12757, // Feeding Frenzy
   REGENERATE_ID_12717: 12717, // Regenerate
   ENFEEBLING_MAUL: 12688, // Enfeebling Maul
   ENFEEBLING_ROAR: 12685, // Enfeebling Roar
@@ -264,9 +304,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   FORAGE_SCALE: 12755, // Forage Scale
   FORAGE_FEATHERS: 12756, // Forage Feathers
   FORAGE_SWORD: 12732, // Forage Sword
-  STUNNING_RUSH: 12744, // Stunning Rush
-  CHILLING_WHIRL: 12748, // Chilling Whirl
-  IMMOBILIZING_WHIRL: 12749, // Immobilizing Whirl
   LACERATING_SLASH: 20975, // Lacerating Slash
   BIRD_SLASH: 12682, // Slash (bird pet AI)
   BIRD_SWOOP: 12719, // Swoop (bird pet AI)

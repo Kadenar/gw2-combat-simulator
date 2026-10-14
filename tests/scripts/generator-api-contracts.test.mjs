@@ -42,7 +42,8 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
   const pets = [
     { id: 9, name: 'Juvenile Bear', skills: [{ id: 902 }, { id: 901 }] },
     { id: 2, name: 'Juvenile Bear Cub', skills: [{ id: 900 }] },
-    { id: 14, name: 'Juvenile White Moa', skills: [{ id: 999 }] }
+    { id: 14, name: 'Juvenile White Moa', skills: [{ id: 999 }] },
+    ...[21, 40, 41, 42, 43].map((id) => ({ id, name: `Aquatic ${id}`, skills: [{ id: 999 }] }))
   ];
   context.mock.method(console, 'warn', (message) => assert.fail(message));
   context.mock.method(globalThis, 'fetch', async (request, options) => {
@@ -88,7 +89,7 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
   await updateRangerData();
   assert.deepEqual(
     requests.filter(({ url }) => url.pathname === '/v2/pets').map(({ url }) => url.searchParams.get('ids')),
-    [null, '9,2,14']
+    [null, '9,2,14,21,40,41,42,43']
   );
   const skillRequests = requests
     .filter(({ url }) => url.pathname === '/v2/skills')
@@ -99,6 +100,7 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
   for (const authoredSkillId of [12655, 12735, 45990])
     assert.equal(skillRequests.includes(authoredSkillId), false, `authored skill ${authoredSkillId} is not requested`);
   assert.equal(skillRequests.includes(999), false);
+  assert.doesNotMatch(writes[2].source, /Aquatic/);
   assert.match(writes[1].source, /SHARED_BITE: 900/);
   assert.match(writes[1].source, /SHARED_BITE_ID_901: 901/);
   assert.doesNotMatch(writes[1].source, /: 999,/);

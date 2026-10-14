@@ -4,6 +4,15 @@ import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-d
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // The armed Bristleback spends one charge per landed strike using its own condition attributes.
+  variant(
+    RANGER_CORE_BALANCE_PROFILE_IDS.petSharpenSpines,
+    ID.BRISTLEBACK_SHARPEN_SPINES,
+    'Sharpen Spines - Bleeding',
+    {
+      effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 5 }]
+    }
+  ),
   // The spider owns the next-hit condition and its PvE duration independently of the venom buff.
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.paralyzingVenom, ID.PARALYZING_VENOM, 'Paralyzing Venom - Immobilized', {
     effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }]

@@ -1,3 +1,4 @@
+import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Devourer family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -171,7 +172,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         actorType: 'summon'
       }
     ]),
-    quicknessCastTimeMs: 880,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.TWIN_DARTS]!.quicknessCastTimeMs,
     petSkill: true
   },
   [ID.PET_TAIL_LASH]: {

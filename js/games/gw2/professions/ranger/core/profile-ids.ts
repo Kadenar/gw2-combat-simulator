@@ -5,6 +5,7 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   attackOfOpportunity: 'ranger.core.attack-of-opportunity',
   poisonousStrikes: 'ranger.core.poisonous-strikes',
   paralyzingVenom: 'ranger.pet.paralyzing-venom',
+  petSharpenSpines: 'ranger.pet.sharpen-spines',
   sharpeningStone: 'ranger.core.sharpening-stone',
   sunSpirit: 'ranger.core.sun-spirit',
   sicEm: 'ranger.core.sic-em',

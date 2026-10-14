@@ -4,16 +4,13 @@ import { importGeneratorSource, mockGeneratorFiles } from '../helpers/generator-
 import { writeGeneratedFiles } from '../../scripts/data/lib/generator-utils.mjs';
 import { ESLint } from 'eslint';
 import { check, resolveConfig } from 'prettier';
+import { RANGER_PET_AUTHORED_SKILLS } from '../../scripts/data/ranger-pet-skills.mjs';
 import { generateRangerIds } from '../../scripts/data/generate-ranger-ids.mjs';
 import { fetchRangerPetSkills, generateRangerPetData } from '../../scripts/data/generate-ranger-pet-data.mjs';
 import { generateWarriorData } from '../../scripts/data/generate-warrior-data.mjs';
 
-// Pet skill IDs the live skills endpoint rejected on 2026-10-12. The fixture rejects them as well, so their records
-// and keys can only come from the generator's authored inputs, never from the committed output under test.
-const API_REJECTED_PET_SKILL_IDS = new Set([
-  12655, 12657, 12673, 12694, 43734, 41864, 45262, 64891, 67277, 67084, 12682, 12719, 12720, 12735, 12734, 12738, 69822,
-  70950, 70332, 78335, 78204, 77805, 45990, 40487, 41710
-]);
+// API-omitted records must come from authored inputs; the mocked endpoint rejects them.
+const API_REJECTED_PET_SKILL_IDS = new Set(RANGER_PET_AUTHORED_SKILLS.map((skill) => skill.id));
 // Family attacks the endpoint serves although no pet record lists them.
 const API_UNLISTED_FAMILY_SKILL_IDS = new Set([12676, 12724]);
 

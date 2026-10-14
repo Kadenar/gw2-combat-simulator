@@ -11,7 +11,7 @@ test('pet selector groups filter and support keyboard selection', async ({ page 
     const supported = selector.getByRole('group', { name: 'Supported', exact: true });
     const unsupported = selector.getByRole('group', { name: 'Unsupported', exact: true });
     const search = selector.getByRole('searchbox');
-    await search.fill('Lynx');
+    await search.fill('River Otter');
     await expect(supported).toBeHidden();
     await expect(unsupported).toBeVisible();
     await search.fill('no matching pet');
@@ -29,7 +29,7 @@ test('pet selector groups filter and support keyboard selection', async ({ page 
 });
 
 // Native selection changes and saved builds must keep the notice in sync with both pet slots.
-test('Ranger pet warning appears only for unsupported selections', async ({ page }) => {
+test('Ranger pet warnings distinguish calibration from unsupported selections', async ({ page }) => {
   await page.goto('/ranger.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const warning = page.locator('.ranger-pet-warning');
@@ -45,17 +45,25 @@ test('Ranger pet warning appears only for unsupported selections', async ({ page
   await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(0);
   const secondPet = page.locator('#skill-bar [data-selection-key="selectedPet2"]');
   await secondPet.locator('.sbar-icon').click();
-  await expect(secondPet.locator('[data-selection-value="Lynx"] .sbar-selection-warning')).toBeVisible();
+  await expect(secondPet.locator('[data-selection-value="White Tiger"] .sbar-selection-warning')).toBeVisible();
   await expect(secondPet.locator('[data-selection-value="Hawk"] .sbar-selection-warning')).toHaveCount(0);
   await page.locator('.selectable-skills-title').click();
-  await selectPet('selectedPet2', 'Lynx');
-  await expect(warning).toBeVisible();
+  await selectPet('selectedPet2', 'White Tiger');
+  await expect(warning).toBeHidden();
   await expect(secondPet.locator('.sbar-icon > .sbar-selection-warning')).toBeVisible();
-  await expect(secondPet.locator('.sbar-icon')).toHaveAccessibleName('Change Lynx 2. Lynx is not modeled.');
+  await expect(secondPet.locator('.sbar-icon')).toHaveAccessibleName(
+    /Change White Tiger 2.*impact timing.*Phase Pounce/
+  );
+  await expect(secondPet.locator('.sbar-icon')).toHaveAttribute('data-wiki-page', 'Juvenile White Tiger');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await expect(warning).toBeVisible();
+  await expect(warning).toBeHidden();
   await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(1);
+  await selectPet('selectedPet2', 'River Otter');
+  await expect(warning).toBeVisible();
+  await expect(secondPet.locator('.sbar-icon')).toHaveAccessibleName(
+    'Change River Otter 2. River Otter is not modeled.'
+  );
   await selectPet('selectedPet2', 'Hawk');
   await expect(warning).toBeHidden();
   await page.reload({ waitUntil: 'domcontentloaded' });

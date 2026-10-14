@@ -11,10 +11,7 @@ import { SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger
 import { SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/devourer.js';
 import { SOULBEAST_ROCK_GAZELLE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/rock-gazelle.js';
 import { SOULBEAST_DRAKE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/drake.js';
-import { SOULBEAST_JELLYFISH_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/jellyfish.js';
 import { SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/avian.js';
-import { SOULBEAST_ARMOR_FISH_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/armor-fish.js';
-import { SOULBEAST_SHARK_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/shark.js';
 import { SOULBEAST_CANINE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/canine.js';
 import { SOULBEAST_URSINE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/ursine.js';
 import { SOULBEAST_MOA_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/moa.js';
@@ -42,10 +39,7 @@ export const SOULBEAST_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   ...SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_ROCK_GAZELLE_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_DRAKE_BEAST_SKILL_MECHANICS,
-  ...SOULBEAST_JELLYFISH_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS,
-  ...SOULBEAST_ARMOR_FISH_BEAST_SKILL_MECHANICS,
-  ...SOULBEAST_SHARK_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_CANINE_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_URSINE_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_MOA_BEAST_SKILL_MECHANICS,

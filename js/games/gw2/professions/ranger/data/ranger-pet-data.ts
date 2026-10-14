@@ -4,7 +4,6 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerPetDefinition, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
-  // Natural attacks measured in the 20261005 unquickened pet logs.
   {
     id: ID.PORCINE_JAB,
     name: 'Jab',
@@ -18,7 +17,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Boar']
+    petNames: ['Boar', 'Warthog', 'Siamoth', 'Pig']
   },
   {
     id: ID.PORCINE_MAUL,
@@ -33,7 +32,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Boar']
+    petNames: ['Boar', 'Warthog', 'Siamoth', 'Pig']
   },
   {
     id: ID.PORCINE_BRUTAL_CHARGE,
@@ -48,7 +47,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Boar']
+    petNames: ['Boar', 'Warthog', 'Siamoth', 'Pig']
   },
   {
     id: ID.AETHER_HUNTER_BITE,
@@ -140,7 +139,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petAutonomousSkill: true,
     petNames: ['Raptor Swiftwing']
   },
-  // Hawk exposes its bird AI separately from the commanded Beast skill.
   {
     id: ID.BIRD_SLASH,
     name: 'Slash',
@@ -154,7 +152,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Hawk']
+    petNames: ['Hawk', 'Raven', 'Owl', 'Eagle', 'White Raven']
   },
   {
     id: ID.BIRD_SWOOP,
@@ -169,7 +167,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Hawk']
+    petNames: ['Hawk', 'Raven', 'Owl', 'Eagle', 'White Raven']
   },
   {
     id: ID.QUICKENING_SCREECH_PET,
@@ -184,9 +182,8 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Hawk']
+    petNames: ['Hawk', 'Raven', 'Owl', 'Eagle', 'White Raven']
   },
-  // Wallow uses its own AI skills while retaining the Porcine family for traits.
   {
     id: ID.VAMPIRIC_BITE,
     name: 'Vampiric Bite',
@@ -206,7 +203,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     id: ID.WALLOW_MAUL,
     name: 'Maul',
     description: 'Maul your foes and make them bleed.',
-    // Wallow shares the Porcine Maul artwork; there is no separate Wallow icon.
     icon: 'https://render.guildwars2.com/file/24073F5A0566ABE32DFB74204E9FA01025D85D71/104055.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -242,12 +238,11 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Tiger']
+    petNames: ['Tiger', 'Jungle Stalker', 'Lynx', 'Snow Leopard', 'Jaguar', 'Cheetah', 'Sand Lion', 'White Tiger']
   },
   {
     id: ID.FELINE_BITE,
@@ -258,12 +253,11 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 8,
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Tiger']
+    petNames: ['Tiger', 'Jungle Stalker', 'Lynx', 'Snow Leopard', 'Jaguar', 'Cheetah', 'Sand Lion', 'White Tiger']
   },
   {
     id: ID.FELINE_MAUL,
@@ -274,12 +268,11 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 16,
     petSkill: true,
     petFamilySkill: true,
     petAutonomousSkill: true,
-    petNames: ['Tiger']
+    petNames: ['Tiger', 'Jungle Stalker', 'Lynx', 'Snow Leopard', 'Jaguar', 'Cheetah', 'Sand Lion']
   },
   {
     id: ID.TWIN_DARTS,
@@ -290,7 +283,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -306,7 +298,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
     petFamilySkill: true,
@@ -322,7 +313,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -338,7 +328,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 10,
     petSkill: true,
     petFamilySkill: true,
@@ -354,7 +343,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 15,
     petSkill: true,
     petFamilySkill: true,
@@ -370,10 +358,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
+    petAutonomousSkill: true,
     petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider']
   },
   {
@@ -385,9 +373,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Jungle Stalker']
   },
   {
@@ -399,9 +388,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Boar']
   },
   {
@@ -413,9 +403,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Lynx']
   },
   {
@@ -427,9 +418,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Krytan Drakehound']
   },
   {
@@ -441,9 +433,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Brown Bear']
   },
   {
@@ -455,9 +448,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Brown Bear']
   },
   {
@@ -469,9 +463,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Carrion Devourer']
   },
   {
@@ -483,7 +478,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
     petFamilySkill: true,
@@ -499,9 +493,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Salamander Drake']
   },
   {
@@ -513,9 +508,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Salamander Drake']
   },
   {
@@ -527,9 +523,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Alpine Wolf']
   },
   {
@@ -541,9 +538,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Snow Leopard']
   },
   {
@@ -555,9 +553,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Snow Leopard']
   },
   {
@@ -569,9 +568,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 18,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Raven', 'White Raven']
   },
   {
@@ -584,9 +584,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Jaguar']
   },
   {
@@ -598,9 +599,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Marsh Drake']
   },
   {
@@ -612,9 +614,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Marsh Drake']
   },
   {
@@ -626,9 +629,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Blue Moa']
   },
   {
@@ -640,9 +644,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Pink Moa']
   },
   {
@@ -654,9 +659,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Black Moa']
   },
   {
@@ -668,9 +674,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Red Moa']
   },
   {
@@ -682,9 +689,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Ice Drake']
   },
   {
@@ -696,9 +704,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Ice Drake']
   },
   {
@@ -710,9 +719,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['River Drake']
   },
   {
@@ -724,9 +734,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['River Drake']
   },
   {
@@ -738,9 +749,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Murellow']
   },
   {
@@ -752,24 +764,11 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Murellow']
-  },
-  {
-    id: ID.FEEDING_FRENZY,
-    name: 'Feeding Frenzy',
-    description: 'Beast. Enter a frenzy. Attack faster and bleed on each hit.',
-    icon: 'https://render.guildwars2.com/file/05365CD3720551805D3F9645924AE3E4EB3E5F06/104036.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-
-    cooldown: 45,
-    petSkill: true,
-    petNames: ['Shark']
   },
   {
     id: ID.REGENERATE_ID_12717,
@@ -780,9 +779,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Fern Hound']
   },
   {
@@ -794,9 +794,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Black Bear']
   },
   {
@@ -808,9 +809,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Black Bear']
   },
   {
@@ -822,9 +824,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Polar Bear']
   },
   {
@@ -836,9 +839,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Polar Bear']
   },
   {
@@ -850,9 +854,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 15,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Arctodus']
   },
   {
@@ -864,9 +869,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Whiptail Devourer']
   },
   {
@@ -878,9 +884,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Whiptail Devourer']
   },
   {
@@ -892,9 +899,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 60,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Lashtail Devourer']
   },
   {
@@ -906,9 +914,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Lashtail Devourer']
   },
   {
@@ -920,9 +929,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Hyena']
   },
   {
@@ -934,9 +944,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Wolf']
   },
   {
@@ -948,9 +959,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Owl']
   },
   {
@@ -962,9 +974,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Eagle']
   },
   {
@@ -976,9 +989,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Forest Spider']
   },
   {
@@ -990,9 +1004,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Jungle Spider', 'Black Widow Spider']
   },
   {
@@ -1004,9 +1019,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Cave Spider']
   },
   {
@@ -1018,9 +1034,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Warthog']
   },
   {
@@ -1032,9 +1049,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Siamoth']
   },
   {
@@ -1046,52 +1064,11 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Pig']
-  },
-  {
-    id: ID.STUNNING_RUSH,
-    name: 'Stunning Rush',
-    description: 'Beast. Rush at a foe and stun them.',
-    icon: 'https://render.guildwars2.com/file/0FC6D6B3CBD0DDB7A3E2962FF138FDA329A1C90B/103599.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-
-    cooldown: 40,
-    petSkill: true,
-    petNames: ['Armor Fish']
-  },
-  {
-    id: ID.CHILLING_WHIRL,
-    name: 'Chilling Whirl',
-    description: 'Beast. Whirl your tentacles, chilling the foes you strike.',
-    icon: 'https://render.guildwars2.com/file/1CC39FE444CDC677CA124172CA04A216F2F2C51E/103600.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-
-    cooldown: 30,
-    petSkill: true,
-    petNames: ['Blue Jellyfish', 'Rainbow Jellyfish']
-  },
-  {
-    id: ID.IMMOBILIZING_WHIRL,
-    name: 'Immobilizing Whirl',
-    description: 'Beast. Whirl your tentacles, immobilizing the foes you strike.',
-    icon: 'https://render.guildwars2.com/file/1CC39FE444CDC677CA124172CA04A216F2F2C51E/103600.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-
-    cooldown: 30,
-    petSkill: true,
-    petNames: ['Red Jellyfish']
   },
   {
     id: ID.LACERATING_SLASH,
@@ -1102,9 +1079,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Hawk']
   },
   {
@@ -1116,9 +1094,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Reef Drake']
   },
   {
@@ -1130,9 +1109,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 45,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Reef Drake']
   },
   {
@@ -1144,9 +1124,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Smokescale']
   },
   {
@@ -1158,9 +1139,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Tiger']
   },
   {
@@ -1172,9 +1154,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Electric Wyvern']
   },
   {
@@ -1187,9 +1170,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Fire Wyvern']
   },
   {
@@ -1201,9 +1185,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Bristleback']
   },
   {
@@ -1215,9 +1200,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Cheetah']
   },
   {
@@ -1229,9 +1215,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Sand Lion']
   },
   {
@@ -1243,7 +1230,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -1259,7 +1245,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 12,
     petSkill: true,
     petFamilySkill: true,
@@ -1275,7 +1260,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    // The autonomous pet owns this recharge; the merged Soulbeast skill has a separate identity.
     cooldown: 20,
     petSkill: true,
     petFamilySkill: true,
@@ -1291,9 +1275,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Jacaranda']
   },
   {
@@ -1305,9 +1290,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Rock Gazelle']
   },
   {
@@ -1319,7 +1305,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
     petFamilySkill: false,
@@ -1335,9 +1320,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['White Tiger']
   },
   {
@@ -1349,9 +1335,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Wallow']
   },
   {
@@ -1363,9 +1350,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Phoenix']
   },
   {
@@ -1377,9 +1365,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 30,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Siege Turtle']
   },
   {
@@ -1391,9 +1380,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Aether Hunter']
   },
   {
@@ -1405,9 +1395,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Sky-Chak Striker']
   },
   {
@@ -1419,9 +1410,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Spinegazer']
   },
   {
@@ -1433,9 +1425,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Warclaw']
   },
   {
@@ -1447,9 +1440,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 25,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Janthiri Bee']
   },
   {
@@ -1461,9 +1455,10 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 20,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['Raptor Swiftwing']
   },
   {
@@ -1475,10 +1470,627 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-
     cooldown: 24,
     petSkill: true,
+    petFamilySkill: false,
+    petAutonomousSkill: false,
     petNames: ['River Otter']
+  },
+  {
+    id: ID.CANINE_BITE,
+    name: 'Bite',
+    description: 'Bite your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(canine).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf']
+  },
+  {
+    id: ID.CANINE_CRIPPLING_LEAP,
+    name: 'Crippling Leap',
+    description: 'Leap at your foe and cripple them.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Crippling_Leap.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 10,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf']
+  },
+  {
+    id: ID.CANINE_BRUTAL_CHARGE,
+    name: 'Brutal Charge',
+    description: 'Leap at your foe and knock them down.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Brutal_Charge_(canine).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 18,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf']
+  },
+  {
+    id: ID.URSINE_SLASH,
+    name: 'Slash',
+    description: 'Slash your foe with your claws.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slash_(bear).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Brown Bear', 'Murellow', 'Black Bear', 'Polar Bear', 'Arctodus']
+  },
+  {
+    id: ID.DRAKE_BITE,
+    name: 'Bite',
+    description: 'Bite a foe with your jaws.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(drake).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Salamander Drake', 'Marsh Drake', 'Ice Drake', 'River Drake', 'Reef Drake']
+  },
+  {
+    id: ID.DRAKE_TAIL_SWIPE,
+    name: 'Tail Swipe',
+    description: 'Attack all surrounding foes with a tail swipe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Tail_Swipe.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 16,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Salamander Drake', 'Marsh Drake', 'Ice Drake', 'River Drake', 'Reef Drake']
+  },
+  {
+    id: ID.MOA_PECK,
+    name: 'Peck',
+    description: 'Peck at your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Peck.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Blue Moa', 'Pink Moa', 'Black Moa', 'Red Moa']
+  },
+  {
+    id: ID.MOA_FRENZIED_ATTACK,
+    name: 'Frenzied Attack',
+    description: 'Attack with a pecking frenzy and make your foe vulnerable.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Frenzied_Attack.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Blue Moa', 'Pink Moa', 'Black Moa', 'Red Moa']
+  },
+  {
+    id: ID.SPIDER_POISON_GAS,
+    name: 'Poison Gas',
+    description: 'Spit a ball of venom that covers an area with a poisonous cloud. ',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poison_Gas.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 15,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider']
+  },
+  {
+    id: ID.SPIDER_ENTANGLING_WEB,
+    name: 'Entangling Web',
+    description: 'Shoot a web, immobilizing your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Entangling_Web.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider']
+  },
+  {
+    id: ID.SMOKESCALE_BITE,
+    name: 'Bite',
+    description: 'Bite your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(smokescale).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0.25,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Smokescale']
+  },
+  {
+    id: ID.SMOKESCALE_TAKEDOWN,
+    name: 'Takedown',
+    description: 'Cripple your target with a powerful strike.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Takedown.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 10,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Smokescale']
+  },
+  {
+    id: ID.SMOKESCALE_SMOKE_ASSAULT,
+    name: 'Smoke Assault',
+    description: 'Conceal yourself and lash out at nearby foes. Gain might each time you damage a foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Smoke_Assault.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Smokescale']
+  },
+  {
+    id: ID.WYVERN_WING_SWIPE,
+    name: 'Wing Swipe',
+    description: 'Swipe at your foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wing_Swipe.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Electric Wyvern', 'Fire Wyvern']
+  },
+  {
+    id: ID.WYVERN_TAIL_LASH,
+    name: 'Tail Lash',
+    description: 'Sweep your foes along the ground, crippling them.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Tail_Lash_(wyvern_skill).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 12,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Electric Wyvern', 'Fire Wyvern']
+  },
+  {
+    id: ID.WYVERN_WING_BUFFET,
+    name: 'Wing Buffet',
+    description: 'Launch your foe backward with mighty wing beats.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wing_Buffet.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 25,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Electric Wyvern', 'Fire Wyvern']
+  },
+  {
+    id: ID.BRISTLEBACK_SPIKE_SHOOT,
+    name: 'Spike Shoot',
+    description: 'Shoot a spike at your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spike_Shoot.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Bristleback']
+  },
+  {
+    id: ID.BRISTLEBACK_SHARPEN_SPINES,
+    name: 'Sharpen Spines',
+    description: 'The next several hits apply extra bleeding stacks.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Sharpen_Spines.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Bristleback']
+  },
+  {
+    id: ID.BRISTLEBACK_RAIN_OF_SPIKES,
+    name: 'Rain of Spikes',
+    description: 'Launch spikes at all nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rain_of_Spikes.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 18,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Bristleback']
+  },
+  {
+    id: ID.ROCK_GAZELLE_HEADBUTT,
+    name: 'Headbutt',
+    description: ' Bash your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Headbutt_(gazelle).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Rock Gazelle']
+  },
+  {
+    id: ID.ROCK_GAZELLE_KICK,
+    name: 'Kick',
+    description: ' Kick your enemy.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Kick_(gazelle).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 8,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Rock Gazelle']
+  },
+  {
+    id: ID.ROCK_GAZELLE_CHARGE,
+    name: 'Charge',
+    description: ' Charge at your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Charge_(gazelle).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 15,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Rock Gazelle']
+  },
+  {
+    id: ID.FELINE_PHASE_POUNCE,
+    name: 'Phase Pounce',
+    description:
+      "Leap through a rift in the Mists, shadowstepping briefly to the target's location and inflicting damage and conditions.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Phase_Pounce.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 16,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['White Tiger']
+  },
+  {
+    id: ID.PHOENIX_WICKED_BITE,
+    name: 'Wicked Bite',
+    description: 'Bite your foe, leaving them vulnerable.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wicked_Bite.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Phoenix']
+  },
+  {
+    id: ID.PHOENIX_DASH,
+    name: 'Dash',
+    description: 'Charge forward, leaving behind a trail of wind energy that detonates shortly afterward.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Dash_(phoenix).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Phoenix']
+  },
+  {
+    id: ID.PHOENIX_WING_BUFFET,
+    name: 'Wing Buffet',
+    description: 'Launch your foe backward with mighty wing beats.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Wing_Buffet_(phoenix).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Phoenix']
+  },
+  {
+    id: ID.TURTLE_JADE_CANNON,
+    name: 'Jade Cannon',
+    description: 'Fire a long-range, slow-moving jade missile that explodes on impact, damaging nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jade_Cannon_(turtle).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Siege Turtle']
+  },
+  {
+    id: ID.TURTLE_HEAVY_SHOT,
+    name: 'Heavy Shot',
+    description: 'Shoot a jade missile at your target that dazes nearby enemies on impact.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Heavy_Shot.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Siege Turtle']
+  },
+  {
+    id: ID.TURTLE_SLAM,
+    name: 'Slam',
+    description: 'Leap and knock nearby foes back.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slam_(turtle).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 25,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Siege Turtle']
+  },
+  {
+    id: ID.CHAK_UNLEASH_ENERGY,
+    name: 'Unleash Energy',
+    description: 'Unleash a beam of ley energy, damaging your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Unleash_Energy.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Sky-Chak Striker']
+  },
+  {
+    id: ID.CHAK_ELECTROCUTE,
+    name: 'Electrocute',
+    description: 'Zap enemies near your target with electric beams.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Electrocute_(chak).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 12,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Sky-Chak Striker']
+  },
+  {
+    id: ID.CHAK_SPIT_GOOP,
+    name: 'Spit Goop',
+    description: 'Spit goop toward your target, leaving behind damaging areas that cripple enemies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spit_Goop.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Sky-Chak Striker']
+  },
+  {
+    id: ID.SPINEGAZER_EVIL_EYE,
+    name: 'Evil Eye',
+    description: 'Send distressing thoughts to your enemy to torment them.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Evil_Eye.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Spinegazer']
+  },
+  {
+    id: ID.SPINEGAZER_TORMENTING_VISIONS,
+    name: 'Tormenting Visions',
+    description: 'Send distressing thoughts to your enemy to torment them.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Tormenting_Visions.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Spinegazer']
+  },
+  {
+    id: ID.SPINEGAZER_STARING_VOID,
+    name: 'Staring Void',
+    description: 'Blast demonic energy in front of you, inflicting conditions on enemies it hits.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Staring_Void.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 15,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Spinegazer']
+  },
+  {
+    id: ID.WARCLAW_SLASH,
+    name: 'Slash',
+    description: 'Slash at your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slash_(warclaw).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Warclaw']
+  },
+  {
+    id: ID.WARCLAW_BATTLE_MAUL,
+    name: 'Battle Maul',
+    description: 'Pounce on foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Battle_Maul_(Juvenile_Warclaw).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 15,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Warclaw']
+  },
+  {
+    id: ID.WARCLAW_BOP,
+    name: 'Bop',
+    description: 'Ready a powerful thwack to knock down your enemy.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bop.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 18,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Warclaw']
+  },
+  {
+    id: ID.JANTHIRI_BEE_NIBBLE,
+    name: 'Nibble',
+    description: 'Nibble your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Nibble.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Janthiri Bee']
+  },
+  {
+    id: ID.JANTHIRI_BEE_BUMBLE,
+    name: 'Bumble',
+    description: 'Charge at your enemy, knocking them down.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bumble.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 24,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Janthiri Bee']
+  },
+  {
+    id: ID.JANTHIRI_BEE_STINGING_SORROW,
+    name: 'Stinging Sorrow',
+    description: 'Unleash a flurry of rage-filled jabs.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Stinging_Sorrow.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Janthiri Bee']
   }
 ]);
 
@@ -1491,7 +2103,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Jungle stalkers rely on their power to take down prey. They enter battle with a mighty roar, inspiring allies as they lay into their victims with claws and teeth. They love tummy rubs. —Acht',
     family: 'feline',
     archetype: 'Supportive',
-    skillIds: [ID.MIGHTY_ROAR],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.MIGHTY_ROAR],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -1513,7 +2125,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Lynx are tenacious hunters, capable of leaping long distances to chase down fleeing prey. When they feel especially comfortable and safe, they will sometimes roll onto their backs and stick their paws in the air. —Acht',
     family: 'feline',
     archetype: 'Deadly',
-    skillIds: [ID.RENDING_POUNCE],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.RENDING_POUNCE],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.PRIMAL_CRY]
   },
   {
@@ -1524,7 +2136,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This Krytan hound is a loyal, protective pet. It uses its great strength and toughness to fight for its master and can immobilize foes in fear with its howl. —Acht',
     family: 'canine',
     archetype: 'Versatile',
-    skillIds: [ID.INTIMIDATING_HOWL],
+    skillIds: [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE, ID.INTIMIDATING_HOWL],
     beastmodeSkillIds: [ID.CRIPPLING_LEAP, ID.BRUTAL_CHARGE, ID.PRELUDE_LASH]
   },
   {
@@ -1535,7 +2147,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Brown bears are tremendously strong and fiercely protective. They throw themselves into combat selflessly to distract attention from their masters and use their great strength to shrug off blows that would kill any other creature. —Acht',
     family: 'ursine',
     archetype: 'Supportive',
-    skillIds: [ID.SHAKE_IT_OFF, ID.PURGE_CONDITIONS],
+    skillIds: [ID.URSINE_SLASH, ID.SHAKE_IT_OFF, ID.PURGE_CONDITIONS],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -1557,7 +2169,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Red salamander drakes are often hunted because of their similarity to the myth of dragons, though they are a different species. They continue to survive because their fire breath makes them deadly to hunters and prey alike. —Acht',
     family: 'drake',
     archetype: 'Deadly',
-    skillIds: [ID.FIRE_BREATH, ID.BOIL],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.FIRE_BREATH, ID.BOIL],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.PRIMAL_CRY]
   },
   {
@@ -1568,7 +2180,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This snowy wolf is at home in the frigid lands of the north. Their howl chills their foes to the bone, leaving them vulnerable to their powerful claws and jaws. —Acht',
     family: 'canine',
     archetype: 'Stout',
-    skillIds: [ID.CHILLING_HOWL],
+    skillIds: [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE, ID.CHILLING_HOWL],
     beastmodeSkillIds: [ID.CRIPPLING_LEAP, ID.BRUTAL_CHARGE, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -1579,7 +2191,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Snow leopards have internalized the harsh climate they live in. Their pounce debilitates their victims with chilling cold, making it harder for them to escape. Though they're comfortable in freezing cold, snow leopards love a good sunbeam. —Acht",
     family: 'feline',
     archetype: 'Stout',
-    skillIds: [ID.ICY_POUNCE, ID.ICY_BITE],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.ICY_POUNCE, ID.ICY_BITE],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -1590,7 +2202,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The raven is cunning and clever. Its intelligence makes them excellent scouts. In combat, they evade attacks and strike at their foes' eyes to blind them. —Acht",
     family: 'avian',
     archetype: 'Versatile',
-    skillIds: [ID.BLINDING_SLASH],
+    skillIds: [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET, ID.BLINDING_SLASH],
     beastmodeSkillIds: [ID.SWOOP_ID_44991, ID.QUICKENING_SCREECH, ID.PRELUDE_LASH]
   },
   {
@@ -1601,7 +2213,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'The jaguar is a silent predator, capable of sneaking up on an unsuspecting foe and unleashing a deadly ambush. When not rending prey with their claws, jaguars also enjoy playing with colorful fabrics and shiny objects. —Acht',
     family: 'feline',
     archetype: 'Versatile',
-    skillIds: [ID.STALK],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.STALK],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.PRELUDE_LASH]
   },
   {
@@ -1612,7 +2224,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The standard diet of the swamp drake includes a variety of noxious marsh insects. The drake's digestive system isolates those unsavory poisons and enables them to breathe a venomous cloud to debilitate foes. —Acht",
     family: 'drake',
     archetype: 'Supportive',
-    skillIds: [ID.INSECT_SWARM, ID.POISON_CLOUD],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.INSECT_SWARM, ID.POISON_CLOUD],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -1623,7 +2235,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Blue moas are protective and paternal to their flock. Their bright red crests make them easy to rally around, and many a flock has survived due to the presence of a blue moa. —Acht',
     family: 'moa',
     archetype: 'Stout',
-    skillIds: [ID.PROTECTING_SCREECH],
+    skillIds: [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK, ID.PROTECTING_SCREECH],
     beastmodeSkillIds: [ID.HARMONIC_CRY, ID.FRENZIED_ATTACK, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -1634,7 +2246,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Pink moas are adorable but have a tendency to be annoying. They frequently poke other moas for attention and have a particularly aggravating screech, which disorients their enemies. —Acht',
     family: 'moa',
     archetype: 'Versatile',
-    skillIds: [ID.DAZING_SCREECH],
+    skillIds: [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK, ID.DAZING_SCREECH],
     beastmodeSkillIds: [ID.HARMONIC_CRY, ID.FRENZIED_ATTACK, ID.PRELUDE_LASH]
   },
   {
@@ -1645,7 +2257,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'The rare black moa is seen as a harbinger of death and plague by some cultures. That belief is misguided, as biologically, their only major difference from other moas is a particular fondness for acorns. —Acht',
     family: 'moa',
     archetype: 'Versatile',
-    skillIds: [ID.DAZING_SCREECH_ID_12709],
+    skillIds: [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK, ID.DAZING_SCREECH_ID_12709],
     beastmodeSkillIds: [ID.HARMONIC_CRY, ID.FRENZIED_ATTACK, ID.PRELUDE_LASH]
   },
   {
@@ -1656,7 +2268,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Red moas are a fierce and aggressive breed of the bird. Their screech fills their allies with fury, energizing them as they fight. Despite their rough-and-tumble nature, though, red moas are very neat and compulsively groom themselves and other moas. —Acht',
     family: 'moa',
     archetype: 'Ferocious',
-    skillIds: [ID.FURIOUS_SCREECH],
+    skillIds: [ID.MOA_PECK, ID.MOA_FRENZIED_ATTACK, ID.FURIOUS_SCREECH],
     beastmodeSkillIds: [ID.HARMONIC_CRY, ID.FRENZIED_ATTACK, ID.WORLDLY_IMPACT]
   },
   {
@@ -1667,7 +2279,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Ice drakes have a unique biology, considering they are a cold-blooded creature that lives in arctic climates. They can breathe ice to attack their prey. —Acht',
     family: 'drake',
     archetype: 'Stout',
-    skillIds: [ID.FROST_BREATH, ID.FROST_NOVA],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.FROST_BREATH, ID.FROST_NOVA],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -1678,7 +2290,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'River drakes hunt by throwing foes into water then unleashing their electrical breath. Fortunately, they are immune to their own breath, but most prey cannot withstand its power. —Acht',
     family: 'drake',
     archetype: 'Ferocious',
-    skillIds: [ID.LIGHTNING_BREATH, ID.ELECTROCUTE_ID_12699],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.LIGHTNING_BREATH, ID.ELECTROCUTE_ID_12699],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.WORLDLY_IMPACT]
   },
   {
@@ -1689,19 +2301,8 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The elusive murellow's body courses with poisons, giving it a sickly appearance and causing its hair to fall out. Despite its gaunt frame, it is a fierce protector, spitting clouds of poison as it shrugs off attacks. —Acht",
     family: 'ursine',
     archetype: 'Deadly',
-    skillIds: [ID.POISON_CLOUD_ID_12687, ID.POISONOUS_MAUL],
+    skillIds: [ID.URSINE_SLASH, ID.POISON_CLOUD_ID_12687, ID.POISONOUS_MAUL],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.PRIMAL_CRY]
-  },
-  {
-    id: 21,
-    name: 'Shark',
-    icon: 'https://render.guildwars2.com/file/24DC58C7D70FED79BF7E0D38D202479E3D2EB2F9/52574.png',
-    description:
-      "This is your pet shark. That's right. Your very own pet shark. It's your pet. And a shark. Awesome. Sharks rend their foes with powerful teeth and can even swallow foes whole. —Acht",
-    family: 'shark',
-    archetype: 'Deadly',
-    skillIds: [ID.FEEDING_FRENZY],
-    beastmodeSkillIds: [ID.CHARGING_BITE, ID.FEAR, ID.PRIMAL_CRY]
   },
   {
     id: 22,
@@ -1711,7 +2312,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Sylvari wetlands plant wolves are rare, magical creatures that share many characteristics with their mundane brothers. They fight fiercely for their pack, using their plant affinity to rapidly regenerate wounds.—Acht',
     family: 'canine',
     archetype: 'Supportive',
-    skillIds: [ID.REGENERATE_ID_12717],
+    skillIds: [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE, ID.REGENERATE_ID_12717],
     beastmodeSkillIds: [ID.CRIPPLING_LEAP, ID.BRUTAL_CHARGE, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -1722,7 +2323,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Black bears are territorial and private animals, but they form strong bonds with their friends and selflessly intervene when their friends are threatened. Despite their fearsome appearance, they primarily eat berries, fruit, and fish. —Acht',
     family: 'ursine',
     archetype: 'Stout',
-    skillIds: [ID.ENFEEBLING_MAUL, ID.ENFEEBLING_ROAR],
+    skillIds: [ID.URSINE_SLASH, ID.ENFEEBLING_MAUL, ID.ENFEEBLING_ROAR],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -1733,7 +2334,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Found in the frozen north, polar bears are adapted to survive in the harshest conditions on Tyria. The most durable of pets, they can shrug off painful blows and weaken foes with their chilling bite. —Acht',
     family: 'ursine',
     archetype: 'Versatile',
-    skillIds: [ID.ICY_ROAR, ID.ICY_MAUL],
+    skillIds: [ID.URSINE_SLASH, ID.ICY_ROAR, ID.ICY_MAUL],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.PRELUDE_LASH]
   },
   {
@@ -1744,7 +2345,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'The arctodus is a mighty snow wolf-bear. Its wolf side gives it a strong pack mentality that makes it very protective of its companions. It can roar with arctic might, chilling opponents to the core and making it harder for them to move or act. —Acht',
     family: 'ursine',
     archetype: 'Ferocious',
-    skillIds: [ID.RENDING_MAUL],
+    skillIds: [ID.URSINE_SLASH, ID.RENDING_MAUL],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.WORLDLY_IMPACT]
   },
   {
@@ -1777,7 +2378,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "This hyena is a wily, cunning combatant. A hyena's pack is never far away, and they can summon another hyena to fight alongside them. —Acht",
     family: 'canine',
     archetype: 'Ferocious',
-    skillIds: [ID.HOWL_OF_THE_PACK],
+    skillIds: [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE, ID.HOWL_OF_THE_PACK],
     beastmodeSkillIds: [ID.CRIPPLING_LEAP, ID.BRUTAL_CHARGE, ID.WORLDLY_IMPACT]
   },
   {
@@ -1788,7 +2389,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This wolf is a deadly predator, with powerful jaws and a howl that sends foes fleeing in terror. Pack is everything for a wolf, and they will fight tirelessly for their alpha. —Acht',
     family: 'canine',
     archetype: 'Deadly',
-    skillIds: [ID.TERRIFYING_HOWL],
+    skillIds: [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE, ID.TERRIFYING_HOWL],
     beastmodeSkillIds: [ID.CRIPPLING_LEAP, ID.BRUTAL_CHARGE, ID.PRIMAL_CRY]
   },
   {
@@ -1799,7 +2400,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This snowy white owl is a graceful and elegant pet. White owls are fiercely loyal to their friends and family. They unleash chilling cold and claw slashes on their foes while evading attacks in a flurry of wings. —Acht',
     family: 'avian',
     archetype: 'Supportive',
-    skillIds: [ID.CHILLING_SLASH],
+    skillIds: [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET, ID.CHILLING_SLASH],
     beastmodeSkillIds: [ID.SWOOP_ID_44991, ID.QUICKENING_SCREECH, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -1810,7 +2411,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This mighty eagle is the most majestic of birds. They are strong, deadly predators, inflicting bleeding wounds with their claws and beak while evading counterattacks. —Acht',
     family: 'avian',
     archetype: 'Ferocious',
-    skillIds: [ID.BRASH_SLASH],
+    skillIds: [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET, ID.BRASH_SLASH],
     beastmodeSkillIds: [ID.SWOOP_ID_44991, ID.QUICKENING_SCREECH, ID.WORLDLY_IMPACT]
   },
   {
@@ -1821,7 +2422,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'White ravens are exceedingly rare. This exceptionally intelligent and elegant bird is nonetheless a deadly fighter, neutralizing foes by clawing at their eyes and blinding them while evading their counterattacks. —Acht',
     family: 'avian',
     archetype: 'Versatile',
-    skillIds: [ID.BLINDING_SLASH],
+    skillIds: [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET, ID.BLINDING_SLASH],
     beastmodeSkillIds: [ID.SWOOP_ID_44991, ID.QUICKENING_SCREECH, ID.PRELUDE_LASH]
   },
   {
@@ -1832,7 +2433,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'While other spiders use debilitating or paralyzing poison, forest-spider poison is simply corrosive and destructive. Fortunately they are immune to the acidic qualities of their own poison, but they do need to eat quickly. —Acht',
     family: 'spider',
     archetype: 'Deadly',
-    skillIds: [ID.SPIT, ID.DEADLY_VENOM],
+    skillIds: [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB, ID.DEADLY_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.PRIMAL_CRY]
   },
   {
@@ -1843,7 +2444,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "It takes a particular frame of mind to have a giant spider as a pet—especially a rare jungle spider. Fortunately, they're capable of feeding themselves, disabling foes with a poison spit that can paralyze foes temporarily. —Acht",
     family: 'spider',
     archetype: 'Versatile',
-    skillIds: [ID.SPIT, ID.PARALYZING_VENOM],
+    skillIds: [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB, ID.PARALYZING_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.PRELUDE_LASH]
   },
   {
@@ -1854,7 +2455,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The wily cave spider is a deadly predator that uses debilitating poison to weaken its foes' offenses and defenses as it brings them down. They make surprisingly affectionate pets, though rangers should not eat creatures they bring as gifts. —Acht",
     family: 'spider',
     archetype: 'Ferocious',
-    skillIds: [ID.SPIT, ID.WEAKENING_VENOM],
+    skillIds: [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB, ID.WEAKENING_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.WORLDLY_IMPACT]
   },
   {
@@ -1865,7 +2466,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'The black widow is the rarest variety of spider. Like other spiders, they can throw poison and spin webs to immobilize their foes. Black widows can also use a special poison that paralyzes foes in their tracks. —Acht',
     family: 'spider',
     archetype: 'Versatile',
-    skillIds: [ID.SPIT, ID.PARALYZING_VENOM],
+    skillIds: [ID.SPIT, ID.SPIDER_POISON_GAS, ID.SPIDER_ENTANGLING_WEB, ID.PARALYZING_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.PRELUDE_LASH]
   },
   {
@@ -1876,7 +2477,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This warthog is an ornery, tough creature that will never back down from a fight. Many foes have underestimated it, only to be undone by its tusks and powerful charge attacks. —Acht',
     family: 'porcine',
     archetype: 'Deadly',
-    skillIds: [ID.FORAGE_SCALE],
+    skillIds: [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE, ID.FORAGE_SCALE],
     beastmodeSkillIds: [ID.MAUL_ID_41406, ID.BRUTAL_CHARGE_ID_46432, ID.PRIMAL_CRY]
   },
   {
@@ -1887,7 +2488,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Though it may look bizarre, this tapir is a good-natured creature and an amiable companion. Its unassuming appearance hides a ferocious side, though, and siamoths are known for sending their opponents flying with a well-placed charge. —Acht',
     family: 'porcine',
     archetype: 'Stout',
-    skillIds: [ID.FORAGE_FEATHERS],
+    skillIds: [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE, ID.FORAGE_FEATHERS],
     beastmodeSkillIds: [ID.MAUL_ID_41406, ID.BRUTAL_CHARGE_ID_46432, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -1898,52 +2499,8 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This pig is one of the rarest, most exotic pets in all of Tyria. As you walk the land with this pig by your side, people will stare in wonder at the mysterious creature they have never seen before. Truly, this is a time of wonders. —Acht',
     family: 'porcine',
     archetype: 'Ferocious',
-    skillIds: [ID.FORAGE_SWORD],
+    skillIds: [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE, ID.FORAGE_SWORD],
     beastmodeSkillIds: [ID.MAUL_ID_41406, ID.BRUTAL_CHARGE_ID_46432, ID.WORLDLY_IMPACT]
-  },
-  {
-    id: 40,
-    name: 'Armor Fish',
-    icon: 'https://render.guildwars2.com/file/F9A71C1308254B0544F40B9B5E05050EA87ED45B/52612.png',
-    description:
-      "This durable fish's armor can withstand a tremendous amount of punishment. Armor fish overwhelm their foes with disorienting bash attacks while shrugging off their counterattacks. —Acht",
-    family: 'armor fish',
-    archetype: 'Stout',
-    skillIds: [ID.STUNNING_RUSH],
-    beastmodeSkillIds: [ID.PROTECTION, ID.CHOMP_ID_44885, ID.UNFLINCHING_FORTITUDE]
-  },
-  {
-    id: 41,
-    name: 'Blue Jellyfish',
-    icon: 'https://render.guildwars2.com/file/ED9A2FD006BAED6DCAD87C5BD9479C66111DCD79/52614.png',
-    description:
-      'Jellyfish can release a variety of clouds in the water to replenish themselves and disorient their enemies. Blue jellyfish can also chill foes with the ends of their tentacles. —Acht',
-    family: 'jellyfish',
-    archetype: 'Deadly',
-    skillIds: [ID.CHILLING_WHIRL],
-    beastmodeSkillIds: [ID.HEALING_CLOUD, ID.DARK_WATER, ID.PRIMAL_CRY]
-  },
-  {
-    id: 42,
-    name: 'Red Jellyfish',
-    icon: 'https://render.guildwars2.com/file/C7F8301C1B76B3B208A23B19C3AABF0BBED8CA4C/52616.png',
-    description:
-      'Jellyfish can release a variety of clouds in the water to replenish themselves and disorient their enemies. Their tentacles immobilize their prey by disrupting their nervous system. —Acht',
-    family: 'jellyfish',
-    archetype: 'Versatile',
-    skillIds: [ID.IMMOBILIZING_WHIRL],
-    beastmodeSkillIds: [ID.HEALING_CLOUD, ID.DARK_WATER, ID.PRELUDE_LASH]
-  },
-  {
-    id: 43,
-    name: 'Rainbow Jellyfish',
-    icon: 'https://render.guildwars2.com/file/ED9A2FD006BAED6DCAD87C5BD9479C66111DCD79/52614.png',
-    description:
-      'Jellyfish release a variety of clouds in the water to replenish themselves and disorient their enemies. Rainbow jellyfish can also chill foes with the ends of their tentacles.—Acht',
-    family: 'jellyfish',
-    archetype: 'Deadly',
-    skillIds: [ID.CHILLING_WHIRL],
-    beastmodeSkillIds: [ID.HEALING_CLOUD, ID.DARK_WATER, ID.PRIMAL_CRY]
   },
   {
     id: 44,
@@ -1964,7 +2521,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Reef drakes emit a high-pitched screech to disorient their foes. Don't let them confuse you; these drakes are dangerous.<br>—Acht",
     family: 'drake',
     archetype: 'Versatile',
-    skillIds: [ID.SONIC_SHRIEK, ID.SONIC_BARRIER],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.SONIC_SHRIEK, ID.SONIC_BARRIER],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.PRELUDE_LASH]
   },
   {
@@ -1975,7 +2532,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Smokescales have an ability to conceal themselves in smoke. These stealthy saurians emerge from their smoke cloud to ambush prey without warning.—Acht',
     family: 'smokescale',
     archetype: 'Ferocious',
-    skillIds: [ID.SMOKE_CLOUD],
+    skillIds: [ID.SMOKESCALE_BITE, ID.SMOKESCALE_TAKEDOWN, ID.SMOKESCALE_SMOKE_ASSAULT, ID.SMOKE_CLOUD],
     beastmodeSkillIds: [ID.TAKEDOWN, ID.SMOKE_ASSAULT, ID.WORLDLY_IMPACT]
   },
   {
@@ -1997,7 +2554,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Electric wyverns are a unique variant of their winged species that generate and channel electricity. They isolate and shock their prey with powerful electrical pulses.—Acht',
     family: 'wyvern',
     archetype: 'Versatile',
-    skillIds: [ID.LIGHTNING_ASSAULT],
+    skillIds: [ID.WYVERN_WING_SWIPE, ID.WYVERN_TAIL_LASH, ID.WYVERN_WING_BUFFET, ID.LIGHTNING_ASSAULT],
     beastmodeSkillIds: [ID.TAIL_LASH_ID_46386, ID.WING_BUFFET, ID.PRELUDE_LASH]
   },
   {
@@ -2008,7 +2565,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Fire wyverns are winged relatives of the terrestrial drake. These voracious predators contain and then roast their prey with swaths of fiery breath.—Acht',
     family: 'wyvern',
     archetype: 'Deadly',
-    skillIds: [ID.CONSUMING_FLAME],
+    skillIds: [ID.WYVERN_WING_SWIPE, ID.WYVERN_TAIL_LASH, ID.WYVERN_WING_BUFFET, ID.CONSUMING_FLAME],
     beastmodeSkillIds: [ID.TAIL_LASH_ID_46386, ID.WING_BUFFET, ID.PRIMAL_CRY]
   },
   {
@@ -2019,7 +2576,12 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Bristlebacks are spiny saurians with thick hides and sharp claws. When provoked, they can eject their sharp dorsal spines at high velocity.—Acht',
     family: 'bristleback',
     archetype: 'Deadly',
-    skillIds: [ID.SPIKE_BARRAGE],
+    skillIds: [
+      ID.BRISTLEBACK_SPIKE_SHOOT,
+      ID.BRISTLEBACK_SHARPEN_SPINES,
+      ID.BRISTLEBACK_RAIN_OF_SPIKES,
+      ID.SPIKE_BARRAGE
+    ],
     beastmodeSkillIds: [ID.RAIN_OF_SPIKES, ID.SHARPEN_SPINES, ID.PRIMAL_CRY]
   },
   {
@@ -2030,7 +2592,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "It's a blur, sir! The desert cheetah is rumored to travel faster than the eye can see, pouncing upon its victim with fang and claw. —Acht",
     family: 'feline',
     archetype: 'Versatile',
-    skillIds: [ID.SAVANNAH_STRIKE],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.SAVANNAH_STRIKE],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.PRELUDE_LASH]
   },
   {
@@ -2041,7 +2603,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Sand lions lay claim to massive dunes and viciously defend their territory from dozens of desert encroachers. —Acht',
     family: 'feline',
     archetype: 'Ferocious',
-    skillIds: [ID.BLINDING_ROAR],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.BLINDING_ROAR],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.WORLDLY_IMPACT]
   },
   {
@@ -2068,7 +2630,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'The elegant rock gazelle grazes on rocky outcroppings over its lifetime to enhance its impressive antlers. —Acht',
     family: 'rock gazelle',
     archetype: 'Ferocious',
-    skillIds: [ID.HEAD_TOSS],
+    skillIds: [ID.ROCK_GAZELLE_HEADBUTT, ID.ROCK_GAZELLE_KICK, ID.ROCK_GAZELLE_CHARGE, ID.HEAD_TOSS],
     beastmodeSkillIds: [ID.KICK, ID.CHARGE, ID.WORLDLY_IMPACT]
   },
   {
@@ -2090,7 +2652,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'A Canthan variant of its orange-furred cousin, the white tiger is well known in the region as a fierce protector of its master. It is a symbol of wealth and power for a household to own one as a pet. —Acht',
     family: 'feline',
     archetype: 'Stout',
-    skillIds: [ID.GUARDIANS_ROAR],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_PHASE_POUNCE, ID.GUARDIANS_ROAR],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -2112,7 +2674,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Boasting colorful plumage that rivals that of the rainbow moa, the phoenix is a regal avian considered by many to be the ruler of all birds. The largest phoenixes are owned by Canthan royalty. —Acht',
     family: 'phoenix',
     archetype: 'Ferocious',
-    skillIds: [ID.GALE_BREATH],
+    skillIds: [ID.PHOENIX_WICKED_BITE, ID.PHOENIX_DASH, ID.PHOENIX_WING_BUFFET, ID.GALE_BREATH],
     beastmodeSkillIds: [ID.DASH, ID.WING_BUFFET, ID.WORLDLY_IMPACT]
   },
   {
@@ -2123,7 +2685,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Giant turtles used by the Luxon Armada as mobile siege weapons. They are trained from a young age to carry heavy artillery on their backs to prepare them for battle. —Acht',
     family: 'turtle',
     archetype: 'Supportive',
-    skillIds: [ID.HUNKER_DOWN],
+    skillIds: [ID.TURTLE_JADE_CANNON, ID.TURTLE_HEAVY_SHOT, ID.TURTLE_SLAM, ID.HUNKER_DOWN],
     beastmodeSkillIds: [ID.SLAM, ID.HEAVY_SHOT, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -2145,7 +2707,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Able to harness and control bursts of electricity, the sky-chak striker's ability to glide by attuning to ley-line energy allowed them to adapt to the floating islands of Skywatch Archipelago. —Acht",
     family: 'chak',
     archetype: 'Ferocious',
-    skillIds: [ID.LEY_ENERGY_PULSE],
+    skillIds: [ID.CHAK_UNLEASH_ENERGY, ID.CHAK_ELECTROCUTE, ID.CHAK_SPIT_GOOP, ID.LEY_ENERGY_PULSE],
     beastmodeSkillIds: [ID.ELECTROCUTE, ID.SPIT_GOOP, ID.WORLDLY_IMPACT]
   },
   {
@@ -2156,7 +2718,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "If you've explored the Realm of Dreams, you've likely experienced the terror of the spinegazer's stare; not only can it launch a barrage of ranged physical attacks, it also wages psychological warfare by planting tormenting visions in the minds of its enemies.—Acht",
     family: 'spinegazer',
     archetype: 'Deadly',
-    skillIds: [ID.PANOPTICON],
+    skillIds: [ID.SPINEGAZER_EVIL_EYE, ID.SPINEGAZER_TORMENTING_VISIONS, ID.SPINEGAZER_STARING_VOID, ID.PANOPTICON],
     beastmodeSkillIds: [ID.STARING_VOID, ID.TORMENTING_VISIONS, ID.PRIMAL_CRY]
   },
   {
@@ -2167,7 +2729,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'The warclaw has always been a very peculiar creature of study, previously thought to be Mists-locked and of an ethereal nature rather than biological. The warclaw of Janthir seem to be the origin of the creatures we know, possessing an untapped well of magic that manifests as immense speed and athletic ability. Occasionally, the feline will need to expel pent-up energies by running in a circle for minutes on end. —Acht',
     family: 'warclaw',
     archetype: 'Ferocious',
-    skillIds: [ID.RALLYING_ROAR],
+    skillIds: [ID.WARCLAW_SLASH, ID.WARCLAW_BATTLE_MAUL, ID.WARCLAW_BOP, ID.RALLYING_ROAR],
     beastmodeSkillIds: [ID.BATTLE_MAUL, ID.BOP, ID.WORLDLY_IMPACT]
   },
   {
@@ -2178,7 +2740,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The honeybees of Janthir are an incredibly pragmatic subspecies. When bonded to an individual, or the hive's queen as they most often are, the bees are incredibly chivalrous toward their proprietor. However, I'd be remiss if I didn't mention their stingers. Likely adapted to protect themselves from the treacherous nature of the region, the Janthiri bee's ovipositor is markedly durable and even more hazardous. The lowland kodan often coat their weapons in bee venom before a challenging hunt. —Acht",
     family: 'janthiri bee',
     archetype: 'Deadly',
-    skillIds: [ID.HONEY_TOSS],
+    skillIds: [ID.JANTHIRI_BEE_NIBBLE, ID.JANTHIRI_BEE_BUMBLE, ID.JANTHIRI_BEE_STINGING_SORROW, ID.HONEY_TOSS],
     beastmodeSkillIds: [ID.BUMBLE, ID.STINGING_SORROW, ID.PRIMAL_CRY]
   },
   {

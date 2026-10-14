@@ -476,6 +476,22 @@
   transform: scale(1.5);
 }
 
+/* The inline Astral Force meter keeps its tooltip and value without a tall vertical label. */
+.active-resource-group:has([data-resource-id='astral-force']) {
+  flex: 1;
+  padding-left: 8px;
+}
+
+.active-resource-group:has([data-resource-id='astral-force']) > .pal-label {
+  display: none;
+}
+
+/* Fill the shared pet/Avatar stack so both rows end at the same right border. */
+.active-resource[data-resource-id='astral-force'],
+.active-resource[data-resource-id='astral-force'] > .active-resource-bar {
+  flex: 1;
+}
+
 /* Full-width spacer that forces the following pal-groups onto a new line. */
 .pal-break {
   flex-basis: 100%;

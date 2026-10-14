@@ -5,10 +5,34 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
+import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  // Natural Phase Pounce uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
+  [ID.FELINE_PHASE_POUNCE]: {
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 2,
+        atMs: 0,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      },
+      {
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 4,
+        duration: 10,
+        source: 'ranger-pet',
+        actorType: 'summon'
+      }
+    ],
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_PHASE_POUNCE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_PHASE_POUNCE]!.quicknessCastTimeMs,
+    petSkill: true
+  },
   [ID.MIGHTY_ROAR]: {
     effects: [
       {

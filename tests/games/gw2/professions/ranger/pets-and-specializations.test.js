@@ -1114,11 +1114,12 @@ test("Soulbeast starts merged and grants only the selected pet's Beast skills", 
 
   assert.match(alreadyMerged.warnings[0], /already active/);
 
-  const blocked = simulate('Soulbeast', ['Smoke Assault']);
+  // The merged skill and natural Smokescale attack have separate canonical identities.
+  const blocked = simulate('Soulbeast', [ID.SMOKE_ASSAULT]);
 
   assert.match(blocked.warnings[0], /select the pet that grants/);
 
-  const result = simulate('Soulbeast', ['Smoke Assault'], {
+  const result = simulate('Soulbeast', [ID.SMOKE_ASSAULT], {
     selectedPet: 'Smokescale'
   });
 
@@ -1127,7 +1128,7 @@ test("Soulbeast starts merged and grants only the selected pet's Beast skills", 
   assert.equal(result.planningState.profession.archetype, 'Ferocious');
   assert.equal(result.totalDamage > 0, true);
 
-  const leftBeastmode = simulate('Soulbeast', ['Leave Beastmode', 'Smoke Assault'], { selectedPet: 'Smokescale' });
+  const leftBeastmode = simulate('Soulbeast', ['Leave Beastmode', ID.SMOKE_ASSAULT], { selectedPet: 'Smokescale' });
 
   assert.match(leftBeastmode.warnings[0], /enter Beastmode/);
   assert.equal(leftBeastmode.planningState.profession.beastmodeActive, false);

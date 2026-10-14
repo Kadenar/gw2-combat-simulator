@@ -1,4 +1,5 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
@@ -24,6 +25,7 @@ import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet
 import {
   beginRangerPetCommand,
   consumeParalyzingVenom,
+  consumePetSharpenSpines,
   prepareRangerPetEvent,
   rangerBoonDuration,
   rangerPetCastDurationMs,
@@ -180,6 +182,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   reactions: {
     'damage.resolved'(runtime, event, details) {
       consumeParalyzingVenom(runtime, event);
+      consumePetSharpenSpines(runtime, event);
       reactToRangerGreatswordDamage(runtime, event);
       reactToRangerCoreDamage(runtime, event);
       runtime.fireTrigger(criticalResolved, { event, details });
@@ -193,6 +196,14 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       runtime.fireTrigger(buffApplied, { event });
       const state = runtime.profession.core;
       // Only the currently active pet can arm its next-hit venom; stale launched buffs cannot arm a replacement.
+      if (
+        event.kind === 'pet-sharpen-spines' &&
+        event.sourceId === ID.BRISTLEBACK_SHARPEN_SPINES &&
+        state.petActive &&
+        state.activePet === 'Bristleback' &&
+        event.summonOwner === rangerPetCompanionId(runtime)
+      )
+        state.petSharpenSpines = grantCharges(Number(event.stacks), runtime.time + Number(event.duration));
       if (
         event.kind === 'paralyzing-venom' &&
         event.sourceId === ID.PARALYZING_VENOM &&
