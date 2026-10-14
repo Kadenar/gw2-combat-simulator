@@ -21,7 +21,7 @@ for (const output of ['detailed', 'score']) {
   test(`Jacaranda's Embrace retains its conditions and pulses after pet swap (${output})`, () => {
     let originalPet;
     const result = runRanger(
-      [ID.JACARANDAS_EMBRACE, wait(1500), ID.PET_SWAP, wait(13000)],
+      [ID.JACARANDAS_EMBRACE, wait(2000), ID.PET_SWAP, wait(13000)],
       {
         specialization: 'Druid',
         selectedPet: 'Jacaranda',
@@ -54,12 +54,15 @@ for (const output of ['detailed', 'score']) {
     const embraceConditions = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillId === ID.JACARANDAS_EMBRACE
     );
-    // The opening immobilize rides the pet's strike and stays pet-owned; only the later vine pulses are the Ranger's.
+    // The first proc rides the pet's strike and is entirely pet-owned; only the four later vine procs are the Ranger's.
     const opener = embraceConditions.filter((event) => event.actorType === 'summon');
     const embrace = embraceConditions.filter((event) => event.actorType !== 'summon');
     assert.deepEqual(
       opener.map(({ condition, duration }) => [condition, duration]),
-      [['Immobilized', 1]]
+      [
+        ['Vulnerability', 8],
+        ['Immobilized', 1]
+      ]
     );
     assert.ok(embrace.some((event) => event.at < swappedAt && event.expiresAt > swappedAt));
     assert.ok(embrace.some((event) => event.at > swappedAt));

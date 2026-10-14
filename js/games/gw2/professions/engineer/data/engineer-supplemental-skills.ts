@@ -1083,7 +1083,8 @@ const records: EngineerSupplementalSkill[] = [
     id: 59562,
     name: 'Explosive Entrance',
     description: 'Your first attack explodes, dealing extra damage to nearby enemies.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Explosive_Entrance_(trait_skill).png',
+    // Use the triggered skill artwork from API trait 432 so combat results load a direct image.
+    icon: 'https://render.guildwars2.com/file/02A02091B1EBDB782719EB6AE56F01E6372C500D/103091.png',
     type: 'Proc',
     slot: 'Action',
     specialization: '',

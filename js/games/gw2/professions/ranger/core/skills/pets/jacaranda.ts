@@ -6,8 +6,12 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-// Snap each 1.5-second pulse independently so both conditions stay aligned without accumulating rounding drift.
-const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];
+// The pet's own projectile lands first. The vine then pulses four more times; each pulse snaps to the action grid
+// independently so the strike and both conditions stay aligned without accumulating rounding drift.
+const EMBRACE_STRIKE_MS = 920;
+const EMBRACE_VINE_PULSE_TIMES_MS = [1520, 3000, 4520, 6000];
+// Calibrated so both condition Druid presets reproduce the 158 damage every logged vine hit deals in their logs.
+const EMBRACE_VINE_COEFFICIENT = 0.0845;
 
 export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.JACARANDA_PHOTOSYNTHESIZE]: {
@@ -28,43 +32,39 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
     petSkill: true
   },
   [ID.JACARANDAS_EMBRACE]: {
-    // Embrace's vine pulses use Ranger stats and survive pet swap; its direct strike and opening immobilize are pet-owned.
+    // EVTC splits Embrace by owner. The first proc is the pet's projectile: its strike, Vulnerability and 1 s
+    // Immobile all belong to the pet, so it can crit and trigger the pet's Sharpened Edges, and Ranger control traits
+    // such as Blood Moon ignore it. The four vine procs belong to the Ranger: each strike never crits, and each
+    // Immobile triggers Blood Moon. Vine procs use Ranger stats and survive pet swap.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        // EVTC records one projectile impact about 920 ms after each command, not one strike per control pulse.
-        ticks: [{ atMs: 920, coefficient: 0.16 }],
+        ticks: [{ atMs: EMBRACE_STRIKE_MS, coefficient: 0.16 }],
         source: 'ranger-pet',
         actorType: 'summon'
       },
       {
         type: 'condition',
-        ticks: EMBRACE_PULSE_TIMES_MS.map((atMs) => ({
-          atMs,
-          condition: 'Vulnerability',
-          stacks: 1,
-          duration: 8
-        })),
+        ticks: [
+          { atMs: EMBRACE_STRIKE_MS, condition: 'Vulnerability', stacks: 1, duration: 8 },
+          { atMs: EMBRACE_STRIKE_MS, condition: 'Immobilized', stacks: 1, duration: 1 }
+        ],
+        source: 'ranger-pet',
+        actorType: 'summon'
+      },
+      {
+        type: 'strike',
+        ticks: EMBRACE_VINE_PULSE_TIMES_MS.map((atMs) => ({ atMs, coefficient: EMBRACE_VINE_COEFFICIENT })),
+        canCrit: false,
         source: 'ranger-pet',
         actorType: 'player'
       },
       {
-        // The opening immobilize rides the pet's own strike: it is pet-owned, so Ranger control traits such as Blood
-        // Moon ignore it. EVTC shows a 1 s pet-duration Immobile at the strike and no Blood Moon bleeding with it.
         type: 'condition',
-        ticks: [{ atMs: 920, condition: 'Immobilized', stacks: 1, duration: 1 }],
-        source: 'ranger-pet',
-        actorType: 'summon'
-      },
-      {
-        // The four later vine pulses are Ranger-owned and each one triggers Ranger control traits.
-        type: 'condition',
-        ticks: EMBRACE_PULSE_TIMES_MS.slice(1).map((atMs) => ({
-          atMs,
-          condition: 'Immobilized',
-          stacks: 1,
-          duration: 2
-        })),
+        ticks: EMBRACE_VINE_PULSE_TIMES_MS.flatMap((atMs) => [
+          { atMs, condition: 'Vulnerability', stacks: 1, duration: 8 },
+          { atMs, condition: 'Immobilized', stacks: 1, duration: 2 }
+        ]),
         source: 'ranger-pet',
         actorType: 'player'
       }

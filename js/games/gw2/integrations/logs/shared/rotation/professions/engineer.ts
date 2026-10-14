@@ -13,6 +13,18 @@ const specializationReconstructors: ReadonlyMap<string, LogActionNormalizer> = n
   ['amalgam', reconstructAmalgamDpsReportActions]
 ]);
 
+/** Prefer Overcharged Shot's animation over EI's damage-derived instant marker, including its trailing tick. */
+function removeOverchargedShotDamageMarkers(actions: readonly RecordedLogAction[]): readonly RecordedLogAction[] {
+  const animations = actions.filter((action) => action.rawSkillId === ID.OVERCHARGED_SHOT && action.end > action.start);
+  return actions.filter(
+    (action) =>
+      action.rawSkillId !== ID.OVERCHARGED_SHOT ||
+      action.status !== 'instant' ||
+      action.metadataAccurate ||
+      !animations.some((animation) => action.start >= animation.start && action.start <= animation.end + 50)
+  );
+}
+
 /** Works around EI omitting Sun Edge when its full cast appears between Radiant Arc and the reported Sun Ripper. */
 function restoreEiMissingSunEdge(
   context: LogActionNormalizationContext,
@@ -51,7 +63,7 @@ function restoreEiMissingSunEdge(
   return restored;
 }
 
-/** Normalizes represented Engineer actions and narrowly restores EI's omitted sword-chain opener. */
+/** Removes corroborating rifle markers, normalizes Engineer actions, and restores EI's omitted sword-chain opener. */
 export function reconstructEngineerDpsReportActions(
   context: LogActionNormalizationContext
 ): readonly RecordedLogAction[] {
@@ -60,6 +72,6 @@ export function reconstructEngineerDpsReportActions(
   ];
   return restoreEiMissingSunEdge(
     context,
-    reconstructEngineerDependencies({ ...context, recordedActions: specialized })
+    reconstructEngineerDependencies({ ...context, recordedActions: removeOverchargedShotDamageMarkers(specialized) })
   );
 }

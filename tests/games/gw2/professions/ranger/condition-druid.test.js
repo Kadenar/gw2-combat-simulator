@@ -674,6 +674,40 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   );
 });
 
+// Embrace splits its strikes by owner: the pet's projectile is crit-eligible on the pet's own attributes, while the
+// four Ranger-owned vine strikes are locked to never crit, even at full Ranger critical chance, so they never feed
+// Sharpened Edges.
+test("Jacaranda's Embrace vine strikes are Ranger-owned and never crit", () => {
+  const result = simulate([{ type: 'combat-start' }, "Jacaranda's Embrace", { type: 'wait', durationMs: 8000 }], {
+    selectedTraitIds: [TRAIT.SHARPENED_EDGES],
+    attributeInputs: baseAttributeInputs({ precision: 6000 })
+  });
+  const strikes = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.JACARANDAS_EMBRACE
+  );
+  assert.deepEqual(
+    strikes.map(({ actorType, critEligible }) => [actorType, critEligible]),
+    [
+      ['summon', true],
+      ['player', false],
+      ['player', false],
+      ['player', false],
+      ['player', false]
+    ]
+  );
+  const vines = strikes.filter((event) => event.actorType === 'player');
+  assert.ok(vines.every((event) => event.damage > 0 && event.didCrit === false));
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === 'condition' &&
+        event.skillName === 'Sharpened Edges' &&
+        vines.some((vine) => vine.at === event.at)
+    ),
+    false
+  );
+});
+
 test('Seed of Life detonates with Eclipse after releasing Celestial Avatar', () => {
   // Releasing the form before detonation must preserve the planted seed and its player-owned trait payload.
   const result = simulate(

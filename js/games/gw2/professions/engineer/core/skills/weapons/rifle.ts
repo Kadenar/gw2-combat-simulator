@@ -7,8 +7,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RIFLE_BURST]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Rifle Burst is a channel: interruption retains landed packets and cancels only its future packet.
-    castTimeMs: 640,
+    // Rifle Burst occupies an 840 ms channel; interruption retains landed packets and cancels future packets.
+    castTimeMs: 840,
     cooldown: 0,
     interruptMode: 'per-packet',
     effects: [
@@ -43,7 +43,9 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.NET_SHOT]: {
-    castTimeMs: 570,
+    castTimeMs: 600,
+    // Commit Net Shot at 560 ms so later interruptions keep the activation.
+    interruptCommitMs: 560,
     cooldown: 9,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -73,7 +75,9 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.JUMP_SHOT]: {
     castTimeMs: 1000,
-
+    // Once the leap commits, retain its cast lockout and landing payload through interruption.
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 18,
     effects: [
       {
@@ -85,7 +89,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: 'player'
       },
       // Share one impact timing while preserving independent payloads and declaration order.
-      ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'strike',
           coefficient: 2.4,
