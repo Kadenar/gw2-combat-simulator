@@ -28,7 +28,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
     petSkill: true
   },
   [ID.JACARANDAS_EMBRACE]: {
-    // Embrace's condition pulses use Ranger stats and survive pet swap; its direct strike remains pet-owned.
+    // Embrace's vine pulses use Ranger stats and survive pet swap; its direct strike and opening immobilize are pet-owned.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -49,12 +49,21 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         actorType: 'player'
       },
       {
+        // The opening immobilize rides the pet's own strike: it is pet-owned, so Ranger control traits such as Blood
+        // Moon ignore it. EVTC shows a 1 s pet-duration Immobile at the strike and no Blood Moon bleeding with it.
         type: 'condition',
-        ticks: [1, 2, 2, 2, 2].map((duration, index) => ({
-          atMs: EMBRACE_PULSE_TIMES_MS[index],
+        ticks: [{ atMs: 920, condition: 'Immobilized', stacks: 1, duration: 1 }],
+        source: 'ranger-pet',
+        actorType: 'summon'
+      },
+      {
+        // The four later vine pulses are Ranger-owned and each one triggers Ranger control traits.
+        type: 'condition',
+        ticks: EMBRACE_PULSE_TIMES_MS.slice(1).map((atMs) => ({
+          atMs,
           condition: 'Immobilized',
           stacks: 1,
-          duration
+          duration: 2
         })),
         source: 'ranger-pet',
         actorType: 'player'

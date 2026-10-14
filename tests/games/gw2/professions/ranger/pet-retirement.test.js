@@ -51,8 +51,15 @@ for (const output of ['detailed', 'score']) {
     assert.deepEqual(result.warnings, []);
     if (output === 'score') return;
     const swappedAt = result.events.find((event) => event.type === 'ranger.pet-swapped').at;
-    const embrace = result.resolvedEvents.filter(
+    const embraceConditions = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillId === ID.JACARANDAS_EMBRACE
+    );
+    // The opening immobilize rides the pet's strike and stays pet-owned; only the later vine pulses are the Ranger's.
+    const opener = embraceConditions.filter((event) => event.actorType === 'summon');
+    const embrace = embraceConditions.filter((event) => event.actorType !== 'summon');
+    assert.deepEqual(
+      opener.map(({ condition, duration }) => [condition, duration]),
+      [['Immobilized', 1]]
     );
     assert.ok(embrace.some((event) => event.at < swappedAt && event.expiresAt > swappedAt));
     assert.ok(embrace.some((event) => event.at > swappedAt));
@@ -68,6 +75,15 @@ for (const output of ['detailed', 'score']) {
           event.at > swappedAt &&
           event.damage > 0
       )
+    );
+    // Blood Moon answers the four Ranger-owned vine immobilizes, never the pet-owned opener.
+    assert.equal(
+      new Set(
+        result.resolvedEvents
+          .filter((event) => event.skillId === TRAIT.BLOOD_MOON && event.triggeredBy === "Jacaranda's Embrace")
+          .map((event) => event.at)
+      ).size,
+      4
     );
     assert.equal(
       result.resolvedEvents.some(

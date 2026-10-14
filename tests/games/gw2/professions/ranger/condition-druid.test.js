@@ -575,7 +575,14 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.events.filter((event) => event.type === 'buff' && event.kind === 'alacrity').length > 0);
+  const graceAlacrity = result.events.filter((event) => event.type === 'buff' && event.kind === 'alacrity');
+  assert.ok(graceAlacrity.length > 0);
+  // Grace of the Land is an allied area boon: the active pet receives every grant, which speeds its Beast recharge.
+  assert.ok(
+    graceAlacrity.every(
+      ({ resolvedAudience }) => resolvedAudience.includesSelf && resolvedAudience.companionIds.length === 1
+    )
+  );
   assert.equal(
     result.events
       .filter(

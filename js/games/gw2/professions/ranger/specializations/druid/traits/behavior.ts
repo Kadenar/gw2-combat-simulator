@@ -34,6 +34,8 @@ export function avatarEffects(
           sourceId: TRAIT.GRACE_OF_THE_LAND,
           skillName: 'Grace of the Land',
           actorType: 'effect',
+          // Grace of the Land is an allied area boon, so the active pet receives it and its Beast recharges speed up.
+          audience: { recipients: 'party', maximumRecipients: 5 },
           timingAnchor: 'castStart',
           interruptCommitMs: 0,
           atMs
