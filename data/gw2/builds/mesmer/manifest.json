@@ -94,7 +94,7 @@
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
         "benchmarkDps": 40987,
         "upToDate": true,
-        "benchmarkApm": 116.2,
+        "benchmarkApm": 111.3,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 41521, "phase": 41521 },
           "80-60": { "cumulative": 40624, "phase": 39728 },
@@ -121,7 +121,7 @@
         "benchmarkDps": 40439,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch",
         "upToDate": true,
-        "benchmarkApm": 108.4,
+        "benchmarkApm": 105.9,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39919, "phase": 39919 },
           "80-60": { "cumulative": 41163, "phase": 42471 },
