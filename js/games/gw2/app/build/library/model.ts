@@ -45,10 +45,14 @@ export function templateTileContent(preset: BuildTemplatePreset): {
   const variant = weaponMatch ? preset.label.slice(detailsStart + weaponMatch[0].length).trim() : '';
   // Keep Inferno visible beside the weapons so power presets remain distinguishable in the picker.
   const inferno = category === 'power' && /\binferno\b/i.test(`${preset.label} ${preset.build}`);
+  // Evoker familiars distinguish builds, so retain their names when the picker condenses role labels.
+  const familiar = /\bevoker\b/i.test(preset.build)
+    ? preset.label.slice(0, detailsStart).match(/\b(Fox|Hare|Toad|Otter)\b/)?.[1]
+    : '';
 
   return {
     name,
-    weapons: [inferno ? 'Inferno' : '', weapons, variant].filter(Boolean).join(' '),
+    weapons: [inferno ? 'Inferno' : '', weaponMatch ? familiar : '', weapons, variant].filter(Boolean).join(' '),
     dps: Number.isFinite(benchmarkDps) && benchmarkDps > 0 ? Math.round(benchmarkDps).toLocaleString('en-US') : ''
   };
 }

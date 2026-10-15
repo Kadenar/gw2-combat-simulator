@@ -11,7 +11,7 @@ test('build template tiles separate canonical roles, weapons, and DPS', () => {
       build: 'b-power-quick-evoker-hare.json',
       benchmarkDps: 32493
     }),
-    { name: 'Power Quickness', weapons: 'Scepter & Dagger', dps: '32,493' }
+    { name: 'Power Quickness', weapons: 'Hare Scepter & Dagger', dps: '32,493' }
   );
   assert.deepEqual(
     templateTileContent({
@@ -21,6 +21,20 @@ test('build template tiles separate canonical roles, weapons, and DPS', () => {
     }),
     { name: 'Condition Alacrity', weapons: 'Spear', dps: '35,508' }
   );
+});
+
+test('Evoker template tiles retain familiars across damage, boon, and Inferno builds', () => {
+  // Familiar names must survive condensed labels together with weapon and trailing trait variants.
+  for (const [label, weapons] of [
+    ['Power Hare (Spear)', 'Hare Spear'],
+    ['Condition Fox - (Pistol/Dagger)', 'Fox Pistol & Dagger'],
+    ['Condition Quickness Fox SE (Scepter/Focus)', 'Fox Scepter & Focus'],
+    ['Condition Alacrity Toad (Pistol/Warhorn) - EB', 'Toad Pistol & Warhorn - EB'],
+    ['Inferno Fox SE (Scepter/Focus)', 'Inferno Fox Scepter & Focus'],
+    ['Healing Otter (Staff)', 'Otter Staff']
+  ]) {
+    assert.equal(templateTileContent({ label, build: 'b-evoker.json' }).weapons, weapons);
+  }
 });
 
 test('build template tiles preserve trait variants alongside their weapons', () => {

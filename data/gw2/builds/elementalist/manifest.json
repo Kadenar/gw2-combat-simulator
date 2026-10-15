@@ -797,7 +797,7 @@
     "section": "Evoker",
     "presets": [
       {
-        "label": "Power (Spear)",
+        "label": "Power Hare (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-evoker-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-spear-evtc.json",
         "benchmarkDps": 39513,
@@ -1010,7 +1010,7 @@
         }
       },
       {
-        "label": "Condition Quickness SE (Scepter/Focus)",
+        "label": "Condition Quickness Fox SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
@@ -1091,7 +1091,7 @@
         }
       },
       {
-        "label": "Inferno SE (Scepter/Focus)",
+        "label": "Inferno Fox SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-evoker-se.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
         "benchmarkDps": 41012,

@@ -148,6 +148,32 @@
     "section": "Untamed",
     "presets": [
       {
+        "label": "Power (Hammer / Sword-Axe) (Beastmastery, Hawk)",
+        "build": "data/gw2/builds/ranger/b-power-untamed-hawk-beastmastery-hammer-sword-axe.json",
+        "rotation": "data/gw2/rotations/ranger/r-power-untamed-hawk-beastmastery-hammer-sword-axe.json",
+        "benchmarkDps": 45111,
+        "upToDate": true,
+        "benchmarkApm": 97,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 47924, "phase": 47924 },
+          "80-60": { "cumulative": 45693, "phase": 43658 },
+          "60-40": { "cumulative": 45526, "phase": 45187 },
+          "40-20": { "cumulative": 45471, "phase": 45306 },
+          "20-0": { "cumulative": 45111, "phase": 43728 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 43475,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 45842, "phase": 45842 },
+            "80-60": { "cumulative": 44271, "phase": 42796 },
+            "60-40": { "cumulative": 43538, "phase": 42182 },
+            "40-20": { "cumulative": 43237, "phase": 42329 },
+            "20-0": { "cumulative": 43475, "phase": 43475 }
+          }
+        }
+      },
+      {
         "label": "Power (Hammer / Sword-Axe) (Beastmastery)",
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
