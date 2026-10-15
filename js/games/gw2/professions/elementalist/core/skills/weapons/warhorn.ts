@@ -11,6 +11,15 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
+import {
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  remainingDurationStackSeconds
+} from '#gw2/platform/combat/boons.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
+import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 // Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
 const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
@@ -286,3 +295,67 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     6
   )
 });
+
+/** Copy each boon after its self grant, preserving live durations without console assumptions or another self grant. */
+export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2ResolverEvent): void {
+  // The self grant is already recorded when this reaction runs; ally copies cannot trigger another share.
+  if (
+    event.skillId !== ID.HEAT_SYNC ||
+    event.actorType !== 'player' ||
+    !event.resolvedAudience?.includesSelf ||
+    (event.kind !== 'might' && event.kind !== 'fury')
+  )
+    return;
+    
+  const kind = event.kind;
+  // Read accepted grants to exclude console assumptions and retain each Might application's expiry.
+  // boonSnapshot includes configured boons and collapses Might to one duration, so it cannot preserve this copy.
+  const applications = runtime.combat
+    .boonApplications(kind)
+    // 'all' checks includesSelf: keep grants received by the player, including party grants, not every recipient.
+    .filter((application) => buffMatchesAudience(application, 'all'));
+  
+    // Fury adds durations into one capped pool; Might stacks retain their individual remaining lifetimes.
+  const copies =
+    kind === 'fury'
+      ? [
+          {
+            stacks: 1,
+            duration: remainingDurationStackSeconds(applications, event.at, {
+              maximum: durationStackingBoonCapSeconds(kind),
+              ordered: true
+            })
+          }
+        ]
+      : applications
+          .filter((application) => isTimeInWindow(event.at, application.at, application.expiresAt))
+          .map((application) => ({ stacks: application.stacks, duration: application.expiresAt - event.at }))
+          .sort((left, right) => right.duration - left.duration);
+
+  // At the Might cap, copy the longest-lived stacks rather than extending shorter stacks to match them.
+  let remainingStacks = kind === 'might' ? 25 : 1;
+  for (const copy of copies) {
+    const stacks = Math.min(remainingStacks, copy.stacks);
+    if (!(stacks > 0 && copy.duration > 0)) continue;
+    remainingStacks -= stacks;
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverBuff({
+        at: event.at,
+        source: event.source,
+        sourceId: ID.HEAT_SYNC,
+        actorType: 'player',
+        skillId: ID.HEAT_SYNC,
+        skillName: event.skillName,
+        activationId: event.activationId,
+        kind,
+        stacks,
+        duration: copy.duration,
+        // Remaining durations already include boon-duration bonuses; sharing must not scale them again.
+        fixedDuration: true,
+        // The player received the original grant and must not receive the copied boons too.
+        audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 }
+      })
+    });
+  }
+}

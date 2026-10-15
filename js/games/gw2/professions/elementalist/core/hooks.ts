@@ -54,6 +54,7 @@ import {
   applyShatteringStoneBuff,
   triggerShatteringStone
 } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
+import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   resetElementalistAttunementCooldowns
@@ -226,7 +227,10 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
       triggerShatteringStone(runtime, event);
     },
     'condition.applied': (runtime, event) => runtime.fireTrigger(elementalistConditionApplied, { cause: event }),
-    'buff.applied': applyShatteringStoneBuff,
+    'buff.applied'(runtime, event) {
+      applyShatteringStoneBuff(runtime, event);
+      shareHeatSyncBoon(runtime, event);
+    },
     'control.resolved'(runtime, cause) {
       if (cause.type === 'control' && cause.actorType === 'player') runtime.fireTrigger(controlAccepted, { cause });
     },
