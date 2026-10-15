@@ -1195,25 +1195,31 @@ test('entity damage renders named subsections beneath the combined entity total'
   assert.match(container.innerHTML, /aria-label="Pet B Total: 20"/);
 });
 
-// Only named entities with condition payouts expose the compact, initially collapsed composition panel.
-test('entity condition subtotals disclose escaped condition labels, damage, DPS, and owner-relative shares', () => {
+// Player and entity subtotals share a collapsed composition panel while keeping ownership separate.
+test('owner condition subtotals disclose escaped condition labels, damage, DPS, and owner-relative shares', () => {
   const container = inertContainer();
   mountDamageBreakdown(container, {
     skillRows: [
+      { name: 'Player attack', group: 'Player', condition: 40, total: 50 },
       { name: 'Mixed attack', group: 'Entities', entityName: 'Pet <A>', condition: 80, total: 100 },
       { name: 'Strike', group: 'Entities', entityName: 'Pet B', condition: 0, total: 20 }
     ],
     skillColumns: SKILL_COLS,
     conditions: [],
-    entityConditions: [
-      { entityName: 'Pet <A>', name: 'Bleeding', damage: 60, dps: 30, share: 75 },
-      { entityName: 'Pet <A>', name: 'Condition <B>', damage: 20, dps: 10, share: 25 }
+    ownerConditions: [
+      { ownerKey: 'Player', ownerName: 'Player', name: 'Burning', damage: 40, dps: 20, share: 100 },
+      { ownerKey: 'Entities|Pet <A>', ownerName: 'Pet <A>', name: 'Bleeding', damage: 60, dps: 30, share: 75 },
+      { ownerKey: 'Entities|Pet <A>', ownerName: 'Pet <A>', name: 'Condition <B>', damage: 20, dps: 10, share: 25 }
     ]
   });
-  assert.match(container.innerHTML, /data-entity-conditions-toggle="Pet &lt;A&gt;" aria-expanded="false"/);
-  assert.doesNotMatch(container.innerHTML, /data-entity-conditions-toggle="Pet B"/);
-  assert.match(container.innerHTML, /data-entity-conditions-panel="Pet &lt;A&gt;"[^>]* hidden/);
-  assert.match(container.innerHTML, /Share of pet condition damage/);
+  assert.match(container.innerHTML, /data-owner-conditions-toggle="Player" aria-expanded="false"/);
+  assert.match(container.innerHTML, /data-owner-conditions-panel="Player"[^>]* hidden/);
+  assert.match(container.innerHTML, /Share of player condition damage/);
+  assert.match(container.innerHTML, /<td>40<\/td><td>20<\/td>/);
+  assert.match(container.innerHTML, /data-owner-conditions-toggle="Entities\|Pet &lt;A&gt;" aria-expanded="false"/);
+  assert.doesNotMatch(container.innerHTML, /data-owner-conditions-toggle="Entities\|Pet B"/);
+  assert.match(container.innerHTML, /data-owner-conditions-panel="Entities\|Pet &lt;A&gt;"[^>]* hidden/);
+  assert.match(container.innerHTML, /Share of entity condition damage/);
   assert.match(container.innerHTML, /Condition &lt;B&gt;/);
   assert.match(container.innerHTML, /<td>60<\/td><td>30<\/td>/);
   assert.match(container.innerHTML, /width: 75%/);

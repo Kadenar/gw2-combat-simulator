@@ -1,7 +1,7 @@
 import { escapeHtml } from '#ui/shared/html.js';
 import { resultNumber as number } from '#gw2/app/results/formatting.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
-import type { EntityConditionDamage } from '#gw2/app/results/skill-breakdown.js';
+import type { OwnerConditionDamage } from '#gw2/app/results/skill-breakdown.js';
 import { bindConditionInspectors, renderSkillInspector } from '#gw2/app/results/breakdown/inspectors.js';
 import {
   prepareDamageBreakdown,
@@ -56,8 +56,8 @@ function skillRowsHtml(
   rows: readonly ResultRow[],
   columns: readonly ResultColumn[],
   options: DamageBreakdownOptions,
-  entityConditions: readonly EntityConditionDamage[],
-  expandedEntities: ReadonlySet<string>
+  ownerConditions: readonly OwnerConditionDamage[],
+  expandedOwners: ReadonlySet<string>
 ): string {
   const hasGroups = rows.some((row) => typeof row.group === 'string' && row.group.trim());
   if (!hasGroups) {
@@ -82,8 +82,10 @@ function skillRowsHtml(
     (left, right) => (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3)
   );
   const summaryColumns = new Set(['strike', 'condition', 'total', 'damagePercent', 'dps']);
-  const headingHtml = (group: string, groupRows: readonly ResultRow[], entity = false): string =>
-    `<div class="res-skill-group-heading${entity ? ' res-entity-group-heading' : ''}" ${entity ? 'data-entity-group' : 'data-skill-group'}="${escapeHtml(group)}">
+  const headingHtml = (group: string, groupRows: readonly ResultRow[], entity = false): string => {
+    // Namespace entity identities so a named summon cannot share the player's disclosure state.
+    const ownerKey = entity ? `Entities|${group}` : group;
+    return `<div class="res-skill-group-heading${entity ? ' res-entity-group-heading' : ''}" ${entity ? 'data-entity-group' : 'data-skill-group'}="${escapeHtml(group)}">
       ${columns
         .map((column) => {
           if (column.key === 'name') {
@@ -98,21 +100,27 @@ function skillRowsHtml(
           const formatted = column.format ? String(column.format(total)) : number(total);
           const label = column.label || column.key;
           const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
-          if (entity && column.key === 'condition' && entityConditions.some((row) => row.entityName === group)) {
+          if (column.key === 'condition' && ownerConditions.some((row) => row.ownerKey === ownerKey)) {
             // A native button makes the subtotal operable with mouse, Enter, and Space without selecting a skill.
-            return `<span class="res-skill-group-total${classAttr}"><button type="button" class="res-entity-condition-toggle" data-entity-conditions-toggle="${escapeHtml(group)}" aria-expanded="${expandedEntities.has(group)}" aria-label="${escapeHtml(`${group} condition damage breakdown: ${formatted}`)}"><span aria-hidden="true">${expandedEntities.has(group) ? '&#9662;' : '&#9656;'}</span> ${escapeHtml(formatted)}</button></span>`;
+            return `<span class="res-skill-group-total${classAttr}"><button type="button" class="res-owner-condition-toggle" data-owner-conditions-toggle="${escapeHtml(ownerKey)}" aria-expanded="${expandedOwners.has(ownerKey)}" aria-label="${escapeHtml(`${group} condition damage breakdown: ${formatted}`)}"><span aria-hidden="true">${expandedOwners.has(ownerKey) ? '&#9662;' : '&#9656;'}</span> ${escapeHtml(formatted)}</button></span>`;
           }
 
           return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${formatted}`)}">${escapeHtml(formatted)}</span>`;
         })
         .join('')}
     </div>`;
+  };
+
   return groupNames
     .map((group) => {
       const groupRows = grouped.get(group) || [];
       const heading = headingHtml(group, groupRows);
       if (group !== 'Entities' || !groupRows.some((row) => row.entityName)) {
-        return heading + groupRows.map((row) => skillRowHtml(row, columns, options)).join('');
+        return (
+          heading +
+          ownerConditionsHtml(group, ownerConditions, expandedOwners.has(group)) +
+          groupRows.map((row) => skillRowHtml(row, columns, options)).join('')
+        );
       }
 
       // Keep each named entity's skills together after sorting and show its own damage subtotal.
@@ -130,7 +138,7 @@ function skillRowsHtml(
           .map(
             ([name, entityRows]) =>
               headingHtml(name, entityRows, true) +
-              entityConditionsHtml(name, entityConditions, expandedEntities.has(name)) +
+              ownerConditionsHtml(`Entities|${name}`, ownerConditions, expandedOwners.has(`Entities|${name}`)) +
               entityRows.map((row) => skillRowHtml(row, columns, options)).join('')
           )
           .join('')
@@ -140,20 +148,17 @@ function skillRowsHtml(
 }
 
 /** Disclose each condition's contribution without widening the main damage table. */
-function entityConditionsHtml(
-  entityName: string,
-  conditions: readonly EntityConditionDamage[],
-  expanded: boolean
-): string {
-  const rows = conditions.filter((row) => row.entityName === entityName);
+function ownerConditionsHtml(ownerKey: string, conditions: readonly OwnerConditionDamage[], expanded: boolean): string {
+  const rows = conditions.filter((row) => row.ownerKey === ownerKey);
   if (!rows.length) return '';
-  return `<div class="res-entity-conditions" data-entity-conditions-panel="${escapeHtml(entityName)}" role="region" aria-label="${escapeHtml(`${entityName} condition damage breakdown`)}"${expanded ? '' : ' hidden'}>
-    <div class="res-entity-conditions-title">${escapeHtml(entityName)} condition damage</div>
-    <table><thead><tr><th scope="col">Condition</th><th scope="col">Damage</th><th scope="col">DPS</th><th scope="col">Share of pet condition damage</th></tr></thead>
+  const ownerName = rows[0]!.ownerName;
+  return `<div class="res-owner-conditions" data-owner-conditions-panel="${escapeHtml(ownerKey)}" role="region" aria-label="${escapeHtml(`${ownerName} condition damage breakdown`)}"${expanded ? '' : ' hidden'}>
+    <div class="res-owner-conditions-title">${escapeHtml(ownerName)} condition damage</div>
+    <table><thead><tr><th scope="col">Condition</th><th scope="col">Damage</th><th scope="col">DPS</th><th scope="col">Share of ${ownerKey === 'Player' ? 'player' : 'entity'} condition damage</th></tr></thead>
     <tbody>${rows
       .map((row) => {
         const icon = MODIFIER_EFFECT_ICONS[row.name];
-        return `<tr><th scope="row"><span class="res-skill">${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(row.name)}</span></th><td>${number(row.damage)}</td><td>${number(row.dps)}</td><td><div class="res-entity-condition-share"><span class="res-entity-condition-track" aria-hidden="true"><span style="width: ${Math.max(0, Math.min(100, row.share))}%"></span></span><span>${row.share.toFixed(1)}%</span></div></td></tr>`;
+        return `<tr><th scope="row"><span class="res-skill">${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(row.name)}</span></th><td>${number(row.damage)}</td><td>${number(row.dps)}</td><td><div class="res-owner-condition-share"><span class="res-owner-condition-track" aria-hidden="true"><span style="width: ${Math.max(0, Math.min(100, row.share))}%"></span></span><span>${row.share.toFixed(1)}%</span></div></td></tr>`;
       })
       .join('')}</tbody></table>
   </div>`;
@@ -179,8 +184,8 @@ export function mountDamageBreakdown(
   if (!container) return;
   const { skillRows, conditionGroups, conditionTotalShare } = prepareDamageBreakdown(model);
   const { skillColumns, conditions, chartSeries } = model;
-  const entityConditions = model.entityConditions || [];
-  const expandedEntities = new Set<string>();
+  const ownerConditions = model.ownerConditions || [];
+  const expandedOwners = new Set<string>();
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
     direction: options.sortState?.direction || null
@@ -201,7 +206,7 @@ export function mountDamageBreakdown(
         <div class="res-hdr res-hdr-sortable" data-role="skill-header">
           ${skillHeaderHtml(skillColumns, sortState)}
         </div>
-        <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options, entityConditions, expandedEntities)}</div>
+        <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options, ownerConditions, expandedOwners)}</div>
       </div>
     </div>`
           : ''
@@ -265,10 +270,10 @@ export function mountDamageBreakdown(
     const sorted = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
     const rowsElement = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
     if (rowsElement) {
-      rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options, entityConditions, expandedEntities);
+      rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options, ownerConditions, expandedOwners);
       // Re-rendering discards row handlers; rebind selection and reapply it.
       bindSkillSelection();
-      bindEntityConditions();
+      bindOwnerConditions();
     }
 
     const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
@@ -291,18 +296,18 @@ export function mountDamageBreakdown(
   };
 
   // Keep independent disclosures open across sorting without rebuilding or moving keyboard focus on toggle.
-  const bindEntityConditions = (): void => {
-    for (const button of container.querySelectorAll<HTMLButtonElement>('[data-entity-conditions-toggle]')) {
+  const bindOwnerConditions = (): void => {
+    for (const button of container.querySelectorAll<HTMLButtonElement>('[data-owner-conditions-toggle]')) {
       button.onclick = () => {
-        const name = button.dataset.entityConditionsToggle!;
-        const expanded = !expandedEntities.has(name);
-        if (expanded) expandedEntities.add(name);
-        else expandedEntities.delete(name);
+        const name = button.dataset.ownerConditionsToggle!;
+        const expanded = !expandedOwners.has(name);
+        if (expanded) expandedOwners.add(name);
+        else expandedOwners.delete(name);
         button.setAttribute('aria-expanded', String(expanded));
         const arrow = button.querySelector('span');
         if (arrow) arrow.textContent = expanded ? '\u25be' : '\u25b8';
-        for (const panel of container.querySelectorAll<HTMLElement>('[data-entity-conditions-panel]')) {
-          if (panel.dataset.entityConditionsPanel === name) panel.hidden = !expanded;
+        for (const panel of container.querySelectorAll<HTMLElement>('[data-owner-conditions-panel]')) {
+          if (panel.dataset.ownerConditionsPanel === name) panel.hidden = !expanded;
         }
       };
     }
@@ -341,6 +346,6 @@ export function mountDamageBreakdown(
 
   bindSort();
   bindSkillSelection();
-  bindEntityConditions();
+  bindOwnerConditions();
   bindConditionInspectors(container, chartSeries);
 }

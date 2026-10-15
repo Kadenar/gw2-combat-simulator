@@ -4,32 +4,40 @@ import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 
-export interface EntityConditionDamage {
-  readonly entityName: string;
+export interface OwnerConditionDamage {
+  readonly ownerKey: string;
+  readonly ownerName: string;
   readonly name: string;
   readonly damage: number;
   readonly dps: number;
   readonly share: number;
 }
 
-/** Split actual condition payouts by named owner, using the report's DPS window and each owner's condition total. */
-export function entityConditionBreakdown(result: Gw2ResolverResult): EntityConditionDamage[] {
-  const entities = new Map<string, Map<string, number>>();
+/** Split payouts using the table's player/entity ownership, so each disclosure shares its subtotal and DPS window. */
+export function ownerConditionBreakdown(result: Gw2ResolverResult): OwnerConditionDamage[] {
+  const owners = new Map<string, { name: string; conditions: Map<string, number> }>();
   for (const event of result.resolvedEvents || []) {
-    if (event.type !== 'condition' || event.actorType !== 'summon' || !event.entityName || !event.condition) continue;
+    if (event.type !== 'condition' || !event.condition) continue;
+    const group = breakdownGroup(gw2EventActorType(event));
+    if (group === 'Environment' || (group === 'Entities' && !event.entityName)) continue;
+    const ownerKey = group === 'Entities' ? `Entities|${event.entityName}` : 'Player';
     const damage = Number(event.damage || 0);
     if (damage <= 0) continue;
-    const conditions = entities.get(event.entityName) || new Map<string, number>();
-    conditions.set(event.condition, (conditions.get(event.condition) || 0) + damage);
-    entities.set(event.entityName, conditions);
+    const owner = owners.get(ownerKey) || {
+      name: group === 'Entities' ? event.entityName! : 'Player',
+      conditions: new Map<string, number>()
+    };
+    owner.conditions.set(event.condition, (owner.conditions.get(event.condition) || 0) + damage);
+    owners.set(ownerKey, owner);
   }
 
   const duration = Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0));
-  return [...entities].flatMap(([entityName, conditions]) => {
+  return [...owners].flatMap(([ownerKey, { name: ownerName, conditions }]) => {
     const total = [...conditions.values()].reduce((sum, damage) => sum + damage, 0);
     return [...conditions]
       .map(([name, damage]) => ({
-        entityName,
+        ownerKey,
+        ownerName,
         name,
         damage,
         dps: damage / duration,

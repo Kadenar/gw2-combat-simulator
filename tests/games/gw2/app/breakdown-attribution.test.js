@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  entityConditionBreakdown,
+  ownerConditionBreakdown,
   skillBreakdownRows,
   skillDamageIdentityKey,
   skillDamageKeyByIdentity
@@ -14,7 +14,7 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 // The condition composition uses resolved payouts, isolates owners, and shares the report's observation window.
-test('entity condition contributions combine skills without mixing player damage or other owners', () => {
+test('condition contributions combine skills within player and named entity ownership', () => {
   const condition = (entityName, name, damage, extra = {}) => ({
     type: 'condition',
     actorType: 'summon',
@@ -23,7 +23,7 @@ test('entity condition contributions combine skills without mixing player damage
     damage,
     ...extra
   });
-  const rows = entityConditionBreakdown({
+  const rows = ownerConditionBreakdown({
     dpsWindow: 2,
     rotationEndTime: 100,
     resolvedEvents: [
@@ -31,7 +31,10 @@ test('entity condition contributions combine skills without mixing player damage
       condition('Pet A', 'Bleeding', 40, { skillName: 'Trait' }),
       condition('Pet A', 'Poisoned', 20),
       condition('Pet B', 'Bleeding', 10),
-      condition('Pet A', 'Burning', 999, { actorType: 'player' }),
+      condition('Pet A', 'Burning', 30, { actorType: 'player' }),
+      condition('', 'Burning', 10, { actorType: 'effect' }),
+      condition('', 'Bleeding', 10, { actorType: 'player' }),
+      condition('Player', 'Poisoned', 5),
       condition('Pet A', 'Burning', 999, { actorType: 'environment' }),
       condition('', 'Burning', 999),
       condition('Pet A', 'Torment', 0),
@@ -39,11 +42,14 @@ test('entity condition contributions combine skills without mixing player damage
     ]
   });
   assert.deepEqual(rows, [
-    { entityName: 'Pet A', name: 'Bleeding', damage: 60, dps: 30, share: 75 },
-    { entityName: 'Pet A', name: 'Poisoned', damage: 20, dps: 10, share: 25 },
-    { entityName: 'Pet B', name: 'Bleeding', damage: 10, dps: 5, share: 100 }
+    { ownerKey: 'Entities|Pet A', ownerName: 'Pet A', name: 'Bleeding', damage: 60, dps: 30, share: 75 },
+    { ownerKey: 'Entities|Pet A', ownerName: 'Pet A', name: 'Poisoned', damage: 20, dps: 10, share: 25 },
+    { ownerKey: 'Entities|Pet B', ownerName: 'Pet B', name: 'Bleeding', damage: 10, dps: 5, share: 100 },
+    { ownerKey: 'Player', ownerName: 'Player', name: 'Burning', damage: 40, dps: 20, share: 80 },
+    { ownerKey: 'Player', ownerName: 'Player', name: 'Bleeding', damage: 10, dps: 5, share: 20 },
+    { ownerKey: 'Entities|Player', ownerName: 'Player', name: 'Poisoned', damage: 5, dps: 2.5, share: 100 }
   ]);
-  assert.deepEqual(entityConditionBreakdown({ resolvedEvents: [], dpsWindow: 0 }), []);
+  assert.deepEqual(ownerConditionBreakdown({ resolvedEvents: [], dpsWindow: 0 }), []);
 });
 
 // Pet swaps retain separate ownership through resolution, table grouping, and chart lookup.
