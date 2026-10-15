@@ -1,4 +1,5 @@
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
+import { rangerForceOfNatureModifier } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import {
   rangerHammerConditionsModifier,
@@ -40,6 +41,7 @@ export const rangerCoreModule = defineNativeModule({
     modifierRules: [
       rangerShortbowConditionDurationModifier,
       rangerAttackOfOpportunityModifier,
+      rangerForceOfNatureModifier,
       ...[
         rangerHammerDisabledModifier,
         rangerPounceModifier,

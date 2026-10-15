@@ -48,6 +48,7 @@ import {
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
 import { hammerLifecycle } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
+import { maceLifecycle } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { spearLifecycle } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -158,6 +159,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
  */
 export const rangerCoreHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>([
   hammerLifecycle,
+  maceLifecycle,
   spearLifecycle,
   axeLifecycle,
   coreLifecycle,

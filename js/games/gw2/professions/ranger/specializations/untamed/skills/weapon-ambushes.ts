@@ -1,6 +1,7 @@
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { naturesStrengthReaction } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
@@ -88,7 +89,7 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
     600,
     480,
     impact(480, [
-      { type: 'strike', coefficient: 3 },
+      { type: 'strike', coefficient: 3, reactions: [naturesStrengthReaction()] },
       { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
     ])
   ),
