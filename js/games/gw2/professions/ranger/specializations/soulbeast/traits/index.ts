@@ -7,13 +7,13 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 
 import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
-import { rangerBuffRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerProfileEffectRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { beastmodeChanged } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
@@ -94,8 +94,7 @@ const twiceAsVicious = defineTrait({
       id: 'ranger.twice-as-vicious-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TWICE_AS_VICIOUS), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.TWICE_AS_VICIOUS, 'damageIncrease'),
       when: (context) => activeBuff(context, 'twice-as-vicious')
     },
     {
@@ -104,11 +103,7 @@ const twiceAsVicious = defineTrait({
       id: 'ranger.twice-as-vicious-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.TWICE_AS_VICIOUS),
-          'conditionDamageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.TWICE_AS_VICIOUS, 'conditionDamageIncrease'),
       when: (context) => activeBuff(context, 'twice-as-vicious')
     }
   ],
@@ -196,11 +191,7 @@ const oppressiveSuperiority = defineTrait({
       id: 'ranger.oppressive-superiority',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.OPPRESSIVE_SUPERIORITY),
-          'damageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.OPPRESSIVE_SUPERIORITY, 'damageMultiplier'),
       when: oppressiveSuperiorityActive
     },
     {
@@ -208,11 +199,7 @@ const oppressiveSuperiority = defineTrait({
       id: 'ranger.oppressive-superiority-condition-duration',
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.OPPRESSIVE_SUPERIORITY),
-          'conditionDurationBonus'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.OPPRESSIVE_SUPERIORITY, 'conditionDurationBonus'),
       when: oppressiveSuperiorityActive
     }
   ]
@@ -224,7 +211,7 @@ const essenceOfSpeed = defineTrait({
   name: 'Essence of Speed',
   balance: {
     internalCooldown: 5,
-    durationMultiplier: 2
+    duration: 2
   }
 });
 
@@ -240,8 +227,7 @@ const furiousStrength = defineTrait({
       id: 'ranger.furious-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FURIOUS_STRENGTH), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.FURIOUS_STRENGTH, 'damageIncrease'),
       // Furious Strength requires the player to have Fury; pet fury does not count.
       when: (context) => boonActive(context, 'fury')
     }
@@ -265,8 +251,9 @@ function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2Resolve
   const profile = requireBalanceProfileFromContext(context, TRAIT.LIVE_FAST);
   const fury = requireEffect(profile, 'boon', 'fury');
   const quickness = requireEffect(profile, 'boon', 'quickness');
-  if (fury) context.effects.emit(rangerBuffRequest(event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST));
-  if (quickness) context.effects.emit(rangerBuffRequest(event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST));
+  if (fury) context.effects.emit(rangerProfileEffectRequest(event, profile, fury, TRAIT.LIVE_FAST, 'Live Fast'));
+  if (quickness)
+    context.effects.emit(rangerProfileEffectRequest(event, profile, quickness, TRAIT.LIVE_FAST, 'Live Fast'));
 }
 
 // Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.

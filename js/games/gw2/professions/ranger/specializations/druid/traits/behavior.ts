@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -86,6 +86,6 @@ export function avatarEffects(
 /** Eclipse scales only native Astral Force gain from accepted player impacts. */
 export function eclipseAstralForceMultiplier(runtime: RangerRuntime): number {
   return hasTrait(runtime, TRAIT.ECLIPSE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'coefficientMultiplier')
+    ? balanceNumberFromContext(runtime, PROFILE.resources, 'coefficientMultiplier')
     : 1;
 }

@@ -172,7 +172,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
   assert.equal(profile('Core', TRAIT.PACK_ALPHA).patchableFields.weaponAttributeBonus, 300);
   assert.equal(profile('Druid', DRUID_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 100);
   assert.equal(profile('Soulbeast', SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack).profile.effects[0].coefficient, 0.95);
-  assert.equal(profile('Untamed', UNTAMED_BALANCE_PROFILE_IDS.resources).patchableFields.durationMultiplier, 4);
+  assert.equal(profile('Untamed', UNTAMED_BALANCE_PROFILE_IDS.resources).patchableFields.duration, 4);
   assert.equal(profile('Galeshot', GALESHOT_BALANCE_PROFILE_IDS.resources).patchableFields.pulseInterval, 5);
 
   const opaqueModifierRules = [...modules.values()].flatMap((module) =>
@@ -206,7 +206,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
         effects: [{ effectIndex: 0, coefficient: { from: 0.95, to: 1 } }]
       },
       [UNTAMED_BALANCE_PROFILE_IDS.resources]: {
-        fields: { durationMultiplier: { from: 4, to: 5 } }
+        fields: { duration: { from: 4, to: 5 } }
       },
       [GALESHOT_BALANCE_PROFILE_IDS.resources]: {
         fields: { pulseInterval: { from: 5, to: 4 } }
@@ -218,7 +218,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(TRAIT.PACK_ALPHA).weaponAttributeBonus, 350);
   assert.equal(preview.balanceProfilesById.get(DRUID_BALANCE_PROFILE_IDS.resources).maximumStacks, 120);
   assert.equal(preview.balanceProfilesById.get(SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack).effects[0].coefficient, 1);
-  assert.equal(preview.balanceProfilesById.get(UNTAMED_BALANCE_PROFILE_IDS.resources).durationMultiplier, 5);
+  assert.equal(preview.balanceProfilesById.get(UNTAMED_BALANCE_PROFILE_IDS.resources).duration, 5);
   assert.equal(preview.balanceProfilesById.get(GALESHOT_BALANCE_PROFILE_IDS.resources).pulseInterval, 4);
 
   const petMetadata = rangerPetCombatMetadata({

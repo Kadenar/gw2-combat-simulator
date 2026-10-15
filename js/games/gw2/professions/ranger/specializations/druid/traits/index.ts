@@ -9,6 +9,7 @@ import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -37,10 +38,7 @@ const naturalMender = defineTrait({
   triggers: [
     onTriggerPoint(rangerInitialized, {
       run(runtime) {
-        const interval = balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_MENDER),
-          'pulseInterval'
-        );
+        const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
         if (interval > 0) {
           druidState.from(runtime).naturalMenderAt = gw2CooldownReadyAt(interval);
           runtime.schedule('ranger.natural-mender', druidState.from(runtime).naturalMenderAt, interval, undefined, -1);
@@ -81,11 +79,7 @@ const naturalBalance = defineTrait({
       id: 'ranger.natural-balance-condition-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.NATURAL_BALANCE),
-          'conditionDamageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.NATURAL_BALANCE, 'conditionDamageIncrease'),
       when: naturalBalanceActive
     },
     {
@@ -93,11 +87,7 @@ const naturalBalance = defineTrait({
       id: 'ranger.natural-balance-condition-duration',
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.NATURAL_BALANCE),
-          'conditionDurationBonus'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.NATURAL_BALANCE, 'conditionDurationBonus'),
       when: naturalBalanceActive
     }
   ]

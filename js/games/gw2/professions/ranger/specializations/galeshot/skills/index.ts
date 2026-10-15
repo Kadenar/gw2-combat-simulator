@@ -3,7 +3,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
@@ -352,8 +352,7 @@ export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<Rang
 /** Later projectiles consume this live window through the shared Mistral observer. */
 export function activateMistral(runtime: RangerRuntime): void {
   galeshotState.from(runtime).mistralUntil = canonicalTime(
-    runtime.time +
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.mistral), 'durationMultiplier')
+    runtime.time + balanceNumberFromContext(runtime, PROFILE.mistral, 'duration')
   );
 }
 

@@ -21,7 +21,7 @@ export const GALESHOT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     parentId: ID.MISTRAL,
     name: 'Mistral - Missile Trigger',
     profileKind: 'skill-variant',
-    durationMultiplier: 6,
+    duration: 6,
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 0.3, hits: 1 },
       { name: 'Chilled', type: 'condition', condition: 'Chilled', duration: 1, stacks: 1 }

@@ -12,11 +12,12 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
-  requireSkillFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import {
@@ -27,7 +28,7 @@ import {
   strike
 } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { rangerConditionRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerProfileEffectRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { activeBuff, beastmodeActive, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type {
@@ -58,7 +59,7 @@ export const resoundingTimbre = defineTrait({
   id: TRAIT.RESOUNDING_TIMBRE,
   name: 'Resounding Timbre',
   balance: {
-    durationMultiplier: 2
+    duration: 2
   }
 });
 
@@ -164,10 +165,7 @@ export const packAlpha = defineTrait({
     attributeEffects: ['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality'].map((to) => ({
       kind: 'flat' as const,
       to,
-      amount: balanceProfileNumber(
-        requireBalanceProfileFromContext(balanceContext, TRAIT.PACK_ALPHA),
-        'attributeBonus'
-      ),
+      amount: balanceNumberFromContext(balanceContext, TRAIT.PACK_ALPHA, 'attributeBonus'),
       feedsConversions: 'none',
       enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
     }))
@@ -268,8 +266,7 @@ export const loudWhistle = defineTrait({
       id: 'ranger.loud-whistle-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.LOUD_WHISTLE, 'damageMultiplier'),
       when: (context) => rangerPetEvent(context)
     },
     {
@@ -278,8 +275,7 @@ export const loudWhistle = defineTrait({
       id: 'ranger.loud-whistle-player',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOUD_WHISTLE), 'playerDamageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.LOUD_WHISTLE, 'playerDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context)
     }
   ]
@@ -467,7 +463,7 @@ function triggerMergedWiltingStrike(context: RangerResolverContext, event: Gw2Re
   const profile = requireBalanceProfileFromContext(context, TRAIT.WILTING_STRIKE);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
   if (weakness)
-    context.effects.emit(rangerConditionRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));
+    context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));
 }
 
 /** Extends player boons for a completed command only at the merged Soulbeast boundary. */
@@ -485,10 +481,7 @@ function applyMergedResoundingTimbre(
           sourceId: TRAIT.RESOUNDING_TIMBRE,
           skillId: skill.id,
           skillName: 'Resounding Timbre',
-          duration: balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, TRAIT.RESOUNDING_TIMBRE),
-            'durationMultiplier'
-          )
+          duration: balanceNumberFromContext(runtime, TRAIT.RESOUNDING_TIMBRE, 'duration')
         },
         'boon_extension'
       )

@@ -18,6 +18,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -59,8 +60,8 @@ export const lightOnYourFeet = defineTrait({
   balance: {
     damageMultiplier: 1.1,
     conditionDurationBonus: 0.1,
-    durationPerTier: 2,
-    minimumStacks: 1,
+    durationExtension: 2,
+    immobilizeDurationExtension: 1,
     rechargeMultiplier: 0.8,
     effects: [
       { name: 'light-on-your-feet', type: 'buff', kind: 'light-on-your-feet', duration: 6, stacks: 1 },
@@ -82,9 +83,10 @@ export const lightOnYourFeet = defineTrait({
       factor: (context) => {
         const { skillId, base, intrinsic } = shortbowConditionDuration(context);
         if (!(base > 0)) return 1;
-        const extension = balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
-          skillId === ID.CRIPPLING_SHOT ? 'minimumStacks' : 'durationPerTier'
+        const extension = balanceNumberFromContext(
+          context,
+          TRAIT.LIGHT_ON_YOUR_FEET,
+          skillId === ID.CRIPPLING_SHOT ? 'immobilizeDurationExtension' : 'durationExtension'
         );
         // The weapon already contributes intrinsic seconds; add the trait's seconds to that same base.
         return Math.max(0, base + intrinsic + extension) / (base + intrinsic);
@@ -104,8 +106,7 @@ export const lightOnYourFeet = defineTrait({
       id: 'ranger.light-on-your-feet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'light-on-your-feet')
     },
     {
@@ -113,11 +114,7 @@ export const lightOnYourFeet = defineTrait({
       id: 'ranger.light-on-your-feet-condition-duration',
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
-          'conditionDurationBonus'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET, 'conditionDurationBonus'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'light-on-your-feet')
     }
   ],
@@ -156,7 +153,7 @@ export const quickDraw = defineTrait({
   name: 'Quick Draw',
   balance: {
     internalCooldown: 9,
-    durationMultiplier: 5,
+    duration: 5,
     rechargeMultiplier: 0.34,
     effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }]
   },
@@ -221,8 +218,9 @@ export const trappersExpertise = defineTrait({
       operation: 'multiply',
       factor: (context) => {
         const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
-        return balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE),
+        return balanceNumberFromContext(
+          context,
+          TRAIT.TRAPPERS_EXPERTISE,
           skill?.id === ID.FLAME_TRAP ? 'coefficientMultiplier' : 'durationMultiplier'
         );
       },
@@ -304,8 +302,7 @@ export const viciousQuarry = defineTrait({
       id: 'ranger.vicious-quarry-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'criticalChance'),
       // Vicious Quarry improves the ranger's Fury; the pet retains its own independent critical chance.
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'fury')
     }
@@ -340,8 +337,7 @@ export const huntersTactics = defineTrait({
       id: 'ranger.hunters-tactics-damage',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HUNTERS_TACTICS), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.HUNTERS_TACTICS, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && qualifiesForFlankingBonuses(context)
     },
     {
@@ -349,8 +345,7 @@ export const huntersTactics = defineTrait({
       id: 'ranger.hunters-tactics-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HUNTERS_TACTICS), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.HUNTERS_TACTICS, 'criticalChance'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && qualifiesForFlankingBonuses(context)
     }
   ]
@@ -368,11 +363,7 @@ export const hiddenBarbs = defineTrait({
       id: 'ranger.hidden-barbs',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.HIDDEN_BARBS),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.HIDDEN_BARBS, 'conditionDamageMultiplier'),
       // Hidden Barbs boosts the Ranger's bleeding, including owned effects, without amplifying pet bleeds.
       when: (context) => context.condition === 'Bleeding' && isGw2PlayerModifierOwnedEvent(context.event)
     }
@@ -388,10 +379,10 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
 const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
   chanceOnCriticalHit: (context: RangerResolverContext) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHARPENED_EDGES), 'criticalChance'),
+    balanceNumberFromContext(context, TRAIT.SHARPENED_EDGES, 'criticalChance'),
   actorTypes: ['player', 'summon'] as const,
   when(_context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
-    return event.actorType === 'player' || event.source === 'ranger-pet';
+    return event.actorType === 'player' || isPetStrike(event);
   },
   handler(context, event, _details, application): void {
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
@@ -485,7 +476,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
     const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
     const effect = requireEffect(profile, 'boon', 'quickness');
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
-    state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'durationMultiplier'));
+    state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'duration'));
     if (effect)
       emitTraitProfile(context, TRAIT.QUICK_DRAW, TRAIT.QUICK_DRAW, undefined, {
         at: at,
@@ -536,7 +527,7 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
     const profile = requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE);
     const cripple = requireEffect(profile, 'condition', 'Crippled');
     if (!cripple) return;
-    if (!claimActivation(state.activationClaims, 'ranger.trappers-expertise', event.activationId)) return;
+    if (!claimActivation(state.player.activationClaims, 'ranger.trappers-expertise', event.activationId)) return;
     emitTraitProfile(context, TRAIT.TRAPPERS_EXPERTISE, TRAIT.TRAPPERS_EXPERTISE, undefined, {
       at: event.at,
       fullEnd: event.at,

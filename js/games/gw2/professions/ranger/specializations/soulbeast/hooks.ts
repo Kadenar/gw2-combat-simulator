@@ -1,7 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { beastSkillUsed, mergedCommandApplied } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { bestialRageControl } from '#gw2/professions/ranger/core/traits/beastmastery/index.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastBuffPolicies } from '#gw2/professions/ranger/specializations/soulbeast/effect-state.js';

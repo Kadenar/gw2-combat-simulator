@@ -1,0 +1,164 @@
+import {
+  profileFact,
+  simulationEffectFacts,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipNumber,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
+  type DescribeSimulationTooltip,
+  type ProfessionTooltips
+} from '#gw2/app/shared/simulation-tooltip.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as FIREBRAND } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
+
+const stowTomeTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Close the active tome and restore your weapon skills. This ends the current consecutive-page sequence for Swift Scholar.'
+);
+
+const tomePageTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Use a page from the matching open tome and apply these effects. Pages are shared across tomes and regenerate after spending begins. Applicable tome traits can add boons or refund pages; the tome stays open until stowed.'
+);
+
+/** Describe firebrand tooltips from the selected balance data. */
+export const firebrandTooltips = {
+  skillFacts: (_c, entity) =>
+    // Only tome pages spend this resource; other canonical costs have their own facts.
+    entity.resourceCost == null || !entity.tome
+      ? []
+      : [{ name: 'Tome pages spent', detail: tooltipDecimal(tooltipNumber(entity, 'resourceCost')) }],
+  skills: {
+    [ID.STOW_TOME]: stowTomeTooltip,
+    ...Object.fromEntries(
+      [
+        ID.AZURE_SUN,
+        ID.DARING_CHALLENGE,
+        ID.DESERT_BLOOM,
+        ID.ETERNAL_OASIS,
+        ID.HEATED_REBUKE,
+        ID.IGNITING_BURST,
+        ID.RADIANT_RECOVERY,
+        ID.SCORCHED_AFTERMATH,
+        ID.SEARING_SPELL,
+        ID.SHINING_RIVER,
+        ID.STALWART_STAND,
+        ID.UNBROKEN_LINES,
+        ID.UNFLINCHING_CHARGE,
+        ID.VALIANT_BULWARK
+      ].map((id) => [id, tomePageTooltip])
+    ),
+    ...Object.fromEntries(
+      [
+        [ID.TOME_OF_JUSTICE, FIREBRAND.tomeJustice],
+        [ID.TOME_OF_RESOLVE, FIREBRAND.tomeResolve],
+        [ID.TOME_OF_COURAGE, FIREBRAND.tomeCourage]
+      ].map(([id, profile]) => [
+        id,
+        skillTooltip(
+          'Open this tome and replace your weapon bar with its pages. Opening a ready tome starts passive dormancy and grants Swift Scholar quickness. Reopening a dormant tome preserves that timer. Switching tomes resets the consecutive-page refund sequence.',
+          (balanceContext) => [
+            profileFact(balanceContext, profile, 'cooldown', 'Base passive dormancy', tooltipSeconds),
+            profileFact(balanceContext, FIREBRAND.resources, 'maximumStacks', 'Base shared page capacity'),
+            profileFact(
+              balanceContext,
+              FIREBRAND.resources,
+              'pulseInterval',
+              'Base page regeneration interval',
+              tooltipSeconds
+            ),
+            ...simulationEffectFacts(
+              tooltipProfile(balanceContext, TRAIT.SWIFT_SCHOLAR).effects,
+              'when the passive was ready'
+            ).facts
+          ]
+        )
+      ])
+    ),
+    // This distinct recorded variant has no tome-opening action or simulated payload.
+    [ID.TOME_OF_COURAGE_ID_42371]: skillTooltip(
+      'This Tome of Courage variant has no simulated effects. It does not open a tome, start passive dormancy, or grant Swift Scholar quickness.'
+    ),
+    ...Object.fromEntries(
+      MANTRAS.flatMap((mantra) => [
+        [
+          mantra.rootId,
+          skillTooltip(
+            'Prepare this mantra and unlock its charged uses. Equipped mantras begin the simulation prepared and rearm automatically after a full recharge.'
+          )
+        ],
+        [
+          mantra.normalId,
+          skillTooltip(
+            'Spend a prepared mantra charge and apply these effects. The last remaining charge uses the separate final-charge skill.'
+          )
+        ],
+        [
+          mantra.finalId,
+          skillTooltip(
+            'Spend the final mantra charge and apply these effects. The mantra becomes unavailable until its full recharge finishes, then automatically prepares again.'
+          )
+        ]
+      ])
+    ),
+    [ID.ASHES_OF_THE_JUST]: skillTooltip(
+      "Grant Ashes of the Just and might to your party. Each recipient's qualifying strikes spend Ashes charges to burn the target, subject to the trigger interval.",
+      (balanceContext) => [
+        ...simulationEffectFacts(
+          tooltipProfile(balanceContext, FIREBRAND.ashes)
+            .effects?.filter((effect) => effect.type !== 'condition')
+            .map((effect) => ({
+              ...effect,
+              ...(effect.type === 'buff'
+                ? { stacks: tooltipNumber(tooltipProfile(balanceContext, FIREBRAND.ashes), 'maximumStacks') }
+                : {}),
+              audience: { recipients: 'party' as const }
+            })),
+          'party grant'
+        ).facts,
+        ...simulationEffectFacts(
+          tooltipProfile(balanceContext, FIREBRAND.ashes).effects?.filter((effect) => effect.type === 'condition'),
+          'per charge spent'
+        ).facts,
+        profileFact(balanceContext, FIREBRAND.ashes, 'internalCooldown', 'Minimum trigger interval', tooltipSeconds)
+      ]
+    )
+  },
+  traits: {
+    [TRAIT.PURITY_OF_WORD]: traitTooltip('Unlock tomes and their shared page resource.'),
+    [TRAIT.SWIFT_SCHOLAR]: traitTooltip(
+      'Opening a tome with a ready passive grants quickness. Consecutive page skills in the same tome refund a page.',
+      [
+        ['minimumStacks', 'Consecutive page skills required'],
+        ['resourceGain', 'Pages refunded']
+      ]
+    ),
+    [TRAIT.IMBUED_HASTE]: traitTooltip('Quickness grants condition damage, healing power, and vitality.', [
+      ['attributeBonus', 'Each attribute with quickness', tooltipDecimal]
+    ]),
+    [TRAIT.UNRELENTING_CRITICISM]: traitTooltip('Player axe strikes inflict bleeding.'),
+    [TRAIT.LIBERATORS_VOW]: traitTooltip('Using a healing skill grants quickness to the party.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+    ]),
+    [TRAIT.ARCHIVIST_OF_WHISPERS]: traitTooltip('Increase the shared tome-page capacity.', [
+      ['maximumStacks', 'Maximum pages']
+    ]),
+    [TRAIT.WEIGHTY_TERMS]: traitTooltip("Using a mantra's final charge grants pages and inflicts slow.", [
+      ['resourceGain', 'Pages gained']
+    ]),
+    [TRAIT.STALWART_SPEED]: traitTooltip('Applying aegis or stability grants quickness to the party.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+    ]),
+    [TRAIT.LEGENDARY_LORE]: virtueBoons('Using a tome page grants a boon according to the active tome.'),
+    [TRAIT.STOIC_DEMEANOR]: traitTooltip('Control, immobilize, or slow applications grant resistance and might.'),
+    [TRAIT.QUICKFIRE]: traitTooltip(
+      'Applying quickness grants an Ashes of the Just charge to a recipient. Justice retains its passive while dormant.',
+      [['internalCooldown', 'Charge-grant cooldown', tooltipSeconds]]
+    ),
+    [TRAIT.LOREMASTER]: traitTooltip('Tome pages regenerate faster.', [
+      ['pulseInterval', 'Page regeneration interval', tooltipSeconds]
+    ])
+  }
+} satisfies ProfessionTooltips;

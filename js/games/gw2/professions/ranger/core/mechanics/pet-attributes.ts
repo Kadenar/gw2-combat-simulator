@@ -1,21 +1,20 @@
 import { resolveAttributeContributions } from '#gw2/platform/builds/attribute-evaluation.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/builds/attribute-inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalChanceFractionFromPrecision, STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
-import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/signet-passives.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import {
   beastlyWardenPetDamageMultiplier,
   beastmasteryPetAttributes
 } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
+import { skirmishingPetAttributes } from '#gw2/professions/ranger/core/traits/skirmishing/pet-attributes.js';
 import { wildernessPetAttributes } from '#gw2/professions/ranger/core/traits/wilderness-survival/attributes.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {
@@ -26,6 +25,11 @@ export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRunti
 
 function petHasSelectedSkill(context: RangerRuntime, skillId: number): boolean {
   return selectedSkillIdSet(context.config.selectedSkillIds).has(skillId);
+}
+
+/** Selected Signet of the Wild grants ferocity only while ready; callers supply their own observation clock. */
+function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true): number {
+  return selected && ready ? balanceNumberFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus') : 0;
 }
 
 /** Snapshot independent-pet attributes after trait inheritance and the live signet passive. */
@@ -81,22 +85,4 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonDamagePerCoefficient:
       ((weaponStrength * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)
   };
-}
-
-/** Declare independent pet bonuses at launch; family and selection cannot change an emitted snapshot. */
-function skirmishingPetAttributes(
-  context: RangerRuntime | RangerResolverContext,
-  family: string
-): readonly Gw2AttributeEffect[] {
-  const declarations = [
-    [TRAIT.STRIDERS_STRENGTH, ['Power'], 'attributeBonus'],
-    [TRAIT.FANG_AND_CLAW, ['Precision'], 'attributeBonus'],
-    [TRAIT.FANG_AND_CLAW, ['Ferocity'], 'weaponAttributeBonus']
-  ] as const;
-  return declarations.flatMap(([id, attributes, field]) => {
-    if (!hasTrait(context, id)) return [];
-    if (id === TRAIT.FANG_AND_CLAW && !['feline', 'avian', 'drake'].includes(family)) return [];
-    const amount = balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
-    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
-  });
 }

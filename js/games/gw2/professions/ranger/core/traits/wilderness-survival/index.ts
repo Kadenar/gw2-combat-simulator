@@ -1,5 +1,11 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import {
+  isActivePetStrike,
+  isPetStrike,
+  isPlayerStrike,
+  petDerivedConditionMetadata
+} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { activePetFamily, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -14,6 +20,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -25,8 +32,8 @@ import {
   strike,
   strikeEffectsApplied
 } from '#gw2/professions/ranger/core/mechanics/combat.js';
-import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -60,8 +67,7 @@ export const poisonMaster = defineTrait({
       // Merged F3 retains its commitment boundary; merged family skills do not arm Poison Master.
       on: 'castCommit',
       when: (runtime: MechanicQueriesOf<RangerRuntime>, cast) =>
-        runtime.profession.specialization.kind === 'Soulbeast' &&
-        runtime.profession.specialization.state.beastmodeActive &&
+        rangerMerged(runtime.profession) &&
         Boolean(cast.skill.beastmodeSkill) &&
         cast.skill.id === rangerPetByName(runtime.profession.core.activePet).beastmodeSkillIds.at(-1),
       run: (runtime, cast) => applyPoisonMasterBeastSkill(runtime, cast.skill)
@@ -79,11 +85,7 @@ export const poisonMaster = defineTrait({
       id: 'ranger.poison-master',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.POISON_MASTER),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.POISON_MASTER, 'conditionDamageMultiplier'),
       // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
       when: (context) => context.condition === 'Poisoned' && isGw2PlayerModifierOwnedEvent(context.event)
     }
@@ -227,8 +229,7 @@ export const survivalInstincts = defineTrait({
       id: 'ranger.survival-instincts',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SURVIVAL_INSTINCTS), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.SURVIVAL_INSTINCTS, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -280,26 +281,22 @@ function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill)
 function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Player and pet hold separate grants; either route retains the trait's player-scaled poison.
-  const specialization = context.profession.specialization;
-  const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
+  const merged = rangerMerged(context.profession);
   // Ranger-owned Cloud/vine packets retain pet provenance, but cannot spend the companion's next-strike grant.
-  const eligible = merged
-    ? state.playerPoisonMasterReady && isPlayerStrike(event)
-    : state.pet &&
-      isPetStrike(event) &&
-      event.actorType === 'summon' &&
-      event.summonOwner === rangerPetCompanionId(context) &&
-      state.pet.poisonMasterReady;
-  if (!eligible || !(Number(event.coefficient) > 0)) {
-    return;
-  }
+  const actor = merged
+    ? isPlayerStrike(event) && Number(event.coefficient) > 0
+      ? state.player
+      : null
+    : isActivePetStrike(context, event)
+      ? state.pet
+      : null;
+  if (!actor?.poisonMasterReady) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.POISON_MASTER);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
   if (!poison) return;
-  if (merged) state.playerPoisonMasterReady = false;
-  else state.pet!.poisonMasterReady = false;
+  actor.poisonMasterReady = false;
   emitTraitProfile(context, TRAIT.POISON_MASTER, TRAIT.POISON_MASTER, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -345,8 +342,7 @@ function handlePoisonMasterGrant(context: RangerResolverContext, event: Gw2Resol
   if (hasTrait(context, TRAIT.POISON_MASTER)) {
     const state = professionCoreState(context);
     // A delayed grant can only reach the companion that accepted the command, never a newer incarnation.
-    if (event.summonOwner && (!state.pet || event.summonOwner !== rangerPetCompanionId(context))) return;
-    if (event.summonOwner && state.pet) state.pet.poisonMasterReady = true;
-    else if (!event.summonOwner) state.playerPoisonMasterReady = true;
+    const actor = event.summonOwner ? rangerOwningPetState(state.pet, event.summonOwner) : state.player;
+    if (actor) actor.poisonMasterReady = true;
   }
 }

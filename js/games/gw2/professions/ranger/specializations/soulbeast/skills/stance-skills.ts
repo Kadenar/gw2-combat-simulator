@@ -1,4 +1,4 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -37,7 +37,7 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
 export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, kind: string, profileId: string): number {
   const { duration, sharedDuration } = leaderOfThePackStance(
     runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, profileId), 'durationMultiplier')
+    balanceNumberFromContext(runtime, profileId, 'duration')
   );
   const application = {
     at: runtime.time,

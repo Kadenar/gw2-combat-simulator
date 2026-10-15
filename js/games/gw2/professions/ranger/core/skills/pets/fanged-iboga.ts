@@ -1,3 +1,7 @@
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { packAlphaPetRecharge } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 /**
@@ -132,3 +136,18 @@ export const rangerConsumingBiteModifier: Gw2ModifierRule = {
   },
   when: (context) => Number(context.event?.skillId ?? context.skillId) === ID.CONSUMING_BITE
 };
+
+/** Preserve the Iboga's autonomous policy, including its independent Quickness recharge, outside the scheduler. */
+export function ibogaAutonomousRecharge(context: RangerRuntime, skill: Skill, quickness: boolean): number | undefined {
+  const profileId =
+    skill.id === ID.NARCOTIC_SPORES_PET
+      ? PROFILE.narcoticSporesAutonomous
+      : skill.id === ID.CRIPPLING_ANGUISH_PET
+        ? quickness
+          ? PROFILE.cripplingAnguishQuickness
+          : PROFILE.cripplingAnguishAutonomous
+        : undefined;
+  if (!profileId) return undefined;
+  const cooldown = balanceNumberFromContext(context, profileId, 'cooldown');
+  return profileId === PROFILE.cripplingAnguishQuickness ? cooldown : cooldown * packAlphaPetRecharge(context);
+}

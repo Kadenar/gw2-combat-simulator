@@ -5,8 +5,7 @@ import {
   strike,
   strikeEffectsApplied
 } from '#gw2/professions/ranger/core/mechanics/combat.js';
-import { triggerStrengthOfThePack } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { triggerSharpeningStone, triggerStrengthOfThePack } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { triggerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
@@ -15,9 +14,6 @@ import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 export function reactToRangerCoreDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0) || event.actorType === 'effect') return;
   context.fireTrigger(strike, { event });
-  // The Beast skill's strike resolves before Lesser Sic 'Em is applied, so
-  // the triggering hit cannot benefit from the buff it creates.
-
   triggerPoisonousStrikes(context, event);
   triggerSharpeningStone(context, event);
   context.fireTrigger(strikeEffectsApplied, { event });

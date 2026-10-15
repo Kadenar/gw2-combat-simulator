@@ -98,7 +98,7 @@ test('shortbow intrinsic and selected trait extensions add seconds while traps r
   const family = patched(
     rangerProfession,
     {
-      [RANGER.LIGHT_ON_YOUR_FEET]: { fields: { durationPerTier: 3, minimumStacks: 2 } },
+      [RANGER.LIGHT_ON_YOUR_FEET]: { fields: { durationExtension: 3, immobilizeDurationExtension: 2 } },
       [RANGER.TRAPPERS_EXPERTISE]: { fields: { durationMultiplier: 1.9, coefficientMultiplier: 1.8 } }
     },
     {

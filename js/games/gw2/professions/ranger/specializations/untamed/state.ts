@@ -33,14 +33,8 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
     rangerUnleashed: config.initialUntamedState === 'Ranger',
     // Zero means no grant; an armed ambush is available only before its deadline while Ranger is unleashed.
     ambushReadyUntil: 0,
-    // Tracks the 9-second cooldown before Unleashed Power can grant another ambush window.
-
-    // Separate cooldown for Let Loose (weapon-swap trigger), not related to Unleash cooldown.
-
     // Player and pet track separate stacks because each cross-triggers the other's buff.
     ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 },
-    // 0.5s ICD per source prevents multi-hit skills from inflating stacks.
-
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.
     untamedActivationClaims: {}
   };

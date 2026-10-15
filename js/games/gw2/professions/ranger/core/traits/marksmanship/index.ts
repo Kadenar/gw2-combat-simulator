@@ -16,6 +16,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -33,16 +34,20 @@ import {
   isPlayerStrike,
   targetHealthFraction
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { rangerPetEvent, rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
   const core = readProfessionCoreState<RangerCoreState>(context.runtime?.profession);
-  return rangerPetEvent(context)
-    ? core.pet?.id === context.event?.summonOwner && core.pet?.openingStrikeReady === true
-    : isGw2PlayerModifierOwnedEvent(context.event) && core.playerOpeningStrikeReady === true;
+  const actor = rangerPetEvent(context)
+    ? rangerOwningPetState(core.pet ?? null, context.event?.summonOwner)
+    : isGw2PlayerModifierOwnedEvent(context.event)
+      ? core.player
+      : null;
+  return actor?.openingStrikeReady === true;
 }
 
 function targetVulnerable(context: Gw2ModifierContext): boolean {
@@ -76,8 +81,7 @@ export const wolfsong = defineTrait({
       id: 'ranger.wolfsong',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WOLFSONG), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.WOLFSONG, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context)
     }
   ]
@@ -212,8 +216,7 @@ export const preciseStrike = defineTrait({
       id: 'ranger.precise-strike',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PRECISE_STRIKE), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.PRECISE_STRIKE, 'criticalChance'),
       when: (context) => openingStrikeReady(context)
     }
   ]
@@ -231,8 +234,7 @@ export const farsighted = defineTrait({
       id: 'ranger.farsighted',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FARSIGHTED), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.FARSIGHTED, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         skillForEvent(context.profession?.catalog, context.event, context.skillId)?.type === 'Weapon'
@@ -257,8 +259,7 @@ export const remorseless = defineTrait({
       id: 'ranger.remorseless',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.REMORSELESS), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.REMORSELESS, 'damageMultiplier'),
       when: (context) => openingStrikeReady(context)
     }
   ]
@@ -276,8 +277,7 @@ export const predatorsOnslaught = defineTrait({
       id: 'ranger.predators-onslaught-player',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREDATORS_ONSLAUGHT), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerTargetImpaired(context)
     },
     {
@@ -285,8 +285,7 @@ export const predatorsOnslaught = defineTrait({
       id: 'ranger.predators-onslaught-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREDATORS_ONSLAUGHT), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier'),
       when: (context) => rangerPetEvent(context) && rangerTargetImpaired(context)
     }
   ]
@@ -339,10 +338,8 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
   const player = isPlayerStrike(event);
   const pet = isPetStrike(event);
   if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
-  const ready = player
-    ? state.playerOpeningStrikeReady
-    : state.pet?.id === event.summonOwner && state.pet?.openingStrikeReady;
-  if (!ready) return;
+  const actor = player ? state.player : rangerOwningPetState(state.pet, event.summonOwner);
+  if (!actor?.openingStrikeReady) return;
   const openingStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.OPENING_STRIKE);
   const openingStrike = requireEffect(openingStrikeProfile, 'condition', 'Vulnerability');
   const alphaFocusProfile = hasTrait(context, TRAIT.ALPHA_FOCUS)
@@ -351,8 +348,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
   const alphaFocus = alphaFocusProfile && requireEffect(alphaFocusProfile, 'condition', 'Crippled');
   // Readiness is spent by a delivered opener; with every opener packet removed it stays armed.
   if (!openingStrike && !alphaFocus) return;
-  if (player) state.playerOpeningStrikeReady = false;
-  else state.pet!.openingStrikeReady = false;
+  actor.openingStrikeReady = false;
   if (openingStrike)
     emitTraitProfile(context, TRAIT.OPENING_STRIKE, TRAIT.OPENING_STRIKE, undefined, {
       at: event.at,
@@ -425,7 +421,7 @@ function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2Resolve
   const kind = (event.kind || '').toLowerCase();
   if (kind === 'fury' && event.resolvedAudience?.includesSelf) {
     const state = professionCoreState(context);
-    state.playerOpeningStrikeReady = true;
+    state.player.openingStrikeReady = true;
     if (state.pet) state.pet.openingStrikeReady = true;
   }
 }

@@ -1,6 +1,9 @@
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
+import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 
 /** Cast and trait effects supply their own attribution; pet ownership is captured by the pet producer. */
 export function buildRangerPacket(
@@ -20,4 +23,37 @@ export function buildRangerPacket(
 /** A proc's total coefficient is divided into ordered hits, each with an independent resolved-hit fact. */
 export function buildRangerStrikes(event: SimulationEventBase): SimulationEventBase[] {
   return splitStrikeHits({ ...event, type: 'damage', coefficient: Number(event.coefficient) });
+}
+
+/** Attribution and delivery fields for a profile payload that a resolved hit or mechanic delivers. */
+export interface RangerProfileDelivery {
+  readonly attribution: EffectEventBase;
+  /** The log label for each delivered packet, independent of the profile's patch-facing name. */
+  readonly name?: string;
+  /** Actor-specific packet fields, such as an independent pet's combat attributes or a party audience. */
+  readonly fields?: Partial<SimulationEventBase>;
+  /** Duration modifiers sample the triggering hit instead of the granting mechanic. */
+  readonly durationContext?: Gw2ResolverEvent;
+}
+
+/** Profiles own the payload values; the mechanic owns timing, attribution, and log identity. */
+export function emitRangerProfile(
+  context: Pick<MechanicCombatContext, 'effects'>,
+  at: number,
+  profile: Skill | BalanceProfile,
+  delivery: RangerProfileDelivery
+): void {
+  context.effects.emit({
+    kind: 'profile',
+    profile,
+    at,
+    fullEnd: at,
+    attribution: delivery.attribution,
+    durationContext: delivery.durationContext,
+    transform: (packet) => ({
+      ...packet,
+      ...(delivery.name != null ? { name: delivery.name } : {}),
+      ...delivery.fields
+    })
+  });
 }

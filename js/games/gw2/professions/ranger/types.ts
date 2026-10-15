@@ -1,4 +1,3 @@
-import type { RangerPetState } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -7,13 +6,12 @@ import type { Gw2CanonicalBuild, Gw2Build, ProfessionBuildAssumptions } from '#g
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
-import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import type { RangerCoreState, RangerCorePublicState } from '#gw2/professions/ranger/core/state.js';
 import type { DruidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 
-// Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface RangerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
   initialUntamedState?: RangerInitialUntamedState;
@@ -52,9 +50,8 @@ export interface RangerPetDefinition {
 }
 
 /** Derive optional projection fields from their owners without exposing additional specialization internals. */
-export type RangerState = Omit<RangerCoreState, 'pet'> & {
-  pet: Pick<RangerPetState, 'id' | 'ferociousSymbiosis' | 'wutheringWindReady'> | null;
-} & Partial<
+export type RangerState = RangerCorePublicState &
+  Partial<
     Pick<DruidState, 'astralClock' | 'celestialAvatarActive' | 'celestialAvatarEndsAt'> &
       Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil'> &
       Pick<UntamedState, 'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer'> &

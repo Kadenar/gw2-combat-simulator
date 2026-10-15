@@ -1,6 +1,7 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
@@ -304,7 +305,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
 ]);
 
 /** Copy the live source recharge on commitment and cancellation, excluding Panther's independent ammo. */
-export function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
+function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   for (const [parentId, flip] of Object.entries(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) {
     const parent = Number(parentId);
     if (parent === ID.PANTHERS_PROWL || (cast.skill.id !== parent && cast.skill.id !== flip)) continue;
@@ -314,18 +315,28 @@ export function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCa
 }
 
 /** Reuse the shared flip ledger so stale expiry cannot clear a later Prowess grant. */
-export function armHuntersProwess(runtime: RangerRuntime): void {
+function armHuntersProwess(runtime: RangerRuntime): void {
   for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT))
     armSkillFlip(runtime.profession.core.availableFlips, flip, runtime.time, runtime.time + 3);
 }
 
 /** Spending either Prowess or external stealth reveals the ranger and closes all spear alternatives. */
-export function consumeSpearOpportunity(runtime: RangerRuntime): void {
+function consumeSpearOpportunity(runtime: RangerRuntime): void {
   const state = runtime.profession.core;
   for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) consumeSkillFlip(state.availableFlips, flip);
   state.stealthUntil = runtime.time;
   state.revealedUntil = runtime.time + 3;
 }
+
+/** Hunter's Prowess and stealth attacks share one flip ledger; paired attacks share recharge on commit and cancel. */
+export const spearLifecycle = {
+  sideEffectHandlers: {
+    'ranger.hunters-prowess': armHuntersProwess,
+    'ranger.spear-opportunity': consumeSpearOpportunity
+  },
+  onCastCommit: synchronizeSpearRecharge,
+  onCastCancel: synchronizeSpearRecharge
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
 
 /** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
 export const rangerFalconsStoopModifier: Gw2ModifierRule = {

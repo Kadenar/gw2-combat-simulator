@@ -235,12 +235,12 @@ test('Poisonous Strikes gives pet and merged player separate inclusive-expiry gr
   assert.equal(core.pet.poisonousStrikes.charges, 2);
   handleRangerPoisonousStrikes(context, { at: 2, charges: 2, duration: 1 });
   reactToSoulbeastDamage(context, player);
-  assert.equal(core.playerPoisonousStrikes.charges, 1);
+  assert.equal(core.player.poisonousStrikes.charges, 1);
   assert.equal(context.events[0].independentConditionOwner, true);
   assert.equal(context.events[1].ownerActorType, 'player');
   triggerPoisonousStrikes(context, { ...pet, at: 3 });
   reactToSoulbeastDamage(context, { ...player, at: 3 });
-  assert.equal(core.playerPoisonousStrikes.charges, 0);
+  assert.equal(core.player.poisonousStrikes.charges, 0);
   handleRangerPoisonousStrikes(context, { at: 3, charges: 2, duration: 1, summonOwner: pet.summonOwner });
   triggerPoisonousStrikes(context, { ...pet, at: 4.001 });
   assert.equal(core.pet.poisonousStrikes.charges, 0);

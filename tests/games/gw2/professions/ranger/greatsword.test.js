@@ -11,7 +11,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import {
   rangerAttackOfOpportunityModifier,
   reactToRangerGreatswordDamage
-} from '#gw2/professions/ranger/core/mechanics/greatsword.js';
+} from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {

@@ -1,4 +1,8 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionPaletteGroup,
@@ -56,10 +60,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
       if (skill.id === ID.HAWKEYE || skill.id === ID.KEEN_SHOT) {
         const maximum =
           state.windForce?.maximum ??
-          balanceProfileNumber(
-            requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
-            'minimumStacks'
-          );
+          balanceNumberFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources, 'minimumStacks');
         return { tileActive: (skill.id === ID.HAWKEYE) === (state.windForce?.value ?? 0) >= maximum };
       }
     },

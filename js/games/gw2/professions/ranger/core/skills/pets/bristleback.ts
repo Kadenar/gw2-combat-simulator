@@ -1,3 +1,11 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
+import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { deliverChargedHit } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Bristleback family.
@@ -87,3 +95,33 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
     petSkill: true
   }
 });
+
+/** Only the active Bristleback can arm its follow-up; retired pets cannot grant it to their replacement. */
+export function armPetSharpenSpines(runtime: RangerRuntime, event: Gw2ResolverEvent): void {
+  const state = runtime.profession.core;
+  if (
+    event.kind !== 'pet-sharpen-spines' ||
+    event.sourceId !== ID.BRISTLEBACK_SHARPEN_SPINES ||
+    state.activePet !== 'Bristleback'
+  )
+    return;
+  const pet = rangerOwningPetState(state.pet, event.summonOwner);
+  if (pet) pet.sharpenSpines = grantCharges(Number(event.stacks), runtime.time + Number(event.duration));
+}
+
+/** Only the currently armed Bristleback's landed strikes can spend its expiring bleed charges. */
+export function consumePetSharpenSpines(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const { pet, activePet } = context.profession.core;
+  if (!pet || activePet !== 'Bristleback' || !isActivePetStrike(context, event)) return;
+  deliverChargedHit(context, event, PROFILE.petSharpenSpines, () => consumeCharge(pet.sharpenSpines, event.at), {
+    attribution: {
+      source: 'ranger-pet',
+      sourceId: ID.BRISTLEBACK_SHARPEN_SPINES,
+      actorType: 'summon',
+      skillId: ID.BRISTLEBACK_SHARPEN_SPINES,
+      skillName: 'Sharpen Spines',
+      activationId: event.activationId
+    },
+    fields: rangerPetCombatMetadata(context)
+  });
+}

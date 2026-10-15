@@ -4,7 +4,7 @@ import {
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
 import { type ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import {
@@ -57,8 +57,7 @@ export const galeshotState = defineProfessionSpecializationState('Galeshot', cre
 export const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
   kind: 'continuous',
   state: (context) => galeshotState.from(context).windForce,
-  maximum: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'minimumStacks'),
+  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
   initial: () => 0,
   recovery: () => 0
 };
@@ -67,11 +66,10 @@ export const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
 export const galeshotArrows: ResourcePolicy<RangerRuntime> = {
   kind: 'discrete',
   state: (context) => galeshotState.from(context).arrows,
-  maximum: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
+  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
   initial: (context, maximum) => context.config.initialArrows ?? maximum,
   recovery: (context) => ({
-    interval: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval'),
+    interval: balanceNumberFromContext(context, PROFILE.resources, 'pulseInterval'),
     amount: 1,
     start: 'immediate'
   })

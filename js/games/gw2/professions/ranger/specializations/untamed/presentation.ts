@@ -1,5 +1,5 @@
 import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewContext,
@@ -136,10 +136,7 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
     rotationStateSnapshot: (context) =>
       untamedStateSnapshot(
         context,
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context.balanceContext, TRAIT.FEROCIOUS_SYMBIOSIS),
-          'maximumStacks'
-        )
+        balanceNumberFromContext(context.balanceContext, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks')
       )
     // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
   });

@@ -29,7 +29,8 @@ import {
   rangerHammerUsesBuildSelection
 } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerPetCommandBar } from '#gw2/professions/ranger/data/pet-commands.js';
+import { isRangerPetName, RANGER_DEFAULT_PET_NAMES, rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type {
   RangerSkill,
@@ -64,17 +65,11 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
     return [...state.activePetSkillIds];
   }
 
-  return [...(selectedRangerUiPet(context)?.skillIds || [])];
+  return [...selectedRangerUiPet(context).skillIds];
 }
 
 function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): SkillId[] {
-  const skillIds = activePetSkillIds(context).filter((skillId) =>
-    rangerPetSkillCommandable(catalog.skillsById.get(skillId), uiSpecialization(context))
-  );
-  // Place the ordinary F2 beast command between the first and second commandable family skills (F1/F3).
-  const beastIndex = skillIds.findIndex((skillId) => !catalog.skillsById.get(skillId)?.petAutonomousSkill);
-  if (beastIndex > 1) skillIds.splice(1, 0, ...skillIds.splice(beastIndex, 1));
-  return skillIds;
+  return rangerPetCommandBar(activePetSkillIds(context), catalog.skillsById, uiSpecialization(context));
 }
 
 interface RangerPetPaletteGroupOptions {
@@ -110,24 +105,25 @@ function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   const state = rangerUiState(context);
   const selected = String(
     slot === 2
-      ? context.build?.selectedPet2 || context.config?.selectedPet2 || state.petNames?.[1] || 'Lynx'
+      ? context.build?.selectedPet2 ||
+          context.config?.selectedPet2 ||
+          state.petNames?.[1] ||
+          RANGER_DEFAULT_PET_NAMES[1]
       : context.build?.selectedPet || context.config?.selectedPet || state.petNames?.[0] || state.activePet
   );
-  return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
+  return rangerPetByName(selected);
 }
 
 /** Live pet identity owns combat palettes; detached previews use the configured selection. */
 export function activeRangerUiPet(context: RangerUiContext) {
-  const activePet = rangerUiState(context).activePet || selectedRangerUiPet(context)?.name || '';
-  return RANGER_PETS.find((pet) => pet.name === activePet) || RANGER_PETS[0];
+  return rangerPetByName(rangerUiState(context).activePet || selectedRangerUiPet(context).name);
 }
 
 function updatePetSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
   if (!['selectedPet', 'selectedPet2'].includes(String(selection.key)) || !context.build) return false;
-  const pet = RANGER_PETS.find((candidate) => candidate.name === selection.value);
-  if (!pet) return false;
-  if (selection.key === 'selectedPet2') context.build.selectedPet2 = pet.name;
-  else context.build.selectedPet = pet.name;
+  if (!isRangerPetName(selection.value)) return false;
+  if (selection.key === 'selectedPet2') context.build.selectedPet2 = selection.value;
+  else context.build.selectedPet = selection.value;
   return true;
 }
 
@@ -195,7 +191,8 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       // Opening Strike is a single-hit bonus, so it does not belong in persistent attribute previews.
-      readProfessionCoreState<RangerCoreState>(context.professionState).playerOpeningStrikeReady = false;
+      const { player } = readProfessionCoreState<RangerCoreState>(context.professionState);
+      if (player) player.openingStrikeReady = false;
     },
 
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
@@ -258,13 +255,13 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
       const groups: ProfessionSkillBarGroup[] = [
         {
           id: 'ranger-pet-1-selection',
-          label: pet?.name || 'Pet 1',
+          label: pet.name,
           skillIds: [],
           selections: [
             {
               optionEntries: petOptions,
               filterPlaceholder: 'Filter pets...',
-              selectionValue: pet?.name || '',
+              selectionValue: pet.name,
               selectionKey: 'selectedPet',
               selectionIndex: 0
             }
@@ -276,13 +273,13 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
         },
         {
           id: 'ranger-pet-2-selection',
-          label: pet2?.name || 'Pet 2',
+          label: pet2.name,
           skillIds: [],
           selections: [
             {
               optionEntries: petOptions,
               filterPlaceholder: 'Filter pets...',
-              selectionValue: pet2?.name || '',
+              selectionValue: pet2.name,
               selectionKey: 'selectedPet2',
               selectionIndex: 1
             }

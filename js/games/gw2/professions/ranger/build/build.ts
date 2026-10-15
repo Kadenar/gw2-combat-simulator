@@ -6,7 +6,7 @@ import {
 } from '#gw2/professions/shared/build-codec.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { isRangerPetName, RANGER_DEFAULT_PET_NAMES } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
   normalizeRangerHammerSkillIds,
@@ -68,8 +68,8 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
       Utility3: ID.SIGNET_OF_THE_WILD,
       Elite: ID.ONE_WOLF_PACK
     },
-    selectedPet: 'Pig',
-    selectedPet2: 'Lynx',
+    selectedPet: RANGER_DEFAULT_PET_NAMES[0],
+    selectedPet2: RANGER_DEFAULT_PET_NAMES[1],
     selectedHammerSkillIds: [
       ID.UNLEASHED_WILD_SWING,
       ID.OVERBEARING_SMASH,
@@ -113,10 +113,10 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
     const savedAssumptions =
       saved.assumptions && typeof saved.assumptions === 'object' ? (saved.assumptions as Record<string, unknown>) : {};
     // Preserve old pet selections when the build has no top-level choice.
-    const requestedPet = String(saved.selectedPet ?? savedAssumptions.selectedPet ?? 'Pig');
-    const selectedPet = RANGER_PETS.some((pet) => pet.name === requestedPet) ? requestedPet : 'Pig';
-    const requestedPet2 = String(saved.selectedPet2 ?? 'Lynx');
-    const selectedPet2 = RANGER_PETS.some((pet) => pet.name === requestedPet2) ? requestedPet2 : 'Lynx';
+    const requestedPet = saved.selectedPet ?? savedAssumptions.selectedPet;
+    const selectedPet = isRangerPetName(requestedPet) ? requestedPet : RANGER_DEFAULT_PET_NAMES[0];
+    const requestedPet2 = saved.selectedPet2;
+    const selectedPet2 = isRangerPetName(requestedPet2) ? requestedPet2 : RANGER_DEFAULT_PET_NAMES[1];
     return {
       ...build,
       rotation: build.rotation.filter((command) =>
@@ -132,11 +132,11 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
   },
   validateExtra(build) {
     const errors: string[] = [];
-    if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet)) {
+    if (!isRangerPetName(build.selectedPet)) {
       errors.push('selectedPet must name an available Ranger pet.');
     }
 
-    if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet2)) {
+    if (!isRangerPetName(build.selectedPet2)) {
       errors.push('selectedPet2 must name an available Ranger pet.');
     }
 

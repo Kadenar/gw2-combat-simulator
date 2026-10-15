@@ -2,6 +2,7 @@ import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { triggerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
@@ -49,12 +50,12 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
   for (const merged of [false, true]) {
     const core = createRangerCoreState({});
     core.bloodThirst = { charges: 3, expiresAt: 12 };
-    const emitted = [];
+    const { effects, events: emitted } = captureEffectEmissions();
     const context = {
       config: {},
       profession: { core, specialization: { kind: 'Soulbeast', state: { beastmodeActive: merged } } },
       helpers: rangerCatalog,
-      effects: { emit: ({ event }) => emitted.push(event) }
+      effects
     };
     const player = {
       at: 1,

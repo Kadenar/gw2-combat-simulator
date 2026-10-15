@@ -1,11 +1,12 @@
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pet-swap.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /**
  * Owns synthetic Core Ranger actions that do not come from the GW2 skill catalog.
@@ -62,3 +63,12 @@ export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
     )
   });
 }
+
+/** Publish the new pet generation at the swap's commit boundary, before shared pet-swap observers execute. */
+export const petSwapLifecycle = {
+  sideEffectHandlers: {
+    'ranger.swap-pets'(runtime, context) {
+      swapRangerPets(runtime, context.skill);
+    }
+  }
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;

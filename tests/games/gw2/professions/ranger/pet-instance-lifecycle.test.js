@@ -47,7 +47,7 @@ for (const output of ['detailed', 'score']) {
           outgoing.ferociousSymbiosis = { stacks: 5, expiresAt: 30 };
           outgoing.wutheringWindReady = true;
           outgoing.openingStrikeReady = false;
-          runtime.profession.core.playerPoisonousStrikes = grantCharges(2, 30);
+          runtime.profession.core.player.poisonousStrikes = grantCharges(2, 30);
           grant(runtime, 'alacrity', outgoing.id);
           grant(runtime, 'superspeed', outgoing.id);
           runtime.cooldownController.startRecharge(
@@ -76,7 +76,7 @@ for (const output of ['detailed', 'score']) {
               assert.equal(replacement.ferociousSymbiosis.stacks, 0);
               assert.equal(replacement.wutheringWindReady, false);
               assert.equal(replacement.openingStrikeReady, true);
-              assert.equal(runtime.profession.core.playerPoisonousStrikes.charges, 2);
+              assert.equal(runtime.profession.core.player.poisonousStrikes.charges, 2);
               assert.equal(runtime.combat.activeBoonStacks('alacrity', 2), 1);
               readyAt = runtime.cooldownController.readyAt(ID.POISONOUS_CLOUD);
               assert.equal(readyAt, 29.5, 'Only the first two seconds receive Alacrity acceleration.');
@@ -140,8 +140,8 @@ for (const output of ['detailed', 'score']) {
             run(runtime) {
               mode(runtime, true);
               assert.equal(runtime.profession.core.pet, null);
-              assert.equal(runtime.profession.core.playerPoisonMasterReady, false);
-              assert.equal(runtime.profession.core.playerPoisonousStrikes.charges, 0);
+              assert.equal(runtime.profession.core.player.poisonMasterReady, false);
+              assert.equal(runtime.profession.core.player.poisonousStrikes.charges, 0);
               assert.equal(outgoing.effects.boons.size, 0);
               assert.equal(runtime.companions.has(outgoing.id), false);
             }

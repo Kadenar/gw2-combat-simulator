@@ -5,14 +5,21 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
 
 /** Each slot shares its live recharge across variants, including cancelled casts. */
-export function synchronizeHammerRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
+function synchronizeHammerRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const pair = RANGER_HAMMER_VARIANT_PAIRS.find((ids) => ids.includes(Number(cast.skill.id)));
   for (const id of pair || []) runtime.cooldownController.copy(cast.skill.id, id);
 }
+
+/** Commit and cancellation both synchronize the recharge already started by the runtime. */
+export const hammerLifecycle = {
+  onCastCommit: synchronizeHammerRecharge,
+  onCastCancel: synchronizeHammerRecharge
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

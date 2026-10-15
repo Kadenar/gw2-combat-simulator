@@ -9,13 +9,19 @@ interface PetSkillTiming {
   readonly unbuffedImpactMs: Readonly<Record<number, number>>;
 }
 interface PetSkillTimingDefinition extends PetSkillTiming {
-  /** Restrict measurements to the pets they describe; omitted means a shared skill baseline. */
+  /** Restrict measurements to the family members they describe; omitted means every pet with the skill. */
   readonly petNames?: readonly string[];
+  /**
+   * Measured pet animations replace the skill's authored cast time. Without it, the skill's patchable cast time
+   * stays authoritative and this entry supplies only recovery and impact offsets.
+   */
+  readonly overridesSkillCastTime?: true;
   readonly petOverrides?: Readonly<Record<string, Partial<PetSkillTiming>>>;
 }
 
-// The sole timing source for pet skills: recovery includes the next-action gap, separately from recharge.
-// Per-pet measurements override only fields that differ from the shared skill baseline.
+// Measured pet timings: recovery includes the next-action gap, separately from recharge. Unmeasured autonomous
+// attacks declare their recovery beside their pet profile instead. Per-pet measurements override only the fields
+// that differ from the skill's measured baseline.
 export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDefinition>> = Object.freeze({
   [ID.SPIDER_ENTANGLING_WEB]: {
     castTimeMs: 2000,
@@ -23,7 +29,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1360,
     quicknessRecoveryMs: 1440,
     unbuffedImpactMs: {},
-    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Jungle Spider': {
         recoveryMs: 2080
@@ -67,7 +73,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 840,
     quicknessRecoveryMs: 920,
     unbuffedImpactMs: {},
-    petNames: ['Blue Moa', 'Pink Moa', 'Black Moa', 'Red Moa']
+    overridesSkillCastTime: true
   },
   [ID.CANINE_BITE]: {
     castTimeMs: 1400,
@@ -75,7 +81,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 960,
     quicknessRecoveryMs: 1040,
     unbuffedImpactMs: {},
-    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf']
+    overridesSkillCastTime: true
   },
   [ID.CANINE_CRIPPLING_LEAP]: {
     castTimeMs: 1320,
@@ -83,7 +89,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 880,
     quicknessRecoveryMs: 960,
     unbuffedImpactMs: {},
-    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Alpine Wolf': {
         quicknessRecoveryMs: 1000
@@ -105,7 +111,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1480,
     quicknessRecoveryMs: 1560,
     unbuffedImpactMs: {},
-    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Fern Hound': {
         recoveryMs: 2200
@@ -124,7 +130,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1320,
     quicknessRecoveryMs: 1400,
     unbuffedImpactMs: {},
-    petNames: ['Brown Bear', 'Murellow', 'Black Bear', 'Polar Bear', 'Arctodus']
+    overridesSkillCastTime: true
   },
   [ID.DRAKE_BITE]: {
     castTimeMs: 1400,
@@ -132,7 +138,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 960,
     quicknessRecoveryMs: 1040,
     unbuffedImpactMs: {},
-    petNames: ['Salamander Drake', 'Marsh Drake', 'Ice Drake', 'River Drake', 'Reef Drake']
+    overridesSkillCastTime: true
   },
   [ID.DRAKE_TAIL_SWIPE]: {
     castTimeMs: 1200,
@@ -140,7 +146,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1200,
     quicknessRecoveryMs: 1280,
     unbuffedImpactMs: {},
-    petNames: ['Salamander Drake', 'Marsh Drake', 'Ice Drake', 'River Drake', 'Reef Drake'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Marsh Drake': {
         quicknessRecoveryMs: 1320
@@ -160,6 +166,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessRecoveryMs: 1280,
     unbuffedImpactMs: {},
     petNames: ['Whiptail Devourer', 'Lashtail Devourer'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Whiptail Devourer': {
         quicknessCastTimeMs: 1200
@@ -234,7 +241,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1040,
     quicknessRecoveryMs: 1120,
     unbuffedImpactMs: {},
-    petNames: ['Blue Moa', 'Pink Moa', 'Black Moa', 'Red Moa'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Red Moa': {
         quicknessRecoveryMs: 1160
@@ -299,7 +306,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 833,
     quicknessRecoveryMs: 1440,
     unbuffedImpactMs: {},
-    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Forest Spider': {
         quicknessCastTimeMs: 1360
@@ -321,7 +328,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2040,
     quicknessRecoveryMs: 2120,
     unbuffedImpactMs: {},
-    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Jungle Spider': {
         recoveryMs: 3080,
@@ -388,7 +395,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1160,
     quicknessRecoveryMs: 1240,
     unbuffedImpactMs: {},
-    petNames: ['Smokescale']
+    overridesSkillCastTime: true
   },
   [ID.WYVERN_WING_BUFFET]: {
     castTimeMs: 4080,
@@ -396,7 +403,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2760,
     quicknessRecoveryMs: 3760,
     unbuffedImpactMs: {},
-    petNames: ['Electric Wyvern', 'Fire Wyvern'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Fire Wyvern': {
         recoveryMs: 5480,
@@ -410,7 +417,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 840,
     quicknessRecoveryMs: 920,
     unbuffedImpactMs: {},
-    petNames: ['Smokescale']
+    overridesSkillCastTime: true
   },
   [ID.FURIOUS_POUNCE]: {
     // The input completes at impact; the pet's separate recovery includes the rest of its animation.
@@ -427,7 +434,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1280,
     quicknessRecoveryMs: 1360,
     unbuffedImpactMs: {},
-    petNames: ['Electric Wyvern', 'Fire Wyvern']
+    overridesSkillCastTime: true
   },
   [ID.BRISTLEBACK_SHARPEN_SPINES]: {
     castTimeMs: 0,
@@ -435,7 +442,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 0,
     quicknessRecoveryMs: 40,
     unbuffedImpactMs: {},
-    petNames: ['Bristleback']
+    overridesSkillCastTime: true
   },
   [ID.WYVERN_TAIL_LASH]: {
     castTimeMs: 1320,
@@ -443,7 +450,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 840,
     quicknessRecoveryMs: 960,
     unbuffedImpactMs: {},
-    petNames: ['Electric Wyvern', 'Fire Wyvern'],
+    overridesSkillCastTime: true,
     petOverrides: {
       'Fire Wyvern': {
         quicknessRecoveryMs: 920
@@ -456,7 +463,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 920,
     quicknessRecoveryMs: 1040,
     unbuffedImpactMs: {},
-    petNames: ['Bristleback']
+    overridesSkillCastTime: true
   },
   [ID.BRISTLEBACK_RAIN_OF_SPIKES]: {
     castTimeMs: 3680,
@@ -464,7 +471,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2480,
     quicknessRecoveryMs: 2600,
     unbuffedImpactMs: {},
-    petNames: ['Bristleback']
+    overridesSkillCastTime: true
   },
   [ID.SMOKESCALE_SMOKE_ASSAULT]: {
     castTimeMs: 1520,
@@ -472,7 +479,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1520,
     quicknessRecoveryMs: 1520,
     unbuffedImpactMs: {},
-    petNames: ['Smokescale']
+    overridesSkillCastTime: true
   },
   [ID.ROCK_GAZELLE_KICK]: {
     castTimeMs: 2200,
@@ -480,7 +487,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1520,
     quicknessRecoveryMs: 1600,
     unbuffedImpactMs: {},
-    petNames: ['Rock Gazelle']
+    overridesSkillCastTime: true
   },
   [ID.ROCK_GAZELLE_CHARGE]: {
     castTimeMs: 1800,
@@ -488,7 +495,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 680,
     quicknessRecoveryMs: 1480,
     unbuffedImpactMs: {},
-    petNames: ['Rock Gazelle']
+    overridesSkillCastTime: true
   },
   [ID.ROCK_GAZELLE_HEADBUTT]: {
     castTimeMs: 1520,
@@ -496,7 +503,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1080,
     quicknessRecoveryMs: 1160,
     unbuffedImpactMs: {},
-    petNames: ['Rock Gazelle']
+    overridesSkillCastTime: true
   },
   [ID.TURTLE_HEAVY_SHOT]: {
     castTimeMs: 3040,
@@ -504,7 +511,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2080,
     quicknessRecoveryMs: 2160,
     unbuffedImpactMs: {},
-    petNames: ['Siege Turtle']
+    overridesSkillCastTime: true
   },
   [ID.PHOENIX_WICKED_BITE]: {
     castTimeMs: 2040,
@@ -512,7 +519,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1400,
     quicknessRecoveryMs: 1480,
     unbuffedImpactMs: {},
-    petNames: ['Phoenix']
+    overridesSkillCastTime: true
   },
   [ID.FELINE_PHASE_POUNCE]: {
     castTimeMs: 3360,
@@ -520,7 +527,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2800,
     quicknessRecoveryMs: 2880,
     unbuffedImpactMs: {},
-    petNames: ['White Tiger']
+    overridesSkillCastTime: true
   },
   [ID.PHOENIX_DASH]: {
     castTimeMs: 2040,
@@ -528,7 +535,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2040,
     quicknessRecoveryMs: 3280,
     unbuffedImpactMs: {},
-    petNames: ['Phoenix']
+    overridesSkillCastTime: true
   },
   [ID.VAMPIRIC_BITE]: {
     castTimeMs: 1400,
@@ -543,7 +550,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1360,
     quicknessRecoveryMs: 1440,
     unbuffedImpactMs: {},
-    petNames: ['Siege Turtle']
+    overridesSkillCastTime: true
   },
   [ID.PHOENIX_WING_BUFFET]: {
     castTimeMs: 3880,
@@ -551,7 +558,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2600,
     quicknessRecoveryMs: 2680,
     unbuffedImpactMs: {},
-    petNames: ['Phoenix']
+    overridesSkillCastTime: true
   },
   [ID.BLOODTHIRSTY_CHARGE]: {
     castTimeMs: 2480,
@@ -574,7 +581,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 3000,
     quicknessRecoveryMs: 3120,
     unbuffedImpactMs: {},
-    petNames: ['Siege Turtle']
+    overridesSkillCastTime: true
   },
   [ID.WALLOW_MAUL]: {
     castTimeMs: 2560,
@@ -617,7 +624,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 720,
     quicknessRecoveryMs: 840,
     unbuffedImpactMs: {},
-    petNames: ['Sky-Chak Striker']
+    overridesSkillCastTime: true
   },
   [ID.CHAK_UNLEASH_ENERGY]: {
     castTimeMs: 2040,
@@ -625,7 +632,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1560,
     quicknessRecoveryMs: 1560,
     unbuffedImpactMs: {},
-    petNames: ['Sky-Chak Striker']
+    overridesSkillCastTime: true
   },
   [ID.CHAK_SPIT_GOOP]: {
     castTimeMs: 1840,
@@ -633,7 +640,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1240,
     quicknessRecoveryMs: 1320,
     unbuffedImpactMs: {},
-    petNames: ['Sky-Chak Striker']
+    overridesSkillCastTime: true
   },
   [ID.SPINEGAZER_TORMENTING_VISIONS]: {
     castTimeMs: 4160,
@@ -641,7 +648,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2800,
     quicknessRecoveryMs: 2840,
     unbuffedImpactMs: {},
-    petNames: ['Spinegazer']
+    overridesSkillCastTime: true
   },
   [ID.SPINEGAZER_EVIL_EYE]: {
     castTimeMs: 2000,
@@ -649,7 +656,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1360,
     quicknessRecoveryMs: 1440,
     unbuffedImpactMs: {},
-    petNames: ['Spinegazer']
+    overridesSkillCastTime: true
   },
   [ID.SPINEGAZER_STARING_VOID]: {
     castTimeMs: 2200,
@@ -657,7 +664,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2200,
     quicknessRecoveryMs: 2200,
     unbuffedImpactMs: {},
-    petNames: ['Spinegazer']
+    overridesSkillCastTime: true
   },
   [ID.WARCLAW_BOP]: {
     castTimeMs: 1520,
@@ -665,7 +672,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1080,
     quicknessRecoveryMs: 1160,
     unbuffedImpactMs: {},
-    petNames: ['Warclaw']
+    overridesSkillCastTime: true
   },
   [ID.WARCLAW_SLASH]: {
     castTimeMs: 1120,
@@ -673,7 +680,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 760,
     quicknessRecoveryMs: 840,
     unbuffedImpactMs: {},
-    petNames: ['Warclaw']
+    overridesSkillCastTime: true
   },
   [ID.WARCLAW_BATTLE_MAUL]: {
     castTimeMs: 2400,
@@ -681,7 +688,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2400,
     quicknessRecoveryMs: 2400,
     unbuffedImpactMs: {},
-    petNames: ['Warclaw']
+    overridesSkillCastTime: true
   },
   [ID.JANTHIRI_BEE_NIBBLE]: {
     castTimeMs: 2040,
@@ -689,7 +696,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1400,
     quicknessRecoveryMs: 1480,
     unbuffedImpactMs: {},
-    petNames: ['Janthiri Bee']
+    overridesSkillCastTime: true
   },
   [ID.JANTHIRI_BEE_BUMBLE]: {
     castTimeMs: 1600,
@@ -697,7 +704,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1120,
     quicknessRecoveryMs: 1200,
     unbuffedImpactMs: {},
-    petNames: ['Janthiri Bee']
+    overridesSkillCastTime: true
   },
   [ID.JANTHIRI_BEE_STINGING_SORROW]: {
     castTimeMs: 3200,
@@ -705,7 +712,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 2160,
     quicknessRecoveryMs: 2240,
     unbuffedImpactMs: {},
-    petNames: ['Janthiri Bee']
+    overridesSkillCastTime: true
   },
   [ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]: {
     castTimeMs: 3120,
@@ -741,6 +748,6 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
 export function rangerPetSkillTiming(petName: string, skillId: SkillId): PetSkillTiming | undefined {
   const definition = RANGER_PET_SKILL_TIMINGS[skillId];
   if (!definition || (definition.petNames && !definition.petNames.includes(petName))) return undefined;
-  const { petNames: _petNames, petOverrides, ...timing } = definition;
+  const { petNames: _petNames, overridesSkillCastTime: _overrides, petOverrides, ...timing } = definition;
   return { ...timing, ...petOverrides?.[petName] };
 }

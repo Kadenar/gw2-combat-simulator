@@ -1,10 +1,9 @@
-import { createRangerPetState } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
+import { createRangerPetState, rangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import {
   RANGER_PET_SKILL_TIMINGS,
   rangerPetSkillTiming
 } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
-import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
@@ -19,29 +18,29 @@ import {
 } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
 } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import {
   rangerPetAutoProfile,
   type PetAutoProfile,
   type PetAutoSkill
 } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { ibogaAutonomousRecharge } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import {
   beastlyWardenPetDamageMultiplier,
   packAlphaPetRecharge
 } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
 import { lingeringMagicConcentration } from '#gw2/professions/ranger/core/traits/nature-magic/index.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
   rangerPetSkillCommandable,
   rangerPetSkillsRequireCommands
 } from '#gw2/professions/ranger/data/pet-commands.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerPetDefinition, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
@@ -53,7 +52,7 @@ const PET_AI_ATTACK_OWNER = 'ranger.pet-ai-attack';
 
 /** Stamps pet-owned packets before shared consumers such as combo finishers derive child events. */
 export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationEventBase): SimulationEventBase {
-  if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return event;
+  if (!isPetActorEvent(event)) return event;
   // Packets retain their launching identity so entity retirement cannot retarget them to a replacement.
   if (event.summonOwner) return { ...event, independentConditionOwner: true };
   // Every pet-owned event needs concrete caster identity for audience resolution;
@@ -102,9 +101,11 @@ export function rangerPetCastDurationMs(
   if (!skill.petSkill) return durationMs;
   const petName = context.profession.core.activePet;
   const definition = RANGER_PET_SKILL_TIMINGS[skill.id];
-  // Pet-specific measurements override cast metadata; shared baselines retain authored skill tuning.
+  // Measured animations and per-pet overrides replace cast metadata; other skills retain their authored tuning.
   const timing =
-    definition?.petNames || definition?.petOverrides?.[petName] ? rangerPetSkillTiming(petName, skill.id) : undefined;
+    definition?.overridesSkillCastTime || definition?.petOverrides?.[petName]
+      ? rangerPetSkillTiming(petName, skill.id)
+      : undefined;
   return quantizeGw2ActionDurationUp(
     petBoonActive(context, 'quickness')
       ? (timing?.quicknessCastTimeMs ?? summonQuicknessCastTimeMs(skill))
@@ -227,67 +228,21 @@ export function setRangerPetActive(context: RangerRuntime, active: boolean, sour
     return;
   }
 
-  state.pet = createRangerPetState(`ranger-pet:${state.activePetSlot}:${state.nextPetInstance++}`);
+  state.pet = createRangerPetState(rangerPetInstanceId(state.activePetSlot, state.nextPetInstance++));
   state.pet.busyUntil = context.time;
   state.pet.commandReadyAt = context.time;
   context.combat.registerCompanion(state.pet.id, state.pet.effects);
   startRangerPet(context);
 }
 
-/** The first accepted strike by the armed companion consumes its venom, retaining pet condition ownership. */
-export function consumeParalyzingVenom(context: RangerRuntime, event: Gw2ResolverEvent): void {
+/** Swap whole lifetimes before observers grant rewards to the incoming pet. */
+export function applyRangerPetSwap(context: RangerRuntime, pet: RangerPetDefinition, slot: 1 | 2): void {
+  retireRangerPet(context, ID.PET_SWAP);
   const state = context.profession.core;
-  if (
-    !state.pet ||
-    state.pet.paralyzingVenomUntil <= context.time ||
-    event.actorType !== 'summon' ||
-    event.source !== 'ranger-pet' ||
-    event.summonOwner !== rangerPetCompanionId(context) ||
-    !(Number(event.coefficient) > 0)
-  )
-    return;
-  state.pet.paralyzingVenomUntil = 0;
-  context.effects.emit({
-    kind: 'profile',
-    profile: requireBalanceProfileFromContext(context, PROFILE.paralyzingVenom),
-    attribution: {
-      source: 'ranger-pet',
-      sourceId: ID.PARALYZING_VENOM,
-      actorType: 'summon',
-      skillId: ID.PARALYZING_VENOM,
-      skillName: 'Paralyzing Venom',
-      activationId: event.activationId
-    },
-    transform: (packet) => ({ ...packet, ...rangerPetCombatMetadata(context) })
-  });
-}
-
-/** Only the currently armed Bristleback's landed strikes can spend its expiring bleed charges. */
-export function consumePetSharpenSpines(context: RangerRuntime, event: Gw2ResolverEvent): void {
-  const state = context.profession.core;
-  if (
-    !state.pet ||
-    state.activePet !== 'Bristleback' ||
-    event.actorType !== 'summon' ||
-    event.source !== 'ranger-pet' ||
-    event.summonOwner !== rangerPetCompanionId(context) ||
-    !(Number(event.coefficient) > 0) ||
-    !consumeCharge(state.pet.sharpenSpines, context.time)
-  )
-    return;
-  context.effects.emit({
-    kind: 'profile',
-    profile: requireBalanceProfileFromContext(context, PROFILE.petSharpenSpines),
-    attribution: {
-      source: 'ranger-pet',
-      sourceId: ID.BRISTLEBACK_SHARPEN_SPINES,
-      actorType: 'summon',
-      skillId: ID.BRISTLEBACK_SHARPEN_SPINES,
-      skillName: 'Sharpen Spines',
-      activationId: event.activationId
-    },
-    transform: (packet) => ({ ...packet, ...rangerPetCombatMetadata(context) })
-  });
+  state.activePet = pet.name;
+  state.activePetSlot = slot;
+  state.activePetSkillIds = [...pet.skillIds];
+  setRangerPetActive(context, true, ID.PET_SWAP);
 }
 
 /** Autonomous decisions and commands consult the same global skill cooldown. */
@@ -462,16 +417,12 @@ export const rangerPetTasks = {
     }
 
     state.pet.busyUntil = context.time + recovery;
-    if (selected.cooldown) {
+    if (skill) {
+      // Ordinary recharge follows the active catalog; the Iboga owns its measured autonomous exceptions.
       const cooldown =
-        selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, PROFILE.cripplingAnguishQuickness),
-              'cooldown'
-            )
-          : selected.cooldown * packAlphaPetRecharge(context);
+        ibogaAutonomousRecharge(context, skill, quickness) ?? (skill.cooldown ?? 0) * packAlphaPetRecharge(context);
       // All pet skills, including autonomous-only skills, recharge in the global controller.
-      if (skill) {
+      if (cooldown > 0) {
         if (profile.ignoresAlacrity) context.cooldownController.setReadyAt(skill.id, context.time + cooldown);
         else context.cooldownController.startRecharge(skill, context.time, cooldown, rangerPetCompanionId(context));
       }
@@ -552,7 +503,7 @@ export function rangerBoonDuration(
   baseDuration: number,
   scaledDuration: number
 ): number {
-  if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return scaledDuration;
+  if (!isPetActorEvent(event)) return scaledDuration;
   const concentration = lingeringMagicConcentration(context);
   return baseDuration * gw2BoonDurationMultiplier(String(event.kind), { concentration });
 }

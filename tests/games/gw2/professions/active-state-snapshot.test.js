@@ -27,7 +27,7 @@ test('planning projections omit private mechanic state while retaining visible o
       'primaryAttunement'
     ],
     [guardianProfession, 'Core', 'core', ['justiceHitCount', 'virtueReadyAt'], 'symbolicAvengerExpirations'],
-    [rangerProfession, 'Core', 'core', ['nextPetInstance', 'activationClaims'], 'activePetSlot'],
+    [rangerProfession, 'Core', 'core', ['nextPetInstance', 'player'], 'activePetSlot'],
     [thiefProfession, 'Antiquary', 'specialization', ['backfireState', 'canachCoinIndex'], 'artifactSlots'],
     [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity'],
     [warriorProfession, 'Bladesworn', 'specialization', ['dragonChargeReachedAt'], 'flow'],

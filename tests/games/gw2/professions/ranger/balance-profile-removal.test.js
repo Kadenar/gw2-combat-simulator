@@ -237,7 +237,7 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
 
 test('a missing required Ranger scalar fails instead of using a local default', () => {
   const profile = { ...rangerCatalog.balanceProfilesById.get(TRAIT.QUICK_DRAW) };
-  delete profile.durationMultiplier;
+  delete profile.duration;
   const config = { selectedTraitIds: [TRAIT.QUICK_DRAW] };
   const context = {
     procs: createProcRegistry(() => context),
@@ -254,7 +254,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
   assert.throws(
     () =>
       context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 1 }),
-    /Invalid balance data: .*field=durationMultiplier/
+    /Invalid balance data: .*field=duration/
   );
 });
 

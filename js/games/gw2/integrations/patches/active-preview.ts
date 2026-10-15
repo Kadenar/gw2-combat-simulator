@@ -429,11 +429,11 @@ export const activePatchPreview: PatchPreview = {
               from: 0.8,
               to: 1
             },
-            durationPerTier: {
+            durationExtension: {
               from: 2,
               to: 0
             },
-            minimumStacks: {
+            immobilizeDurationExtension: {
               from: 1,
               to: 0
             }

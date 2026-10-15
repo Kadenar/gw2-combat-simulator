@@ -1,4 +1,3 @@
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
@@ -83,7 +82,7 @@ test('declared charge grants preserve replacement, additive expiry, and cancella
   }
 });
 
-// Only committed summons schedule Solar Flare's delayed slam, honoring removal of its profile packet.
+// Only committed summons schedule Solar Flare's delayed slam, honoring removal of the child skill's packet.
 test('committed Sun Spirit emits its surviving child on the first slam', () => {
   for (const removed of [false, true]) {
     for (const cancelled of [false, true]) {
@@ -92,11 +91,7 @@ test('committed Sun Spirit emits its surviving child on the first slam', () => {
         {},
         {
           extend: (native) => ({
-            catalog: removed
-              ? applyBalanceProfilePatch(native.catalog, {
-                  balanceProfiles: { [PROFILE.sunSpirit]: { removeEffects: [{ type: 'condition', name: 'Burning' }] } }
-                })
-              : native.catalog
+            catalog: removed ? withSkill(native.catalog, ID.SOLAR_FLARE, { effects: [] }) : native.catalog
           })
         }
       );

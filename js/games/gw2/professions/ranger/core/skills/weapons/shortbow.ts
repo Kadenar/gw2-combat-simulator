@@ -5,19 +5,14 @@ import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits
 import type { RangerRuntimeState, RangerSkill, RangerResolverContext } from '#gw2/professions/ranger/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
-import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+
+import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber
-} from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -217,14 +212,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
   }
 });
 
-/** The owning skill supplies charge limits, lifetime, and the triggered condition packet. */
-export const bloodThirstProfile = variant(PROFILE.bloodThirst, ID.CRIPPLING_SHOT, 'Blood Thirst', {
-  playerStacks: 3,
-  durationMultiplier: 12,
-  // The log grants a 12-second charge window; each triggered bleed lasts 15 seconds.
-  effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 15 }]
-});
-
 export function handleRangerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Crippling Shot replaces the remaining charges with a new finite grant.
   professionCoreState(context).bloodThirst = grantCharges(
@@ -238,32 +225,21 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
   const state = professionCoreState(context);
   expireCharges(state.bloodThirst, event.at);
   if (event.sourceId === ID.CRIPPLING_SHOT) return;
-  const specialization = context.profession.specialization;
-  const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
+  const merged = rangerMerged(context.profession);
   if (!(Number(event.coefficient) > 0) || !(merged ? isPlayerStrike(event) : isPetStrike(event))) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.bloodThirst);
-  const bleeding = requireEffect(profile, 'condition', 'Bleeding');
-  // Charges exist only to deliver bleeding, so a removed packet leaves them unspent.
-  if (bleeding && consumeCharge(state.bloodThirst, event.at)) {
-    context.effects.emit({
-      kind: 'packet',
-      // Player ownership implements the June 2024 change, even when a pet delivers the strike.
-      event: buildResolverCondition({
-        at: event.at,
-        source: 'ranger',
-        sourceId: ID.CRIPPLING_SHOT,
-        skillId: ID.CRIPPLING_SHOT,
-        skillName: 'Blood Thirst',
-        name: 'Blood Thirst — Bleeding',
-        actorType: 'effect',
-        ownerActorType: 'player',
-        condition: 'Bleeding',
-        duration: effectNumber(profile, bleeding, 'duration'),
-        stacks: effectNumber(profile, bleeding, 'stacks'),
-        triggeredBy: event.skillName
-      })
-    });
-  }
+  deliverChargedHit(context, event, PROFILE.bloodThirst, () => consumeCharge(state.bloodThirst, event.at), {
+    // Player ownership implements the June 2024 change, even when a pet delivers the strike.
+    attribution: {
+      source: 'ranger',
+      sourceId: ID.CRIPPLING_SHOT,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: ID.CRIPPLING_SHOT,
+      skillName: 'Blood Thirst',
+      triggeredBy: event.skillName
+    },
+    name: 'Blood Thirst — Bleeding'
+  });
 }
 
 /** Queue grants at the declared activation boundary so same-time hits retain their established order. */

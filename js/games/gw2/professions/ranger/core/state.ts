@@ -1,21 +1,34 @@
-import { createPublicStateProjector, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import {
+  createPublicStateProjector,
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { createRangerPetState, type RangerPetState } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
+import {
+  createRangerActorProcState,
+  type RangerActorProcState
+} from '#gw2/professions/ranger/core/mechanics/actor-state.js';
+import {
+  createRangerPetState,
+  rangerPetInstanceId,
+  type RangerPetState
+} from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import { selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
+import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 
 export interface RangerCoreState {
   activePet: string;
   activePetSlot: 1 | 2;
   petNames: [string, string];
   activePetSkillIds: SkillId[];
+  /** The player's own readiness, mirrored by each pet lifetime's fields of the same shape. */
+  player: RangerActorProcState;
   pet: RangerPetState | null;
   nextPetInstance: number;
   endurance: ResourceClock;
@@ -26,23 +39,16 @@ export interface RangerCoreState {
   winterBiteReady: boolean;
 
   quickDraw: ChargeGrant;
-  activationClaims: ActivationClaims;
   pendingFrostTrapEvents: SimulationEventBase[];
   bloodThirst: ChargeGrant;
-
-  playerOpeningStrikeReady: boolean;
-  playerPoisonMasterReady: boolean;
-  playerPoisonousStrikes: ChargeGrant;
   sharpeningStoneGrants: ChargeGrant[];
 }
 
-export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
-  const selected = slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig';
-  return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
-}
-
-export function rangerPetByName(name: string) {
-  return RANGER_PETS.find((pet) => pet.name === name) || RANGER_PETS[0];
+/** Soulbeast's Beastmode replaces the pet with the merged player; every other state keeps a separate pet. */
+export function rangerMerged(profession: unknown): boolean {
+  return Boolean(
+    readProfessionSpecializationState<{ beastmodeActive?: boolean }>(profession, 'Soulbeast')?.beastmodeActive
+  );
 }
 
 // Initialize player resources and a separately owned first pet lifetime from the build selections.
@@ -50,11 +56,12 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
   const pet = selectedRangerPet(config);
   const pet2 = selectedRangerPet(config, 2);
   return {
-    activePet: pet?.name || '',
+    activePet: pet.name,
     activePetSlot: 1,
-    petNames: [pet?.name || '', pet2?.name || ''],
-    activePetSkillIds: [...(pet?.skillIds || [])],
-    pet: createRangerPetState('ranger-pet:1:0'),
+    petNames: [pet.name, pet2.name],
+    activePetSkillIds: [...pet.skillIds],
+    player: createRangerActorProcState(),
+    pet: createRangerPetState(rangerPetInstanceId(1, 0)),
     nextPetInstance: 1,
     endurance: createResourceClock(100),
     availableFlips: {},
@@ -64,19 +71,14 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     winterBiteReady: false,
 
     quickDraw: grantCharges(0, 0),
-    activationClaims: {},
     pendingFrostTrapEvents: [],
     bloodThirst: grantCharges(0, 0),
-
-    playerOpeningStrikeReady: true,
-    playerPoisonMasterReady: false,
-    playerPoisonousStrikes: grantCharges(0, 0),
     sharpeningStoneGrants: []
   };
 }
 
 // Publish pet identity and visible state; pet scheduling remains private to the live execution owner.
-const RANGER_PLAYER_PUBLIC_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
+const RANGER_PLAYER_PUBLIC_STATE_KEYS = Object.freeze([
   'activePet',
   'activePetSlot',
   'petNames',
@@ -92,12 +94,14 @@ const RANGER_PLAYER_PUBLIC_STATE_KEYS: readonly (keyof RangerState)[] = Object.f
   'quickDraw',
 
   'sharpeningStoneGrants'
-]);
+] as const satisfies readonly (keyof RangerCoreState)[]);
 
-export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
-  ...RANGER_PLAYER_PUBLIC_STATE_KEYS,
-  'pet'
-]);
+export const RANGER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([...RANGER_PLAYER_PUBLIC_STATE_KEYS, 'pet'] as const);
+
+/** Public consumers see only projected fields; adding runtime state never expands the presentation contract. */
+export type RangerCorePublicState = Pick<RangerCoreState, (typeof RANGER_PLAYER_PUBLIC_STATE_KEYS)[number]> & {
+  pet: Pick<RangerPetState, 'id' | 'ferociousSymbiosis' | 'wutheringWindReady'> | null;
+};
 
 /** Publish pet identity and visible rewards without copying scheduler internals or live effect stores. */
 const projectPlayerState = createPublicStateProjector({

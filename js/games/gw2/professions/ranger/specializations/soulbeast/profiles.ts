@@ -27,7 +27,7 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.ONE_WOLF_PACK,
     name: 'One Wolf Pack - Echo',
     profileKind: 'skill-variant',
-    durationMultiplier: 6,
+    duration: 6,
     internalCooldown: 1,
     initialDelay: 0.28,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 0.95, hits: 1 }]
@@ -37,7 +37,7 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.VULTURE_STANCE,
     name: 'Vulture Stance - Triggered Effects',
     profileKind: 'skill-variant',
-    durationMultiplier: 6,
+    duration: 6,
     internalCooldown: 0.25,
     effects: [
       { name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 4, stacks: 1 },

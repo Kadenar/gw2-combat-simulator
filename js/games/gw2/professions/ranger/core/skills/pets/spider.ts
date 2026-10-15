@@ -1,3 +1,11 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
+import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { deliverChargedHit } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Spider family.
@@ -133,3 +141,28 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     petSkill: true
   }
 });
+
+/** Only the active caster can arm its follow-up; retired pets cannot grant it to their replacement. */
+export function armParalyzingVenom(runtime: RangerRuntime, event: Gw2ResolverEvent): void {
+  if (event.kind !== 'paralyzing-venom' || event.sourceId !== ID.PARALYZING_VENOM) return;
+  const pet = rangerOwningPetState(runtime.profession.core.pet, event.summonOwner);
+  // The venom arms one strike until its buff expires.
+  if (pet) pet.paralyzingVenom = grantCharges(1, runtime.time + Number(event.duration));
+}
+
+/** The first accepted strike by the armed companion consumes its venom, retaining pet condition ownership. */
+export function consumeParalyzingVenom(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const { pet } = context.profession.core;
+  if (!pet || !isActivePetStrike(context, event)) return;
+  deliverChargedHit(context, event, PROFILE.paralyzingVenom, () => consumeCharge(pet.paralyzingVenom, event.at), {
+    attribution: {
+      source: 'ranger-pet',
+      sourceId: ID.PARALYZING_VENOM,
+      actorType: 'summon',
+      skillId: ID.PARALYZING_VENOM,
+      skillName: 'Paralyzing Venom',
+      activationId: event.activationId
+    },
+    fields: rangerPetCombatMetadata(context)
+  });
+}

@@ -7,26 +7,21 @@ import {
   grantCharges
 } from '#gw2/platform/combat/resources/charges.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
+
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket, emitRangerProfile } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type {
   RangerResolverContext,
@@ -542,28 +537,21 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
   }
 }
 
-/** Attribute Solar Flare's separately patchable burning to the initial or repeated slam time. */
+/** Solar Flare is the summon's child skill; each initial or repeated slam delivers its authored Burning. */
 export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: number): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunSpirit);
-  const burning = requireEffect(profile, 'condition', 'Burning');
-  if (burning) {
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildRangerPacket(
-        {
-          at,
-          skillId: ID.SOLAR_FLARE,
-          skillName: 'Solar Flare',
-          name: 'Solar Flare - Burning',
-          condition: String(burning.condition),
-          stacks: effectNumber(profile, burning, 'stacks'),
-          duration: effectNumber(profile, burning, 'duration'),
-          triggeredBy: skill.name
-        },
-        'condition'
-      )
-    });
-  }
+  const solarFlare = runtime.helpers.skillsById.get(ID.SOLAR_FLARE);
+  if (!solarFlare) throw new Error('Sun Spirit requires the Solar Flare skill.');
+  emitRangerProfile(runtime, at, solarFlare, {
+    attribution: {
+      source: 'ranger',
+      sourceId: solarFlare.id,
+      actorType: 'player',
+      skillId: solarFlare.id,
+      skillName: solarFlare.name,
+      triggeredBy: skill.name
+    },
+    name: `${solarFlare.name} - Burning`
+  });
 }
 
 /** Invoke the selected child skill once per slam; the trait repeat halves only its strike damage. */
@@ -600,8 +588,7 @@ export function emitStormSpiritSlam(
 
 /** Select the live recipient at activation; Core always registers this action, including unmerged builds. */
 export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
-  const specialization = runtime.profession.specialization;
-  const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
+  const merged = rangerMerged(runtime.profession);
   for (const kind of [...(runtime.profession.core.pet ? ['sic-em-pet'] : []), ...(merged ? ['sic-em'] : [])])
     runtime.effects.emit({
       kind: 'packet',
@@ -623,7 +610,7 @@ export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
               : { recipients: 'self' },
           priority: -20,
           stacks: 1,
-          duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.sicEm), 'durationMultiplier')
+          duration: balanceNumberFromContext(runtime, PROFILE.sicEm, 'duration')
         },
         'buff'
       )
@@ -662,18 +649,6 @@ export function releaseFrostTrap(runtime: RangerRuntime): void {
     });
 }
 
-/** The owning skill supplies charge limits, lifetime, and the triggered condition packet. */
-export const sharpeningStoneProfile = variant(
-  PROFILE.sharpeningStone,
-  ID.SHARPENING_STONE,
-  'Sharpening Stone - Triggered Bleeding',
-  {
-    playerStacks: 10,
-    durationMultiplier: 30,
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8 }]
-  }
-);
-
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Recasts add charges without renewing the lifetime of the remaining stones.
@@ -687,30 +662,27 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
 
 export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  const eligible = isPlayerStrike(event) && Number(event.coefficient) > 0;
-  const profile = eligible ? requireBalanceProfileFromContext(context, PROFILE.sharpeningStone) : undefined;
-  const bleeding = profile && requireEffect(profile, 'condition', 'Bleeding');
-  // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits. Grants exist only to
-  // deliver bleeding, so a removed packet only prunes them.
+  // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits.
   state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
-  if (!profile || !bleeding || !consumeChargeBatch(state.sharpeningStoneGrants, event.at)) return;
-  context.effects.emit({
-    kind: 'packet',
-    event: buildResolverCondition({
-      at: event.at,
-      source: 'ranger',
-      sourceId: ID.SHARPENING_STONE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: ID.SHARPENING_STONE,
-      skillName: 'Sharpening Stone',
-      name: 'Sharpening Stone - Bleeding',
-      condition: String(bleeding.condition),
-      duration: effectNumber(profile, bleeding, 'duration'),
-      stacks: effectNumber(profile, bleeding, 'stacks'),
-      triggeredBy: event.skillName
-    })
-  });
+  if (!isPlayerStrike(event) || !(Number(event.coefficient) > 0)) return;
+  deliverChargedHit(
+    context,
+    event,
+    PROFILE.sharpeningStone,
+    () => consumeChargeBatch(state.sharpeningStoneGrants, event.at),
+    {
+      attribution: {
+        source: 'ranger',
+        sourceId: ID.SHARPENING_STONE,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: ID.SHARPENING_STONE,
+        skillName: 'Sharpening Stone',
+        triggeredBy: event.skillName
+      },
+      name: 'Sharpening Stone - Bleeding'
+    }
+  );
 }
 
 /** Queue grants at the declared activation boundary so same-time hits retain their established order. */
@@ -746,3 +718,69 @@ export const sicEmPetModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) => rangerPetEvent(context) && activeBuff(context, 'sic-em-pet')
   }
 ]);
+
+// Player strikes grant Might to the current pet, or to the player while merged in Beastmode.
+export function triggerStrengthOfThePack(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  if (!isPlayerStrike(event)) return;
+  const pet = context.profession.core.pet;
+  const merged = rangerMerged(context.profession);
+  // Beastmode receives the pet's on-hit Might itself; an absent, unmerged pet has no recipient.
+  if (!merged && !pet) return;
+  // Only the Ranger's own live Strength of the Pack window arms the proc.
+  if (context.combat.activeBuffStacks('strength-of-the-pack', event.at, 1) === 0) return;
+  emitRangerProfile(context, event.at, requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack), {
+    attribution: {
+      source: 'ranger',
+      sourceId: ID.STRENGTH_OF_THE_PACK,
+      actorType: 'effect',
+      skillId: ID.STRENGTH_OF_THE_PACK,
+      skillName: '"Strength of the Pack!"',
+      triggeredBy: event.skillName
+    },
+    name: '"Strength of the Pack!" - Might',
+    fields: {
+      audience: merged
+        ? { recipients: 'self' }
+        : {
+            recipients: 'summons',
+            affectsSelf: false,
+            maximumRecipients: 5,
+            eligibleCompanionIds: [pet!.id]
+          }
+    },
+    durationContext: event
+  });
+}
+
+/** Spirits deliver their slam payloads after the committed summon's shared delay. */
+export const spiritLifecycle = {
+  sideEffectHandlers: {
+    'ranger.sun-spirit'(runtime, context) {
+      // Solar Flare lands with the first shake, after the same summon delay as every other spirit.
+      emitSunSpiritBurning(runtime, context.skill, runtime.time + RANGER_SPIRIT_SLAM_DELAY_MS / 1000);
+    },
+    'ranger.storm-spirit'(runtime, context) {
+      // Spirit damage is an independent child, so later pet swaps cannot cancel its slam.
+      if (context.kind === 'cast')
+        emitStormSpiritSlam(runtime, context.cast, runtime.time + RANGER_SPIRIT_SLAM_DELAY_MS / 1000);
+    }
+  }
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
+
+/** Command recipients are selected at activation, before subsequent impacts. */
+export const sicEmLifecycle = {
+  sideEffectHandlers: {
+    'ranger.sic-em'(runtime, context) {
+      activateSicEm(runtime, context.skill);
+    }
+  }
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
+
+/** The heal copies both actors' boons at its committed impact. */
+export const weHealAsOneLifecycle = {
+  sideEffectHandlers: {
+    'ranger.copy-healing-boons'(runtime, context) {
+      if (context.kind === 'cast') copyHealingBoons(runtime, context.cast);
+    }
+  }
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;

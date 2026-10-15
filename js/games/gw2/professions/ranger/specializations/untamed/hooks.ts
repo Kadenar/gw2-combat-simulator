@@ -1,4 +1,4 @@
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerPetCommandBar } from '#gw2/professions/ranger/data/pet-commands.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -15,8 +15,6 @@ import {
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-
-const UNLEASHED_PET_COMMANDS = new Set<RangerSkill['id']>([ID.VENOMOUS_OUTBURST, ID.RENDING_VINES, ID.ENVELOPING_HAZE]);
 
 /** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
 function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
@@ -40,22 +38,18 @@ export const untamedHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   availability: untamedCastAvailability,
   // Each Unleashed F1/F2/F3 command preempts the active pet's autonomous swing.
   onCastStart(runtime, cast) {
-    if (UNLEASHED_PET_COMMANDS.has(cast.skill.id)) restartRangerPetAutoattack(runtime);
+    if (cast.skill.unleashedPetSkill) restartRangerPetAutoattack(runtime);
   },
   // Delayed strikes belong to the pet accepting the command, even if a swap precedes impact.
   modifyEffects(runtime, cast, effects) {
-    if (!UNLEASHED_PET_COMMANDS.has(cast.skill.id)) return effects;
+    if (!cast.skill.unleashedPetSkill) return effects;
     emitRangerPetSkill(runtime, { ...cast.skill, effects }, cast.start, cast.fullEnd, cast.id, cast);
     return [];
   },
   /** Natural pet commands occupy F1/F2/F3 on the currently selected pet, with the beast skill in F2. */
   resolveInputControl(context, skill) {
     if (!skill.petSkill) return undefined;
-    const ids = context.profession.core.activePetSkillIds.filter((id) =>
-      rangerPetSkillCommandable(context.helpers.skillsById.get(id), 'Untamed')
-    );
-    const beastIndex = ids.findIndex((id) => !context.helpers.skillsById.get(id)?.petAutonomousSkill);
-    if (beastIndex > 1) ids.splice(1, 0, ...ids.splice(beastIndex, 1));
+    const ids = rangerPetCommandBar(context.profession.core.activePetSkillIds, context.helpers.skillsById, 'Untamed');
     const index = ids.indexOf(skill.id);
     return index >= 0 && index < 3
       ? { control: `profession-${index + 1}` as InputControlId }

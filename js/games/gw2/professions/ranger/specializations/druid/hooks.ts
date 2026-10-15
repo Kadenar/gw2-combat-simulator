@@ -3,11 +3,16 @@ import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { druidBuffPolicies } from '#gw2/professions/ranger/specializations/druid/effect-state.js';
+import { isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import {
@@ -22,10 +27,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
   const state = druidState.from(runtime);
   if (state.celestialAvatarActive === active) return;
   state.celestialAvatarActive = active;
-  const duration = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, PROFILE.resources),
-    'durationMultiplier'
-  );
+  const duration = balanceNumberFromContext(runtime, PROFILE.resources, 'duration');
   state.celestialAvatarEndsAt = active ? canonicalTime(runtime.time + duration) : 0;
   runtime.resourceController.refresh('astralForce');
   if (active) {
@@ -39,10 +41,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
     consumeSkillFlip(runtime.profession.core.availableFlips, ID.RELEASE_CELESTIAL_AVATAR);
     const retained = exhausted
       ? 0
-      : balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, PROFILE.resources),
-          'astralForceRetentionMultiplier'
-        );
+      : balanceNumberFromContext(runtime, PROFILE.resources, 'astralForceRetentionMultiplier');
     runtime.resourceController.spend('astralForce', state.astralClock.value * (1 - retained));
   }
 
@@ -66,12 +65,11 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     astralForce: {
       kind: 'continuous',
       state: (runtime) => druidState.from(runtime).astralClock,
-      maximum: (runtime) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
+      maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
       initial: (runtime, maximum) => (runtime as RangerRuntime).config.initialAstralForce ?? maximum,
       recovery(runtime) {
         const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-        const duration = balanceProfileNumber(profile, 'durationMultiplier');
+        const duration = balanceProfileNumber(profile, 'duration');
         return druidState.from(runtime).celestialAvatarActive && duration > 0
           ? -balanceProfileNumber(profile, 'maximumStacks') / duration
           : 0;
@@ -159,7 +157,7 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
         druidState.from(runtime).celestialAvatarActive ||
         event.actorType === 'summon' ||
         event.ownerActorType === 'summon' ||
-        event.source === 'ranger-pet' ||
+        isPetStrike(event) ||
         event.independentSummonStrike
       )
         return;

@@ -14,6 +14,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -22,7 +23,8 @@ import {
 import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/core/events.js';
 import { isBeastSkill } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   cycloneBowCompleted,
@@ -48,15 +50,11 @@ function windForce(context: RangerModifierContext): number {
 function galeForceAmount(context: RangerModifierContext): number {
   const galeForce =
     (galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time
-      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GALE_FORCE), 'damageIncrease')
+      ? balanceNumberFromContext(context, TRAIT.GALE_FORCE, 'damageIncrease')
       : 0;
   // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
   // but Wind Force earned while Gale Force is active still adds 3% per stack on top.
-  return (
-    galeForce +
-    windForce(context) *
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GALE_FORCE), 'damageIncreasePerStack')
-  );
+  return galeForce + windForce(context) * balanceNumberFromContext(context, TRAIT.GALE_FORCE, 'damageIncreasePerStack');
 }
 
 function activePetIsFeathered(context: RangerModifierContext): boolean {
@@ -146,10 +144,8 @@ const flockTogether = defineTrait({
       id: 'ranger.flock-together',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLOCK_TOGETHER), 'damageMultiplier'),
-      when: (context) =>
-        context.event?.actorType === 'summon' && context.event.source === 'ranger-pet' && activePetIsFeathered(context)
+      factor: (context) => balanceNumberFromContext(context, TRAIT.FLOCK_TOGETHER, 'damageMultiplier'),
+      when: (context) => isPetActorEvent(context.event) && activePetIsFeathered(context)
     }
   ]
 });
@@ -217,8 +213,7 @@ const birdOfPrey = defineTrait({
       id: 'ranger.bird-of-prey',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BIRD_OF_PREY), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.BIRD_OF_PREY, 'damageIncrease'),
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
@@ -286,7 +281,7 @@ function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
 
 /** Pet strikes claim Wuthering Wind once per accepted activation. */
 function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'summon' || event.source !== 'ranger-pet' || !(Number(event.coefficient) > 0)) return;
+  if (!isPetActorEvent(event) || !(Number(event.coefficient) > 0)) return;
   const at = event.at;
 
   const pet = context.profession.core.pet;

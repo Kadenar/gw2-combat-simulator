@@ -1,12 +1,62 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+// Catalog edits must change both autonomous and commanded recharge, including the selected trait multiplier.
+test('natural pet recharge uses the active skill catalog on both execution paths', () => {
+  for (const specialization of ['Core', 'Untamed']) {
+    for (const packAlpha of [false, true]) {
+      const result = runRanger(
+        [
+          { type: 'combat-start' },
+          ...(specialization === 'Untamed' ? [ID.CANINE_CRIPPLING_LEAP] : []),
+          { type: 'wait', durationMs: 6000 }
+        ],
+        {
+          selectedPet: 'Wolf',
+          specialization,
+          initialUntamedState: 'Ranger',
+          selectedTraitIds: packAlpha ? [TRAIT.PACK_ALPHA] : []
+        },
+        { extend: (native) => ({ catalog: withSkill(native.catalog, ID.CANINE_CRIPPLING_LEAP, { cooldown: 40 }) }) }
+      );
+      assert.deepEqual(result.warnings, []);
+      const runtime = observedRuntime(result);
+      const recharge = runtime.cooldownController.rechargeFor(ID.CANINE_CRIPPLING_LEAP);
+      assert.ok(recharge);
+      assert.equal(recharge.work, packAlpha ? 32 : 40);
+      assert.equal(recharge.companionId, runtime.profession.core.pet.id);
+      assert.ok(runtime.cooldownController.readyAt(ID.CANINE_CRIPPLING_LEAP) > runtime.time);
+    }
+  }
+});
+
+// Measured Iboga exceptions retain their own patchable recharge instead of becoming scheduler constants.
+test('Iboga autonomous recharge reads its owner profiles', () => {
+  for (const [skillId, profileId] of [
+    [ID.NARCOTIC_SPORES_PET, PROFILE.narcoticSporesAutonomous],
+    [ID.CRIPPLING_ANGUISH_PET, PROFILE.cripplingAnguishAutonomous]
+  ]) {
+    const result = runRanger(
+      [{ type: 'combat-start' }, { type: 'wait', durationMs: 6000 }],
+      { selectedPet: 'Fanged Iboga', selectedTraitIds: [TRAIT.PACK_ALPHA] },
+      { extend: (native) => ({ catalog: withProfile(native.catalog, profileId, { cooldown: 50 }) }) }
+    );
+    assert.deepEqual(result.warnings, []);
+    const recharge = observedRuntime(result).cooldownController.rechargeFor(skillId);
+    assert.ok(recharge);
+    assert.equal(recharge.work, 40);
+  }
+});
 
 // A request waiting for the pet lane spends no recharge; an executed command retains its global recharge after retirement.
 for (const retireBy of ['swap', 'merge']) {

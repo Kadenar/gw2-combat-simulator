@@ -21,7 +21,7 @@ export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: UNTAMED_BALANCE_PROFILE_IDS.resources,
     name: 'Unleash and Ambush Windows',
     profileKind: 'mechanic',
-    durationMultiplier: 4,
+    duration: 4,
     internalCooldown: 9,
     recharge: 1,
     effects: []

@@ -14,6 +14,7 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -110,10 +111,7 @@ export const fortifyingBond = defineTrait({
         // Emit only the trait's pet grant: the configured player boon already exists in the permanent-boon layer.
         for (const [kind, value] of Object.entries(runtime.config.boons ?? {}))
           if (isStandardBoon(kind) && Number(value) > 0) shareFortifyingBond(runtime, kind, Number(value));
-        const interval = balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, TRAIT.FORTIFYING_BOND),
-          'pulseInterval'
-        );
+        const interval = balanceNumberFromContext(runtime, TRAIT.FORTIFYING_BOND, 'pulseInterval');
         if (interval > 0) runtime.schedule('ranger.fortifying-bond-console', runtime.time + interval, null);
       }
     }
@@ -123,7 +121,7 @@ export const fortifyingBond = defineTrait({
 /** Every spirit repeats its slam one second after the final authored shake, including patched pulse timings. */
 function spiritRepeatSlamAt(runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>): number {
   return (
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.NATURES_VENGEANCE), 'baseDuration') +
+    balanceNumberFromContext(runtime, TRAIT.NATURES_VENGEANCE, 'baseDuration') +
     Math.max(
       cast.fullEnd,
       ...(cast.skill.effects ?? [])
@@ -206,10 +204,7 @@ export const naturesVengeance = defineTrait({
 
 /** Wellspring uses a pet's captured Power plus its own Might; unsnapshotted queries read accumulated Power. */
 function wellspringPetAttributes(context: Gw2AttributeContext): Gw2AttributeContributions {
-  const multiplier = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, TRAIT.WELLSPRING),
-    'attributeConversion'
-  );
+  const multiplier = balanceNumberFromContext(context, TRAIT.WELLSPRING, 'attributeConversion');
   const base = Number(context.event?.summonBasePower);
   if (!Number.isFinite(base) || base <= 0)
     return { transforms: [{ kind: 'convert-current', from: 'power', to: 'healingPower', multiplier }] };
@@ -360,12 +355,12 @@ export const bountifulHunter = defineTrait({
       // Count unique boons only up to the selected balance cap.
 
       factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damageMultiplier') +
+        balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damageMultiplier') +
         Math.min(
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'maximumBoons'),
+          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'maximumBoons'),
           rangerActiveBoonCount(context, 'player')
         ) *
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damagePerBoon'),
+          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
@@ -376,12 +371,12 @@ export const bountifulHunter = defineTrait({
       // Count unique boons only up to the selected balance cap.
 
       factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damageMultiplier') +
+        balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damageMultiplier') +
         Math.min(
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'maximumBoons'),
+          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'maximumBoons'),
           rangerActiveBoonCount(context, 'pet')
         ) *
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_HUNTER), 'damagePerBoon'),
+          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon'),
       when: (context) => rangerPetEvent(context)
     }
   ]

@@ -1,6 +1,10 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -10,17 +14,10 @@ export function leaderOfThePackStance(
   baseDuration: number
 ): { duration: number; sharedDuration?: number } {
   if (!hasTrait(context, TRAIT.LEADER_OF_THE_PACK)) return { duration: baseDuration };
-  const duration =
-    baseDuration *
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEADER_OF_THE_PACK), 'durationMultiplier');
+  const duration = baseDuration * balanceNumberFromContext(context, TRAIT.LEADER_OF_THE_PACK, 'durationMultiplier');
   return {
     duration,
-    sharedDuration:
-      duration *
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.LEADER_OF_THE_PACK),
-        'sharedDurationMultiplier'
-      )
+    sharedDuration: duration * balanceNumberFromContext(context, TRAIT.LEADER_OF_THE_PACK, 'sharedDurationMultiplier')
   };
 }
 
@@ -48,7 +45,7 @@ export function essenceOfSpeedExtension(
     actorType: 'effect',
     skillId: TRAIT.ESSENCE_OF_SPEED,
     skillName: 'Essence of Speed',
-    duration: balanceProfileNumber(profile, 'durationMultiplier'),
+    duration: balanceProfileNumber(profile, 'duration'),
     excludedKind: 'quickness'
   };
 }

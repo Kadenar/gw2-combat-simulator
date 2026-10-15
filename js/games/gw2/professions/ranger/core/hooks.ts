@@ -1,6 +1,4 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -17,15 +15,10 @@ import {
   petSwapped,
   weaponSwapped
 } from '#gw2/professions/ranger/core/mechanics/combat.js';
-import {
-  grantMaulAttackOfOpportunity,
-  reactToRangerGreatswordDamage
-} from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { isRangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import {
   beginRangerPetCommand,
-  consumeParalyzingVenom,
-  consumePetSharpenSpines,
   prepareRangerPetEvent,
   rangerBoonDuration,
   rangerPetCastDurationMs,
@@ -34,74 +27,34 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
-import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
+import { petSwapLifecycle } from '#gw2/professions/ranger/core/skills/actions.js';
+import { armPetSharpenSpines, consumePetSharpenSpines } from '#gw2/professions/ranger/core/skills/pets/bristleback.js';
+import { armParalyzingVenom, consumeParalyzingVenom } from '#gw2/professions/ranger/core/skills/pets/spider.js';
 import {
-  activateSicEm,
-  copyHealingBoons,
-  emitStormSpiritSlam,
-  emitSunSpiritBurning,
   prepareFrostTrapEvent,
-  RANGER_SPIRIT_SLAM_DELAY_MS,
   releaseFrostTrap,
-  sharpeningStoneLifecycle
+  sharpeningStoneLifecycle,
+  sicEmLifecycle,
+  spiritLifecycle,
+  weHealAsOneLifecycle
 } from '#gw2/professions/ranger/core/skills/slot-skills.js';
-import { synchronizePathOfScarsRecharge } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
-import { poisonousStrikesLifecycle } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
-import { synchronizeHammerRecharge } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
-import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import { axeLifecycle } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
 import {
-  armHuntersProwess,
-  consumeSpearOpportunity,
-  synchronizeSpearRecharge
-} from '#gw2/professions/ranger/core/skills/weapons/spear.js';
+  poisonousStrikesLifecycle,
+  stalkersStrikeLifecycle
+} from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import {
+  maulLifecycle,
+  reactToRangerGreatswordDamage
+} from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
+import { hammerLifecycle } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
+import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import { spearLifecycle } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
-
-/** Commit and cancellation both synchronize the recharge already started by the runtime. */
-function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
-  synchronizeHammerRecharge(runtime, cast);
-  synchronizeSpearRecharge(runtime, cast);
-  synchronizePathOfScarsRecharge(runtime, cast);
-}
+import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   buffPolicies: rangerBuffPolicies,
-  sideEffectHandlers: {
-    'ranger.winter-bite'(runtime) {
-      runtime.profession.core.winterBiteReady = true;
-    },
-    'ranger.sun-spirit'(runtime, context) {
-      // Solar Flare lands with the first shake, after the same summon delay as every other spirit.
-      emitSunSpiritBurning(runtime, context.skill, runtime.time + RANGER_SPIRIT_SLAM_DELAY_MS / 1000);
-    },
-    'ranger.storm-spirit'(runtime, context) {
-      // Spirit damage is an independent child, so later pet swaps cannot cancel its slam.
-      if (context.kind === 'cast')
-        emitStormSpiritSlam(runtime, context.cast, runtime.time + RANGER_SPIRIT_SLAM_DELAY_MS / 1000);
-    },
-    'ranger.sic-em'(runtime, context) {
-      activateSicEm(runtime, context.skill);
-    },
-    'ranger.copy-healing-boons'(runtime, context) {
-      if (context.kind === 'cast') copyHealingBoons(runtime, context.cast);
-    },
-    'ranger.hunters-prowess': armHuntersProwess,
-    'ranger.spear-opportunity': consumeSpearOpportunity,
-    'ranger.swap-pets'(runtime, context) {
-      swapRangerPets(runtime, context.skill);
-    },
-    'ranger.stalkers-poison'(runtime, context) {
-      if (context.kind === 'effect') triggerStalkersStrike(runtime, context.trigger.event);
-    },
-    // Queue the merged grant before observers consume the old charge; application still follows consumption.
-    'ranger.maul-player'(runtime, context) {
-      if (context.kind === 'effect') grantMaulAttackOfOpportunity(runtime, context.trigger.event, 'player');
-    },
-    'ranger.maul-pet'(runtime, context) {
-      if (context.kind === 'effect') grantMaulAttackOfOpportunity(runtime, context.trigger.event, 'pet');
-    }
-  },
   boonDuration: rangerBoonDuration,
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
@@ -110,11 +63,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   rechargeCompanionId: (runtime, skill) => (skill.petSkill ? rangerPetCompanionId(runtime) : undefined),
   // Pet packets and delayed field creation end with their caster; existing fields and ranger-stat packets survive.
   effectOwner(_context, event) {
-    if (
-      event.actorType === 'summon' &&
-      typeof event.summonOwner === 'string' &&
-      event.summonOwner.startsWith('ranger-pet:')
-    )
+    if (event.actorType === 'summon' && isRangerPetInstanceId(event.summonOwner))
       return { id: event.summonOwner, generation: 0 };
     return undefined;
   },
@@ -155,10 +104,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     beginRangerPetCommand(runtime, cast);
     if (cast.skill.evades) runtime.fireTrigger(dodged, { at: runtime.time });
   },
-  // Cancelled variants still synchronize their shared weapon recharge.
-  onCastCancel: completeWeapon,
   onCastCommit(runtime, cast) {
-    completeWeapon(runtime, cast);
     const skill = cast.skill;
     if (skill.id === ID.PET_SWAP) runtime.fireTrigger(petSwapped, { skill, at: runtime.time });
 
@@ -198,31 +144,29 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     'buff.applied'(runtime, event) {
       runtime.fireTrigger(buffApplied, { event });
       const state = runtime.profession.core;
-      // Only the currently active pet can arm its next-hit venom; stale launched buffs cannot arm a replacement.
-      if (
-        event.kind === 'pet-sharpen-spines' &&
-        event.sourceId === ID.BRISTLEBACK_SHARPEN_SPINES &&
-        state.pet &&
-        state.activePet === 'Bristleback' &&
-        event.summonOwner === rangerPetCompanionId(runtime)
-      )
-        state.pet.sharpenSpines = grantCharges(Number(event.stacks), runtime.time + Number(event.duration));
-      if (
-        event.kind === 'paralyzing-venom' &&
-        event.sourceId === ID.PARALYZING_VENOM &&
-        state.pet &&
-        event.summonOwner === rangerPetCompanionId(runtime)
-      )
-        state.pet.paralyzingVenomUntil = runtime.time + Number(event.duration);
+      armPetSharpenSpines(runtime, event);
+      armParalyzingVenom(runtime, event);
       if (event.kind === 'stealth' && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
         runtime.schedule('ranger.stealth', runtime.time, event.duration || 0, undefined, 10);
     }
   }
 };
 
-/** Skill owners register their grants; the shared damage dispatcher preserves cross-skill and trait ordering. */
+/**
+ * Skill owners register their side effects and grants; the shared damage dispatcher above preserves cross-skill and
+ * trait ordering. Weapon recharge synchronization precedes Core's completion triggers on every commit and cancel.
+ */
 export const rangerCoreHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>([
+  hammerLifecycle,
+  spearLifecycle,
+  axeLifecycle,
   coreLifecycle,
+  petSwapLifecycle,
+  maulLifecycle,
+  stalkersStrikeLifecycle,
+  spiritLifecycle,
+  sicEmLifecycle,
+  weHealAsOneLifecycle,
   sharpeningStoneLifecycle,
   poisonousStrikesLifecycle,
   bloodThirstLifecycle

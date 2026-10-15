@@ -28,7 +28,6 @@ for (const name of Object.keys(RANGER_PET_SKILL_IDS)) {
       assert.ok(actions.some((event) => event.skillId === action.id));
       const skill = rangerProfession.catalog.skillsById.get(action.id);
       assert.equal(skill.petAutonomousSkill, true);
-      if (action.cooldown) assert.equal(action.cooldown, skill.cooldown);
     }
 
     assert.ok(actions.every((event) => natural.some((skill) => skill.id === event.skillId)));
@@ -66,7 +65,9 @@ test('new autonomous specials respect their unmodified cooldowns', () => {
       const uses = petActions(result).filter((event) => event.skillId === skill.id);
       assert.ok(uses.length > 1);
       for (let index = 1; index < uses.length; index++)
-        assert.ok(uses[index].at - uses[index - 1].at >= skill.cooldown - 1e-6);
+        assert.ok(
+          uses[index].at - uses[index - 1].at >= rangerProfession.catalog.skillsById.get(skill.id).cooldown - 1e-6
+        );
     }
   }
 });

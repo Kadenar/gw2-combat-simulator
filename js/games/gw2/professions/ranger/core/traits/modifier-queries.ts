@@ -2,12 +2,11 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
-import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
+import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
+import type { RangerModifierContext, RangerPetDefinition } from '#gw2/professions/ranger/types.js';
 
 /** Shares Ranger modifier queries across player and pet rule collections. */
 
@@ -26,15 +25,12 @@ function petRecipient(context: Gw2ModifierContext) {
 
 /** Core merged traits and Soulbeast attributes read the same live merge state. */
 export function beastmodeActive(context: RangerModifierContext): boolean {
-  return Boolean(
-    readProfessionSpecializationState<{ beastmodeActive?: boolean }>(context.runtime?.profession, 'Soulbeast')
-      ?.beastmodeActive
-  );
+  return rangerMerged(context.runtime?.profession);
 }
 
 export function rangerPetEvent(context: Gw2ModifierContext): boolean {
   // Pet modifiers require both canonical summon classification and Ranger-specific source ownership.
-  return gw2EventActorType(context.event) === GW2_EVENT_ACTOR_TYPES.SUMMON && context.event?.source === 'ranger-pet';
+  return gw2EventActorType(context.event) === GW2_EVENT_ACTOR_TYPES.SUMMON && isPetStrike(context.event);
 }
 
 /** Player preview totals never replace the pet's own boon count. */
@@ -53,9 +49,14 @@ export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {
   );
 }
 
-export function activePetFamily(context: RangerModifierContext): string {
+/** Live combat reads the active pet; detached previews fall back to the configured first pet. */
+export function activeRangerPet(context: RangerModifierContext): RangerPetDefinition {
   const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;
-  return rangerPetByName(activePet || context.config?.selectedPet || 'Pig').family;
+  return activePet ? rangerPetByName(activePet) : selectedRangerPet(context.config);
+}
+
+export function activePetFamily(context: RangerModifierContext): string {
+  return activeRangerPet(context).family;
 }
 
 /** Defiant targets qualify for flanking/behind bonuses because simulated golems never rotate. */

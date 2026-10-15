@@ -1,7 +1,6 @@
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
@@ -18,11 +17,10 @@ import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import {
   isPlayerStrike,
-  rangerBuffRequest,
-  rangerConditionRequest
+  rangerProfileEffectRequest
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { triggerMergedPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
@@ -48,38 +46,6 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2Resolver
     'ranger.beast-ability',
     event.activationId
   );
-}
-
-/** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
-function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const core = professionCoreState(context);
-  expireCharges(core.playerPoisonousStrikes, event.at, true);
-  if (!soulbeastState.from(context).beastmodeActive || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
-    return;
-  }
-
-  const profile = requireBalanceProfileFromContext(context, CORE_PROFILE.poisonousStrikes);
-  const poison = requireEffect(profile, 'condition', 'Poisoned');
-  // The charges exist only to deliver poison, so a removed packet leaves them unspent.
-  if (!poison || !consumeCharge(core.playerPoisonousStrikes, event.at, 0, true)) return;
-  context.effects.emit({
-    kind: 'packet',
-    event: buildResolverCondition({
-      at: event.at,
-      source: 'ranger',
-      sourceId: ID.DOUBLE_ARC,
-      actorType: 'effect',
-      // While merged, the Ranger owns this poison and receives player poison and duration bonuses.
-      ownerActorType: 'player',
-      skillId: ID.DOUBLE_ARC,
-      skillName: 'Poisonous Strikes',
-      name: 'Poisonous Strikes - Poisoned',
-      condition: String(poison.condition),
-      duration: effectNumber(profile, poison, 'duration'),
-      stacks: effectNumber(profile, poison, 'stacks'),
-      triggeredBy: event.skillName
-    })
-  });
 }
 
 /** Personal and allied echoes use the same delayed strike and source attributes. */
@@ -124,8 +90,8 @@ function queueVultureStanceEffects(
 ): void {
   // Only shared stance output changes source; personal procs retain their trait presentation.
   for (const request of [
-    poison && rangerConditionRequest(event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance'),
-    might && rangerBuffRequest(event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE)
+    poison && rangerProfileEffectRequest(event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance'),
+    might && rangerProfileEffectRequest(event, profile, might, ID.VULTURE_STANCE, 'Vulture Stance')
   ]) {
     if (request)
       context.effects.emit({
@@ -266,7 +232,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
   if (weakness)
-    context.effects.emit(rangerConditionRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));
+    context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));
 }
 
 export function soulbeastCastAvailability(

@@ -167,13 +167,13 @@ test('Soulbeast keeps player grants separate and discards pet grants across merg
           at: 0.1,
           run(runtime) {
             const core = runtime.profession.core;
-            core.playerPoisonMasterReady = true;
+            core.player.poisonMasterReady = true;
             setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.LEAVE_BEASTMODE), false);
             assert.equal(core.pet.poisonMasterReady, false);
             core.pet.poisonMasterReady = true;
             setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.BEASTMODE), true);
             assert.equal(core.pet, null);
-            assert.equal(core.playerPoisonMasterReady, true);
+            assert.equal(core.player.poisonMasterReady, true);
             setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.LEAVE_BEASTMODE), false);
             assert.equal(core.pet.poisonMasterReady, false);
           }

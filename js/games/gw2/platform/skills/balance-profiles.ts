@@ -133,6 +133,11 @@ export function balanceProfileNumber(profile: BalanceProfile, field: string): nu
   return requireBalanceNumber(value, ownerDataLabel(profile, `profile=${profile.id} field=${field}`));
 }
 
+/** Read one required numeric field from a required profile in the context's selected balance source. */
+export function balanceNumberFromContext(context: unknown, id: SkillId, field: string): number {
+  return balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
+}
+
 /** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */
 export function procChanceFromContext(
   context: { readonly config?: { readonly procRateOverrides?: Readonly<Record<string, number>> } },

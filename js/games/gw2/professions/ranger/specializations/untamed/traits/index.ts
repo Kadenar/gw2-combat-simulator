@@ -18,6 +18,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -134,8 +135,7 @@ const blindingOutburst = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // This skill-specific bonus multiplies the outgoing pool containing Symbiosis, Vow, and sigils.
       operation: 'multiply',
-      factor: (context) =>
-        1 + balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLINDING_OUTBURST), 'damageIncrease'),
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.BLINDING_OUTBURST, 'damageIncrease'),
       // Secondary spores retain their parent cast for attribution, but are not ambush strikes.
       when: (context) =>
         BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.sourceId ?? context.event?.skillId ?? context.skillId))
@@ -173,7 +173,7 @@ const ferociousSymbiosis = defineTrait({
   balance: {
     damageIncreasePerStack: 0.05,
     maximumStacks: 5,
-    durationMultiplier: 5,
+    duration: 5,
     internalCooldown: 0.5
   },
   modifierRules: [
@@ -195,17 +195,11 @@ const ferociousSymbiosis = defineTrait({
           'exclusive'
         );
         return (
-          Math.min(
-            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS), 'maximumStacks'),
-            stacks
-          ) *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS),
-            'damageIncreasePerStack'
-          )
+          Math.min(balanceNumberFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks'), stacks) *
+          balanceNumberFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS, 'damageIncreasePerStack')
         );
       },
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || context.event?.source === 'ranger-pet'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || isPetStrike(context.event)
     }
   ]
 });
@@ -324,12 +318,11 @@ const vowOfTheUntamed = defineTrait({
       id: 'ranger.vow-of-the-untamed',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VOW_OF_THE_UNTAMED), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.VOW_OF_THE_UNTAMED, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Pet strikes don't benefit from Vow even when Ranger is unleashed.
-        context.event?.source !== 'ranger-pet' &&
+        !isPetStrike(context.event) &&
         rangerUnleashed(context)
     }
   ]
@@ -358,7 +351,7 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
   const state = untamedState.from(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
-  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const duration = balanceProfileNumber(profile, 'duration');
   const pet = context.profession.core.pet;
   if (!pet) return;
   if (isPlayerStrike(event)) {

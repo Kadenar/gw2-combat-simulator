@@ -1,8 +1,8 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -12,14 +12,14 @@ import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/rang
 export function beastlyWardenPetDamageMultiplier(context: RangerRuntime | RangerResolverContext): number {
   const family = rangerPetByName(professionCoreState(context).activePet).family;
   return hasTrait(context, TRAIT.BEASTLY_WARDEN) && (family === 'ursine' || family === 'porcine')
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BEASTLY_WARDEN), 'damageMultiplier')
+    ? balanceNumberFromContext(context, TRAIT.BEASTLY_WARDEN, 'damageMultiplier')
     : 1;
 }
 
 /** Pet autonomous recharge uses Pack Alpha at scheduling, before action-rate scaling. */
 export function packAlphaPetRecharge(context: RangerRuntime): number {
   return hasTrait(context, TRAIT.PACK_ALPHA)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PACK_ALPHA), 'rechargeMultiplier')
+    ? balanceNumberFromContext(context, TRAIT.PACK_ALPHA, 'rechargeMultiplier')
     : 1;
 }
 
@@ -35,7 +35,7 @@ export function beastmasteryPetAttributes(
   return declarations.flatMap(([id, attributes, field]) => {
     if (!hasTrait(context, id)) return [];
 
-    const amount = balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
+    const amount = balanceNumberFromContext(context, id, field);
     return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
   });
 }

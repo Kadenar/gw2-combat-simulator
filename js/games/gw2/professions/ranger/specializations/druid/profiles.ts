@@ -10,7 +10,7 @@ export const DRUID_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
     name: 'Celestial Avatar and Astral Force',
     profileKind: 'mechanic',
     maximumStacks: 100,
-    durationMultiplier: 15,
+    duration: 15,
     astralForceRetentionMultiplier: 0.5,
     resourceGain: 0.75,
     coefficientMultiplier: 2,

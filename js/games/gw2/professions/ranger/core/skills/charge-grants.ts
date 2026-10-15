@@ -1,14 +1,24 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import {
+  buildRangerPacket,
+  emitRangerProfile,
+  type RangerProfileDelivery
+} from '#gw2/professions/ranger/core/events.js';
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Charges are granted only at their actual activation boundary and consumed by resolved-hit owners. */
+/**
+ * Charges are granted only at their actual activation boundary and consumed by resolved-hit owners. A grant that
+ * belongs to a pet names that lifetime at activation, so a same-time swap or merge cannot redirect it.
+ */
 export function grantSkillCharges(
   runtime: RangerRuntime,
   cast: RuntimeCast<RangerSkill>,
   type: string,
-  profileId: number | string
+  profileId: SkillId,
+  summonOwner?: string
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   runtime.effects.emit({
@@ -19,12 +29,27 @@ export function grantSkillCharges(
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         activationId: cast.id,
-        // Capture the beneficiary before same-time swaps or merge transitions can replace it.
-        ...(type === 'ranger.poisonous-strikes' ? { summonOwner: runtime.profession.core.pet?.id } : {}),
-        charges: balanceProfileNumber(profile, 'playerStacks'),
-        duration: balanceProfileNumber(profile, 'durationMultiplier')
+        ...(summonOwner ? { summonOwner } : {}),
+        charges: balanceProfileNumber(profile, 'charges'),
+        duration: balanceProfileNumber(profile, 'duration')
       },
       type
     )
   });
+}
+
+/**
+ * Spend one charge for an eligible hit, then deliver the profile's payload once at that hit. A patch that removes
+ * the payload leaves the charge unspent, because the grant exists only to deliver it.
+ */
+export function deliverChargedHit(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent,
+  profileId: SkillId,
+  spend: () => boolean,
+  delivery: RangerProfileDelivery
+): void {
+  const profile = requireBalanceProfileFromContext(context, profileId);
+  if (!profile.effects?.length || !spend()) return;
+  emitRangerProfile(context, event.at, profile, delivery);
 }

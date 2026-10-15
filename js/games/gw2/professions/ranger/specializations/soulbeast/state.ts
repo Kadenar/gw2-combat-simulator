@@ -3,7 +3,7 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
-import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
+import { selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 
 export interface SoulbeastState {
@@ -26,7 +26,7 @@ export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState 
   return {
     // Soulbeast starts merged — the rotation begins in Beastmode by default.
     beastmodeActive: true,
-    archetype: pet?.archetype || '',
+    archetype: pet.archetype,
     oneWolfPackUntil: 0,
 
     // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.

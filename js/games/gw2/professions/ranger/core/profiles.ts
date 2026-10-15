@@ -1,33 +1,12 @@
-import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profile-ids.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
+/** Keep core balance tuning together; skill and mechanic owners resolve these profiles from the active catalog. */
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  // The armed Bristleback spends one charge per landed strike using its own condition attributes.
-  variant(
-    RANGER_CORE_BALANCE_PROFILE_IDS.petSharpenSpines,
-    ID.BRISTLEBACK_SHARPEN_SPINES,
-    'Sharpen Spines - Bleeding',
-    {
-      effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 5 }]
-    }
-  ),
-  // The spider owns the next-hit condition and its PvE duration independently of the venom buff.
-  variant(RANGER_CORE_BALANCE_PROFILE_IDS.paralyzingVenom, ID.PARALYZING_VENOM, 'Paralyzing Venom - Immobilized', {
-    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }]
-  }),
-  // The observed quickness-specific pet recharge remains independently patchable.
-  variant(
-    RANGER_CORE_BALANCE_PROFILE_IDS.cripplingAnguishQuickness,
-    ID.CRIPPLING_ANGUISH_PET,
-    'Crippling Anguish - Quickness Recharge',
-    { cooldown: 12 }
-  ),
-  // Enduring Swing's completed-chain endurance reward is independent of its strike packet.
-  variant(ID.ENDURING_SWING, 'Enduring Swing', { resourceGain: 15, effects: [] }),
   {
-    id: RANGER_CORE_BALANCE_PROFILE_IDS.resources,
+    id: PROFILE.resources,
     name: 'Ranger Endurance',
     profileKind: 'mechanic',
     resourceCost: 50,
@@ -35,36 +14,53 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     vigorRegenerationMultiplier: 1.5,
     effects: []
   },
-  variant(RANGER_CORE_BALANCE_PROFILE_IDS.attackOfOpportunity, ID.MAUL_SOULBEAST, 'Attack of Opportunity', {
-    durationMultiplier: 10
+  variant(ID.ENDURING_SWING, 'Enduring Swing', { resourceGain: 15, effects: [] }),
+  variant(PROFILE.attackOfOpportunity, ID.MAUL_SOULBEAST, 'Attack of Opportunity', {
+    duration: 10
   }),
-
-  variant(RANGER_CORE_BALANCE_PROFILE_IDS.sunSpirit, ID.SUN_SPIRIT, 'Sun Spirit - Solar Flare', {
-    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 3, duration: 6 }]
+  variant(PROFILE.stalkersStrikeImpaired, ID.STALKERS_STRIKE, "Stalker's Strike - Movement-Impaired Target", {
+    damageMultiplier: 2,
+    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8 }]
   }),
-  // Movement-impaired targets double the strike and receive extra Poison on top of the skill's own packet.
-  variant(
-    RANGER_CORE_BALANCE_PROFILE_IDS.stalkersStrikeImpaired,
-    ID.STALKERS_STRIKE,
-    "Stalker's Strike - Movement-Impaired Target",
-    {
-      damageMultiplier: 2,
-      effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8 }]
-    }
-  ),
-  variant(RANGER_CORE_BALANCE_PROFILE_IDS.sicEm, ID.SIC_EM, '"Sic \'Em!"', {
-    durationMultiplier: 10
+  variant(PROFILE.sicEm, ID.SIC_EM, '"Sic \'Em!"', {
+    duration: 10
   }),
-
-  variant(RANGER_CORE_BALANCE_PROFILE_IDS.signetOfTheWild, ID.SIGNET_OF_THE_WILD, 'Signet of the Wild - Passive', {
+  variant(PROFILE.signetOfTheWild, ID.SIGNET_OF_THE_WILD, 'Signet of the Wild - Passive', {
     attributeBonus: 180
   }),
-  variant(
-    RANGER_CORE_BALANCE_PROFILE_IDS.strengthOfThePack,
-    ID.STRENGTH_OF_THE_PACK,
-    '"Strength of the Pack!" - Triggered Might',
-    {
-      effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 1 }]
-    }
-  )
+  variant(PROFILE.strengthOfThePack, ID.STRENGTH_OF_THE_PACK, '"Strength of the Pack!" - Triggered Might', {
+    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 1 }]
+  }),
+  variant(PROFILE.paralyzingVenom, ID.PARALYZING_VENOM, 'Paralyzing Venom - Immobilized', {
+    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }]
+  }),
+  variant(PROFILE.petSharpenSpines, ID.BRISTLEBACK_SHARPEN_SPINES, 'Sharpen Spines - Bleeding', {
+    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 5 }]
+  }),
+  variant(PROFILE.narcoticSporesAutonomous, ID.NARCOTIC_SPORES_PET, 'Narcotic Spores - Autonomous Recharge', {
+    cooldown: 16.5
+  }),
+  variant(PROFILE.cripplingAnguishAutonomous, ID.CRIPPLING_ANGUISH_PET, 'Crippling Anguish - Autonomous Recharge', {
+    cooldown: 14
+  }),
+  variant(PROFILE.cripplingAnguishQuickness, ID.CRIPPLING_ANGUISH_PET, 'Crippling Anguish - Quickness Recharge', {
+    cooldown: 12
+  }),
+  variant(PROFILE.sharpeningStone, ID.SHARPENING_STONE, 'Sharpening Stone - Triggered Bleeding', {
+    charges: 10,
+    duration: 30,
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8 }]
+  }),
+  variant(PROFILE.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {
+    charges: 2,
+    // Unused charges last ten seconds; the poison they deliver retains its separate six-second base duration.
+    duration: 10,
+    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }]
+  }),
+  variant(PROFILE.bloodThirst, ID.CRIPPLING_SHOT, 'Blood Thirst', {
+    charges: 3,
+    duration: 12,
+    // The log grants a 12-second charge window; each triggered bleed lasts 15 seconds.
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 15 }]
+  })
 ]);

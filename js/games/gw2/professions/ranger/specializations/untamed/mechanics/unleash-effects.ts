@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
@@ -48,7 +48,6 @@ export function untamedCastAvailability(
 export function grantAmbush(runtime: RangerRuntime): void {
   const state = untamedState.from(runtime);
   state.ambushReadyUntil = canonicalTime(
-    runtime.time +
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'durationMultiplier')
+    runtime.time + balanceNumberFromContext(runtime, PROFILE.resources, 'duration')
   );
 }
