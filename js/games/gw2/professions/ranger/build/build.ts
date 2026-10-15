@@ -110,13 +110,9 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
     }
   },
   normalizeExtra(build, { saved }) {
-    const savedAssumptions =
-      saved.assumptions && typeof saved.assumptions === 'object' ? (saved.assumptions as Record<string, unknown>) : {};
-    // Preserve old pet selections when the build has no top-level choice.
-    const requestedPet = saved.selectedPet ?? savedAssumptions.selectedPet;
-    const selectedPet = isRangerPetName(requestedPet) ? requestedPet : RANGER_DEFAULT_PET_NAMES[0];
-    const requestedPet2 = saved.selectedPet2;
-    const selectedPet2 = isRangerPetName(requestedPet2) ? requestedPet2 : RANGER_DEFAULT_PET_NAMES[1];
+    // Unknown or missing pet names fall back to each slot's default pet.
+    const selectedPet = isRangerPetName(saved.selectedPet) ? saved.selectedPet : RANGER_DEFAULT_PET_NAMES[0];
+    const selectedPet2 = isRangerPetName(saved.selectedPet2) ? saved.selectedPet2 : RANGER_DEFAULT_PET_NAMES[1];
     return {
       ...build,
       rotation: build.rotation.filter((command) =>
