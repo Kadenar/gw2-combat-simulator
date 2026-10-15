@@ -27,7 +27,9 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CRIPPLING_TALON]: {
-    effects: [
+    // Once the projectile launches, cancelling the remaining animation preserves its impact effects.
+    interruptCommitMs: 320,
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         projectile: true,
@@ -53,7 +55,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         stacks: 1,
         duration: 4
       }
-    ],
+    ]),
     castTimeMs: 360
   },
   [ID.STALKERS_STRIKE]: {
@@ -76,7 +78,10 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
       }
     ],
     evades: true,
-    effects: [
+    // The early stab commits before the evade ends; cancelling retains its damage and the remaining evade lockout.
+    interruptCommitMs: 200,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // The strike owns only its impaired-target bonus; the base poison remains independent.
@@ -101,7 +106,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         stacks: 3,
         duration: 8
       }
-    ],
+    ]),
     // Movement impairment adds the remaining strike and Poison bonuses during resolution.
     castTimeMs: 760
   },

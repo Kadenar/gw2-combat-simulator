@@ -6,6 +6,7 @@ import {
   validateRangerBuild
 } from '#gw2/professions/ranger/build/build.js';
 import { rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 export { rangerCatalog, rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
 
@@ -19,5 +20,16 @@ export const rangerProfession = defineNativeProfession({
     validateBuild: validateRangerBuild
   },
   weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
-  modules: rangerNativeModules
+  modules: rangerNativeModules,
+  autoattackChains: {
+    overrides: [
+      {
+        // Entangle restarts the dagger chain even though its roots deal damage after the cast ends.
+        id: 'ranger.entangle-resets-dagger-chain',
+        chainRootIds: [ID.GROUNDWORK_GOUGE],
+        interruptingSkillIds: [ID.ENTANGLE],
+        decision: 'reset'
+      }
+    ]
+  }
 });

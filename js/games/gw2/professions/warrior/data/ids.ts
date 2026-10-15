@@ -53,10 +53,8 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   CYCLONE_AXE: 14421, // Cyclone Axe
   DUAL_SHOT: 14431, // Dual Shot
   FIERCE_SHOT: 14432, // Fierce Shot
-  WHIRLING_STRIKE: 14443, // Whirling Strike
   RUSH: 14446, // Rush
   WHIRLWIND_ATTACK: 14447, // Whirlwind Attack
-  FORCEFUL_SHOT: 14544, // Forceful Shot
   EXPLOSIVE_SHELL: 14472, // Explosive Shell
   SIGNET_OF_STAMINA: 14479, // Signet of Stamina
   HAMMER_SHOCK: 14482, // Hammer Shock
@@ -94,8 +92,6 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   FLAMING_FLURRY: 30682, // Flaming Flurry
   DECAPITATE: 30851, // Decapitate
   RUPTURING_SMASH: 30879, // Rupturing Smash
-  BURNING_SHACKLES: 30989, // Burning Shackles
-  WILD_WHIRL: 31048, // Wild Whirl
   BRUTAL_SHOT: 34296, // Brutal Shot
   SILENCER: 39972, // Silencer
   KEEN_STRIKE: 40275, // Keen Strike
@@ -104,9 +100,7 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   NATURAL_HEALING: 41100, // Natural Healing
   SKULL_CRACK_ID_41110: 41110, // Skull Crack
   BOON_CRUSHER: 41283, // Boon Crusher
-  FORCEFUL_SHOT_ID_41330: 41330, // Forceful Shot
   WOUNDING_STRIKE: 41543, // Wounding Strike
-  WHIRLING_STRIKE_ID_41746: 41746, // Whirling Strike
   ARCING_SLICE_ID_42707: 42707, // Arcing Slice
   PRECISE_CUT: 42745, // Precise Cut
   COMBUSTIVE_SHOT_ID_42803: 42803, // Combustive Shot

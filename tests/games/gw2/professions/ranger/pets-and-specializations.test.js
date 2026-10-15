@@ -307,7 +307,6 @@ test('Ranger builds migrate and validate against the canonical catalog', () => {
       { name: 'Twin Darts', skillId: ID.TWIN_DARTS },
       { name: 'Tail Lash', skillId: ID.PET_TAIL_LASH },
       'Poisonous Cloud',
-      { name: 'Regenerate', skillId: ID.REGENERATE },
       { name: 'Consuming Bite', skillId: ID.CONSUMING_BITE },
       {
         name: 'Crippling Anguish',

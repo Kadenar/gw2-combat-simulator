@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { GW2_SKILL_ID_ALIASES as RUNTIME_SKILL_ID_ALIASES } from '#gw2/platform/skills/external-skill-ids.js';
+import { UNDERWATER_ONLY_SKILL_IDS } from '#gw2/platform/skills/underwater-skill-ids.js';
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
@@ -21,6 +22,16 @@ import { updateProfessionApiData } from '../../scripts/data/update-profession-ap
 const apiFixture = JSON.parse(
   await readFile(new URL('../fixtures/gw2-api/profession-snapshot.json', import.meta.url), 'utf8')
 );
+
+test('known underwater identities stay excluded when API flags are missing', () => {
+  // Explicit environment corrections cover pet commands and profession mechanics outside weapon bars.
+  for (const id of UNDERWATER_ONLY_SKILL_IDS) {
+    assert.equal(isTerrestrialSkill({ id, type: 'Profession', flags: [] }), false, `underwater skill ${id}`);
+  }
+
+  assert.equal(isTerrestrialSkill({ id: 12717, name: 'Regenerate', flags: [] }), true);
+  assert.equal(isTerrestrialSkill({ id: 73149, name: 'Blitz Mines', flags: [] }), true);
+});
 
 // API refreshes retain identity while excluding external descriptions of simulated effects.
 test('profession snapshots discard external tooltip facts', () => {

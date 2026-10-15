@@ -91,27 +91,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     quicknessCastTimeMs: 1000,
     petSkill: true
   },
-  [ID.ICY_BITE]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 167,
-    petSkill: true
-  },
   [ID.STALK]: {
     // Jaguar grants its ranger stealth, enabling spear attacks without spending Panther's Prowl.
     effects: [{ type: 'buff', kind: 'stealth', duration: 3, stacks: 1 }],

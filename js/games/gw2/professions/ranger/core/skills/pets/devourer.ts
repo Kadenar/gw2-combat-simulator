@@ -57,41 +57,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
     ],
     petSkill: true
   },
-  [ID.REGENERATE]: {
-    effects: [
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 15,
-        stacks: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
-  },
-  [ID.POISON_CLOUD_ID_12702]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.2,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 2,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
-  },
   [ID.POISON_BARBS]: {
     effects: [
       {
@@ -113,16 +78,11 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
     quicknessCastTimeMs: 1667,
     petSkill: true
   },
-  [ID.LASHTAIL_VENOM]: {
-    effects: [],
-    quicknessCastTimeMs: 333,
-    petSkill: true
-  },
   [ID.RENDING_BARBS]: {
     effects: [
       {
         type: 'strike',
-        coefficient: 1.7999999999999998,
+        coefficient: 1.8,
         hits: 6,
         atMs: 0,
         source: 'ranger-pet',

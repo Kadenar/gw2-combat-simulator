@@ -40,7 +40,7 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
   const wikiStarted = Promise.withResolvers();
   // Unsorted pets and duplicate names expose changes to generation order without writing real catalogs.
   const pets = [
-    { id: 9, name: 'Juvenile Bear', skills: [{ id: 902 }, { id: 901 }] },
+    { id: 9, name: 'Juvenile Bear', skills: [{ id: 902 }, { id: 901 }, { id: 12703 }, { id: 903 }] },
     { id: 2, name: 'Juvenile Bear Cub', skills: [{ id: 900 }] },
     { id: 14, name: 'Juvenile White Moa', skills: [{ id: 999 }] },
     ...[21, 40, 41, 42, 43].map((id) => ({ id, name: `Aquatic ${id}`, skills: [{ id: 999 }] }))
@@ -71,7 +71,13 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
         }
       }
 
-      value = ids.map((id) => ({ id, name: id < 1000 ? 'Shared Bite' : `Skill ${id}`, type: 'Profession', facts: [] }));
+      value = ids.map((id) => ({
+        id,
+        name: id < 1000 ? 'Shared Bite' : `Skill ${id}`,
+        type: 'Profession',
+        facts: [],
+        flags: id === 903 ? ['Underwater'] : []
+      }));
     } else if (url.hostname === 'wiki.guildwars2.com') {
       wikiStarted.resolve();
       const page = url.searchParams.get('page');
@@ -104,6 +110,12 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
   assert.match(writes[1].source, /SHARED_BITE: 900/);
   assert.match(writes[1].source, /SHARED_BITE_ID_901: 901/);
   assert.doesNotMatch(writes[1].source, /: 999,/);
+  // Exclude both flagged underwater commands and Regenerate, whose API record omits the flag.
+  for (const id of [12703, 903]) {
+    assert.doesNotMatch(writes[1].source, new RegExp(`: ${id},`));
+    assert.doesNotMatch(writes[2].source, new RegExp(`Skill ${id}`));
+  }
+
   // The orchestrator's unmodified pet order controls output; the test never filters the API response itself.
   const bearIndex = writes[2].source.indexOf("name: 'Bear'");
   const cubIndex = writes[2].source.indexOf("name: 'Bear Cub'");

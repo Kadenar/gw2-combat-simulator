@@ -136,11 +136,8 @@ export const RANGER_SKILL_IDS = Object.freeze({
   CHOMP: 41537, // Chomp
   TAIL_SWIPE: 41575, // Tail Swipe
   SERPENT_STAB: 41800, // Serpent Stab
-  DARK_WATER: 41837, // Dark Water
   WING_BUFFET: 41908, // Wing Buffet
   QUICKENING_SCREECH: 42042, // Quickening Screech
-  PROTECTION: 42717, // Protection
-  CHARGING_BITE: 42797, // Charging Bite
   WORLDLY_IMPACT_ID_42809: 42809, // Worldly Impact
   BRUTAL_CHARGE: 42894, // Brutal Charge
   TAKEDOWN: 42907, // Takedown
@@ -149,7 +146,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   DEFY_PAIN: 43060, // Defy Pain
   TAIL_LASH: 43068, // Tail Lash
   BITE_ID_43136: 43136, // Bite
-  HEALING_CLOUD: 43186, // Healing Cloud
   PRELUDE_LASH: 43375, // Prelude Lash
   DOUBLE_ARC: 43536, // Double Arc
   FRENZIED_ATTACK: 43548, // Frenzied Attack
@@ -159,12 +155,10 @@ export const RANGER_SKILL_IDS = Object.freeze({
   CALL_LIGHTNING_ID_43788: 43788, // Call Lightning
   ENTANGLING_WEB: 44097, // Entangling Web
   DEADLY_DELIVERY: 44278, // Deadly Delivery
-  FEAR: 44360, // Fear
   CRIPPLING_ANGUISH: 44384, // Crippling Anguish
   MAUL_ID_44514: 44514, // Maul
   HARMONIC_CRY: 44617, // Harmonic Cry
   SPIRITUAL_REPRIEVE: 44626, // Spiritual Reprieve
-  CHOMP_ID_44885: 44885, // Chomp
   BEAR_STANCE: 44948, // Bear Stance
   SWOOP_ID_44991: 44991, // Swoop
   GROUNDWORK_GOUGE: 45426, // Groundwork Gouge
@@ -262,37 +256,25 @@ export const RANGER_SKILL_IDS = Object.freeze({
   RENDING_POUNCE: 12680, // Rending Pounce
   INTIMIDATING_HOWL: 12715, // Intimidating Howl
   SHAKE_IT_OFF: 12666, // Shake It Off
-  PURGE_CONDITIONS: 12691, // Purge Conditions
   POISONOUS_CLOUD: 12675, // Poisonous Cloud
-  REGENERATE: 12703, // Regenerate
   FIRE_BREATH: 12670, // Fire Breath
-  BOIL: 12695, // Boil
   CHILLING_HOWL: 12716, // Chilling Howl
   ICY_POUNCE: 12693, // Icy Pounce
-  ICY_BITE: 12656, // Icy Bite
   BLINDING_SLASH: 12723, // Blinding Slash
   STALK: 12681, // Stalk
   INSECT_SWARM: 12701, // Insect Swarm
-  POISON_CLOUD: 12700, // Poison Cloud
   PROTECTING_SCREECH: 12713, // Protecting Screech
   DAZING_SCREECH: 12708, // Dazing Screech
   DAZING_SCREECH_ID_12709: 12709, // Dazing Screech
   FURIOUS_SCREECH: 12712, // Furious Screech
   FROST_BREATH: 12696, // Frost Breath
-  FROST_NOVA: 12697, // Frost Nova
   LIGHTNING_BREATH: 12698, // Lightning Breath
-  ELECTROCUTE_ID_12699: 12699, // Electrocute
-  POISON_CLOUD_ID_12687: 12687, // Poison Cloud
-  POISONOUS_MAUL: 12690, // Poisonous Maul
-  REGENERATE_ID_12717: 12717, // Regenerate
-  ENFEEBLING_MAUL: 12688, // Enfeebling Maul
+  POISON_CLOUD_MURELLOW: 12687, // Poison Cloud
+  REGENERATE_FERN_HOUND: 12717, // Regenerate
   ENFEEBLING_ROAR: 12685, // Enfeebling Roar
   ICY_ROAR: 12667, // Icy Roar
-  ICY_MAUL: 12689, // Icy Maul
   RENDING_MAUL: 12664, // Rending Maul
-  POISON_CLOUD_ID_12702: 12702, // Poison Cloud
   POISON_BARBS: 12674, // Poison Barbs
-  LASHTAIL_VENOM: 12704, // Lashtail Venom
   RENDING_BARBS: 12679, // Rending Barbs
   HOWL_OF_THE_PACK: 12718, // Howl of the Pack
   TERRIFYING_HOWL: 12714, // Terrifying Howl
@@ -309,7 +291,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   BIRD_SWOOP: 12719, // Swoop (bird pet AI)
   QUICKENING_SCREECH_PET: 12720, // Quickening Screech (bird pet AI)
   SONIC_SHRIEK: 16426, // Sonic Shriek
-  SONIC_BARRIER: 16427, // Sonic Barrier
   SMOKE_CLOUD: 31568, // Smoke Cloud
   FURIOUS_POUNCE: 31451, // Furious Pounce
   LIGHTNING_ASSAULT: 31639, // Lightning Assault

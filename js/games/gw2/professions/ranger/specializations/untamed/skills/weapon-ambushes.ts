@@ -37,28 +37,43 @@ function spore(parentSkillName: string): SkillEffect[] {
 }
 
 /** Each accepted ambush spends its window; only its first impact receives Natural Fortitude. */
-function ambush(castTimeMs: number, firstHitMs: number, effects: readonly SkillEffect[]): Partial<Skill> {
+function ambush(
+  castTimeMs: number,
+  firstHitMs: number,
+  effects: readonly SkillEffect[],
+  timing: { interruptCommitMs?: number; persistsAfterInterrupt?: boolean } = {}
+): Partial<Skill> {
   return {
     castTimeMs,
+    ...(timing.interruptCommitMs == null ? {} : { interruptCommitMs: timing.interruptCommitMs }),
     sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }],
-    effects: [...effects, naturalFortitudeAmbushEffect(firstHitMs)]
+    // Launched projectiles and their first-hit siphon outlive cancellation of the remaining animation.
+    effects: [...effects, naturalFortitudeAmbushEffect(firstHitMs)].map((effect) =>
+      timing.persistsAfterInterrupt ? { ...effect, persistsAfterInterrupt: true } : effect
+    )
   };
 }
 
 // All timings use the observed timeline rounded to 40 ms; durations below exclude build expertise.
 export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.SUNDERING_VOLLEY]: ambush(760, 680, [
-    ...impact(680, [
-      { type: 'strike', coefficient: 0.65, projectile: true },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
-    ]),
-    ...impact(880, [
-      { type: 'strike', coefficient: 0.65, projectile: true },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.25 }
-    ])
-  ]),
+  [ID.SUNDERING_VOLLEY]: ambush(
+    760,
+    680,
+    [
+      // Both projectiles are launched before their impacts, allowing a weapon swap during flight.
+      ...impact(680, [
+        { type: 'strike', coefficient: 0.65, projectile: true },
+        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
+      ]),
+      ...impact(880, [
+        { type: 'strike', coefficient: 0.65, projectile: true },
+        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
+        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.25 }
+      ])
+    ],
+    { interruptCommitMs: 560, persistsAfterInterrupt: true }
+  ),
   [ID.NEUROTOXIN_BURST]: ambush(
     600,
     560,

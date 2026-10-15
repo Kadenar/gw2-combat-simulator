@@ -7,6 +7,7 @@ import { reconstructRangerDpsReportActions } from '#gw2/integrations/logs/shared
 import { reconstructRevenantDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant.js';
 import { reconstructThiefDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/thief.js';
 import { reconstructWarriorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
+import { UNDERWATER_ONLY_SKILL_IDS } from '#gw2/platform/skills/underwater-skill-ids.js';
 import type {
   LogActionNormalizer,
   LogActionNormalizationContext,
@@ -28,5 +29,7 @@ const reconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
 /** Dispatches shared normalization of represented inputs without coupling the timeline to one profession. */
 export function normalizeLogProfessionActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const reconstruct = reconstructors.get(context.profile.professionId);
-  return reconstruct ? reconstruct(context) : [...context.recordedActions];
+  // Drop underwater inputs before name resolution can confuse them with a supported land skill of the same name.
+  const recordedActions = context.recordedActions.filter((action) => !UNDERWATER_ONLY_SKILL_IDS.has(action.rawSkillId));
+  return reconstruct ? reconstruct({ ...context, recordedActions }) : recordedActions;
 }

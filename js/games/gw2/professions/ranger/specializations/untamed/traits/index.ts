@@ -27,6 +27,7 @@ import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-a
 import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
 import { grantAmbush } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {
@@ -87,9 +88,13 @@ const letLoose = defineTrait({
           runtime.combatActive &&
           runtime.procs.claim(TRAIT.LET_LOOSE, 'ranger.untamed.letLoose', runtime.time)
         ) {
-          // Let Loose claims its own interval, then rearms Unleashed Power independently.
+          // An immediate swap ambush spends the refreshed grant's cooldown, preventing intervening toggles from rearming it.
           runtime.procs.setDeadline('ranger.untamed.unleashedPower', 0);
-          if (state.rangerUnleashed) grantAmbush(runtime);
+          if (
+            state.rangerUnleashed &&
+            runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time)
+          )
+            grantAmbush(runtime);
         }
       }
     },

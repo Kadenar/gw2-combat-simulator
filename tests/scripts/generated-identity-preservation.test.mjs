@@ -80,7 +80,7 @@ test('Warrior refresh preserves committed bindings and API-omitted mechanics ide
     // The snapshot already carries every API skill, so only supplemental wiki identities are requested.
     return assert.fail(`Unexpected request: ${url}`);
   });
-  const skills = [{ id: 14469, name: 'Forceful Shot' }, { id: 73006, name: "Harrier's Toss" }, ...SKILLS.toReversed()];
+  const skills = [{ id: 73006, name: "Harrier's Toss" }, ...SKILLS.toReversed()];
   const generated = await generateWarriorData({ skills, specializations: SPECIALIZATIONS.toReversed() });
   assert.equal(writes.length, 0, 'preparation must not publish files');
   const actual = await importGeneratorSource(generated.files[0].target, generated.files);
@@ -88,8 +88,6 @@ test('Warrior refresh preserves committed bindings and API-omitted mechanics ide
     for (const [key, id] of Object.entries(identities)) assert.equal(actual[name][key], id, `${name}.${key}`);
   }
 
-  assert.equal(actual.WARRIOR_SKILL_IDS.FORCEFUL_SHOT, 14544);
-  assert.equal(actual.WARRIOR_SKILL_IDS.FORCEFUL_SHOT_ID_14469, 14469);
   assert.equal(actual.WARRIOR_SKILL_IDS.HARRIERS_TOSS, 73024);
   assert.equal(actual.WARRIOR_SKILL_IDS.HARRIERS_TOSS_ID_73006, 73006);
 });

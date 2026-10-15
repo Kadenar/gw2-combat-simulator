@@ -26,12 +26,7 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     quicknessCastTimeMs: 333,
     petSkill: true
   },
-  [ID.PURGE_CONDITIONS]: {
-    effects: [],
-    quicknessCastTimeMs: 333,
-    petSkill: true
-  },
-  [ID.POISON_CLOUD_ID_12687]: {
+  [ID.POISON_CLOUD_MURELLOW]: {
     effects: [
       {
         type: 'strike',
@@ -50,48 +45,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ],
     quicknessCastTimeMs: 333,
-    petSkill: true
-  },
-  [ID.POISONOUS_MAUL]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 12,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 1000,
-    petSkill: true
-  },
-  [ID.ENFEEBLING_MAUL]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 5,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 1000,
     petSkill: true
   },
   [ID.ENFEEBLING_ROAR]: {
@@ -134,27 +87,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ],
     quicknessCastTimeMs: 833,
-    petSkill: true
-  },
-  [ID.ICY_MAUL]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 1000,
     petSkill: true
   },
   [ID.RENDING_MAUL]: {

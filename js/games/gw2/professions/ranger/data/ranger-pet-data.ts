@@ -440,21 +440,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Brown Bear']
   },
   {
-    id: ID.PURGE_CONDITIONS,
-    name: 'Purge Conditions',
-    description: 'Beast. Purge all conditions from yourself.',
-    icon: 'https://render.guildwars2.com/file/4D234DA072DE77DEFC0605ED401CB93EDC2AC84B/103009.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 30,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Brown Bear']
-  },
-  {
     id: ID.POISONOUS_CLOUD,
     name: 'Poisonous Cloud',
     description: 'Beast. Spit a ball of venom that covers an area with a poisonous cloud.',
@@ -470,21 +455,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Carrion Devourer']
   },
   {
-    id: ID.REGENERATE,
-    name: 'Regenerate',
-    description: 'Beast. Gain regeneration.',
-    icon: 'https://render.guildwars2.com/file/9F3FCD0F3CD0F174C71BF277584A69A75BAF9151/104044.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 30,
-    petSkill: true,
-    petFamilySkill: true,
-    petAutonomousSkill: true,
-    petNames: ['Carrion Devourer']
-  },
-  {
     id: ID.FIRE_BREATH,
     name: 'Fire Breath',
     description: 'Beast. Breathe a cone of fire that burns foes.',
@@ -494,21 +464,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     categories: ['Pet'],
     specialization: '',
     cooldown: 20,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Salamander Drake']
-  },
-  {
-    id: ID.BOIL,
-    name: 'Boil',
-    description: 'Beast. Boil the water around your foe.',
-    icon: 'https://render.guildwars2.com/file/DEF9F23FBF5F3A57A80B01713F6B7EB7A7D099CF/104039.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 30,
     petSkill: true,
     petFamilySkill: false,
     petAutonomousSkill: false,
@@ -539,21 +494,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     categories: ['Pet'],
     specialization: '',
     cooldown: 20,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Snow Leopard']
-  },
-  {
-    id: ID.ICY_BITE,
-    name: 'Icy Bite',
-    description: 'Beast. Bite your foe, chilling them.',
-    icon: 'https://render.guildwars2.com/file/520693759A79FD464CA7AD08947D10B4B50F7A96/103516.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 25,
     petSkill: true,
     petFamilySkill: false,
     petAutonomousSkill: false,
@@ -600,21 +540,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     categories: ['Pet'],
     specialization: '',
     cooldown: 20,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Marsh Drake']
-  },
-  {
-    id: ID.POISON_CLOUD,
-    name: 'Poison Cloud',
-    description: 'Create poisonous bubbles.',
-    icon: 'https://render.guildwars2.com/file/F9BDFC9DDDC6279046C6A638620EC4B35725905F/103582.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 25,
     petSkill: true,
     petFamilySkill: false,
     petAutonomousSkill: false,
@@ -696,21 +621,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Ice Drake']
   },
   {
-    id: ID.FROST_NOVA,
-    name: 'Frost Nova',
-    description: 'Beast.  Freeze the water around your foe.',
-    icon: 'https://render.guildwars2.com/file/C3B4B3CF115A0C49DC086C03ED02D36D7E6503EB/103613.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 25,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Ice Drake']
-  },
-  {
     id: ID.LIGHTNING_BREATH,
     name: 'Lightning Breath',
     description: 'Beast. Breathe bolts of lightning that bounce to nearby foes.',
@@ -726,22 +636,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['River Drake']
   },
   {
-    id: ID.ELECTROCUTE_ID_12699,
-    name: 'Electrocute',
-    description: 'Beast. Charge the water around your foe with electricity.',
-    icon: 'https://render.guildwars2.com/file/650E47443AA86B57337FA1443404E420282EF19C/104042.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 30,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['River Drake']
-  },
-  {
-    id: ID.POISON_CLOUD_ID_12687,
+    id: ID.POISON_CLOUD_MURELLOW,
     name: 'Poison Cloud',
     description: 'Beast. Emit a noxious cloud that poisons and damages foes.',
     icon: 'https://render.guildwars2.com/file/F80934FEC30547EAE2022A22D06E00CFDBB4B328/104038.png',
@@ -756,22 +651,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Murellow']
   },
   {
-    id: ID.POISONOUS_MAUL,
-    name: 'Poisonous Maul',
-    description: 'Beast. Maul your foe fiercely and poison them.',
-    icon: 'https://render.guildwars2.com/file/695DA2E83CF23F527DD9109333CCB5239053DB94/104027.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 20,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Murellow']
-  },
-  {
-    id: ID.REGENERATE_ID_12717,
+    id: ID.REGENERATE_FERN_HOUND,
     name: 'Regenerate',
     description: 'Beast. Howl to heal and grant regeneration to nearby allies.',
     icon: 'https://render.guildwars2.com/file/3CD0D15B0C0E9CB7BD6709E773DFB2FCFEC25823/103609.png',
@@ -784,21 +664,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petFamilySkill: false,
     petAutonomousSkill: false,
     petNames: ['Fern Hound']
-  },
-  {
-    id: ID.ENFEEBLING_MAUL,
-    name: 'Enfeebling Maul',
-    description: 'Beast. Maul your foe, weakening them.',
-    icon: 'https://render.guildwars2.com/file/695DA2E83CF23F527DD9109333CCB5239053DB94/104027.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 20,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Black Bear']
   },
   {
     id: ID.ENFEEBLING_ROAR,
@@ -831,21 +696,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Polar Bear']
   },
   {
-    id: ID.ICY_MAUL,
-    name: 'Icy Maul',
-    description: 'Beast. Maul your foe fiercely and chill them.',
-    icon: 'https://render.guildwars2.com/file/695DA2E83CF23F527DD9109333CCB5239053DB94/104027.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 30,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Polar Bear']
-  },
-  {
     id: ID.RENDING_MAUL,
     name: 'Rending Maul',
     description: 'Beast. Make your foe bleed with a fierce mauling.',
@@ -861,21 +711,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Arctodus']
   },
   {
-    id: ID.POISON_CLOUD_ID_12702,
-    name: 'Poison Cloud',
-    description: 'Beast. Shoot a noxious cloud at your foe, damaging and poisoning them.',
-    icon: 'https://render.guildwars2.com/file/5D01A2BF9C93FCD25C73A75C6E72336F42675E97/103929.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 25,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Whiptail Devourer']
-  },
-  {
     id: ID.POISON_BARBS,
     name: 'Poison Barbs',
     description: 'Beast. Spray poisonous barbs in an arc in front of you, damaging and poisoning foes.',
@@ -889,21 +724,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petFamilySkill: false,
     petAutonomousSkill: false,
     petNames: ['Whiptail Devourer']
-  },
-  {
-    id: ID.LASHTAIL_VENOM,
-    name: 'Lashtail Venom',
-    description: 'Beast. Your next two attacks stun your victims.',
-    icon: 'https://render.guildwars2.com/file/07354D6CEA72A5F607EBA5A5C54135F74424320A/103601.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 60,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Lashtail Devourer']
   },
   {
     id: ID.RENDING_BARBS,
@@ -1095,21 +915,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     categories: ['Pet'],
     specialization: '',
     cooldown: 20,
-    petSkill: true,
-    petFamilySkill: false,
-    petAutonomousSkill: false,
-    petNames: ['Reef Drake']
-  },
-  {
-    id: ID.SONIC_BARRIER,
-    name: 'Sonic Barrier',
-    description: 'Beast. Create a sonic barrier that reflects projectiles.',
-    icon: 'https://render.guildwars2.com/file/24B90125B4433159A94D13EABF47E11154C11BE4/514416.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    cooldown: 45,
     petSkill: true,
     petFamilySkill: false,
     petAutonomousSkill: false,
@@ -2147,7 +1952,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Brown bears are tremendously strong and fiercely protective. They throw themselves into combat selflessly to distract attention from their masters and use their great strength to shrug off blows that would kill any other creature. —Acht',
     family: 'ursine',
     archetype: 'Supportive',
-    skillIds: [ID.URSINE_SLASH, ID.SHAKE_IT_OFF, ID.PURGE_CONDITIONS],
+    skillIds: [ID.URSINE_SLASH, ID.SHAKE_IT_OFF],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -2158,7 +1963,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This carrion devourer is a deadly, ruthless predator. It poisons its foes from a distance, hides underground to ambush them, and can bite them to replenish its health. —Acht',
     family: 'devourer',
     archetype: 'Deadly',
-    skillIds: [ID.TWIN_DARTS, ID.PET_TAIL_LASH, ID.POISONOUS_CLOUD, ID.REGENERATE],
+    skillIds: [ID.TWIN_DARTS, ID.PET_TAIL_LASH, ID.POISONOUS_CLOUD],
     beastmodeSkillIds: [ID.TAIL_LASH, ID.DEVOURER_RETREAT, ID.PRIMAL_CRY]
   },
   {
@@ -2169,7 +1974,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Red salamander drakes are often hunted because of their similarity to the myth of dragons, though they are a different species. They continue to survive because their fire breath makes them deadly to hunters and prey alike. —Acht',
     family: 'drake',
     archetype: 'Deadly',
-    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.FIRE_BREATH, ID.BOIL],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.FIRE_BREATH],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.PRIMAL_CRY]
   },
   {
@@ -2191,7 +1996,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Snow leopards have internalized the harsh climate they live in. Their pounce debilitates their victims with chilling cold, making it harder for them to escape. Though they're comfortable in freezing cold, snow leopards love a good sunbeam. —Acht",
     family: 'feline',
     archetype: 'Stout',
-    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.ICY_POUNCE, ID.ICY_BITE],
+    skillIds: [ID.FELINE_SLASH, ID.FELINE_BITE, ID.FELINE_MAUL, ID.ICY_POUNCE],
     beastmodeSkillIds: [ID.BITE, ID.MAUL_ID_44514, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -2224,7 +2029,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The standard diet of the swamp drake includes a variety of noxious marsh insects. The drake's digestive system isolates those unsavory poisons and enables them to breathe a venomous cloud to debilitate foes. —Acht",
     family: 'drake',
     archetype: 'Supportive',
-    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.INSECT_SWARM, ID.POISON_CLOUD],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.INSECT_SWARM],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -2279,7 +2084,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Ice drakes have a unique biology, considering they are a cold-blooded creature that lives in arctic climates. They can breathe ice to attack their prey. —Acht',
     family: 'drake',
     archetype: 'Stout',
-    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.FROST_BREATH, ID.FROST_NOVA],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.FROST_BREATH],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -2290,7 +2095,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'River drakes hunt by throwing foes into water then unleashing their electrical breath. Fortunately, they are immune to their own breath, but most prey cannot withstand its power. —Acht',
     family: 'drake',
     archetype: 'Ferocious',
-    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.LIGHTNING_BREATH, ID.ELECTROCUTE_ID_12699],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.LIGHTNING_BREATH],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.WORLDLY_IMPACT]
   },
   {
@@ -2301,7 +2106,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The elusive murellow's body courses with poisons, giving it a sickly appearance and causing its hair to fall out. Despite its gaunt frame, it is a fierce protector, spitting clouds of poison as it shrugs off attacks. —Acht",
     family: 'ursine',
     archetype: 'Deadly',
-    skillIds: [ID.URSINE_SLASH, ID.POISON_CLOUD_ID_12687, ID.POISONOUS_MAUL],
+    skillIds: [ID.URSINE_SLASH, ID.POISON_CLOUD_MURELLOW],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.PRIMAL_CRY]
   },
   {
@@ -2312,7 +2117,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Sylvari wetlands plant wolves are rare, magical creatures that share many characteristics with their mundane brothers. They fight fiercely for their pack, using their plant affinity to rapidly regenerate wounds.—Acht',
     family: 'canine',
     archetype: 'Supportive',
-    skillIds: [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE, ID.REGENERATE_ID_12717],
+    skillIds: [ID.CANINE_BITE, ID.CANINE_CRIPPLING_LEAP, ID.CANINE_BRUTAL_CHARGE, ID.REGENERATE_FERN_HOUND],
     beastmodeSkillIds: [ID.CRIPPLING_LEAP, ID.BRUTAL_CHARGE, ID.SPIRITUAL_REPRIEVE]
   },
   {
@@ -2323,7 +2128,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Black bears are territorial and private animals, but they form strong bonds with their friends and selflessly intervene when their friends are threatened. Despite their fearsome appearance, they primarily eat berries, fruit, and fish. —Acht',
     family: 'ursine',
     archetype: 'Stout',
-    skillIds: [ID.URSINE_SLASH, ID.ENFEEBLING_MAUL, ID.ENFEEBLING_ROAR],
+    skillIds: [ID.URSINE_SLASH, ID.ENFEEBLING_ROAR],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.UNFLINCHING_FORTITUDE]
   },
   {
@@ -2334,7 +2139,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Found in the frozen north, polar bears are adapted to survive in the harshest conditions on Tyria. The most durable of pets, they can shrug off painful blows and weaken foes with their chilling bite. —Acht',
     family: 'ursine',
     archetype: 'Versatile',
-    skillIds: [ID.URSINE_SLASH, ID.ICY_ROAR, ID.ICY_MAUL],
+    skillIds: [ID.URSINE_SLASH, ID.ICY_ROAR],
     beastmodeSkillIds: [ID.BITE_ID_43136, ID.DEFY_PAIN, ID.PRELUDE_LASH]
   },
   {
@@ -2356,7 +2161,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Whiptail devourers are especially deadly ranged attackers, using poison and a volley of tail spikes to take down prey from a distance. —Acht',
     family: 'devourer',
     archetype: 'Versatile',
-    skillIds: [ID.TWIN_DARTS, ID.POISON_CLOUD_ID_12702, ID.POISON_BARBS],
+    skillIds: [ID.TWIN_DARTS, ID.POISON_BARBS],
     beastmodeSkillIds: [ID.TAIL_LASH, ID.DEVOURER_RETREAT, ID.PRELUDE_LASH]
   },
   {
@@ -2367,7 +2172,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Lashtail devourers are fortunately uncommon, as their tactic of ambushing foes and unleashing a flurry of tail strikes that immobilize their prey make them especially deadly. —Acht',
     family: 'devourer',
     archetype: 'Ferocious',
-    skillIds: [ID.TWIN_DARTS, ID.LASHTAIL_VENOM, ID.RENDING_BARBS],
+    skillIds: [ID.TWIN_DARTS, ID.RENDING_BARBS],
     beastmodeSkillIds: [ID.TAIL_LASH, ID.DEVOURER_RETREAT, ID.WORLDLY_IMPACT]
   },
   {
@@ -2521,7 +2326,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Reef drakes emit a high-pitched screech to disorient their foes. Don't let them confuse you; these drakes are dangerous.<br>—Acht",
     family: 'drake',
     archetype: 'Versatile',
-    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.SONIC_SHRIEK, ID.SONIC_BARRIER],
+    skillIds: [ID.DRAKE_BITE, ID.DRAKE_TAIL_SWIPE, ID.SONIC_SHRIEK],
     beastmodeSkillIds: [ID.CHOMP, ID.TAIL_SWIPE, ID.PRELUDE_LASH]
   },
   {

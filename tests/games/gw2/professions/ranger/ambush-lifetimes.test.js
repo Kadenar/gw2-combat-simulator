@@ -44,7 +44,31 @@ test('Let Loose refresh survives the superseded expiry', () => {
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.ambushReadyUntil, 5);
-  assert.equal(observedRuntime(result).procs.deadline('ranger.untamed.unleashedPower'), 0);
+  assert.equal(observedRuntime(result).procs.deadline('ranger.untamed.unleashedPower'), 10);
+});
+
+// A swap grant starts its own recharge; intervening pet commands must not move the next ambush deadline.
+test('Let Loose swap recharge is not restarted by an intervening unleash', () => {
+  const result = runRanger(
+    [
+      { type: 'combat-start' },
+      ID.UNLEASH_RANGER,
+      wait(1000),
+      SHARED_SKILL_IDS.SWAP_WEAPONS,
+      wait(1000),
+      ID.UNLEASH_PET,
+      wait(1000),
+      ID.UNLEASH_RANGER,
+      wait(6000),
+      ID.UNLEASH_PET,
+      wait(1040),
+      ID.UNLEASH_RANGER,
+      ID.SUNDERING_VOLLEY
+    ],
+    { ...config, weaponSet2Primary: 'Axe' }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.steps.some((step) => step.skillId === ID.SUNDERING_VOLLEY && !step.invalid));
 });
 
 test('an admitted ambush consumes the grant while its delayed effects finish', () => {

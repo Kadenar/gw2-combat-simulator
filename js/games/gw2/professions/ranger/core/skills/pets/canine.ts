@@ -115,7 +115,7 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     quicknessCastTimeMs: 1000,
     petSkill: true
   },
-  [ID.REGENERATE_ID_12717]: {
+  [ID.REGENERATE_FERN_HOUND]: {
     effects: [
       {
         type: 'boon',

@@ -2,6 +2,8 @@ import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/devourer.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -12,6 +14,16 @@ const config = {
   attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 })
 };
 const wait = (durationMs) => ({ type: 'wait', durationMs });
+
+test('Carrion Devourer exposes its land command without underwater Regenerate', () => {
+  // Removing the underwater identity must preserve both Poisonous Cloud and Fern Hound's distinct land heal.
+  const carrion = RANGER_PETS.find((pet) => pet.name === 'Carrion Devourer');
+  assert.equal(carrion.skillIds.includes(12703), false);
+  assert.ok(carrion.skillIds.includes(ID.POISONOUS_CLOUD));
+  assert.equal(rangerCatalog.skillsById.has(12703), false);
+  assert.equal(RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS[12703], undefined);
+  assert.equal(rangerCatalog.skillsById.get(ID.REGENERATE_FERN_HOUND).name, 'Regenerate');
+});
 
 // Each projectile owns one full-duration bleed; splitting the strike coefficient must not halve condition duration.
 test('Twin Darts splits damage and bleeding between its two pet-owned projectiles', () => {

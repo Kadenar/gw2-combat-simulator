@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { UNDERWATER_ONLY_SKILL_IDS } from '../../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
 
 export const GW2_API_ROOT = 'https://api.guildwars2.com/v2';
 export const DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS = Object.freeze(['Trident', 'Speargun']);
@@ -146,7 +147,7 @@ export function isTerrestrialSkill(
   const excludesWeapon =
     weaponExclusions instanceof Set ? weaponExclusions.has(weapon) : weaponExclusions.includes(weapon);
 
-  if (!skill || excludesId) return false;
+  if (!skill || excludesId || UNDERWATER_ONLY_SKILL_IDS.has(skill.id)) return false;
 
   if (excludesWeapon) return false;
 

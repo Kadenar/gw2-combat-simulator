@@ -12,7 +12,7 @@ import {
 import { fileURLToPath } from 'node:url';
 
 import { mapConcurrent } from './lib/generator-utils.mjs';
-import { fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
+import { fetchManyGw2, isTerrestrialSkill } from './lib/gw2-profession-snapshot.mjs';
 
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
 
@@ -72,7 +72,7 @@ export async function fetchRangerPetSkills(pets) {
   });
 
   if (missing.length) throw new Error(`Missing Ranger pet skill records: ${missing.join(', ')}`);
-  return skills;
+  return skills.filter((skill) => isTerrestrialSkill(skill));
 }
 
 /** Fetch wiki classifications independently from skill records while preserving pet order. */
@@ -82,6 +82,8 @@ export async function fetchRangerPetMetadata(pets) {
 
 /** Render pet references exclusively from the validated ID map produced by generateRangerIds. */
 export async function generateRangerPetData({ pets, skills, keyById, wikiMetadata }) {
+  // Pet API lists mix land and underwater commands; references must use only the filtered skill inventory.
+  const landSkillIds = new Set(skills.map((skill) => skill.id));
   const keyFor = (id) => {
     const key = keyById.get(id);
     if (!key) throw new Error(`Ranger pet data references missing skill ID ${id}`);
@@ -98,7 +100,7 @@ export async function generateRangerPetData({ pets, skills, keyById, wikiMetadat
       name,
       family,
       archetypeKey: metadata.archetype.toLowerCase(),
-      skillIds: petSkillIds(pet, name, family)
+      skillIds: petSkillIds(pet, name, family).filter((id) => landSkillIds.has(id))
     };
   });
   const skillLines = skills.map((skill) => {

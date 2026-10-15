@@ -72,19 +72,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
     quicknessCastTimeMs: 1000,
     petSkill: true
   },
-  [ID.BOIL]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.2,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
-  },
   [ID.INSECT_SWARM]: {
     effects: [
       {
@@ -105,20 +92,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ],
     quicknessCastTimeMs: 1000,
-    petSkill: true
-  },
-  [ID.POISON_CLOUD]: {
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 4,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.FROST_BREATH]: {
@@ -143,32 +116,11 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
     quicknessCastTimeMs: 1000,
     petSkill: true
   },
-  [ID.FROST_NOVA]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.2,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 3,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 333,
-    petSkill: true
-  },
   [ID.LIGHTNING_BREATH]: {
     effects: [
       {
         type: 'strike',
-        coefficient: 1.6500000000000001,
+        coefficient: 1.65,
         hits: 5,
         atMs: 0,
         source: 'ranger-pet',
@@ -176,19 +128,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ],
     quicknessCastTimeMs: 1000,
-    petSkill: true
-  },
-  [ID.ELECTROCUTE_ID_12699]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.8,
-        hits: 1,
-        source: 'ranger-pet',
-        actorType: 'summon'
-      }
-    ],
-    quicknessCastTimeMs: 333,
     petSkill: true
   },
   [ID.SONIC_SHRIEK]: {
@@ -219,11 +158,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ],
     quicknessCastTimeMs: 1000,
-    petSkill: true
-  },
-  [ID.SONIC_BARRIER]: {
-    effects: [],
-    quicknessCastTimeMs: 333,
     petSkill: true
   }
 });

@@ -664,8 +664,7 @@ export const RANGER_PET_SKILL_IDS = Object.freeze({
 export const SOULBEAST_PET_SKILL_IDS = Object.freeze({ Wallow: [41406, 64882] });
 export const AUTONOMOUS_PET_SKILL_IDS = new Set([
   ...Object.values(RANGER_PET_SKILL_IDS).flat(),
-  ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat(),
-  12703
+  ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat()
 ]);
 // API-omitted pet skills reuse their verified Soulbeast CDN artwork where available. Every record here is authored in
 // full because /v2/skills rejects its ID. New land records use wiki PvE recharges; existing tuning is preserved.
@@ -708,5 +707,7 @@ export const SOULBEAST_ARCHETYPE_SKILL_IDS = Object.freeze({
 // Merged-pet disambiguation and natural-attack keys share the same generator source.
 export const RANGER_PET_SKILL_KEYS = Object.freeze({
   ...Object.fromEntries(RANGER_PET_AUTHORED_SKILLS.map(({ id, key }) => [id, key])),
-  12525: 'MAUL_SOULBEAST'
+  12525: 'MAUL_SOULBEAST',
+  12687: 'POISON_CLOUD_MURELLOW',
+  12717: 'REGENERATE_FERN_HOUND'
 });
