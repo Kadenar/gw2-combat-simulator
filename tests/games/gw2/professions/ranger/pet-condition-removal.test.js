@@ -5,8 +5,7 @@ import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-r
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pet-swap.js';
-import { createRangerCoreState, rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import assert from 'node:assert/strict';
@@ -65,9 +64,9 @@ for (const reporting of [true, false]) {
     while (context.queue.length) {
       const event = context.queue.dequeue();
       if (event.type === 'test.swap-pets') {
-        applyRangerPetSwap(context, rangerPetByName('Smokescale'), 2, event.at);
+        context.combat.retireCompanion(outgoing, event.at);
         assert.equal(effectStateValue(observeBleeding(), swappedAt).count, 2);
-        assert.notEqual(rangerPetCompanionId(context), outgoing);
+        assert.equal(context.combat.companionRetiredAt(outgoing), event.at);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', swappedAt), 2);
       } else if (event.type === 'condition_buffer') {
         conditions.handleConditionBuffer(context, event);

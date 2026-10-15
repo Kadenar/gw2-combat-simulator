@@ -14,10 +14,11 @@ test('Wuthering Wind preserves charge eligibility and claims before reentrant em
     const result = runRanger([], { specialization: 'Galeshot', selectedTraitIds: [TRAIT.WUTHERING_WIND] });
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
-    const state = runtime.profession.specialization.state;
+    const state = runtime.profession.core.pet;
     const event = {
       actorType: 'summon',
       source: 'ranger-pet',
+      summonOwner: state.id,
       coefficient: 1,
       activationId: 'pet-cast',
       at: 1
@@ -42,10 +43,10 @@ test('Wuthering Wind preserves charge eligibility and claims before reentrant em
     state.wutheringWindReady = true;
     state.wutheringWindReadyAt = 2;
     context.fireTrigger(galeshotPetStrike, { event: event });
-    assert.deepEqual(state.galeshotActivationClaims, {});
+    assert.deepEqual(state.activationClaims, {});
     state.wutheringWindReadyAt = 0;
     context.fireTrigger(galeshotPetStrike, { event: { ...event, coefficient: 0 } });
-    assert.deepEqual(state.galeshotActivationClaims, {});
+    assert.deepEqual(state.activationClaims, {});
 
     const removed = {
       ...context,
@@ -57,7 +58,7 @@ test('Wuthering Wind preserves charge eligibility and claims before reentrant em
     bindTriggerPoints(removed, rangerProfession, runtime.config);
     removed.fireTrigger(galeshotPetStrike, { event: event });
     assert.equal(state.wutheringWindReady, true);
-    assert.deepEqual(state.galeshotActivationClaims, {});
+    assert.deepEqual(state.activationClaims, {});
     assert.deepEqual(emitted, []);
 
     context.fireTrigger(galeshotPetStrike, { event: event });

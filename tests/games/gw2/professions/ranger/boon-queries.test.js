@@ -1,11 +1,11 @@
+import { createCompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pet-swap.js';
-import { createRangerCoreState, rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
@@ -55,11 +55,13 @@ test('pet retirement clears live boon queries while preserving pre-swap history'
     boons: new Map(),
     buffs: new Map(),
     retiredCompanions: new Map(),
+    companions: new Map(),
     conditionState: new Map()
   };
   // Bind real owner operations for this focused mechanic fixture.
   runtime.combat = createMechanicCombatServices(runtime);
   const oldPet = rangerPetCompanionId(runtime);
+  runtime.companions.set(oldPet, runtime.profession.core.pet.effects);
   const fury = buff('fury', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [oldPet] });
   const history = [fury];
   const context = {
@@ -70,15 +72,17 @@ test('pet retirement clears live boon queries while preserving pre-swap history'
   };
   assert.equal(rangerActiveBoonCount({ ...context, runtime: undefined }, 'pet'), 1);
   assert.equal(rangerActiveBoonCount(context, 'pet'), 0);
-  recordBuffApplication(runtime.boons, fury);
-  recordBuffApplication(runtime.boons, fury);
+  recordBuffApplication(runtime.profession.core.pet.effects.boons, fury);
+  recordBuffApplication(runtime.profession.core.pet.effects.boons, fury);
   assert.equal(rangerActiveBoonCount({ ...context, time: 3 }, 'pet'), 0);
   assert.equal(rangerActiveBoonCount({ ...context, time: 6 }, 'pet'), 1);
   assert.equal(rangerActiveBoonCount({ ...context, time: 8 }, 'pet'), 0);
 
-  applyRangerPetSwap(runtime, rangerPetByName('Smokescale'), 2, 5);
+  runtime.combat.retireCompanion(oldPet, 5);
   history.push({ type: 'marker', action: 'companion-retired', at: 5, summonOwner: oldPet });
-  const newPet = rangerPetCompanionId(runtime);
+  const newPet = 'new-pet';
+  const incomingEffects = createCompanionEffects();
+  runtime.companions.set(newPet, incomingEffects);
   assert.notEqual(newPet, oldPet);
   const incoming = { ...context, time: 5, event: { ...context.event, summonOwner: newPet } };
   assert.equal(rangerActiveBoonCount(incoming, 'pet'), 0);
@@ -88,7 +92,7 @@ test('pet retirement clears live boon queries while preserving pre-swap history'
   assert.equal(rangerActiveBoonCount({ ...context, time: 5, runtime: undefined }, 'pet'), 0);
   assert.equal(rangerActiveBoonCount(context, 'pet'), 1);
   assert.equal(rangerActiveBoonCount({ ...context, runtime: undefined }, 'pet'), 1);
-  recordBuffApplication(runtime.boons, {
+  recordBuffApplication(incomingEffects.boons, {
     ...buff('might', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [newPet] }),
     at: 5
   });
@@ -109,10 +113,10 @@ test('pet boon queries honor resolved party caps and explicit summon grants in b
     // Bind real owner operations for this focused mechanic fixture.
     config.combat = createMechanicCombatServices(config);
     const event = buff('might', { recipients, eligibleCompanionIds: ['pet'] }, config);
-    const runtime = { boons: new Map(), buffs: new Map() };
+    const runtime = { boons: new Map(), buffs: new Map(), companions: new Map([['pet', createCompanionEffects()]]) };
     // Bind real owner operations for this focused mechanic fixture.
     runtime.combat = createMechanicCombatServices(runtime);
-    recordBuffApplication(runtime.boons, event);
+    recordBuffApplication(runtime.companions.get('pet').boons, event);
     const context = {
       config,
       time: 4,

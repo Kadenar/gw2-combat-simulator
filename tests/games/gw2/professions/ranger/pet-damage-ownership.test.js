@@ -39,16 +39,16 @@ test('pet swaps discard unspent Poisonous Strikes charges', () => {
       { selectedPet: 'Jacaranda', selectedPet2: 'Carrion Devourer' },
       {
         initialize(runtime) {
-          runtime.profession.core.poisonousStrikes = grantCharges(charges, 7);
+          runtime.profession.core.pet.poisonousStrikes = grantCharges(charges, 7);
         },
         timeline: [
           {
             at: 0.1,
             run(runtime) {
-              assert.equal(runtime.profession.core.poisonousStrikes.charges, charges);
+              assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, charges);
               swapRangerPets(runtime.mechanics, runtime.helpers.skillsById.get(ID.PET_SWAP));
               assert.equal(runtime.profession.core.activePet, 'Carrion Devourer');
-              assert.equal(runtime.profession.core.poisonousStrikes.charges, 0);
+              assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, 0);
             }
           },
           {
@@ -56,7 +56,7 @@ test('pet swaps discard unspent Poisonous Strikes charges', () => {
             run(runtime) {
               swapRangerPets(runtime.mechanics, runtime.helpers.skillsById.get(ID.PET_SWAP));
               assert.equal(runtime.profession.core.activePet, 'Jacaranda');
-              assert.equal(runtime.profession.core.poisonousStrikes.charges, 0);
+              assert.equal(runtime.profession.core.pet.poisonousStrikes.charges, 0);
             }
           }
         ]
@@ -85,6 +85,7 @@ test('retired pet effects cannot consume Poisonous Strikes newly granted after a
               kind: 'packet',
               event: {
                 type: 'ranger.poisonous-strikes',
+                summonOwner: incoming.summonOwner,
                 at: runtime.time,
                 charges: 2,
                 duration: 7,

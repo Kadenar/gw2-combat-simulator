@@ -190,9 +190,9 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
 
 test('removed Poisonous Strikes poison leaves its charges unspent', () => {
   const context = resolverContext({ [CORE.poisonousStrikes]: remove('condition', 'Poisoned') }, []);
-  context.profession.core.poisonousStrikes = grantCharges(2, 10);
+  context.profession.core.pet.poisonousStrikes = grantCharges(2, 10);
   triggerPoisonousStrikes(context, { type: 'damage', at: 1, source: 'ranger-pet', coefficient: 1 });
-  assert.equal(context.profession.core.poisonousStrikes.charges, 2);
+  assert.equal(context.profession.core.pet.poisonousStrikes.charges, 2);
   assert.deepEqual(context.queued, []);
 });
 
@@ -317,7 +317,7 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
     assert.deepEqual(result.warnings, []);
     const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.CRIPPLING_ANGUISH_PET);
     assert.ok(cast);
-    const progress = observedRuntime(result).profession.core.petAutoRecharges[String(ID.CRIPPLING_ANGUISH_PET)];
+    const progress = observedRuntime(result).cooldownController.rechargeFor(ID.CRIPPLING_ANGUISH_PET);
     assert.equal(progress.startedAt, cast.at);
     // Unquickened work is the 14 s autonomous interval scaled by the patched Pack Alpha multiplier.
     assert.equal(progress.work, quickness ? 5 : 7);

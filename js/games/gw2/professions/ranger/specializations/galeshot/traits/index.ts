@@ -289,9 +289,10 @@ function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): vo
   if (event.actorType !== 'summon' || event.source !== 'ranger-pet' || !(Number(event.coefficient) > 0)) return;
   const at = event.at;
 
-  const state = galeshotState.from(context);
+  const pet = context.profession.core.pet;
+  if (!pet || event.summonOwner !== pet.id) return;
   const activationId = event.activationId || '';
-  if (!state.wutheringWindReady || canonicalTime(at) < state.wutheringWindReadyAt) {
+  if (!pet.wutheringWindReady || canonicalTime(at) < pet.wutheringWindReadyAt) {
     return;
   }
 
@@ -300,8 +301,8 @@ function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): vo
   // The primed charge and proc exist only for the strike, so a removed strike leaves the charge armed.
   if (!strike) return;
   // ID-less packets may consume the charge; identified activations may consume it only once.
-  if (activationId && !claimActivation(state.galeshotActivationClaims, 'ranger.wuthering-wind', activationId)) return;
-  state.wutheringWindReady = false;
+  if (activationId && !claimActivation(pet.activationClaims, 'ranger.wuthering-wind', activationId)) return;
+  pet.wutheringWindReady = false;
   context.effects.emit({
     kind: 'announcement',
     log: true,
@@ -416,9 +417,10 @@ function applyGaleForce(context: RangerRuntime, skill: RangerSkill): void {
 
 /** Bluster primes the pet follow-up after its own effects have been committed. */
 function primeWutheringWind(context: RangerRuntime): void {
-  const state = galeshotState.from(context);
-  state.wutheringWindReady = true;
-  state.wutheringWindReadyAt = context.time;
+  const pet = context.profession.core.pet;
+  if (!pet) return;
+  pet.wutheringWindReady = true;
+  pet.wutheringWindReadyAt = context.time;
 }
 
 // Grant Cloudburst's profile-defined party boons from the qualifying reset skill

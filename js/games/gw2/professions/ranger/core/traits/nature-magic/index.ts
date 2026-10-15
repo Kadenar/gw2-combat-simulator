@@ -28,7 +28,7 @@ import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.j
 
 /** Both live player grants and configured console pulses use the same ranger-scaled pet application. */
 function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: number, cause?: Gw2ResolverEvent): void {
-  if (!runtime.profession.core.petActive) return;
+  if (!runtime.profession.core.pet) return;
 
   emitTraitProfile(runtime, TRAIT.FORTIFYING_BOND, TRAIT.FORTIFYING_BOND, cause, {
     attribution: {
@@ -89,7 +89,7 @@ export const fortifyingBond = defineTrait({
       on: 'buff.applied',
       run(runtime: RangerRuntime, event) {
         if (
-          !runtime.profession.core.petActive ||
+          !runtime.profession.core.pet ||
           !event.resolvedAudience?.includesSelf ||
           !isStandardBoon(String(event.kind)) ||
           !(Number(event.duration) > 0) ||

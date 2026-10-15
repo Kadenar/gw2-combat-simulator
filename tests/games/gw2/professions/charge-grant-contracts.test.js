@@ -210,12 +210,11 @@ test('Shattering Stone replaces self grants and spends player or effect hits bef
   assert.equal(core.shatteringStone.charges, 1);
 });
 
-test('Poisonous Strikes shares one inclusive-expiry grant across pet and Beastmode routes', () => {
+test('Poisonous Strikes gives pet and merged player separate inclusive-expiry grants', () => {
   const context = contextFor(rangerProfession, 'Soulbeast');
   const core = context.profession.core;
   const merged = context.profession.specialization.state;
   merged.beastmodeActive = false;
-  // Pet hits carry the active companion identity so only that pet can spend the shared grant.
   const pet = {
     at: 2,
     source: 'ranger-pet',
@@ -225,31 +224,26 @@ test('Poisonous Strikes shares one inclusive-expiry grant across pet and Beastmo
     skillName: 'Pet strike'
   };
   const player = { at: 2, source: 'ranger', actorType: 'player', coefficient: 1, skillName: 'Player strike' };
-  handleRangerPoisonousStrikes(context, { at: 1, charges: 3, duration: 2 });
-  triggerPoisonousStrikes(context, player);
-  reactToSoulbeastDamage(context, player);
-  triggerPoisonousStrikes(context, { ...pet, coefficient: 0 });
-  triggerPoisonousStrikes(context, { ...pet, summonOwner: undefined });
-  triggerPoisonousStrikes(context, { ...pet, summonOwner: 'other-companion' });
-  assert.equal(core.poisonousStrikes.charges, 3);
+  handleRangerPoisonousStrikes(context, { at: 1, charges: 3, duration: 2, summonOwner: pet.summonOwner });
+  for (const event of [player, { ...pet, coefficient: 0 }, { ...pet, summonOwner: 'other' }])
+    triggerPoisonousStrikes(context, event);
+  assert.equal(core.pet.poisonousStrikes.charges, 3);
   triggerPoisonousStrikes(context, pet);
-  assert.equal(core.poisonousStrikes.charges, 2);
+  assert.equal(core.pet.poisonousStrikes.charges, 2);
   merged.beastmodeActive = true;
   reactToSoulbeastDamage(context, player);
-  assert.equal(core.poisonousStrikes.charges, 1);
-  assert.equal(context.events[0].source, 'ranger-pet');
-  assert.equal(context.events[0].independentConditionOwner, true);
-  assert.equal(context.events[1].source, 'ranger');
-  assert.equal(context.events[1].independentConditionOwner, undefined);
+  assert.equal(core.pet.poisonousStrikes.charges, 2);
   handleRangerPoisonousStrikes(context, { at: 2, charges: 2, duration: 1 });
-  assert.equal(core.poisonousStrikes.charges, 2);
+  reactToSoulbeastDamage(context, player);
+  assert.equal(core.playerPoisonousStrikes.charges, 1);
+  assert.equal(context.events[0].independentConditionOwner, true);
+  assert.equal(context.events[1].ownerActorType, 'player');
   triggerPoisonousStrikes(context, { ...pet, at: 3 });
   reactToSoulbeastDamage(context, { ...player, at: 3 });
-  assert.equal(core.poisonousStrikes.charges, 0);
-  handleRangerPoisonousStrikes(context, { at: 3, charges: 2, duration: 1 });
+  assert.equal(core.playerPoisonousStrikes.charges, 0);
+  handleRangerPoisonousStrikes(context, { at: 3, charges: 2, duration: 1, summonOwner: pet.summonOwner });
   triggerPoisonousStrikes(context, { ...pet, at: 4.001 });
-  assert.equal(core.poisonousStrikes.charges, 0);
-  assert.equal(context.events.length, 4);
+  assert.equal(core.pet.poisonousStrikes.charges, 0);
 });
 
 test('Blood Thirst grants merged players twelve seconds, replaces remaining charges, and respects strike eligibility', () => {

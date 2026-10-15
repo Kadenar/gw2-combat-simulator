@@ -26,7 +26,7 @@ export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
 
   initialize(runtime) {
-    setRangerPetActive(runtime, !soulbeastState.from(runtime).beastmodeActive);
+    setRangerPetActive(runtime, !soulbeastState.from(runtime).beastmodeActive, ID.BEASTMODE);
   },
   availability: soulbeastCastAvailability,
   sideEffectHandlers: {

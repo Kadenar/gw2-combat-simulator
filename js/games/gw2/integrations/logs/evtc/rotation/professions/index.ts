@@ -1,4 +1,5 @@
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { galeshotCycloneBowActions } from '#gw2/integrations/logs/evtc/rotation/professions/galeshot.js';
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { effectEvidence, isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
@@ -127,7 +128,10 @@ export function reconstructProfessionActions(
           })
           .sort((left, right) => left[0] - right[0])
       : [];
-  const represented = { ...context, recordedActions: mesmerCloakActions(context) };
+  const represented = {
+    ...context,
+    recordedActions: galeshotCycloneBowActions({ ...context, recordedActions: mesmerCloakActions(context) })
+  };
   // Packet spacing only selects the represented Path of Scars range variant; it never creates a cast.
   const originals = engineerKitActions(represented).map((action, index, actions) => {
     if (context.profile.professionId !== 'ranger' || action.rawSkillId !== 12638) return action;

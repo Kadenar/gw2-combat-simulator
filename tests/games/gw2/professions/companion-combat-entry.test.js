@@ -153,8 +153,8 @@ for (const [name, command] of [
     assert.ok(decisions.length > 0);
     assert.ok(decisions.every(({ at }) => at >= 6));
     if (name === 'pet') {
-      assert.equal(beforeStart.core.petAutoStarted, false);
-      assert.deepEqual(beforeStart.core.petAutoRecharges, {});
+      assert.equal(beforeStart.core.pet.autoStarted, false);
+      assert.equal(beforeStart.core.pet.autoAction, null);
     } else if (name === 'elemental') {
       assert.equal(beforeStart.core.summonedElemental.started, false);
     } else {

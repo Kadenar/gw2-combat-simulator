@@ -8,7 +8,6 @@ import { rangerFalconsStoopModifier } from '#gw2/professions/ranger/core/skills/
 import { rangerPounceModifier } from '#gw2/professions/ranger/core/skills/weapons/sword.js';
 
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 
 import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
@@ -24,7 +23,7 @@ import {
   bloodThirstProfile,
   rangerShortbowConditionDurationModifier
 } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
-import { createRangerCoreState, RANGER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/core/state.js';
+import { createRangerCoreState, projectRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerCoreTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 
@@ -43,7 +42,7 @@ export const rangerCoreModule = defineNativeModule({
     ],
     extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
-  state: { create: createRangerCoreState, project: createPublicStateProjector(RANGER_CORE_PUBLIC_STATE_PROJECTION) },
+  state: { create: createRangerCoreState, project: projectRangerCoreState },
   // Keep player/shared rules before the pet audience and retain the established duration stage.
   modifiers: {
     modifierRules: [

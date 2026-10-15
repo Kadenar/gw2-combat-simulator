@@ -1,3 +1,4 @@
+import type { RangerPetState } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -51,24 +52,15 @@ export interface RangerPetDefinition {
 }
 
 /** Derive optional projection fields from their owners without exposing additional specialization internals. */
-export type RangerState = RangerCoreState &
-  Partial<
+export type RangerState = Omit<RangerCoreState, 'pet'> & {
+  pet: Pick<RangerPetState, 'id' | 'ferociousSymbiosis' | 'wutheringWindReady'> | null;
+} & Partial<
     Pick<DruidState, 'astralClock' | 'celestialAvatarActive' | 'celestialAvatarEndsAt'> &
       Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil'> &
-      Pick<
-        UntamedState,
-        'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer' | 'ferociousSymbiosisPet'
-      > &
+      Pick<UntamedState, 'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer'> &
       Pick<
         GaleshotState,
-        | 'cycloneBowActive'
-        | 'arrows'
-        | 'windForce'
-        | 'galeForceUntil'
-        | 'mistralUntil'
-        | 'wutheringWindReady'
-        | 'wutheringWindReadyAt'
-        | 'missileHits'
+        'cycloneBowActive' | 'arrows' | 'windForce' | 'galeForceUntil' | 'mistralUntil' | 'missileHits'
       >
   >;
 

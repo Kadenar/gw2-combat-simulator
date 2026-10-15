@@ -1,3 +1,4 @@
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -38,12 +39,9 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
-  const core = readProfessionCoreState<{
-    playerOpeningStrikeReady?: boolean;
-    petOpeningStrikeReady?: boolean;
-  }>(context.runtime?.profession);
+  const core = readProfessionCoreState<RangerCoreState>(context.runtime?.profession);
   return rangerPetEvent(context)
-    ? core.petOpeningStrikeReady === true
+    ? core.pet?.id === context.event?.summonOwner && core.pet?.openingStrikeReady === true
     : isGw2PlayerModifierOwnedEvent(context.event) && core.playerOpeningStrikeReady === true;
 }
 
@@ -341,7 +339,9 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
   const player = isPlayerStrike(event);
   const pet = isPetStrike(event);
   if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
-  const ready = player ? state.playerOpeningStrikeReady : state.petOpeningStrikeReady;
+  const ready = player
+    ? state.playerOpeningStrikeReady
+    : state.pet?.id === event.summonOwner && state.pet?.openingStrikeReady;
   if (!ready) return;
   const openingStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.OPENING_STRIKE);
   const openingStrike = requireEffect(openingStrikeProfile, 'condition', 'Vulnerability');
@@ -352,7 +352,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
   // Readiness is spent by a delivered opener; with every opener packet removed it stays armed.
   if (!openingStrike && !alphaFocus) return;
   if (player) state.playerOpeningStrikeReady = false;
-  else state.petOpeningStrikeReady = false;
+  else state.pet!.openingStrikeReady = false;
   if (openingStrike)
     emitTraitProfile(context, TRAIT.OPENING_STRIKE, TRAIT.OPENING_STRIKE, undefined, {
       at: event.at,
@@ -426,7 +426,7 @@ function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2Resolve
   if (kind === 'fury' && event.resolvedAudience?.includesSelf) {
     const state = professionCoreState(context);
     state.playerOpeningStrikeReady = true;
-    state.petOpeningStrikeReady = true;
+    if (state.pet) state.pet.openingStrikeReady = true;
   }
 }
 

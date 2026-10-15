@@ -41,8 +41,9 @@ test('Ferocious Symbiosis buffs the tiger only when the ranger attacks', () => {
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(baseline.warnings, []);
     const state = result.planningState.profession;
+    const pet = state.pet;
     assert.equal(state.ferociousSymbiosisPlayer.stacks, 5);
-    assert.equal(state.ferociousSymbiosisPet.stacks, attacks ? 5 : 0);
+    assert.equal(pet.ferociousSymbiosis.stacks, attacks ? 5 : 0);
     const lastPetHit = (run) =>
       run.resolvedEvents.findLast((event) => event.type === 'damage' && event.source === 'ranger-pet');
     assertFlooredDamageMultiplier(lastPetHit(result).damage, lastPetHit(baseline).damage, attacks ? 1.25 : 1);
@@ -53,6 +54,7 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
   // Use the live proc controller with precisely spaced hits to isolate the cooldown and refresh contract.
   const runtime = observedRuntime(runRanger([], { ...config, selectedTraitIds: [TRAIT.FEROCIOUS_SYMBIOSIS] }));
   const state = untamedState.from(runtime);
+  const pet = runtime.profession.core.pet;
   const hit = (at, pet = false) =>
     runtime.fireTrigger(untamedStrike, {
       event: {
@@ -60,6 +62,7 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
         at,
         coefficient: 1,
         source: pet ? 'ranger-pet' : 'ranger',
+        summonOwner: pet ? runtime.profession.core.pet.id : undefined,
         actorType: pet ? 'summon' : 'player'
       }
     });
@@ -68,20 +71,21 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
     hit(1.25, pet);
   }
 
-  for (const beneficiary of ['Player', 'Pet']) {
-    assert.equal(state[`ferociousSymbiosis${beneficiary}`].stacks, 1);
-    assert.equal(state[`ferociousSymbiosis${beneficiary}`].expiresAt, 6);
+  for (const pool of [state.ferociousSymbiosisPlayer, pet.ferociousSymbiosis]) {
+    assert.equal(pool.stacks, 1);
+    assert.equal(pool.expiresAt, 6);
   }
 
   hit(1.6, true);
   for (const at of [1.6, 2.2, 2.8, 3.4, 4]) hit(at);
   assert.equal(state.ferociousSymbiosisPlayer.stacks, 2);
   assert.equal(state.ferociousSymbiosisPlayer.expiresAt, 6.6);
-  assert.equal(state.ferociousSymbiosisPet.stacks, 5);
-  assert.equal(state.ferociousSymbiosisPet.expiresAt, 9);
+  assert.equal(pet.ferociousSymbiosis.stacks, 5);
+  assert.equal(pet.ferociousSymbiosis.expiresAt, 9);
 
   const petEvent = {
     source: 'ranger-pet',
+    summonOwner: pet.id,
     actorType: 'summon',
     independentSummonStrike: true,
     summonUsesProfessionModifiers: true
@@ -92,6 +96,20 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
   assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.59, runtime), 1.1);
   assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.6, runtime), 1);
   hit(9);
-  assert.equal(state.ferociousSymbiosisPet.stacks, 1);
-  assert.equal(state.ferociousSymbiosisPet.expiresAt, 14);
+  assert.equal(pet.ferociousSymbiosis.stacks, 1);
+  assert.equal(pet.ferociousSymbiosis.expiresAt, 14);
+});
+
+test('Ranger-owned pet skill damage uses player Symbiosis even when the pet has different stacks', () => {
+  const runtime = observedRuntime(runRanger([], { ...config, selectedTraitIds: [TRAIT.FEROCIOUS_SYMBIOSIS] }));
+  const state = untamedState.from(runtime);
+  const pet = runtime.profession.core.pet;
+  // Caster provenance remains pet-owned, but damage modifiers follow the packet's player ownership.
+  const cloud = { source: 'ranger-pet', actorType: 'player', summonOwner: pet.id };
+  state.ferociousSymbiosisPlayer = { stacks: 5, expiresAt: 10 };
+  pet.ferociousSymbiosis = { stacks: 0, expiresAt: 10 };
+  assert.equal(runtime.query.strikeMultiplier(cloud, 1, runtime), 1.25);
+  state.ferociousSymbiosisPlayer.stacks = 0;
+  pet.ferociousSymbiosis.stacks = 5;
+  assert.equal(runtime.query.strikeMultiplier(cloud, 1, runtime), 1);
 });

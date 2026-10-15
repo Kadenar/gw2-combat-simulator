@@ -330,6 +330,7 @@ test('Might applies baseline and Notoriety together while unbuffed declarations 
       ]
     ])
   };
+  runtime.companions = new Map([['pet', { boons: runtime.boons, buffs: new Map() }]]);
   assert.equal(probe.query.statsAt(1, pet, runtime).power, 1290);
   assert.equal(probe.query.statsAt(1, pet, runtime).conditionDamage, 190);
   assert.equal(probe.query.statsAt(2, pet, runtime).power, 1200);

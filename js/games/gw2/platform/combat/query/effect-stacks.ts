@@ -27,10 +27,17 @@ export function appliedEffectStacks(
   const audience = recipient.actor === 'player' ? 'all' : 'summon';
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   // A retired entity has no live boons or buffs; earlier queries still see its accepted grants.
-  if (companionId && context.time >= (context.runtime?.retiredCompanions?.get(companionId) ?? Infinity)) return 0;
+  const retiredAt = companionId ? context.runtime?.retiredCompanions?.get(companionId) : undefined;
+  if (retiredAt != null)
+    return context.time >= retiredAt
+      ? 0
+      : (context.timeline?.buffStacksAt(kind, context.time, fallbackDuration, maximum, audience, companionId) ?? 0);
   if (!context.runtime)
     return context.timeline?.buffStacksAt(kind, context.time, fallbackDuration, maximum, audience, companionId) ?? 0;
-  const applications = (isStandardBoon(kind) ? context.runtime.boons : context.runtime.buffs)?.get(kind) ?? [];
+  // A live companion reads only its own disposable store, never the global report history.
+  const effects =
+    recipient.actor === 'companion' ? context.runtime.companions?.get(companionId ?? '') : context.runtime;
+  const applications = (isStandardBoon(kind) ? effects?.boons : effects?.buffs)?.get(kind) ?? [];
   // Accepted histories are chronological, so duration pools can replay without copying and sorting each query.
   return buffApplicationStacks(applications, kind, context.time, maximum, { audience, companionId, ordered: true });
 }

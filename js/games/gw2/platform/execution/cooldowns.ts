@@ -395,6 +395,15 @@ export function createCooldownController({
           lockoutReadyAt: ammo.lockoutRemaining > 0 ? at + ammo.lockoutRemaining : 0
         });
     },
+    retireCompanion(companionId: string, at: number) {
+      // Freeze remaining pet work at the normal rate; no discarded boon history is needed after retirement.
+      for (const [id, progress] of rechargeProgress) {
+        if (progress.companionId !== companionId) continue;
+        const skill = skillFor(id);
+        if (!skill) throw new Error(`Missing recharging companion skill ${id}`);
+        setReadyAt(id, at + remaining(skill, progress, at));
+      }
+    },
     resetAll() {
       // Discard every skill's deadline, recharge work, and ammo lockout so no old queue survives the reset.
       cooldowns.clear();

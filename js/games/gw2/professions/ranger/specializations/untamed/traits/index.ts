@@ -1,3 +1,4 @@
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
@@ -7,7 +8,10 @@ import {
   type RefreshedStacks
 } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -182,10 +186,11 @@ const ferociousSymbiosis = defineTrait({
 
       amount: (context) => {
         const state = untamedModifierState(context);
-        const pet = context.event?.source === 'ranger-pet';
-        // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
+        const companion = readProfessionCoreState<RangerCoreState>(context.runtime?.profession).pet;
+        const pet = context.event?.actorType === 'summon' && companion?.id === context.event.summonOwner;
+        // Damage ownership selects the pool: Ranger-owned pet skills such as Poisonous Cloud use player stacks.
         const stacks = activeRefreshedStacks(
-          pet ? state.ferociousSymbiosisPet : state.ferociousSymbiosisPlayer,
+          pet ? companion?.ferociousSymbiosis : state.ferociousSymbiosisPlayer,
           context.time,
           'exclusive'
         );
@@ -333,7 +338,6 @@ const vowOfTheUntamed = defineTrait({
 interface UntamedModifierState {
   readonly rangerUnleashed?: boolean;
   readonly ferociousSymbiosisPlayer?: RefreshedStacks;
-  readonly ferociousSymbiosisPet?: RefreshedStacks;
 }
 
 // The ambush damage bonus follows the same supported identities as availability and Let Loose.
@@ -355,18 +359,20 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
   const profile = requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const pet = context.profession.core.pet;
+  if (!pet) return;
   if (isPlayerStrike(event)) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPet', event.at)) return;
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
-    state.ferociousSymbiosisPet = grantRefreshedStacks(
-      state.ferociousSymbiosisPet,
+    pet.ferociousSymbiosis = grantRefreshedStacks(
+      pet.ferociousSymbiosis,
       1,
       event.at,
       event.at + duration,
       maximumStacks,
       'exclusive'
     );
-  } else if (isPetStrike(event)) {
+  } else if (isPetStrike(event) && event.actorType === 'summon' && event.summonOwner === pet.id) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPlayer', event.at)) return;
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
     state.ferociousSymbiosisPlayer = grantRefreshedStacks(
@@ -412,7 +418,7 @@ function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent
       audience: {
         recipients: 'party',
         maximumRecipients: 5,
-        eligibleCompanionIds: context.profession.core.petActive ? [rangerPetCompanionId(context)] : []
+        eligibleCompanionIds: context.profession.core.pet ? [rangerPetCompanionId(context)] : []
       }
     }),
     preserveName: true,

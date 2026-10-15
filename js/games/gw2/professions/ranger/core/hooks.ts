@@ -134,10 +134,12 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
 
     return prepareRangerPetEvent(
       runtime,
-      prepareGw2BuffCompanionCandidates(event, state.petActive ? [rangerPetCompanionId(runtime)] : [])
+      prepareGw2BuffCompanionCandidates(event, state.pet ? [rangerPetCompanionId(runtime)] : [])
     );
   },
   initialize(runtime) {
+    const pet = runtime.profession.core.pet;
+    if (pet) runtime.combat.registerCompanion(pet.id, pet.effects);
     runtime.fireTrigger(rangerInitialized, {});
     startRangerPet(runtime);
   },
@@ -200,18 +202,18 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       if (
         event.kind === 'pet-sharpen-spines' &&
         event.sourceId === ID.BRISTLEBACK_SHARPEN_SPINES &&
-        state.petActive &&
+        state.pet &&
         state.activePet === 'Bristleback' &&
         event.summonOwner === rangerPetCompanionId(runtime)
       )
-        state.petSharpenSpines = grantCharges(Number(event.stacks), runtime.time + Number(event.duration));
+        state.pet.sharpenSpines = grantCharges(Number(event.stacks), runtime.time + Number(event.duration));
       if (
         event.kind === 'paralyzing-venom' &&
         event.sourceId === ID.PARALYZING_VENOM &&
-        state.petActive &&
+        state.pet &&
         event.summonOwner === rangerPetCompanionId(runtime)
       )
-        state.paralyzingVenomUntil = runtime.time + Number(event.duration);
+        state.pet.paralyzingVenomUntil = runtime.time + Number(event.duration);
       if (event.kind === 'stealth' && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
         runtime.schedule('ranger.stealth', runtime.time, event.duration || 0, undefined, 10);
     }

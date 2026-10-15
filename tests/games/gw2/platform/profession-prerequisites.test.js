@@ -380,6 +380,7 @@ test('capped permanent Might skips history while uncapped and isolated summon qu
     if (configured >= 25) assert.equal(reads, 0);
     else assert.ok(reads > 0);
 
+    runtime.companions = new Map([['minion:one', { boons, buffs: new Map() }]]);
     const summon = { actorType: 'summon', summonOwner: 'minion:one' };
     assert.equal(query.mightStacksAt(0, runtime, summon), 0);
     assert.equal(query.mightStacksAt(1, runtime, summon), 2);
@@ -634,6 +635,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing independen
       resolvedAudience: resolvedAudience({ companionIds: ['fixture-minion'] })
     }
   ]);
+  runtime.companions = new Map([['fixture-minion', { boons: runtime.boons, buffs: new Map() }]]);
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1060);
 });
 
@@ -672,6 +674,7 @@ test('illusion stats and critical policies follow identity independently of disp
         ]
       ])
     };
+    runtime.companions = new Map([[event.summonOwner, { boons: runtime.boons, buffs: new Map() }]]);
     for (const source of [event.source, 'Renamed illusion', 'Player', undefined]) {
       const renamed = { ...event, source };
       assert.equal(query.statsAt(1, renamed).power, summonKind === 'phantasm' ? 1750 : 1000);

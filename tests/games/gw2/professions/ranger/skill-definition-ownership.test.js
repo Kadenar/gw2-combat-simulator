@@ -22,7 +22,7 @@ test('Ranger activation declarations are the sole owners of their grants and tra
       (r) => r.profession.core.sharpeningStoneGrants.reduce((sum, grant) => sum + grant.charges, 0),
       0
     ],
-    ['Core', ID.DOUBLE_ARC, [], (r) => r.profession.core.poisonousStrikes.charges, 0],
+    ['Core', ID.DOUBLE_ARC, [], (r) => r.profession.core.pet.poisonousStrikes.charges, 0],
     ['Core', ID.CRIPPLING_SHOT, [], (r) => r.profession.core.bloodThirst.charges, 0],
     ['Core', ID.WINTERS_BITE, [], (r) => r.profession.core.winterBiteReady, false],
     ['Core', ID.PET_SWAP, [], (r) => r.profession.core.activePetSlot, 1],
@@ -58,7 +58,11 @@ test('declared charge grants preserve replacement, additive expiry, and cancella
     assert.deepEqual(result.warnings, []);
     const grants = result.events.filter((event) => event.type === type);
     assert.equal(grants.length, 2);
-    const state = observedRuntime(result).profession.core[pool];
+    const state = (
+      pool === 'poisonousStrikes'
+        ? observedRuntime(result).profession.core.pet
+        : observedRuntime(result).profession.core
+    )[pool];
     if (Array.isArray(state)) {
       assert.deepEqual(
         state,
@@ -69,7 +73,12 @@ test('declared charge grants preserve replacement, additive expiry, and cancella
       assert.equal(state.expiresAt, grants[1].at + grants[1].duration);
       const cancelled = runRanger([{ type: 'cast', skillId, interruptMs: 1 }], {}, { extend });
       assert.deepEqual(cancelled.warnings, []);
-      assert.equal(observedRuntime(cancelled).profession.core[pool].charges, 0);
+      assert.equal(
+        (pool === 'poisonousStrikes'
+          ? observedRuntime(cancelled).profession.core.pet
+          : observedRuntime(cancelled).profession.core)[pool].charges,
+        0
+      );
     }
   }
 });

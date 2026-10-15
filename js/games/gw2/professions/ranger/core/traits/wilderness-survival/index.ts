@@ -279,18 +279,18 @@ function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill)
 
 function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  // Beastmode transfers the armed pet attack to the Ranger, retaining the trait's player-scaled poison.
+  // Player and pet hold separate grants; either route retains the trait's player-scaled poison.
   const specialization = context.profession.specialization;
   const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
   // Ranger-owned Cloud/vine packets retain pet provenance, but cannot spend the companion's next-strike grant.
   const eligible = merged
-    ? state.poisonMasterAttackOwner === 'player' && isPlayerStrike(event)
-    : state.petActive &&
+    ? state.playerPoisonMasterReady && isPlayerStrike(event)
+    : state.pet &&
       isPetStrike(event) &&
       event.actorType === 'summon' &&
       event.summonOwner === rangerPetCompanionId(context) &&
-      state.poisonMasterAttackOwner === event.summonOwner;
-  if (!state.poisonMasterAttackOwner || !eligible || !(Number(event.coefficient) > 0)) {
+      state.pet.poisonMasterReady;
+  if (!eligible || !(Number(event.coefficient) > 0)) {
     return;
   }
 
@@ -298,7 +298,8 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
   if (!poison) return;
-  state.poisonMasterAttackOwner = null;
+  if (merged) state.playerPoisonMasterReady = false;
+  else state.pet!.poisonMasterReady = false;
   emitTraitProfile(context, TRAIT.POISON_MASTER, TRAIT.POISON_MASTER, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -344,7 +345,8 @@ function handlePoisonMasterGrant(context: RangerResolverContext, event: Gw2Resol
   if (hasTrait(context, TRAIT.POISON_MASTER)) {
     const state = professionCoreState(context);
     // A delayed grant can only reach the companion that accepted the command, never a newer incarnation.
-    if (event.summonOwner && (!state.petActive || event.summonOwner !== rangerPetCompanionId(context))) return;
-    state.poisonMasterAttackOwner = typeof event.summonOwner === 'string' ? event.summonOwner : 'player';
+    if (event.summonOwner && (!state.pet || event.summonOwner !== rangerPetCompanionId(context))) return;
+    if (event.summonOwner && state.pet) state.pet.poisonMasterReady = true;
+    else if (!event.summonOwner) state.playerPoisonMasterReady = true;
   }
 }

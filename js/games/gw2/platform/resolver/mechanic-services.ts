@@ -1,3 +1,4 @@
+import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -43,6 +44,7 @@ export interface MechanicCombatServices {
     select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
     expiry: (at: number) => number
   ): void;
+  registerCompanion(companionId: string, effects: CompanionEffects): void;
   retireCompanion(companionId: string, removedAt: number): void;
   fieldFor(skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined;
   expireField(fieldId: string, at: number): void;
@@ -56,6 +58,9 @@ export interface MechanicCombatServices {
 /** Mechanics request shared-state changes at their existing phase; resolver stores never leave their owner. */
 export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): MechanicCombatServices {
   return Object.freeze({
+    registerCompanion(companionId: string, effects: CompanionEffects): void {
+      runtime.companions.set(companionId, effects);
+    },
     companionRetiredAt: (companionId: string): number | undefined => runtime.retiredCompanions.get(companionId),
     activeBoonStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
       activeBoonStacks({ config: runtime.config, runtime, time: at }, kind, maximum, recipient),
@@ -82,25 +87,41 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       recipient.companionId &&
       at >= (runtime.retiredCompanions.get(recipient.companionId) ?? Infinity)
         ? { stacks: 0, duration: 0 }
-        : liveBoonSnapshot(runtime.boons.get(kind) ?? [], runtime.config, kind, at, recipient),
+        : liveBoonSnapshot(
+            (recipient.actor === 'companion'
+              ? runtime.companions.get(recipient.companionId ?? '')?.boons
+              : runtime.boons
+            )?.get(kind) ?? [],
+            runtime.config,
+            kind,
+            at,
+            recipient
+          ),
     reviseBuffExpiry(
       kind: string,
       select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
       expiry: (at: number) => number
     ): void {
-      const applications = runtime.buffs.get(kind);
-      if (applications)
-        runtime.buffs.set(
-          kind,
-          applications.map((application) =>
-            select(application) ? { ...application, expiresAt: expiry(application.expiresAt) } : application
-          )
-        );
+      // Live recipient stores and reporting history receive the same explicit consumption.
+      for (const buffs of [runtime.buffs, ...[...runtime.companions.values()].map((effects) => effects.buffs)]) {
+        const applications = buffs.get(kind);
+        if (applications)
+          buffs.set(
+            kind,
+            applications.map((application) =>
+              select(application) ? { ...application, expiresAt: expiry(application.expiresAt) } : application
+            )
+          );
+      }
     },
     retireCompanion(companionId: string, removedAt: number): void {
       // Retire the entity, not its shared grants to other recipients or ranger-owned damage.
       if (runtime.retiredCompanions.has(companionId)) return;
       runtime.retiredCompanions.set(companionId, removedAt);
+      const effects = runtime.companions.get(companionId);
+      effects?.boons.clear();
+      effects?.buffs.clear();
+      runtime.companions.delete(companionId);
       // End future payouts and live stacks without rolling back damage already settled.
       for (const condition of runtime.conditionState.values())
         for (const stack of condition.stacks) {

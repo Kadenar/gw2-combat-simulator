@@ -153,7 +153,7 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
       effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
     };
     // Bind real owner operations for this focused mechanic fixture.
-    context.combat = createMechanicCombatServices(context);
+    context.combat = createMechanicCombatServices(Object.assign(context, { companions: new Map() }));
     bindTriggerPoints(context, elementalistProfession, { specialization: 'Tempest' });
     context.fireTrigger(auraAccepted, {
       cause: { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', ...origin }
@@ -189,7 +189,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     }).effects
   };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(Object.assign(context, { companions: new Map() }));
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Catalyst' });
   const event = { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystRuntime.reactions['aura.applied'](context, event);

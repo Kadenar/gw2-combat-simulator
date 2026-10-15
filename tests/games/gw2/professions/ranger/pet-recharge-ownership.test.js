@@ -2,9 +2,60 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
+import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+// A request waiting for the pet lane spends no recharge; an executed command retains its global recharge after retirement.
+for (const retireBy of ['swap', 'merge']) {
+  test(`pet command cooldown starts only when the pet acts before ${retireBy}`, () => {
+    for (const queued of [false, true]) {
+      let readyAt;
+      const result = runRanger(
+        ['Fang Grapple', { type: 'wait', durationMs: 6000 }],
+        {
+          specialization: retireBy === 'merge' ? 'Soulbeast' : 'Core',
+          selectedPet: 'Fanged Iboga',
+          selectedPet2: 'Tiger'
+        },
+        {
+          initialize(runtime) {
+            if (retireBy === 'merge')
+              setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.LEAVE_BEASTMODE), false);
+            if (queued) runtime.profession.core.pet.busyUntil = 5;
+          },
+          timeline: [
+            {
+              at: 0.5,
+              run(runtime) {
+                if (retireBy === 'merge')
+                  setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.BEASTMODE), true);
+                else swapRangerPets(runtime.mechanics, runtime.helpers.skillsById.get(ID.PET_SWAP));
+              }
+            }
+          ],
+          probes: [
+            [
+              6,
+              (runtime) => {
+                readyAt = runtime.cooldownController.readyAt(ID.FANG_GRAPPLE) ?? 0;
+              }
+            ]
+          ]
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      assert.equal(
+        result.events.some((event) => event.type === 'action' && event.skillId === ID.FANG_GRAPPLE),
+        !queued
+      );
+      if (queued) assert.equal(readyAt, 0);
+      else assert.ok(readyAt > 6);
+    }
+  });
+}
 
 // Natural pet skills must stay available independently of their same-named merged counterparts.
 test('Jacaranda Photosynthesize resolves to a companion skill outside and inside Soulbeast', () => {
@@ -42,7 +93,7 @@ test('commanded Jacaranda Photosynthesize recharges and grants regeneration only
       probes: [3, 10].map((at) => [
         at,
         (runtime) => {
-          const progress = runtime.profession.core.petCommandRecharges[ID.JACARANDA_PHOTOSYNTHESIZE];
+          const progress = runtime.cooldownController.rechargeFor(ID.JACARANDA_PHOTOSYNTHESIZE);
           const skill = runtime.helpers.skillsById.get(ID.JACARANDA_PHOTOSYNTHESIZE);
           assert.ok(progress);
           assert.equal(progress.companionId, rangerPetCompanionId(runtime));
@@ -130,11 +181,11 @@ for (const [label, grantAt, duration] of [
           [
             10,
             (runtime) => {
-              const progress = runtime.profession.core.petAutoRecharges[ID.PET_TAIL_LASH];
+              const progress = runtime.cooldownController.rechargeFor(ID.PET_TAIL_LASH);
               assert.equal(progress.companionId, rangerPetCompanionId(runtime));
               sample = {
                 ...progress,
-                readyAt: runtime.cooldownController.project(runtime.helpers.skillsById.get(ID.PET_TAIL_LASH), progress)
+                readyAt: runtime.cooldownController.readyAt(ID.PET_TAIL_LASH)
               };
             }
           ]
@@ -164,14 +215,14 @@ for (const [label, grantAt, duration] of [
 }
 
 // Retiring a pet ends its boon window; a replacement or returning incarnation cannot rewrite that earned work.
-test('autonomous recharge retains its original companion across retirement and swap-back', () => {
+test('autonomous recharge discards Alacrity and retains earned work across retirement and swap-back', () => {
   const samples = [];
   const sample = (runtime) => {
-    const progress = runtime.profession.core.petAutoRecharges[ID.PET_TAIL_LASH];
+    const progress = runtime.cooldownController.rechargeFor(ID.PET_TAIL_LASH);
     samples.push({
       ...progress,
       current: rangerPetCompanionId(runtime),
-      readyAt: runtime.cooldownController.project(runtime.helpers.skillsById.get(ID.PET_TAIL_LASH), progress)
+      readyAt: runtime.cooldownController.readyAt(ID.PET_TAIL_LASH)
     });
   };
 
@@ -202,12 +253,14 @@ test('autonomous recharge retains its original companion across retirement and s
   );
   assert.deepEqual(result.warnings, []);
   const [beforeSwap, retired, returned] = samples;
-  assert.equal(retired.companionId, beforeSwap.companionId);
-  assert.equal(returned.companionId, beforeSwap.companionId);
+  assert.equal(retired.companionId, undefined);
+  assert.equal(returned.companionId, undefined);
   assert.notEqual(returned.current, returned.companionId);
   assert.equal(returned.readyAt, retired.readyAt);
   assert.ok(retired.readyAt > beforeSwap.readyAt);
-  assert.ok(Math.abs(retired.readyAt - (retired.startedAt + retired.work - (6 - retired.startedAt) * 0.25)) < 1e-9);
+  assert.ok(
+    Math.abs(retired.readyAt - (beforeSwap.startedAt + beforeSwap.work - (6 - beforeSwap.startedAt) * 0.25)) < 1e-9
+  );
 });
 
 // Tiger's autonomous policy remains immune even when that exact companion receives Alacrity.
@@ -221,17 +274,27 @@ test('Tiger autonomous recharge keeps its Alacrity immunity', () => {
         initialize(runtime) {
           if (duration) grantAlacrity(runtime, duration);
         },
-        probes: [[1, (runtime) => samples.push({ ...runtime.profession.core.petAutoRecharges[ID.FELINE_BITE] })]]
+        probes: [
+          [
+            1,
+            (runtime) =>
+              samples.push({
+                readyAt: runtime.cooldownController.readyAt(ID.FELINE_BITE),
+                progress: runtime.cooldownController.rechargeFor(ID.FELINE_BITE)
+              })
+          ]
+        ]
       }
     );
     assert.deepEqual(result.warnings, []);
     const progress = samples.at(-1);
-    assert.equal(progress.ignoresAlacrity, true);
+    assert.equal(progress.progress, undefined);
+    assert.ok(progress.readyAt > 1);
     const repeat = result.events.find(
-      (event) => event.type === 'action' && event.skillId === ID.FELINE_BITE && event.at > progress.startedAt
+      (event) => event.type === 'action' && event.skillId === ID.FELINE_BITE && event.at >= progress.readyAt
     );
     assert.ok(repeat);
-    assert.ok(repeat.at >= gw2CooldownReadyAt(progress.startedAt + progress.work));
+    assert.ok(repeat.at >= gw2CooldownReadyAt(progress.readyAt));
   }
 
   assert.deepEqual(samples[0], samples[1]);
@@ -245,9 +308,8 @@ test('swap-back grants cannot accelerate recharge earned by the previous pet inc
     const progress = runtime.cooldownController.rechargeFor(skill.id);
     samples.push({
       current: rangerPetCompanionId(runtime),
-      owner: progress.companionId,
-      readyAt: runtime.cooldownController.project(skill, progress),
-      baseReadyAt: progress.startedAt + progress.work
+      owner: progress?.companionId,
+      readyAt: runtime.cooldownController.readyAt(skill.id)
     });
   };
 
@@ -316,7 +378,7 @@ test('swap-back grants cannot accelerate recharge earned by the previous pet inc
   assert.equal(samples[0].owner, samples[1].owner);
   assert.notEqual(samples[1].owner, samples[1].current);
   assert.equal(samples[0].readyAt, samples[1].readyAt);
-  assert.equal(samples[1].readyAt, samples[1].baseReadyAt);
+  assert.equal(samples[1].owner, undefined);
 });
 
 // Compare real commanded recharges after a pet swap; only the addressed incarnation may accelerate them.
@@ -376,7 +438,7 @@ test('replacement pet recharge ignores outgoing, expired and player-only Alacrit
             5,
             (runtime) => {
               const skill = runtime.helpers.skillsById.get(ID.POISONOUS_CLOUD);
-              const progress = runtime.profession.core.petCommandRecharges[skill.id];
+              const progress = runtime.cooldownController.rechargeFor(skill.id);
               assert.equal(progress.companionId, rangerPetCompanionId(runtime));
               assert.equal(runtime.cooldownController.rechargeFor(skill.id).companionId, progress.companionId);
               sample = {

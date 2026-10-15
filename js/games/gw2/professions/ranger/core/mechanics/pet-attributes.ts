@@ -20,7 +20,8 @@ import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/rang
 
 export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {
   const state = professionCoreState(context);
-  return `ranger-pet:${state.activePetSlot}:${state.petAutoGeneration}`;
+  if (!state.pet) throw new Error('An active pet is required for companion identity.');
+  return state.pet.id;
 }
 
 function petHasSelectedSkill(context: RangerRuntime, skillId: number): boolean {

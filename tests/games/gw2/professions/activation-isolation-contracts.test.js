@@ -1,3 +1,4 @@
+import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -201,7 +202,8 @@ test('Fortifying Bond isolates configured and delivered boon admission and exclu
           { traitTriggers, selectedTraitIds: selected ? [RT.FORTIFYING_BOND] : [], boons: { might: 1 } },
           {
             initialize(runtime) {
-              runtime.profession.core.petActive = activePet;
+              // Attribute fixture retirement so its marker satisfies the same event contract as a real swap.
+              setRangerPetActive(runtime.mechanics, activePet, R.PET_SWAP);
             },
             timeline: [packet(cause(1, { type: 'buff', kind: 'fury', stacks: 1, duration: 2 }))]
           }

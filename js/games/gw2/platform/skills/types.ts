@@ -77,6 +77,8 @@ export interface Skill extends CatalogEntity {
   readonly canCastConcurrently?: boolean;
   readonly lockouts?: readonly SkillLockout[];
   readonly rechargeAnchor?: 'castStart' | 'castEnd';
+  /** An independently scheduled actor starts its recharge when its own action executes. */
+  readonly rechargeOwner?: 'actor';
   readonly rechargeOffsetMs?: number;
   /** Fraction of the accepted interval to the recharge anchor, before any fixed offset. */
   readonly rechargeProgress?: number;

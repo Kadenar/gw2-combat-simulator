@@ -72,6 +72,9 @@ function normalize(skill: RangerSkill): RangerSkill {
     independentCast: petSkill || unleashedPetSkill,
     independentCastCanOverlap: petSkill,
     usableWhileRecharging: petSkill || skill.usableWhileRecharging,
+    // Pet recharge begins on its own execution lane, independently of the player's command reservation.
+    rechargeOwner: petSkill ? 'actor' : skill.rechargeOwner,
+    rechargeAnchor: petSkill ? 'castStart' : skill.rechargeAnchor,
     rechargeBuffAudience: petSkill ? 'summon' : skill.rechargeBuffAudience,
     beastmodeSkill,
     unleashedPetSkill,

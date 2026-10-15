@@ -1,3 +1,4 @@
+import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import type {
@@ -55,6 +56,7 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   // Record before reactions so their boon queries include this application at its timestamp.
   // Accepted standard boons and ordinary buffs have exclusive stores, shared recipients and causal ordering.
   recordBuffApplication(isStandardBoon(kind) ? ctx.boons : ctx.buffs, event);
+  recordCompanionBuff(ctx.companions, event);
   reactions.dispatch('buff.applied', ctx, event);
 }
 
@@ -92,6 +94,7 @@ export function createGw2ResolverEventHandlers({
     },
     boon_extension(ctx, event) {
       applyBoonExtension(ctx.boons, event);
+      for (const effects of ctx.companions.values()) applyBoonExtension(effects.boons, event);
       if (ctx.reporting) ctx.resolved.push(event);
     },
 

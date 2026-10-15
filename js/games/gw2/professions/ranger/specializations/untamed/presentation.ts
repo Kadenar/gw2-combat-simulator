@@ -47,7 +47,7 @@ function untamedStateSnapshot(context: RangerUiContext, maximumStacks: number): 
   // Both read paths query the canonical beneficiary pool without settling live state.
   for (const [id, beneficiary, pool] of [
     ['untamed-ferocious-symbiosis-player', 'Player', state.ferociousSymbiosisPlayer],
-    ['untamed-ferocious-symbiosis-pet', 'Pet', state.ferociousSymbiosisPet]
+    ['untamed-ferocious-symbiosis-pet', 'Pet', state.pet?.ferociousSymbiosis]
   ] as const) {
     const remaining = (pool?.expiresAt || 0) - at;
     const stacks = boundedInteger(activeRefreshedStacks(pool, at, 'exclusive'), 0, 0, maximumStacks);

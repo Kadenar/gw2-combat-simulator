@@ -1,3 +1,4 @@
+import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -5,11 +6,17 @@ import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 
 // Record only executed grants so each query observes its exact position in same-time event ordering.
 function fixture(boons = {}) {
-  const runtime = { config: { boons }, boons: new Map(), buffs: new Map(), retiredCompanions: new Map() };
+  const runtime = {
+    companions: new Map(),
+    config: { boons },
+    boons: new Map(),
+    buffs: new Map(),
+    retiredCompanions: new Map()
+  };
   return {
     combat: createMechanicCombatServices(runtime),
     grant(kind, at, duration, stacks, companionId) {
-      recordBuffApplication(runtime.boons, {
+      const event = {
         type: 'buff',
         kind,
         at,
@@ -22,7 +29,9 @@ function fixture(boons = {}) {
           alliedPlayerCount: 0,
           recipientCount: 1
         }
-      });
+      };
+      recordBuffApplication(runtime.boons, event);
+      recordCompanionBuff(runtime.companions, event);
     }
   };
 }

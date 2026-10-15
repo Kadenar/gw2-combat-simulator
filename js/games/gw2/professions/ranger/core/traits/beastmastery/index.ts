@@ -329,7 +329,7 @@ function applyRangerCommandTraits(
   skill: Pick<RangerSkill, 'name'>,
   at: number
 ): void {
-  if (!professionCoreState(context).petActive) return;
+  if (!professionCoreState(context).pet) return;
 
   for (const kind of GW2_STANDARD_BOONS) {
     // The shared live query owns boon pools; this trait owns their unchanged-duration copy to the active pet.

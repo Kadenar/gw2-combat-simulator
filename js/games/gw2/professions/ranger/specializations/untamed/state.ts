@@ -17,8 +17,6 @@ export interface UntamedState {
 
   ferociousSymbiosisPlayer: RefreshedStacks;
 
-  ferociousSymbiosisPet: RefreshedStacks;
-
   untamedActivationClaims: ActivationClaims;
 }
 
@@ -26,8 +24,7 @@ export interface UntamedState {
 export const UNTAMED_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   rangerUnleashed: false,
   ambushReadyUntil: 0,
-  ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 },
-  ferociousSymbiosisPet: { stacks: 0, expiresAt: 0 }
+  ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 }
 } satisfies Partial<RangerState>);
 
 export function createUntamedState(config: RangerConfig = {}): UntamedState {
@@ -43,8 +40,6 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
     // Player and pet track separate stacks because each cross-triggers the other's buff.
     ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 },
     // 0.5s ICD per source prevents multi-hit skills from inflating stacks.
-
-    ferociousSymbiosisPet: { stacks: 0, expiresAt: 0 },
 
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.
     untamedActivationClaims: {}

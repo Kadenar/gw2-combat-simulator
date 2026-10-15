@@ -24,7 +24,7 @@ export function rangerCoreCastAvailability(
   skill: RangerSkill
 ): AvailabilityResult {
   const state = professionCoreState(context);
-  if (skill.id === ID.PET_SWAP && !state.petActive) {
+  if (skill.id === ID.PET_SWAP && !state.pet) {
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 
@@ -71,7 +71,7 @@ export function rangerCoreCastAvailability(
     return denySkillCast(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
   }
 
-  if (!state.petActive) {
+  if (!state.pet) {
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
 

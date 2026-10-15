@@ -27,7 +27,11 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
   when: (context) => {
     const recipient = attackRecipient(context.event);
     if (!recipient) return false;
-    return (context.runtime?.buffs?.get(`attack-of-opportunity-${recipient}`) || []).some(
+    const buffs =
+      recipient === 'pet'
+        ? context.runtime?.companions?.get(String(context.event?.summonOwner))?.buffs
+        : context.runtime?.buffs;
+    return (buffs?.get(`attack-of-opportunity-${recipient}`) || []).some(
       (application) =>
         application.at <= context.time &&
         application.expiresAt > context.time &&

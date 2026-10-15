@@ -231,7 +231,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
       time: 0,
       cooldowns: new Map(),
       profession: {
-        core: { activePet: 'Pig', activePetSlot: 1, petAutoGeneration: 0 }
+        core: { activePet: 'Pig', activePetSlot: 1, pet: { id: 'ranger-pet:1:0' } }
       }
     }
   });
@@ -714,7 +714,8 @@ test('Ranger pet commands require received Alacrity', () => {
   const rechargeMs = (result) => {
     const step = result.steps.find((candidate) => candidate.skill === 'Fang Grapple');
 
-    return result.planningState.cooldowns[step.skillId].readyAt - step.end;
+    const action = result.events.find((event) => event.type === 'action' && event.skillId === step.skillId);
+    return result.planningState.cooldowns[step.skillId].readyAt - action.at * 1000;
   };
 
   assert.equal(rechargeMs(playerAlacrity), 20000);
@@ -882,7 +883,7 @@ test("Pack Alpha improves only the Pig's five documented attributes", () => {
     state: {
       cooldowns: new Map(),
       profession: {
-        core: { activePet: 'Pig', activePetSlot: 1, petAutoGeneration: 0 }
+        core: { activePet: 'Pig', activePetSlot: 1, pet: { id: 'ranger-pet:1:0' } }
       }
     }
   });
@@ -921,7 +922,7 @@ test('Tiger uses its documented attributes and nominal Bite recharge', () => {
     time: 0,
     cooldownController: { readyAt: () => undefined },
     profession: {
-      core: { activePet: 'Tiger', activePetSlot: 1, petAutoGeneration: 0 }
+      core: { activePet: 'Tiger', activePetSlot: 1, pet: { id: 'ranger-pet:1:0' } }
     }
   });
 
@@ -996,7 +997,7 @@ test('Ranger autonomous pet cooldowns require shared Alacrity', () => {
       const runtime = observedRuntime(result);
       const readyAt = runtime.cooldownController.project(
         runtime.helpers.skillsById.get(ID.PET_TAIL_LASH),
-        runtime.profession.core.petAutoRecharges[ID.PET_TAIL_LASH]
+        runtime.cooldownController.rechargeFor(ID.PET_TAIL_LASH)
       );
       assert.equal(readyAt - action.at, grant && sharePlayerBoonsWithSummons ? 16 : 20);
       assert.deepEqual(result.warnings, []);

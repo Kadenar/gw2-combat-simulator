@@ -146,6 +146,7 @@ const SKILL_FIELDS = new Set([
   'radiantForgeSkill',
   'radiantWeapon',
   'rechargeAnchor',
+  'rechargeOwner',
   'rechargeBuffAudience',
   'rechargeIgnoresAlacrity',
   'rechargeOffsetMs',
@@ -486,6 +487,9 @@ export function normalizeSkill<TSkill extends Skill>(
     throw new TypeError(`Skill ${id} has an invalid retainsCastLockoutAfterInterrupt.`);
   }
 
+  // Actor-owned recharge must explicitly opt out of player cast completion.
+  if (merged.rechargeOwner != null && merged.rechargeOwner !== 'actor')
+    throw new TypeError(`Skill ${id} has invalid rechargeOwner.`);
   if (merged.rechargeAnchor != null && !RECHARGE_ANCHORS.has(merged.rechargeAnchor)) {
     throw new TypeError(`Skill ${id} has invalid rechargeAnchor ` + `"${merged.rechargeAnchor}".`);
   }

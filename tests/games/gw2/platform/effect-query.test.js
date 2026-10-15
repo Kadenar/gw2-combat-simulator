@@ -1,3 +1,4 @@
+import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
@@ -37,7 +38,7 @@ test('boon presence and stacks agree in previews without exposing scheduled gran
   assert.equal(activeBoonStacks(context, 'fury'), 1);
   assert.equal(activeBoonStacks(context, 'might'), 5);
   assert.equal(activeBoonStacks(context, 'might', 4), 4);
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map(), companions: new Map() };
   const live = { ...context, runtime };
   assert.equal(boonActive(live, 'fury'), false);
   assert.equal(activeBoonStacks(live, 'fury'), 0);
@@ -63,9 +64,11 @@ test('boon and buff queries isolate recipients and player assumptions in live an
     grant('custom', 4, 'old-pet'),
     grant('custom', 9, 'new-pet')
   ];
-  const runtime = { boons: new Map(), buffs: new Map() };
-  for (const event of events)
+  const runtime = { boons: new Map(), buffs: new Map(), companions: new Map() };
+  for (const event of events) {
     recordBuffApplication(['might', 'fury'].includes(event.kind) ? runtime.boons : runtime.buffs, event);
+    recordCompanionBuff(runtime.companions, event);
+  }
 
   const config = { boons: { might: 5, quickness: true }, fixedBoonCount: 12 };
   const preview = { time: 2, config, timeline: createGw2TimelineIndex({ events }) };
@@ -103,7 +106,7 @@ test('Mesmer preview duration defaults do not replace accepted buff lifetimes', 
   const preview = { time: 2, timeline: createGw2TimelineIndex({ events: [event] }) };
   assert.equal(timedStacks(preview, 'fencer', 5, 10), 2);
   assert.equal(timedStacks({ ...preview, time: 6 }, 'fencer', 5, 10), 0);
-  const runtime = { boons: new Map(), buffs: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map(), companions: new Map() };
   assert.equal(timedStacks({ ...preview, runtime }, 'fencer', 5, 10), 0);
   recordBuffApplication(runtime.buffs, { ...event, duration: 1 });
   assert.equal(timedStacks({ ...preview, runtime, time: 1 }, 'fencer', 5, 10), 2);

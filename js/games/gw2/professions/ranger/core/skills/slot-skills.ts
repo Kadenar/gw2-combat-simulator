@@ -502,8 +502,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
 
 /** Copy both actors from one executed-time snapshot so the first copy never feeds the second. */
 export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
-  const companionId = rangerPetCompanionId(runtime);
-  const petActive = runtime.profession.core.petActive;
+  const activePet = runtime.profession.core.pet;
+  const companionId = activePet?.id ?? null;
   const copies = (cast.skill.effects ?? [])
     .filter((effect) => effect.type === 'boon')
     .map((effect) => {
@@ -513,7 +513,7 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
         kind,
         duration: Number(effect.duration),
         player,
-        pet: petActive
+        pet: activePet
           ? runtime.combat.boonSnapshot(kind, runtime.time, { actor: 'companion', companionId }).stacks
           : player
       };
@@ -525,7 +525,7 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
     );
     if (pet > 0)
       runtime.effects.emit({ kind: 'packet', event: { ...event, stacks: pet, audience: { recipients: 'self' } } });
-    if (petActive && player > 0)
+    if (activePet && player > 0)
       runtime.effects.emit({
         kind: 'packet',
         event: {
@@ -535,7 +535,7 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
             recipients: 'summons',
             affectsSelf: false,
             maximumRecipients: 1,
-            eligibleCompanionIds: [companionId]
+            eligibleCompanionIds: [activePet.id]
           }
         }
       });
@@ -602,7 +602,7 @@ export function emitStormSpiritSlam(
 export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
   const specialization = runtime.profession.specialization;
   const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
-  for (const kind of [...(runtime.profession.core.petActive ? ['sic-em-pet'] : []), ...(merged ? ['sic-em'] : [])])
+  for (const kind of [...(runtime.profession.core.pet ? ['sic-em-pet'] : []), ...(merged ? ['sic-em'] : [])])
     runtime.effects.emit({
       kind: 'packet',
       event: buildRangerPacket(

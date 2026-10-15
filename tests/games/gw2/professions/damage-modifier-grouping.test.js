@@ -104,13 +104,12 @@ test('Untamed adds Symbiosis to Vow and sigils before multiplying Blinding Outbu
         event: { source: 'ranger', actorType: 'player', skillId: RANGER_SKILLS.HAMMER_SLAM },
         runtime: {
           profession: {
-            core: {},
+            core: { pet: { id: 'pet', ferociousSymbiosis: { stacks: 5, expiresAt: 10 } } },
             specialization: {
               kind: 'Untamed',
               state: {
                 rangerUnleashed,
-                ferociousSymbiosisPlayer: { stacks, expiresAt: 10 },
-                ferociousSymbiosisPet: { stacks: 5, expiresAt: 10 }
+                ferociousSymbiosisPlayer: { stacks, expiresAt: 10 }
               }
             }
           }
@@ -126,7 +125,12 @@ test('Untamed adds Symbiosis to Vow and sigils before multiplying Blinding Outbu
       assertClose(rules.modifyStrikeDamage(context, 1), outgoingPool);
 
       // Pet Outburst uses its own stacks and does not receive the player's Vow or equipped sigils.
-      context.event = { source: 'ranger-pet', actorType: 'summon', skillId: RANGER_SKILLS.VENOMOUS_OUTBURST };
+      context.event = {
+        source: 'ranger-pet',
+        summonOwner: 'pet',
+        actorType: 'summon',
+        skillId: RANGER_SKILLS.VENOMOUS_OUTBURST
+      };
       context.damageInputs.strikeSigilBonus = 0;
       assertClose(rules.modifyStrikeDamage(context, 1), 1.25 * 1.25);
     }

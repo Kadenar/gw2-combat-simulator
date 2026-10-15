@@ -19,6 +19,8 @@ export function grantSkillCharges(
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         activationId: cast.id,
+        // Capture the beneficiary before same-time swaps or merge transitions can replace it.
+        ...(type === 'ranger.poisonous-strikes' ? { summonOwner: runtime.profession.core.pet?.id } : {}),
         charges: balanceProfileNumber(profile, 'playerStacks'),
         duration: balanceProfileNumber(profile, 'durationMultiplier')
       },

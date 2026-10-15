@@ -67,6 +67,8 @@ export interface CooldownController {
   ): void;
   /** Reset all recharge and ammunition pools at an authored reset boundary. */
   resetAll(): void;
+  /** Keep earned work while removing the departing companion and its Alacrity from running cooldowns. */
+  retireCompanion(companionId: string, at: number): void;
   /** Starts a cooldown with base-recharge work; fixed deadlines use setReadyAt instead. */
   startRecharge(skill: Skill, at: number, work?: number, companionId?: string): number;
   setReadyAt(skillId: SkillId, readyAt: number): void;

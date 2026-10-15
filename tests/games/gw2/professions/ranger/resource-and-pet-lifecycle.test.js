@@ -197,7 +197,7 @@ test('pet swaps cancel outgoing projectiles and unfinished melee attacks', () =>
       assert.deepEqual(outgoing, []);
 
       const swap = result.events.find((event) => event.type === 'ranger.pet-swapped');
-      assert.equal(swap.generation, 1);
+      assert.equal(swap.companionId, 'ranger-pet:2:1');
       assert.equal(
         result.events.some(
           (event) =>
@@ -223,7 +223,7 @@ test('a swap retires a queued command before its pet can start it', () => {
     {
       initialize(runtime) {
         // Reserve the pet lane past the swap; the player remains free to replace the pet immediately.
-        runtime.profession.core.petAutoBusyUntil = 10;
+        runtime.profession.core.pet.busyUntil = 10;
       }
     }
   );

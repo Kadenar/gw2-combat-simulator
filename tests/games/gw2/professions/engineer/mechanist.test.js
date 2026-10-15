@@ -1,3 +1,4 @@
+import { createCompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
@@ -123,6 +124,7 @@ test('Overclock reduces other signet recharges only while its passive is availab
 test('mech Quickness uses its own boon audience and retains copied applications', () => {
   // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
   const context = {
+    companions: new Map([['engineer.mech', createCompanionEffects()]]),
     catalog: engineerCatalog,
     boons: new Map(),
     buffs: new Map(),
@@ -143,7 +145,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);
   context.config = { boons: {}, selectedSkillIds: [] };
-  recordBuffApplication(context.boons, {
+  recordBuffApplication(context.companions.get('engineer.mech').boons, {
     source: 'fixture',
     sourceId: 'boon',
     actorType: 'player',

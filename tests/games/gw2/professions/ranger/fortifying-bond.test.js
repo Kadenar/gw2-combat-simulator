@@ -1,7 +1,6 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -27,7 +26,7 @@ test('Fortifying Bond shares only player-sourced self boons and scales its durat
             buffPolicies: (runtime) => [...native.buffPolicies(runtime), { kind: 'custom-buff' }]
           }),
           initialize(runtime) {
-            petId = rangerPetCompanionId(runtime);
+            petId = runtime.profession.core.pet?.id;
             for (const [index, grant] of [
               { kind: 'might', stacks: 4, actorType: 'player' },
               { kind: 'quickness', actorType: 'player', metadata: { triggeredByAlly: 1 } },

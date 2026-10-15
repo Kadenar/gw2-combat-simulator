@@ -230,7 +230,13 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
       ]
     ])
   );
-  const context = { buffs, profession: { core: { petActive: false } } };
+  const companions = new Map([
+    [
+      'pet-1',
+      { buffs: new Map([['attack-of-opportunity-pet', [...buffs.get('attack-of-opportunity-pet')]]]), boons: new Map() }
+    ]
+  ]);
+  const context = { buffs, companions, profession: { core: { pet: null } } };
   // Bind real owner operations for this focused mechanic fixture.
   context.combat = createMechanicCombatServices(context);
   const event = {
@@ -242,7 +248,7 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
     coefficient: 1
   };
   const active = (packet) =>
-    rangerAttackOfOpportunityModifier.when({ runtime: { buffs }, event: packet, time: packet.at });
+    rangerAttackOfOpportunityModifier.when({ runtime: { buffs, companions }, event: packet, time: packet.at });
   reactToRangerGreatswordDamage(context, event);
   assert.equal(active(event), false);
   const player = { ...event, actorType: 'player', source: 'ranger' };

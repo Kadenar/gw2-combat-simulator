@@ -1,4 +1,3 @@
-import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import {
   createDiscreteResourceClock,
   createResourceClock,
@@ -23,9 +22,6 @@ export interface GaleshotState {
   galeForceUntil: number;
   mistralUntil: number;
   mistralPathOfScars: Record<string, boolean>;
-  wutheringWindReady: boolean;
-  wutheringWindReadyAt: number;
-  galeshotActivationClaims: ActivationClaims;
 
   missileHits: number;
 }
@@ -37,7 +33,6 @@ export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   windForce: createResourceClock(),
   galeForceUntil: 0,
   mistralUntil: 0,
-  wutheringWindReady: false,
 
   missileHits: 0
 } satisfies Partial<RangerState>);
@@ -51,11 +46,6 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
     mistralUntil: 0,
     // An enhanced axe retains Mistral until its returning contact resolves.
     mistralPathOfScars: {},
-    wutheringWindReady: false,
-    wutheringWindReadyAt: 0,
-    // tracks per-activation-id to prevent double-firing when a multi-hit skill
-    // lands several pet-hit tasks for the same cast window
-    galeshotActivationClaims: {},
 
     missileHits: 0
   };

@@ -1,7 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { galeshotBuffPolicies } from '#gw2/professions/ranger/specializations/galeshot/effect-state.js';
 import {
   galeshotCastAvailability,
@@ -48,10 +48,8 @@ export const galeshotHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     }
   },
   onCastCommit(runtime, cast) {
-    const state = galeshotState.from(runtime);
     const skill = cast.skill;
     if (skill.cycloneBowSkill) runtime.fireTrigger(cycloneBowCompleted, { skill, at: runtime.time });
-    if (skill.id === ID.PET_SWAP) state.wutheringWindReady = false;
     runtime.fireTrigger(galeshotCastCompleted, { skill, at: runtime.time });
   },
   tasks: {

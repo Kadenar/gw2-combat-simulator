@@ -12,7 +12,7 @@ export const RANGER_SPEAR_STEALTH_FLIP_BY_PARENT: Readonly<Record<number, number
 
 /** Hunter's Prowess survives Revealed; ordinary stealth enables the same spear choices until broken. */
 export function rangerSpearStealthAvailable(
-  state: ReadonlyMechanicState<Partial<RangerCoreState>>,
+  state: ReadonlyMechanicState<Partial<Pick<RangerCoreState, 'availableFlips' | 'stealthUntil' | 'revealedUntil'>>>,
   at: number
 ): boolean {
   return (

@@ -1,9 +1,7 @@
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pet-swap.js';
-import { resetRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -46,28 +44,9 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
 /** Record outgoing retirement, then publish the swap after the incoming generation is ready. */
 export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
   const state = runtime.profession.core;
-  const outgoingCompanionId = rangerPetCompanionId(runtime);
-  // Pet lifetime cancellation also covers launched packets; registered fields have independent lifetimes.
-  runtime.cancelOwner({ id: outgoingCompanionId, generation: 0 });
-  runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'marker',
-      action: 'companion-retired',
-      at: runtime.time,
-      source: 'ranger',
-      sourceId: skill.id,
-      actorType: 'player',
-      summonOwner: outgoingCompanionId
-    }
-  });
   const slot = state.activePetSlot === 1 ? 2 : 1;
   const pet = rangerPetByName(state.petNames[slot - 1]);
-  applyRangerPetSwap(runtime, pet, slot, runtime.time);
-  state.petAutoActivationCounts[slot - 1] += 1;
-  state.petAutoActivationUses = {};
-  state.petAutoOpeningBasic = state.petAutoActivationCounts[slot - 1] === 1;
-  resetRangerPet(runtime);
+  applyRangerPetSwap(runtime, pet, slot);
   runtime.effects.emit({
     kind: 'packet',
     event: buildRangerPacket(
@@ -77,7 +56,7 @@ export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
         skillName: skill.name,
         activePet: pet.name,
         activePetSlot: slot,
-        generation: state.petAutoGeneration
+        companionId: state.pet!.id
       },
       'ranger.pet-swapped'
     )

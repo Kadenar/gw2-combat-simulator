@@ -91,7 +91,7 @@ export function createCastExecution<T extends object>(
     if (cast.ammo) {
       cooldownController.spendAmmo(cast.skill, cast.rechargeStart, cast.rechargeWork);
       cooldownController.setAmmoLockout(cast.skill, cast.ammoLockoutWork, cast.rechargeStart);
-    } else if (cast.rechargeWork > 0)
+    } else if (cast.rechargeWork > 0 && cast.skill.rechargeOwner !== 'actor')
       cooldownController.startRecharge(cast.skill, cast.rechargeStart, cast.rechargeWork, cast.rechargeCompanionId);
     const cancelled = cast.cancelled;
     // Ordinary swaps commit one actual set transition before completion hooks and queued equipment reactions.

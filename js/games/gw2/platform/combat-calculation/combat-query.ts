@@ -1,3 +1,4 @@
+import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { applyMightAttributes } from '#gw2/platform/builds/attribute-evaluation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
@@ -709,6 +710,7 @@ export function createGw2CombatQuery({
 }
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
+  readonly companions?: ReadonlyMap<string, CompanionEffects>;
   readonly retiredCompanions?: ReadonlyMap<string, number>;
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
   readonly buffs?: Map<string, Gw2TimedBuffApplication[]>;

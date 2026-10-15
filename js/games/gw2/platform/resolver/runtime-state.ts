@@ -1,3 +1,4 @@
+import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -80,6 +81,7 @@ export function createGw2ResolverRuntimeState({
     boons: new Map(),
     buffs: new Map(),
     retiredCompanions: new Map(),
+    companions: new Map(),
     totals: {
       strike: 0,
       condition: 0
@@ -220,6 +222,7 @@ export interface Gw2ResolverRuntime {
   boons: Map<string, Gw2TimedBuffApplication[]>;
   /** Retirement ends a companion's live effects while retaining pre-removal history. */
   retiredCompanions: Map<string, number>;
+  companions: Map<string, CompanionEffects>;
   buffs: Map<string, Gw2TimedBuffApplication[]>;
   totals: { strike: number; condition: number };
   firstHitTime: number | null;

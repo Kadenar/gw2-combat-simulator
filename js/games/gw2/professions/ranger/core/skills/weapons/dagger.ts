@@ -260,14 +260,18 @@ export const poisonousStrikesProfile = variant(PROFILE.poisonousStrikes, ID.DOUB
 
 export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  // Double Arc replaces the shared pet/merged-player grant instead of accumulating charges.
-  state.poisonousStrikes = grantCharges(Math.max(0, Number(event.charges || 0)), event.at + (event.duration || 0));
+  // Grant only the accepting actor; merging and unmerging never transfer these charges.
+  const charges = grantCharges(Math.max(0, Number(event.charges || 0)), event.at + (event.duration || 0));
+  if (event.summonOwner) {
+    if (state.pet?.id === event.summonOwner) state.pet.poisonousStrikes = charges;
+  } else state.playerPoisonousStrikes = charges;
 }
 
 export function triggerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  // Pet and merged-player routes share one grant, including its inclusive final hit.
-  expireCharges(state.poisonousStrikes, event.at, true);
+  if (!state.pet) return;
+  // Pet charges belong only to this activation, including their inclusive final hit.
+  expireCharges(state.pet.poisonousStrikes, event.at, true);
 
   // Only the current pet's own strikes spend charges; Ranger-owned Cloud/vine effects cannot consume pet venom.
   if (
@@ -280,7 +284,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
   const profile = requireBalanceProfileFromContext(context, PROFILE.poisonousStrikes);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The charges exist only to deliver poison, so a removed packet leaves them unspent.
-  if (!poison || !consumeCharge(state.poisonousStrikes, event.at, 0, true)) return;
+  if (!poison || !consumeCharge(state.pet.poisonousStrikes, event.at, 0, true)) return;
   context.effects.emit({
     kind: 'packet',
     event: buildResolverCondition({

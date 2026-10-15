@@ -156,8 +156,8 @@ test('lingering Ranger-owned effects leave the new pet’s Poison Master grant a
   assert.ok(procs(result).every((e) => e.at === 0.4));
 });
 
-// Merge and unmerge replace the same recipient; unlike swapping pets, they retain the existing pending reward.
-test('Soulbeast preserves an unspent Poison Master grant across merge ownership transitions', () => {
+// Player grants stay player-owned; discarded pet grants cannot cross merge boundaries.
+test('Soulbeast keeps player grants separate and discards pet grants across merging', () => {
   runRanger(
     [wait(1000)],
     { ...config, specialization: 'Soulbeast' },
@@ -167,11 +167,15 @@ test('Soulbeast preserves an unspent Poison Master grant across merge ownership 
           at: 0.1,
           run(runtime) {
             const core = runtime.profession.core;
-            core.poisonMasterAttackOwner = 'player';
+            core.playerPoisonMasterReady = true;
             setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.LEAVE_BEASTMODE), false);
-            assert.equal(core.poisonMasterAttackOwner, rangerPetCombatMetadata(runtime).summonOwner);
+            assert.equal(core.pet.poisonMasterReady, false);
+            core.pet.poisonMasterReady = true;
             setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.BEASTMODE), true);
-            assert.equal(core.poisonMasterAttackOwner, 'player');
+            assert.equal(core.pet, null);
+            assert.equal(core.playerPoisonMasterReady, true);
+            setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.LEAVE_BEASTMODE), false);
+            assert.equal(core.pet.poisonMasterReady, false);
           }
         }
       ]

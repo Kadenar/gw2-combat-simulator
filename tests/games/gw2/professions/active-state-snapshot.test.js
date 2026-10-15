@@ -27,7 +27,7 @@ test('planning projections omit private mechanic state while retaining visible o
       'primaryAttunement'
     ],
     [guardianProfession, 'Core', 'core', ['justiceHitCount', 'virtueReadyAt'], 'symbolicAvengerExpirations'],
-    [rangerProfession, 'Core', 'core', ['petAutoNextAt', 'petAutoBusyUntil', 'petAutoRecharges'], 'activePetSlot'],
+    [rangerProfession, 'Core', 'core', ['nextPetInstance', 'activationClaims'], 'activePetSlot'],
     [thiefProfession, 'Antiquary', 'specialization', ['backfireState', 'canachCoinIndex'], 'artifactSlots'],
     [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity'],
     [warriorProfession, 'Bladesworn', 'specialization', ['dragonChargeReachedAt'], 'flow'],
@@ -45,6 +45,24 @@ test('planning projections omit private mechanic state while retaining visible o
     assert.deepEqual(projected[visibleKey], owner[visibleKey]);
     if (typeof owner[visibleKey] === 'object') assert.notEqual(projected[visibleKey], owner[visibleKey]);
   }
+});
+
+test('Ranger pet projections expose detached observations without traversing private pet state', () => {
+  const config = { specialization: 'Core' };
+  const profession = rangerProfession.runtimeFor(config).createState(config);
+  const pet = profession.core.pet;
+  // A nested privacy check must inspect the actual pet owner, not only the player's state keys.
+  for (const key of ['activationClaims', 'effects', 'autoAction', 'commandReadyAt']) {
+    assert.equal(Object.hasOwn(pet, key), true);
+    Object.defineProperty(pet, key, { get: () => assert.fail(`Projection read private pet ${key}`) });
+  }
+
+  const projected = projectObservedState(rangerProfession, { profession, config, time: 0 });
+  for (const key of ['activationClaims', 'effects', 'autoAction', 'commandReadyAt'])
+    assert.equal(Object.hasOwn(projected.pet, key), false);
+  assert.equal(projected.pet.id, pet.id);
+  projected.pet.ferociousSymbiosis.stacks = 5;
+  assert.equal(pet.ferociousSymbiosis.stacks, 0);
 });
 
 test('public expiry projections use exclusive deadlines without mutating the live owner', () => {
@@ -427,7 +445,7 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       {
         ambushReadyUntil: 7,
         ferociousSymbiosisPlayer: { stacks: 3, expiresAt: 9 },
-        ferociousSymbiosisPet: { stacks: 5, expiresAt: 8 }
+        pet: { id: 'pet', ferociousSymbiosis: { stacks: 5, expiresAt: 8 } }
       },
       4
     )

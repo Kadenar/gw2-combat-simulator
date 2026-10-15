@@ -53,7 +53,7 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2Resolver
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
 function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
-  expireCharges(core.poisonousStrikes, event.at, true);
+  expireCharges(core.playerPoisonousStrikes, event.at, true);
   if (!soulbeastState.from(context).beastmodeActive || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
   }
@@ -61,7 +61,7 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw
   const profile = requireBalanceProfileFromContext(context, CORE_PROFILE.poisonousStrikes);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The charges exist only to deliver poison, so a removed packet leaves them unspent.
-  if (!poison || !consumeCharge(core.poisonousStrikes, event.at, 0, true)) return;
+  if (!poison || !consumeCharge(core.playerPoisonousStrikes, event.at, 0, true)) return;
   context.effects.emit({
     kind: 'packet',
     event: buildResolverCondition({

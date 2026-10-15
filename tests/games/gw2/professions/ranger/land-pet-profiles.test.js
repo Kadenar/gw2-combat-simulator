@@ -85,7 +85,7 @@ test('Bristleback bleed charges expire, are spent, and cannot migrate through a 
       },
       {
         initialize(runtime) {
-          runtime.profession.core.petSharpenSpines = grantCharges(1, expiresAt);
+          runtime.profession.core.pet.sharpenSpines = grantCharges(1, expiresAt);
         },
         timeline: swap
           ? [
@@ -101,7 +101,7 @@ test('Bristleback bleed charges expire, are spent, and cannot migrate through a 
           [
             10,
             (runtime) => {
-              charges = runtime.profession.core.petSharpenSpines.charges;
+              charges = runtime.profession.core.pet.sharpenSpines.charges;
             }
           ]
         ]

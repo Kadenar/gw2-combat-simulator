@@ -20,7 +20,7 @@ const maul: Partial<Skill> = {
             Number(event.coefficient) > 0 &&
             event.source !== 'ranger-pet' &&
             skill.id === ID.MAUL_BASE &&
-            runtime.profession.core.petActive,
+            Boolean(runtime.profession.core.pet),
           do: { type: 'ranger.maul-pet' }
         },
         {
