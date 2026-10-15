@@ -39,6 +39,14 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         timingScale: 'fixed',
         name: 'Wild Strikes - Final Slam Damage',
         reactions: [naturesStrengthReaction(2)]
+      },
+      {
+        // The final slam disables its target, enabling control-triggered traits and relics.
+        type: 'control',
+        controlKind: 'daze',
+        atMs: 1200,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ],
     castTimeMs: 1240
@@ -66,6 +74,8 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     interruptCommitMs: 800,
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 2, hits: 1, reactions: [naturesStrengthReaction()] },
+      // Resolve the leap's stun alongside its impact so control-triggered effects can activate.
+      { type: 'control', controlKind: 'stun' },
       { type: 'boon', boon: 'protection', duration: 4, stacks: 1 }
     ]),
     // The leap remains 960 ms in this Quickness log; its animation is not accelerated.

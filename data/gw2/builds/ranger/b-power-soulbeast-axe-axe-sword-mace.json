@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 5,
+  "profession": "ranger",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "weapons": [
+    "Axe",
+    "Axe"
+  ],
+  "alternateWeapons": [
+    "Sword",
+    "Mace"
+  ],
+  "rune": "Scholar",
+  "weaponSigils": [
+    [
+      "Force",
+      "Air"
+    ],
+    [
+      "Force",
+      "Impact"
+    ]
+  ],
+  "relic": "Claw",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Skirmishing",
+      "traits": "1-2-3"
+    },
+    {
+      "name": "Beastmastery",
+      "traits": "3-3-3"
+    },
+    {
+      "name": "Soulbeast",
+      "traits": "2-2-3"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 31914,
+    "Utility1": 12633,
+    "Utility2": 12492,
+    "Utility3": 12491,
+    "Elite": 45717
+  },
+  "selectedPet": "Pig",
+  "selectedHammerSkillIds": [
+    63335,
+    69262,
+    63131,
+    63208
+  ],
+  "initialUntamedState": "Pet",
+  "assumptions": {
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Crippled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialAstralForce": 100,
+  "initialArrows": 8,
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetArmor": 2597
+}

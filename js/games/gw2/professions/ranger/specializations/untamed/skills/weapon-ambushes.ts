@@ -91,7 +91,9 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
     impact(480, [
       { type: 'strike', coefficient: 3, reactions: [naturesStrengthReaction()] },
       { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
-    ])
+    ]),
+    // Interrupted casts commit their effects only after reaching the supplied commitment boundary.
+    { interruptCommitMs: 520 }
   ),
   [ID.SOLAR_BRILLIANCE]: ambush(1160, 1160, [
     // Blindness precedes damage; the six pulses continue independently after the animation ends.

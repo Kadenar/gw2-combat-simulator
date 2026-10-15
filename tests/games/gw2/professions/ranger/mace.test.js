@@ -32,6 +32,25 @@ const stacks = (result, kind) =>
     kind === 'natures-strength' ? 5 : 1
   );
 
+test('mace disables activate Claw for subsequent player strikes, while cancelled non-hits do not', () => {
+  // Control ownership must reach equipment reactions without granting a proc for an abandoned attack.
+  for (const skillId of [ID.OAKEN_CUDGEL, ID.WILD_STRIKES]) {
+    const rotation = [skillId, ID.GERMINATE];
+    const ordinary = simulate('Core', rotation, { relic: '' });
+    const equipped = simulate('Core', rotation, { relic: 'Claw' });
+    const hit = (result) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.GERMINATE);
+    assertFlooredDamageMultiplier(hit(equipped).damage, hit(ordinary).damage, 1.07);
+    assert.equal(buffs(equipped, 'relic-claw').length, 1);
+    assert.equal(buffs(equipped, 'relic-claw')[0].triggeredBy, equipped.steps[0].skill);
+
+    const cancelled = simulate('Core', [{ type: 'cast', skillId, interruptAfterMs: 0 }, ID.GERMINATE], {
+      relic: 'Claw'
+    });
+    assert.equal(buffs(cancelled, 'relic-claw').length, 0);
+  }
+});
+
 test('qualifying mace hits grant their stack rewards once and interrupted non-hits grant none', () => {
   for (const [id, amount] of [
     [ID.CULTIVATE, 1],

@@ -227,6 +227,32 @@
         }
       },
       {
+        "label": "Power Quickness (Hammer / Mace-Mace) (Beastmastery)",
+        "build": "data/gw2/builds/ranger/b-power-quick-untamed-beastmastery-hammer-mace-mace.json",
+        "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-hammer-mace-mace-bench.json",
+        "benchmarkDps": 34240,
+        "benchmarkApm": 87.2,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 37768, "phase": 37768 },
+          "80-60": { "cumulative": 35119, "phase": 32802 },
+          "60-40": { "cumulative": 34448, "phase": 33148 },
+          "40-20": { "cumulative": 34357, "phase": 34093 },
+          "20-0": { "cumulative": 34240, "phase": 34240 }
+        },
+        "upToDate": true,
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 34240,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 37768, "phase": 37768 },
+            "80-60": { "cumulative": 35119, "phase": 32802 },
+            "60-40": { "cumulative": 34448, "phase": 33148 },
+            "40-20": { "cumulative": 34357, "phase": 34093 },
+            "20-0": { "cumulative": 34240, "phase": 34240 }
+          }
+        }
+      },
+      {
         "label": "Power Quickness (Sword-Axe / Hammer) (Beastmastery)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-beastmastery-sword-axe-hammer.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-sword-axe-hammer-bench.json",
