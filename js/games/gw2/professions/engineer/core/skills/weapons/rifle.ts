@@ -36,6 +36,9 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Rifle Burst Grenade',
+        // Separate grenade damage in results while retaining the Rifle Burst cast as its owner.
+        damageBreakdownName: 'Rifle Burst Grenade',
+        sourceId: ID.RIFLE_BURST_GRENADE,
         actorType: 'player',
         damageKind: 'explosion',
         projectile: true
