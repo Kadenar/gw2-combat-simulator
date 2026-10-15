@@ -306,7 +306,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
     (event.kind !== 'might' && event.kind !== 'fury')
   )
     return;
-    
+
   const kind = event.kind;
   // Read accepted grants to exclude console assumptions and retain each Might application's expiry.
   // boonSnapshot includes configured boons and collapses Might to one duration, so it cannot preserve this copy.
@@ -314,8 +314,8 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
     .boonApplications(kind)
     // 'all' checks includesSelf: keep grants received by the player, including party grants, not every recipient.
     .filter((application) => buffMatchesAudience(application, 'all'));
-  
-    // Fury adds durations into one capped pool; Might stacks retain their individual remaining lifetimes.
+
+  // Fury adds durations into one capped pool; Might stacks retain their individual remaining lifetimes.
   const copies =
     kind === 'fury'
       ? [
