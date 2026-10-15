@@ -1,5 +1,5 @@
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
@@ -176,9 +176,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       when: (runtime, cast) => Boolean(antiquaryState.from(runtime).backfireState[cast.skill.id]) === backfire,
       profileId: backfire ? PROFILE.cannonBackfire : PROFILE.cannonSuccess,
       transform: (runtime, cast, effects) => {
-        const delay = backfire
-          ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.cannonBackfire), 'initialDelay')
-          : 0;
+        const delay = backfire ? balanceNumberFromContext(runtime, PROFILE.cannonBackfire, 'initialDelay') : 0;
         const offsetMs = (cast.effectiveEnd - cast.start + delay) * 1000;
         return effects.map((effect) => ({
           ...effect,

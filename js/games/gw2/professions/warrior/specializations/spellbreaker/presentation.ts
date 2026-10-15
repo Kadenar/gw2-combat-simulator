@@ -3,7 +3,7 @@ import { readProfessionSpecializationState } from '#gw2/platform/profession-defi
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
@@ -43,10 +43,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, SPELLBREAKER_BALANCE_PROFILE_IDS.resources),
-        'maximumStacks'
-      ),
+      max: balanceNumberFromContext(context, SPELLBREAKER_BALANCE_PROFILE_IDS.resources, 'maximumStacks'),
       initial: Number(context.build.initialResource) || 0,
       description: 'Adrenaline before setup; bursts use the Spellbreaker tier'
     });

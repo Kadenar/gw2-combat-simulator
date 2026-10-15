@@ -1,7 +1,11 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import {
   NECROMANCER_SIGNET_PASSIVES,
   applyNecromancerSignetPassive
@@ -75,9 +79,6 @@ function eternalLifeReadyAt(runtime: NecromancerRuntime, cost: number): number {
   const state = runtime.profession.core;
   const eternal = state.passiveNextAt['eternal-life'];
   const threshold =
-    eternal == null
-      ? 0
-      : state.lifeForce.maximum *
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_LIFE), 'threshold');
+    eternal == null ? 0 : state.lifeForce.maximum * balanceNumberFromContext(runtime, TRAIT.ETERNAL_LIFE, 'threshold');
   return !state.activeShroud && cost <= threshold ? (eternal ?? Infinity) : Infinity;
 }

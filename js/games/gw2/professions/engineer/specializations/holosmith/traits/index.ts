@@ -7,6 +7,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -78,19 +79,10 @@ const enhancedCapacityStorageUnit = defineTrait({
         const state = holosmithState.from(context);
         if (state.enhancedCapacityMightAt !== context.time) return;
         state.enhancedCapacityMightAt = Infinity;
-        if (
-          state.heat.value <=
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
-            'threshold'
-          )
-        )
+        if (state.heat.value <= balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold'))
           return;
         emitEnhancedCapacityMight(context, context.time);
-        const interval = balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
-          'pulseInterval'
-        );
+        const interval = balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'pulseInterval');
         if (interval > 0) {
           state.enhancedCapacityMightAt = context.time + interval;
           context.schedule(
@@ -148,17 +140,13 @@ const lasersEdge = defineTrait({
       factor: (context) => {
         const state = engineerSpecializationState(context, 'Holosmith');
         const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
-              'maximumDamageIncrease'
-            )
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LASERS_EDGE), 'maximumDamageIncrease');
+          ? balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'maximumDamageIncrease')
+          : balanceNumberFromContext(context, TRAIT.LASERS_EDGE, 'maximumDamageIncrease');
         return (
           1 +
           Math.min(
             maximum,
-            (state.heat?.value ?? 0) *
-              balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LASERS_EDGE), 'bonusPerHeat')
+            (state.heat?.value ?? 0) * balanceNumberFromContext(context, TRAIT.LASERS_EDGE, 'bonusPerHeat')
           )
         );
       },
@@ -192,8 +180,7 @@ export const solarFocusingLens = defineTrait({
       id: 'engineer.solar-focusing-lens',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.SOLAR_FOCUSING_LENS, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && holosmithEventMetadata(context.event).solarFocusingLens === true
     }
@@ -252,18 +239,12 @@ function crossEnhancedCapacityThreshold(
 ): void {
   const state = holosmithState.from(context);
   if (
-    previousHeat >
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
-        'threshold'
-      ) ||
-    state.heat.value <=
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT), 'threshold')
+    previousHeat > balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold') ||
+    state.heat.value <= balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold')
   )
     return;
   emitEnhancedCapacityMight(context, at);
-  const enhancedCapacityProfile = requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT);
-  const next = at + balanceProfileNumber(enhancedCapacityProfile, 'pulseInterval');
+  const next = at + balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'pulseInterval');
   state.enhancedCapacityMightAt = next;
   context.schedule('engineer.enhanced-capacity-might', next, undefined, undefined, -200);
 }
@@ -271,10 +252,7 @@ function crossEnhancedCapacityThreshold(
 /** Seed the Might task before passive cooling begins in preheated simulations. */
 function seedEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>): void {
   const state = holosmithState.from(context);
-  if (
-    state.heat.value >
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT), 'threshold')
-  ) {
+  if (state.heat.value > balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold')) {
     state.enhancedCapacityMightAt = context.time;
     context.schedule('engineer.enhanced-capacity-might', context.time, undefined, undefined, -200);
   }

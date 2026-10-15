@@ -2,9 +2,9 @@ import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/p
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import {
+  balanceNumberFromContext,
   balanceProfileFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
+  balanceProfileNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
@@ -21,10 +21,7 @@ export function bladeswornBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'positive-flow' },
     {
       kind: 'fierce-as-fire',
-      maximumStacks: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.FIERCE_AS_FIRE),
-        'maximumStacks'
-      )
+      maximumStacks: balanceNumberFromContext(context, TRAIT.FIERCE_AS_FIRE, 'maximumStacks')
     }
   ];
 }

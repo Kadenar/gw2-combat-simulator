@@ -6,7 +6,11 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { harbingerBuffPolicies } from '#gw2/professions/necromancer/specializations/harbinger/effect-state.js';
@@ -74,11 +78,11 @@ function publishBlight(runtime: NecromancerRuntime): void {
 /** Spending counts once at commitment; only the delayed explosion can damage the target. */
 function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): boolean {
   const state = harbingerState.from(runtime);
-  const profile = requireBalanceProfileFromContext(
+  const cost = balanceNumberFromContext(
     runtime,
-    HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)]
+    HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)],
+    'blightCost'
   );
-  const cost = balanceProfileNumber(profile, 'blightCost');
   const empowered = state.blight >= cost;
   const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime)) : 0;
   runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed, at: runtime.time, activationId: cast.id });
@@ -187,8 +191,12 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
       purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime));
       if (state.meltdownUntil && state.meltdownUntil <= runtime.time) state.meltdownUntil = 0;
       if (runtime.profession.core.activeShroud === 'harbinger' && Number(state.nextBlightAt) <= runtime.time) {
-        const profile = requireBalanceProfileFromContext(runtime, doomApproachesBlightProfile(runtime));
-        addBlight(state, balanceProfileNumber(profile, 'blightGain'), runtime.time, harbingerBlightMaximum(runtime));
+        addBlight(
+          state,
+          balanceNumberFromContext(runtime, doomApproachesBlightProfile(runtime), 'blightGain'),
+          runtime.time,
+          harbingerBlightMaximum(runtime)
+        );
         state.nextBlightAt = runtime.time + 1;
       }
 

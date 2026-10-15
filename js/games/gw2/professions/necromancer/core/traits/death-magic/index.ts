@@ -6,7 +6,11 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerConditionApplied } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
 import { shroudEntering } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -30,11 +34,7 @@ export const necromanticCorruption = defineTrait({
       id: 'necromancer.necromantic-corruption',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.NECROMANTIC_CORRUPTION),
-          'damageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.NECROMANTIC_CORRUPTION, 'damageMultiplier'),
       when: (context) => context.event?.summonKind === 'minion'
     }
   ]
@@ -54,10 +54,9 @@ export const fleshOfTheMaster = defineTrait({
 export const deadlyStrength = defineTrait({
   // Carapace contributes temporary flat attributes while ordinary conversion pools remain unchanged.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.DEADLY_STRENGTH);
     const bonus =
       deathCarapaceStacks(context, necromancerRuntimeCoreState(context), context.time) *
-      balanceProfileNumber(profile, 'attributePerStack');
+      balanceNumberFromContext(context.balanceContext, TRAIT.DEADLY_STRENGTH, 'attributePerStack');
     return {
       attributeEffects: [
         { kind: 'flat', to: 'Power', amount: bonus, feedsConversions: 'none', enabled: true },
@@ -133,11 +132,7 @@ export const putridDefense = defineTrait({
       id: 'necromancer.putrid-defense',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.PUTRID_DEFENSE),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.PUTRID_DEFENSE, 'conditionDamageMultiplier'),
       when: (context) => context.condition === 'Poisoned'
     }
   ]
@@ -168,9 +163,9 @@ function applyCorruptorsFervor(context: NecromancerResolverContext, event: Necro
   if (event.actorType === 'summon') return;
   addCarapace(
     context,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CORRUPTERS_FERVOR), 'resourceGain'),
+    balanceNumberFromContext(context, TRAIT.CORRUPTERS_FERVOR, 'resourceGain'),
     event.at,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CORRUPTERS_FERVOR), 'duration')
+    balanceNumberFromContext(context, TRAIT.CORRUPTERS_FERVOR, 'duration')
   );
 }
 

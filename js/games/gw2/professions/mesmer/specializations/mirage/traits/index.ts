@@ -7,6 +7,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -55,11 +56,8 @@ const nomadsEndurance = defineTrait<MesmerSkill>({
         // Illusion strikes do not inherit personal strike bonuses, while their conditions remain owner-resolved.
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
         return target === MODIFIER_TARGET.STRIKE_DAMAGE
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NOMADS_ENDURANCE), 'damageIncrease')
-          : balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.NOMADS_ENDURANCE),
-              'conditionDamageIncrease'
-            );
+          ? balanceNumberFromContext(context, TRAIT.NOMADS_ENDURANCE, 'damageIncrease')
+          : balanceNumberFromContext(context, TRAIT.NOMADS_ENDURANCE, 'conditionDamageIncrease');
       },
       when: (context) => Boolean(context.timeline?.vigorActiveAt(context.time))
     }
@@ -160,18 +158,12 @@ const phantomPain = defineTrait<MesmerSkill>({
           timedStacks(
             context,
             'phantom-pain',
-            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN), 'durationMultiplier'),
-            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN), 'maximumStacks')
+            balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'durationMultiplier'),
+            balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'maximumStacks')
           ) *
           (target === MODIFIER_TARGET.CONDITION_DAMAGE
-            ? balanceProfileNumber(
-                requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN),
-                'conditionDamageIncreasePerStack'
-              )
-            : balanceProfileNumber(
-                requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN),
-                'damageIncreasePerStack'
-              ))
+            ? balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'conditionDamageIncreasePerStack')
+            : balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'damageIncreasePerStack'))
         );
       }
     }
@@ -287,10 +279,9 @@ function reduceDuneCloakShatters(
     const shatter = state.helpers.skillsById.get(id);
     const readyAt = shatter ? state.cooldownController.readyAt(shatter.id) : null;
     if (shatter && readyAt != null) {
-      const duneCloakProfile = requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK);
       state.cooldownController.reduceSkillRecharge(
         shatter,
-        balanceProfileNumber(duneCloakProfile, 'rechargeReduction'),
+        balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'rechargeReduction'),
         at
       );
     }
@@ -443,10 +434,9 @@ function selfDeceptionCommitted(
 ): void {
   const skill = cast.skill;
   if (skill.categories?.includes('Deception') && currentResource > 0) {
-    const selfDeceptionProfile = requireBalanceProfileFromContext(state, TRAIT.SELF_DECEPTION);
     createMesmerIllusionRewards(state).queueResources(
       at,
-      balanceProfileNumber(selfDeceptionProfile, 'resourceGain'),
+      balanceNumberFromContext(state, TRAIT.SELF_DECEPTION, 'resourceGain'),
       weapon,
       `Self-Deception: ${skill.name}`,
       {
@@ -573,8 +563,7 @@ function createDesertDistortionMirrors(
 
   if (skill.id === ID.DISTORTION) {
     grantAmbushWindow(at, 'Desert Distortion', undefined, delivery);
-    const desertDistortionProfile = requireBalanceProfileFromContext(state, TRAIT.DESERT_DISTORTION);
-    createMirrors(at, spent * balanceProfileNumber(desertDistortionProfile, 'resourceGain'));
+    createMirrors(at, spent * balanceNumberFromContext(state, TRAIT.DESERT_DISTORTION, 'resourceGain'));
     state.effects.emit({
       ...delivery,
       kind: 'announcement',
@@ -597,13 +586,12 @@ function grantDuneCloak(state: MesmerRuntime, { resolution }: TriggerPointInput<
   const { at, spent, delivery } = resolution;
   const { grantMirageCloak } = createMirageMechanics(state);
 
-  if (spent >= balanceProfileNumber(requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK), 'threshold')) {
-    const duneCloakProfile = requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK);
+  if (spent >= balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'threshold')) {
     grantMirageCloak(
       at,
       'Dune Cloak',
       {
-        duration: balanceProfileNumber(duneCloakProfile, 'durationMultiplier')
+        duration: balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'durationMultiplier')
       },
       delivery
     );

@@ -10,6 +10,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -131,15 +132,12 @@ export const deathPerception = defineTrait({
       id: 'necromancer.death-perception-critical-hit-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalDamage'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.DEATH_PERCEPTION, 'criticalDamage'),
       when: (context) => Boolean(necromancerActiveShroud(context))
     }
   ],
   attributes: ({ balanceContext: profileContext }) => ({
-    traitCriticalChance:
-      balanceProfileNumber(requireBalanceProfileFromContext(profileContext, TRAIT.DEATH_PERCEPTION), 'criticalChance') *
-      100
+    traitCriticalChance: balanceNumberFromContext(profileContext, TRAIT.DEATH_PERCEPTION, 'criticalChance') * 100
   })
 });
 
@@ -174,8 +172,8 @@ export const soulBarbs = defineTrait({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_BARBS), 'conditionDamageIncrease')
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_BARBS), 'damageIncrease'),
+          ? balanceNumberFromContext(context, TRAIT.SOUL_BARBS, 'conditionDamageIncrease')
+          : balanceNumberFromContext(context, TRAIT.SOUL_BARBS, 'damageIncrease'),
       when: (context) => buffActive(context, 'necromancer-soul-barbs')
     }
   ]
@@ -247,10 +245,7 @@ export const soulMarks = defineTrait({
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) =>
         Number(input.event.hitIndex ?? 1) === 1 && input.skill.categories?.includes('Mark') === true,
       run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
-        input.percent += balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, TRAIT.SOUL_MARKS),
-          'lifeForceGain'
-        );
+        input.percent += balanceNumberFromContext(runtime, TRAIT.SOUL_MARKS, 'lifeForceGain');
       }
     })
   ]
@@ -296,7 +291,7 @@ function applySoulBarbs(
       actorType: 'player',
       kind: 'necromancer-soul-barbs',
       stacks: 1,
-      duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'duration')
+      duration: balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'duration')
     }
   });
 }
@@ -402,8 +397,7 @@ function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolve
     !runtime.procs.claim(TRAIT.FEAR_OF_DEATH, 'necromancer.core.fearOfDeath', runtime.time)
   )
     return;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FEAR_OF_DEATH);
-  grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
+  grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, TRAIT.FEAR_OF_DEATH, 'lifeForceGain'));
 }
 
 /** A granted Eternal Life pulse samples the live shroud and caps its gain at the trait threshold. */

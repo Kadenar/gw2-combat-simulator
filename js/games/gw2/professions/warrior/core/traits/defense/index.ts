@@ -6,7 +6,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { burstFirstHit, controlAccepted } from '#gw2/professions/warrior/core/mechanics/combat.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -27,8 +27,7 @@ export const mercilessHammer = defineTrait({
       id: 'warrior.merciless-hammer',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MERCILESS_HAMMER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.MERCILESS_HAMMER, 'damageMultiplier'),
       order: 94,
       when: (context) =>
         ['Hammer', 'Mace'].includes(
@@ -57,8 +56,7 @@ export const stalwartStrength = defineTrait({
       id: 'warrior.stalwart-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STALWART_STRENGTH), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.STALWART_STRENGTH, 'damageMultiplier'),
       order: 95,
       when: (context) => warriorBoonActive(context, 'stability')
     }
@@ -95,8 +93,7 @@ export const cullTheWeak = defineTrait({
       id: 'warrior.cull-the-weak',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CULL_THE_WEAK), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.CULL_THE_WEAK, 'damageMultiplier'),
       order: 93,
       when: (context) => targetConditionActive(context, 'Weakness')
     }
@@ -124,10 +121,7 @@ export const thickSkin = defineTrait({
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function mercilessHammerControl(runtime: WarriorRuntime): void {
-  grantWarriorResource(
-    runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MERCILESS_HAMMER), 'resourceGain')
-  );
+  grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.MERCILESS_HAMMER, 'resourceGain'));
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */

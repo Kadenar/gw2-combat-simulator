@@ -1,4 +1,4 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
@@ -20,7 +20,7 @@ const MESMER_FORM_COSTS: ReadonlyMap<SkillId, SkillId> = new Map([
 /** Reject malformed form costs on entry even when score output never queries the affected skill. */
 export function validateConduitMesmerEnergyCosts(catalog: CanonicalCatalog): void {
   for (const profileId of MESMER_FORM_COSTS.values()) {
-    balanceProfileNumber(requireBalanceProfileFromContext({ catalog }, profileId), 'energyCost');
+    balanceNumberFromContext({ catalog }, profileId, 'energyCost');
   }
 }
 
@@ -42,5 +42,5 @@ export function applyConduitEnergyCostRules(
   if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
   const profileId = MESMER_FORM_COSTS.get(skill.id);
   if (profileId === undefined) return baseCost;
-  return Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext({ catalog }, profileId), 'energyCost'));
+  return Math.max(0, balanceNumberFromContext({ catalog }, profileId, 'energyCost'));
 }

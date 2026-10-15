@@ -4,6 +4,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -49,8 +50,7 @@ const jadeCannons = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
 
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS, 'criticalChance'),
       when: (context) => isEngineerMechEvent(context.event)
     }
   ]
@@ -192,8 +192,7 @@ const variableMassDistributor = defineTrait({
       id: 'engineer.mech-base-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, PROFILE.resources, 'criticalChance'),
       when: (context) =>
         isEngineerMechEvent(context.event) && !hasTrait(context, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR)
     }
@@ -386,8 +385,10 @@ function startBarrierEngine(runtime: EngineerRuntime): void {
 
 /** Recurrence schedules its next grant without attempting to admit a new loop. */
 function scheduleBarrierEngine(runtime: EngineerRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE);
-  runtime.schedule(BARRIER_ENGINE_TASK, runtime.time + balanceProfileNumber(profile, 'interval'));
+  runtime.schedule(
+    BARRIER_ENGINE_TASK,
+    runtime.time + balanceNumberFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval')
+  );
 }
 
 /** Each passive grant selects up to five recipients, with the mech behind players in recipient priority. */

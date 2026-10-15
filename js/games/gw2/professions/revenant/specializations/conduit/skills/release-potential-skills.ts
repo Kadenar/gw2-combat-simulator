@@ -1,6 +1,6 @@
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { conditionEffectTicks, impactEffects } from '#gw2/platform/effects/authoring.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -16,8 +16,7 @@ import {
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
 const releaseLegend = (legend: string) => (runtime: MechanicQueriesOf<RevenantRuntime>) =>
   runtime.profession.core.selectedLegendIds.includes(legend) ||
-  effectiveConduitAffinity(runtime) >=
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'minimumStacks');
+  effectiveConduitAffinity(runtime) >= balanceNumberFromContext(runtime, PROFILE.affinity, 'minimumStacks');
 
 /** Releases inherit active-weapon attribution; Assassin durations snapshot affinity, Mesmer conditions resolve live. */
 function releaseEffects(

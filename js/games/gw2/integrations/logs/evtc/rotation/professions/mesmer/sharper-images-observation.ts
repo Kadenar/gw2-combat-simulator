@@ -14,7 +14,7 @@ import {
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -39,10 +39,7 @@ function sharperImagesDurations(
   if (!selectedSkillIdSet(config.selectedSkillIds).has(ID.SIGNET_OF_MIDNIGHT)) return passiveDurations;
 
   // The selected Signet changes the inferred duration, so its active profile must supply the bonus.
-  const bonus = balanceProfileNumber(
-    requireBalanceProfileFromContext({ catalog }, PROFILE.signetOfMidnight),
-    'expertiseBonus'
-  );
+  const bonus = balanceNumberFromContext({ catalog }, PROFILE.signetOfMidnight, 'expertiseBonus');
   const rechargingDurations = expectedConditionDurationsMs(
     baseDuration,
     'Bleeding',

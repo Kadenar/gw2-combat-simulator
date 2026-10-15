@@ -1,7 +1,7 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   loadProfession,
   loadProfessionAppAdapter,
@@ -186,8 +186,9 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(CATALYST_BALANCE_PROFILE_IDS.resources).maximumStacks, 40);
   assert.equal(preview.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.resources).maximumStacks, 8);
   assert.equal(
-    balanceProfileNumber(
-      requireBalanceProfileFromContext({ catalog: preview }, ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental),
+    balanceNumberFromContext(
+      { catalog: preview },
+      ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental,
       'durationMultiplier'
     ),
     100

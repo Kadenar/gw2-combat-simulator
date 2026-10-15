@@ -1,5 +1,5 @@
 import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
@@ -42,9 +42,7 @@ const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
   // The live pool wins; authoring before simulation uses the selected Flow profile.
-  const maximum =
-    state.flow?.maximum ??
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
+  const maximum = state.flow?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
   return [
     {
       id: 'flow',
@@ -82,7 +80,7 @@ function bladeswornSkillDamageOccurrence(context: SkillDamagePreviewContext, ski
   const isDragonSlash = includes(DRAGON_SLASH_SKILLS);
   if (!isDragonSlash && !includes(DRAGON_TRIGGER_SKILLS) && id !== ID.DRAGON_TRIGGER) return null;
   // Entering the stance spends Flow, so every Dragon Trigger probe starts from the selected Flow maximum.
-  const flow = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
+  const flow = balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
   if (id === ID.DRAGON_TRIGGER) return { initialResource: flow };
   if (!isDragonSlash) return { initialResource: flow };
   const charges = maximumDragonCharges({
@@ -256,10 +254,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const result = context.result;
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
-    const maximum = balanceProfileNumber(
-      requireBalanceProfileFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE),
-      'maximumStacks'
-    );
+    const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE, 'maximumStacks');
     const fierceAsFire = planningBuffStacks(context.planningState, 'fierce-as-fire');
     if (fierceAsFire > 0) {
       items.push({

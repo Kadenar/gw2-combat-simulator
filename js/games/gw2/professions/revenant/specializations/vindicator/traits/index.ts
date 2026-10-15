@@ -6,6 +6,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -83,8 +84,7 @@ const forerunnerOfDeath = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "damage-additive" goes into the GW2 shared outgoing-damage bucket alongside other % modifiers.
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FORERUNNER_OF_DEATH), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.FORERUNNER_OF_DEATH, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
@@ -108,8 +108,7 @@ const leviathanStrength = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "multiply" runs after the damage-additive bucket, so Leviathan compounds on top of Forerunner.
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEVIATHAN_STRENGTH), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.LEVIATHAN_STRENGTH, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && enduranceNotFull(context)
     }
   ]
@@ -167,9 +166,7 @@ const songOfArboreum = defineTrait({
   triggers: [
     onTriggerPoint(energyMeldEnduranceGranted, {
       run(runtime) {
-        runtime.endurance.grant(
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SONG_OF_ARBOREUM), 'resourceGain')
-        );
+        runtime.endurance.grant(balanceNumberFromContext(runtime, TRAIT.SONG_OF_ARBOREUM, 'resourceGain'));
       }
     }),
     {
@@ -205,10 +202,7 @@ function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
   if (runtime.combatStartedAt())
     runtime.resourceController.grant(
       'energy',
-      Math.max(
-        0,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ANGSIYANS_TRUST), 'resourceGain')
-      )
+      Math.max(0, balanceNumberFromContext(runtime, TRAIT.ANGSIYANS_TRUST, 'resourceGain'))
     );
 }
 

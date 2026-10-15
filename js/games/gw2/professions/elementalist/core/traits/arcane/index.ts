@@ -17,6 +17,7 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -169,14 +170,12 @@ export const evasiveArcana = defineTrait({
 export const arcaneLightning = defineTrait({
   // Active Arcane Lightning supplies conversion-eligible Ferocity for the duration of its application.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING);
-
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING, 'attributeBonus'),
           feedsConversions: 'all',
           enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
         }
@@ -240,8 +239,7 @@ export const bountifulPower = defineTrait({
       order: -12,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_POWER), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.BOUNTIFUL_POWER, 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'bountiful-power-active', 1) > 0
     }
   ]
@@ -394,13 +392,12 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
 /** Grants Elemental Lockdown's attunement-specific boon after a classified control event. */
 function applyElementalLockdown(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = professionCoreState(context);
-  const elementalLockdownProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_LOCKDOWN);
   // Claim the existing owner-local timer before any derived effect.
   if (
     !context.procs.claimCooldown(
       'elementalLockdown',
       event.at,
-      balanceProfileNumber(elementalLockdownProfile, 'internalCooldown')
+      balanceNumberFromContext(context, TRAIT.ELEMENTAL_LOCKDOWN, 'internalCooldown')
     )
   )
     return;
@@ -425,11 +422,7 @@ function applyElementalLockdown(context: ElementalistRuntime, event: SimulationE
 /** Multiply in-combat attunement recharge before the specialization's flat reduction and recharge-rate conversion. */
 export function elementalEnchantmentRecharge(context: ElementalistRuntime, seconds: number): number {
   return hasTrait(context, TRAIT.ELEMENTAL_ENCHANTMENT)
-    ? seconds *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_ENCHANTMENT),
-          'rechargeMultiplier'
-        )
+    ? seconds * balanceNumberFromContext(context, TRAIT.ELEMENTAL_ENCHANTMENT, 'rechargeMultiplier')
     : seconds;
 }
 
@@ -495,12 +488,10 @@ const arcanePrecisionCritical = criticalProcHandler<
   NativeResolvedDamageDetails
 >({
   id: 'elementalist.arcane-precision',
-  chanceOnCriticalHit: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION), 'procChance'),
+  chanceOnCriticalHit: (context) => balanceNumberFromContext(context, TRAIT.ARCANE_PRECISION, 'procChance'),
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
-    duration: (context) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION), 'internalCooldown'),
+    duration: (context) => balanceNumberFromContext(context, TRAIT.ARCANE_PRECISION, 'internalCooldown'),
     readyAt: (context) => context.procs.deadline('arcanePrecision') || 0,
     setReadyAt: (context, readyAt) => {
       context.procs.setDeadline('arcanePrecision', readyAt);
@@ -519,8 +510,7 @@ const renewingStaminaCritical = criticalProcHandler<
   id: 'elementalist.renewing-stamina',
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
-    duration: (context) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA), 'internalCooldown'),
+    duration: (context) => balanceNumberFromContext(context, TRAIT.RENEWING_STAMINA, 'internalCooldown'),
     readyAt: (context) => context.procs.deadline('renewingStamina') || 0,
     setReadyAt: (context, readyAt) => {
       context.procs.setDeadline('renewingStamina', readyAt);

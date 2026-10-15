@@ -9,7 +9,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -72,11 +72,12 @@ export function weaverHammerAvailability(
   const elements = weaverDualAttunements(skill);
   if (!elements) return null;
   const state = professionCoreState(context);
-  const hammerOrbsProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.hammerOrbs);
   // Every dual hammer skill shares one short lockout after the last orb cast.
   // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
   const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
-    ? canonicalTime(state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay'))
+    ? canonicalTime(
+        state.hammerOrbLastCastAt + balanceNumberFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay')
+      )
     : state.hammerOrbLastCastAt;
   if (retryAt > context.time) {
     return retryCast(

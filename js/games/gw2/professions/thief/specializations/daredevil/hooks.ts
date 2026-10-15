@@ -10,7 +10,7 @@ import {
 } from '#gw2/professions/thief/specializations/daredevil/mechanics/boundaries.js';
 import { queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
@@ -54,8 +54,7 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Daredevil replaces only the capacity while retaining Core's pool and regeneration.
   endurance: {
     ...thiefEndurance,
-    maximum: (runtime) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks')
+    maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks')
   },
   availability(runtime, skill) {
     if (

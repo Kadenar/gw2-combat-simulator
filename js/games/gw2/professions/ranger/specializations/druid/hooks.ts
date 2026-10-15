@@ -161,10 +161,9 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
         event.independentSummonStrike
       )
         return;
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
       runtime.resourceController.grant(
         'astralForce',
-        balanceProfileNumber(profile, 'resourceGain') * eclipseAstralForceMultiplier(runtime)
+        balanceNumberFromContext(runtime, PROFILE.resources, 'resourceGain') * eclipseAstralForceMultiplier(runtime)
       );
     }
   }

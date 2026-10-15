@@ -1,4 +1,5 @@
 import {
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   effectNumber,
   balanceProfileNumber
@@ -126,7 +127,7 @@ export function minionDefinitionFor(context: unknown, key: string): MinionDefini
 }
 
 export function summonWeaponStrength(context: unknown): number {
-  return balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.summonAttributes), 'weaponStrength');
+  return balanceNumberFromContext(context, PROFILE.summonAttributes, 'weaponStrength');
 }
 
 /** Compiles a command skill's declarative packets into its command payload. */

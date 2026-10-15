@@ -6,6 +6,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -104,10 +105,7 @@ export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEv
   const state = luminaryState.from(runtime);
   if (!(damage > 0) || !(Number(event.coefficient) > 0) || runtime.time >= state.effulgentActiveUntil) return;
   if (!isGw2PlayerActorEvent(event) && !(event.source === 'guardian' && event.actorType === 'effect')) return;
-  const maximum = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, PROFILE.effulgentStance),
-    'maximumStacks'
-  );
+  const maximum = balanceNumberFromContext(runtime, PROFILE.effulgentStance, 'maximumStacks');
   state.effulgentStacks = Math.min(maximum, state.effulgentStacks + 1);
 }
 

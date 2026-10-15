@@ -1,9 +1,4 @@
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
@@ -51,10 +46,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
         duration: effectNumber(profile, burning, 'duration')
       })
     });
-  const interval = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, PROFILE.forgedSurfer),
-    'pulseInterval'
-  );
+  const interval = balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'pulseInterval');
   const nextAt = canonicalTime(runtime.time + interval);
   // A duration-driven sequence must advance its clock even when authoring a patched profile.
   if (nextAt <= runtime.time) throw new RangeError('Forged Surfer bomb interval must advance time.');
@@ -64,11 +56,10 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
 
 /** Recasting resets pending bomb timing while the separately refreshed buff retains its capped duration. */
 export function startForgedSurfer(runtime: ThiefRuntime, skill: ThiefSkill): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.forgedSurfer);
   runtime.cancelOwner(FORGED_SURFER_OWNER);
   runtime.schedule(
     FORGED_SURFER,
-    runtime.time + balanceProfileNumber(profile, 'initialDelay'),
+    runtime.time + balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'initialDelay'),
     {
       skillId: skill.id,
       occurrence: 0

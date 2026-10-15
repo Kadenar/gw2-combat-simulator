@@ -1,6 +1,6 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
@@ -92,10 +92,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   const effulgentRemaining = (state.effulgentActiveUntil || 0) - at;
   if (effulgentRemaining > 0) {
     // Display the selected cap, including patches that allow more than the baseline stack count.
-    const maximum = balanceProfileNumber(
-      requireBalanceProfileFromContext(context.balanceContext, PROFILE.effulgentStance),
-      'maximumStacks'
-    );
+    const maximum = balanceNumberFromContext(context.balanceContext, PROFILE.effulgentStance, 'maximumStacks');
     const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, maximum);
     items.push({
       id: 'luminary-effulgent-stance',
@@ -112,7 +109,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
       id: 'luminary-radiant-armaments',
       label: 'Radiant Armaments',
       value: formatSecondsRemaining(radiant.remaining),
-      title: `Dazzling Hammer: ${formatStrikeBonus(balanceProfileNumber(requireBalanceProfileFromContext(context.balanceContext, TRAIT.RADIANT_ARMAMENTS), 'damageIncrease'))} strike damage`
+      title: `Dazzling Hammer: ${formatStrikeBonus(balanceNumberFromContext(context.balanceContext, TRAIT.RADIANT_ARMAMENTS, 'damageIncrease'))} strike damage`
     });
   }
 

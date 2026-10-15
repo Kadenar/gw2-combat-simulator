@@ -10,7 +10,7 @@ import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/re
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
@@ -18,12 +18,7 @@ const BLIGHT_DURATION_SECONDS = 25;
 export function harbingerBlightMaximum(context: unknown): number {
   return Math.max(
     0,
-    Math.trunc(
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, HARBINGER_BALANCE_PROFILE_IDS.resources),
-        'maximumStacks'
-      )
-    )
+    Math.trunc(balanceNumberFromContext(context, HARBINGER_BALANCE_PROFILE_IDS.resources, 'maximumStacks'))
   );
 }
 

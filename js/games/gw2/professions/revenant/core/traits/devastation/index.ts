@@ -15,6 +15,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -128,10 +129,10 @@ export const destructiveImpulses = defineTrait({
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
       amount: (context, target) => {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.DESTRUCTIVE_IMPULSES);
         const condition = target === MODIFIER_TARGET.CONDITION_DAMAGE;
-        return balanceProfileNumber(
-          profile,
+        return balanceNumberFromContext(
+          context,
+          TRAIT.DESTRUCTIVE_IMPULSES,
           activeOffhand(context)
             ? condition
               ? 'offhandConditionDamageIncrease'
@@ -171,7 +172,7 @@ export const exposeDefensesTrait = defineTrait({
 export const notoriety = defineTrait({
   // Adjust baseline Might atomically so an unbuffed build never receives a negative standalone grant.
   attributes(context) {
-    const bonus = balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NOTORIETY), 'attributePerStack');
+    const bonus = balanceNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
     return { mightPerStack: { power: bonus, conditionDamage: -bonus } };
   },
   triggers: [onTriggerPoint(revenantCastCompleted, { run: completeNotoriety })],
@@ -206,14 +207,10 @@ export const swiftTermination = defineTrait({
       order: 8,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SWIFT_TERMINATION), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.SWIFT_TERMINATION, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthBelow(
-          context,
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SWIFT_TERMINATION), 'threshold')
-        )
+        targetHealthBelow(context, balanceNumberFromContext(context, TRAIT.SWIFT_TERMINATION, 'threshold'))
     }
   ]
 });
@@ -232,10 +229,7 @@ export const targetedDestruction = defineTrait({
       factor: (context) =>
         1 +
         vulnerabilityStacks(context) *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, TRAIT.TARGETED_DESTRUCTION),
-            'damageIncreasePerStack'
-          ),
+          balanceNumberFromContext(context, TRAIT.TARGETED_DESTRUCTION, 'damageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -275,12 +269,10 @@ export const unsuspectingStrikes = defineTrait({
       order: 6,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_STRIKES), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.UNSUSPECTING_STRIKES, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthFraction(context) >
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_STRIKES), 'threshold')
+        targetHealthFraction(context) > balanceNumberFromContext(context, TRAIT.UNSUSPECTING_STRIKES, 'threshold')
     }
   ]
 });
@@ -362,14 +354,13 @@ function exposeDefenses(runtime: RevenantRuntime, { cause: event }: RevenantStri
 /** React at the ordered strike boundary without changing the shared scar transaction. */
 function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   const core = runtime.profession.core;
-  const battleScars = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.THRILL_OF_COMBAT);
   const buff = requireEffect(profile, 'buff', 'battle-scars');
   // The cadence exists only to grant this buff, so a removed buff neither grants nor advances it.
   if (!buff) return;
   const interval = canonicalInterval(balanceProfileNumber(profile, 'cooldown'));
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
-  const maximum = balanceProfileNumber(battleScars, 'maximumStacks');
+  const maximum = balanceNumberFromContext(runtime, PROFILE.battleScars, 'maximumStacks');
   if (core.nextThrillOfCombatAt == null)
     core.nextThrillOfCombatAt = canonicalTime((core.combatBeganAt ?? runtime.time) + interval);
   const next = core.nextThrillOfCombatAt;

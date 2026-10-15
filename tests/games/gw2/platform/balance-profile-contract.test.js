@@ -8,6 +8,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
+  balanceNumberFromContext,
   balanceProfileFromContext,
   balanceProfileNumber,
   effectNumber,
@@ -299,7 +300,7 @@ test('required reads select one source and retain strict numeric and diagnostic 
     const invalid = { ...profile, procChance: value, balanceDataContext: selected.balanceDataContext };
     const source = { catalog: { ...selected, balanceProfilesById: new Map([[1, invalid]]) } };
     assert.throws(
-      () => balanceProfileNumber(requireBalanceProfileFromContext(source, 1), 'procChance'),
+      () => balanceNumberFromContext(source, 1, 'procChance'),
       /profession=fixture patch=preview profile=1 field=procChance expected=finite number received=/
     );
     assert.throws(

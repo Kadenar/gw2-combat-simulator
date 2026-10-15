@@ -5,7 +5,7 @@ import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/st
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -63,10 +63,7 @@ function strikes(
         ...(attackType === 'summon-spirits'
           ? {
               sourceId: `ritualist.${spirit.key}.summon-spirits`,
-              weaponStrength: balanceProfileNumber(
-                requireBalanceProfileFromContext(runtime, PROFILE.resources),
-                'weaponStrength'
-              )
+              weaponStrength: balanceNumberFromContext(runtime, PROFILE.resources, 'weaponStrength')
             }
           : {
               weaponStrengthProfileId: 'transform.ritualist-shroud',

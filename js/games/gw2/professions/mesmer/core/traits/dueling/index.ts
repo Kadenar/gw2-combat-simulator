@@ -13,6 +13,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileRechargeRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -165,8 +166,7 @@ export const phantasmalFury = defineTrait<MesmerSkill>({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       order: -1,
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_FURY), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.PHANTASMAL_FURY, 'criticalChance'),
       when: (context) => context.event?.summonKind === 'phantasm'
     }
   ]
@@ -246,8 +246,7 @@ export const virtuosoPhantasmalFuryRule: Gw2ModifierRule = {
   id: 'mesmer.virtuoso.phantasmal-fury-critical-chance',
   target: MODIFIER_TARGET.CRITICAL_CHANCE,
   operation: 'add',
-  amount: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.QUIET_INTENSITY), 'phantasmCriticalChance'),
+  amount: (context) => balanceNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'phantasmCriticalChance'),
   when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
 };
 

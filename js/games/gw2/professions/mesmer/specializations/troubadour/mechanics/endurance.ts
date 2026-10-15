@@ -1,4 +1,4 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
@@ -30,9 +30,6 @@ export const troubadourEndurance: EndurancePolicy<MesmerRuntime> = {
 /** Flute's intrinsic endurance contribution retains its playing-window gate without current trait selection. */
 function symphonicResonanceEndurance(context: MesmerRuntime, flutePlaying: boolean): number {
   return flutePlaying
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.SYMPHONIC_RESONANCE),
-        'enduranceRegenerationMultiplier'
-      ) - 1
+    ? balanceNumberFromContext(context, TRAIT.SYMPHONIC_RESONANCE, 'enduranceRegenerationMultiplier') - 1
     : 0;
 }

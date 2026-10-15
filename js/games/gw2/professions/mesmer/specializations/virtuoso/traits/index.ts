@@ -11,6 +11,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -70,11 +71,8 @@ const deadlyBlades = defineTrait<MesmerSkill>({
 
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES),
-              'conditionDamageIncrease'
-            )
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES), 'damageIncrease'),
+          ? balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'conditionDamageIncrease')
+          : balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'damageIncrease'),
       when: (context) => !illusionSource(context) && buffActive(context, 'deadly-blades')
     }
   ]
@@ -117,8 +115,7 @@ export const bloodsong = defineTrait<MesmerSkill>({
       id: 'mesmer.bloodsong',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLOODSONG), 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.BLOODSONG, 'conditionDamageMultiplier'),
       order: 100,
       when: (context) => context.condition === 'Bleeding'
     }
@@ -207,8 +204,7 @@ const mentalFocus = defineTrait<MesmerSkill>({
       id: 'mesmer.mental-focus',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MENTAL_FOCUS), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.MENTAL_FOCUS, 'damageMultiplier'),
       // Apply after the blade-specific multiplier, as in the original collector.
       order: 101,
       when: (context) => isGw2PlayerActorEvent(context.event)
@@ -228,10 +224,7 @@ const sharpeningSorrow = defineTrait<MesmerSkill>({
       {
         kind: 'flat',
         to: 'Expertise',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.SHARPENING_SORROW),
-          'expertiseBonus'
-        ),
+        amount: balanceNumberFromContext(balanceContext, TRAIT.SHARPENING_SORROW, 'expertiseBonus'),
         feedsConversions: 'none',
         enabled: loadout.assumptions.fury !== false
       }
@@ -262,8 +255,7 @@ const infiniteForge = defineTrait<MesmerSkill>({
       id: 'mesmer.infinite-forge',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'damageMultiplier'),
       order: 100,
       when: (context) => Boolean(context.event?.metadata?.blade)
     }
@@ -301,7 +293,6 @@ export const virtuosoTraits = [
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
 function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
   const at = resolution.at;
-  const deadlyBladesProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
   {
     const grants: readonly MesmerEventExtra[] = [
       {
@@ -309,7 +300,7 @@ function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterRe
         priority: 5,
         kind: 'deadly-blades',
         stacks: 1,
-        duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
+        duration: balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'durationMultiplier')
       }
     ];
     const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
@@ -349,17 +340,13 @@ function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterRe
 
 /** Refunds blades only after a completed Bladesong commits the configured maximum-spend threshold. */
 function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  if (
-    resolution.spent <
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE), 'threshold')
-  ) {
+  if (resolution.spent < balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'threshold')) {
     return;
   }
 
-  const infiniteForgeProfile = requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE);
   createMesmerIllusionRewards(context).queueResources(
     resolution.at,
-    balanceProfileNumber(infiniteForgeProfile, 'resourceGain'),
+    balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),
     'Infinite Forge refund',
     {
@@ -371,10 +358,7 @@ function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerSh
 
 /** Start the passive only after Virtuoso has installed its blade lifecycle; pulses schedule their own successor. */
 function startInfiniteForge(context: MesmerRuntime): void {
-  const interval = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE),
-    'pulseInterval'
-  );
+  const interval = balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval');
   if (interval > 0) context.schedule('mesmer.infinite-forge', interval, undefined, undefined, -20);
 }
 

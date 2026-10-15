@@ -9,7 +9,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -62,16 +62,10 @@ export const inspiredVirtue = defineTrait({
       factor: (context) =>
         1 +
         Math.min(
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE),
-            'maximumBoons'
-          ),
+          balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'maximumBoons'),
           countActiveBoons(context, { actor: 'player' }, (boon) => guardianBoonActive(context, boon))
         ) *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE),
-            'damagePerBoon'
-          )
+          balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'damagePerBoon')
     }
   ]
 });
@@ -127,11 +121,7 @@ export const inspiringVirtue = defineTrait({
       id: 'guardian.inspiring-virtue',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE),
-          'damageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'damageIncrease'),
       when: (context) => buffActive(context, 'guardian-inspiring-virtue')
     }
   ]
@@ -221,22 +211,14 @@ export const unscathedContender = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // The assumed above-90% health bonus multiplies damage; the Aegis bonus stays additive.
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER),
-          'damageMultiplier'
-        )
+      factor: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageMultiplier')
     },
     {
       order: -11,
       id: 'guardian.unscathed-contender-aegis',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER),
-          'damageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageIncrease'),
       when: (context) => guardianBoonActive(context, 'aegis')
     }
   ]
@@ -283,8 +265,9 @@ export function masterOfConsecrationsFields(
 ): Skill['comboFields'] {
   if (cast.skill.id !== ID.PURGING_FLAMES || !hasTrait(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS))
     return fields;
-  const multiplier = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS),
+  const multiplier = balanceNumberFromContext(
+    runtime,
+    GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
     'durationMultiplier'
   );
   return fields?.map((field) => ({ ...field, duration: Number(field.duration) * multiplier }));

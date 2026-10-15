@@ -9,7 +9,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -62,8 +62,7 @@ const bloodyRoar = defineTrait({
       id: 'warrior.bloody-roar',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLOODY_ROAR), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.BLOODY_ROAR, 'damageMultiplier'),
       order: 100,
       when: (context) => active(context)
     }
@@ -112,8 +111,7 @@ const smashBrawler = defineTrait({
       id: 'warrior.smash-brawler-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SMASH_BRAWLER), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.SMASH_BRAWLER, 'criticalChance'),
       when: (context) => active(context)
     }
   ]
@@ -215,10 +213,7 @@ const kingOfFires = defineTrait({
     return {
       traitDurations: {
         'Burning Duration':
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.KING_OF_FIRES),
-            'durationMultiplier'
-          ) * 100
+          balanceNumberFromContext(context.balanceContext, TRAIT.KING_OF_FIRES, 'durationMultiplier') * 100
       }
     };
   },
@@ -240,8 +235,11 @@ const kingOfFires = defineTrait({
 export const bloodReaction = defineTrait({
   // Ordinary eligible conversions exclude signets, utility conversions, Might, and Berserk's flat grants.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.BLOOD_REACTION);
-    const factor = balanceProfileNumber(profile, active(context) ? 'coefficientMultiplier' : 'attributeConversion');
+    const factor = balanceNumberFromContext(
+      context,
+      TRAIT.BLOOD_REACTION,
+      active(context) ? 'coefficientMultiplier' : 'attributeConversion'
+    );
     return {
       attributeEffects: [
         {

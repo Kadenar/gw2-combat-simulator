@@ -6,7 +6,11 @@ import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import {
@@ -116,10 +120,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
       const stamina =
         selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_STAMINA) &&
         at >= gw2CooldownReadyAt(runtime.cooldownController.readyAt(ID.SIGNET_OF_STAMINA) ?? 0)
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(runtime, PROFILE.signetPassives),
-              'enduranceRegenerationBonus'
-            )
+          ? balanceNumberFromContext(runtime, PROFILE.signetPassives, 'enduranceRegenerationBonus')
           : 0;
       return (
         balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *

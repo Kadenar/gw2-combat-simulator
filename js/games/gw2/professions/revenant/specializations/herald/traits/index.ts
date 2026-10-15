@@ -9,6 +9,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -48,10 +49,7 @@ export const draconicEcho = defineTrait({
   attributes: (context) => ({
     traitDurations: {
       'Boon Duration': draconicEchoActive(context, ID.FACET_OF_NATURE)
-        ? balanceProfileNumber(
-            requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-            'boonDurationBonus'
-          )
+        ? balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'boonDurationBonus')
         : 0
     }
   }),
@@ -66,12 +64,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        1 +
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-          'damageIncrease'
-        ),
+      factor: (context) => 1 + balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_STRENGTH)
     },
@@ -80,11 +73,7 @@ export const draconicEcho = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) =>
-        1 +
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-          'conditionDamageIncrease'
-        ),
+        1 + balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'conditionDamageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_ELEMENTS)
     },
@@ -92,11 +81,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-darkness',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-          'criticalChanceBonus'
-        ),
+      amount: (context) => balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'criticalChanceBonus'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_DARKNESS)
     }
@@ -167,8 +152,9 @@ const forcefulPersistence = defineTrait({
         (revenantRuntimeCoreState(context).activeUpkeeps || []).reduce(
           (bonus, upkeep) =>
             bonus +
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.FORCEFUL_PERSISTENCE),
+            balanceNumberFromContext(
+              context,
+              TRAIT.FORCEFUL_PERSISTENCE,
               HERALD_BASE_SKILL_MECHANICS[Number(upkeep.skillId)]?.facet
                 ? 'damageIncreasePerStack'
                 : 'upkeepDamageIncrease'
@@ -203,9 +189,9 @@ const reinforcedPotency = defineTrait({
 
       amount: (context) =>
         Math.min(
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.REINFORCED_POTENCY), 'maximumBoons'),
+          balanceNumberFromContext(context, TRAIT.REINFORCED_POTENCY, 'maximumBoons'),
           countActiveBoons(context)
-        ) * balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.REINFORCED_POTENCY), 'damagePerBoon'),
+        ) * balanceNumberFromContext(context, TRAIT.REINFORCED_POTENCY, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -272,8 +258,9 @@ function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasA
   const core = runtime.profession.core;
   if (!wasActive) return;
   const state = heraldState.from(runtime);
-  const profile = requireBalanceProfileFromContext(runtime, HERALD_DRACONIC_ECHO_PROFILE_ID);
-  const expiresAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'duration'));
+  const expiresAt = canonicalTime(
+    runtime.time + balanceNumberFromContext(runtime, HERALD_DRACONIC_ECHO_PROFILE_ID, 'duration')
+  );
   // Retention preserves the pulse phase, but never keeps an Energy-draining upkeep alive.
   state.lingeringFacets[facet.id] = { startsAt: runtime.time, expiresAt, legendId: core.activeLegendId };
   const nextAt = state.facetPulseReadyAt[facet.id];

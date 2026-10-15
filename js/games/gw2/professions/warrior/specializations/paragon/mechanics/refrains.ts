@@ -1,4 +1,4 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
@@ -11,7 +11,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
   const state = paragonState.from(runtime);
   runtime.cancelOwner({ id: REFRAIN, generation: state.refrainGeneration });
   state.refrainGeneration++;
-  const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'pulseInterval');
+  const interval = balanceNumberFromContext(runtime, PROFILE.resources, 'pulseInterval');
   if (interval > 0)
     runtime.schedule(
       REFRAIN,

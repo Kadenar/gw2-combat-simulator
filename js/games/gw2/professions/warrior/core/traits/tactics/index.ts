@@ -9,6 +9,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -57,8 +58,7 @@ export const legSpecialist = defineTrait({
       id: 'warrior.leg-specialist',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEG_SPECIALIST), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.LEG_SPECIALIST, 'damageMultiplier'),
       order: 91,
       when: (context) =>
         ['Crippled', 'Chilled', 'Immobilized'].some((condition) => targetConditionActive(context, condition))
@@ -146,10 +146,7 @@ export const roaringReveille = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.ROARING_REVEILLE),
-            'attributeBonus'
-          ),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.ROARING_REVEILLE, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -173,11 +170,8 @@ export const empowered = defineTrait({
 
       factor: (context) =>
         1 +
-        Math.min(
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED), 'maximumBoons'),
-          warriorActiveBoonCount(context)
-        ) *
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED), 'damagePerBoon'),
+        Math.min(balanceNumberFromContext(context, TRAIT.EMPOWERED, 'maximumBoons'), warriorActiveBoonCount(context)) *
+          balanceNumberFromContext(context, TRAIT.EMPOWERED, 'damagePerBoon'),
       order: 90
     }
   ]
@@ -194,12 +188,10 @@ export const warriorsCunning = defineTrait({
       id: 'warrior.warriors-cunning',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WARRIORS_CUNNING), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.WARRIORS_CUNNING, 'damageMultiplier'),
       order: 92,
       when: (context) =>
-        targetHealthFraction(context) >
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WARRIORS_CUNNING), 'threshold')
+        targetHealthFraction(context) > balanceNumberFromContext(context, TRAIT.WARRIORS_CUNNING, 'threshold')
     }
   ]
 });

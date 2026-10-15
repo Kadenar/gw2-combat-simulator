@@ -5,7 +5,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { improvisationArtifactUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
 import { artifactsPilfered } from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
@@ -40,7 +40,7 @@ export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' |
       ...THIEF_ARTIFACT_IDS.SCUFFLE_ONLY.map((skillId) => ({ kind: 'unstable' as const, skillId }))
     );
   state.artifactUsesRemaining =
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks') +
+    balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks') +
     prolificPlundererUses(runtime, source) +
     improvisationArtifactUses(runtime, source);
 }
@@ -121,7 +121,7 @@ export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
     advanceCounter(
       antiquaryState.from(runtime).initiativeSpentSincePilfer,
       0,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PRODIGIOUS_PINCHER), 'threshold'),
+      balanceNumberFromContext(runtime, TRAIT.PRODIGIOUS_PINCHER, 'threshold'),
       'retain'
     ).reached
   );
@@ -130,6 +130,6 @@ export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
 /** Only Swipe pilfers receive Prolific Plunderer's extra use. */
 function prolificPlundererUses(runtime: ThiefRuntime, source: string): number {
   return source === 'swipe' && hasTrait(runtime, TRAIT.PROLIFIC_PLUNDERER)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PROLIFIC_PLUNDERER), 'resourceGain')
+    ? balanceNumberFromContext(runtime, TRAIT.PROLIFIC_PLUNDERER, 'resourceGain')
     : 0;
 }

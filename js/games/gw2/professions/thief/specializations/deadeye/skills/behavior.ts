@@ -2,6 +2,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -28,8 +29,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
   state.markedTargetId = 'primary-target';
   state.markExpiresAt = canonicalTime(
-    runtime.time +
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'durationMultiplier')
+    runtime.time + balanceNumberFromContext(runtime, PROFILE.resources, 'durationMultiplier')
   );
   state.markGeneration += 1;
   if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));

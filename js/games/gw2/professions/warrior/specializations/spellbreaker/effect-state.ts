@@ -2,9 +2,9 @@ import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/p
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import {
+  balanceNumberFromContext,
   balanceProfileFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
+  balanceProfileNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
@@ -17,10 +17,7 @@ export function spellbreakerBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'magebane-tether', maximumStacks: 1 },
     {
       kind: 'attackers-insight',
-      maximumStacks: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.ATTACKERS_INSIGHT),
-        'maximumStacks'
-      )
+      maximumStacks: balanceNumberFromContext(context, TRAIT.ATTACKERS_INSIGHT, 'maximumStacks')
     }
   ];
 }

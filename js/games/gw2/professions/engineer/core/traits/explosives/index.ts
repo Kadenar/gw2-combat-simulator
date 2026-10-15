@@ -10,6 +10,7 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   procChanceFromContext,
   requireBalanceProfileFromContext,
@@ -50,8 +51,7 @@ export const grenadier = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Live remains neutral; preview tuning increases only player-owned explosion strikes with Grenadier selected.
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GRENADIER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.GRENADIER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         isExplosion(
@@ -193,8 +193,7 @@ export const grandEntrance = defineTrait({
       id: 'engineer.grand-entrance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GRAND_ENTRANCE), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.GRAND_ENTRANCE, 'criticalChance'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'grand-entrance', 1) > 0
     }
@@ -230,12 +229,10 @@ export const glassCannon = defineTrait({
       id: 'engineer.glass-cannon',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GLASS_CANNON), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.GLASS_CANNON, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        playerHealthFraction(context) >
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GLASS_CANNON), 'threshold')
+        playerHealthFraction(context) > balanceNumberFromContext(context, TRAIT.GLASS_CANNON, 'threshold')
     }
   ]
 });
@@ -252,8 +249,7 @@ export const bigBoomer = defineTrait({
       id: 'engineer.big-boomer',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BIG_BOOMER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.BIG_BOOMER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && playerHealthFraction(context) > targetHealthFraction(context)
     }
@@ -277,13 +273,10 @@ export const shapedCharge = defineTrait({
       factor: (context) =>
         1 +
         Math.min(
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHAPED_CHARGE), 'maximumStacks'),
+          balanceNumberFromContext(context, TRAIT.SHAPED_CHARGE, 'maximumStacks'),
           vulnerabilityStacks(context)
         ) *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, TRAIT.SHAPED_CHARGE),
-            'damageIncreasePerStack'
-          ),
+          balanceNumberFromContext(context, TRAIT.SHAPED_CHARGE, 'damageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -515,10 +508,13 @@ function isAimAssistedProjectile(
 
 /** Every fifth accepted rocket becomes an Orbital Command Strike; the counter advances only on accepted procs. */
 function fireAimAssistedRocket(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
   const core = professionCoreState(context);
   // Preserve the cumulative total used to select each orbital strike.
-  const progress = advanceCyclicCounter(core.aimAssistedRocketCount, 1, balanceProfileNumber(profile, 'maximumStacks'));
+  const progress = advanceCyclicCounter(
+    core.aimAssistedRocketCount,
+    1,
+    balanceNumberFromContext(context, TRAIT.AIM_ASSISTED_ROCKET, 'maximumStacks')
+  );
   core.aimAssistedRocketCount = progress.value;
   const variant = progress.reached ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL;
   invokeTraitSkill(context, TRAIT.AIM_ASSISTED_ROCKET, variant, event, { announce: true });

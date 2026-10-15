@@ -3,7 +3,7 @@ import { holosmithCastAvailability } from '#gw2/professions/engineer/specializat
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
@@ -86,9 +86,8 @@ function reportHeat(context: EngineerRuntime<HolosmithSkill>, reason: string): v
 
 /** Converts the profiled passive heat rate, including Light Density Amplifier, to one cadence tick. */
 function passiveHeatPerTick(context: EngineerRuntime<HolosmithSkill>): number {
-  const heatProfile = requireBalanceProfileFromContext(context, PROFILE.heat);
   const heatPerSecond =
-    balanceProfileNumber(heatProfile, 'energyRegenerationPerSecond') + lightDensityHeatPerSecond(context);
+    balanceNumberFromContext(context, PROFILE.heat, 'energyRegenerationPerSecond') + lightDensityHeatPerSecond(context);
 
   // Scale profile rates to the resource cadence so 2%/s becomes 0.2% per 100 ms.
   return heatPerSecond * HOLOSMITH_HEAT.heatTickInterval;
@@ -147,8 +146,7 @@ function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): vo
   scheduleToolbeltOverheatPenalty(
     context,
     effectAt,
-    blast?.cooldown ??
-      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.overheat), 'maximumStacks')
+    blast?.cooldown ?? balanceNumberFromContext(context, PROFILE.overheat, 'maximumStacks')
   );
 
   // Publish maximum heat at the overheat timestamp. The module blast and its
@@ -216,8 +214,7 @@ function enterPhotonForge(context: EngineerRuntime<HolosmithSkill>, skill: Engin
   const state = holosmithState.from(context);
   const coreState = professionCoreState(context);
   const at = context.time;
-  const heatProfile = requireBalanceProfileFromContext(context, PROFILE.heat);
-  const baseKitLockout = balanceProfileNumber(heatProfile, 'cooldown');
+  const baseKitLockout = balanceNumberFromContext(context, PROFILE.heat, 'cooldown');
   coreState.activeKit = null;
   state.photonForgeActive = true;
   state.forgeExitedAt = null;

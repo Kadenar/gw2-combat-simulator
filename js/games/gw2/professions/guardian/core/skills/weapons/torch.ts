@@ -2,7 +2,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -98,6 +98,6 @@ export const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, Guard
 /** Select the same duration multiplier for the torch flip window and its Burning packets. */
 function radiantFireDurationMultiplier(context: unknown): number {
   return hasTrait(context, TRAIT.RADIANT_FIRE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_FIRE), 'durationMultiplier')
+    ? balanceNumberFromContext(context, TRAIT.RADIANT_FIRE, 'durationMultiplier')
     : 1;
 }

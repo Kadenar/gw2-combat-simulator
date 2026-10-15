@@ -9,7 +9,11 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import {
   dodgeAccepted,
@@ -104,8 +108,7 @@ export const staticDischarge = defineTrait({
       id: 'engineer.static-discharge-critical-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STATIC_DISCHARGE), 'criticalDamage'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.STATIC_DISCHARGE, 'criticalDamage'),
       when: (context) => context.event?.skillId === ID.STATIC_DISCHARGE_TRAIT_SKILL
     }
   ]
@@ -131,8 +134,7 @@ export const kineticBattery = defineTrait({
       id: 'engineer.kinetic-battery',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.KINETIC_BATTERY, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'kinetic-battery', 1) > 0
     }
@@ -197,8 +199,7 @@ export const excessiveEnergy = defineTrait({
       id: 'engineer.excessive-energy',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXCESSIVE_ENERGY), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.EXCESSIVE_ENERGY, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, 'vigor', 1) > 0
     }
   ]
@@ -217,15 +218,14 @@ export const takedownRound = defineTrait({
       id: 'engineer.takedown-round',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TAKEDOWN_ROUND), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.TAKEDOWN_ROUND, 'damageIncrease'),
       when: (context) => {
         const state = engineerRuntimeState(context);
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
           !resourceAtLeast(
             state.endurance?.value ?? 0,
-            balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
+            balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks')
           )
         );
       }
@@ -317,7 +317,7 @@ function reduceEliteRecharge(runtime: EngineerRuntime, { cast }: DodgeAcceptance
     runtime,
     cast,
     (skill) => skill.type === 'Elite' || skill.slot === 'Elite',
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.POWER_WRENCH), 'rechargeReduction'),
+    balanceNumberFromContext(runtime, TRAIT.POWER_WRENCH, 'rechargeReduction'),
     TRAIT.POWER_WRENCH,
     'Power Wrench'
   );
@@ -329,7 +329,7 @@ function reduceToolbeltRecharge(runtime: EngineerRuntime, { cast }: DodgeAccepta
     runtime,
     cast,
     isEngineerToolbeltSkill,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ADRENAL_IMPLANT), 'rechargeReduction'),
+    balanceNumberFromContext(runtime, TRAIT.ADRENAL_IMPLANT, 'rechargeReduction'),
     TRAIT.ADRENAL_IMPLANT,
     'Adrenal Implant'
   );

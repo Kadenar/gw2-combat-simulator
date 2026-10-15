@@ -6,6 +6,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -479,8 +480,7 @@ export const combustiveShotFields: NonNullable<
 > = (runtime, cast, fields) => {
   if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
   const tier = warriorBurstTier(runtime, warriorBurstRules(runtime).spend(runtime, cast.skill));
-  const duration =
-    tier * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot), 'durationPerTier');
+  const duration = tier * balanceNumberFromContext(runtime, PROFILE.combustiveShot, 'durationPerTier');
   return fields?.flatMap((field) =>
     field.ownerId !== 'warrior' ? [field] : duration > 0 ? [{ ...field, duration }] : []
   );

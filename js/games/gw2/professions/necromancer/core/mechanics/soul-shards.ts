@@ -3,6 +3,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -74,6 +75,6 @@ export const soulShardTasks = {
 function soulBarbsSiphonMultiplier(runtime: NecromancerRuntime): number {
   return hasTrait(runtime, TRAIT.SOUL_BARBS) &&
     runtime.combat.activeBuffStacks('necromancer-soul-barbs', runtime.time, 1) > 0
-    ? 1 + balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'damageIncrease')
+    ? 1 + balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'damageIncrease')
     : 1;
 }

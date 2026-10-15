@@ -3,7 +3,11 @@ import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefCastCompleted, type ThiefCastCompletion } from '#gw2/professions/thief/core/mechanics/boundaries.js';
@@ -47,8 +51,7 @@ export const fluidStrikes = defineTrait({
       id: 'thief.fluid-strikes',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLUID_STRIKES), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.FLUID_STRIKES, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'fluid-strikes')
     }
   ],
@@ -80,14 +83,14 @@ export const swindlersEquilibrium = defineTrait({
   balance: { attributeBonus: 120, weaponAttributeBonus: 240 },
   attributes({ loadout, weaponSet, balanceContext }) {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
-    const swindlersEquilibriumProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.SWINDLERS_EQUILIBRIUM);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(
-            swindlersEquilibriumProfile,
+          amount: balanceNumberFromContext(
+            balanceContext,
+            TRAIT.SWINDLERS_EQUILIBRIUM,
             weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           feedsConversions: 'all'
@@ -118,7 +121,7 @@ function applyFluidStrikes(runtime: ThiefRuntime): void {
   replaceThiefBuff(
     runtime,
     'fluid-strikes',
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.FLUID_STRIKES), 'durationMultiplier'),
+    balanceNumberFromContext(runtime, TRAIT.FLUID_STRIKES, 'durationMultiplier'),
     TRAIT.FLUID_STRIKES,
     'Fluid Strikes',
     'Trait'
@@ -127,10 +130,7 @@ function applyFluidStrikes(runtime: ThiefRuntime): void {
 
 /** Applies Hard to Catch at its established mechanical boundary. */
 function applyHardToCatch(runtime: ThiefRuntime): void {
-  const enduranceGain = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.HARD_TO_CATCH),
-    'resourceGain'
-  );
+  const enduranceGain = balanceNumberFromContext(runtime, TRAIT.HARD_TO_CATCH, 'resourceGain');
   if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
 }
 

@@ -11,6 +11,7 @@ import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/char
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -604,13 +605,11 @@ export const pistolSideEffectHandlers: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast } = trigger;
     const at = cast.effectiveEnd;
-    {
-      const dazingDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.dazingDischarge);
-      // Arms a window that shortens the next pistol skill's recharge; the
-      // reduction is consumed by this weapon's recharge reservation.
-      professionCoreState(context).dazingDischargeUntil =
-        at + balanceProfileNumber(dazingDischargeProfile, 'durationMultiplier');
-    }
+
+    // Arms a window that shortens the next pistol skill's recharge; the
+    // reduction is consumed by this weapon's recharge reservation.
+    professionCoreState(context).dazingDischargeUntil =
+      at + balanceNumberFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier');
   },
   'elementalist.pistol.shattering-stone'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
@@ -739,8 +738,7 @@ export function reservePistolRecharge(context: ElementalistRuntime, skill: Skill
   const state = professionCoreState(context);
   if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === 'Pistol') {
     state.dazingDischargeUntil = 0;
-    const dazingDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.dazingDischarge);
-    return duration * balanceProfileNumber(dazingDischargeProfile, 'rechargeMultiplier');
+    return duration * balanceNumberFromContext(context, PROFILE.dazingDischarge, 'rechargeMultiplier');
   }
 
   return duration;

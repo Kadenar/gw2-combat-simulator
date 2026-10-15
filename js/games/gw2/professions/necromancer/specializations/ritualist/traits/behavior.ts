@@ -1,14 +1,14 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 /** Spirits Strength owns the selected creature multiplier; the mechanic samples this pure query. */
 export function spiritsStrengthCreatureMultiplier(runtime: MechanicQueriesOf<NecromancerRuntime>): number {
   return hasTrait(runtime, TRAIT.SPIRITS_STRENGTH)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SPIRITS_STRENGTH), 'damageMultiplier')
+    ? balanceNumberFromContext(runtime, TRAIT.SPIRITS_STRENGTH, 'damageMultiplier')
     : 1;
 }
 

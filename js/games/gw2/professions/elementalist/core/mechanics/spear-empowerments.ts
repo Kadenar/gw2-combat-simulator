@@ -4,7 +4,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
@@ -53,11 +53,7 @@ export function empowerElementalistSpearPacket(
     ...(followup.damage
       ? {
           coefficient:
-            Number(event.coefficient) *
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(context, PROFILE.spearEmpowerments),
-              'damageMultiplier'
-            )
+            Number(event.coefficient) * balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'damageMultiplier')
         }
       : {}),
     ...(followup.critical ? { forceCrit: true } : {})
@@ -84,12 +80,11 @@ export function completeElementalistSpearProgression(context: ElementalistRuntim
   for (const candidate of ETCHING_CHAINS) {
     const progress = state.etchings[candidate.etching];
     if (!progress || progress.stage !== 'lesser' || Number(skill.id) === candidate.etchingId) continue;
-    const spearEmpowermentsProfile = requireBalanceProfileFromContext(context, PROFILE.spearEmpowerments);
     // Full etchings stop earning credit; retain the crossing count rather than consuming or clamping it.
     const counter = advanceCounter(
       progress.otherCasts,
       1,
-      balanceProfileNumber(spearEmpowermentsProfile, 'maximumStacks'),
+      balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'maximumStacks'),
       'retain'
     );
     state.etchings[candidate.etching] = {

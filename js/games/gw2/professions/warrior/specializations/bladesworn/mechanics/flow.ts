@@ -1,7 +1,11 @@
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
@@ -47,8 +51,7 @@ export const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['ta
 export const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => bladeswornState.from(runtime).flow,
-  maximum: (runtime) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
   initial: (runtime, maximum) => boundedNumber(runtime.config.initialResource ?? 0, 0, 0, maximum),
   recovery: () => 0
 };

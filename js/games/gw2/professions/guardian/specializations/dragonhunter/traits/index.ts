@@ -6,7 +6,7 @@ import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -62,8 +62,7 @@ const bigGameHunter = defineTrait({
       id: 'guardian.dragonhunter.big-game-hunter',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BIG_GAME_HUNTER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.BIG_GAME_HUNTER, 'damageMultiplier'),
       order: 100,
       // Uses context.time (resolver clock), not event.at, because modifier rules
       // are evaluated at the moment damage resolves, not when it was scheduled.
@@ -174,8 +173,7 @@ const heavyLight = defineTrait({
       id: 'guardian.dragonhunter.heavy-light',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HEAVY_LIGHT), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.HEAVY_LIGHT, 'damageMultiplier'),
       order: 100,
       when: (context) => Boolean(context.config?.target?.defiant)
     }
@@ -193,8 +191,7 @@ const pureOfSight = defineTrait({
       id: 'guardian.dragonhunter.pure-of-sight',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PURE_OF_SIGHT), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.PURE_OF_SIGHT, 'damageMultiplier'),
       order: 100
     }
   ]
@@ -211,8 +208,7 @@ const zealotsAggression = defineTrait({
       id: 'guardian.dragonhunter.zealots-aggression',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ZEALOTS_AGGRESSION), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.ZEALOTS_AGGRESSION, 'damageMultiplier'),
       order: 100,
       when: (context) => targetConditionActive(context, 'Crippled')
     }
@@ -233,10 +229,7 @@ export const dragonhunterTraits = [
 
 /** The elite cast grants endurance after its accepted virtue activation rewards. */
 function grantHuntersDetermination(runtime: GuardianRuntime, { cast }: DragonhunterCastCompletion): void {
-  const amount = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.HUNTERS_DETERMINATION),
-    'resourceGain'
-  );
+  const amount = balanceNumberFromContext(runtime, TRAIT.HUNTERS_DETERMINATION, 'resourceGain');
   runtime.endurance.grant(amount);
   runtime.effects.emit({
     kind: 'announcement',

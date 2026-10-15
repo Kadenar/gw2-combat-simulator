@@ -3,7 +3,11 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
@@ -22,11 +26,9 @@ export function maximumDragonCharges(context: Gw2TraitLookupContext): number {
 }
 
 export function dragonFlowPerInterval(context: Gw2TraitLookupContext): number {
-  const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
-  const cost = balanceProfileNumber(dragonTriggerProfile, 'resourceCost');
+  const cost = balanceNumberFromContext(context, PROFILE.dragonTrigger, 'resourceCost');
   return hasTrait(context, TRAIT.DARING_DRAGON)
-    ? cost *
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARING_DRAGON), 'resourceCostMultiplier')
+    ? cost * balanceNumberFromContext(context, TRAIT.DARING_DRAGON, 'resourceCostMultiplier')
     : cost;
 }
 

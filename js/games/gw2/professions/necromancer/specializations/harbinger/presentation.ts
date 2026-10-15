@@ -1,5 +1,5 @@
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -128,13 +128,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
           scope: ['damage'],
           max: Math.min(
             MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS,
-            Math.max(
-              0,
-              balanceProfileNumber(
-                requireBalanceProfileFromContext(context, TRAIT.CASCADING_CORRUPTION),
-                'minimumStacks'
-              ) - 1
-            )
+            Math.max(0, balanceNumberFromContext(context, TRAIT.CASCADING_CORRUPTION, 'minimumStacks') - 1)
           ),
           initial:
             Number(

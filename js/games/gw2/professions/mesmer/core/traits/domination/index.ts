@@ -6,6 +6,7 @@ import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -50,9 +51,9 @@ export const fragility = defineTrait<MesmerSkill>({
       operation: 'multiply',
 
       factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FRAGILITY), 'damageMultiplier') +
+        balanceNumberFromContext(context, TRAIT.FRAGILITY, 'damageMultiplier') +
         (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) *
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FRAGILITY), 'damageIncreasePerStack'),
+          balanceNumberFromContext(context, TRAIT.FRAGILITY, 'damageIncreasePerStack'),
       order: 95,
       when: (context) => !illusionSource(context)
     }
@@ -71,8 +72,7 @@ export const viciousExpression = defineTrait<MesmerSkill>({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // The target never has boons, so the full bonus always applies.
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_EXPRESSION), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.VICIOUS_EXPRESSION, 'damageMultiplier'),
       order: 96
     }
   ]
@@ -89,8 +89,7 @@ export const empoweredIllusions = defineTrait<MesmerSkill>({
       id: 'mesmer.empowered-illusions',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED_ILLUSIONS), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.EMPOWERED_ILLUSIONS, 'damageMultiplier'),
       order: 97,
       when: (context) => illusionSource(context)
     }
@@ -111,8 +110,8 @@ export const mentalAnguish = defineTrait<MesmerSkill>({
 
       factor: (context) =>
         context.config?.target?.activatingSkills
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MENTAL_ANGUISH), 'activatingFactor')
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MENTAL_ANGUISH), 'idleFactor'),
+          ? balanceNumberFromContext(context, TRAIT.MENTAL_ANGUISH, 'activatingFactor')
+          : balanceNumberFromContext(context, TRAIT.MENTAL_ANGUISH, 'idleFactor'),
       order: 99,
       // Repeat packets are still shatter damage, but the skill contract limits shatter traits to the first strike.
       when: (context) => Boolean(context.event?.metadata?.shatterTraitEligible)
@@ -131,8 +130,7 @@ export const egotism = defineTrait<MesmerSkill>({
       id: 'mesmer.egotism',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EGOTISM), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.EGOTISM, 'damageMultiplier'),
       order: 100,
       when: (context) => !illusionSource(context) && remainingTargetHealthBelow(context.config, context.runtime, 1)
     }

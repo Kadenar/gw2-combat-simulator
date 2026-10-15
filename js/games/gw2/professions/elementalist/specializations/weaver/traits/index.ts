@@ -9,6 +9,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -118,8 +119,7 @@ const superiorElements = defineTrait({
       id: 'elementalist.superior-elements',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SUPERIOR_ELEMENTS), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.SUPERIOR_ELEMENTS, 'criticalChance'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
     }
   ]
@@ -210,19 +210,14 @@ const elementsOfRage = defineTrait({
       id: 'elementalist.elements-of-rage-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     },
     {
       id: 'elementalist.elements-of-rage-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE),
-          'conditionDamageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'conditionDamageIncrease'),
       when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     }
   ],
@@ -261,7 +256,6 @@ function initializeElementsOfRage(context: ElementalistRuntime): void {
   const core = professionCoreState(context),
     state = weaverState.from(context);
   if (core.primaryAttunement === state.secondaryAttunement) {
-    const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
     context.effects.emit(
       elementalistBuffRequest({
         skill: elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'),
@@ -271,7 +265,7 @@ function initializeElementsOfRage(context: ElementalistRuntime): void {
         actorType: 'player',
         kind: 'elements of rage',
         stacks: 1,
-        duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
         skillName: 'Starting Attunement'
       })
     );
@@ -287,7 +281,6 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
     source = event.skillName || event.source || 'Attunement',
     unravelActive = weaverState.from(context).unravelUntil > at;
   if (target === previous || unravelActive) {
-    const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
     context.effects.emit(
       elementalistBuffRequest({
         skill: elementalistEventSkill(context, source, sourceId),
@@ -297,7 +290,7 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
         actorType: 'player',
         kind: 'elements of rage',
         stacks: 1,
-        duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
         skillName: source
       })
     );
@@ -397,8 +390,7 @@ function applySwiftRevenge(context: ElementalistRuntime, { cast, dualAttunements
           }
         });
       } else if (element === 'Earth') {
-        const swiftRevengeProfile = requireBalanceProfileFromContext(context, TRAIT.SWIFT_REVENGE);
-        context.endurance.grant(balanceProfileNumber(swiftRevengeProfile, 'resourceGain'));
+        context.endurance.grant(balanceNumberFromContext(context, TRAIT.SWIFT_REVENGE, 'resourceGain'));
       }
     }
   }
@@ -431,7 +423,6 @@ function applyUnravelElementsOfRage(
 ): void {
   const skill = cast.skill;
   if (previousPrimary !== previousSecondary) {
-    const elementsOfRageProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTS_OF_RAGE);
     context.effects.emit(
       elementalistBuffRequest(
         {
@@ -442,7 +433,7 @@ function applyUnravelElementsOfRage(
           actorType: 'player',
           name: skill.name,
           kind: 'elements of rage',
-          duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
+          duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'durationMultiplier'),
           stacks: 1
         },
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }

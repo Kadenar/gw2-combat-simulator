@@ -1,7 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { purgeTimedState } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -9,7 +9,7 @@ import type { NecromancerResolverContext, NecromancerRuntime } from '#gw2/profes
 
 /** Timed grants and combined stack queries share the active patch's capacity, even without minion grants selected. */
 function carapaceCapacity(context: unknown): number {
-  return balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLESH_OF_THE_MASTER), 'maximumStacks');
+  return balanceNumberFromContext(context, TRAIT.FLESH_OF_THE_MASTER, 'maximumStacks');
 }
 
 /** Admit timed stacks using their trait-owned capacity while preserving existing expiry and overflow policy. */
@@ -37,9 +37,7 @@ export function deathCarapaceStacks(context: unknown, state: Partial<Necromancer
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(state.activeMinions || {}).reduce(
         (total: number, count: number) =>
-          total +
-          (count || 0) *
-            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLESH_OF_THE_MASTER), 'resourceGain'),
+          total + (count || 0) * balanceNumberFromContext(context, TRAIT.FLESH_OF_THE_MASTER, 'resourceGain'),
         0
       )
     : 0;
@@ -49,6 +47,6 @@ export function deathCarapaceStacks(context: unknown, state: Partial<Necromancer
 /** Minion-owned strikes sample Necromantic Corruption before applying other creature multipliers. */
 export function necromanticCorruptionMultiplier(runtime: NecromancerRuntime): number {
   return hasTrait(runtime, TRAIT.NECROMANTIC_CORRUPTION)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.NECROMANTIC_CORRUPTION), 'damageMultiplier')
+    ? balanceNumberFromContext(runtime, TRAIT.NECROMANTIC_CORRUPTION, 'damageMultiplier')
     : 1;
 }

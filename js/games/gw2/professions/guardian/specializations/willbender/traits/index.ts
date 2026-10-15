@@ -10,7 +10,7 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -80,14 +80,8 @@ export const lethalTempo = defineTrait({
       amount: (context) =>
         lethalTempoStacks(context) *
         (hasTrait(context, TRAIT.TYRANTS_MOMENTUM)
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.TYRANTS_MOMENTUM),
-              'damageIncreasePerStack'
-            )
-          : balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.LETHAL_TEMPO),
-              'damageIncreasePerStack'
-            )),
+          ? balanceNumberFromContext(context, TRAIT.TYRANTS_MOMENTUM, 'damageIncreasePerStack')
+          : balanceNumberFromContext(context, TRAIT.LETHAL_TEMPO, 'damageIncreasePerStack')),
       order: 100
     },
     {
@@ -101,14 +95,8 @@ export const lethalTempo = defineTrait({
       amount: (context) =>
         lethalTempoStacks(context) *
         (hasTrait(context, TRAIT.TYRANTS_MOMENTUM)
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.TYRANTS_MOMENTUM),
-              'conditionDamageIncreasePerStack'
-            )
-          : balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.LETHAL_TEMPO),
-              'conditionDamageIncreasePerStack'
-            )),
+          ? balanceNumberFromContext(context, TRAIT.TYRANTS_MOMENTUM, 'conditionDamageIncreasePerStack')
+          : balanceNumberFromContext(context, TRAIT.LETHAL_TEMPO, 'conditionDamageIncreasePerStack')),
       order: 100
     }
   ]
@@ -236,8 +224,7 @@ const powerForPower = defineTrait({
       id: 'guardian.willbender.power-for-power',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POWER_FOR_POWER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.POWER_FOR_POWER, 'damageMultiplier'),
       order: 100,
       // willbenderFlames flag is set only on Willbender Flames pulse strikes emitted by hooks.ts,
       // so this 3× multiplier never applies to normal weapon hits.
@@ -404,10 +391,7 @@ function reduceWeapons(runtime: GuardianRuntime, cause: Gw2ResolverEvent): void 
   const state = willbenderState.from(runtime);
   const names = new Set(gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean));
   const matches = (skill: Skill) => skill.type === 'Weapon' && (!names.size || names.has(String(skill.weapon)));
-  const amount = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.RESTORATIVE_VIRTUES),
-    'rechargeReduction'
-  );
+  const amount = balanceNumberFromContext(runtime, TRAIT.RESTORATIVE_VIRTUES, 'rechargeReduction');
   let reduction = 0;
   for (const id of new Set([
     ...runtime.cooldownController.cooldownSkillIds(),

@@ -4,7 +4,11 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
@@ -64,8 +68,8 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const element = selectedElement(context);
   const state = uiState(context);
   const build = context.build;
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const empoweredMaximum = state.empoweredCharges?.maximum ?? balanceProfileNumber(resourcesProfile, 'minimumStacks');
+  const empoweredMaximum =
+    state.empoweredCharges?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks');
   const empowered = state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0;
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
@@ -208,17 +212,15 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
     const build = context.build;
     const maximum =
       state.familiarCharges?.maximum ??
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(
-          context,
-          getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
-            ? TRAIT.SPECIALIZED_ELEMENTS
-            : PROFILE.resources
-        ),
+      balanceNumberFromContext(
+        context,
+        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
+          ? TRAIT.SPECIALIZED_ELEMENTS
+          : PROFILE.resources,
         'maximumStacks'
       );
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const empoweredMaximum = state.empoweredCharges?.maximum ?? balanceProfileNumber(resourcesProfile, 'minimumStacks');
+    const empoweredMaximum =
+      state.empoweredCharges?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks');
     // Keep fractional patched progress in the reading; only the decorative wedge class uses whole stacks.
     const empowered = boundedNumber(
       state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0,

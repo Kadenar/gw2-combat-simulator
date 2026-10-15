@@ -1,6 +1,6 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 /** Owns Arcane Echo's window and the later weapon cast that consumes it. */
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
@@ -11,9 +11,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** The skill's commit declaration opens the profiled window for the next recharging weapon cast. */
 export function armArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const arcaneEchoProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneEcho);
   professionCoreState(context).arcaneEchoUntil = canonicalTime(
-    cast.effectiveEnd + balanceProfileNumber(arcaneEchoProfile, 'durationMultiplier')
+    cast.effectiveEnd + balanceNumberFromContext(context, PROFILE.arcaneEcho, 'durationMultiplier')
   );
 }
 
@@ -40,10 +39,13 @@ export function completeArcaneEcho(
 
   state.arcaneEchoUntil = 0;
   const at = canonicalTime(context.time);
-  const arcaneEchoProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneEcho);
   // Use original recharge before trait reductions; the short replacement still benefits from Alacrity.
   const addedWork = gw2BaseRecharge(skill);
-  context.cooldownController.replaceSkillRecharge(skill, balanceProfileNumber(arcaneEchoProfile, 'recharge'), at);
+  context.cooldownController.replaceSkillRecharge(
+    skill,
+    balanceNumberFromContext(context, PROFILE.arcaneEcho, 'recharge'),
+    at
+  );
   const arcaneEcho = context.helpers.skillsById.get(ID.ARCANE_ECHO);
   if (arcaneEcho) {
     // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.

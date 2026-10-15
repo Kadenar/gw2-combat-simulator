@@ -4,7 +4,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -135,10 +135,7 @@ function engineerEventLogRow(
   // Show progress against the selected patch's activation cap before suppressing internal snapshots.
   if (event.type === 'engineer.kinetic-battery') {
     const charges = Number(event.kineticCharges || 0);
-    const maximum = balanceProfileNumber(
-      requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY),
-      'maximumStacks'
-    );
+    const maximum = balanceNumberFromContext(context, TRAIT.KINETIC_BATTERY, 'maximumStacks');
     return {
       type: event.type,
       description: charges
@@ -262,8 +259,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     resourceViews: (context: EngineerUiContext) => {
       const state = engineerUiState(context);
       if (!usesToolsTraitline(catalog, context)) return [];
-      const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-      const maximum = state.endurance?.maximum ?? balanceProfileNumber(resourcesProfile, 'maximumStacks');
+      const maximum = state.endurance?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
       const endurance: ProfessionResourceView = {
         id: 'endurance',
         singular: 'endurance',
@@ -286,10 +282,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       const items: RotationStateSnapshotItem[] = [];
       if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
         // The inspected rotation's balance source owns the cap displayed beside its charge count.
-        const maximum = balanceProfileNumber(
-          requireBalanceProfileFromContext(context.balanceContext, TRAIT.KINETIC_BATTERY),
-          'maximumStacks'
-        );
+        const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.KINETIC_BATTERY, 'maximumStacks');
         items.push({
           id: 'engineer-kinetic-charges',
           label: 'Kinetic Charges',

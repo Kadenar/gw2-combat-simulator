@@ -4,6 +4,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -166,10 +167,7 @@ const imbuedHaste = defineTrait({
     attributeEffects: (['Condition Damage', 'Healing Power', 'Vitality'] as const).map((to) => ({
       kind: 'flat' as const,
       to,
-      amount: balanceProfileNumber(
-        requireBalanceProfileFromContext(balanceContext, TRAIT.IMBUED_HASTE),
-        'attributeBonus'
-      ),
+      amount: balanceNumberFromContext(balanceContext, TRAIT.IMBUED_HASTE, 'attributeBonus'),
       feedsConversions: 'all',
       enabled: loadout.assumptions.quickness !== false
     }))
@@ -235,8 +233,7 @@ const weightyTerms = defineTrait({
       run(runtime, cast) {
         const skill = cast.skill;
         if (MANTRAS.some(({ finalId }) => finalId === skill.id)) {
-          const profile = requireBalanceProfileFromContext(runtime, TRAIT.WEIGHTY_TERMS);
-          const gain = balanceProfileNumber(profile, 'resourceGain');
+          const gain = balanceNumberFromContext(runtime, TRAIT.WEIGHTY_TERMS, 'resourceGain');
           // The final-charge trigger owns the rewards; the completed cast retains the proc report.
 
           runtime.effects.emit({

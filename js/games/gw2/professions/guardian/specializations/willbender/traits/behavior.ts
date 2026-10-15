@@ -3,7 +3,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -22,9 +22,8 @@ export function lethalTempoParameters(context: unknown) {
   const profile = requireBalanceProfileFromContext(context, profileId);
   const window = requireEffect(profile, 'buff', 'lethal-tempo');
   if (!window) return undefined;
-  const lethalTempoProfile = requireBalanceProfileFromContext(context, TRAIT.LETHAL_TEMPO);
   return {
-    maximumStacks: balanceProfileNumber(lethalTempoProfile, 'maximumStacks'),
+    maximumStacks: balanceNumberFromContext(context, TRAIT.LETHAL_TEMPO, 'maximumStacks'),
     stacks: effectNumber(profile, window, 'stacks'),
     duration: effectNumber(profile, window, 'duration')
   };

@@ -13,6 +13,7 @@ import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-d
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -91,14 +92,8 @@ const cascadingCorruption = defineTrait({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.CASCADING_CORRUPTION),
-              'conditionDamageIncrease'
-            )
-          : balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.CASCADING_CORRUPTION),
-              'damageIncrease'
-            ),
+          ? balanceNumberFromContext(context, TRAIT.CASCADING_CORRUPTION, 'conditionDamageIncrease')
+          : balanceNumberFromContext(context, TRAIT.CASCADING_CORRUPTION, 'damageIncrease'),
       // Read the emitted buff through the shared timeline, including explicitly supplied initial buffs.
       when: (context) => buffActive(context, 'meltdown')
     }
@@ -137,10 +132,7 @@ const septicCorruption = defineTrait({
 
       amount: (context) =>
         activeBlight(context) *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.SEPTIC_CORRUPTION),
-          'conditionDamageIncreasePerStack'
-        )
+        balanceNumberFromContext(context, TRAIT.SEPTIC_CORRUPTION, 'conditionDamageIncreasePerStack')
     }
   ]
 });
@@ -350,19 +342,14 @@ const wickedCorruption = defineTrait({
       operation: 'damage-additive',
 
       amount: (context) =>
-        activeBlight(context) *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.WICKED_CORRUPTION),
-          'damageIncreasePerStack'
-        )
+        activeBlight(context) * balanceNumberFromContext(context, TRAIT.WICKED_CORRUPTION, 'damageIncreasePerStack')
     },
     {
       order: 121,
       id: 'necromancer.wicked-corruption-critical-hit-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WICKED_CORRUPTION), 'criticalDamage'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.WICKED_CORRUPTION, 'criticalDamage'),
       when: (context) => targetConditionActive(context, 'Torment')
     }
   ]
@@ -606,8 +593,5 @@ function applySepticCorruptionStrike(context: NecromancerResolverContext, event:
 
 /** The accepted shroud entry grants its life force before the entry boons. */
 function grantCorruptedTalent(runtime: NecromancerRuntime): void {
-  grantNecromancerLifeForce(
-    runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CORRUPTED_TALENT), 'lifeForceGain')
-  );
+  grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, TRAIT.CORRUPTED_TALENT, 'lifeForceGain'));
 }

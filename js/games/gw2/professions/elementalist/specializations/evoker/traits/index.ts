@@ -13,6 +13,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -222,8 +223,7 @@ const enhancedPotency = defineTrait({
       id: 'elementalist.enhanced-potency-air',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ENHANCED_POTENCY), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.ENHANCED_POTENCY, 'criticalChance'),
       when: (context: ElementalistModifierContext) =>
         context.config?.evokerElement === 'Air' &&
         Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
@@ -257,11 +257,9 @@ const familiarsProwess = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(
-            context,
-            hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS
-          ),
+        balanceNumberFromContext(
+          context,
+          hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS,
           'damageIncrease'
         ),
       when: (context: ElementalistModifierContext) =>
@@ -273,11 +271,9 @@ const familiarsProwess = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(
-            context,
-            hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS
-          ),
+        balanceNumberFromContext(
+          context,
+          hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS,
           'conditionDamageIncrease'
         ),
       when: (context: ElementalistModifierContext) =>
@@ -342,8 +338,7 @@ const fieryMight = defineTrait({
       id: 'elementalist.fiery-might',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FIERY_MIGHT), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.FIERY_MIGHT, 'damageMultiplier'),
       when: (context) => targetConditionActive(context, 'Burning')
     }
   ]
@@ -375,7 +370,7 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
       context.procs.claimCooldown(
         'elementalist.evoker.ignitePassive',
         event.at,
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ignite), 'pulseInterval')
+        balanceNumberFromContext(context, PROFILE.ignite, 'pulseInterval')
       )
     ) {
       emitTraitProfile(context, TRAIT.EVOCATION, TRAIT.EVOCATION, undefined, {
@@ -442,8 +437,10 @@ function applyElementalDynamoEntry(context: ElementalistRuntime, event: Simulati
   if (event.to !== state.element) return;
   // Elemental Dynamo turns each entry into familiar charges and reports the new total
 
-  const elementalDynamoProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_DYNAMO);
-  context.resourceController.grant('familiarCharges', balanceProfileNumber(elementalDynamoProfile, 'resourceGain'));
+  context.resourceController.grant(
+    'familiarCharges',
+    balanceNumberFromContext(context, TRAIT.ELEMENTAL_DYNAMO, 'resourceGain')
+  );
   context.effects.emit({
     kind: 'packet',
     cause: event,
@@ -489,8 +486,9 @@ function applySpecializedElementsTrait(
     applyWeaponSkillRechargeMultiplier(
       context,
       cast,
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.SPECIALIZED_ELEMENTS),
+      balanceNumberFromContext(
+        context,
+        TRAIT.SPECIALIZED_ELEMENTS,
         basic ? 'rechargeMultiplier' : 'empoweredRechargeMultiplier'
       )
     );

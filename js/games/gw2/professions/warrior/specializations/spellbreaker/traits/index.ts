@@ -10,6 +10,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -31,8 +32,7 @@ export const attackersInsight = defineTrait({
   // Accepted Insight belongs to the effect lifetime rather than the current selection.
   grantedAttributes(context) {
     const amount =
-      insightStacks(context) *
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ATTACKERS_INSIGHT), 'attributePerStack');
+      insightStacks(context) * balanceNumberFromContext(context, TRAIT.ATTACKERS_INSIGHT, 'attributePerStack');
     return {
       attributeEffects: ['Power', 'Precision', 'Ferocity'].map((to) => ({
         kind: 'flat',
@@ -120,8 +120,7 @@ const pureStrike = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
       // The target never has boons, so the full bonus always applies.
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PURE_STRIKE), 'criticalDamage')
+      factor: (context) => balanceNumberFromContext(context, TRAIT.PURE_STRIKE, 'criticalDamage')
     }
   ]
 });
@@ -137,8 +136,7 @@ const sunAndMoonStyle = defineTrait({
       id: 'warrior.sun-and-moon-style',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SUN_AND_MOON_STYLE), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.SUN_AND_MOON_STYLE, 'damageMultiplier'),
       order: 100,
       when: (context) =>
         gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Dagger'

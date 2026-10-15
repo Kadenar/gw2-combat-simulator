@@ -9,7 +9,11 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/
 
 import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
@@ -183,13 +187,13 @@ function warriorCoreStateSnapshot(
       'furious-surge',
       'Furious Surge',
       'furious-surge',
-      balanceProfileNumber(requireBalanceProfileFromContext(balance, TRAIT.FURIOUS), 'maximumStacks')
+      balanceNumberFromContext(balance, TRAIT.FURIOUS, 'maximumStacks')
     ],
     [
       'berserkers-power',
       "Berserker's Power",
       'berserkers-power',
-      balanceProfileNumber(requireBalanceProfileFromContext(balance, TRAIT.BERSERKERS_POWER), 'maximumStacks')
+      balanceNumberFromContext(balance, TRAIT.BERSERKERS_POWER, 'maximumStacks')
     ]
   ] as const) {
     const stacks = planningBuffStacks(context.planningState, kind);
@@ -227,10 +231,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        max: balanceProfileNumber(
-          requireBalanceProfileFromContext(context, WARRIOR_CORE_BALANCE_PROFILE_IDS.resources),
-          'maximumStacks'
-        ),
+        max: balanceNumberFromContext(context, WARRIOR_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks'),
         initial: Number(context.build.initialResource) || 0,
         description: 'Adrenaline before setup; bursts spend it normally'
       });

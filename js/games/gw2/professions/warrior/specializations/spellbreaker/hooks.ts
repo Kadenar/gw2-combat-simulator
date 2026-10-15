@@ -1,6 +1,6 @@
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -15,8 +15,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 /** Spellbreaker supplies its selected cap before the shared controller seeds initial adrenaline. */
 const spellbreakerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   ...coreAdrenalinePolicy,
-  maximum: (runtime) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks')
+  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks')
 };
 
 /** Core owns packet execution and one-bar spending; this slice owns accepted control and burst reactions. */

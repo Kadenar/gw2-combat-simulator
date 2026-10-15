@@ -1,7 +1,11 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianResolverContext, GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
@@ -38,13 +42,11 @@ export function permeatingWrathThreshold(
   virtue: GuardianVirtue,
   baseProfile: string
 ): number {
-  return balanceProfileNumber(
-    requireBalanceProfileFromContext(
-      context,
-      virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-        ? GUARDIAN_TRAIT_IDS.PERMEATING_WRATH
-        : baseProfile
-    ),
+  return balanceNumberFromContext(
+    context,
+    virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
+      ? GUARDIAN_TRAIT_IDS.PERMEATING_WRATH
+      : baseProfile,
     'threshold'
   );
 }
@@ -62,10 +64,7 @@ export function indomitableCourageInterval(runtime: GuardianRuntime, baseProfile
 /** Ordinary virtue recharge and Firebrand dormancy share the current trait multiplier. */
 export function powerOfTheVirtuousRechargeMultiplier(runtime: MechanicQueriesOf<GuardianRuntime>): number {
   return hasTrait(runtime, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS),
-        'rechargeMultiplier'
-      )
+    ? balanceNumberFromContext(runtime, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, 'rechargeMultiplier')
     : 1;
 }
 

@@ -7,6 +7,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -63,8 +64,7 @@ export const flowLikeWater = defineTrait({
       id: 'elementalist.flow-like-water',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLOW_LIKE_WATER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.FLOW_LIKE_WATER, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -84,8 +84,8 @@ export const piercingShards = defineTrait({
 
       factor: (context) =>
         primaryAttunement(context) === 'Water'
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PIERCING_SHARDS), 'waterFactor')
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PIERCING_SHARDS), 'otherFactor'),
+          ? balanceNumberFromContext(context, TRAIT.PIERCING_SHARDS, 'waterFactor')
+          : balanceNumberFromContext(context, TRAIT.PIERCING_SHARDS, 'otherFactor'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Vulnerability')
     }
   ]
@@ -139,10 +139,6 @@ export function aquamancersTrainingRecharge(
   duration: number
 ): number {
   return skill.attunement === 'Water' && hasTrait(context, TRAIT.AQUAMANCERS_TRAINING)
-    ? duration *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.AQUAMANCERS_TRAINING),
-          'rechargeMultiplier'
-        )
+    ? duration * balanceNumberFromContext(context, TRAIT.AQUAMANCERS_TRAINING, 'rechargeMultiplier')
     : duration;
 }

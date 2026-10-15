@@ -1,7 +1,7 @@
 import { activeChargeCount, activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
@@ -26,8 +26,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     hasTrait(context, TRAIT.PRODIGIOUS_PINCHER) ||
     getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.PRODIGIOUS_PINCHER)
   ) {
-    const prodigiousPincherProfile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.PRODIGIOUS_PINCHER);
-    const threshold = balanceProfileNumber(prodigiousPincherProfile, 'threshold');
+    const threshold = balanceNumberFromContext(context.balanceContext, TRAIT.PRODIGIOUS_PINCHER, 'threshold');
     const spent = Math.max(0, state.initiativeSpentSincePilfer || 0);
     items.push({
       id: 'antiquary-prodigious-pincher',
@@ -49,8 +48,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 
   const combatHigh = purgeExpiredStacks(state.combatHighExpirations || [], at);
   if (combatHigh.length > 0) {
-    const combatHighProfile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.COMBAT_HIGH);
-    const maximum = balanceProfileNumber(combatHighProfile, 'maximumStacks');
+    const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.COMBAT_HIGH, 'maximumStacks');
     const remaining = Math.max(...combatHigh) - at;
     items.push({
       id: 'antiquary-combat-high',

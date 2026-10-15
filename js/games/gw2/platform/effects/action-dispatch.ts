@@ -6,7 +6,7 @@ import type {
 } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Ordinary actions receive only the services they can mutate; profession verbs keep their typed context. */
@@ -34,7 +34,7 @@ export function sideEffectAmount(
       ? amount
       : 'skillField' in amount
         ? skill?.[amount.skillField]
-        : balanceProfileNumber(requireBalanceProfileFromContext(runtime, amount.profile), amount.field);
+        : balanceNumberFromContext(runtime, amount.profile, amount.field);
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
     throw new RangeError('Side-effect amounts must be finite and non-negative.');
   return value;

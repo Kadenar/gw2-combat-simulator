@@ -7,7 +7,7 @@ import {
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Align combat within a clipped opening teleport using the main-minus-follow-up offset, without adding inputs. */
 export function alignConduitHazeCombatOffset<Action extends CompositeAction & { readonly replayDurationMs?: number }>(
@@ -19,8 +19,11 @@ export function alignConduitHazeCombatOffset<Action extends CompositeAction & { 
   if (!opener || opener.rawSkillId !== 77047 || opener.start >= combatStart || opener.end < combatStart) return actions;
   const skill = catalogSkillById(catalog, 77141);
   if (!skill) return actions;
-  const followUp = requireBalanceProfileFromContext({ catalog }, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
-  const followUpMs = balanceProfileNumber(followUp, 'castTimeMs');
+  const followUpMs = balanceNumberFromContext(
+    { catalog },
+    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
+    'castTimeMs'
+  );
   if (opener.replayDurationMs !== followUpMs) return actions;
   const mainMs = referenceCastTimeMs(skill);
   const offsetMs = mainMs - followUpMs;

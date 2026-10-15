@@ -5,6 +5,7 @@ import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/sta
 import { activeChargeGrants, appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -128,10 +129,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
       const duration = balanceProfileNumber(forgedSurferProfile(runtime), 'durationMultiplier');
-      const maximum = balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, PROFILE.forgedSurfer),
-        'maximumDuration'
-      );
+      const maximum = balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'maximumDuration');
       // Surfer banks remaining duration up to its own cap, independently of the other artifact windows.
       state.forgedSurferBombDropUntil =
         at + Math.min(maximum, Math.max(0, state.forgedSurferBombDropUntil - at) + duration);

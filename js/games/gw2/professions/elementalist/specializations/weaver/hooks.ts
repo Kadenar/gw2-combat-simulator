@@ -6,6 +6,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -172,7 +173,7 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast<
         context,
         skill,
         state.weaveSelfUntil > at
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'initialDelay')
+          ? balanceNumberFromContext(context, PROFILE.resources, 'initialDelay')
           : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
         flowStateAttunementReduction(context)
       )
@@ -337,8 +338,7 @@ export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
     },
     'elementalist.weaver.arm-fervent-stance'(runtime) {
       weaverState.from(runtime).ferventStanceUntil =
-        runtime.time +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.ferventStance), 'durationMultiplier');
+        runtime.time + balanceNumberFromContext(runtime, PROFILE.ferventStance, 'durationMultiplier');
     }
   }
 };

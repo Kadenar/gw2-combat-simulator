@@ -3,7 +3,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
@@ -55,7 +55,7 @@ export function ashenAssaultLifecycle(
         active!.delete(id);
         runtime.resourceController.grant(
           'initiative',
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, refundProfile), 'resourceGain')
+          balanceNumberFromContext(runtime, refundProfile, 'resourceGain')
         );
       }
     },
@@ -103,7 +103,7 @@ export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
   replaceThiefBuff(
     runtime,
     'distracting-throw',
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.distractingThrow), 'durationMultiplier'),
+    balanceNumberFromContext(runtime, PROFILE.distractingThrow, 'durationMultiplier'),
     ID.DISTRACTING_THROW,
     'Distracting Throw',
     'thief'

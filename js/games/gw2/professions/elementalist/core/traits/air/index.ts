@@ -16,6 +16,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -60,24 +61,19 @@ export const zephyrsSpeed = defineTrait({
   attributes: (context) => ({
     traitCriticalChance:
       (!context.event || isGw2PlayerModifierOwnedEvent(context.event) ? 100 : 0) *
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context.balanceContext, TRAIT.ZEPHYRS_SPEED),
-        'criticalChance'
-      )
+      balanceNumberFromContext(context.balanceContext, TRAIT.ZEPHYRS_SPEED, 'criticalChance')
   })
 });
 
 export const freshAir = defineTrait({
   // Read the accepted Fresh Air window without changing its lifetime.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.FRESH_AIR);
-
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.FRESH_AIR, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: activeBuffStacks(context, 'fresh-air', 1) > 0
         }
@@ -198,8 +194,7 @@ export const electricDischarge = defineTrait({
       id: 'elementalist.electric-discharge-critical-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ELECTRIC_DISCHARGE), 'criticalDamage'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.ELECTRIC_DISCHARGE, 'criticalDamage'),
       when: (context) => (context.event?.skillName || context.event?.name || '') === 'Electric Discharge'
     }
   ]
@@ -235,14 +230,12 @@ export const inscription = defineTrait({
 export const ragingStorm = defineTrait({
   // Use actor-aware Fury in combat and configured Fury in the build panel.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.RAGING_STORM);
-
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.RAGING_STORM, 'attributeBonus'),
           feedsConversions: 'none',
           enabled:
             context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, 'fury')
@@ -326,8 +319,7 @@ export const stormsoul = defineTrait({
       id: 'elementalist.stormsoul',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STORMSOUL), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.STORMSOUL, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -344,14 +336,10 @@ export const boltToTheHeart = defineTrait({
       id: 'elementalist.bolt-to-the-heart',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOLT_TO_THE_HEART), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.BOLT_TO_THE_HEART, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthBelow(
-          context,
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOLT_TO_THE_HEART), 'threshold')
-        )
+        targetHealthBelow(context, balanceNumberFromContext(context, TRAIT.BOLT_TO_THE_HEART, 'threshold'))
     }
   ]
 });
@@ -445,11 +433,7 @@ export function aeromancersTrainingRecharge(
   duration: number
 ): number {
   return skill.attunement === 'Air' && hasTrait(context, TRAIT.AEROMANCERS_TRAINING)
-    ? duration *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.AEROMANCERS_TRAINING),
-          'rechargeMultiplier'
-        )
+    ? duration * balanceNumberFromContext(context, TRAIT.AEROMANCERS_TRAINING, 'rechargeMultiplier')
     : duration;
 }
 
@@ -530,8 +514,7 @@ const ragingStormCritical = criticalProcHandler<
   id: 'elementalist.raging-storm',
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
-    duration: (context) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM), 'internalCooldown'),
+    duration: (context) => balanceNumberFromContext(context, TRAIT.RAGING_STORM, 'internalCooldown'),
     readyAt: (context) => context.procs.deadline('ragingStorm') || 0,
     setReadyAt: (context, readyAt) => {
       context.procs.setDeadline('ragingStorm', readyAt);

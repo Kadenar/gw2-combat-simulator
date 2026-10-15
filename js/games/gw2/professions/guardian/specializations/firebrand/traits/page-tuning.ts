@@ -1,5 +1,9 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
@@ -11,10 +15,10 @@ export function firebrandPageTuning(context: { readonly config: GuardianConfig }
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const defaultMaximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
   const traitMaximum = archivistOfWhispers
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCHIVIST_OF_WHISPERS), 'maximumStacks')
+    ? balanceNumberFromContext(context, TRAIT.ARCHIVIST_OF_WHISPERS, 'maximumStacks')
     : defaultMaximum;
   const interval = hasTrait(context, TRAIT.LOREMASTER)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOREMASTER), 'pulseInterval')
+    ? balanceNumberFromContext(context, TRAIT.LOREMASTER, 'pulseInterval')
     : balanceProfileNumber(resourcesProfile, 'pulseInterval');
   const initial = context.config.initialTomePages ?? traitMaximum;
   return {

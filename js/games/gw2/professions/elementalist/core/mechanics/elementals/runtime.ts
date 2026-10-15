@@ -28,7 +28,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { denyCast, retryCast, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -602,8 +602,11 @@ function expireElemental(
   );
   const glyph = glyphSkillForElement(context, element);
   if (glyph) {
-    const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
-    context.cooldownController.startRecharge(glyph, at, balanceProfileNumber(summonedElementalProfile, 'recharge'));
+    context.cooldownController.startRecharge(
+      glyph,
+      at,
+      balanceNumberFromContext(context, PROFILE.summonedElemental, 'recharge')
+    );
   }
 }
 
@@ -620,8 +623,7 @@ function startElemental(context: ElementalistRuntime, at: number): void {
     return;
   }
 
-  const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
-  const delay = balanceProfileNumber(summonedElementalProfile, 'initialDelay');
+  const delay = balanceNumberFromContext(context, PROFILE.summonedElemental, 'initialDelay');
   scheduleElementalDecision(context, Math.max(at + delay, elemental.busyUntil));
 }
 
@@ -643,12 +645,11 @@ function summonElemental(context: ElementalistRuntime, at: number, element: Elem
   context.cancelOwner({ id: 'elementalist.elemental-decision', generation: previousGeneration });
   context.cancelOwner({ id: ELEMENTAL_TASK_OWNER, generation: previousGeneration });
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
-  const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
   state.summonedElemental = {
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil: canonicalTime(at + balanceProfileNumber(summonedElementalProfile, 'durationMultiplier')),
+    activeUntil: canonicalTime(at + balanceNumberFromContext(context, PROFILE.summonedElemental, 'durationMultiplier')),
     busyUntil: at,
     secondaryAttackReadyAt: at,
     currentActivationId: null,

@@ -3,7 +3,7 @@
  * other priced skill waits for regeneration and pays its cost the same way everywhere.
  */
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -20,9 +20,7 @@ function skillCostAmount(runtime: Pick<MechanicQueryContext, 'helpers'>, skill: 
   }
 
   const source = skill.cost!.profileAmount;
-  return source
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, source.profileId), source.field)
-    : (skill.resourceCost ?? 0);
+  return source ? balanceNumberFromContext(runtime, source.profileId, source.field) : (skill.resourceCost ?? 0);
 }
 
 /** Affordable now, a retry when regeneration will cover the cost, or a rejection when it never can. */

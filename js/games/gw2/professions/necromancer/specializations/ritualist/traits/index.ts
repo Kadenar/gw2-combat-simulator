@@ -5,7 +5,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -36,8 +36,7 @@ const spiritsStrength = defineTrait({
       id: 'necromancer.spirits-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SPIRITS_STRENGTH), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.SPIRITS_STRENGTH, 'damageMultiplier'),
       when: (context) =>
         (context.event?.actorType === 'summon' || context.event?.summonKind === 'spirit') &&
         // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
@@ -138,8 +137,7 @@ const lingeringSpirits = defineTrait({
       id: 'necromancer.lingering-spirits',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_SPIRITS), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.LINGERING_SPIRITS, 'damageIncrease'),
       when: (context) => Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist').activeSpirits?.anguish)
     }
   ]
@@ -176,7 +174,7 @@ export const necromancerRitualistTraits = [
 function summonBoonOfCreation(runtime: NecromancerRuntime, count: number): void {
   grantNecromancerLifeForce(
     runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BOON_OF_CREATION), 'lifeForceGain') * count
+    balanceNumberFromContext(runtime, TRAIT.BOON_OF_CREATION, 'lifeForceGain') * count
   );
 }
 

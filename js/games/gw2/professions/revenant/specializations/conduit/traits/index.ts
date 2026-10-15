@@ -8,6 +8,7 @@ import { defineTrait, traitAttributeBonuses } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -56,10 +57,7 @@ const bolsteredBonds = defineTrait({
         context.balanceContext,
         context.runtime ? revenantRuntimeCoreState(context).selectedLegendIds : context.loadout.selectedLegends,
         (revenantRuntimeSpecializationState(context, 'Conduit').cosmicWisdomUntil ?? 0) > context.time
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context.balanceContext, TRAIT.BOLSTERED_BONDS),
-              'attributeMultiplier'
-            )
+          ? balanceNumberFromContext(context.balanceContext, TRAIT.BOLSTERED_BONDS, 'attributeMultiplier')
           : 1
       )
     ).map(([attribute, amount]) => ({
@@ -301,17 +299,9 @@ const numinousGiftTrait = defineTrait({
         const base =
           1 +
           vulnerabilityStacks(context) *
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.TARGETED_DESTRUCTION),
-              'damageIncreasePerStack'
-            );
+            balanceNumberFromContext(context, TRAIT.TARGETED_DESTRUCTION, 'damageIncreasePerStack');
         return (
-          (base +
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift),
-              'damageIncrease'
-            )) /
-          base
+          (base + balanceNumberFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift, 'damageIncrease')) / base
         );
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
@@ -425,10 +415,7 @@ function grantLingeringDetermination(runtime: RevenantRuntime, combat: boolean):
   if (combat)
     gainAffinity(
       runtime,
-      Math.max(
-        0,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.lingeringDetermination), 'resourceGain')
-      )
+      Math.max(0, balanceNumberFromContext(runtime, PROFILE.lingeringDetermination, 'resourceGain'))
     );
 }
 
@@ -458,7 +445,7 @@ function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, 
   if (previous < maximum && runtime.resourceController.value('affinity') === maximum)
     runtime.resourceController.grant(
       'energy',
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.expandedConsciousness), 'resourceGain')
+      balanceNumberFromContext(runtime, PROFILE.expandedConsciousness, 'resourceGain')
     );
 }
 

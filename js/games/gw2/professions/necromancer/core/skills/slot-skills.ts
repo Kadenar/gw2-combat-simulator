@@ -6,7 +6,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -590,8 +590,8 @@ export function applyNecromancerSignetPassive(
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
   if ((runtime.cooldownController.readyAt(id) ?? 0) > runtime.time && !signetsOfSufferingPassive(runtime, inShroud))
     return;
-  const profile = requireBalanceProfileFromContext(runtime, policy.profileId);
-  if (policy.passive === 'undeath') grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
+  if (policy.passive === 'undeath')
+    grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, policy.profileId, 'lifeForceGain'));
   else {
     emitVampirismPassive(runtime);
   }

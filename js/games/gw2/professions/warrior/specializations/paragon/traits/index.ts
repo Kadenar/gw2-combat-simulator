@@ -7,7 +7,11 @@ import { readProfessionSpecializationState } from '#gw2/platform/profession-defi
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
   chantActivated,
@@ -41,10 +45,7 @@ const inspiringImplements = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.INSPIRING_IMPLEMENTS),
-            'attributeBonus'
-          ),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.INSPIRING_IMPLEMENTS, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -119,7 +120,7 @@ const callToAction = defineTrait({
         state.callToActionActivated = true;
         runtime.resourceController.grant(
           'motivation',
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CALL_TO_ACTION), 'resourceGain')
+          balanceNumberFromContext(runtime, TRAIT.CALL_TO_ACTION, 'resourceGain')
         );
         if (state.activeRefrainId == null) {
           state.activeRefrainId = ID.CHANT_OF_ACTION;
@@ -150,7 +151,7 @@ const rallyTheValiant = defineTrait({
         )
           runtime.resourceController.grant(
             'motivation',
-            balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RALLY_THE_VALIANT), 'resourceGain')
+            balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'resourceGain')
           );
       }
     }
@@ -184,11 +185,8 @@ const strengtheningStanzas = defineTrait({
 
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.STRENGTHENING_STANZAS),
-              'conditionBonus'
-            )
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STRENGTHENING_STANZAS), 'strikeBonus'),
+          ? balanceNumberFromContext(context, TRAIT.STRENGTHENING_STANZAS, 'conditionBonus')
+          : balanceNumberFromContext(context, TRAIT.STRENGTHENING_STANZAS, 'strikeBonus'),
       when: (context) => paragonRuntimeState(context).activeRefrainId === ID.CHANT_OF_ACTION
     }
   ]
@@ -269,12 +267,13 @@ export const warriorParagonTraits = [
 function applyInvigoratingTempo(runtime: WarriorRuntime, spent: number): void {
   runtime.resourceController.grant(
     'adrenaline',
-    spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INVIGORATING_TEMPO), 'resourceGain')
+    spent * balanceNumberFromContext(runtime, TRAIT.INVIGORATING_TEMPO, 'resourceGain')
   );
 }
 
 /** Chant entry reduces the other chants only after opening packets and refrain scheduling. */
 function applyFeverishPulse(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  // Share the selected profile across every chant's recharge reduction.
   const feverish = requireBalanceProfileFromContext(runtime, TRAIT.FEVERISH_PULSE);
   for (const id of CHANTS) {
     const skill = runtime.helpers.skillsById.get(id);

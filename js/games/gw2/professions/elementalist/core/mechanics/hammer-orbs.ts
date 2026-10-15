@@ -11,7 +11,7 @@ import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mec
  * Hammer skill effects, including Grand Finale's projectiles, live in `skills/weapons/hammer.ts`.
  */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
@@ -49,8 +49,7 @@ export function createHammerOrbs(
 ): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
-  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const duration = balanceNumberFromContext(context, PROFILE.hammerOrbs, 'durationMultiplier');
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
   for (const element of previouslyActive) {
     state.hammerOrbs[element] = at + duration;

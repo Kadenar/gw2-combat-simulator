@@ -9,6 +9,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -63,8 +64,7 @@ export const righteousInstincts = defineTrait({
       id: 'guardian.righteous-instincts',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RIGHTEOUS_INSTINCTS), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.RIGHTEOUS_INSTINCTS, 'criticalChance'),
       when: (context) => guardianBoonActive(context, 'resolution')
     }
   ],
@@ -125,8 +125,7 @@ export const radiantPower = defineTrait({
       id: 'guardian.radiant-power-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_POWER), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_POWER, 'criticalChance'),
       when: (context) => targetConditionActive(context, 'Burning')
     }
   ],
@@ -143,8 +142,7 @@ export const radiantFire = defineTrait({
       id: 'guardian.radiant-fire-base-duration',
       target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_FIRE), 'durationMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_FIRE, 'durationMultiplier'),
       when: (context) =>
         context.condition === 'Burning' &&
         (context.sourceId === ID.ZEALOTS_FLAME || context.event?.skillId === ID.ZEALOTS_FLAME)
@@ -169,12 +167,7 @@ export const radiantFire = defineTrait({
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
-      'Burning Duration':
-        100 *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.RADIANT_FIRE),
-          'conditionDurationBonus'
-        )
+      'Burning Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.RADIANT_FIRE, 'conditionDurationBonus')
     }
   })
 });
@@ -193,8 +186,7 @@ export const amplifiedWrath = defineTrait({
       id: 'guardian.amplified-wrath-base-duration',
       target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.AMPLIFIED_WRATH), 'durationMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.AMPLIFIED_WRATH, 'durationMultiplier'),
       when: (context) =>
         context.condition === 'Burning' &&
         (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive')
@@ -204,11 +196,7 @@ export const amplifiedWrath = defineTrait({
       id: 'guardian.amplified-wrath-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.AMPLIFIED_WRATH),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.AMPLIFIED_WRATH, 'conditionDamageMultiplier'),
       when: (context) => context.condition === 'Burning'
     }
   ]
@@ -253,8 +241,7 @@ export const retribution = defineTrait({
       id: 'guardian.retribution',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RETRIBUTION), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.RETRIBUTION, 'damageIncrease'),
       when: (context) => guardianBoonActive(context, 'resolution')
     }
   ]
@@ -278,7 +265,7 @@ export const innerFire = defineTrait({
         event.actorType === 'player' &&
         (details.hitContext?.damage ?? 0) > 0 &&
         runtime.combat.targetConditionStacks('Burning', event.at) >=
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INNER_FIRE), 'threshold')
+          balanceNumberFromContext(runtime, TRAIT.INNER_FIRE, 'threshold')
     }
   ]
 });
@@ -339,10 +326,7 @@ function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEve
   if (active) return;
   state.righteousInstinctsGeneration++;
   if (!righteousMight(runtime, event)) return;
-  const interval = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS),
-    'pulseInterval'
-  );
+  const interval = balanceNumberFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
   if (interval > 0)
     runtime.schedule(
       MIGHT,
@@ -369,10 +353,7 @@ function pulseRighteousMight(runtime: GuardianRuntime, data: unknown): void {
   if (generation !== state.righteousInstinctsGeneration) return;
   state.resolutionUntil = resolutionDeadline(runtime);
   if (!(state.resolutionUntil > runtime.time) || !righteousMight(runtime, event)) return;
-  const interval = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS),
-    'pulseInterval'
-  );
+  const interval = balanceNumberFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
   if (interval > 0) runtime.schedule(MIGHT, canonicalTime(runtime.time + interval), data, undefined, -10);
 }
 

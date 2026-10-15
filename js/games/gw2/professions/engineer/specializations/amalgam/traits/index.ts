@@ -9,6 +9,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireSkillFromContext,
@@ -38,7 +39,7 @@ import type {
 /** Double Helix chooses the Evolved bonus without changing the shared pre-profession conversion pool. */
 export function evolveAttributeFactor(context: EngineerModifierContext): number {
   if (hasTrait(context, TRAIT.DOUBLE_HELIX))
-    return balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DOUBLE_HELIX), 'coefficientMultiplier');
+    return balanceNumberFromContext(context, TRAIT.DOUBLE_HELIX, 'coefficientMultiplier');
   const skill = requireSkillFromContext(context, ID.EVOLVE_BASE);
   return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`);
 }
@@ -68,11 +69,7 @@ const carbolicComposition = defineTrait({
   attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Poison Duration':
-        100 *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.CARBOLIC_COMPOSITION),
-          'conditionDurationBonus'
-        )
+        100 * balanceNumberFromContext(balanceContext, TRAIT.CARBOLIC_COMPOSITION, 'conditionDurationBonus')
     }
   })
 });
@@ -127,8 +124,9 @@ const willingHost = defineTrait({
       operation: 'damage-additive',
       // Strike and condition balance remain independently editable.
       amount: (context, target) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.WILLING_HOST),
+        balanceNumberFromContext(
+          context,
+          TRAIT.WILLING_HOST,
           target === MODIFIER_TARGET.CONDITION_DAMAGE ? 'conditionDamageIncrease' : 'damageIncrease'
         ),
       when: (context) =>
@@ -150,8 +148,7 @@ const symbioticSynergy = defineTrait({
       id: 'engineer.symbiotic-synergy',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SYMBIOTIC_SYNERGY), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.SYMBIOTIC_SYNERGY, 'damageIncrease'),
       when: (context) => morphStrike(context)
     }
   ]
@@ -223,10 +220,9 @@ export const amalgamTraits = [
 /** Willing Host's damage window extends from each committed Morph. */
 function extendWillingHost(context: EngineerRuntime, { at }: AmalgamMorph): void {
   const state = amalgamState.from(context);
-  const willingHostProfile = requireBalanceProfileFromContext(context, TRAIT.WILLING_HOST);
   state.willingHostUntil = Math.max(
     state.willingHostUntil,
-    at + balanceProfileNumber(willingHostProfile, 'durationMultiplier')
+    at + balanceNumberFromContext(context, TRAIT.WILLING_HOST, 'durationMultiplier')
   );
 }
 
@@ -236,7 +232,6 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
     id: TRAIT.HARDENED_CHROME,
     name: 'Hardened Chrome'
   };
-  const hardenedChromeProfile = requireBalanceProfileFromContext(context, TRAIT.HARDENED_CHROME);
   buildEngineerPackets(
     'buff',
     {
@@ -247,7 +242,7 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
       kind: 'protection',
-      duration: balanceProfileNumber(hardenedChromeProfile, durationField),
+      duration: balanceNumberFromContext(context, TRAIT.HARDENED_CHROME, durationField),
       stacks: 1
     },
     sourceSkill

@@ -14,6 +14,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -422,7 +423,7 @@ function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalEpitome:${attunement}`,
       event.at,
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME), 'internalCooldown')
+      balanceNumberFromContext(context, TRAIT.ELEMENTAL_EPITOME, 'internalCooldown')
     )
   ) {
     const aura = elementalEpitomeAura(context, attunement);
@@ -455,7 +456,7 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalSynergy:${attunement}`,
       event.at,
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY), 'internalCooldown')
+      balanceNumberFromContext(context, TRAIT.ELEMENTAL_SYNERGY, 'internalCooldown')
     )
   ) {
     if (attunement === 'Fire' || attunement === 'Earth') {
@@ -476,9 +477,7 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
         })
       });
     } else if (attunement === 'Air') {
-      const elementalSynergyProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY);
-
-      context.endurance.grant(balanceProfileNumber(elementalSynergyProfile, 'resourceGain'));
+      context.endurance.grant(balanceNumberFromContext(context, TRAIT.ELEMENTAL_SYNERGY, 'resourceGain'));
     }
 
     context.effects.emit({

@@ -348,8 +348,10 @@ function reactToGaleshotControl(context: RangerRuntime, event: Gw2ResolverEvent)
   }
 
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
-  const profile = requireBalanceProfileFromContext(context, TRAIT.THRILL_OF_THE_CATCH);
-  context.resourceController.grant('arrows', balanceProfileNumber(profile, 'resourceGain'));
+  context.resourceController.grant(
+    'arrows',
+    balanceNumberFromContext(context, TRAIT.THRILL_OF_THE_CATCH, 'resourceGain')
+  );
 }
 
 // Commit Galeshot resource spending, Wind Force transitions, Cyclone Bow state,

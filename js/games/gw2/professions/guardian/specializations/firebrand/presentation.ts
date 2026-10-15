@@ -2,7 +2,7 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEventLogDescriptor,
@@ -78,8 +78,9 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
   }
 
   if (state.activeTome) {
-    const threshold = balanceProfileNumber(
-      requireBalanceProfileFromContext(context.balanceContext, GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR),
+    const threshold = balanceNumberFromContext(
+      context.balanceContext,
+      GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR,
       'minimumStacks'
     );
     items.push({
@@ -162,13 +163,11 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
       const maximum =
         state.tomePages?.maximum ??
         context.resources?.tomePages?.maximum ??
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(
-            context,
-            hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
-              ? GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS
-              : PROFILE.resources
-          ),
+        balanceNumberFromContext(
+          context,
+          hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
+            ? GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS
+            : PROFILE.resources,
           'maximumStacks'
         );
       const simulationTime = context.simulationTime || 0;

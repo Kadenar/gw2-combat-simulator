@@ -1,13 +1,10 @@
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
 export function mesmerResourceDefinition(specialization: string, context: unknown): MesmerResourceDefinition {
-  const maximum = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, mesmerResourceProfileId(specialization)),
-    'maximumStacks'
-  );
+  const maximum = balanceNumberFromContext(context, mesmerResourceProfileId(specialization), 'maximumStacks');
   if (specialization === 'Virtuoso') return { singular: 'blade', plural: 'blades', maximum };
   if (specialization === 'Troubadour') return { singular: 'note', plural: 'notes', maximum };
   return { singular: 'clone', plural: 'clones', maximum };

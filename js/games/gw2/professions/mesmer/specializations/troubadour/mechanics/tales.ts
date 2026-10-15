@@ -1,4 +1,4 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -38,10 +38,9 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
   }
 
   if (eligible && profileId) {
-    const profile = requireBalanceProfileFromContext(context, profileId);
     createMesmerIllusionRewards(context).queueResources(
       at,
-      balanceProfileNumber(profile, 'resourceGain'),
+      balanceNumberFromContext(context, profileId, 'resourceGain'),
       mesmerActivePrimaryWeapon(context),
       skill.name
     );

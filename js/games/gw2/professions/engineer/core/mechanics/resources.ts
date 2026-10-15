@@ -1,6 +1,10 @@
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { adrenalImplantEnduranceBonus } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
@@ -18,10 +22,6 @@ function engineerEnduranceRegenerationRate(context: EngineerRuntime, vigor: bool
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const engineerEndurance: EndurancePolicy<EngineerRuntime> = {
   state: (context) => professionCoreState(context).endurance,
-  maximum: (context) =>
-    balanceProfileNumber(
-      requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources),
-      'maximumStacks'
-    ),
+  maximum: (context) => balanceNumberFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks'),
   regenerationRate: (context, vigor) => engineerEnduranceRegenerationRate(context, vigor)
 };

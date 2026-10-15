@@ -7,6 +7,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -155,10 +156,7 @@ export const invigoratedBulwark = defineTrait({
         event.sourceId !== skill.id
       )
         return event;
-      const multiplier = balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, TRAIT.INVIGORATED_BULWARK),
-        'durationMultiplier'
-      );
+      const multiplier = balanceNumberFromContext(runtime, TRAIT.INVIGORATED_BULWARK, 'durationMultiplier');
       // Scaling the skill-owned packet also covers Writ's added pulses without consuming capped bonus duration.
       return { ...event, duration: Number(event.duration) * multiplier };
     }
@@ -244,14 +242,8 @@ function writOfPersistenceEffects(
         selected.push({
           type: 'boon',
           boon: skill.id === ID.SYMBOL_OF_FAITH ? 'regeneration' : 'resolution',
-          duration: balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE),
-            'boonDuration'
-          ),
-          stacks: balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE),
-            'boonStacks'
-          ),
+          duration: balanceNumberFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE, 'boonDuration'),
+          stacks: balanceNumberFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE, 'boonStacks'),
           atMs: tick.atMs,
           timingAnchor: effect.timingAnchor,
           timingScale: effect.timingScale,

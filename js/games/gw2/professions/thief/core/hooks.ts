@@ -1,7 +1,7 @@
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -176,10 +176,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     runtime.profession.core.stealthUntil = inputs.stealth ? Infinity : 0;
     if (!hasTrait(runtime, TRAIT.LEAD_ATTACKS)) return;
     const stacks = Number(inputs.leadAttacks ?? 0);
-    const maximum = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS),
-      'maximumStacks'
-    );
+    const maximum = balanceNumberFromContext(runtime, TRAIT.LEAD_ATTACKS, 'maximumStacks');
     if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
       throw new RangeError('Lead Attacks exceeds the selected build maximum.');
     runtime.profession.core.leadAttackExpirations = Array(stacks).fill(Infinity);

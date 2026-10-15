@@ -8,6 +8,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -267,10 +268,7 @@ const objectInMotion = defineTrait<EngineerSkill>({
           (kind) =>
             (kind === 'superspeed' ? activeBuffStacks(context, kind, 1) : modifierBoonStacks(context, kind, 1)) > 0
         ).length;
-        return (
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.OBJECT_IN_MOTION), 'damageMultiplier') **
-          count
-        );
+        return balanceNumberFromContext(context, TRAIT.OBJECT_IN_MOTION, 'damageMultiplier') ** count;
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
@@ -348,9 +346,9 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
     activeBoonStacks(
       context,
       'might',
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE), 'maximumStacks'),
+      balanceNumberFromContext(context, TRAIT.APPLIED_FORCE, 'maximumStacks'),
       event.at
-    ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE), 'threshold')
+    ) >= balanceNumberFromContext(context, TRAIT.APPLIED_FORCE, 'threshold')
   ) {
     // Reaching the threshold consumes the interval even if Stability is removed.
     if (context.procs.claim(TRAIT.APPLIED_FORCE, 'appliedForce', event.at)) {

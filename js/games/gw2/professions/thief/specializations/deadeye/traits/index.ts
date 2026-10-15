@@ -7,7 +7,11 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -90,8 +94,7 @@ const ironSight = defineTrait({
       id: 'thief.iron-sight',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.IRON_SIGHT), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.IRON_SIGHT, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
     }
   ]
@@ -144,8 +147,7 @@ const oneInTheChamber = defineTrait({
       id: 'thief.one-in-the-chamber',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ONE_IN_THE_CHAMBER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.ONE_IN_THE_CHAMBER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         Boolean(
@@ -171,11 +173,8 @@ const premeditation = defineTrait({
 
       factor: (context) =>
         1 +
-        Math.min(
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREMEDITATION), 'maximumBoons'),
-          activeBoonCount(context)
-        ) *
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PREMEDITATION), 'damagePerBoon'),
+        Math.min(balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'maximumBoons'), activeBoonCount(context)) *
+          balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
@@ -185,13 +184,12 @@ const premeditation = defineTrait({
     attributeBonus: 180
   },
   attributes({ balanceContext }) {
-    const premeditationProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.PREMEDITATION);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: balanceProfileNumber(premeditationProfile, 'attributeBonus'),
+          amount: balanceNumberFromContext(balanceContext, TRAIT.PREMEDITATION, 'attributeBonus'),
           feedsConversions: 'none'
         }
       ]
@@ -210,13 +208,12 @@ const silentScope = defineTrait({
     attributeBonus: 120
   },
   attributes({ balanceContext }) {
-    const silentScopeProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.SILENT_SCOPE);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Precision',
-          amount: balanceProfileNumber(silentScopeProfile, 'attributeBonus'),
+          amount: balanceNumberFromContext(balanceContext, TRAIT.SILENT_SCOPE, 'attributeBonus'),
           feedsConversions: 'all'
         }
       ]
@@ -274,19 +271,13 @@ function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): v
   const state = deadeyeState.from(runtime);
   if (state.malice.value !== state.malice.maximum || state.maleficentSevenTriggered) return;
   state.maleficentSevenTriggered = true;
-  const initiativeGain = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.MALEFICENT_SEVEN),
-    'resourceGain'
-  );
+  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.MALEFICENT_SEVEN, 'resourceGain');
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
   traitBoons(runtime, cast, 'Maleficent Seven', TRAIT.MALEFICENT_SEVEN, false);
 }
 
 function restoreMaliciousIntent(runtime: ThiefRuntime): void {
-  runtime.resourceController.grant(
-    'malice',
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
-  );
+  runtime.resourceController.grant('malice', balanceNumberFromContext(runtime, TRAIT.MALICIOUS_INTENT, 'resourceGain'));
   runtime.fireTrigger(maliceGained, { cast: null });
 }
 

@@ -6,7 +6,7 @@ import {
   traitAttributeEffects,
   type TraitDefinition
 } from '#gw2/platform/profession-definition/traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/activations.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { type EngineerRuntime, type EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -94,7 +94,7 @@ export const boilingPoint = defineTrait({
         (event.kind || '').toLowerCase() === 'might' &&
         Boolean(event.resolvedAudience?.includesSelf) &&
         runtime.combat.activeBoonStacks('might', event.at) >=
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BOILING_POINT), 'threshold'),
+          balanceNumberFromContext(runtime, TRAIT.BOILING_POINT, 'threshold'),
       attribution: { name: 'Boiling Point — fury' }
     }
   ]
@@ -169,7 +169,7 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   // HGH adds one admitted field extension with Acid Bomb ownership; the profile owns the damage formula.
   emitTraitProfile(context, TRAIT.HGH, TRAIT.HGH, undefined, {
-    at: cast.fullEnd + balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HGH), 'initialDelay'),
+    at: cast.fullEnd + balanceNumberFromContext(context, TRAIT.HGH, 'initialDelay'),
     effect: { type: 'strike', name: 'HGH' },
     activationId: cast.id,
     skillWeaponFallback: 'Unequipped',
@@ -192,8 +192,7 @@ function prepareEngineerHghEvent(
   if (!hasTrait(context.traits, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
   const skill = skillForEvent(context.helpers, event);
   if (!isElixirSkill(skill)) return event;
-  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
-  const durationMultiplier = balanceProfileNumber(hghProfile, 'durationMultiplier');
+  const durationMultiplier = balanceNumberFromContext(context, TRAIT.HGH, 'durationMultiplier');
 
   if (event.type === 'combo_field') {
     const duration = Number(event.expiresAt) - event.at;

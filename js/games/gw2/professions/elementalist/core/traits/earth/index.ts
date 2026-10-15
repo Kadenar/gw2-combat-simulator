@@ -11,6 +11,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -62,17 +63,13 @@ export const serratedStones = defineTrait({
       id: 'elementalist.serrated-stones',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SERRATED_STONES), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.SERRATED_STONES, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
     }
   ],
   attributes: ({ balanceContext }) => ({
     traitDurations: {
-      'Bleeding Duration': balanceProfileNumber(
-        requireBalanceProfileFromContext(balanceContext, TRAIT.SERRATED_STONES),
-        'durationMultiplier'
-      )
+      'Bleeding Duration': balanceNumberFromContext(balanceContext, TRAIT.SERRATED_STONES, 'durationMultiplier')
     }
   })
 });
@@ -182,9 +179,14 @@ function applyEarthsEmbrace(context: ElementalistRuntime, { cast }: Elementalist
   const skill = cast.skill;
   const at = cast.effectiveEnd;
   if (skill.type !== 'Heal') return;
-  const earthsEmbraceProfile = requireBalanceProfileFromContext(context, TRAIT.EARTHS_EMBRACE);
   // Claim the existing owner-local timer before any derived effect.
-  if (!context.procs.claimCooldown('earthsEmbrace', at, balanceProfileNumber(earthsEmbraceProfile, 'internalCooldown')))
+  if (
+    !context.procs.claimCooldown(
+      'earthsEmbrace',
+      at,
+      balanceNumberFromContext(context, TRAIT.EARTHS_EMBRACE, 'internalCooldown')
+    )
+  )
     return;
   emitTraitProfile(context, TRAIT.EARTHS_EMBRACE, TRAIT.EARTHS_EMBRACE, undefined, {
     at: at,
@@ -293,8 +295,7 @@ export function geomancersTrainingRecharge(
   duration: number
 ): number {
   return skill.attunement === 'Earth' && hasTrait(context, TRAIT.GEOMANCERS_TRAINING)
-    ? duration *
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GEOMANCERS_TRAINING), 'rechargeMultiplier')
+    ? duration * balanceNumberFromContext(context, TRAIT.GEOMANCERS_TRAINING, 'rechargeMultiplier')
     : duration;
 }
 

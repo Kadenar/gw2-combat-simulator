@@ -5,7 +5,11 @@ import type { Gw2AttributeContributions, Gw2NumericAttributes } from '#gw2/platf
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { strengthOfStone } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import { burningRage } from '#gw2/professions/elementalist/core/traits/fire/index.js';
@@ -53,13 +57,12 @@ export function applyCatalystEmpowerment(context: MechanicCombatContext, event: 
   }
 
   const state = catalystState.from(context);
-  const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT);
   grantCatalystElementalEmpowerment(
     state,
     event.at,
     event.duration || 0,
     event.stacks || 1,
-    balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks')
+    balanceNumberFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT, 'maximumStacks')
   );
 }
 

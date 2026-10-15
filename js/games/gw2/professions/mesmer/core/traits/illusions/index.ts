@@ -13,6 +13,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileRechargeRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -60,21 +61,12 @@ export const compoundingPower = defineTrait<MesmerSkill>({
           timedStacks(
             context,
             'compounding',
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER),
-              'durationMultiplier'
-            ),
-            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER), 'maximumStacks')
+            balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'durationMultiplier'),
+            balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'maximumStacks')
           ) *
           (target === MODIFIER_TARGET.STRIKE_DAMAGE
-            ? balanceProfileNumber(
-                requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER),
-                'damageIncreasePerStack'
-              )
-            : balanceProfileNumber(
-                requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER),
-                'conditionDamageIncreasePerStack'
-              ))
+            ? balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'damageIncreasePerStack')
+            : balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'conditionDamageIncreasePerStack'))
         );
       }
     }
@@ -115,11 +107,7 @@ export const maliciousSorcery = defineTrait<MesmerSkill>({
   attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Confusion Duration':
-        100 *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.MALICIOUS_SORCERY),
-          'durationMultiplier'
-        )
+        100 * balanceNumberFromContext(balanceContext, TRAIT.MALICIOUS_SORCERY, 'durationMultiplier')
     }
   })
 });
@@ -151,11 +139,7 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       order: -2,
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION),
-          'criticalChance'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'criticalChance'),
       // Improve every native F1 strike, including repeats, without affecting trait procs or afterimages.
       when: (context) =>
         isGw2PlayerActorEvent(context.event) &&
@@ -237,12 +221,9 @@ export const phantasmalForce = defineTrait<MesmerSkill>({
       operation: 'multiply',
 
       factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_FORCE), 'damageMultiplier') +
+        balanceNumberFromContext(context, TRAIT.PHANTASMAL_FORCE, 'damageMultiplier') +
         context.query!.mightStacksAt(context.time, context.runtime, context.event) *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_FORCE),
-            'damageIncreasePerStack'
-          ),
+          balanceNumberFromContext(context, TRAIT.PHANTASMAL_FORCE, 'damageIncreasePerStack'),
       order: 98,
       when: (context) => context.event?.summonKind === 'phantasm'
     }
@@ -301,8 +282,7 @@ function triggerCompoundingPower(
   delivery: EffectDelivery = {}
 ): void {
   if (count <= 0) return;
-  const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
-  const duration = balanceProfileNumber(compoundingPowerProfile, 'durationMultiplier');
+  const duration = balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'durationMultiplier');
   // Simultaneous gains retain independent applications under one trait activation.
   {
     const grants: readonly MesmerEventExtra[] = Array.from({ length: count }, () => ({
@@ -395,7 +375,7 @@ function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerS
 /** Returns the profile-owned Phantasmal Haste speed before phantasm packet times are derived. */
 export function phantasmalHasteSpeed(context: MesmerRuntime): number {
   return hasTrait(context, TRAIT.PHANTASMAL_HASTE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_HASTE), 'quicknessCastMultiplier')
+    ? balanceNumberFromContext(context, TRAIT.PHANTASMAL_HASTE, 'quicknessCastMultiplier')
     : 1;
 }
 
@@ -424,10 +404,7 @@ export function shatterStormMaximumAmmo(
 /** Continuum duration is extended only by the currently selected Core trait. */
 export function masterOfFragmentationDuration(context: MesmerRuntime): number {
   return hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION),
-        'durationMultiplier'
-      )
+    ? balanceNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier')
     : 0;
 }
 
@@ -445,9 +422,6 @@ export function masterOfFragmentationRequiem(context: MesmerRuntime, packets: re
 /** Crescendo uses the trait's per-instrument coefficient only when selected. */
 export function masterOfFragmentationCrescendo(context: MesmerRuntime, profile: BalanceProfile): number {
   return hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION),
-        'damageIncreasePerStack'
-      )
+    ? balanceNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'damageIncreasePerStack')
     : balanceProfileNumber(profile, 'damageIncreasePerStack');
 }

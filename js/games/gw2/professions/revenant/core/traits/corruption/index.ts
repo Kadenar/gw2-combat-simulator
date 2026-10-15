@@ -12,6 +12,7 @@ import {
   traitAttributeEffects
 } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -57,11 +58,7 @@ export const acolyteOfTorment = defineTrait({
       order: 2,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.ACOLYTE_OF_TORMENT),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.ACOLYTE_OF_TORMENT, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Torment'
     }
   ]

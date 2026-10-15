@@ -6,6 +6,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -77,11 +78,9 @@ const chillingNova = defineTrait({
       // Preserve canonical critical sampling and cooldown claims within the selected producer.
       run: criticalProcHandler<NecromancerResolverContext, NecromancerResolverEvent, NativeResolvedDamageDetails>({
         id: 'necromancer.chilling-nova',
-        chanceOnCriticalHit: (context) =>
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA), 'criticalChance'),
+        chanceOnCriticalHit: (context) => balanceNumberFromContext(context, TRAIT.CHILLING_NOVA, 'criticalChance'),
         internalCooldown: {
-          duration: (context) =>
-            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA), 'cooldown'),
+          duration: (context) => balanceNumberFromContext(context, TRAIT.CHILLING_NOVA, 'cooldown'),
           readyAt: (context) => context.procs.deadline('necromancer.reaper.chillingNova') || 0,
           setReadyAt: (context, readyAt) => {
             context.procs.setDeadline('necromancer.reaper.chillingNova', readyAt);
@@ -220,10 +219,7 @@ const blightersBoon = defineTrait({
       on: 'buff.applied',
       when: (_runtime, event) => isStandardBoon(event.kind) && Boolean(event.resolvedAudience?.includesSelf),
       run(runtime) {
-        grantNecromancerLifeForce(
-          runtime,
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BLIGHTERS_BOON), 'lifeForceGain')
-        );
+        grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, TRAIT.BLIGHTERS_BOON, 'lifeForceGain'));
       }
     }
   ]
@@ -262,14 +258,12 @@ const decimateDefenses = defineTrait({
 const reapersOnslaught = defineTrait({
   // Reaper Shroud enables Ferocity through the shared trait evaluator.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.REAPERS_ONSLAUGHT);
-
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.REAPERS_ONSLAUGHT, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: necromancerActiveShroud(context) === 'reaper'
         }
@@ -289,10 +283,7 @@ const reapersOnslaught = defineTrait({
       when: (_runtime, event) =>
         event.actorType === 'player' && Number(event.coefficient) > 0 && event.skillId === ID.LIFE_REAP,
       run(runtime) {
-        const reduction = balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, TRAIT.REAPERS_ONSLAUGHT),
-          'rechargeReduction'
-        );
+        const reduction = balanceNumberFromContext(runtime, TRAIT.REAPERS_ONSLAUGHT, 'rechargeReduction');
         for (const skill of runtime.helpers.skillsById.values()) {
           if (skill.shroud === 'reaper') runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
         }
@@ -313,8 +304,7 @@ export const coldShoulder = defineTrait({
       id: 'necromancer.cold-shoulder',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.COLD_SHOULDER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.COLD_SHOULDER, 'damageMultiplier'),
       // Share the target's canonical Chilled lifetime with Chilling Nova eligibility.
       when: (context) => targetConditionActive(context, 'Chilled')
     }
@@ -333,8 +323,7 @@ const soulEater = defineTrait({
       id: 'necromancer.soul-eater',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_EATER), 'damageMultiplier')
+      factor: (context) => balanceNumberFromContext(context, TRAIT.SOUL_EATER, 'damageMultiplier')
     }
   ]
 });

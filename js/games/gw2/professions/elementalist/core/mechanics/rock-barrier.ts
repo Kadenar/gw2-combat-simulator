@@ -1,5 +1,5 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -24,9 +24,7 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
 /** The flip and its expiry share a deadline; replacing a barrier retires its previous timer. */
 export const elementalistRockBarrierTasks = {
   'elementalist.core.open-rock-barrier'(runtime: ElementalistRuntime): void {
-    const expiresAt =
-      runtime.time +
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.rockBarrier), 'durationMultiplier');
+    const expiresAt = runtime.time + balanceNumberFromContext(runtime, PROFILE.rockBarrier, 'durationMultiplier');
     armSkillFlip(runtime.profession.core.availableFlips, ID.HURL, runtime.time, expiresAt);
     runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });
     runtime.schedule('elementalist.core.release-rock-barrier', expiresAt, null, {

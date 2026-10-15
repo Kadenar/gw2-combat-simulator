@@ -1,6 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 import { passiveAttribute } from '#gw2/platform/builds/attribute-passives.js';
@@ -40,6 +40,6 @@ function guardianSignetPassiveActive(context: Gw2ModifierContext, skillId: Skill
 /** Build and live signet grants read the same selected multiplier, including disabled-trait previews. */
 function perfectInscriptionsMultiplier(context: unknown): number {
   return hasTrait(context, TRAIT.PERFECT_INSCRIPTIONS)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PERFECT_INSCRIPTIONS), 'attributeMultiplier')
+    ? balanceNumberFromContext(context, TRAIT.PERFECT_INSCRIPTIONS, 'attributeMultiplier')
     : 1;
 }

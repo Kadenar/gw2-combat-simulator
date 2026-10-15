@@ -29,7 +29,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denyCast } from '#gw2/platform/execution/availability.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
@@ -39,8 +39,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 const catalystEnergyPolicy: ResourcePolicy<ElementalistRuntime> = {
   kind: 'continuous',
   state: (runtime) => catalystState.from(runtime).catalystEnergy,
-  maximum: (runtime) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
   initial: (runtime, maximum) => runtime.config.initialCatalystEnergy ?? maximum,
   recovery: () => 0
 };
@@ -64,8 +63,7 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
     );
   }
 
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
+  const sphereCost = balanceNumberFromContext(context, PROFILE.resources, 'resourceCost');
   return context.resourceController.readyAt('catalystEnergy', sphereCost) === context.time
     ? { ready: true }
     : denyCast('elementalist.catalyst-energy', `${skill.name} is unavailable - requires ${sphereCost} energy.`);
@@ -75,8 +73,7 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
 // boons from cast start so later attunement swaps cannot change the sphere.
 function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = catalystState.from(context);
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
+  const sphereCost = balanceNumberFromContext(context, PROFILE.resources, 'resourceCost');
   // Keep spending at deployment, before sphere traits and fields, rather than moving it to cast acceptance.
   context.resourceController.spend('catalystEnergy', sphereCost);
   // The sphere field owns its active window; removing it leaves the energy cost intact.
@@ -140,7 +137,7 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
   const before = runtime.resourceController.value('catalystEnergy');
   runtime.resourceController.grant(
     'catalystEnergy',
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceGain')
+    balanceNumberFromContext(runtime, PROFILE.resources, 'resourceGain')
   );
   const after = runtime.resourceController.value('catalystEnergy');
   if (after !== before)

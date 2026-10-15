@@ -1,10 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -36,7 +32,6 @@ export function essenceOfSpeedExtension(
     return null;
   }
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.ESSENCE_OF_SPEED);
   return {
     type: 'boon_extension',
     at: event.at,
@@ -45,7 +40,7 @@ export function essenceOfSpeedExtension(
     actorType: 'effect',
     skillId: TRAIT.ESSENCE_OF_SPEED,
     skillName: 'Essence of Speed',
-    duration: balanceProfileNumber(profile, 'duration'),
+    duration: balanceNumberFromContext(context, TRAIT.ESSENCE_OF_SPEED, 'duration'),
     excludedKind: 'quickness'
   };
 }

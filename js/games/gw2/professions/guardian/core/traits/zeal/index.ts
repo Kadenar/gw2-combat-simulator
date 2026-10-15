@@ -6,6 +6,7 @@ import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/run
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -34,8 +35,7 @@ export const furiousFocus = defineTrait({
       id: 'guardian.furious-focus',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FURIOUS_FOCUS), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.FURIOUS_FOCUS, 'damageIncrease'),
       when: (context) => Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
     }
   ]
@@ -63,8 +63,7 @@ export const symbolicExposure = defineTrait({
       id: 'guardian.symbolic-exposure',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SYMBOLIC_EXPOSURE), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.SYMBOLIC_EXPOSURE, 'damageMultiplier'),
       order: 100,
       when: (context) => targetConditionActive(context, 'Vulnerability')
     }
@@ -116,16 +115,9 @@ export const symbolicAvenger = defineTrait({
 
       amount: (context) =>
         Math.min(
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, TRAIT.SYMBOLIC_AVENGER),
-            'maximumDamageStacks'
-          ),
+          balanceNumberFromContext(context, TRAIT.SYMBOLIC_AVENGER, 'maximumDamageStacks'),
           activeSymbolicAvengerExpirations(guardianRuntimeState(context), context.time).length
-        ) *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.SYMBOLIC_AVENGER),
-          'damageIncreasePerStack'
-        )
+        ) * balanceNumberFromContext(context, TRAIT.SYMBOLIC_AVENGER, 'damageIncreasePerStack')
     }
   ]
 });
@@ -226,8 +218,7 @@ export const fieryWrath = defineTrait({
       id: 'guardian.fiery-wrath',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FIERY_WRATH), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.FIERY_WRATH, 'damageMultiplier'),
       order: 100,
       when: (context) => targetConditionActive(context, 'Burning')
     }
@@ -271,7 +262,6 @@ function stackSymbolicAvenger(runtime: GuardianRuntime, { cause: event }: Guardi
 
 /** Zealot's Resolution samples target health before the current hit. */
 function placeZealotsResolutionSymbol(runtime: GuardianRuntime, { cause: event, damage }: GuardianStrike): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ZEALOTS_RESOLUTION);
   const health = runtime.config.target?.health ?? 0;
   // Detached previews pin target health; ordinary simulations still evaluate the health before this hit.
   const lostFraction =
@@ -280,7 +270,7 @@ function placeZealotsResolutionSymbol(runtime: GuardianRuntime, { cause: event, 
       : health > 0
         ? (runtime.combat.targetHealthLoss() - damage) / health
         : 0;
-  if (!(lostFraction > balanceProfileNumber(profile, 'threshold'))) return;
+  if (!(lostFraction > balanceNumberFromContext(runtime, TRAIT.ZEALOTS_RESOLUTION, 'threshold'))) return;
   // The profile owns this symbol's Alacrity-aware recharge; removed symbols do not consume it.
   emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event);
 }

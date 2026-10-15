@@ -1,5 +1,5 @@
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/builds/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   activeBoonStacks,
   activeEngineerSpecializationState
@@ -27,8 +27,7 @@ export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) =
   const evolved = activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil');
   const factor = evolved ? evolveAttributeFactor(context) - 1 : 0;
   const titanic = activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')
-    ? activeBoonStacks(context, 'might') *
-      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.strains), 'attributePerStack')
+    ? activeBoonStacks(context, 'might') * balanceNumberFromContext(context, PROFILE.strains, 'attributePerStack')
     : 0;
   return [
     {

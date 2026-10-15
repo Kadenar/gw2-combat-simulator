@@ -1,7 +1,7 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { type ActionContext } from '#gw2/platform/effects/actions.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -63,10 +63,7 @@ function equippedSignetOfIllusions(context: MesmerRuntime): MesmerSkill | null {
 export function restartSignetIllusionsPassive(context: MesmerRuntime, activeAt: number): void {
   const skill = equippedSignetOfIllusions(context);
   if (!skill) return;
-  const interval = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.signetOfIllusions),
-    'pulseInterval'
-  );
+  const interval = balanceNumberFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval');
   if (!(interval > 0)) return;
   const at = Math.max(context.time, Math.max(activeAt, context.cooldownController.readyAt(skill.id) ?? 0) + interval);
   context.profession.core.signetIllusionsAt = at;
@@ -86,7 +83,7 @@ export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): voi
 
   createMesmerIllusionRewards(context).gainResources(
     context.time,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.signetOfIllusions), 'resourceGain'),
+    balanceNumberFromContext(context, PROFILE.signetOfIllusions, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),
     skill.name,
     { sourceSkillId: skill.id }

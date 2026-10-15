@@ -4,7 +4,7 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
 
 /**
@@ -22,12 +22,7 @@ const SOUL_SHARD_DURATION_SECONDS = 10;
 export function necromancerSoulShardMaximum(context: unknown): number {
   return Math.max(
     0,
-    Math.trunc(
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, NECROMANCER_CORE_BALANCE_PROFILE_IDS.soulShards),
-        'maximumStacks'
-      )
-    )
+    Math.trunc(balanceNumberFromContext(context, NECROMANCER_CORE_BALANCE_PROFILE_IDS.soulShards, 'maximumStacks'))
   );
 }
 

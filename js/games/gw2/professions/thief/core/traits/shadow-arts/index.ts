@@ -3,6 +3,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -186,24 +187,26 @@ function enterShadowsRejuvenation(runtime: ThiefRuntime): void {
   // Entry and exit have independently authored initiative rewards.
   runtime.resourceController.grant(
     'initiative',
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SHADOWS_REJUVENATION), 'entryResourceGain')
+    balanceNumberFromContext(runtime, TRAIT.SHADOWS_REJUVENATION, 'entryResourceGain')
   );
 }
 
 /** Applies Shadow's Rejuvenation at its established mechanical boundary. */
 function exitShadowsRejuvenation(runtime: ThiefRuntime): void {
-  const initiativeGain = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.SHADOWS_REJUVENATION),
-    'resourceGain'
-  );
+  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.SHADOWS_REJUVENATION, 'resourceGain');
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
 /** Hidden Thief claims its cooldown before either condition so a removed packet cannot re-arm it. */
 function applyHiddenThief(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.HIDDEN_THIEF);
   // Admission is independent of either removable condition.
-  if (!runtime.procs.claimCooldown(TRAIT.HIDDEN_THIEF, runtime.time, balanceProfileNumber(profile, 'internalCooldown')))
+  if (
+    !runtime.procs.claimCooldown(
+      TRAIT.HIDDEN_THIEF,
+      runtime.time,
+      balanceNumberFromContext(runtime, TRAIT.HIDDEN_THIEF, 'internalCooldown')
+    )
+  )
     return;
   emitTraitProfile(runtime, TRAIT.HIDDEN_THIEF, TRAIT.HIDDEN_THIEF, undefined, {
     at: runtime.time,

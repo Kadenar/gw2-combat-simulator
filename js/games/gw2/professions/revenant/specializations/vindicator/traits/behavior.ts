@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
@@ -21,12 +21,7 @@ export function enduranceNotFull(context: Gw2ModifierContext): boolean {
 
 /** Applies the consumed landing charge only when materializing a strike packet. */
 export function reaversCurseMultiplier(runtime: RevenantRuntime, armed: boolean): number {
-  return armed
-    ? Math.max(
-        0,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.REAVERS_CURSE), 'damageMultiplier')
-      )
-    : 1;
+  return armed ? Math.max(0, balanceNumberFromContext(runtime, TRAIT.REAVERS_CURSE, 'damageMultiplier')) : 1;
 }
 
 /** Overrides the dodge landing only while this grandmaster is selected. */

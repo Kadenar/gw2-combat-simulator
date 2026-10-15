@@ -9,6 +9,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -122,8 +123,7 @@ const radiantArmaments = defineTrait({
       id: 'guardian.radiant-armaments',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RADIANT_ARMAMENTS), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_ARMAMENTS, 'damageIncrease'),
       when: (context) => {
         const armament = latestGuardianTimedBuff(context, 'guardian-radiant-armaments');
         // The buff is emitted for every radiant weapon, but the +7% bonus is
@@ -156,8 +156,7 @@ const empoweredArmaments = defineTrait({
       id: 'guardian.empowered-armaments',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPOWERED_ARMAMENTS), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.EMPOWERED_ARMAMENTS, 'damageIncrease'),
       when: (context) => buffActive(context, 'guardian-empowered-armaments')
     }
   ]
@@ -338,10 +337,7 @@ function extendEmpoweredArmaments(runtime: GuardianRuntime, { cast }: LuminaryCa
 
 /** Completed equips reduce real virtue recharge and refresh the shared readiness projection. */
 function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
-  const reduction = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.ILLUMINATING_INSPIRATION),
-    'rechargeReduction'
-  );
+  const reduction = balanceNumberFromContext(runtime, TRAIT.ILLUMINATING_INSPIRATION, 'rechargeReduction');
   for (const id of VIRTUES)
     runtime.cooldownController.reduceSkillRecharge(runtime.helpers.skillsById.get(id)!, reduction, runtime.time);
   refreshGuardianVirtues(runtime);

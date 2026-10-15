@@ -21,7 +21,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -97,7 +97,7 @@ export function createMirageActionController({
   const grantAmbushWindow = (
     at: number,
     source: string,
-    duration = balanceProfileNumber(requireBalanceProfileFromContext(state, PROFILE.mechanics), 'durationPerTier'),
+    duration = balanceNumberFromContext(state, PROFILE.mechanics, 'durationPerTier'),
     delivery: EffectDelivery = {}
   ) => {
     if (config.specialization !== 'Mirage') return;
@@ -126,7 +126,7 @@ export function createMirageActionController({
     at: number,
     source: string,
     {
-      duration = balanceProfileNumber(requireBalanceProfileFromContext(state, PROFILE.mechanics), 'durationMultiplier')
+      duration = balanceNumberFromContext(state, PROFILE.mechanics, 'durationMultiplier')
     }: MesmerMirageCloakOptions = {},
     delivery: EffectDelivery = {}
   ) => {

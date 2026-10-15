@@ -1,4 +1,4 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
@@ -43,11 +43,9 @@ export const deadeyeUi = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceProfileNumber(
-        requireBalanceProfileFromContext(
-          context,
-          preview.has('Maleficent Seven') ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources
-        ),
+      max: balanceNumberFromContext(
+        context,
+        preview.has('Maleficent Seven') ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources,
         'maximumStacks'
       ),
       description: 'Malice consumed by a malicious attack'
@@ -91,11 +89,9 @@ export const deadeyeUi = Object.freeze({
         // Render the observed clock; before a result exists use the selected profile's trait capacity.
         maximum:
           state.malice?.maximum ??
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(
-              context,
-              hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources
-            ),
+          balanceNumberFromContext(
+            context,
+            hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources,
             'maximumStacks'
           ),
         value: state.malice?.value ?? 0,

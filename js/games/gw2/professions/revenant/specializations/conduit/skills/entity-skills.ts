@@ -6,7 +6,7 @@ import { conditionEffectTicks, impactEffects, strikeEffectTicks } from '#gw2/pla
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
@@ -56,7 +56,7 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
     hazeMainCasts.delete(cast);
     state.beguilingHazeCharges = Math.max(
       0,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp), 'maximumStacks')
+      balanceNumberFromContext(runtime, PROFILE.beguilingHazeFollowUp, 'maximumStacks')
     );
     state.beguilingHazeRecharge = structuredClone(
       runtime.cooldownController.rechargeFor(skill.id) ??

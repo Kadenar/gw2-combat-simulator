@@ -7,7 +7,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -105,8 +105,9 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
 /** Query Smash Brawler's extension before the mode owner publishes its deadline. */
 export function smashBrawlerBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
   return cast.skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER),
+    ? balanceNumberFromContext(
+        runtime,
+        TRAIT.SMASH_BRAWLER,
         cast.skill.id === ID.DECAPITATE ? 'minimumStacks' : 'resourceGain'
       )
     : 0;
@@ -115,6 +116,6 @@ export function smashBrawlerBerserkExtension(runtime: WarriorRuntime, cast: Runt
 /** Query Last Blaze's Rage extension without mutating the active mode. */
 export function lastBlazeBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
   return cast.skill.categories?.includes('Rage') && cast.skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.LAST_BLAZE), 'durationMultiplier')
+    ? balanceNumberFromContext(runtime, TRAIT.LAST_BLAZE, 'durationMultiplier')
     : 0;
 }

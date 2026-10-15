@@ -1,6 +1,6 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
@@ -30,7 +30,7 @@ const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   // Build-only resource views have catalog/config but no live mode; they use the starting Core cap.
   maximum: (runtime) =>
     'profession' in runtime && berserkerState.from(runtime).berserkActive
-      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks')
+      ? balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks')
       : coreAdrenalinePolicy.maximum(runtime)
 };
 

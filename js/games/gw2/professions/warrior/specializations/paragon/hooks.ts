@@ -4,7 +4,11 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { REFRAIN, startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
@@ -20,8 +24,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 const paragonMotivationPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => paragonState.from(runtime).motivation,
-  maximum: (runtime) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
   initial: () => 0,
   recovery: () => 0
 };
@@ -151,7 +154,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   }
 
   echo.remaining--;
-  const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.commands), 'pulseInterval');
+  const interval = balanceNumberFromContext(runtime, PROFILE.commands, 'pulseInterval');
   if (echo.remaining <= 0 || interval <= 0) {
     delete state.commandEchoes[activationId];
     return;
@@ -169,7 +172,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
 
 /** Command instances retain independent repeats; a successful burst consumes one repeat from each pending command. */
 function activateCommand(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.commands), 'pulseInterval');
+  const interval = balanceNumberFromContext(runtime, PROFILE.commands, 'pulseInterval');
   const remaining = reverberationEchoCount(runtime);
   if (interval <= 0 || remaining <= 0) return;
   if (!Number.isSafeInteger(remaining)) throw new RangeError('Command echo counts must be positive integers.');
@@ -244,20 +247,20 @@ export const paragonCombatStarted = defineTriggerPoint<Record<string, never>>('w
 /** Enduring Refrain scales Might only; other packets retain their original stacks. */
 function enduringRefrainMultiplier(runtime: WarriorRuntime): number {
   return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ENDURING_REFRAIN), 'stackMultiplier')
+    ? balanceNumberFromContext(runtime, TRAIT.ENDURING_REFRAIN, 'stackMultiplier')
     : 1;
 }
 
 /** Chant entry adds the selected trait's Motivation before opening boons. */
 function enduringRefrainMotivation(runtime: WarriorRuntime): number {
   return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ENDURING_REFRAIN), 'resourceGain')
+    ? balanceNumberFromContext(runtime, TRAIT.ENDURING_REFRAIN, 'resourceGain')
     : 0;
 }
 
 /** Echo counts are fixed at command admission and survive later trait changes. */
 function reverberationEchoCount(runtime: WarriorRuntime): number {
   return hasTrait(runtime, TRAIT.REVERBERATION)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.REVERBERATION), 'maximumStacks')
+    ? balanceNumberFromContext(runtime, TRAIT.REVERBERATION, 'maximumStacks')
     : 1;
 }

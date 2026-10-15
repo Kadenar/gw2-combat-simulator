@@ -4,7 +4,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { RechargeRule } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /**
@@ -138,13 +138,13 @@ function ordinaryOverclockEligible(context: MechanicQueriesOf<EngineerRuntime>, 
 /** The signet owns its base passive; J-Drive owns the replacement bonus while selected. */
 function forceSignetDamage(context: Gw2ModifierContext): number {
   const owner = hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? TRAIT.MECH_CORE_J_DRIVE : PROFILE.forceSignet;
-  return balanceProfileNumber(requireBalanceProfileFromContext(context, owner), 'damageIncrease');
+  return balanceNumberFromContext(context, owner, 'damageIncrease');
 }
 
 /** The selected trait balance supplies Superconducting's improved passive without a second literal rate. */
 function superconductingSignetDamage(context: Gw2ModifierContext): number {
   const owner = hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? TRAIT.MECH_CORE_J_DRIVE : PROFILE.superconductingSignet;
-  return balanceProfileNumber(requireBalanceProfileFromContext(context, owner), 'conditionDamageIncrease');
+  return balanceNumberFromContext(context, owner, 'conditionDamageIncrease');
 }
 
 /** J-Drive keeps Shift's boon copying available while the signet recharges. */

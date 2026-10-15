@@ -6,6 +6,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -39,11 +40,7 @@ export const dwarvenBattleTraining = defineTrait({
       order: 3,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.DWARVEN_BATTLE_TRAINING),
-          'damageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.DWARVEN_BATTLE_TRAINING, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
     }
   ],
@@ -122,11 +119,8 @@ export const viciousReprisalTrait = defineTrait({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.VICIOUS_REPRISAL),
-              'conditionDamageIncrease'
-            )
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_REPRISAL), 'damageIncrease'),
+          ? balanceNumberFromContext(context, TRAIT.VICIOUS_REPRISAL, 'conditionDamageIncrease')
+          : balanceNumberFromContext(context, TRAIT.VICIOUS_REPRISAL, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'resolution')
     }
   ]
@@ -160,10 +154,7 @@ function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStr
 /** Supplies the additive Enduring Recovery rate before the shared cap. */
 export function enduringRecoveryBonus(runtime: RevenantRuntime): number {
   const enduring = hasTrait(runtime, TRAIT.ENDURING_RECOVERY)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, TRAIT.ENDURING_RECOVERY),
-        'enduranceRegenerationMultiplier'
-      ) - 1
+    ? balanceNumberFromContext(runtime, TRAIT.ENDURING_RECOVERY, 'enduranceRegenerationMultiplier') - 1
     : 0;
   return enduring;
 }

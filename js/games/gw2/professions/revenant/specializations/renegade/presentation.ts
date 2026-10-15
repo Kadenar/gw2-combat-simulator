@@ -9,7 +9,7 @@ import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/p
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { isBandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
@@ -27,11 +27,9 @@ function fervorMaximum(context: RevenantUiContext): number {
     getActiveTraits(context.build?.specializations).some((trait) => trait.id === TRAIT.LASTING_LEGACY);
   return Math.max(
     1,
-    balanceProfileNumber(
-      requireBalanceProfileFromContext(
-        context.balanceContext,
-        lastingLegacy ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
-      ),
+    balanceNumberFromContext(
+      context.balanceContext,
+      lastingLegacy ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
       'maximumStacks'
     )
   );
@@ -88,11 +86,9 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceProfileNumber(
-        requireBalanceProfileFromContext(
-          context,
-          preview.has('Lasting Legacy') ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
-        ),
+      max: balanceNumberFromContext(
+        context,
+        preview.has('Lasting Legacy') ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
         'maximumStacks'
       ),
       description: 'Active Fervor stacks'

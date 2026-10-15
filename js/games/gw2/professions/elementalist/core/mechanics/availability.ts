@@ -5,7 +5,7 @@ import { selectedSlotSkillAvailability, denySkillCast as unavailable } from '#gw
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   AURA_TRANSMUTE_SKILLS,
@@ -148,10 +148,9 @@ export function elementalistCoreAvailability(
   const skillId = Number(skill.id);
   const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
   if (hammerElements) {
-    const hammerOrbsProfile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
     // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
     const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
-      ? canonicalTime(state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay'))
+      ? canonicalTime(state.hammerOrbLastCastAt + balanceNumberFromContext(context, PROFILE.hammerOrbs, 'initialDelay'))
       : state.hammerOrbLastCastAt;
     if (retryAt > context.time) {
       return unavailable(

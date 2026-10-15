@@ -8,7 +8,7 @@ import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 import {
   guardianBuffApplied,
@@ -90,10 +90,7 @@ export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
         at: runtime.time,
         expiresAt: runtime.time + buff.duration,
         count: buff.stacks,
-        maximumStacks: balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER),
-          'maximumStacks'
-        ),
+        maximumStacks: balanceNumberFromContext(runtime, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER, 'maximumStacks'),
         retain: 'latest-expiry'
       });
     }

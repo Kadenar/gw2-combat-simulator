@@ -1,5 +1,5 @@
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type {
   PreviewControl,
@@ -27,7 +27,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
     add,
     trait,
     maximumStacks(name: string): number {
-      return balanceProfileNumber(requireBalanceProfileFromContext(context, traits.get(name)!.id), 'maximumStacks');
+      return balanceNumberFromContext(context, traits.get(name)!.id, 'maximumStacks');
     },
     boon(key: string, ...names: string[]): void {
       if (has(...names))

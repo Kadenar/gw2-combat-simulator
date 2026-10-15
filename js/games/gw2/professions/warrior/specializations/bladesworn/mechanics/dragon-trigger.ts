@@ -4,7 +4,11 @@ import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-pol
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { swapGunsaber } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
@@ -244,7 +248,7 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
   const maximumCoefficient =
     (cast.skill.dragonSlashMaximumCoefficient ?? 0) *
     (cast.skill.id === ID.DRAGON_SLASH_FORCE && hasTrait(runtime, TRAIT.DARING_DRAGON)
-      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.DARING_DRAGON), 'coefficientMultiplier')
+      ? balanceNumberFromContext(runtime, TRAIT.DARING_DRAGON, 'coefficientMultiplier')
       : 1);
   const release = {
     charges: state.dragonCharges.value,
@@ -347,7 +351,7 @@ export const dragonTriggerAvailability: NonNullable<
     return denyCast('warrior.dragon-trigger', ENTER_DRAGON_TRIGGER_REASON);
   if (skill.id === ID.DRAGON_TRIGGER) {
     if (state.dragonTriggerActive) return denyCast('warrior.dragon-trigger', 'Dragon Trigger is already active.');
-    const cost = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.dragonTrigger), 'threshold');
+    const cost = balanceNumberFromContext(runtime, PROFILE.dragonTrigger, 'threshold');
     if (!resourceAtLeast(runtime.resourceController.value('flow'), cost))
       return denyCast('warrior.flow', `Dragon Trigger requires at least ${cost} flow.`);
   }

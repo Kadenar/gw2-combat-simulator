@@ -6,7 +6,7 @@ import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
@@ -23,7 +23,7 @@ import { createProfessionTraitData } from '#gw2/professions/shared/trait-data.js
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-const tuning = (context, field) => balanceProfileNumber(requireBalanceProfileFromContext(context, 101), field);
+const tuning = (context, field) => balanceNumberFromContext(context, 101, field);
 const metadata = { id: 101, name: 'Fixture Trait' };
 
 // Producer slots cannot be hidden among retained policies, even by JavaScript callers or object spreads.

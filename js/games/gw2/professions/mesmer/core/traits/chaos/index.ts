@@ -8,6 +8,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -76,11 +77,7 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
       conditionSampleInvariant: true,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE),
-          'conditionDamageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease'),
       when: (context) => buffActive(context, 'illusionary-membrane')
     }
   ]
@@ -140,8 +137,7 @@ function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEve
   // Only affects weapon skills that are recharging.
   const readyAt = context.cooldownController.readyAt(targetId) || 0;
   if (!(readyAt > event.at)) return;
-  const chaoticInterruptionProfile = requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_INTERRUPTION);
-  const reduction = balanceProfileNumber(chaoticInterruptionProfile, 'recharge');
+  const reduction = balanceNumberFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge');
   const target = context.helpers.skillsById.get(targetId);
   if (!target) return;
   // Only a defiant target consumes an interval, after a recharging weapon skill has been selected.

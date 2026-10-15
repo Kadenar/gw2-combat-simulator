@@ -1,6 +1,6 @@
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { attunementReentered } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import {
@@ -83,24 +83,30 @@ export function applyEvokerAttunementRechargePolicy(
 
   // only the previously active attunement goes on the off-attunement recharge; others use the default below
   if (previous === state.element) {
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     setElementalistAttunementReadyAt(
       context,
       previous,
       Math.max(
         readyAtBefore[previous] || 0,
         event.at +
-          elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'))
+          elementalistAttunementRechargeDuration(
+            context,
+            skill,
+            balanceNumberFromContext(context, PROFILE.resources, 'recharge')
+          )
       )
     );
   }
 
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     if (attunement === target || attunement === previous) continue;
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const defaultReadyAt =
       event.at +
-      elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'));
+      elementalistAttunementRechargeDuration(
+        context,
+        skill,
+        balanceNumberFromContext(context, PROFILE.resources, 'recharge')
+      );
     const existingReadyAt = readyAtBefore[attunement] || 0;
     const preservedRemaining = Math.max(0, existingReadyAt - event.at);
     // if the attunement already had less time left than the new default, keep the shorter timer

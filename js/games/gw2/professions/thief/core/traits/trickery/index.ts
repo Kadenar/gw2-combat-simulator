@@ -6,6 +6,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -67,11 +68,7 @@ export const deadlyAmbush = defineTrait({
       id: 'thief.deadly-ambush-bleeding',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBUSH),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.DEADLY_AMBUSH, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Bleeding'
     }
   ],
@@ -135,13 +132,12 @@ export const preparedness = defineTrait({
   name: 'Preparedness',
   balance: { attributeBonus: 150, maximumStacks: 15 },
   attributes({ balanceContext }) {
-    const preparednessProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.PREPAREDNESS);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: balanceProfileNumber(preparednessProfile, 'attributeBonus'),
+          amount: balanceNumberFromContext(balanceContext, TRAIT.PREPAREDNESS, 'attributeBonus'),
           feedsConversions: 'all'
         }
       ]
@@ -243,10 +239,7 @@ function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): vo
 
 /** Applies Kleptomaniac at its established mechanical boundary. */
 function applyKleptomaniac(runtime: ThiefRuntime): void {
-  const initiativeGain = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.KLEPTOMANIAC),
-    'resourceGain'
-  );
+  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.KLEPTOMANIAC, 'resourceGain');
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
@@ -318,8 +311,7 @@ function grantLeadAttacks(runtime: ThiefRuntime, { cast, initiativeCost: cost }:
 /** Quick Pockets grants in-combat initiative once per its cooldown. */
 function grantQuickPockets(runtime: ThiefRuntime): void {
   if (!runtime.procs.claim(TRAIT.QUICK_POCKETS, 'thief.core.quickPockets', runtime.time)) return;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.QUICK_POCKETS);
-  const initiativeGain = balanceProfileNumber(profile, 'resourceGain');
+  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.QUICK_POCKETS, 'resourceGain');
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 

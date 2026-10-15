@@ -7,7 +7,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
  * Skill fragments remain in `skills/slot-skills.ts`.
  */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -24,8 +24,8 @@ export function startWeaveSelfCast(
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const at = cast.start + (cast.fullEnd - cast.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
+  const at =
+    cast.start + (cast.fullEnd - cast.start) * balanceNumberFromContext(context, PROFILE.resources, 'firstPacketRatio');
   // Activation must occur within the cast lifetime, including its exact final instant.
   if (canonicalTime(at) > cast.effectiveEnd) return;
   context.schedule(WEAVE_SELF_ACTIVATION_TASK, at, skill.id, { id: cast.id, generation: 0 });
@@ -52,8 +52,7 @@ export function handleWeaveSelfActivation(
   const core = professionCoreState(context);
   const at = context.time;
   const sourceId = data as Skill['id'];
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const duration = balanceProfileNumber(resourcesProfile, 'durationMultiplier');
+  const duration = balanceNumberFromContext(context, PROFILE.resources, 'durationMultiplier');
   // Availability and emitted temporary buffs expire on the same combat tick.
   state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
@@ -87,7 +86,6 @@ export function applyWeaveSelfAttunement(
 ): void {
   const state = weaverState.from(context);
   if (!(state.weaveSelfUntil > at)) return;
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   // Attunement completion already applied recharge; this observer only advances Weave Self's buffs and visited elements.
   const visited = new Set(state.weaveSelfVisited);
   visited.add(target);
@@ -112,7 +110,7 @@ export function applyWeaveSelfAttunement(
   if (visited.size < ELEMENTALIST_ATTUNEMENTS.length) return;
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
-  const perfectWeaveDuration = balanceProfileNumber(resourcesProfile, 'recharge');
+  const perfectWeaveDuration = balanceNumberFromContext(context, PROFILE.resources, 'recharge');
   state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     context.effects.emit(

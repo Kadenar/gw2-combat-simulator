@@ -13,7 +13,6 @@ import { compileProfessionRules } from '#gw2/platform/profession-definition/trig
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceNumberFromContext,
-  balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect,
@@ -130,14 +129,17 @@ export const honedAxes = defineTrait({
     }
   ],
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.HONED_AXES);
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'),
+          amount: balanceNumberFromContext(
+            profileContext,
+            TRAIT.HONED_AXES,
+            weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
+          ),
           feedsConversions: 'none'
         }
       ]
@@ -180,13 +182,12 @@ export const petsProwess = defineTrait({
     attributeBonus: 300
   },
   attributes: ({ balanceContext: profileContext, loadout, runtime }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.PETS_PROWESS);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(profileContext, TRAIT.PETS_PROWESS, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
         }

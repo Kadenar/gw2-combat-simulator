@@ -14,6 +14,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -199,14 +200,12 @@ const daringDragon = defineTrait({
 const gunsAndGlory = defineTrait({
   // Only live self applications enable Guns and Glory.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY);
-
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: runtimeBuffActive(context, 'guns-and-glory')
         }
@@ -425,10 +424,7 @@ function lushForestAmmo(
     );
   };
 
-  const reduction = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.LUSH_FOREST),
-    'rechargeReduction'
-  );
+  const reduction = balanceNumberFromContext(runtime, TRAIT.LUSH_FOREST, 'rechargeReduction');
   let reduced = 0;
   for (const id of new Set([
     ...runtime.cooldownController.cooldownSkillIds(),

@@ -272,14 +272,17 @@ export const stridersStrength = defineTrait({
     attributeBonus: 120
   },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.STRIDERS_STRENGTH);
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(profile, weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'),
+          amount: balanceNumberFromContext(
+            profileContext,
+            TRAIT.STRIDERS_STRENGTH,
+            weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
+          ),
           // Both the permanent and sword-dependent Power bonuses feed conversions.
           feedsConversions: 'all'
         }
@@ -308,13 +311,12 @@ export const viciousQuarry = defineTrait({
     }
   ],
   attributes: ({ balanceContext: profileContext, loadout }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.VICIOUS_QUARRY);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(profileContext, TRAIT.VICIOUS_QUARRY, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: loadout.assumptions.fury !== false
         }

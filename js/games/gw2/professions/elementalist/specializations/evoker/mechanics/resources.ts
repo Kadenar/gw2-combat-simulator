@@ -11,7 +11,7 @@ import { evokerChargeProfile } from '#gw2/professions/elementalist/specializatio
  * the resource events the charge dial renders. Spending charges belongs to the
  * familiar handlers; this module only accrues and reports them.
  */
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
@@ -68,8 +68,7 @@ export const familiarChargePolicy: ResourcePolicy<ElementalistRuntime> = {
 export const empoweredChargePolicy: ResourcePolicy<ElementalistRuntime> = {
   kind: 'continuous',
   state: (context) => evokerState.from(context).empoweredCharges,
-  maximum: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'minimumStacks'),
+  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
   initial: (context, maximum) => boundedNumber(context.config.initialEvokerEmpowered ?? 0, 0, 0, maximum),
   recovery: () => 0
 };
@@ -124,7 +123,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
     .split('+')
     .includes(state.element)
     ? balanceProfileNumber(evokerChargeProfile(context), 'playerStacks')
-    : balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'allyStacks');
+    : balanceNumberFromContext(context, PROFILE.resources, 'allyStacks');
 }
 
 // Commit at the live flush time, clamped to capacity, so deferred grants follow the familiar's reset.

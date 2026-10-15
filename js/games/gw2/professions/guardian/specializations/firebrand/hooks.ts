@@ -6,7 +6,7 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import { powerOfTheVirtuousRechargeMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
@@ -66,8 +66,7 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
   if (ready) {
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
     readyAt[virtue] = canonicalTime(
-      runtime.time +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, DORMANCY[virtue]), 'cooldown') * multiplier
+      runtime.time + balanceNumberFromContext(runtime, DORMANCY[virtue], 'cooldown') * multiplier
     );
     runtime.fireTrigger(virtueActivated, { cast, virtue });
     if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });

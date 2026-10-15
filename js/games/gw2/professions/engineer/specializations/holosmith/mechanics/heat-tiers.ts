@@ -1,4 +1,4 @@
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import {
   enhancedCapacityHeatTier,
@@ -70,13 +70,10 @@ export function holosmithProfileStrikeFactor(
 ): number {
   const tier = holosmithHeatTier(snapshot, context);
   if (tier === 'enhanced') {
-    const profile = requireBalanceProfileFromContext(context, profileId);
-    return balanceProfileNumber(profile, 'enhancedStrikeFactor');
+    return balanceNumberFromContext(context, profileId, 'enhancedStrikeFactor');
   }
 
-  return tier === 'high'
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, profileId), 'highStrikeFactor')
-    : 1;
+  return tier === 'high' ? balanceNumberFromContext(context, profileId, 'highStrikeFactor') : 1;
 }
 
 /** Reads an event's captured strike factor or evaluates its profile against current heat as a fallback. */

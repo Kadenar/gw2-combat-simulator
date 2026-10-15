@@ -15,7 +15,7 @@ import {
   hasActiveTrait,
   uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
@@ -76,10 +76,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        max: balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS),
-          'maximumStacks'
-        ),
+        max: balanceNumberFromContext(context, TRAIT.SOLAR_FOCUSING_LENS, 'maximumStacks'),
         description: 'Starting charges; consumed by strikes in impact order'
       });
       preview.add({

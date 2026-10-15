@@ -11,6 +11,7 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -66,11 +67,7 @@ const demonicLore = defineTrait({
       id: 'necromancer.demonic-lore',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.DEMONIC_LORE),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.DEMONIC_LORE, 'conditionDamageMultiplier'),
       when: (context) => context.condition === 'Torment'
     }
   ]
@@ -202,8 +199,7 @@ const fellBeacon = defineTrait({
       id: 'necromancer.fell-beacon',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FELL_BEACON), 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.FELL_BEACON, 'conditionDamageMultiplier'),
       when: (context) => context.condition === 'Burning'
     }
   ],

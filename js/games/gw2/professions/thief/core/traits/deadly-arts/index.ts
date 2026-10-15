@@ -17,6 +17,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -49,14 +50,14 @@ export const daggerTraining = defineTrait({
   balance: { attributeBonus: 80, weaponAttributeBonus: 160 },
   attributes({ loadout, weaponSet, balanceContext }) {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
-    const daggerTrainingProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.DAGGER_TRAINING);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(
-            daggerTrainingProfile,
+          amount: balanceNumberFromContext(
+            balanceContext,
+            TRAIT.DAGGER_TRAINING,
             weapons.includes('Dagger') ? 'weaponAttributeBonus' : 'attributeBonus'
           ),
           feedsConversions: 'all'
@@ -77,13 +78,12 @@ export const deadlyAmbition = defineTrait({
     effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]
   },
   attributes({ balanceContext }) {
-    const deadlyAmbitionProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.DEADLY_AMBITION);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceProfileNumber(deadlyAmbitionProfile, 'attributeBonus'),
+          amount: balanceNumberFromContext(balanceContext, TRAIT.DEADLY_AMBITION, 'attributeBonus'),
           feedsConversions: 'all'
         }
       ]
@@ -121,14 +121,10 @@ export const executioner = defineTrait({
       id: 'thief.executioner',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXECUTIONER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.EXECUTIONER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthBelow(
-          context,
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXECUTIONER), 'threshold')
-        )
+        targetHealthBelow(context, balanceNumberFromContext(context, TRAIT.EXECUTIONER, 'threshold'))
     }
   ]
 });
@@ -150,10 +146,10 @@ export const exposedWeakness = defineTrait({
       factor: (context) =>
         1 +
         Math.min(
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXPOSED_WEAKNESS), 'maximumConditions'),
+          balanceNumberFromContext(context, TRAIT.EXPOSED_WEAKNESS, 'maximumConditions'),
           targetConditionCount(context)
         ) *
-          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EXPOSED_WEAKNESS), 'damagePerCondition'),
+          balanceNumberFromContext(context, TRAIT.EXPOSED_WEAKNESS, 'damagePerCondition'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -238,11 +234,7 @@ export const potentPoison = defineTrait({
       id: 'thief.potent-poison-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.POTENT_POISON),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.POTENT_POISON, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Poisoned'
     }
   ],
@@ -251,8 +243,11 @@ export const potentPoison = defineTrait({
     conditionDurationBonus: 0.33
   },
   attributes({ balanceContext }) {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.POTENT_POISON);
-    return { traitDurations: { 'Poison Duration': 100 * balanceProfileNumber(profile, 'conditionDurationBonus') } };
+    return {
+      traitDurations: {
+        'Poison Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.POTENT_POISON, 'conditionDurationBonus')
+      }
+    };
   }
 });
 
@@ -346,8 +341,7 @@ function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): voi
 function reduceUtilityRecharges(runtime: ThiefRuntime): void {
   // An eligible pilfer claims the interval even when no selected utility is recharging.
   if (!runtime.procs.claim(TRAIT.IMPROVISATION, 'thief.antiquary.improvisation', runtime.time)) return;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.IMPROVISATION);
-  const multiplier = balanceProfileNumber(profile, 'rechargeMultiplier');
+  const multiplier = balanceNumberFromContext(runtime, TRAIT.IMPROVISATION, 'rechargeMultiplier');
   for (const id of selectedSkillIdSet(runtime.config.selectedSkillIds)) {
     const skill = runtime.helpers.skillsById.get(id);
     if (skill?.type === 'Utility')

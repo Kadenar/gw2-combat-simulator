@@ -4,7 +4,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 import {
@@ -28,6 +28,6 @@ export function elementsOfRageAvailability(
 /** Flow State supplies the flat reduction after Core's multiplier and before shared recharge-rate conversion. */
 export function flowStateAttunementReduction(context: unknown): number {
   return hasTrait(context, TRAIT.FLOW_STATE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FLOW_STATE), 'rechargeReduction')
+    ? balanceNumberFromContext(context, TRAIT.FLOW_STATE, 'rechargeReduction')
     : 0;
 }

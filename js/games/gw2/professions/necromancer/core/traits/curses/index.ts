@@ -12,6 +12,7 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   procChanceFromContext,
   requireBalanceProfileFromContext,
@@ -68,12 +69,7 @@ export const barbedPrecision = defineTrait({
   attributes: ({ balanceContext: profileContext }) => ({
     traitDurations: {
       'Bleeding Duration':
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.BARBED_PRECISION),
-          'conditionDurationMultiplier'
-        ) *
-          100 -
-        100
+        balanceNumberFromContext(profileContext, TRAIT.BARBED_PRECISION, 'conditionDurationMultiplier') * 100 - 100
     }
   })
 });
@@ -207,8 +203,7 @@ export const lingeringCurse = defineTrait({
       id: 'necromancer.lingering-curse-duration',
       target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_CURSE), 'durationMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.LINGERING_CURSE, 'durationMultiplier'),
       when: (context) =>
         skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === 'Scepter' &&
         context.event?.skillId !== ID.DEVOURING_DARKNESS
@@ -326,14 +321,8 @@ export const terror = defineTrait({
         ? {
             ...event,
             conditionDamageFormula: {
-              base: balanceProfileNumber(
-                requireBalanceProfileFromContext(runtime, TRAIT.TERROR),
-                'conditionBaseDamage'
-              ),
-              scaling: balanceProfileNumber(
-                requireBalanceProfileFromContext(runtime, TRAIT.TERROR),
-                'conditionDamageScaling'
-              )
+              base: balanceNumberFromContext(runtime, TRAIT.TERROR, 'conditionBaseDamage'),
+              scaling: balanceNumberFromContext(runtime, TRAIT.TERROR, 'conditionDamageScaling')
             }
           }
         : event
@@ -491,13 +480,7 @@ function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2Res
   const state = runtime.profession.core;
   if (
     state.plagueSendingArmed &&
-    transfer(
-      runtime,
-      skill,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PLAGUE_SENDING), 'maximumConditions'),
-      work,
-      true
-    )
+    transfer(runtime, skill, balanceNumberFromContext(runtime, TRAIT.PLAGUE_SENDING, 'maximumConditions'), work, true)
   ) {
     state.plagueSendingArmed = false;
   }

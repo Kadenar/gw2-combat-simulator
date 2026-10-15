@@ -2,7 +2,7 @@ import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -102,8 +102,10 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   resolveCastSkill(runtime, skill) {
     // Select the follow-up cutoff before cancellation checks and charge consumption.
     if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id) || conduitState.from(runtime).beguilingHazeCharges <= 0) return skill;
-    const followUp = requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp);
-    return { ...skill, interruptCommitMs: balanceProfileNumber(followUp, 'interruptCommitMs') };
+    return {
+      ...skill,
+      interruptCommitMs: balanceNumberFromContext(runtime, PROFILE.beguilingHazeFollowUp, 'interruptCommitMs')
+    };
   },
   castDurationMs(runtime, skill, durationMs) {
     if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id)) return durationMs;
@@ -128,7 +130,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
           : null;
     // Mesmer form gives these Demon utilities a recharge; Alacrity still applies to the new base.
     if (mesmerProfile && revenantConduitFormIsActive(conduitState.from(runtime), 'Mesmer', runtime.time))
-      return Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext(runtime, mesmerProfile), 'cooldown'));
+      return Math.max(0, balanceNumberFromContext(runtime, mesmerProfile, 'cooldown'));
     return kineticInsightRecharge(runtime, skill, work);
   },
   onCastStart(runtime, cast) {

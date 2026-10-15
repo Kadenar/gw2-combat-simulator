@@ -2,7 +2,7 @@ import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import {
   antiquaryAvailability,
@@ -29,7 +29,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     antiquaryState.from(runtime).antiquaryDamageUntil = inputs.artifactMomentum ? Infinity : 0;
     if (!hasTrait(runtime, TRAIT.COMBAT_HIGH)) return;
     const stacks = Number(inputs.combatHigh ?? 0);
-    const maximum = balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.COMBAT_HIGH), 'maximumStacks');
+    const maximum = balanceNumberFromContext(runtime, TRAIT.COMBAT_HIGH, 'maximumStacks');
     if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
       throw new RangeError('Combat High exceeds the selected build maximum.');
     antiquaryState.from(runtime).combatHighExpirations = Array(stacks).fill(Infinity);
@@ -48,8 +48,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     const { expiries, consumed } = consumeOldestStacks(state.holoUtilityCooldownReductionExpirations, 1, runtime.time);
     state.holoUtilityCooldownReductionExpirations = expiries;
     return consumed > 0
-      ? work *
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows), 'rechargeMultiplier')
+      ? work * balanceNumberFromContext(runtime, PROFILE.artifactWindows, 'rechargeMultiplier')
       : work;
   },
   onCastStart(runtime, cast) {

@@ -1,4 +1,4 @@
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
@@ -214,8 +214,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
   const state = amalgamState.from(context);
   const profile = requireBalanceProfileFromContext(context, PROFILE.strains);
   if (morphKind === 'thorns') {
-    const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
-    const duration = balanceProfileNumber(rapaciousStrainProfile, 'durationMultiplier');
+    const duration = balanceNumberFromContext(context, PROFILE.rapaciousStrain, 'durationMultiplier');
     state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
   }
 

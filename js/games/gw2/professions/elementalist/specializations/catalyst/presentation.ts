@@ -5,7 +5,7 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
@@ -33,11 +33,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   const items: RotationStateSnapshotItem[] = [];
   const empowerment = planningBuffStacks(context.planningState, 'elemental empowerment');
   if (empowerment > 0) {
-    const elementalEmpowermentProfile = requireBalanceProfileFromContext(
-      context.balanceContext,
-      TRAIT.ELEMENTAL_EMPOWERMENT
-    );
-    const maximum = balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks');
+    const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.ELEMENTAL_EMPOWERMENT, 'maximumStacks');
     items.push({
       id: 'catalyst-elemental-empowerment',
       label: 'Elemental Empowerment',
@@ -48,11 +44,10 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
 
   const empoweringAuras = planningBuffAt(context.planningState, 'empowering auras');
   if (empoweringAuras) {
-    const empoweringAurasProfile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPOWERING_AURAS);
     items.push({
       id: 'catalyst-empowering-auras',
       label: 'Empowering Auras',
-      value: `${planningBuffStacks(context.planningState, 'empowering auras')}/${balanceProfileNumber(empoweringAurasProfile, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
+      value: `${planningBuffStacks(context.planningState, 'empowering auras')}/${balanceNumberFromContext(context.balanceContext, TRAIT.EMPOWERING_AURAS, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
       title: 'Active Empowering Auras stacks and refreshed duration remaining'
     });
   }
@@ -154,9 +149,9 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
   resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
     const state = uiState(context);
     const build = context.build;
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     // Observed clocks carry their selected cap; the build-only view uses the active profile before simulation.
-    const maximum = state.catalystEnergy?.maximum ?? balanceProfileNumber(resourcesProfile, 'maximumStacks');
+    const maximum =
+      state.catalystEnergy?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
     return [
       {
         id: 'catalyst-energy',

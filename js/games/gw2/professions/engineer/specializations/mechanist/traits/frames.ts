@@ -4,7 +4,11 @@ import { selectedMechCommand } from '#gw2/professions/engineer/specializations/m
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 
@@ -73,10 +77,7 @@ export function engineerMechAttributes(
     ),
     precision: variable
       ? Math.min(
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(balanceContext, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR),
-            'precisionCap'
-          ),
+          balanceNumberFromContext(balanceContext, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR, 'precisionCap'),
           balanceProfileNumber(resourcesProfile, 'basePrecision') + playerAttribute(playerStats, 'precision', 1000)
         )
       : balanceProfileNumber(resourcesProfile, 'basePrecision'),

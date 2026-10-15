@@ -3,7 +3,7 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEffectPresentation,
@@ -86,11 +86,7 @@ export function mesmerResourceViews(
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
   const clock = definition.id === 'clones' ? undefined : state[definition.id];
   const maximum =
-    clock?.maximum ??
-    balanceProfileNumber(
-      requireBalanceProfileFromContext(context, mesmerResourceProfileId(specialization)),
-      'maximumStacks'
-    );
+    clock?.maximum ?? balanceNumberFromContext(context, mesmerResourceProfileId(specialization), 'maximumStacks');
   const value =
     definition.id === 'clones'
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)

@@ -12,6 +12,7 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -165,12 +166,7 @@ const strengthOfShadows = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       // The Torment-specific bonus multiplies the additive Lead Attacks and Distracting Throw pool.
       operation: 'multiply',
-      factor: (context) =>
-        1 +
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.STRENGTH_OF_SHADOWS),
-          'conditionDamageIncrease'
-        ),
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Torment'
     }
   ],
@@ -179,14 +175,13 @@ const strengthOfShadows = defineTrait({
     attributeConversion: 0.13
   },
   attributes({ balanceContext }) {
-    const strengthOfShadowsProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.STRENGTH_OF_SHADOWS);
     return {
       attributeEffects: [
         {
           kind: 'conversion',
           from: 'Vitality',
           to: 'Expertise',
-          multiplier: balanceProfileNumber(strengthOfShadowsProfile, 'attributeConversion'),
+          multiplier: balanceNumberFromContext(balanceContext, TRAIT.STRENGTH_OF_SHADOWS, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible'
         }

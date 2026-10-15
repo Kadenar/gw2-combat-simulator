@@ -1,5 +1,5 @@
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -36,10 +36,7 @@ export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
     const state = runtime.profession.core;
     return state.activeShroud && state.activeShroud !== 'lich'
       ? (-state.lifeForce.maximum *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, state.activeShroudProfileId || PROFILE.shroud),
-            'lifeForceDrain'
-          )) /
+          balanceNumberFromContext(runtime, state.activeShroudProfileId || PROFILE.shroud, 'lifeForceDrain')) /
           100
       : 0;
   },

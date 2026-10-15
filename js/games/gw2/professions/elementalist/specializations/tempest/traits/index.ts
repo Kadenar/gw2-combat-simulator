@@ -12,6 +12,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -97,19 +98,14 @@ const tempestuousAria = defineTrait({
       id: 'elementalist.tempestuous-aria-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.TEMPESTUOUS_ARIA, 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'tempestuous aria', 1) > 0
     },
     {
       id: 'elementalist.tempestuous-aria-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA),
-          'conditionDamageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.TEMPESTUOUS_ARIA, 'conditionDamageIncrease'),
       when: (context) => activeBuffStacks(context, 'tempestuous aria', 1) > 0
     }
   ]
@@ -268,19 +264,14 @@ const transcendentTempest = defineTrait({
       id: 'elementalist.transcendent-tempest-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TRANSCENDENT_TEMPEST), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.TRANSCENDENT_TEMPEST, 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'transcendent-tempest', 1) > 0
     },
     {
       id: 'elementalist.transcendent-tempest-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.TRANSCENDENT_TEMPEST),
-          'conditionDamageIncrease'
-        ),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.TRANSCENDENT_TEMPEST, 'conditionDamageIncrease'),
       when: (context) => activeBuffStacks(context, 'transcendent-tempest', 1) > 0
     }
   ],
@@ -489,7 +480,6 @@ function applyLatentStamina(
 /** Schedule alacrity from accepted overload hits before packet emission, retaining shortened-channel behavior. */
 function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!skill.overload) return;
-  const lucidSingularityProfile = requireBalanceProfileFromContext(context, TRAIT.LUCID_SINGULARITY);
   const hits = (skill.effects ?? [])
     .flatMap((effect) =>
       materializeSkillEffectApplications({
@@ -516,7 +506,7 @@ function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<E
         (!cast.cancelled || event.at <= cast.effectiveEnd)
     )
     .sort((a, b) => a.at - b.at)
-    .slice(0, balanceProfileNumber(lucidSingularityProfile, 'maximumStacks'));
+    .slice(0, balanceNumberFromContext(context, TRAIT.LUCID_SINGULARITY, 'maximumStacks'));
   hits.forEach((event, index: number) => {
     const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
     emitTraitProfile(context, TRAIT.LUCID_SINGULARITY, TRAIT.LUCID_SINGULARITY, undefined, {

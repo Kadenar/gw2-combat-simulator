@@ -11,6 +11,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -65,7 +66,7 @@ const mayhem = defineTrait<MesmerSkill>({
         if (!flute || !runtime.cooldownController.hasCooldown(flute.id)) return;
         runtime.cooldownController.reduceSkillRecharge(
           flute,
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MAYHEM), 'rechargeReduction'),
+          balanceNumberFromContext(runtime, TRAIT.MAYHEM, 'rechargeReduction'),
           runtime.time
         );
         runtime.effects.emit({
@@ -133,8 +134,8 @@ const shredding = defineTrait<MesmerSkill>({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), 'conditionDamageIncrease')
-          : balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), 'damageIncrease'),
+          ? balanceNumberFromContext(context, TRAIT.SHREDDING, 'conditionDamageIncrease')
+          : balanceNumberFromContext(context, TRAIT.SHREDDING, 'damageIncrease'),
       when: (context) => hasLute(context) && !illusionSource(context)
     }
   ]
@@ -204,8 +205,7 @@ export const fortissimo = defineTrait<MesmerSkill>({
         kind: 'scale',
         factor:
           1 +
-          activeInstrumentCount(context) *
-            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FORTISSIMO), 'attributeConversion')
+          activeInstrumentCount(context) * balanceNumberFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion')
       }
     ]
   }),
@@ -274,8 +274,7 @@ const alteredChord = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD), 'damageIncrease'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.ALTERED_CHORD, 'damageIncrease'),
       when: (context) => buffActive(context, 'altered-chord') && !illusionSource(context)
     }
   ]
@@ -334,10 +333,9 @@ function completeTroubadourPhantasm(context: MesmerRuntime, cast: RuntimeCast<Me
   const interrupted = castWasInterrupted(cast);
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
   if (interrupted && !completedInterruptedPhantasm) return;
-  const harmonizeProfile = requireBalanceProfileFromContext(context, TRAIT.HARMONIZE);
   createMesmerIllusionRewards(context).queueResources(
     context.time,
-    balanceProfileNumber(harmonizeProfile, 'resourceGain'),
+    balanceNumberFromContext(context, TRAIT.HARMONIZE, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),
     'Harmonize',
     { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
@@ -420,9 +418,8 @@ function applyCallAndResponse(
   spent: number,
   delivery: EffectDelivery = {}
 ): void {
-  if (spent === balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CALL_AND_RESPONSE), 'threshold')) {
-    const callAndResponseProfile = requireBalanceProfileFromContext(context, TRAIT.CALL_AND_RESPONSE);
-    const afterimageAt = at + balanceProfileNumber(callAndResponseProfile, 'initialDelay');
+  if (spent === balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'threshold')) {
+    const afterimageAt = at + balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'initialDelay');
     instrumentAttack(context, skill, data, afterimageAt, 'Afterimage', 'summon', delivery);
     context.effects.emit({
       ...delivery,
@@ -440,10 +437,9 @@ function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: n
     const crescendo = context.helpers.skillsById.get(ID.CRESCENDO);
     const ready = crescendo ? context.cooldownController.readyAt(crescendo.id) : undefined;
     if (crescendo && ready) {
-      const alteredChordProfile = requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD);
       context.cooldownController.reduceSkillRecharge(
         crescendo,
-        balanceProfileNumber(alteredChordProfile, 'rechargeReduction'),
+        balanceNumberFromContext(context, TRAIT.ALTERED_CHORD, 'rechargeReduction'),
         at
       );
     }

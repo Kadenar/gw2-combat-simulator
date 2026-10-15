@@ -5,7 +5,11 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -33,8 +37,7 @@ function refreshShadowDepletion(runtime: ThiefRuntime): void {
 export const shadowForce: ResourcePolicy<ThiefRuntime> = {
   kind: 'continuous',
   state: (runtime) => specterState.from(runtime).shadowClock,
-  maximum: (runtime) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
   initial: (runtime) => (runtime.config as ThiefConfig).initialShadowForce ?? 0,
   recovery: (runtime) => {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);

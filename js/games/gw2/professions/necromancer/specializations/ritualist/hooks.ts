@@ -5,9 +5,8 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext as damageProfile,
-  requireBalanceProfileFromContext
+  balanceNumberFromContext,
+  requireBalanceProfileFromContext as damageProfile
 } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
@@ -103,7 +102,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
         )
           return (
             (-runtime.profession.core.lifeForce.maximum *
-              balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'lifeForceDrain')) /
+              balanceNumberFromContext(runtime, PROFILE.resources, 'lifeForceDrain')) /
             100
           );
         return necromancerLifeForce.recovery(runtime);

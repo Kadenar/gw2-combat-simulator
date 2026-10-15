@@ -1,6 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
@@ -12,9 +12,7 @@ import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializati
 
 /** Adds Core Value after the skill-authored boon extension. */
 export function coreValueExtension(runtime: RevenantRuntime): number {
-  return hasTrait(runtime, TRAIT.CORE_VALUE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CORE_VALUE), 'duration')
-    : 0;
+  return hasTrait(runtime, TRAIT.CORE_VALUE) ? balanceNumberFromContext(runtime, TRAIT.CORE_VALUE, 'duration') : 0;
 }
 
 export function draconicEchoActive(context: Gw2ModifierContext, skillId: SkillId): boolean {

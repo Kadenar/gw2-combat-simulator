@@ -1,6 +1,10 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
@@ -60,8 +64,7 @@ export function forgedSurferProfile(runtime: ThiefRuntime) {
 
 /** Kryptis has its separate enhanced identity lifetime. */
 export function meticulousKryptisDuration(runtime: ThiefRuntime): number {
-  const windows = requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows);
   return hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN), 'kryptisDuration')
-    : balanceProfileNumber(windows, 'minimumStacks');
+    ? balanceNumberFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN, 'kryptisDuration')
+    : balanceNumberFromContext(runtime, PROFILE.artifactWindows, 'minimumStacks');
 }

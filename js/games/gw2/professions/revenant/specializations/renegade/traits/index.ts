@@ -17,6 +17,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -141,11 +142,7 @@ const bloodFury = defineTrait({
       order: 104,
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.bloodFury),
-          'conditionDurationBonus'
-        ),
+      amount: (context) => balanceNumberFromContext(context, RENEGADE_PROFILE_IDS.bloodFury, 'conditionDurationBonus'),
       // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
       when: (context) => context.condition === 'Bleeding' && boonActive(context, 'fury')
     }
@@ -281,8 +278,7 @@ const heartpiercer = defineTrait({
       order: 100,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HEARTPIERCER), 'damageMultiplier'),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.HEARTPIERCER, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
     },
     {
@@ -290,11 +286,7 @@ const heartpiercer = defineTrait({
       order: 101,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.HEARTPIERCER),
-          'conditionDamageMultiplier'
-        ),
+      factor: (context) => balanceNumberFromContext(context, TRAIT.HEARTPIERCER, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Bleeding'
     }
   ]
@@ -351,11 +343,9 @@ const lastingLegacy = defineTrait({
 
       amount: (context) =>
         kallasFervorStacks(context) *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(
-            context,
-            hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
-          ),
+        balanceNumberFromContext(
+          context,
+          hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
           'damageIncreasePerStack'
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
@@ -369,11 +359,9 @@ const lastingLegacy = defineTrait({
 
       amount: (context) =>
         kallasFervorStacks(context) *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(
-            context,
-            hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
-          ),
+        balanceNumberFromContext(
+          context,
+          hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
           'conditionDamageIncreasePerStack'
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
@@ -457,10 +445,7 @@ export const traitDefinitions = [
 /** Applies the trait at the mechanic's existing execution boundary. */
 function grantAllForOneEnergy(runtime: RevenantRuntime, enhanced: boolean): void {
   if (enhanced)
-    runtime.resourceController.grant(
-      'energy',
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.allForOne), 'resourceGain')
-    );
+    runtime.resourceController.grant('energy', balanceNumberFromContext(runtime, PROFILE.allForOne, 'resourceGain'));
 }
 
 /** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
@@ -497,19 +482,17 @@ function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill
 /** Received Fury advances Blood Fury's Fervor on its own cooldown. */
 function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if ((event.kind || '').toLowerCase() !== 'fury') return;
-  {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodFury);
-    // The Fury trigger claims its interval even if Fervor is already capped.
-    if (
-      !runtime.procs.claimCooldown(
-        'revenant.renegade.bloodFury',
-        runtime.time,
-        Math.max(0, balanceProfileNumber(profile, 'cooldown'))
-      )
+
+  // The Fury trigger claims its interval even if Fervor is already capped.
+  if (
+    !runtime.procs.claimCooldown(
+      'revenant.renegade.bloodFury',
+      runtime.time,
+      Math.max(0, balanceNumberFromContext(runtime, PROFILE.bloodFury, 'cooldown'))
     )
-      return;
-    grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
-  }
+  )
+    return;
+  grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
 }
 
 /** Trait modifiers count only Fervor stacks active at the hit instant. */

@@ -197,15 +197,15 @@ export const ambidexterity = defineTrait({
     }
   ],
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.AMBIDEXTERITY);
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceProfileNumber(
-            profile,
+          amount: balanceNumberFromContext(
+            profileContext,
+            TRAIT.AMBIDEXTERITY,
             weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon ?? ''))
               ? 'weaponAttributeBonus'
               : 'attributeBonus'

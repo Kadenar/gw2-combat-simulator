@@ -1,7 +1,7 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
   warriorAdrenalineResourceViews,
@@ -23,9 +23,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       singular: 'motivation',
       plural: 'motivation',
       // Reflect the initialized pool, including patch-selected Motivation limits.
-      maximum:
-        state.motivation?.maximum ??
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
+      maximum: state.motivation?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
       value: state.motivation?.value ?? 0,
       canStart: false,
       step: 1,
@@ -63,7 +61,7 @@ export const paragonUi: WarriorUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
+      max: balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
       description: 'Current motivation'
     });
     preview.add({

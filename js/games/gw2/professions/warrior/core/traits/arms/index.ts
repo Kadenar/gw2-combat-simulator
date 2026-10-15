@@ -10,6 +10,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   procChanceFromContext,
   requireBalanceProfileFromContext,
@@ -81,14 +82,12 @@ export const signetMastery = defineTrait({
 export const burstPrecision = defineTrait({
   // The accepted Burst Precision window supplies conversion-eligible Ferocity until it expires.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BURST_PRECISION);
-
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.BURST_PRECISION, 'attributeBonus'),
           feedsConversions: 'all',
           enabled: warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
         }
@@ -116,8 +115,7 @@ export const burstPrecision = defineTrait({
       id: 'warrior.burst-precision',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BURST_PRECISION), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.BURST_PRECISION, 'criticalChance'),
       when: (context) =>
         Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst) ||
         warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
@@ -150,11 +148,7 @@ export const bloodlust = defineTrait({
     return {
       traitDurations: {
         'Bleeding Duration':
-          100 *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.BLOODLUST),
-            'conditionDurationBonus'
-          )
+          100 * balanceNumberFromContext(context.balanceContext, TRAIT.BLOODLUST, 'conditionDurationBonus')
       }
     };
   }
@@ -248,8 +242,7 @@ export const furiousBurst = defineTrait({
       id: 'warrior.furious-burst-fury-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FURIOUS_BURST), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.FURIOUS_BURST, 'criticalChance'),
       when: (context) => warriorBoonActive(context, 'fury')
     }
   ],
@@ -281,8 +274,7 @@ export const deepStrikes = defineTrait({
       id: 'warrior.deep-strikes',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEEP_STRIKES), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.DEEP_STRIKES, 'criticalChance'),
       when: (context) => targetConditionActive(context, 'Bleeding')
     }
   ],
@@ -292,10 +284,7 @@ export const deepStrikes = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.DEEP_STRIKES),
-            'attributeBonus'
-          ),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.DEEP_STRIKES, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: Boolean(context.loadout.assumptions.fury)
         }
@@ -317,8 +306,7 @@ export const unsuspectingFoe = defineTrait({
       id: 'warrior.unsuspecting-foe',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_FOE), 'criticalChance'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.UNSUSPECTING_FOE, 'criticalChance'),
       when: (context) => Boolean(context.config?.target?.defiant)
     }
   ]
@@ -336,10 +324,7 @@ export const woundingPrecision = defineTrait({
           kind: 'conversion',
           from: 'Precision',
           to: 'Expertise',
-          multiplier: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.WOUNDING_PRECISION),
-            'attributeConversion'
-          ),
+          multiplier: balanceNumberFromContext(context.balanceContext, TRAIT.WOUNDING_PRECISION, 'attributeConversion'),
           rounding: 'none',
           input: 'eligible',
           enabled: true
@@ -408,9 +393,7 @@ function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): 
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
-    !context.combat.targetHealthBelow(
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SIGNET_MASTERY), 'threshold')
-    )
+    !context.combat.targetHealthBelow(balanceNumberFromContext(context, TRAIT.SIGNET_MASTERY, 'threshold'))
   )
     return;
   const skill = context.helpers.skillsById.get(ID.LESSER_SIGNET_OF_MIGHT)!;
@@ -431,10 +414,7 @@ function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): 
 
 function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !runtime.procs.claim(TRAIT.OPPORTUNIST)) return;
-  grantWarriorResource(
-    runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.OPPORTUNIST), 'resourceGain')
-  );
+  grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.OPPORTUNIST, 'resourceGain'));
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.OPPORTUNIST);
     emitTraitProfile(runtime, TRAIT.OPPORTUNIST, TRAIT.OPPORTUNIST, event, {
@@ -532,10 +512,7 @@ function furiousCritical(
 ): void {
   const criticals = opportunity.sampledCriticals;
   if (criticals > 0) {
-    grantWarriorResource(
-      runtime,
-      criticals * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS), 'resourceGain')
-    );
+    grantWarriorResource(runtime, criticals * balanceNumberFromContext(runtime, TRAIT.FURIOUS, 'resourceGain'));
     {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS);
       emitTraitProfile(runtime, TRAIT.FURIOUS, TRAIT.FURIOUS, event, {

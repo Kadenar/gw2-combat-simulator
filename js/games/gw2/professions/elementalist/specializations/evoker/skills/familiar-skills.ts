@@ -12,7 +12,7 @@ import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
@@ -415,8 +415,9 @@ export function beginFamiliarCast(
   // if the empowered familiar was recently cast and the basic fires within the window, the empowered effects are retroactively cancelled
   const empoweredSkill = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
   if (empoweredSkill) {
-    const window = balanceProfileNumber(
-      requireBalanceProfileFromContext(context, FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id),
+    const window = balanceNumberFromContext(
+      context,
+      FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
       'durationMultiplier'
     );
     const basicKey = String(skill.id);
@@ -443,8 +444,8 @@ const igniteBurningByCast = new WeakMap<RuntimeCast<ElementalistSkill>, SkillEff
 export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);
   if (state.cancelledFamiliarActivations[cast.id]) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.ignite);
-  if (cast.start - state.igniteLastUsedAt >= balanceProfileNumber(profile, 'threshold')) state.igniteTier = 0;
+  if (cast.start - state.igniteLastUsedAt >= balanceNumberFromContext(context, PROFILE.ignite, 'threshold'))
+    state.igniteTier = 0;
   igniteBurningByCast.set(cast, igniteTierEffect(context, state.igniteTier));
   state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
   state.igniteLastUsedAt = cast.start;
@@ -476,8 +477,9 @@ export function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeC
     const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
     const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
     if (flip && empowered) {
-      const delay = balanceProfileNumber(
-        requireBalanceProfileFromContext(context, FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id),
+      const delay = balanceNumberFromContext(
+        context,
+        FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
         'initialDelay'
       );
       context.cooldownController.setReadyAt(

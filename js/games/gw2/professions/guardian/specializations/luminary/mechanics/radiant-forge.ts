@@ -5,7 +5,7 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-fl
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 
 import {
-  balanceProfileNumber,
+  balanceNumberFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -41,10 +41,7 @@ export function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianS
     const used = Object.keys(state.radiantWeaponsUsed).filter((weapon) =>
       ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
     ).length;
-    const reduction =
-      used <= 1
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.forge), 'rechargeReduction')
-        : 0;
+    const reduction = used <= 1 ? balanceNumberFromContext(runtime, PROFILE.forge, 'rechargeReduction') : 0;
     // Forge entry is a fourth profession action, outside weapon and virtue recharge traits.
     const work = Math.max(0, gw2BaseRecharge(enter) - reduction);
     runtime.cooldownController.startRecharge(enter, runtime.time, work);

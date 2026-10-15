@@ -1,7 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
@@ -63,8 +63,7 @@ export function reserveElementalistRecharge(context: ElementalistRuntime, skill:
   const state = professionCoreState(context);
   if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear') {
     state.spearNextRechargeReduction = false;
-    const spearEmpowermentsProfile = requireBalanceProfileFromContext(context, PROFILE.spearEmpowerments);
-    return duration * balanceProfileNumber(spearEmpowermentsProfile, 'rechargeMultiplier');
+    return duration * balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'rechargeMultiplier');
   }
 
   return reservePistolRecharge(context, skill, duration);

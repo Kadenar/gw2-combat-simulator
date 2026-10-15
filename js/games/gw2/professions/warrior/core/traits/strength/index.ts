@@ -11,6 +11,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
+  balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -158,9 +159,9 @@ export const peakPerformance = defineTrait({
       operation: 'damage-additive',
 
       amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PEAK_PERFORMANCE), 'baseBonus') +
+        balanceNumberFromContext(context, TRAIT.PEAK_PERFORMANCE, 'baseBonus') +
         (warriorActiveBuffStacks(context, 'peak-performance', 1)
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PEAK_PERFORMANCE), 'activeBonus')
+          ? balanceNumberFromContext(context, TRAIT.PEAK_PERFORMANCE, 'activeBonus')
           : 0)
     }
   ]
@@ -225,7 +226,6 @@ export const buildingMomentum = defineTrait({
 export const pinnacleOfStrength = defineTrait({
   // Might adds temporary Power without entering ordinary conversions or Blood Reaction.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.PINNACLE_OF_STRENGTH);
     const might =
       context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? activeBoonStacks(context, 'might');
     return {
@@ -233,7 +233,8 @@ export const pinnacleOfStrength = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: might * balanceProfileNumber(profile, 'attributeBonus'),
+          amount:
+            might * balanceNumberFromContext(context.balanceContext, TRAIT.PINNACLE_OF_STRENGTH, 'attributeBonus'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -253,8 +254,7 @@ export const pinnacleOfStrength = defineTrait({
       id: 'warrior.pinnacle-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PINNACLE_OF_STRENGTH), 'criticalChance')
+      amount: (context) => balanceNumberFromContext(context, TRAIT.PINNACLE_OF_STRENGTH, 'criticalChance')
     }
   ]
 });
@@ -285,20 +285,14 @@ export const forcefulGreatsword = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD),
-            'attributeBonus'
-          ),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD, 'attributeBonus'),
           feedsConversions: 'all',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD),
-            'weaponAttributeBonus'
-          ),
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD, 'weaponAttributeBonus'),
           // The greatsword bonus feeds the same conversion pool as the permanent Power grant.
           feedsConversions: 'all',
           enabled: weapons.includes('Greatsword')
@@ -329,10 +323,7 @@ export const greatFortitude = defineTrait({
           kind: 'conversion',
           from: 'Power',
           to: 'Vitality',
-          multiplier: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE),
-            'attributeConversion'
-          ),
+          multiplier: balanceNumberFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible',
           enabled: true
@@ -341,10 +332,7 @@ export const greatFortitude = defineTrait({
           kind: 'conversion',
           from: 'Power',
           to: 'Ferocity',
-          multiplier: balanceProfileNumber(
-            requireBalanceProfileFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE),
-            'attributeConversion'
-          ),
+          multiplier: balanceNumberFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible',
           enabled: true
@@ -403,10 +391,7 @@ function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<Warrior
 function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
   if (skill.movementSkill) {
-    grantWarriorResource(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE), 'resourceGain')
-    );
+    grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.BRAVE_STRIDE, 'resourceGain'));
     {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE);
       const selectedEffect = requireEffect(traitProfile, 'boon', 'stability');
@@ -430,9 +415,7 @@ function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSki
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function buildingMomentumBurst(runtime: WarriorRuntime): void {
-  runtime.endurance.grant(
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BUILDING_MOMENTUM), 'resourceGain')
-  );
+  runtime.endurance.grant(balanceNumberFromContext(runtime, TRAIT.BUILDING_MOMENTUM, 'resourceGain'));
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
@@ -467,10 +450,7 @@ function forcefulGreatswordCritical(
   opportunity: ReturnType<typeof criticalOpportunity>
 ): void {
   const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
-  const chance = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
-    'procChance'
-  );
+  const chance = balanceNumberFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD, 'procChance');
   const proc = advanceCriticalProc(opportunity, {
     id: 'warrior.core.forceful-greatsword',
     at: runtime.time,
@@ -478,10 +458,7 @@ function forcefulGreatswordCritical(
       1,
       chance *
         (weapons.includes('Greatsword')
-          ? balanceProfileNumber(
-              requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
-              'weaponProcChanceMultiplier'
-            )
+          ? balanceNumberFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD, 'weaponProcChanceMultiplier')
           : 1)
     ),
     randomStream: 'warrior.forceful-greatsword',
