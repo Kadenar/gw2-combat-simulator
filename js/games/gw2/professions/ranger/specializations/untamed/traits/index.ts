@@ -123,9 +123,10 @@ const blindingOutburst = defineTrait({
       order: 101,
       id: 'ranger.blinding-outburst',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'damage-additive',
-      amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLINDING_OUTBURST), 'damageIncrease'),
+      // This skill-specific bonus multiplies the outgoing pool containing Symbiosis, Vow, and sigils.
+      operation: 'multiply',
+      factor: (context) =>
+        1 + balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLINDING_OUTBURST), 'damageIncrease'),
       // Secondary spores retain their parent cast for attribution, but are not ambush strikes.
       when: (context) =>
         BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.sourceId ?? context.event?.skillId ?? context.skillId))
@@ -161,7 +162,6 @@ const ferociousSymbiosis = defineTrait({
   id: TRAIT.FEROCIOUS_SYMBIOSIS,
   name: 'Ferocious Symbiosis',
   balance: {
-    damageMultiplier: 1,
     damageIncreasePerStack: 0.05,
     maximumStacks: 5,
     durationMultiplier: 5,
@@ -172,9 +172,10 @@ const ferociousSymbiosis = defineTrait({
       order: 102,
       id: 'ranger.ferocious-symbiosis',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'multiply',
+      // Symbiosis shares the outgoing additive pool with Vow and equipped sigils.
+      operation: 'damage-additive',
 
-      factor: (context) => {
+      amount: (context) => {
         const state = untamedModifierState(context);
         const pet = context.event?.source === 'ranger-pet';
         // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
@@ -184,18 +185,14 @@ const ferociousSymbiosis = defineTrait({
           'exclusive'
         );
         return (
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS),
-            'damageMultiplier'
-          ) +
           Math.min(
             balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS), 'maximumStacks'),
             stacks
           ) *
-            balanceProfileNumber(
-              requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS),
-              'damageIncreasePerStack'
-            )
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS),
+            'damageIncreasePerStack'
+          )
         );
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || context.event?.source === 'ranger-pet'

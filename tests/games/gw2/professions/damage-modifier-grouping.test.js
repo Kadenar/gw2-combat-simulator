@@ -7,6 +7,8 @@ import test from 'node:test';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/professions/guardian/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { RANGER_SKILL_IDS as RANGER_SKILLS, RANGER_TRAIT_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import {
@@ -90,6 +92,46 @@ function modifierContext({
 function assertClose(actual, expected) {
   assert.ok(Math.abs(actual - expected) < 1e-12, `expected ${actual} to equal ${expected}`);
 }
+
+test('Untamed adds Symbiosis to Vow and sigils before multiplying Blinding Outburst', () => {
+  // Isolate modifier composition at partial/full stacks and across unleash states, independently of a rotation.
+  const rules = rangerProfession.resolveProfession({ specialization: 'Untamed' });
+  for (const stacks of [0, 3, 5]) {
+    for (const rangerUnleashed of [false, true]) {
+      const context = modifierContext({
+        catalog: rules.catalog,
+        traits: [RANGER.FEROCIOUS_SYMBIOSIS, RANGER.VOW_OF_THE_UNTAMED, RANGER.BLINDING_OUTBURST],
+        event: { source: 'ranger', actorType: 'player', skillId: RANGER_SKILLS.HAMMER_SLAM },
+        runtime: {
+          profession: {
+            core: {},
+            specialization: {
+              kind: 'Untamed',
+              state: {
+                rangerUnleashed,
+                ferociousSymbiosisPlayer: { stacks, expiresAt: 10 },
+                ferociousSymbiosisPet: { stacks: 5, expiresAt: 10 }
+              }
+            }
+          }
+        }
+      });
+      const outgoingPool = 1 + 0.08 + stacks * 0.05 + (rangerUnleashed ? 0.25 : 0);
+      assertClose(rules.modifyStrikeDamage(context, 1), outgoingPool);
+      context.event.skillId = RANGER_SKILLS.DEFT_STRIKE;
+      assertClose(rules.modifyStrikeDamage(context, 1), outgoingPool * 1.25);
+
+      // A secondary spore retains its parent cast but must not inherit the ambush-only multiplier.
+      context.event.sourceId = RANGER_SKILLS.EXPLODING_SPORE;
+      assertClose(rules.modifyStrikeDamage(context, 1), outgoingPool);
+
+      // Pet Outburst uses its own stacks and does not receive the player's Vow or equipped sigils.
+      context.event = { source: 'ranger-pet', actorType: 'summon', skillId: RANGER_SKILLS.VENOMOUS_OUTBURST };
+      context.damageInputs.strikeSigilBonus = 0;
+      assertClose(rules.modifyStrikeDamage(context, 1), 1.25 * 1.25);
+    }
+  }
+});
 
 test('Guardian additive and multiplicative modifiers use separate buckets', () => {
   const context = modifierContext({
