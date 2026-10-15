@@ -30,6 +30,32 @@
         }
       },
       {
+        "label": "Power (Spear)",
+        "build": "data/gw2/builds/warrior/b-power-bladesworn-spear.json",
+        "rotation": "data/gw2/rotations/warrior/r-power-bladesworn-spear-bench.json",
+        "benchmarkDps": 43108,
+        "upToDate": true,
+        "benchmarkApm": 81.6,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 63972, "phase": 63972 },
+          "80-60": { "cumulative": 49222, "phase": 39014 },
+          "60-40": { "cumulative": 45544, "phase": 39177 },
+          "40-20": { "cumulative": 42380, "phase": 33025 },
+          "20-0": { "cumulative": 43108, "phase": 46297 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 42778,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 63496, "phase": 63496 },
+            "80-60": { "cumulative": 48854, "phase": 38721 },
+            "60-40": { "cumulative": 45202, "phase": 38879 },
+            "40-20": { "cumulative": 43686, "phase": 39576 },
+            "20-0": { "cumulative": 42778, "phase": 42778 }
+          }
+        }
+      },
+      {
         "label": "Power Alacrity (Sword / Pistol)",
         "build": "data/gw2/builds/warrior/b-power-alac-bladesworn-sword-pistol.json",
         "rotation": "data/gw2/rotations/warrior/r-power-alac-bladesworn-sword-pistol-bench.json",
