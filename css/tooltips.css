@@ -164,6 +164,13 @@
   gap: 12px;
 }
 
+/* A quiet rule distinguishes rotation counts from the timing rows above them. */
+.wiki-tooltip-details-divider {
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px solid #b8aa6c30;
+}
+
 .wiki-tooltip-effects-label {
   margin-top: 8px;
   color: #8e9693;

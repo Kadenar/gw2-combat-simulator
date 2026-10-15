@@ -450,17 +450,21 @@ export function timelineRowsView(
       const actionDetail = step?.activationId ? actionDetails.get(step.activationId) : undefined;
       const skillTooltip =
         step && !invalid && item.type === 'cast'
-          ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, [
-              ...(step.activationId && targetImpacts.has(step.activationId)
-                ? [targetImpacts.get(step.activationId)!]
-                : []),
-              ...(actionDetail ? [actionDetail] : []),
-              ...(step.activationId && transitionDetails.has(step.activationId)
-                ? [transitionDetails.get(step.activationId)!]
-                : []),
-              ...(cancelledWithoutDamage ? ['Cancelled without dealing damage'] : []),
-              ...outcomeDetails
-            ])
+          ? formatTimelineSkillTooltip(
+              display,
+              step,
+              castOrdinals.get(index),
+              formatTime,
+              step.activationId ? targetImpacts.get(step.activationId) : undefined,
+              [
+                ...(actionDetail ? [actionDetail] : []),
+                ...(step.activationId && transitionDetails.has(step.activationId)
+                  ? [transitionDetails.get(step.activationId)!]
+                  : []),
+                ...(cancelledWithoutDamage ? ['Cancelled without dealing damage'] : []),
+                ...outcomeDetails
+              ]
+            )
           : display;
       const titleSuffix = invalid
         ? `\n${step?.invalidReason || 'Not valid here — will not be simulated'}`

@@ -395,14 +395,16 @@ export function formatTimelineSkillTooltip(
   step: SimulationStep | null | undefined,
   ordinal: TimelineCastOrdinal | null | undefined,
   formatTime: (time: number) => string,
+  targetImpactDetails: string | undefined,
   details: readonly string[] = []
 ): string {
   if (!step || step.invalid || !ordinal) return String(name || '');
   const duration = Math.max(0, Math.round(Number(step.end || 0) - Number(step.start || 0)));
-  // Compact labels separate this activation's timing and ordinals from the skill's own description.
+  // Keep cast and impact timing together before ordinals so the activation's timing is easy to scan.
   return [
     `Start: ${formatTime(step.start)}`,
     `Cast time: ${duration}ms`,
+    ...(targetImpactDetails ? [targetImpactDetails] : []),
     `Skill use: ${ordinal.matchingIndex} of ${ordinal.matchingTotal}`,
     `Rotation action: ${ordinal.skillIndex} of ${ordinal.skillTotal}`,
     ...details

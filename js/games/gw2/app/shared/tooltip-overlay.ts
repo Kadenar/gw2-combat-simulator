@@ -230,9 +230,12 @@ export function bindWikiTooltips(): void {
     details.querySelector('dl')!.innerHTML = detailLines
       .map((line) => {
         const separator = line.indexOf(':');
+        // Separate rotation counts from timing while keeping both in the same compact details panel.
+        const startsRotationCounts =
+          element.dataset.wikiDetailsTitle === 'Rotation details' && line.slice(0, separator) === 'Skill use';
         return separator < 0
           ? `<div class="wiki-tooltip-details-note"><dt>Note</dt><dd>${esc(line)}</dd></div>`
-          : `<div><dt>${esc(line.slice(0, separator))}</dt><dd>${esc(line.slice(separator + 1).trim())}</dd></div>`;
+          : `<div${startsRotationCounts ? ' class="wiki-tooltip-details-divider"' : ''}><dt>${esc(line.slice(0, separator))}</dt><dd>${esc(line.slice(separator + 1).trim())}</dd></div>`;
       })
       .join('');
     // Clear the shared badge when the next skill has no positive energy cost.
