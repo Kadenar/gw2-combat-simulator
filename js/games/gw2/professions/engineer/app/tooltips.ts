@@ -3,7 +3,6 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
-  fromModifier,
   tooltipFactorChange,
   tooltipSeconds,
   outsideScopeTooltip,
@@ -11,6 +10,7 @@ import {
   skillTooltip,
   profileTooltip,
   profileFact,
+  modifierFact,
   tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
@@ -291,28 +291,33 @@ const familyTooltips = {
       description += ' Its strain grants quickness and superspeed and displays the Predator Strain window.';
     return { description, facts };
   },
-  'engineer.evolve': (balanceContext, entity) => ({
-    description:
-      'Enter Evolved form, increasing eligible attributes. Apply strains for the selected protocols, unless Silver Lining moved those grants to protocol activations. Symbiotic Synergy also recharges selected protocols. Double Helix selects the ammunition variant and larger attribute bonus.',
-    facts: [
-      profileFact(balanceContext, AMALGAM.evolve, 'durationMultiplier', 'Evolved duration', tooltipSeconds),
-      profileFact(
-        balanceContext,
-        AMALGAM.evolve,
-        entity.id === ID.EVOLVE_DOUBLE_HELIX ? 'coefficientMultiplier' : 'damageMultiplier',
-        'Eligible attribute increase',
-        tooltipFactorChange
-      ),
+  // Form facts follow the selected skill; only Double Helix's enhanced scaling belongs to its trait.
+  'engineer.evolve': skillTooltip(
+    'Enter Evolved form, increasing eligible attributes. Apply strains for the selected protocols, unless Silver Lining moved those grants to protocol activations. Symbiotic Synergy also recharges selected protocols. Double Helix selects the ammunition variant and larger attribute bonus.',
+    (balanceContext, skill) => [
+      { name: 'Evolved duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) },
+      skill.id === ID.EVOLVE_DOUBLE_HELIX
+        ? profileFact(
+            balanceContext,
+            TRAIT.DOUBLE_HELIX,
+            'coefficientMultiplier',
+            'Eligible attribute increase',
+            tooltipFactorChange
+          )
+        : {
+            name: 'Eligible attribute increase',
+            detail: tooltipFactorChange(tooltipNumber(skill, 'attributeMultiplier'))
+          },
       ...[...new Set(AMALGAM_MORPH_KIND_BY_SKILL_ID.values())].flatMap((kind) =>
         strainFacts(balanceContext, kind, `${kind} protocol selected; without Silver Lining`)
       )
     ]
-  }),
+  ),
   'engineer.plasmatic-state': skillTooltip(
     'Strike and burn foes, starting a temporary outgoing-damage bonus with the first strike.',
-    [
-      fromProfile(AMALGAM.plasmaticState, 'durationMultiplier', 'Damage bonus duration', tooltipSeconds),
-      fromModifier('engineer.plasmatic-state', 'amount', 'Strike and condition damage')
+    (balanceContext, skill) => [
+      { name: 'Damage bonus duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) },
+      modifierFact(balanceContext, 'engineer.plasmatic-state', 'amount', 'Strike and condition damage')
     ]
   )
 } satisfies Record<string, DescribeSimulationTooltip>;
@@ -982,10 +987,14 @@ export const engineerTooltips: ProfessionTooltips = {
     }),
     [TRAIT.DOUBLE_HELIX]: traitTooltip(
       'Evolve gains ammunition and a stronger attribute increase from its eligible attribute pool.',
-      [
-        fromProfile('engineer.amalgam.evolve', 'maximumStacks', 'Evolve ammunition'),
-        fromProfile(
-          'engineer.amalgam.evolve',
+      (balanceContext) => [
+        {
+          name: 'Evolve ammunition',
+          detail: tooltipDecimal(tooltipNumber(balanceContext.catalog.skillsById.get(ID.EVOLVE_DOUBLE_HELIX), 'ammo'))
+        },
+        profileFact(
+          balanceContext,
+          TRAIT.DOUBLE_HELIX,
           'coefficientMultiplier',
           'Eligible attribute increase',
           tooltipFactorChange

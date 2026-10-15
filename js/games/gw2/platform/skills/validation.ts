@@ -13,6 +13,8 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 /** Reject retired or misspelled skill fields at the catalog boundary, including profession-owned authoring. */
 const SKILL_FIELDS = new Set([
+  // Form skills own their eligible attribute scaling.
+  'attributeMultiplier',
   'modifiers',
   'adrenalineCost',
   'affinityOnHit',

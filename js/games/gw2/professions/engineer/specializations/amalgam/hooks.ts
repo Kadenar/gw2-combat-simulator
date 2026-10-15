@@ -29,7 +29,8 @@ export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
       if (context.kind !== 'cast') throw new TypeError('Evolve requires a cast trigger.');
       const { cast } = context;
       const at = cast.start + (cast.fullEnd - cast.start) * (520 / 640);
-      if (at <= cast.effectiveEnd) runtime.schedule('engineer.evolve', at, undefined, undefined, -10);
+      // Retain the accepted skill so each form reads the balance data from its own cast.
+      if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.evolve', at, cast, {}, undefined, -10);
     },
     'engineer.schedule-plasmatic'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Plasmatic State requires a cast trigger.');
@@ -37,7 +38,7 @@ export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
       const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
       if (!strike) return;
       const at = effectFirstAt(cast.start, cast.fullEnd, strike);
-      if (at <= cast.effectiveEnd) runtime.schedule('engineer.plasmatic-state', at, undefined, undefined, -10);
+      if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.plasmatic-state', at, cast, {}, undefined, -10);
     },
     'engineer.thorns-retaliation'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Thorns requires a cast trigger.');
@@ -50,8 +51,12 @@ export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
       runtime.scheduleForCast('engineer.morph-traits', runtime.time, cast, {}, undefined, -101);
   },
   tasks: {
-    'engineer.evolve': evolveAmalgam,
-    'engineer.plasmatic-state': activatePlasmaticState,
+    'engineer.evolve'(runtime, data) {
+      evolveAmalgam(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
+    },
+    'engineer.plasmatic-state'(runtime, data) {
+      activatePlasmaticState(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
+    },
     'engineer.thorns-retaliation'(runtime, data) {
       scheduleThornsRetaliation(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill, runtime.time);
     },

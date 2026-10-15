@@ -13,12 +13,10 @@ import { amalgamCastAvailability } from '#gw2/professions/engineer/specializatio
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
-import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { test } from 'node:test';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -566,8 +564,6 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
       ).ready,
       false
     );
-    const capacity = createMaximumAmmoContext(() => ({}), new Set(selectedTraitIds), engineerCatalog);
-    assert.equal(amalgamMaximumAmmo(capacity, inactive, Number(inactive.ammo || 0)), 0);
     const result = simulate('Amalgam', [ID.EVOLVE_DOUBLE_HELIX, ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX], {
       selectedTraitIds
     });

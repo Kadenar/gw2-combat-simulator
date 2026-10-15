@@ -4,7 +4,7 @@ import {
   activeBoonStacks,
   activeEngineerSpecializationState
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
+import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/index.js';
 
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 

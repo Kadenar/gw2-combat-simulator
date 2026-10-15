@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { activeEngineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import {
@@ -85,23 +86,22 @@ export function scheduleThornsRetaliation(context: EngineerRuntime, skill: Engin
   }
 }
 
-/** Activates Plasmatic State with its first strike. */
-export function activatePlasmaticState(context: EngineerRuntime): void {
+/** Activates the casting skill's Plasmatic State duration with its first strike. */
+export function activatePlasmaticState(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
-  const plasmaticStateProfile = requireBalanceProfileFromContext(context, PROFILE.plasmaticState);
   amalgamState.from(context).plasmaticStateUntil = Math.max(
     amalgamState.from(context).plasmaticStateUntil,
-    at + balanceProfileNumber(plasmaticStateProfile, 'durationMultiplier')
+    at + requireBalanceNumber(skill.duration, `${skill.name} duration`)
   );
 }
 
 /** Activates Evolved, grants selected strains, and resolves Evolve trait interactions. */
-export function evolveAmalgam(context: EngineerRuntime): void {
+export function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
   const state = amalgamState.from(context);
   const selected = selectedMorphKinds(context);
-  const evolveProfile = requireBalanceProfileFromContext(context, PROFILE.evolve);
-  state.evolvedUntil = at + balanceProfileNumber(evolveProfile, 'durationMultiplier');
+  // The accepted variant owns its patched lifetime independently of trait-owned attribute scaling.
+  state.evolvedUntil = at + requireBalanceNumber(skill.duration, `${skill.name} duration`);
 
   // Silver Lining moves strains to Morph; otherwise Evolve grants every selected protocol's strain itself.
   if (!hasTrait(context.traits, TRAIT.SILVER_LINING))

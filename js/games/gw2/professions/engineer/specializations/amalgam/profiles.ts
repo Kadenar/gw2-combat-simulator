@@ -5,16 +5,13 @@ import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
   morphs: 'engineer.amalgam.morphs',
   strains: 'engineer.amalgam.strains',
-  evolve: 'engineer.amalgam.evolve',
-  rapaciousStrain: 'engineer.amalgam.rapacious-strain',
-  plasmaticState: 'engineer.amalgam.plasmatic-state'
+  rapaciousStrain: 'engineer.amalgam.rapacious-strain'
 });
 
 // Supply the catalog metadata shared by every trait profile; each entry below
 // only needs to declare the values and effects its mechanic consumes.
 
-// Mechanic profiles collect protocol durations, strain scaling, and Evolve
-// tuning that would otherwise be spread across scheduler and modifier code.
+// Mechanic profiles collect shared protocol and strain tuning; castable skills own their form durations.
 export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.rapaciousStrain,
@@ -97,22 +94,5 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         metadata: { trigger: 'demolish' }
       }
     ]
-  },
-  {
-    id: AMALGAM_BALANCE_PROFILE_IDS.evolve,
-    name: 'Evolved',
-    profileKind: 'mechanic',
-    durationMultiplier: 8,
-    damageMultiplier: 1.1,
-    coefficientMultiplier: 1.2,
-    maximumStacks: 2,
-    effects: []
-  },
-  {
-    id: AMALGAM_BALANCE_PROFILE_IDS.plasmaticState,
-    name: 'Plasmatic State',
-    profileKind: 'mechanic',
-    durationMultiplier: 6,
-    effects: []
   }
 ]);

@@ -27,6 +27,10 @@ export interface TooltipFact {
 }
 
 export interface Skill extends CatalogEntity {
+  /** Duration in seconds of a skill-owned form or temporary state. */
+  readonly duration?: number;
+  /** Multiplier applied by the skill's mechanic to its eligible attribute pool. */
+  readonly attributeMultiplier?: number;
   /** Intrinsic strike modifiers apply only to damage attributed to this skill. */
   readonly modifiers?: readonly SkillDamageModifier[];
   /** Identity-only tombstones scoped to this skill in its selected catalog. */

@@ -1,4 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -8,6 +11,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
@@ -25,8 +29,27 @@ import {
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { amalgamMaximumAmmo, morphStrike } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
-import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
+import type {
+  EngineerModifierContext,
+  EngineerResolverEvent,
+  EngineerRuntime
+} from '#gw2/professions/engineer/types.js';
+
+/** Double Helix chooses the Evolved bonus without changing the shared pre-profession conversion pool. */
+export function evolveAttributeFactor(context: EngineerModifierContext): number {
+  if (hasTrait(context, TRAIT.DOUBLE_HELIX))
+    return balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DOUBLE_HELIX), 'coefficientMultiplier');
+  const skill = requireSkillFromContext(context, ID.EVOLVE_BASE);
+  return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`);
+}
+
+/** Restrict Symbiotic Synergy to player-owned Morph strikes. */
+function morphStrike(context: EngineerModifierContext): boolean {
+  return Boolean(
+    isGw2PlayerModifierOwnedEvent(context.event) &&
+    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes('Morph')
+  );
+}
 
 /** Owns Carbolic Composition tuning and its existing Morph/Evolve contribution. */
 const carbolicComposition = defineTrait({
@@ -58,8 +81,9 @@ const carbolicComposition = defineTrait({
 const doubleHelix = defineTrait({
   id: TRAIT.DOUBLE_HELIX,
   name: 'Double Helix',
+  // Trait-owned scaling keeps patch notes scoped to builds selecting the stronger Evolve bonus.
+  balance: { coefficientMultiplier: 1.2 },
   hooks: {
-    maximumAmmo: amalgamMaximumAmmo,
     modifySkillId: (context, skillId) => resolveAmalgamSkillId(context.hasTrait(TRAIT.DOUBLE_HELIX), skillId)
   }
 });

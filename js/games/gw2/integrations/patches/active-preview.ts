@@ -1114,7 +1114,7 @@ export const activePatchPreview: PatchPreview = {
             }
           }
         },
-        'engineer.amalgam.evolve': {
+        '2334': {
           fields: {
             coefficientMultiplier: {
               from: 1.2,
@@ -1125,7 +1125,7 @@ export const activePatchPreview: PatchPreview = {
       },
       overview: [
         {
-          subject: 'Evolved',
+          subject: 'Double Helix',
           text: 'Coefficient multiplier 1.2 → 1.15.',
           source: 'profile-diff'
         },

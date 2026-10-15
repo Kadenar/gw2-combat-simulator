@@ -28,6 +28,9 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     // Schedule the form transition before the first affected packet, only when the cast reaches it.
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }],
     name: 'Evolve (Base)',
+    // The selected skill owns its form lifetime and base attribute scaling for combat, previews, and tooltips.
+    duration: 8,
+    attributeMultiplier: 1.1,
     description: 'Enter Evolved form. Double Helix replaces this action with the two-charge variant.',
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
@@ -45,6 +48,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     // Schedule the form transition before the first affected packet, only when the cast reaches it.
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }],
     name: 'Evolve (Double Helix)',
+    // Double Helix owns the stronger attribute bonus; this variant owns its duration and ammunition.
+    duration: 8,
     description: 'Enter Evolved form with an increased attribute bonus. Requires Double Helix.',
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
@@ -169,6 +174,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     effects: []
   },
   [ID.PLASMATIC_STATE]: {
+    // The cast skill owns the damage-bonus window that starts with its first strike.
+    duration: 6,
     // Schedule the form transition before the first affected packet, only when the cast reaches it.
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-plasmatic' } }],
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.

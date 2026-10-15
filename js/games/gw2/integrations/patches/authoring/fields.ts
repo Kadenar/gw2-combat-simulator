@@ -44,6 +44,7 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
 
   // Attributes and critical-hit scaling.
   'attributeBonus',
+  'attributeMultiplier',
   'attributeConversion',
   'attributePerStack',
   'conditionDamageBonus',
@@ -62,6 +63,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'playerStacks',
   'allyStacks',
   'threshold',
+  // Skill-owned state lifetimes use duration, independently of durations on their individual effects.
+  'duration',
   'durationPerTier',
   'durationMultiplier',
   'baseDuration',
@@ -168,7 +171,6 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
 
   // Attributes, summon inheritance, and critical-hit scaling.
   'baseAttribute',
-  'attributeMultiplier',
   'inheritanceRatio',
   'secondaryAttributeCap',
   'powerCap',
@@ -194,7 +196,6 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'boonStacks',
   'boonDuration',
   'boonDurationBonus',
-  'duration',
   'sharedDurationMultiplier',
   'conditionDurationMultiplier',
   'conditionDurationBonus',
