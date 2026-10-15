@@ -64,3 +64,55 @@ test('merged Poison Master arms from F3 and consumes once on a player attack', (
     assert.ok(!family.resolvedEvents.some((event) => event.sourceId === TRAIT.POISON_MASTER));
   }
 });
+
+// Proc ownership must preserve player poison damage and duration bonuses even when an ally delivers the trigger.
+for (const shared of [false, true]) {
+  test(`Vulture Stance ${shared ? 'shared' : 'personal'} poison inherits player modifiers`, () => {
+    const run = (selectedTraitIds) => {
+      const result = runRanger(
+        [{ type: 'combat-start' }, ID.BUMBLE, ID.VULTURE_STANCE, ID.CROSSFIRE, { type: 'wait', durationMs: 5000 }],
+        {
+          ...config,
+          selectedTraitIds: [...selectedTraitIds, TRAIT.LEADER_OF_THE_PACK],
+          allies: { count: shared ? 1 : 0, strikesPerSecond: 1000 / 520 }
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      return result.resolvedEvents.find(
+        (event) =>
+          event.type === 'condition' &&
+          event.skillId === ID.VULTURE_STANCE &&
+          Boolean(event.metadata?.triggeredByAlly) === shared
+      );
+    };
+
+    const baseline = run([]);
+    const poisonMaster = run([TRAIT.POISON_MASTER]);
+    const lightOnYourFeet = run([TRAIT.LIGHT_ON_YOUR_FEET]);
+    assert.equal(poisonMaster.ownerActorType, 'player');
+    // Condition ticks round within a shared pool, so allow one point per settlement when comparing the multiplier.
+    assert.ok(Math.abs(poisonMaster.damage - baseline.damage * 1.25) <= baseline.damageTicks.length);
+    assert.equal(lightOnYourFeet.effectiveDuration, baseline.effectiveDuration * 1.1);
+  });
+}
+
+// Merged Double Arc poison belongs to the player while retaining its separate effect identity.
+test('merged Poisonous Strikes inherits player poison and duration modifiers', () => {
+  const run = (selectedTraitIds) => {
+    const result = runRanger([{ type: 'combat-start' }, ID.BUMBLE, ID.DOUBLE_ARC, { type: 'wait', durationMs: 5000 }], {
+      ...config,
+      primaryWeapon: 'Dagger',
+      selectedTraitIds
+    });
+    assert.deepEqual(result.warnings, []);
+    return result.resolvedEvents.find((event) => event.type === 'condition' && event.skillName === 'Poisonous Strikes');
+  };
+
+  const baseline = run([]);
+  const poisonMaster = run([TRAIT.POISON_MASTER]);
+  const lightOnYourFeet = run([TRAIT.LIGHT_ON_YOUR_FEET]);
+  assert.equal(poisonMaster.ownerActorType, 'player');
+  // Condition ticks round within a shared pool, so allow one point per settlement when comparing the multiplier.
+  assert.ok(Math.abs(poisonMaster.damage - baseline.damage * 1.25) <= baseline.damageTicks.length);
+  assert.ok(Math.abs(lightOnYourFeet.effectiveDuration - baseline.effectiveDuration * 1.1) < 0.001);
+});

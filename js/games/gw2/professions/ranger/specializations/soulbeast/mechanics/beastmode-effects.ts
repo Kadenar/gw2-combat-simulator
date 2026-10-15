@@ -69,6 +69,8 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw
       source: 'ranger',
       sourceId: ID.DOUBLE_ARC,
       actorType: 'effect',
+      // While merged, the Ranger owns this poison and receives player poison and duration bonuses.
+      ownerActorType: 'player',
       skillId: ID.DOUBLE_ARC,
       skillName: 'Poisonous Strikes',
       name: 'Poisonous Strikes - Poisoned',
@@ -128,7 +130,12 @@ function queueVultureStanceEffects(
     if (request)
       context.effects.emit({
         ...request,
-        attribution: { ...request.attribution, source: event.metadata?.triggeredByAlly ? 'ranger' : 'Trait' }
+        attribution: {
+          ...request.attribution,
+          source: event.metadata?.triggeredByAlly ? 'ranger' : 'Trait',
+          // Personal and shared stance poison both inherit the Ranger's damage and duration modifiers.
+          ownerActorType: 'player'
+        }
       });
   }
 }

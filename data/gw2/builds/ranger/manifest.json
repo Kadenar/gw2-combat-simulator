@@ -65,14 +65,14 @@
         "label": "Condition (Shortbow / Dagger-Dagger)",
         "build": "data/gw2/builds/ranger/b-condi-soulbeast-shortbow-dagger-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-soulbeast-shortbow-dagger-dagger.json",
-        "benchmarkDps": 36691,
+        "benchmarkDps": 37254,
         "benchmarkApm": 64,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34675, "phase": 34675 },
-          "80-60": { "cumulative": 36463, "phase": 38422 },
-          "60-40": { "cumulative": 36666, "phase": 37092 },
-          "40-20": { "cumulative": 36734, "phase": 36934 },
-          "20-0": { "cumulative": 36691, "phase": 36691 }
+          "100-80": { "cumulative": 35245, "phase": 35245 },
+          "80-60": { "cumulative": 37236, "phase": 39526 },
+          "60-40": { "cumulative": 37209, "phase": 37155 },
+          "40-20": { "cumulative": 37288, "phase": 37516 },
+          "20-0": { "cumulative": 37254, "phase": 37254 }
         },
         "upToDate": true
       },

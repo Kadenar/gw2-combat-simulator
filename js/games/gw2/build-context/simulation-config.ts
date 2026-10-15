@@ -130,7 +130,8 @@ export function createGw2SimulationConfig({
     sharePlayerBoonsWithSummons: assumptions.sharePlayerBoonsWithSummons !== false,
     allies: {
       count: alliedPlayerCount,
-      strikesPerSecond: 1
+      // Model each ally attacking every 520 ms so shared effects use the agreed attack cadence.
+      strikesPerSecond: 1000 / 520
     },
     target: {
       armor: build.targetArmor,
