@@ -10,13 +10,14 @@ function impact(atMs: number, effects: readonly SkillEffect[]): SkillEffect[] {
   return impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'fixed' }, effects);
 }
 
-/** A successful melee ambush leaves a separately attributed spore that strikes and poisons later. */
+/** Delayed spore strikes and poison share their own breakdown row while retaining the parent ambush attribution. */
 function spore(parentSkillName: string): SkillEffect[] {
   return impact(1960, [
     {
       type: 'strike',
       sourceId: ID.EXPLODING_SPORE,
       name: 'Exploding Spore',
+      damageBreakdownName: 'Exploding Spore',
       skillName: 'Exploding Spore',
       parentSkillName,
       coefficient: 0.583
@@ -25,6 +26,7 @@ function spore(parentSkillName: string): SkillEffect[] {
       type: 'condition',
       sourceId: ID.EXPLODING_SPORE,
       name: 'Exploding Spore - Poisoned',
+      damageBreakdownName: 'Exploding Spore',
       skillName: 'Exploding Spore',
       parentSkillName,
       condition: 'Poisoned',

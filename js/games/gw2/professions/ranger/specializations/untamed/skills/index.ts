@@ -136,7 +136,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.VENOMOUS_OUTBURST]: {
     castTimeMs: 0,
-    effects: [
+    // Impact about 280 ms after activation, allowing intervening buffs to apply.
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // Unleashed attacks use the pet's type-1 weapon, not the generic autonomous-attack strength.
@@ -162,16 +163,13 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         stacks: 8,
         duration: 10,
         source: 'ranger-pet',
-        actorType: 'summon',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        atMs: 0
+        actorType: 'summon'
       }
-    ]
+    ])
   },
   [ID.RENDING_VINES]: {
     castTimeMs: 0,
-    effects: [
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         weaponStrengthProfileId: 'summon.weapon-type-1',
@@ -195,7 +193,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ]
+    ])
   },
   [ID.PERILOUS_GIFT]: {
     effects: [],
@@ -240,14 +238,19 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           type: 'strike',
           sourceId: ID.EXPLODING_SPORE,
           name: 'Exploding Spore',
+          // Keep spore damage in its own breakdown row while retaining the ambush's cast attribution.
+          damageBreakdownName: 'Exploding Spore',
           coefficient: 0.583,
           skillName: 'Exploding Spore',
+          // Hammer's delayed spore uses the non-weapon damage range observed in both Untamed EVTCs.
+          weaponStrengthProfileId: 'nonweapon.unequipped',
           parentSkillName: 'Relentless Whirl'
         },
         {
           type: 'condition',
           sourceId: ID.EXPLODING_SPORE,
           name: 'Exploding Spore - Poisoned',
+          damageBreakdownName: 'Exploding Spore',
           condition: 'Poisoned',
           stacks: 2,
           duration: 5,
@@ -278,6 +281,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           type: 'strike',
           sourceId: ID.EXPLODING_SPORE,
           name: 'Exploding Spore',
+          damageBreakdownName: 'Exploding Spore',
           coefficient: 0.583,
           skillName: 'Exploding Spore',
           parentSkillName: 'Deft Strike'
@@ -286,6 +290,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           type: 'condition',
           sourceId: ID.EXPLODING_SPORE,
           name: 'Exploding Spore - Poisoned',
+          damageBreakdownName: 'Exploding Spore',
           condition: 'Poisoned',
           stacks: 2,
           duration: 5,

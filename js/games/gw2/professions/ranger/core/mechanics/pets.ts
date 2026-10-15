@@ -6,6 +6,7 @@ import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
@@ -150,6 +151,39 @@ function schedulePet(context: RangerRuntime, at: number): void {
   context.schedule(PET_AUTO_TASK, state.petAutoNextAt, state.petAutoNextAt, owner(context), 10);
 }
 
+/** Interrupt only autonomous work; launched effects and manually commanded skills retain their ownership. */
+function interruptPetAutoattack(context: RangerRuntime): void {
+  const state = context.profession.core;
+  if (!state.petAutoAction) return;
+  context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
+  if (state.petAutoAction.endsAt > context.time) {
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'action_update',
+        at: context.time,
+        source: 'ranger-pet',
+        sourceId: state.activePet,
+        actorType: 'summon',
+        activationId: state.petAutoAction.activationId,
+        endsAt: context.time,
+        interrupted: true
+      }
+    });
+  }
+
+  state.petAutoBusyUntil = context.time;
+  state.petAutoAction = null;
+}
+
+/** Instant pet commands restart autonomous attacks across families without interrupting a manual pet command. */
+export function restartRangerPetAutoattack(context: RangerRuntime): void {
+  const state = context.profession.core;
+  if (!state.petActive) return;
+  interruptPetAutoattack(context);
+  schedulePet(context, context.time);
+}
+
 /** Combat starts the autonomous cadence once; commands and swaps only replace their own pending wake. */
 export function startRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
@@ -288,7 +322,7 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
 }
 
 /** Materialize each pet activation once, keeping original stats and attribution across swaps. */
-function emitPetSkill(
+export function emitRangerPetSkill(
   context: RangerRuntime,
   skill: RangerSkill,
   start: number,
@@ -301,6 +335,8 @@ function emitPetSkill(
   const timing = rangerPetSkillTiming(entityName, skill.id);
   const quickness = petBoonActive(context, 'quickness');
   for (const effect of skill.effects ?? []) {
+    // Pet-owned emission must retain the same acceptance checks as the standard cast pipeline.
+    if (cast && effect.when && !effect.when(context.queries, cast)) continue;
     if (
       cast &&
       castWasInterrupted(cast) &&
@@ -347,7 +383,15 @@ function emitPetSkill(
           return null;
         // Ranger-stat exceptions retain caster provenance too, so their pet-owned trait children cannot migrate on swap.
         // Capture the name with the caster so delayed packets cannot borrow a replacement pet's label.
-        return { ...prepareRangerPetEvent(context, event), entityName, summonOwner: companionId, at, icon: skill.icon };
+        return {
+          ...prepareRangerPetEvent(context, event),
+          entityName,
+          summonOwner: companionId,
+          // Moving commanded effects onto the pet's owner must preserve rotation targeting options.
+          at: at + (isHostileTargetEvent(event) ? (cast?.command.impactDelayMs ?? 0) / 1000 : 0),
+          offTarget: cast?.command.offTarget,
+          icon: skill.icon
+        };
       }
     });
   }
@@ -427,7 +471,7 @@ export const rangerPetTasks = {
         }
       });
       state.petAutoAction = { activationId, endsAt: fullEnd };
-      emitPetSkill(context, skill, context.time, fullEnd, activationId);
+      emitRangerPetSkill(context, skill, context.time, fullEnd, activationId);
     }
 
     state.petAutoBusyUntil = context.time + recovery;
@@ -469,30 +513,7 @@ export const rangerPetTasks = {
   [PET_COMMAND_START_TASK](context: RangerRuntime, data: unknown): void {
     let { cast } = data as { cast: RuntimeCast<RangerSkill> };
     const state = context.profession.core;
-    // Every Ranger pet command preempts AI windups and recovery; manual commands never set petAutoAction.
-    // Launched effects survive command interruption but remain bound to the companion's lifetime.
-    if (state.petAutoAction) {
-      context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
-      if (state.petAutoAction.endsAt > context.time) {
-        // Publish a lifecycle transition; shared emission references remain immutable.
-        context.effects.emit({
-          kind: 'packet',
-          event: {
-            type: 'action_update',
-            at: context.time,
-            source: 'ranger-pet',
-            sourceId: state.activePet,
-            actorType: 'summon',
-            activationId: state.petAutoAction.activationId,
-            endsAt: context.time,
-            interrupted: true
-          }
-        });
-      }
-
-      state.petAutoBusyUntil = context.time;
-      state.petAutoAction = null;
-    }
+    interruptPetAutoattack(context);
 
     // A queued command must still wait if autonomous work loses Alacrity or another pet action occupies the lane.
     const autoReadyAt = petAutonomousRechargeReadyAt(context, cast.skill.id);
@@ -547,7 +568,7 @@ export const rangerPetTasks = {
       companionId: cast.rechargeCompanionId
     };
     context.cooldownController.startRecharge(cast.skill, context.time, cast.rechargeWork, cast.rechargeCompanionId);
-    emitPetSkill(context, cast.skill, context.time, cast.fullEnd + context.time - cast.start, cast.id, cast);
+    emitRangerPetSkill(context, cast.skill, context.time, cast.fullEnd + context.time - cast.start, cast.id, cast);
     schedulePet(context, state.petAutoBusyUntil);
   }
 };

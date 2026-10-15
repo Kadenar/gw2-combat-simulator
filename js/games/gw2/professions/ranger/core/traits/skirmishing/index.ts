@@ -46,7 +46,13 @@ export const lightOnYourFeet = defineTrait({
     }),
     onTriggerPoint(dodged, {
       run: (runtime, input: TriggerPointInput<typeof dodged>) => applyRangerDodgeTraits(runtime, input.at)
-    })
+    }),
+    {
+      // Bumble still grants this buff after its evade was removed; keep the exception trait-local.
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.BUMBLE,
+      run: (runtime) => applyRangerDodgeTraits(runtime)
+    }
   ],
   id: TRAIT.LIGHT_ON_YOUR_FEET,
   name: 'Light on Your Feet',

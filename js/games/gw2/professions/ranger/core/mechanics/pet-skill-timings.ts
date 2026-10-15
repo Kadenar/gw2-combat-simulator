@@ -174,8 +174,13 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1760,
     recoveryMs: 2680,
     quicknessRecoveryMs: 1800,
-    unbuffedImpactMs: { 280: 400, 320: 480 },
+    // Keep measured unbuffed contacts when the Quickness-authored second contact moves to 360 ms.
+    unbuffedImpactMs: { 280: 400, 360: 480 },
     petOverrides: {
+      // Hawk cycles average about 1840 ms, including the AI decision gap.
+      Hawk: {
+        quicknessRecoveryMs: 1840
+      },
       Raven: {
         quicknessRecoveryMs: 1840
       },
@@ -375,7 +380,7 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
     quicknessCastTimeMs: 1760,
     recoveryMs: 2720,
     quicknessRecoveryMs: 1840,
-    unbuffedImpactMs: { 280: 400, 320: 480 }
+    unbuffedImpactMs: { 280: 400, 360: 480 }
   },
   [ID.SMOKESCALE_BITE]: {
     castTimeMs: 1680,

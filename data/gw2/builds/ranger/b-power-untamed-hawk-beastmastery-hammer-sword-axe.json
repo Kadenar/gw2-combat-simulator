@@ -60,8 +60,8 @@
     "Utility3": 12491,
     "Elite": 12516
   },
-  "selectedPet": "Tiger",
-  "selectedPet2": "Hawk",
+  "selectedPet": "Hawk",
+  "selectedPet2": "Tiger",
   "selectedHammerSkillIds": [63335, 63197, 63131, 63208],
   "initialUntamedState": "Pet",
   "assumptions": {

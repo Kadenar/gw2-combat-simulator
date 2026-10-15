@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 5,
+  "profession": "ranger",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Viper's",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Viper's",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
+  "weapons": ["Shortbow", ""],
+  "alternateWeapons": ["Dagger", "Dagger"],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Earth", "Malice"],
+    ["Bursting", "Malice"]
+  ],
+  "relic": "Fractal",
+  "food": "Salsa-Topped Veggie Flatbread",
+  "utility": "Potent Master Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Condition Damage",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Wilderness Survival",
+      "traits": "3-1-3"
+    },
+    {
+      "name": "Skirmishing",
+      "traits": "1-3-2"
+    },
+    {
+      "name": "Soulbeast",
+      "traits": "2-3-2"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 31914,
+    "Utility1": 12537,
+    "Utility2": 12496,
+    "Utility3": 40498,
+    "Elite": 45717
+  },
+  "selectedPet": "Janthiri Bee",
+  "selectedPet2": "Janthiri Bee",
+  "selectedHammerSkillIds": [63335, 63197, 63131, 63208],
+  "initialUntamedState": "Ranger",
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "averaged",
+    "permanentComboField": "none",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Crippled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetDefiant": true,
+    "sharePlayerBoonsWithSummons": false
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
+  "initialAstralForce": 100,
+  "initialArrows": 8,
+  "precastRelics": []
+}

@@ -13,7 +13,7 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [280, 320].map((atMs) => ({ atMs, coefficient: 0.38 })),
+        ticks: [280, 360].map((atMs) => ({ atMs, coefficient: 0.38 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -121,17 +121,17 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Part
     petSkill: true
   },
   [ID.LACERATING_SLASH]: {
-    // Each of the two hits applies three bleeding stacks, six in total.
+    // Contacts remain about 80 ms apart, and each applies three bleeding stacks.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [280, 320].map((atMs) => ({ atMs, coefficient: 1 })),
+        ticks: [280, 360].map((atMs) => ({ atMs, coefficient: 1 })),
         source: 'ranger-pet',
         actorType: 'summon'
       },
       {
         type: 'condition',
-        ticks: [280, 320].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 3, duration: 15 })),
+        ticks: [280, 360].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 3, duration: 15 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }

@@ -61,6 +61,12 @@ for (const commands of [
     const actions = commands.map((skillId) =>
       result.events.find((event) => event.type === 'action' && event.skillId === skillId)
     );
+    // Each natural F1/F2/F3 command must preempt the AI attack when it is first in the queue.
+    const auto = result.events.find(
+      (event) => event.type === 'action' && event.source === 'ranger-pet' && event.at < actions[0].at
+    );
+    assert.ok(auto.interrupted);
+    assert.equal(auto.endsAt, actions[0].at);
     for (const [index, action] of actions.entries()) {
       assert.ok(action);
       assert.ok(!action.interrupted && !action.cancelled);

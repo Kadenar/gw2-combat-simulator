@@ -10,10 +10,6 @@
       "concurrentOffsetMs": 400
     },
     {
-      "type": "cast",
-      "skillId": -4
-    },
-    {
       "type": "combat-start"
     },
     {
@@ -77,7 +73,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638,
+      "skillId": -1001,
       "interruptAfterMs": 400
     },
     {
@@ -160,7 +156,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638
+      "skillId": -1001
     },
     {
       "type": "cast",
@@ -285,7 +281,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638,
+      "skillId": -1001,
       "interruptAfterMs": 400
     },
     {
@@ -404,7 +400,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638,
+      "skillId": -1001,
       "interruptAfterMs": 400
     },
     {
@@ -520,7 +516,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638,
+      "skillId": -1001,
       "interruptAfterMs": 400
     },
     {
@@ -617,7 +613,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638,
+      "skillId": -1001,
       "interruptAfterMs": 400
     },
     {
@@ -738,7 +734,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638
+      "skillId": -1001
     },
     {
       "type": "wait",
@@ -855,7 +851,7 @@
     },
     {
       "type": "cast",
-      "skillId": 12638,
+      "skillId": -1001,
       "interruptAfterMs": 400
     },
     {

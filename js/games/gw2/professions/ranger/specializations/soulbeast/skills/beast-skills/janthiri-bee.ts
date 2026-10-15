@@ -13,7 +13,9 @@ export const SOULBEAST_JANTHIRI_BEE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
         type: 'strike',
         coefficient: 1,
         hits: 1
-      }
+      },
+      // The merged charge knocks down its target, enabling disable-triggered traits such as Twice as Vicious.
+      { type: 'control', controlKind: 'knockdown' }
     ]
   },
   [ID.STINGING_SORROW]: {

@@ -263,7 +263,11 @@ function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill)
 
 function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  if (!state.poisonMasterPetAttackReady || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
+  // Beastmode transfers the armed pet attack to the Ranger, retaining the trait's player-scaled poison.
+  const specialization = context.profession.specialization;
+  const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
+  const eligible = merged ? isPlayerStrike(event) : isPetStrike(event);
+  if (!state.poisonMasterPetAttackReady || !eligible || !(Number(event.coefficient) > 0)) {
     return;
   }
 

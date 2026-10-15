@@ -1697,6 +1697,29 @@ test('Natural Fortitude uses base plus Power damage and a separate breakdown lab
   }
 });
 
+test('Blinding Outburst boosts ambush strikes without boosting their secondary spores', () => {
+  // Child packets keep cast attribution while independently selecting their damage formula and trait eligibility.
+  for (const id of [ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]) {
+    const skill = rangerCatalog.skillsById.get(id);
+    const run = (selectedTraitIds) =>
+      simulate('Untamed', ['Unleash Ranger', skill.name, { type: 'wait', durationMs: 2500 }], {
+        primaryWeapon: skill.weapon,
+        selectedTraitIds,
+        attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 })
+      });
+    const base = run([]);
+    const traited = run([TRAIT.BLINDING_OUTBURST]);
+    const strike = (result, sourceId) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.sourceId === sourceId);
+    assert.deepEqual(traited.warnings, []);
+    assertFlooredDamageMultiplier(strike(traited, id).damage, strike(base, id).damage, 1.25);
+    const spore = strike(traited, ID.EXPLODING_SPORE);
+    assert.equal(spore.damage, strike(base, ID.EXPLODING_SPORE).damage);
+    assert.equal(spore.skillId, id);
+    assert.equal(spore.resolvedWeaponStrength, id === ID.RELENTLESS_WHIRL ? 690.5 : 1000);
+  }
+});
+
 test('Untamed ambush skills require the specialization and an active unleash proc', () => {
   const relentlessWhirl = rangerCatalog.skillsById.get(ID.RELENTLESS_WHIRL);
 
@@ -1876,7 +1899,8 @@ test('Unleashed pet strikes retain their own weapon profile, attributes, and fam
     [ID.ENVELOPING_HAZE, 0.25]
   ]) {
     const strike = (config = {}) => {
-      const result = runRanger([skillId], {
+      // Include the impact observation window so delayed pet strikes reach the formula resolver.
+      const result = runRanger([skillId, { type: 'wait', durationMs: 1000 }], {
         specialization: 'Untamed',
         initialUntamedState: 'Pet',
         selectedPet: 'Tiger',
@@ -1908,7 +1932,11 @@ test('Unleashed pet strikes retain their own weapon profile, attributes, and fam
 // Authored eligibility retains pet attribution and suppresses only Vulnerability on non-defiant targets.
 test('Venomous Outburst applies authored Vulnerability only to defiant targets', () => {
   for (const defiant of [false, true]) {
-    const result = simulate('Untamed', [ID.VENOMOUS_OUTBURST], { initialUntamedState: 'Pet', target: { defiant } });
+    // Observe the delayed payload before checking target eligibility and pet ownership.
+    const result = simulate('Untamed', [ID.VENOMOUS_OUTBURST, { type: 'wait', durationMs: 1000 }], {
+      initialUntamedState: 'Pet',
+      target: { defiant }
+    });
     assert.deepEqual(result.warnings, []);
     const conditions = result.events.filter(
       (event) => event.type === 'condition' && event.skillId === ID.VENOMOUS_OUTBURST

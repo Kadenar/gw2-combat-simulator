@@ -126,7 +126,9 @@ const blindingOutburst = defineTrait({
       operation: 'damage-additive',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BLINDING_OUTBURST), 'damageIncrease'),
-      when: (context) => BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.skillId ?? context.skillId))
+      // Secondary spores retain their parent cast for attribution, but are not ambush strikes.
+      when: (context) =>
+        BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.sourceId ?? context.event?.skillId ?? context.skillId))
     }
   ],
   triggers: [

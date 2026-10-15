@@ -6,6 +6,7 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { emitRangerPetSkill, restartRangerPetAutoattack } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   grantAmbush,
@@ -14,6 +15,8 @@ import {
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
+
+const UNLEASHED_PET_COMMANDS = new Set<RangerSkill['id']>([ID.VENOMOUS_OUTBURST, ID.RENDING_VINES, ID.ENVELOPING_HAZE]);
 
 /** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
 function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
@@ -35,6 +38,16 @@ export const untamedHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     };
   },
   availability: untamedCastAvailability,
+  // Each Unleashed F1/F2/F3 command preempts the active pet's autonomous swing.
+  onCastStart(runtime, cast) {
+    if (UNLEASHED_PET_COMMANDS.has(cast.skill.id)) restartRangerPetAutoattack(runtime);
+  },
+  // Delayed strikes belong to the pet accepting the command, even if a swap precedes impact.
+  modifyEffects(runtime, cast, effects) {
+    if (!UNLEASHED_PET_COMMANDS.has(cast.skill.id)) return effects;
+    emitRangerPetSkill(runtime, { ...cast.skill, effects }, cast.start, cast.fullEnd, cast.id, cast);
+    return [];
+  },
   /** Natural pet commands occupy F1/F2/F3 on the currently selected pet, with the beast skill in F2. */
   resolveInputControl(context, skill) {
     if (!skill.petSkill) return undefined;

@@ -54,7 +54,7 @@ export const rangerShortbowConditionDurationModifier: Gw2ModifierRule = {
 // Committed arrows retain their impacts and observed aftercast; offsets include this log's projectile travel.
 export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.POISON_VOLLEY]: {
-    interruptCommitMs: 320,
+    interruptCommitMs: 280,
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects(
       { atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -81,7 +81,8 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
   },
   [ID.CROSSFIRE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    interruptCommitMs: 320,
+    // Infer commitment at 200 ms from pQEm-20260716-181334's connected arrows; retain the full 360 ms lockout.
+    interruptCommitMs: 200,
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects(
       { atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -150,7 +151,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 360
   },
   [ID.CONCUSSION_SHOT]: {
-    interruptCommitMs: 640,
+    interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects(
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },

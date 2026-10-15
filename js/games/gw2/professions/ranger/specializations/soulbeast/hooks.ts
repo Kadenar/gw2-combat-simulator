@@ -51,7 +51,12 @@ export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     if (!state.beastmodeActive) return;
     runtime.fireTrigger(mergedCommandApplied, { skill: skill, at: runtime.time });
     if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
-      runtime.fireTrigger(beastSkillUsed, { skill: skill, at: runtime.time, poisonMaster: false });
+      runtime.fireTrigger(beastSkillUsed, {
+        skill,
+        at: runtime.time,
+        // Only the archetype's F3 is a Beast ability; merged family skills must not arm Poison Master.
+        poisonMaster: skill.id === rangerPetByName(runtime.profession.core.activePet).beastmodeSkillIds.at(-1)
+      });
   },
   reactions: {
     // Core retains trait ownership; this elite registers its merged-pet control reaction.
