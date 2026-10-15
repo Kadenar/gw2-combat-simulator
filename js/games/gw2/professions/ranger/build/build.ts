@@ -21,10 +21,6 @@ const RANGER_PROFESSION_ID = 'ranger';
 
 function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number], untamed: boolean): boolean {
   if (command.type !== 'cast') return true;
-  if (command.skillId === ID.OVERBEARING_SMASH_SECOND_STRIKE || command.skillId === 'Overbearing Smash (Follow-Up)') {
-    return false;
-  }
-
   const numericId = Number(command.skillId);
   const skill = Number.isFinite(numericId)
     ? rangerCatalog.skillsById.get(numericId)

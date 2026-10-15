@@ -111,7 +111,8 @@ test('rotation previews preserve explicit commands that saved-build migration wo
     activeCatalog: rangerAppAdapter.profession.catalog,
     build: rangerAppAdapter.toApplicationBuild(rangerAppAdapter.profession.createBuildDefaults())
   };
-  const rotation = [{ type: 'cast', skillId: RANGER_SKILL_IDS.OVERBEARING_SMASH_SECOND_STRIKE }];
+  // Outside Untamed, saved-build migration drops autonomous pet attacks such as Twin Darts.
+  const rotation = [{ type: 'cast', skillId: RANGER_SKILL_IDS.TWIN_DARTS }];
   const preview = await sources.file(t, rotation, app);
   assert.deepEqual(preview.rotation, rotation);
 });

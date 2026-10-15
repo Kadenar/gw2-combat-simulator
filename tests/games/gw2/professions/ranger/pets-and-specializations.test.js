@@ -289,16 +289,6 @@ test('Ranger builds migrate and validate against the canonical catalog', () => {
   assert.deepEqual(validateRangerBuild(migrated), { valid: true, errors: [] });
   assert.throws(() => migrateRangerBuild({ profession: 'necromancer' }), /Cannot load necromancer build as Ranger/);
 
-  const withoutLegacyOverbearingStage = migrateRangerBuild({
-    ...defaults,
-    rotation: ['Hammer Strike', { name: 'Overbearing Smash (Follow-Up)', skillId: 63201 }, 'Hammer Slam']
-  });
-
-  assert.deepEqual(
-    withoutLegacyOverbearingStage.rotation.map((command) => command.skillId),
-    [ID.HAMMER_STRIKE, ID.HAMMER_SLAM]
-  );
-
   const withoutAutonomousPetCasts = migrateRangerBuild({
     ...defaults,
     selectedPet: 'Carrion Devourer',
