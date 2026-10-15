@@ -5,6 +5,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BONFIRE]: {
+    // Once placed, Bonfire keeps its pulses and combo field when the remaining animation is interrupted.
+    interruptCommitMs: 520,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
