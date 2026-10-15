@@ -16,6 +16,7 @@ import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromanc
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as RANGER_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import {
   handleRangerSharpeningStone,
@@ -214,12 +215,22 @@ test('Poisonous Strikes shares one inclusive-expiry grant across pet and Beastmo
   const core = context.profession.core;
   const merged = context.profession.specialization.state;
   merged.beastmodeActive = false;
-  const pet = { at: 2, source: 'ranger-pet', actorType: 'summon', coefficient: 1, skillName: 'Pet strike' };
-  const player = { ...pet, source: 'ranger', actorType: 'player', skillName: 'Player strike' };
+  // Pet hits carry the active companion identity so only that pet can spend the shared grant.
+  const pet = {
+    at: 2,
+    source: 'ranger-pet',
+    actorType: 'summon',
+    summonOwner: rangerPetCompanionId(context),
+    coefficient: 1,
+    skillName: 'Pet strike'
+  };
+  const player = { at: 2, source: 'ranger', actorType: 'player', coefficient: 1, skillName: 'Player strike' };
   handleRangerPoisonousStrikes(context, { at: 1, charges: 3, duration: 2 });
   triggerPoisonousStrikes(context, player);
   reactToSoulbeastDamage(context, player);
   triggerPoisonousStrikes(context, { ...pet, coefficient: 0 });
+  triggerPoisonousStrikes(context, { ...pet, summonOwner: undefined });
+  triggerPoisonousStrikes(context, { ...pet, summonOwner: 'other-companion' });
   assert.equal(core.poisonousStrikes.charges, 3);
   triggerPoisonousStrikes(context, pet);
   assert.equal(core.poisonousStrikes.charges, 2);

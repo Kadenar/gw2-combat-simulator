@@ -10,6 +10,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // independently so the strike and both conditions stay aligned without accumulating rounding drift.
 const EMBRACE_STRIKE_MS = 920;
 const EMBRACE_VINE_PULSE_TIMES_MS = [1520, 3000, 4520, 6000];
+// The storm's first impact follows its windup; later pulses retain that delay and stop with the casting pet.
+const CALL_LIGHTNING_PULSE_TIMES_MS = [1760, 2760, 3760, 4760, 5760];
 // Calibrated so both condition Druid presets reproduce the 158 damage every logged vine hit deals in their logs.
 const EMBRACE_VINE_COEFFICIENT = 0.0845;
 
@@ -69,6 +71,8 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         actorType: 'player'
       }
     ]),
+    // The pet's unquickened animation lasts 1.48 s; treating that measurement as Quickness inflated its lane occupancy.
+    castTimeMs: 1480,
     quicknessCastTimeMs: 1480,
     petSkill: true
   },
@@ -94,7 +98,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [0, 1000, 2000, 3000, 4000].map((atMs) => ({
+        ticks: CALL_LIGHTNING_PULSE_TIMES_MS.map((atMs) => ({
           atMs,
           coefficient: 0.5
         })),
@@ -103,7 +107,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        ticks: [0, 1000, 2000, 3000, 4000].map((atMs) => ({
+        ticks: CALL_LIGHTNING_PULSE_TIMES_MS.map((atMs) => ({
           atMs,
           condition: 'Vulnerability',
           stacks: 1,

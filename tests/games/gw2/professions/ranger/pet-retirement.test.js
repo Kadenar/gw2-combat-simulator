@@ -267,16 +267,20 @@ test('Poisonous Cloud keeps ranger-owned strikes and poison after its caster is 
     assert.ok(cloud.every((event) => event.actorType === 'player'));
   }
 
-  // Surviving player-stat pulses cannot give the removed pet (or its replacement) new trait-owned damage.
-  assert.equal(
-    result.resolvedEvents.some(
+  // Cloud uses Ranger critical stats, so its derived bleeds remain Ranger-owned after pet retirement.
+  const bleeds = result.resolvedEvents.filter(
+    (event) =>
+      event.type === 'condition' && event.sourceId === TRAIT.SHARPENED_EDGES && event.triggeredBy === 'Poisonous Cloud'
+  );
+  assert.ok(bleeds.some((event) => event.at >= swappedAt));
+  assert.ok(
+    bleeds.every(
       (event) =>
-        event.type === 'condition' &&
-        event.sourceId === TRAIT.SHARPENED_EDGES &&
-        event.triggeredBy === 'Poisonous Cloud' &&
-        event.at >= swappedAt
-    ),
-    false
+        event.actorType === 'effect' &&
+        event.ownerActorType === 'player' &&
+        event.summonOwner == null &&
+        event.removedAt == null
+    )
   );
 });
 

@@ -43,7 +43,8 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         actorType: 'player'
       }
     ]),
-    // Match the commanded pet animation measured in the benchmark EVTC.
+    // The unquickened pet animation occupies 1.8 s
+    castTimeMs: 1800,
     quicknessCastTimeMs: 1800,
     comboFields: [
       {
@@ -101,10 +102,8 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
     petSkill: true
   },
   [ID.TWIN_DARTS]: {
-    // Autonomous projectiles commit when launched, so swapping pets does not erase packets already in flight.
-    interruptCommitMs: 0,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+    // An interrupted autonomous windup must cancel its pending darts and their conditions together.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [840, 920].map((atMs) => ({ atMs, coefficient: 0.15 })),

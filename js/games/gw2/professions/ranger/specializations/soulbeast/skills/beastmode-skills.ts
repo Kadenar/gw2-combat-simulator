@@ -1,6 +1,7 @@
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -40,8 +41,12 @@ export const SOULBEAST_BEASTMODE_SKILL_MECHANICS: Readonly<Record<number, Partia
 
 /** Keep merge, pet lifetime, and Unstoppable Union in one ordered transition. */
 export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boolean): void {
+  const core = runtime.profession.core;
+  const poisonMasterReady = core.poisonMasterAttackOwner === (active ? rangerPetCompanionId(runtime) : 'player');
   soulbeastState.from(runtime).beastmodeActive = active;
   setRangerPetActive(runtime, !active);
+  // Merging replaces the same pet with the Ranger; preserve its pending reward across that ownership transition.
+  core.poisonMasterAttackOwner = poisonMasterReady ? (active ? 'player' : rangerPetCompanionId(runtime)) : null;
   runtime.fireTrigger(beastmodeChanged, { skill, at: runtime.time });
 }
 

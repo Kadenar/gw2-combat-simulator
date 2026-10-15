@@ -119,14 +119,14 @@ function recordedActions(
 ): RecordedLogAction[] {
   const actions: RecordedLogAction[] = [];
   const signetPassiveStates = player.buffUptimes?.find((buff) => buff.id === SIGNET_OF_MIGHT_PASSIVE_ID)?.states ?? [];
-  // Untamed commands use pet animations when present; player F2 markers can occur after the pet has already started.
-  // Other specializations retain the player rotation, including merged Beast skills.
+  // Ranger commands use owned pet animations; delayed F2 markers otherwise let autonomous attacks run too long.
+  // Soulbeast retains the player rotation, including merged Beast skills.
   const petGroups =
-    profile.specializationId === 'untamed'
+    profile.professionId === 'ranger' && profile.specializationId !== 'soulbeast'
       ? (player.minions || []).flatMap((minion) =>
           (minion.rotation || []).filter((group) => {
             const skill = catalog?.skills.find((candidate) => candidate.id === group.id);
-            return rangerPetSkillCommandable(skill, 'Untamed');
+            return rangerPetSkillCommandable(skill, profile.specializationName);
           })
         )
       : [];

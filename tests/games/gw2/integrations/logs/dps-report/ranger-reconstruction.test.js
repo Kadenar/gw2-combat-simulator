@@ -70,10 +70,10 @@ test('Untamed prefers pet F1/F2/F3 animations while Soulbeast retains the player
   }
 });
 
-test('Untamed EVTC F2 uses owned pet animations instead of delayed command markers', () => {
+test('Ranger EVTC F2 uses owned pet evidence while Soulbeast retains player markers', () => {
   // Both encodings identify the pet's actual start; another owner's pet cannot replace the selected player's cast.
   for (const modern of [false, true]) {
-    for (const elite of [72, 55]) {
+    for (const elite of [72, 5, 0, 55]) {
       const player = { ...log().agents[0], profession: 4, elite };
       const pet = { ...player, address: 0x2000n, profession: 15380, elite: 0xffffffff };
       const foreignPet = { ...pet, address: 0x3000n };
@@ -94,6 +94,18 @@ test('Untamed EVTC F2 uses owned pet animations instead of delayed command marke
         skills: [{ id: 31451, name: 'Furious Pounce' }],
         events: [
           event({ time: 0, stateChange: 1 }),
+          // A separate opening marker has no matching animation and must survive per-cast deduplication.
+          event({
+            time: 200,
+            source: pet.address,
+            target: pet.address,
+            sourceInstance: 2,
+            sourceMasterInstance: 1,
+            skillId: 59536,
+            value: 1000,
+            buff: 1,
+            stateChange: modern ? 69 : 0
+          }),
           cast(foreignPet.address, 100),
           cast(pet.address, 1000),
           cast(foreignPet.address, 1300, true),
@@ -114,11 +126,42 @@ test('Untamed EVTC F2 uses owned pet animations instead of delayed command marke
       const result = reconstructEvtcRotation(fixture, rangerCatalog);
       const actions = result.sourceActions.filter((action) => action.rawSkillId === 31451);
 
-      assert.equal(actions.length, 1);
-      assert.equal(actions[0].startMs, elite === 72 ? 1000 : 1480);
-      assert.equal(result.rotation.filter((command) => command.skillId === 31451).length, 1);
+      assert.equal(actions.length, 2);
+      assert.equal(actions[0].startMs, 200);
+      assert.equal(actions[1].startMs, elite === 55 ? 1480 : 1000);
+      assert.equal(result.rotation.filter((command) => command.skillId === 31451).length, 2);
     }
   }
+});
+
+// Druid F2 is commanded, while its pet's natural attacks remain autonomous simulator decisions.
+test('Druid report import prefers owned F2 evidence without importing autonomous attacks', () => {
+  const report = reportFixture(
+    'Druid',
+    [{ id: 44980, skills: [{ castTime: 1500, duration: 0 }] }],
+    {
+      s44980: { name: "Jacaranda's Embrace" },
+      s40487: { name: 'Call Lightning' },
+      s45990: { name: 'Root Slap' }
+    },
+    {
+      minions: [
+        {
+          name: 'Juvenile Jacaranda',
+          rotation: [
+            { id: 44980, skills: [{ castTime: 600, duration: 1400 }] },
+            { id: 40487, skills: [{ castTime: 2200, duration: 1400 }] },
+            { id: 45990, skills: [{ castTime: 3700, duration: 1600 }] }
+          ]
+        }
+      ]
+    }
+  );
+  const result = reconstructDpsReportRotation(report, rangerCatalog);
+  assert.deepEqual(
+    result.sourceActions.map((action) => [action.rawSkillId, action.startMs]),
+    [[44980, 600]]
+  );
 });
 
 test('Untamed pet casts respect player selection and phase intersection', () => {

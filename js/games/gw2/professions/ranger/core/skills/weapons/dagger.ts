@@ -2,6 +2,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { RangerRuntimeState, RangerSkill, RangerResolverContext } from '#gw2/professions/ranger/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -252,7 +253,8 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
 /** The owning skill supplies charge limits, lifetime, and the triggered condition packet. */
 export const poisonousStrikesProfile = variant(PROFILE.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {
   playerStacks: 2,
-  durationMultiplier: 7,
+  // Unused charges last ten seconds; the poison they deliver retains its separate six-second base duration.
+  durationMultiplier: 10,
   effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }]
 });
 
@@ -267,7 +269,14 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
   // Pet and merged-player routes share one grant, including its inclusive final hit.
   expireCharges(state.poisonousStrikes, event.at, true);
 
-  if (!isPetStrike(event) || !(Number(event.coefficient) > 0)) return;
+  // Only the current pet's own strikes spend charges; Ranger-owned Cloud/vine effects cannot consume pet venom.
+  if (
+    !isPetStrike(event) ||
+    event.actorType !== 'summon' ||
+    !(Number(event.coefficient) > 0) ||
+    event.summonOwner !== rangerPetCompanionId(context)
+  )
+    return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.poisonousStrikes);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The charges exist only to deliver poison, so a removed packet leaves them unspent.

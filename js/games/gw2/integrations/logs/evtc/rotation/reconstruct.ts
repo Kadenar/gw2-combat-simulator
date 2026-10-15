@@ -13,7 +13,7 @@ import {
   eiMesmerPhaseRetreat,
   eiMesmerShatters,
   eiMinionSpawns,
-  untamedPetActions
+  rangerPetActions
 } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
 import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
 import {
@@ -315,9 +315,8 @@ function reconstructWithProfile(
     recordedActions: genericActions,
     professionConfig: options.professionConfig
   };
-  const petActions = untamedPetActions(professionContext);
-  const petSkillIds = new Set(petActions.map((action) => action.rawSkillId));
-  // Prefer owned pet animation evidence over duplicate player command markers only for represented pet skills.
+  const petActions = rangerPetActions(professionContext);
+  // Prefer owned pet animations per cast, preserving an opening marker when its pet animation was not recorded.
   const playerActions = [
     ...genericActions,
     ...deadeyeMarkActions(professionContext),
@@ -333,9 +332,18 @@ function reconstructWithProfile(
   playerActions.push(...antiquaryChakShieldActions({ ...professionContext, recordedActions: playerActions }));
   // Owned damage corroborates delayed preparation visuals without relaxing the upstream EI rules.
   playerActions.push(...thiefThousandNeedlesActions({ ...professionContext, recordedActions: playerActions }));
-  const sourceActions = [...playerActions.filter((action) => !petSkillIds.has(action.rawSkillId)), ...petActions].sort(
-    (a, b) => a.start - b.start || a.eventIndex - b.eventIndex
-  );
+  const sourceActions = [
+    ...playerActions.filter(
+      (action) =>
+        !petActions.some(
+          (pet) =>
+            pet.rawSkillId === action.rawSkillId &&
+            action.start >= pet.start - TIMING_TOLERANCE_MS &&
+            action.start <= pet.end + TIMING_TOLERANCE_MS
+        )
+    ),
+    ...petActions
+  ].sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
   const normalized = reconstructProfessionActions({
     ...professionContext,
     recordedActions: sourceActions.filter((a) => a.castOrigin == null || a.castOrigin === 'skill')

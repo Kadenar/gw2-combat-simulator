@@ -8,12 +8,11 @@ export const castCompleted = defineTriggerPoint<{ readonly skill: RangerSkill; r
   'ranger.cast-completed',
   [TRAIT.CHILD_OF_EARTH, TRAIT.RESOUNDING_TIMBRE]
 );
-/** The accepted pet or merged Beast skill takes exactly one path, preserving reward order. */
+/** Completed pet and merged Beast skills grant Rejuvenation and Wolfsong rewards in order. */
 export const beastSkillUsed = defineTriggerPoint<{
   readonly skill: RangerSkill;
-  readonly poisonMaster: boolean;
   readonly at: number;
-}>('ranger.beast-skill-used', [TRAIT.REJUVENATION, TRAIT.POISON_MASTER, TRAIT.WOLFSONG]);
+}>('ranger.beast-skill-used', [TRAIT.REJUVENATION, TRAIT.WOLFSONG]);
 /** The new pet incarnation is committed before its arrival and warhorn rewards. */
 export const petSwapped = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
   'ranger.pet-swapped',

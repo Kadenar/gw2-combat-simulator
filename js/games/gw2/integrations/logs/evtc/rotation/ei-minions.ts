@@ -8,9 +8,9 @@ import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
 import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 
-/** Untamed's pet animations locate commanded casts more precisely than EI's delayed player-command buff markers. */
-export function untamedPetActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
-  if (context.profile.specializationId !== 'untamed') return [];
+/** Owned pet animations locate Ranger commands before delayed player markers; Soulbeast retains merged-player evidence. */
+export function rangerPetActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  if (context.profile.professionId !== 'ranger' || context.profile.specializationId === 'soulbeast') return [];
   const { log, playerAddress, catalog } = context;
   const owners = agentOwners(log);
   const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
@@ -21,7 +21,7 @@ export function untamedPetActions(context: EvtcProfessionReconstructionContext):
     .filter((action) =>
       rangerPetSkillCommandable(
         catalog?.skills.find((skill) => skill.id === action.rawSkillId),
-        'Untamed'
+        context.profile.specializationName
       )
     );
 }

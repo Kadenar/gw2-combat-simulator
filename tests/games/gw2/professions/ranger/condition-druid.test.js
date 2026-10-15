@@ -495,7 +495,7 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   );
 
   assert.equal(poisonousStrikeProcs.length, 2);
-  assert.equal(poisonousStrikes.events.find((event) => event.type === 'ranger.poisonous-strikes').duration, 7);
+  assert.equal(poisonousStrikes.events.find((event) => event.type === 'ranger.poisonous-strikes').duration, 10);
   assert.equal(
     poisonousStrikes.resolvedEvents.some(
       (event) =>

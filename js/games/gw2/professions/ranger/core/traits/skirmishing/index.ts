@@ -398,22 +398,24 @@ const rangerCoreCriticalReactions = Object.freeze({
     const profile = requireBalanceProfileFromContext(context, TRAIT.SHARPENED_EDGES);
     const bleeding = requireEffect(profile, 'condition', 'Bleeding');
     if (!bleeding) return;
+    // Poisonous Cloud's Ranger-owned critical hits grant Ranger bleeds even though their source is ranger-pet.
+    const petOwned = event.actorType === 'summon' && isPetStrike(event);
     // Each threshold proc uses the canonical condition payload and the triggering pet's independent ownership.
     for (let proc = 0; proc < application.quantity; proc += 1)
       emitTraitProfile(context, TRAIT.SHARPENED_EDGES, TRAIT.SHARPENED_EDGES, undefined, {
         at: event.at,
         effect: { type: 'condition', name: 'Bleeding' },
         attribution: {
-          source: isPetStrike(event) ? 'ranger-pet' : 'Trait',
-          actorType: isPetStrike(event) ? 'summon' : 'effect',
-          ownerActorType: isPetStrike(event) ? undefined : 'player',
+          source: petOwned ? 'ranger-pet' : 'Trait',
+          actorType: petOwned ? 'summon' : 'effect',
+          ownerActorType: petOwned ? undefined : 'player',
           skillId: TRAIT.SHARPENED_EDGES,
           skillName: 'Sharpened Edges',
           triggeredBy: event.skillName
         },
         transform: (packet) => ({
           ...packet,
-          ...petDerivedConditionMetadata(context, event),
+          ...(petOwned ? petDerivedConditionMetadata(context, event) : {}),
           name: 'Sharpened Edges — ' + packet.condition
         })
       });

@@ -1,5 +1,6 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { activePetFamily, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -8,6 +9,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -18,12 +20,13 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 
 import {
-  beastSkillUsed,
+  isBeastSkill,
   castCompleted,
   strike,
   strikeEffectsApplied
 } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -41,17 +44,28 @@ export const childOfEarth = defineTrait({
 
 /** Owns Poison Master's live tuning and trait behavior. */
 export const poisonMaster = defineTrait({
-  lifetime: { eventHandlers: { 'ranger.beast-skill-used': handleRangerBeastSkillUsed } },
+  lifetime: { eventHandlers: { 'ranger.poison-master-armed': handlePoisonMasterGrant } },
   triggers: [
+    {
+      // Command activation arms the receiving pet before its first hit, including pulses from an ongoing attack.
+      on: 'castStart',
+      when: (_runtime, cast) => isBeastSkill(cast.skill),
+      run: (runtime, cast) => applyPoisonMasterBeastSkill(runtime, cast.skill)
+    },
     onTriggerPoint(strike, {
       requiresSelection: false,
       run: (runtime, input: TriggerPointInput<typeof strike>) => triggerPoisonMaster(runtime, input.event)
     }),
-    onTriggerPoint(beastSkillUsed, {
-      when: (_runtime, input: TriggerPointInput<typeof beastSkillUsed>) => input.poisonMaster,
-      run: (runtime, input: TriggerPointInput<typeof beastSkillUsed>) =>
-        applyPoisonMasterBeastSkill(runtime, input.skill)
-    })
+    {
+      // Merged F3 retains its commitment boundary; merged family skills do not arm Poison Master.
+      on: 'castCommit',
+      when: (runtime: MechanicQueriesOf<RangerRuntime>, cast) =>
+        runtime.profession.specialization.kind === 'Soulbeast' &&
+        runtime.profession.specialization.state.beastmodeActive &&
+        Boolean(cast.skill.beastmodeSkill) &&
+        cast.skill.id === rangerPetByName(runtime.profession.core.activePet).beastmodeSkillIds.at(-1),
+      run: (runtime, cast) => applyPoisonMasterBeastSkill(runtime, cast.skill)
+    }
   ],
   id: TRAIT.POISON_MASTER,
   name: 'Poison Master',
@@ -241,19 +255,21 @@ function triggerChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
   });
 }
 
-/** Applies the trait at the accepted Beast-skill boundary. */
+/** Pet activation captures its recipient; merged Beast skills retain their existing commitment boundary. */
 function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill): void {
+  const petCommand = isBeastSkill(skill);
   const notBeforeCombat =
     !context.hasExplicitCombatStart || (context.combatStartTime != null && context.time >= context.combatStartTime);
-  if (notBeforeCombat) {
+  if (petCommand || notBeforeCombat) {
     context.effects.emit({
       kind: 'packet',
       event: {
-        type: 'ranger.beast-skill-used',
+        type: 'ranger.poison-master-armed',
         at: context.time,
         source: 'Trait',
         sourceId: TRAIT.POISON_MASTER,
         actorType: 'effect',
+        ...(petCommand ? { summonOwner: rangerPetCompanionId(context) } : {}),
         skillId: skill.id,
         skillName: skill.name
       }
@@ -266,8 +282,15 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
   // Beastmode transfers the armed pet attack to the Ranger, retaining the trait's player-scaled poison.
   const specialization = context.profession.specialization;
   const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
-  const eligible = merged ? isPlayerStrike(event) : isPetStrike(event);
-  if (!state.poisonMasterPetAttackReady || !eligible || !(Number(event.coefficient) > 0)) {
+  // Ranger-owned Cloud/vine packets retain pet provenance, but cannot spend the companion's next-strike grant.
+  const eligible = merged
+    ? state.poisonMasterAttackOwner === 'player' && isPlayerStrike(event)
+    : state.petActive &&
+      isPetStrike(event) &&
+      event.actorType === 'summon' &&
+      event.summonOwner === rangerPetCompanionId(context) &&
+      state.poisonMasterAttackOwner === event.summonOwner;
+  if (!state.poisonMasterAttackOwner || !eligible || !(Number(event.coefficient) > 0)) {
     return;
   }
 
@@ -275,7 +298,7 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
   if (!poison) return;
-  state.poisonMasterPetAttackReady = false;
+  state.poisonMasterAttackOwner = null;
   emitTraitProfile(context, TRAIT.POISON_MASTER, TRAIT.POISON_MASTER, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -317,8 +340,11 @@ function triggerArachnophobia(context: RangerResolverContext, event: Gw2Resolver
   });
 }
 
-function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: Gw2ResolverEvent): void {
+function handlePoisonMasterGrant(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, TRAIT.POISON_MASTER)) {
-    professionCoreState(context).poisonMasterPetAttackReady = true;
+    const state = professionCoreState(context);
+    // A delayed grant can only reach the companion that accepted the command, never a newer incarnation.
+    if (event.summonOwner && (!state.petActive || event.summonOwner !== rangerPetCompanionId(context))) return;
+    state.poisonMasterAttackOwner = typeof event.summonOwner === 'string' ? event.summonOwner : 'player';
   }
 }

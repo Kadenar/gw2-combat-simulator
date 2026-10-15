@@ -11,10 +11,10 @@ not a claim of complete parity.
 ## Objective
 
 Do not automatically reconstruct unrecorded precasts or preparation sequences. Align EVTC cast detection with Elite
-Insights (EI), and use the rotation exported by dps.report as the authoritative cast timeline for report imports.
-Untamed pet commands use the selected player's owned pet rotations when present, including F2; the player-side inferred
-command marker can occur after the pet animation starts. Soulbeast continues to use the player rotation. Users repair
-incomplete openers themselves after importing.
+Insights (EI), and use the rotation exported by dps.report as the authoritative cast timeline for report imports. Ranger
+pet commands use the selected player's owned pet rotations when present, including F2; the player-side inferred command
+marker can occur after the pet animation starts. Soulbeast continues to use the player rotation. Users repair incomplete
+openers themselves after importing.
 
 An import is successful when it faithfully converts the available cast evidence. It does not need to produce a complete
 benchmark opener or a rotation that immediately simulates without missing-state or availability warnings.

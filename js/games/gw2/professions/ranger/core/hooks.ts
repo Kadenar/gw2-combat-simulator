@@ -163,7 +163,8 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) runtime.fireTrigger(weaponSwapped, { skill, at: runtime.time });
     if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(dodged, { at: runtime.time });
     runtime.fireTrigger(castCompleted, { skill, at: runtime.time });
-    if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill, at: runtime.time, poisonMaster: true });
+    // Completed pet commands grant Rejuvenation and Wolfsong rewards.
+    if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill, at: runtime.time });
   },
   // Autonomous pet attacks keep running during combat but cannot prolong the player's isolated damage preview.
   backgroundTasks: Object.keys(rangerPetTasks),

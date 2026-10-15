@@ -259,7 +259,8 @@ test('swap-back grants cannot accelerate recharge earned by the previous pet inc
       'Swap Pets',
       { type: 'wait', durationMs: 20000 },
       'Swap Pets',
-      { type: 'wait', durationMs: 1000 },
+      // Keep the second command after the observation of the original recharge owner.
+      { type: 'wait', durationMs: 3000 },
       'Poisonous Cloud',
       { type: 'wait', durationMs: 40000 }
     ],

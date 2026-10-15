@@ -59,7 +59,7 @@ test('simulation config carries the persisted target starting-health percentage'
   assert.equal(config.target.startingHealthFraction, 0.49);
 });
 
-test('ally calculations always use one strike per second per ally', () => {
+test('ally calculations use the fixed 520 ms attack cadence per ally', () => {
   const build = createMesmerBuildDefaults();
 
   build.assumptions.alliedPlayerCount = 3;
@@ -70,9 +70,10 @@ test('ally calculations always use one strike per second per ally', () => {
     transitionDelays: normalizeTransitionDelays()
   }).simulationConfig();
 
+  // Shared effects use the fixed ally cadence even when a saved build includes an obsolete rate assumption.
   assert.deepEqual(config.allies, {
     count: 3,
-    strikesPerSecond: 1
+    strikesPerSecond: 1000 / 520
   });
   assert.equal(config.patchId, 'current');
   assert.equal(config.sharePlayerBoonsWithSummons, true);

@@ -241,7 +241,7 @@ test('a swap retires a queued command before its pet can start it', () => {
 test('pet retirement ends already-started autonomous damage effects', () => {
   // Call Lightning starts before the swap, but its remaining pulses require the outgoing Jacaranda.
   for (const selectedPet2 of ['Tiger', 'Pig']) {
-    const result = simulate('Core', [{ type: 'combat-start' }, wait(2500), ID.PET_SWAP, wait(5000)], {
+    const result = simulate('Core', [{ type: 'combat-start' }, wait(5000), ID.PET_SWAP, wait(5000)], {
       selectedPet: 'Jacaranda',
       selectedPet2
     });
@@ -249,8 +249,9 @@ test('pet retirement ends already-started autonomous damage effects', () => {
     const lightning = result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.skillId === ID.JACARANDA_CALL_LIGHTNING
     );
-    const before = lightning.find((event) => event.at < 2.5);
-    const after = lightning.filter((event) => event.at > 2.5);
+    const swappedAt = result.events.find((event) => event.type === 'ranger.pet-swapped').at;
+    const before = lightning.find((event) => event.at < swappedAt);
+    const after = lightning.filter((event) => event.at >= swappedAt);
     assert.ok(before);
     assert.deepEqual(after, []);
 
@@ -259,7 +260,7 @@ test('pet retirement ends already-started autonomous damage effects', () => {
         (event) =>
           event.type === 'action' &&
           event.source === 'ranger-pet' &&
-          event.at > 2.5 &&
+          event.at >= swappedAt &&
           event.summonOwner === before.summonOwner
       ),
       false
