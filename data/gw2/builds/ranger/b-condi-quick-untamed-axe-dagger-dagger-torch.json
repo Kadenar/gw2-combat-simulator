@@ -93,7 +93,7 @@
       "Vulnerability": 25
     },
     "targetDefiant": true,
-    "sharePlayerBoonsWithSummons": false
+    "sharePlayerBoonsWithSummons": true
   },
   "startingWeaponSet": 1,
   "targetHealth": 4000000,

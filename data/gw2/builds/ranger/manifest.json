@@ -284,25 +284,25 @@
         "label": "Condition Quickness (Axe-Dagger / Dagger-Torch)",
         "build": "data/gw2/builds/ranger/b-condi-quick-untamed-axe-dagger-dagger-torch.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-quick-untamed-axe-dagger-dagger-torch-bench.json",
-        "benchmarkDps": 32724,
-        "benchmarkApm": 108.4,
+        "benchmarkDps": 34809,
+        "benchmarkApm": 111.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 31293, "phase": 31293 },
-          "80-60": { "cumulative": 32658, "phase": 34201 },
-          "60-40": { "cumulative": 32909, "phase": 33422 },
-          "40-20": { "cumulative": 32811, "phase": 32514 },
-          "20-0": { "cumulative": 32724, "phase": 32724 }
+          "100-80": { "cumulative": 34073, "phase": 34073 },
+          "80-60": { "cumulative": 35044, "phase": 36104 },
+          "60-40": { "cumulative": 34843, "phase": 34440 },
+          "40-20": { "cumulative": 34837, "phase": 34820 },
+          "20-0": { "cumulative": 34809, "phase": 34692 }
         },
-        "upToDate": false,
+        "upToDate": true,
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 32724,
+          "benchmarkDps": 34809,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 31293, "phase": 31293 },
-            "80-60": { "cumulative": 32658, "phase": 34201 },
-            "60-40": { "cumulative": 32909, "phase": 33422 },
-            "40-20": { "cumulative": 32811, "phase": 32514 },
-            "20-0": { "cumulative": 32724, "phase": 32724 }
+            "100-80": { "cumulative": 34073, "phase": 34073 },
+            "80-60": { "cumulative": 35044, "phase": 36104 },
+            "60-40": { "cumulative": 34843, "phase": 34440 },
+            "40-20": { "cumulative": 34837, "phase": 34820 },
+            "20-0": { "cumulative": 34809, "phase": 34692 }
           }
         }
       }

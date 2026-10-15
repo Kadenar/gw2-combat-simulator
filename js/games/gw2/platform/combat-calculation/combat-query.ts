@@ -649,7 +649,9 @@ export function createGw2CombatQuery({
       event = conditionOwnerEvent(event);
       const sigils = activeSigilSetAt(time, runtime);
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
-      const sigilBonus = usesEquipmentModifiers
+      // Independent pet/mech conditions cannot inherit player duration sigils, just as they cannot inherit Bursting.
+      const usesSigil = usesEquipmentModifiers && !(event?.actorType === 'summon' && event.independentConditionOwner);
+      const sigilBonus = usesSigil
         ? ((sigils.conditionDurationBonus || 0) + (sigils.conditionDurationBonuses?.[name] || 0)) / 100
         : 0;
       const relicBonus = usesEquipmentModifiers ? equipmentConditionDurationBonus(runtime, time) : 0;

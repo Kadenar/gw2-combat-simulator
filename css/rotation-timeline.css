@@ -776,6 +776,40 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   margin-top: 5px;
 }
 
+/* Warning navigation uses native buttons and keeps the exact destination visible until focus moves. */
+.rotation-warning-link {
+  display: block;
+  width: 100%;
+  padding: 4px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rotation-warning-link:hover,
+.rotation-warning-link:focus-visible {
+  background: rgba(160, 95, 35, 0.18);
+  outline: 1px solid #e5b36e;
+}
+
+.rotation-warning-action {
+  display: inline-block;
+  margin-left: 8px;
+  text-decoration: underline;
+}
+
+#rotation-timeline .rot-skill.rotation-warning-source,
+#rotation-palette.rotation-warning-source {
+  outline: 3px solid #f0c98f;
+  outline-offset: 2px;
+  opacity: 1;
+  filter: none;
+}
+
 .rotation-warning-time {
   display: inline-block;
   min-width: 6ch;

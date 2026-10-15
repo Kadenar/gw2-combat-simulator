@@ -194,6 +194,8 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ])
   },
   [ID.GROUNDWORK_GOUGE]: {
+    // Committing the opening strike preserves its effects and advances the dagger chain when interrupted.
+    interruptCommitMs: 200,
     effects: [
       {
         type: 'condition',

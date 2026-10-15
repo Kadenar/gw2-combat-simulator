@@ -243,6 +243,35 @@ test('Force and Bursting neither boost nor dilute independent companion damage',
   );
 });
 
+// Duration sigils follow the condition owner, preserving pet Expertise and player-owned summon effects.
+test('Malice and condition-specific duration sigils do not extend independent companion conditions', () => {
+  const query = createGw2CombatQuery({
+    profession: { id: 'companion-duration-test', catalog, ...createModifierHooks({ rules: [] }) },
+    config: {
+      sigilSets: [{ conditionDurationBonus: 10, conditionDurationBonuses: { Bleeding: 20 } }, {}]
+    }
+  });
+  const stats = { expertise: 375 };
+  for (const summonUsesEquipmentModifiers of [undefined, true, false]) {
+    const companion = { actorType: 'summon', independentConditionOwner: true, summonUsesEquipmentModifiers };
+    for (const activeWeaponSet of [1, 2]) {
+      for (const condition of ['Bleeding', 'Torment']) {
+        assert.equal(query.conditionDurationMultiplier(condition, 0, stats, companion, { activeWeaponSet }), 1.25);
+      }
+    }
+  }
+
+  for (const event of [
+    { actorType: 'player' },
+    { actorType: 'summon' },
+    { actorType: 'effect', ownerActorType: 'player' }
+  ]) {
+    assert.equal(query.conditionDurationMultiplier('Bleeding', 0, stats, event, { activeWeaponSet: 1 }), 1.55);
+    assert.equal(query.conditionDurationMultiplier('Torment', 0, stats, event, { activeWeaponSet: 1 }), 1.35);
+    assert.equal(query.conditionDurationMultiplier('Bleeding', 0, stats, event, { activeWeaponSet: 2 }), 1.25);
+  }
+});
+
 test('boon-dependent damage sees same-time buffs only after their live application', () => {
   const hit = { type: 'strike', at: 5 };
   const buff = {

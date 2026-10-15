@@ -3,13 +3,17 @@ import { escapeHtml } from '#ui/shared/html.js';
 export interface RotationWarning {
   readonly message: string;
   readonly time: string;
+  readonly action?: {
+    readonly label: string;
+    readonly activate: () => void;
+  };
 }
 
 export interface RotationWarningOptions {
   readonly open?: boolean;
 }
 
-/** Renders escaped warning records while preserving the caller's disclosure state. */
+/** Makes located warnings keyboard-accessible actions while keeping unlocated diagnostics readable. */
 export function mountRotationWarnings(
   container: HTMLElement | null | undefined,
   warnings: readonly RotationWarning[] = [],
@@ -26,12 +30,15 @@ export function mountRotationWarnings(
     <ul class="rotation-warnings-content">
       ${warnings
         .map(
-          (warning) =>
-            `<li>${
+          (warning, index) =>
+            `<li>${warning.action ? `<button type="button" class="rotation-warning-link" data-warning-index="${index}" title="${escapeHtml(warning.action.label)}">` : ''}${
               warning.time ? `<span class="rotation-warning-time">${escapeHtml(warning.time)}</span>` : ''
-            }<span class="rotation-warning-message">${escapeHtml(warning.message)}</span></li>`
+            }<span class="rotation-warning-message">${escapeHtml(warning.message)}</span>${warning.action ? `<span class="rotation-warning-action">${escapeHtml(warning.action.label)} &rarr;</span></button>` : ''}</li>`
         )
         .join('')}
     </ul>
   </details>`;
+  container.querySelectorAll<HTMLButtonElement>('[data-warning-index]').forEach((button) => {
+    button.addEventListener('click', () => warnings[Number(button.dataset.warningIndex)]?.action?.activate());
+  });
 }

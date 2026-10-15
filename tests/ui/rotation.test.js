@@ -130,3 +130,33 @@ test('rotation warnings render a collapsed count and escaped details', () => {
   mountRotationWarnings(container);
   assert.equal(container.innerHTML, '');
 });
+
+// Located diagnostics expose escaped native-button actions; general notices do not pretend to have a destination.
+test('rotation warnings bind only their own navigation action', () => {
+  const container = inertContainer();
+  let activate;
+  let calls = 0;
+  container.querySelectorAll = () => [
+    {
+      dataset: { warningIndex: '1' },
+      addEventListener(event, handler) {
+        assert.equal(event, 'click');
+        activate = handler;
+      }
+    }
+  ];
+  mountRotationWarnings(container, [
+    { time: '', message: 'General notice' },
+    {
+      time: '1.000s',
+      message: 'Rejected <skill>',
+      action: { label: 'Show <source>', activate: () => calls++ }
+    }
+  ]);
+  assert.equal((container.innerHTML.match(/<button/g) || []).length, 1);
+  assert.match(container.innerHTML, /type="button" class="rotation-warning-link" data-warning-index="1"/);
+  assert.match(container.innerHTML, /Show &lt;source&gt;/);
+  assert.match(container.innerHTML, /Rejected &lt;skill&gt;/);
+  activate();
+  assert.equal(calls, 1);
+});
