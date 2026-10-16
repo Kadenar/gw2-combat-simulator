@@ -40,6 +40,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.SPLITBLADE]: {
     interruptCommitMs: 480,
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',

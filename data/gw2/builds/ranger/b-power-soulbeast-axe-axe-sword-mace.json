@@ -17,24 +17,12 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
-  "weapons": [
-    "Axe",
-    "Axe"
-  ],
-  "alternateWeapons": [
-    "Sword",
-    "Mace"
-  ],
+  "weapons": ["Axe", "Axe"],
+  "alternateWeapons": ["Sword", "Mace"],
   "rune": "Scholar",
   "weaponSigils": [
-    [
-      "Force",
-      "Air"
-    ],
-    [
-      "Force",
-      "Impact"
-    ]
+    ["Force", "Air"],
+    ["Force", "Impact"]
   ],
   "relic": "Claw",
   "food": "Cilantro Lime Sous-Vide Steak",
@@ -76,12 +64,7 @@
     "Elite": 45717
   },
   "selectedPet": "Pig",
-  "selectedHammerSkillIds": [
-    63335,
-    69262,
-    63131,
-    63208
-  ],
+  "selectedHammerSkillIds": [63335, 69262, 63131, 63208],
   "initialUntamedState": "Pet",
   "assumptions": {
     "might": 25,

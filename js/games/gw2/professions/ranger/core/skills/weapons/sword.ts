@@ -2,24 +2,29 @@ import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modi
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
+// Measured with Quickness in 20261015-203144.zevtc, rounded to the 40 ms action grid.
+// Apply each attack's hit rewards before recovery ends so completed impacts survive recovery cancellation.
 export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SLASH]: {
-    effects: [
+    interruptCommitMs: 400,
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // The live PvE skill fact is 0.9; 0.8 understates the opening chain strike.
         coefficient: 0.9,
         hits: 1
       }
-    ],
+    ]),
     castTimeMs: 480
   },
   [ID.CRIPPLING_THRUST]: {
-    effects: [
+    interruptCommitMs: 240,
+    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        // Match the live PvE chain coefficient without changing the impact timing.
+        // Match the live PvE chain coefficient.
         coefficient: 0.9,
         hits: 1
       },
@@ -29,11 +34,12 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1,
         duration: 2
       }
-    ],
+    ]),
     castTimeMs: 320
   },
   [ID.PRECISION_SWIPE]: {
-    effects: [
+    interruptCommitMs: 520,
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.4,
@@ -46,12 +52,14 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1,
         audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1 }
       }
-    ],
-    castTimeMs: 600
+    ]),
+    castTimeMs: 600,
+    retainsCastLockoutAfterInterrupt: true
   },
   [ID.SERPENTS_STRIKE]: {
     evades: true,
-    effects: [
+    interruptCommitMs: 800,
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 3,
@@ -82,11 +90,13 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1,
         duration: 3
       }
-    ],
-    castTimeMs: 1000
+    ]),
+    castTimeMs: 1000,
+    retainsCastLockoutAfterInterrupt: true
   },
   [ID.POUNCE]: {
-    effects: [
+    interruptCommitMs: 760,
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2,
@@ -106,7 +116,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 3,
         stacks: 1
       }
-    ],
+    ]),
     castTimeMs: 840
   }
 });
