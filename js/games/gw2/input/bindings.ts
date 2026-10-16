@@ -1,4 +1,5 @@
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
+
 /** Shared logical controls and physical bindings for editor shortcuts and personal input analysis. */
 export const INPUT_CONTROLS = Object.freeze([
   { id: 'dodge', label: 'Dodge', group: 'Weapon', code: 'KeyV' },
@@ -152,7 +153,9 @@ export function physicalInput(code: string): boolean {
 }
 
 export const INPUT_MODIFIERS = ['Ctrl', 'Alt', 'Shift'] as const;
+
 export type InputModifier = (typeof INPUT_MODIFIERS)[number];
+
 export const INPUT_MODIFIER_CODES = { Ctrl: 'ControlLeft', Alt: 'AltLeft', Shift: 'ShiftLeft' } as const;
 
 /** One canonical ordering validates both persisted bindings and captured/imported chords. */

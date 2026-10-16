@@ -15,6 +15,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { type SimulationEventBase } from '#gw2/platform/events/events.js';
 import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
 const DISABLE_CONTROL_KINDS = new Set([
   'stun',

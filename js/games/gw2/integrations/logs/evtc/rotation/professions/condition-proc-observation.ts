@@ -15,8 +15,11 @@ import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance
 import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 export const EVTC_BLEEDING_SKILL_ID = 736;
+
 export const EVTC_CRIPPLED_SKILL_ID = 721;
+
 export const EVTC_CRITICAL_RESULT = 1;
+
 export const EVTC_DURATION_TOLERANCE_MS = 50;
 
 export interface CriticalBleedingProcObservation {

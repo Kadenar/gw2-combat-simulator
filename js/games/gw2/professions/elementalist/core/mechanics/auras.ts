@@ -15,6 +15,7 @@ export interface ElementalistAuraApplication {
   readonly sourceId: Skill['id'];
   readonly priority?: number;
 }
+
 export type ElementalistAuraApplier = (context: ElementalistRuntime, application: ElementalistAuraApplication) => void;
 
 /** All profession producers submit authored durations here; Smothering Auras is applied exactly once. */

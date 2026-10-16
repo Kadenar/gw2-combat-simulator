@@ -8,6 +8,7 @@ import type { RangerState } from '#gw2/professions/ranger/types.js';
 type Assert<T extends true> = T;
 // Runtime bookkeeping must not appear in UI types, and core projection keys must match their declared contract.
 type PrivateCoreKeys = 'player' | 'pendingFrostTrapEvents' | 'nextPetInstance';
+
 export type RangerRecordAssertions = [
   Assert<Extract<PrivateCoreKeys, keyof RangerState> extends never ? true : false>,
   Assert<

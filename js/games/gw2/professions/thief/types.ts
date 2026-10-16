@@ -46,6 +46,7 @@ export interface ThiefConfig extends Gw2Config {
 }
 
 export type ThiefArtifactKind = 'offensive' | 'defensive' | 'unstable';
+
 export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
 
 export type ThiefState = ThiefCoreState & DaredevilState & DeadeyeState & SpecterState & AntiquaryState;

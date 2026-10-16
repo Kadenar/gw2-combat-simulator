@@ -5,6 +5,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Native and Eclipse effects share the impact, independently of the Avatar animation ending.
 export const SEED_OF_LIFE_DETONATION_MS = 720;
+
 export const LUNAR_IMPACT_HIT_MS = 560;
 
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

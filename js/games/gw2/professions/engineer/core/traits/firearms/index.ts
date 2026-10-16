@@ -25,6 +25,7 @@ import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/profes
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { mechStruck, type MechStrike } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
+
 /** Owns Serrated Steel tuning and behavior at its established runtime and build boundaries. */
 export const serratedSteel = defineTrait({
   // Core critical procs open the strike package, ahead of the explosion rewards.

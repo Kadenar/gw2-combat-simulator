@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+
 // Profile-only and behavior-only traits both register once in their native module.
 test('Warrior trait profiles have a single registered owner across Core and all elites', () => {
   const definitions = warriorNativeModules.flatMap((module) => module.traitDefinitions);

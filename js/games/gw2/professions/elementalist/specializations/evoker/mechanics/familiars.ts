@@ -41,6 +41,7 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+
 // Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
 export function releaseElementalProcession(
   context: ElementalistRuntime,
@@ -246,6 +247,7 @@ export const evokerSkillCommitTasks: NonNullable<
     }
   }
 };
+
 /** Release each deferred grant after the familiar reset, then run the final familiar trait observer. */
 export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);

@@ -6,6 +6,7 @@ import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 export const REFRAIN = 'warrior.paragon-refrain';
+
 /** Replacing even the same chant invalidates the old pulse before arming a new cadence. */
 export function startRefrain(runtime: WarriorRuntime): void {
   const state = paragonState.from(runtime);

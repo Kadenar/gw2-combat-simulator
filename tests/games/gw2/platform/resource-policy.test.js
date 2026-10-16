@@ -6,6 +6,7 @@ import {
   createDiscreteResourceClock,
   resourceAnchor
 } from '#gw2/platform/combat/resources/clock.js';
+
 // Settle each observed clock through the production resource controller.
 function advance(runtime, at) {
   runtime.time = at;

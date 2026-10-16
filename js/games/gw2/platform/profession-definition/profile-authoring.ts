@@ -21,7 +21,9 @@ export function defineSkillVariantProfile(
   name: string,
   fields?: BalanceProfileFields
 ): BalanceProfile;
+
 export function defineSkillVariantProfile(id: SkillId, name: string, fields?: BalanceProfileFields): BalanceProfile;
+
 /** Defines patchable skill-state data, retaining parentless mechanic variants when no cast owns the profile. */
 export function defineSkillVariantProfile(
   id: SkillId,

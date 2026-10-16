@@ -6,7 +6,9 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+
 const SHATTERING_ICE_PACKET = 'elementalist.catalyst.shattering-ice';
+
 /** Accepted Shattering Ice applications rearm its first proc and tick-aligned window. */
 export function applyShatteringIce(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();

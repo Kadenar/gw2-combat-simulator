@@ -14,8 +14,11 @@ export const OPTIMIZER_RESULT_FILTERS = {
   food: 'Food',
   utility: 'Utility'
 } as const;
+
 export type OptimizerResultFilter = keyof typeof OPTIMIZER_RESULT_FILTERS;
+
 export type OptimizerGroupedFilter = Exclude<OptimizerResultFilter, 'none'>;
+
 export type OptimizerResultGroups = Record<OptimizerGroupedFilter, OptimizerCandidate[]>;
 const OPTIMIZER_FILTER_LIMIT = 100;
 

@@ -1283,6 +1283,7 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     ]
   }
 ];
+
 export const SKILLS: readonly ElementalistSkill[] = [
   {
     id: 5487,

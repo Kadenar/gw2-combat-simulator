@@ -75,5 +75,7 @@ const revenantBuildCodec = createProfessionBuildCodec<RevenantCanonicalBuild>({
 });
 
 export const migrateRevenantBuild = revenantBuildCodec.migrateBuild;
+
 export const validateRevenantBuild = revenantBuildCodec.validateBuild;
+
 export const toApplicationBuild = revenantBuildCodec.toApplicationBuild;

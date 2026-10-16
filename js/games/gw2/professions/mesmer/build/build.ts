@@ -92,5 +92,7 @@ const mesmerBuildCodec = createProfessionBuildCodec<MesmerCanonicalBuild>({
 });
 
 export const migrateMesmerBuild = mesmerBuildCodec.migrateBuild;
+
 export const validateMesmerBuild = mesmerBuildCodec.validateBuild;
+
 export const toApplicationBuild = mesmerBuildCodec.toApplicationBuild;

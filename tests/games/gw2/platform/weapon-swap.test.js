@@ -5,6 +5,7 @@ import test from 'node:test';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+
 const gw2WeaponSwapSkill = { id: -3, name: 'Swap Weapons', inputCategory: 'weapon-swap', castTimeMs: 0, effects: [] };
 
 test('shared weapon swap commits canonical state and event before profession extensions', () => {

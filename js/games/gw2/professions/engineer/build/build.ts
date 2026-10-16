@@ -146,7 +146,9 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
 
 /** Migrates persisted Engineer builds to the current canonical schema. */
 export const migrateEngineerBuild = engineerBuildCodec.migrateBuild;
+
 /** Validates an Engineer build against the canonical schema and profession-specific constraints. */
 export const validateEngineerBuild = engineerBuildCodec.validateBuild;
+
 /** Converts a canonical Engineer build into the shape consumed by the application runtime. */
 export const toApplicationBuild = engineerBuildCodec.toApplicationBuild;

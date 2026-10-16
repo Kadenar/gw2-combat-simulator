@@ -54,6 +54,7 @@ import { elementalistLoadoutIdentity } from '#gw2/professions/elementalist/core/
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 // Impact packets retain both generations so replacing an actor or action invalidates its pending hits.
 interface ElementalImpactTaskPayload {
   readonly summonGeneration: number;

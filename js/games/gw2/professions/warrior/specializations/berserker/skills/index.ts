@@ -19,6 +19,7 @@ import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modi
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
     movementSkill: true,

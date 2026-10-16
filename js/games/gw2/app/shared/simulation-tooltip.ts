@@ -125,10 +125,12 @@ export function tooltipNumber(source: object | undefined, field: string): number
 
 // Keep small nonzero coefficients visible without displaying floating-point arithmetic noise.
 export const tooltipDecimal = (value: number): string => String(Number(value.toPrecision(8)));
+
 export const tooltipPercent = (value: number): string => `${value > 0 ? '+' : ''}${tooltipDecimal(value * 100)}%`;
 
 // Keep duration units and signed multiplier changes consistent across professions.
 export const tooltipSeconds = (value: number): string => `${tooltipDecimal(value)}s`;
+
 export const tooltipFactorChange = (factor: number): string => tooltipPercent(factor - 1);
 
 /** Required IDs are checked at the presentation boundary without executing any combat callbacks. */

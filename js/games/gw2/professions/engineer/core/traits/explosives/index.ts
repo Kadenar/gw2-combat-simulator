@@ -27,6 +27,7 @@ import {
   type EngineerRuntimeState,
   type EngineerSkill
 } from '#gw2/professions/engineer/types.js';
+
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,

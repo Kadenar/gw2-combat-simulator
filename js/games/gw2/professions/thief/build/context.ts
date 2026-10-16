@@ -9,10 +9,12 @@ import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
+
 export { toApplicationBuild } from '#gw2/professions/thief/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(thiefProfession);
+
 export const createBuildContext = bindBuildContext<ThiefCanonicalBuild>(
   profession,
   createCalculateAttributes(

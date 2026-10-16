@@ -1284,6 +1284,7 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     ]
   }
 ];
+
 export const SKILLS: readonly EngineerSkill[] = [
   {
     id: 5802,

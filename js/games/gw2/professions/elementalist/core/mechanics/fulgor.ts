@@ -11,6 +11,7 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
 const FULGOR_OWNER = { id: 'elementalist.fulgor', generation: 0 };
 /** Pending work owns the snapshot, so completion or cancellation needs no separate state cleanup. */
 interface FulgorSequence {

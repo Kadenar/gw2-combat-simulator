@@ -39,6 +39,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { sphereSpecialistDuration } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 /** Owns Empowering Auras tuning and its existing execution behavior. */
 const empoweringAuras = defineTrait({
   id: TRAIT.EMPOWERING_AURAS,
@@ -151,6 +152,7 @@ const elementalEmpowerment = defineTrait({
     tasks: { [CATALYST_BASE_EMPOWERMENT_TASK]: renewBaseEmpowerment }
   }
 });
+
 /** Owns Vicious Empowerment tuning and its existing execution behavior. */
 export const viciousEmpowerment = defineTrait({
   id: TRAIT.VICIOUS_EMPOWERMENT,
@@ -223,6 +225,7 @@ const sphereSpecialist = defineTrait({
     durationMultiplier: 1.5
   }
 });
+
 /** Register catalyst traits in their existing execution order. */
 export const catalystTraits = [
   depthOfElements,

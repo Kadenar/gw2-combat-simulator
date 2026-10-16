@@ -105,6 +105,7 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
 // Selected stealth packets belong to their activation so either commitment or a landed hit can consume them once.
 const stealthPackets = new WeakMap<ThiefRuntime, Map<string, readonly SkillEffect[]>>();
 const stealthGrantActivations = new WeakMap<ThiefRuntime, Set<string>>();
+
 export function selectThiefStealth(
   runtime: ThiefRuntime,
   cast: RuntimeCast<ThiefSkill>,

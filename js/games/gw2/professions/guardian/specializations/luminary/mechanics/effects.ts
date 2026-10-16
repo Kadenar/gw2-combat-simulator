@@ -28,7 +28,9 @@ import { luminaryState } from '#gw2/professions/guardian/specializations/luminar
 import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 export const AURA_GRANT = 'guardian.luminary.aura-grant';
+
 export const EFFULGENT = 'guardian.luminary.effulgent';
+
 export const STANCE = 'guardian.luminary.stance';
 
 /** Actual combo outcomes refresh the single aura; only Luminary sources can detonate an existing one on grant. */

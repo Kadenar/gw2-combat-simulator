@@ -44,6 +44,7 @@ export interface EiInstantRule {
   /** Buff-give checkers may distinguish self trait grants by duration while accepting grants to other agents. */
   readonly selfAppliedDuration?: number;
 }
+
 export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
     profession: '*',

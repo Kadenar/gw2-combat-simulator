@@ -6,6 +6,7 @@ import type {
   RelicComparisonPoint
 } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import { clamp } from '#kernel/core/numeric.js';
+
 export interface RelicComparisonChartOptions {
   /** Human label for the opponent relic (defaults to "Relic of <key>"). */
   readonly opponentLabel?: string;

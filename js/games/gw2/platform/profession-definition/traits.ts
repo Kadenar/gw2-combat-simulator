@@ -15,6 +15,7 @@ import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.
 
 // Keep the existing discriminated trigger signatures while supplying selection ownership once.
 type OwnedTrigger<T> = T extends { readonly trait: SkillId } ? Omit<T, 'trait'> : never;
+
 /** Value policies transform existing work; startup can only import supplied state, not schedule producers. */
 export type TraitHooks<TSkill extends Skill = Skill> = Pick<
   NativeModuleHooks<TSkill>,
@@ -158,9 +159,11 @@ export function traitAttributeBonuses(
 
 /** Reject misspelled behavior fields before they can silently disappear during module expansion. */
 export function defineTrait(definition: TraitDefinition): Readonly<TraitDefinition>;
+
 export function defineTrait<TSkill extends Skill>(
   definition: TraitDefinition<TSkill>
 ): Readonly<TraitDefinition<TSkill>>;
+
 export function defineTrait<TSkill extends Skill>(
   definition: TraitDefinition<TSkill>
 ): Readonly<TraitDefinition<TSkill>> {

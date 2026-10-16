@@ -3,11 +3,14 @@ import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 /** Derives catalog labels and filters without loading assets or depending on the library DOM. */
 type TemplateCategory = 'power' | 'condi' | 'other';
+
 export type TemplateFilter = 'all' | Exclude<TemplateCategory, 'other'>;
 type TemplateBoon = 'alacrity' | 'quickness' | 'none';
+
 export type TemplateBoonFilter = 'all' | Exclude<TemplateBoon, 'none'>;
 
 export const TEMPLATE_FILTERS: readonly TemplateFilter[] = ['all', 'power', 'condi'];
+
 export const TEMPLATE_BOON_FILTERS: readonly TemplateBoonFilter[] = ['all', 'alacrity', 'quickness'];
 
 export function templateSpecializations(manifest: readonly BuildTemplateSection[]): string[] {

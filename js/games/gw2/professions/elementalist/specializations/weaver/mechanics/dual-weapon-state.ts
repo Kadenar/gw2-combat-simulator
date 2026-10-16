@@ -28,6 +28,7 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
   const parts = String(skill.attunement || '').split('+');

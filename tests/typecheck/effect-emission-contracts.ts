@@ -2,6 +2,7 @@
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { PacketEmission, ProfileEmission, AnnouncementEmission } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+
 declare const runtime: Gw2Runtime;
 declare const packet: PacketEmission;
 declare const profile: ProfileEmission;

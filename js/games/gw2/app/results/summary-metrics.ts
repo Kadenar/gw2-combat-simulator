@@ -35,6 +35,7 @@ export const TARGET_HEALTH_BANDS = [
 ] as const;
 
 export type TargetHealthBandId = (typeof TARGET_HEALTH_BANDS)[number]['id'];
+
 export type TargetHealthBandDps = Readonly<
   Record<
     TargetHealthBandId,

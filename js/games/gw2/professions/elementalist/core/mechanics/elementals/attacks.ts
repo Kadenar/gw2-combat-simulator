@@ -10,6 +10,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 
 export type ElementalKind = 'Fire' | 'Earth';
+
 export type ElementalImpact =
   | 'fireball'
   | 'flame-burst'
@@ -20,6 +21,7 @@ export type ElementalImpact =
   | 'stomp';
 
 export const FLAME_BARRAGE_ID = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
+
 export const STOMP_ID = EARTH_ELEMENTAL_EVTC_PROFILE.stomp.skillId;
 
 /** Converts selected skill IDs into the one elemental profile the controller should run. */

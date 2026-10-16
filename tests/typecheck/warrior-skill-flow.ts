@@ -73,6 +73,7 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 };
 
 const composed = composeRuntimeHooks([compileProfessionRules(hooks)]);
+
 export type WarriorHookSkillAssertion = Assert<
   Equal<Parameters<NonNullable<typeof composed.onCastStart>>[1]['skill'], WarriorSkill>
 >;

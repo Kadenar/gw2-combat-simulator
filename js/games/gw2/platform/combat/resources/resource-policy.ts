@@ -26,7 +26,9 @@ export const RESOURCE_KEYS = [
   'notes',
   'lifeForce'
 ] as const;
+
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- The shared registry erases profession state; each owner declares its concrete TContext.
 export interface ResourcePolicy<TContext = MechanicContext<any>> {
   readonly kind: 'continuous' | 'discrete';
@@ -39,6 +41,7 @@ export interface ResourcePolicy<TContext = MechanicContext<any>> {
   initial(context: TContext, maximum: number): number;
   recovery(context: TContext): number | { interval: number; amount: number; start: 'immediate' | 'first-spend' };
 }
+
 export type ResourcePolicies = Partial<Record<ResourceKey, ResourcePolicy>>;
 
 /** Live pools selected by the profession's policies; every mutation settles the old segment before changing it. */

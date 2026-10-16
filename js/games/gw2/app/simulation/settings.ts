@@ -3,6 +3,7 @@ import { normalizeTransitionDelays, type TransitionDelays } from '#gw2/platform/
 export interface SimulationSettings {
   transitionDelays: TransitionDelays;
 }
+
 export const SIMULATION_SETTINGS_STORAGE_KEY = 'gw2.simulation-settings';
 
 /** Simulation preferences belong to this browser, independent of builds, presets, and workspace tabs. */

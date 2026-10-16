@@ -15,6 +15,7 @@ import { escapeHtml } from '#ui/shared/html.js';
 import { ensureDocumentStyles, shouldIgnoreHotkey } from '#ui/shared/dom.js';
 
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';
+
 export const ROTATION_HOTKEY_ENABLED_STORAGE_KEY = 'gw2-rotation-hotkeys-enabled-v1';
 
 /** Accepted GW2 keybind export types; the XML parser itself loads only after a file is chosen. */

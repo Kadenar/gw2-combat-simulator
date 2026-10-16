@@ -75,12 +75,11 @@ export default [
       ...js.configs.recommended.rules,
       '@stylistic/padding-line-between-statements': [
         'error',
-        // Blank line after block-like statements, including ordinary braced if statements.
-        {
-          blankLine: 'always',
-          prev: 'block-like',
-          next: '*'
-        }
+        // Separate completed blocks, import groups, and documented exports for readability.
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+        { blankLine: 'always', prev: 'import', next: '*' },
+        { blankLine: 'any', prev: 'import', next: 'import' },
+        { blankLine: 'always', prev: '*', next: 'export' }
       ]
     }
   },
@@ -123,12 +122,11 @@ export default [
       'no-useless-return': 'error',
       '@stylistic/padding-line-between-statements': [
         'error',
-        // Blank line after block-like statements, including ordinary braced if statements.
-        {
-          blankLine: 'always',
-          prev: 'block-like',
-          next: '*'
-        }
+        // Separate completed blocks, import groups, and documented exports for readability.
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+        { blankLine: 'always', prev: 'import', next: '*' },
+        { blankLine: 'any', prev: 'import', next: 'import' },
+        { blankLine: 'always', prev: '*', next: 'export' }
       ]
     }
   },

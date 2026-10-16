@@ -9,6 +9,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 export interface ElementalistReaction {
   readonly cause: Gw2ResolverEvent;
 }
+
 /** Accepted player control grants Lightning Rod before the attunement-specific Lockdown reward. */
 export const controlAccepted = defineTriggerPoint<ElementalistReaction>('elementalist.control-accepted', [
   TRAIT.LIGHTNING_ROD,

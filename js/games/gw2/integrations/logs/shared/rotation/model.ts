@@ -1,4 +1,5 @@
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+
 export type RotationActionKind =
   'weapon-skill' | 'profession-skill' | 'utility' | 'heal' | 'elite' | 'dodge' | 'weapon-swap' | 'action' | 'unknown';
 
@@ -9,7 +10,9 @@ export const LOG_OPENER_WARNING =
   'The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.';
 
 export const MUSHROOM_KINGS_BLESSING_SKILL_ID = 46970;
+
 export const MUSHROOM_KINGS_BLESSING_BUFF_ID = 34523;
+
 export const MUSHROOM_KINGS_BLESSING_NAME = "Mushroom King's Blessing";
 
 /** Weapon-stow animations intentionally replay as timing waits, so they need no missing-skill warning. */

@@ -1,5 +1,6 @@
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+
 /**
  * Builds each blade tier's timed packets from its total strike coefficient.
  * `coefficients` remains the tier total used by shared shatter profiles, while

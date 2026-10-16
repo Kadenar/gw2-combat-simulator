@@ -10,7 +10,9 @@ import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
  * Validate shared inputs once, then execute every profession through the same live runtime.
  */
 export function simulateGw2(options: Gw2SimulationOptions & { output: 'score' }): Gw2SimulationScore;
+
 export function simulateGw2(options: Gw2SimulationOptions & { output?: 'detailed' }): Gw2SimulationResult;
+
 export function simulateGw2(
   options: Gw2SimulationOptions & { output?: 'detailed' | 'score' }
 ): Gw2SimulationResult | Gw2SimulationScore {

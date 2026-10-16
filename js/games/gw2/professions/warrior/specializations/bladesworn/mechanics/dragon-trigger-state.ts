@@ -1,5 +1,6 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+
 export interface DragonTriggerState {
   dragonTriggerActive: boolean;
   dragonTriggerStartedAt: number;
@@ -13,6 +14,7 @@ export interface DragonTriggerState {
   dragonTriggerFlowSpent: number;
   dragonTriggerEventActivationId: string;
 }
+
 /** A fresh state fragment keeps the active charging window and its thresholds isolated between runs. */
 export function createDragonTriggerState(): DragonTriggerState {
   return {

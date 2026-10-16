@@ -22,7 +22,9 @@ import type { CatalystState } from '#gw2/professions/elementalist/specialization
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistModifierContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
 export const CATALYST_BASE_EMPOWERMENT_TASK = 'elementalist.catalyst-base-empowerment';
+
 /**
  * Adds timed Elemental Empowerment stacks: expired stacks are dropped first, and
  * once the cap is reached each new stack evicts the soonest-expiring one.
@@ -98,6 +100,7 @@ function catalystModifierState(context: ElementalistModifierContext): CatalystSt
 interface CatalystStateLike {
   readonly elementalEmpowermentExpiries?: readonly number[];
 }
+
 /** Empowerment declares bonuses from its named source, with per-stat rounding and no ordinary chaining. */
 export function elementalEmpowermentAttributes(context: ElementalistModifierContext): Gw2AttributeContributions {
   // Attribute reads count live stacks without rebuilding or mutating the runtime pool.

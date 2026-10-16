@@ -2,6 +2,7 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export type AmalgamMorphKind = 'cleanse' | 'protect' | 'thorns' | 'demolish' | 'obliterate' | 'pierce' | 'shred';
+
 /** Maps each slot identity to its protocol for strain and trait observers. */
 export const AMALGAM_MORPH_KIND_BY_SKILL_ID: ReadonlyMap<SkillId, AmalgamMorphKind> = new Map([
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, 'shred'],
@@ -140,6 +141,7 @@ export function selectAmalgamMorph(
 }
 
 const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
+
 /** Both existing Evolve IDs and rotation names resolve to the currently selected Double Helix variant. */
 export function resolveAmalgamSkillId(doubleHelix: boolean, skillId: SkillId): SkillId {
   if (

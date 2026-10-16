@@ -1,6 +1,7 @@
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
+
 // Modifier contexts reach core state through the runtime profession snapshot.
 function coreState(context: ElementalistModifierContext): Partial<ElementalistCoreState> {
   return readProfessionCoreState<ElementalistCoreState>(context.runtime?.profession);

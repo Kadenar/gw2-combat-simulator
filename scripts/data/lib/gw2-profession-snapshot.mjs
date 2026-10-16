@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 import { UNDERWATER_ONLY_SKILL_IDS } from '../../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
 
 export const GW2_API_ROOT = 'https://api.guildwars2.com/v2';
+
 export const DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS = Object.freeze(['Trident', 'Speargun']);
+
 export const GW2_SKILL_FLAGS = Object.freeze({
   TERRESTRIAL_ONLY: 'NoUnderwater',
   UNDERWATER_ONLY: 'Underwater'

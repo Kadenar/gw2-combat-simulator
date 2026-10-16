@@ -12,6 +12,7 @@ import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/profess
  */
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
 export function hasPistolBullet(
   context: MechanicQueriesOf<MechanicContext>,

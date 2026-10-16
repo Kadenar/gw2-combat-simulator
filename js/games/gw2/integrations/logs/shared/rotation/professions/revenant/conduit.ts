@@ -4,6 +4,7 @@ import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+
 const GENERATED_SIGNAL_IDS = new Set([76818, 77116]);
 
 /** Combines represented Conduit animation segments and filters generated signals. */

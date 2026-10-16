@@ -87,6 +87,7 @@ export const creatureSummoned = defineTriggerPoint<{
 
 // One active elite may supply a pure creature value policy; summon reactions use compiled points above.
 const creatureStrikeScaling = new WeakMap<NecromancerRuntime, () => number>();
+
 /** Install the selected specialization's scalar query without subscribing a trait reaction. */
 export function setNecromancerCreatureStrikeScaling(runtime: NecromancerRuntime, scaling: () => number): void {
   creatureStrikeScaling.set(runtime, scaling);

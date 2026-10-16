@@ -8,10 +8,12 @@ import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import type { NecromancerCanonicalBuild } from '#gw2/professions/necromancer/types.js';
+
 export { toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(necromancerProfession);
+
 export const createBuildContext = bindBuildContext<NecromancerCanonicalBuild>(
   profession,
   createCalculateAttributes(

@@ -13,7 +13,9 @@ export interface SkillDamageContext {
 }
 
 export type DamageUnit = 'activation' | 'occurrence' | 'charge' | 'pulse';
+
 export type DamageInputs = Readonly<Record<string, number | string | boolean>>;
+
 export type DamageEffectReference =
   | { readonly kind: 'skill'; readonly id: SkillId }
   | { readonly kind: 'profile'; readonly id: SkillId; readonly ownerId: SkillId }

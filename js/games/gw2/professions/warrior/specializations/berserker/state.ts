@@ -7,6 +7,7 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 export const BERSERK_EXPIRE = 'warrior.berserk-expiry';
+
 // Base extensions are selected by the committed Rage skill and combined with trait extensions once.
 export const berserkExtensions = new WeakMap<RuntimeCast<WarriorSkill>, number>();
 

@@ -343,6 +343,7 @@ const fieryMight = defineTrait({
     }
   ]
 });
+
 /** Register evoker traits in their existing execution order. */
 export const evokerTraits = [
   evocation,

@@ -17,6 +17,7 @@ import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 
 export const MAXIMUM_RELATIVE_ERROR = 0.01;
+
 export const MAXIMUM_ABSOLUTE_DPS_ERROR = 100;
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 

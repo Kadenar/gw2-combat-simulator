@@ -57,6 +57,7 @@ export function emitTraitProfile(
   cause: TraitProfileCause | null | undefined,
   options: TraitProfileOptions & { readonly receipt: true }
 ): readonly SimulationEvent[];
+
 export function emitTraitProfile(
   runtime: Pick<MechanicCombatContext, 'effects' | 'helpers'>,
   trait: SkillId,
@@ -64,6 +65,7 @@ export function emitTraitProfile(
   cause: TraitProfileCause | null | undefined,
   options?: TraitProfileOptions
 ): void;
+
 export function emitTraitProfile(
   runtime: Pick<MechanicCombatContext, 'effects' | 'helpers'>,
   trait: SkillId,

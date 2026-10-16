@@ -209,6 +209,7 @@ const LUMINARY_VIRTUES = [
   [GUARDIAN_SKILL_IDS.RADIANT_RESOLVE, 'resolve'],
   [GUARDIAN_SKILL_IDS.RADIANT_COURAGE, 'courage']
 ] as const;
+
 /** Recharge-backed virtue projections follow the shared cast controller, including Alacrity and explicit resets. */
 export function refreshGuardianVirtues(runtime: GuardianRuntime): void {
   const kind = runtime.profession.specialization.kind;

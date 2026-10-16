@@ -227,7 +227,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 });
 
 export const ACTIVATE = 'guardian.willbender.activate';
+
 export const FLAMES = 'guardian.willbender.flames';
+
 /** Activation recipes preserve the window/flame boundaries and priority ahead of shared lifetime work. */
 export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
   Object.fromEntries(

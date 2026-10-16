@@ -1,6 +1,7 @@
 import type { Gw2AttributeSeed } from '#gw2/platform/builds/types.js';
 import type { BuildAttributes, BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+
 interface SimulationConfigOptions extends BuildContextInput {
   readonly attributeDataByWeaponSet: readonly [BuildAttributes, BuildAttributes];
   readonly specialization: string;

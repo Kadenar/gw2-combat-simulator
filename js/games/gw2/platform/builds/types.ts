@@ -412,10 +412,12 @@ export type Gw2AttributeTransform =
       readonly multiplier: number;
     }
   | { readonly kind: 'project'; readonly attributes: Gw2Stats; readonly replace: boolean };
+
 export interface Gw2FinalConditionAttribute {
   readonly condition: string;
   readonly powerMultiplier: number;
 }
+
 export interface Gw2AttributeContributions {
   /** Might adjustments run with baseline Might, outside equipment and conversion pools. */
   readonly mightPerStack?: { readonly power?: number; readonly conditionDamage?: number };

@@ -3,6 +3,7 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+
 export interface ElementalistEntry {
   readonly at: number;
   readonly skill: Skill;
@@ -11,16 +12,19 @@ export interface ElementalistEntry {
   readonly claimTrait: (attunement: ElementalistAttunement, profileId: Skill['id']) => boolean;
   readonly emissionCast?: EffectDelivery['cast'];
 }
+
 export interface ElementalistAttunementChanged extends ElementalistEntry {
   readonly previous: ElementalistAttunement;
   readonly dualAttunement: boolean;
 }
+
 export interface ElementalistAttunementCount {
   readonly at: number;
   readonly sourceId: Skill['id'];
   readonly stacks: number;
   readonly emissionCast?: EffectDelivery['cast'];
 }
+
 /** A real swap settles Fire exit, elemental entry, then Arcane rewards with elite cooldown admission deferred to each selected listener. */
 export const attunementChanged = defineTriggerPoint<ElementalistAttunementChanged>('elementalist.attunement-changed', [
   TRAIT.PYROMANCERS_PUISSANCE,

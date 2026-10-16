@@ -26,6 +26,7 @@ export interface MesmerPhantasmAdmission {
   repeat?: MesmerPhantasmPolicy['repeat'];
   bonusStrike?: MesmerPhantasmPolicy['bonusStrike'];
 }
+
 export const mesmerPhantasmPreparing = defineTriggerPoint<MesmerPhantasmAdmission>('mesmer.phantasm-preparing', [
   TRAIT.CHRONOPHANTASMA,
   TRAIT.PHANTASMAL_BLADES

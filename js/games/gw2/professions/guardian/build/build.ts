@@ -94,5 +94,7 @@ const guardianBuildCodec = createProfessionBuildCodec<GuardianCanonicalBuild>({
 });
 
 export const migrateGuardianBuild = guardianBuildCodec.migrateBuild;
+
 export const validateGuardianBuild = guardianBuildCodec.validateBuild;
+
 export const toApplicationBuild = guardianBuildCodec.toApplicationBuild;

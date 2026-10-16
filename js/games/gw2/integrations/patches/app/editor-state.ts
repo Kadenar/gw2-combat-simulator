@@ -24,7 +24,9 @@ export interface AuthoringPayload {
 }
 
 export type AuthoringSection = 'traits' | 'skills' | 'mechanics' | 'overview';
+
 export type TraitAuthoringView = 'modifiers' | 'effects';
+
 export type AuthoringStatusKind = 'neutral' | 'success' | 'error';
 
 interface EditorState {

@@ -15,6 +15,7 @@ import type {
   ElementalistSimulationEvent,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+
 /** Snapshots armed one-shot bonuses for the next eligible spear activation. */
 export function beginElementalistSpearCast(
   context: ElementalistRuntime,

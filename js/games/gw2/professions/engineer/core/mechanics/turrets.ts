@@ -4,6 +4,7 @@ import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engin
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+
 /** Definitions own cast-phase flips; the deployed generation owns automatic pulses and face expiry. */
 export const engineerTurretSideEffectHandlers: RuntimeProfession<
   EngineerRuntimeState,

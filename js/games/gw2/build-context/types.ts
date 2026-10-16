@@ -15,7 +15,9 @@ import type { NativePatchAuthoringContract } from '#gw2/integrations/patches/aut
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 
 export type WeaponSet = 1 | 2;
+
 export type ProfessionModifierType = 'Boon' | 'Target' | 'Sigil' | 'Relic' | 'Food' | 'Utility' | 'Trait' | 'Skill';
+
 export type ProfessionModifier = {
   readonly id: string;
   readonly name: string;

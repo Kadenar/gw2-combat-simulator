@@ -42,6 +42,7 @@ const STANDARD_BOON_DEFINITIONS: Readonly<Record<string, StandardBoonPresentatio
   swiftness: Object.freeze({ name: 'Swiftness', maximumDuration: GW2_SWIFTNESS_DURATION_CAP_SECONDS }),
   vigor: Object.freeze({ name: 'Vigor', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS })
 });
+
 export const GW2_STANDARD_BOONS = Object.freeze(Object.keys(STANDARD_BOON_DEFINITIONS));
 const STANDARD_BOON_SET = new Set(GW2_STANDARD_BOONS);
 const DURATION_STACKING_BOON_CAPS = new Map(

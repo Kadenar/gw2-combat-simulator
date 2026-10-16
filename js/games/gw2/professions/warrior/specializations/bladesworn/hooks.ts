@@ -124,6 +124,7 @@ export const ammunitionCommitted = defineTriggerPoint<{
   readonly cast: RuntimeCast<WarriorSkill>;
   readonly spent: { readonly rounds: number; readonly startedFull: boolean };
 }>('warrior.ammunition-committed', [TRAIT.FIERCE_AS_FIRE, TRAIT.LUSH_FOREST]);
+
 /** Explosion Glory extends before cartridge effects inspect the accepted strike. */
 export const explosionAccepted = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
   'warrior.explosion-accepted',

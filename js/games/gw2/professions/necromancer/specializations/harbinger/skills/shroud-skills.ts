@@ -4,6 +4,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { doomApproachesDarkBarrage } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
+
 /** Supplies Harbinger Shroud fragments to specialization composition. */
 export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VORACIOUS_ARC]: {

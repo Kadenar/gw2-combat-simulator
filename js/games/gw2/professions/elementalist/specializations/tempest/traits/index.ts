@@ -312,6 +312,7 @@ const lucidSingularity = defineTrait({
     ]
   }
 });
+
 /** Register tempest traits in their existing execution order. */
 export const tempestTraits = [
   galeSong,

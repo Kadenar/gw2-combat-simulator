@@ -1,4 +1,5 @@
 import { createProfessionBuildAttributeRules } from '#gw2/professions/shared/build-attributes.js';
+
 // Inputs are equipment attributes; baseline Might and its trait adjustment share one stage.
 function notorietyAttributes(context, attributes) {
   const facts = attributeContext(

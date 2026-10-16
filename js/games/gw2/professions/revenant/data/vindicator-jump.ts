@@ -1,6 +1,7 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const VINDICATOR_AIRBORNE_MS = 600;
+
 export const VINDICATOR_LANDING_MS = 200;
 
 /** Replays a recorded jump from its endurance-spending input through the landing, including overlapping autos. */

@@ -25,6 +25,7 @@ import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.j
 import type { SkillDamageOccurrence, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 
 export type SkillDamageRowStatus = 'equipped' | 'unslotted';
+
 export type SkillDamageGroupKind = 'weapon' | 'mechanic' | 'slot' | 'action';
 
 /** One table row before measurement; the occurrence with the same id produces its numbers. */

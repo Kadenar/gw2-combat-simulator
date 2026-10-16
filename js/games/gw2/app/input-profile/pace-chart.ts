@@ -6,6 +6,7 @@ interface ChartScale {
 }
 
 const scales = new WeakMap<HTMLElement, ChartScale>();
+
 /** Keep a hover tooltip inside its positioned wrapper, flipping to the pointer's left near the right edge. */
 export function placeInputTooltip(
   wrapper: HTMLElement,

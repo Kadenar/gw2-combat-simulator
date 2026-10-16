@@ -1282,6 +1282,7 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     ]
   }
 ];
+
 export const SKILLS: readonly MesmerSkill[] = [
   {
     id: 10168,

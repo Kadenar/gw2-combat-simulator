@@ -13,6 +13,7 @@ export const burstFirstHit = defineTriggerPoint<{ readonly event: Gw2ResolverEve
   'warrior.burst-first-hit',
   [TRAIT.CULL_THE_WEAK, TRAIT.BURST_PRECISION, TRAIT.BUILDING_MOMENTUM, TRAIT.MARCHING_ORDERS, TRAIT.BERSERKERS_POWER]
 );
+
 /** Every critical listener sees the same sampled opportunity, after the first-burst transaction. */
 export const critical = defineTriggerPoint<{
   readonly event: Gw2ResolverEvent;
@@ -25,46 +26,56 @@ export const critical = defineTriggerPoint<{
   TRAIT.AXE_MASTERY,
   TRAIT.FORCEFUL_GREATSWORD
 ]);
+
 /** Accepted player control rewards Arms before Defense. */
 export const controlAccepted = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>('warrior.control-accepted', [
   TRAIT.OPPORTUNIST,
   TRAIT.MERCILESS_HAMMER
 ]);
+
 /** Completion uses the accepted spend before any weapon swap resource rewards. */
 export const burstCompleted = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill>; readonly spent: number }>(
   'warrior.burst-completed',
   [TRAIT.BURST_MASTERY, TRAIT.BRAVE_STRIDE]
 );
+
 /** The committed destination is visible before Focus resets and adrenaline rewards. */
 export const weaponSwapped = defineTriggerPoint<Record<string, never>>('warrior.weapon-swapped', [
   TRAIT.MARTIAL_CADENCE,
   TRAIT.VERSATILE_RAGE
 ]);
+
 /** Gunsaber resets Focus without granting ordinary weapon-swap adrenaline. */
 export const focusReset = defineTriggerPoint<Record<string, never>>('warrior.focus-reset', [TRAIT.MARTIAL_CADENCE]);
+
 /** Focus's accepted proc grants its shared follow-up rewards in their original order. */
 export const soldierFocusApplied = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
   'warrior.soldier-focus-applied',
   [TRAIT.SOLDIERS_COMFORT, TRAIT.MARTIAL_CADENCE]
 );
+
 /** Core initialization arms selected recurring trait work after resources exist. */
 export const coreInitialized = defineTriggerPoint<Record<string, never>>('warrior.core-initialized', [
   TRAIT.EMPOWER_ALLIES
 ]);
+
 /** Physical skill acceptance schedules Peak Performance before resource spending. */
 export const castStarting = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>('warrior.cast-starting', [
   TRAIT.PEAK_PERFORMANCE
 ]);
+
 /** Damage resource gains settle before the below-health signet proc is considered. */
 export const strikeResourcesGranted = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
   'warrior.strike-resources-granted',
   [TRAIT.SIGNET_MASTERY]
 );
+
 /** Dragon Slash grants its charge-converted Core reward at completion. */
 export const dragonSlashCompleted = defineTriggerPoint<{
   readonly cast: RuntimeCast<WarriorSkill>;
   readonly adrenalineSpent: number;
 }>('warrior.dragon-slash-completed', [TRAIT.BERSERKERS_POWER]);
+
 /** Misses never enter this surviving-hit boundary; activation identity prevents later packets claiming again. */
 export function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolean {
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');

@@ -5,6 +5,7 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
+
 /** Selected skill passives use the same readiness and tuning for build previews and live attribute queries. */
 export const elementalistPassiveAttributes: Gw2AttributeContributionCalculator = (context) => [
   {

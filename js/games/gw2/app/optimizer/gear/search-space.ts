@@ -27,6 +27,7 @@ import {
 
 const stats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>>;
 const MAX_OPTIMIZER_STAT_TOTALS = 100_000;
+
 export interface GroupedOptimizerSpace {
   readonly ordinary: OptimizerSpace;
   readonly statDimensions: readonly OptimizerDimension[];

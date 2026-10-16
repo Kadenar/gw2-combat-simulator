@@ -9,10 +9,12 @@ import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
+
 export { toApplicationBuild } from '#gw2/professions/revenant/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(revenantProfession);
+
 export const createBuildContext = bindBuildContext<RevenantCanonicalBuild>(
   profession,
   createCalculateAttributes(

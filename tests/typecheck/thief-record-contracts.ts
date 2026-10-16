@@ -2,7 +2,9 @@
 import type { InternalWork } from '#gw2/platform/simulation/work-contract.js';
 import type { ThiefRuntimeState } from '#gw2/professions/thief/types.js';
 import type { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
+
 type Assert<T extends true> = T;
+
 export type ThiefRecordAssertions = [
   Assert<string extends keyof ThiefRuntimeState ? false : true>,
   Assert<string extends keyof ReturnType<typeof thiefRuntimeSpecializationState> ? false : true>

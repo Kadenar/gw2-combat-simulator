@@ -1,5 +1,6 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+
 /** Recharge reductions operate on live remaining work, including ammo recharge, and report only effective changes. */
 export function reduceEngineerRecharge(
   runtime: EngineerRuntime,

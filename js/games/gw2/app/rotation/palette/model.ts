@@ -686,6 +686,7 @@ export interface PaletteGroupView {
 }
 
 export type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
+
 export type PaletteContext = SlotLoadoutContext &
   ProfessionPaletteContext & {
     readonly build: ProfessionAppState['build'];

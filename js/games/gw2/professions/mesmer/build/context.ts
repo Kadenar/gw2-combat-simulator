@@ -8,10 +8,12 @@ import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
+
 export { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(mesmerProfession);
+
 export const createBuildContext = bindBuildContext<MesmerCanonicalBuild>(
   profession,
   createCalculateAttributes(

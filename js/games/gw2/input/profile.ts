@@ -1,6 +1,7 @@
 import { INPUT_CONTROLS, defaultInputBindings, parseInputBinding, type InputBindings } from '#gw2/input/bindings.js';
 
 export const INPUT_PROFILE_VERSION = 1;
+
 export interface InputProfile {
   readonly version: 1;
   readonly bindings: InputBindings;

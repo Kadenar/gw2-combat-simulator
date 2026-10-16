@@ -440,6 +440,7 @@ export function beginFamiliarCast(
 }
 
 const igniteBurningByCast = new WeakMap<RuntimeCast<ElementalistSkill>, SkillEffect | undefined>();
+
 /** Capture and advance the tier once at acceptance; effect selection only reads this immutable choice. */
 export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);

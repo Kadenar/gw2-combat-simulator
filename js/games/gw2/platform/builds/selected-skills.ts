@@ -2,6 +2,7 @@ import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/type
 
 /** Editor slots retain empties; runtime selections are flat immutable ID snapshots. */
 export type Gw2SelectedSkillSlots = Record<string, SkillId | null>;
+
 export type Gw2SelectedSkillLoadout = readonly SkillId[];
 
 const preparedSkillIds = new WeakMap<object, ReadonlySet<SkillId>>();

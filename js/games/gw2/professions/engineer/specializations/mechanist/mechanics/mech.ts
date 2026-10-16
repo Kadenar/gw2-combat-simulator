@@ -18,6 +18,7 @@ import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializatio
 import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+
 export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 
 /** Initialization without deferred combat, or explicit combat entry, admits trait-owned background work. */

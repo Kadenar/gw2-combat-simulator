@@ -33,6 +33,7 @@ import { heraldState } from '#gw2/professions/revenant/specializations/herald/st
 import { draconicEchoActive } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
+
 const COMPASSION = 'revenant.herald-elevated-compassion';
 const ECHO_EXPIRY = 'revenant.herald-echo-expiry';
 

@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import ts from 'typescript';
+
 const root = path.resolve(import.meta.dirname, '../../js/games/gw2');
 
 // Producers author mechanics; the shared service alone admits their packets and announcements into execution.

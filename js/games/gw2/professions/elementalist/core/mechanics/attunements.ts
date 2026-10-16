@@ -32,6 +32,7 @@ interface ElementalistAttunementTransition {
   readonly rechargeDuration?: number;
   readonly shouldTriggerAttunementTrait?: (trigger: ElementalistAttunementTraitTrigger) => boolean;
 }
+
 /** Maps an attunement-swap skill to the attunement it enters, or null for any other skill. */
 export function targetAttunement(skill: Skill): ElementalistAttunement | null {
   return (
@@ -161,6 +162,7 @@ const transitions = new WeakMap<
   ElementalistRuntime,
   (runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>) => void
 >();
+
 /** Weaver and Evoker install their attunement transition before any commands execute. */
 export function registerElementalistAttunementTransition(
   runtime: ElementalistRuntime,

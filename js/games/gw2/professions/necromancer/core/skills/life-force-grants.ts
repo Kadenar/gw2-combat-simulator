@@ -17,6 +17,7 @@ interface LifeForceGrant {
 interface LifeForceParameters extends LifeForceGrant, Readonly<Record<string, unknown>> {
   readonly unit: 'hit' | 'pulse' | 'application' | 'cast';
 }
+
 export interface LifeForceGrantAction extends ResourceGrantAction {
   readonly resource: 'lifeForce';
   readonly label: string;

@@ -74,9 +74,11 @@ export function runGw2Runtime<T extends object>(
 export function runRuntime<T extends object>(
   options: DamageRuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }
 ): DamageRuntimeResult;
+
 export function runRuntime<T extends object>(
   options: RuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }
 ): Gw2SimulationResult | Gw2SimulationScore;
+
 /** The shared scheduler can collect a finite occurrence without constructing combat reports. */
 export function runRuntime<T extends object>(
   options: (RuntimeOptions<T> | DamageRuntimeOptions<T>) & { readonly execution: RuntimeExecution<T> }

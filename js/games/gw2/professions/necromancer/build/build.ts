@@ -87,7 +87,9 @@ const necromancerBuildCodec = createProfessionBuildCodec<NecromancerCanonicalBui
 
 /** Migrates persisted Necromancer builds to the current canonical schema. */
 export const migrateNecromancerBuild = necromancerBuildCodec.migrateBuild;
+
 /** Validates a Necromancer build against the canonical schema and resource constraints. */
 export const validateNecromancerBuild = necromancerBuildCodec.validateBuild;
+
 /** Converts a canonical Necromancer build into the shape consumed by the application runtime. */
 export const toApplicationBuild = necromancerBuildCodec.toApplicationBuild;

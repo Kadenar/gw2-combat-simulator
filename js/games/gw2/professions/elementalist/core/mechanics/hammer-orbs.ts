@@ -21,6 +21,7 @@ import {
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 /** Orb elements still live at `at`; shared by availability gating and the Weaver orb handler. */
 export function activeHammerOrbElements(
   state: ReadonlyMechanicState<ElementalistCoreState>,

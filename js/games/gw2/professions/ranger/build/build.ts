@@ -147,5 +147,7 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
 });
 
 export const migrateRangerBuild = rangerBuildCodec.migrateBuild;
+
 export const validateRangerBuild = rangerBuildCodec.validateBuild;
+
 export const toApplicationBuild = rangerBuildCodec.toApplicationBuild;

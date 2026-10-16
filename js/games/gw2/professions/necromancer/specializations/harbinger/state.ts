@@ -14,6 +14,7 @@ import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
+
 /** Resolve one selected capacity for initialization, live stacks, observations, and previews. */
 export function harbingerBlightMaximum(context: unknown): number {
   return Math.max(

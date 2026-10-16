@@ -14,6 +14,7 @@ import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/pro
 import { timeKey } from '#kernel/core/clock.js';
 
 const FLOW_TICK = 'warrior.flow-tick';
+
 /** Flow uses the absolute action grid; a grant at a tick cannot receive regeneration for that same tick. */
 export function scheduleFlowTick(runtime: WarriorRuntime): void {
   const tick = Math.floor(timeKey(runtime.time) / (GW2_ACTION_TICK_MS * 1000)) + 1;

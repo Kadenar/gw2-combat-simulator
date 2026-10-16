@@ -47,6 +47,7 @@ export const lockOn = defineTrait({
     }
   ]
 });
+
 /** Owns Streamlined Kits tuning and behavior at its established runtime and build boundaries. */
 export const streamlinedKits = defineTrait({
   // Kit entry admits this reward independently of the intrinsic kit transition.

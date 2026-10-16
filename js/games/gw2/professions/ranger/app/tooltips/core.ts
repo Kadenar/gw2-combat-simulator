@@ -22,6 +22,7 @@ import { rangerNatureMagicTooltips } from '#gw2/professions/ranger/app/tooltips/
 import { rangerSkirmishingTooltips } from '#gw2/professions/ranger/app/tooltips/skirmishing.js';
 import { rangerBeastmasteryTooltips } from '#gw2/professions/ranger/app/tooltips/beastmastery.js';
 import { rangerWildernessSurvivalTooltips } from '#gw2/professions/ranger/app/tooltips/wilderness-survival.js';
+
 /** Spirit prose describes its slam marker; ordinary boon and combo facts still come from the selected catalog. */
 function spiritTooltip(description: string): DescribeSimulationTooltip {
   return (context, entity) => {

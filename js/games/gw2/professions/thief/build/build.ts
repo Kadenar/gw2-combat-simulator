@@ -133,6 +133,9 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
     return errors;
   }
 });
+
 export const migrateThiefBuild = thiefBuildCodec.migrateBuild;
+
 export const validateThiefBuild = thiefBuildCodec.validateBuild;
+
 export const toApplicationBuild = thiefBuildCodec.toApplicationBuild;

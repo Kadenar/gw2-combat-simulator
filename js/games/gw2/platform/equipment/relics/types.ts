@@ -68,7 +68,9 @@ export interface Gw2ConditionHelpers {
 export type Gw2RelicStrikeQueryContext = Readonly<
   Pick<Gw2RelicContext, 'config' | 'totals' | 'buffs' | 'helpers' | 'precastRelics' | 'relic'>
 >;
+
 export type Gw2RelicDurationQueryContext = Pick<Gw2RelicContext, 'buffs' | 'relic'>;
+
 export type Gw2RelicAttributeQueryContext = Pick<Gw2RelicContext, 'config' | 'relic'>;
 
 export interface Gw2RelicRule {

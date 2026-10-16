@@ -1290,6 +1290,7 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     ]
   }
 ];
+
 export const SKILLS: readonly ThiefSkill[] = [
   {
     id: 13004,

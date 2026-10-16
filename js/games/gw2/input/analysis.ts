@@ -6,6 +6,7 @@ import { validateInputProfile, type InputProfile } from '#gw2/input/profile.js';
 import type { InputAction, InputTrace } from '#gw2/platform/results/input-trace.js';
 
 export type InputReach = 'near' | 'stretch' | 'far';
+
 export interface AnalyzedInputAction {
   input: InputAction;
   binding: string | null;
@@ -19,6 +20,7 @@ export interface AnalyzedInputAction {
     sameKey: boolean;
   };
 }
+
 export interface InputAnalysis {
   actions: AnalyzedInputAction[];
   windows: InputWindow[];

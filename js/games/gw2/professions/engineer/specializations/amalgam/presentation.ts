@@ -32,6 +32,7 @@ import type {
   EngineerUiSelection,
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
+
 /** Reads the current three Morph selections, preferring the editable build over simulated state. */
 function selectedMorphIds(context: EngineerUiContext): number[] {
   return [...(context.build?.selectedMorphSkillIds || engineerUiState(context).selectedMorphSkillIds || [])].map(

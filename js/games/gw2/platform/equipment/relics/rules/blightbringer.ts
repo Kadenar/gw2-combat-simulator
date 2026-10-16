@@ -9,6 +9,7 @@ import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 // Combat counts distinct poison activations before triggering the payload.
 const REQUIRED_ACTIVATIONS = 6;
+
 export const blightbringer = defineRelic({
   damagePayload: emitDamagePayload,
   createState: () => ({

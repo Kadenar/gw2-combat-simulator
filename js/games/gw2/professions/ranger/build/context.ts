@@ -9,10 +9,12 @@ import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
+
 export { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(rangerProfession);
+
 export const createBuildContext = bindBuildContext<RangerCanonicalBuild>(
   profession,
   createCalculateAttributes(

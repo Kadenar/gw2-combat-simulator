@@ -5,6 +5,7 @@ import { type Skill } from '#gw2/platform/skills/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { type SkillEffect } from '#gw2/platform/effects/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+
 /** Adrenal Implant adds to Vigor using the existing resource profile's patch target. */
 export function adrenalImplantEnduranceBonus(context: EngineerRuntime): number {
   return hasTrait(context.traits, TRAIT.ADRENAL_IMPLANT)

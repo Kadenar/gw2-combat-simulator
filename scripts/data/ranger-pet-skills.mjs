@@ -595,6 +595,7 @@ export const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
   'fanged iboga': [43734, 41864, 45262],
   spider: [12724]
 });
+
 // Modeled pets retain family membership while receiving their specific AI and merged overrides. A pet listed here
 // replaces its family list. New land profiles include explicitly documented family-based timing estimates.
 export const RANGER_PET_SKILL_IDS = Object.freeze({
@@ -661,14 +662,18 @@ export const RANGER_PET_SKILL_IDS = Object.freeze({
   // Jacaranda's AI skills are separate identities from the Soulbeast merge skills of the same name.
   Jacaranda: [45990, 40487, 41710]
 });
+
 export const SOULBEAST_PET_SKILL_IDS = Object.freeze({ Wallow: [41406, 64882] });
+
 export const AUTONOMOUS_PET_SKILL_IDS = new Set([
   ...Object.values(RANGER_PET_SKILL_IDS).flat(),
   ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat()
 ]);
+
 // API-omitted pet skills reuse their verified Soulbeast CDN artwork where available. Every record here is authored in
 // full because /v2/skills rejects its ID. New land records use wiki PvE recharges; existing tuning is preserved.
 export const SIMULATED_SKILL_FALLBACKS = new Map(RANGER_PET_AUTHORED_SKILLS.map((skill) => [skill.id, skill]));
+
 // Authored corrections layered over records the API does return.
 export const SIMULATED_SKILL_OVERRIDES = new Map([
   [
@@ -679,6 +684,7 @@ export const SIMULATED_SKILL_OVERRIDES = new Map([
   ],
   [12724, { icon: 'https://render.guildwars2.com/file/B7A1AB65571565525A5C35DBCBEF0326DF65C3FA/104050.png' }]
 ]);
+
 export const SOULBEAST_PET_FAMILY_OVERRIDES = Object.freeze({
   'Aether Hunter': 'aether hunter',
   Bristleback: 'bristleback',

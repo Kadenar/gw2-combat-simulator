@@ -32,7 +32,9 @@ for (const [row, offset, codes] of [
   );
 for (let index = 1; index <= 12; index++)
   keys.push({ code: `F${index}`, x: index + Math.floor((index - 1) / 4) * 0.5, y: -1.5, width: 1 });
+
 export const INPUT_KEY_LAYOUT: readonly InputKeyGeometry[] = [...keys, ...EDGE_KEYS];
+
 // Distances use key centres, including wide keys; mouse and unmapped keys have no fabricated position.
 export const INPUT_KEY_POSITIONS: ReadonlyMap<string, readonly [number, number]> = new Map(
   INPUT_KEY_LAYOUT.map(({ code, x, y, width }) => [code, [x + (width - 1) / 2, y] as const])

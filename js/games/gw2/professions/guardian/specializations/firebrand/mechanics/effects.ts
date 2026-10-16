@@ -17,6 +17,7 @@ import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/t
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const ASHES = 'guardian.firebrand.ashes';
+
 export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 
 /** Derived trait effects inherit attribution and causality, never the triggering buff's recipients or duration. */

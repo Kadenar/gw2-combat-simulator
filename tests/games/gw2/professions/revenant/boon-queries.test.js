@@ -9,6 +9,7 @@ import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/ind
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
+
 const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
@@ -18,6 +19,7 @@ import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timelin
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
+
 const renegadeModifierRules = renegadeModule.modifiers.modifierRules;
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 

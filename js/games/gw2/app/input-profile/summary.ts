@@ -15,6 +15,7 @@ export interface InputKeyRow {
   times: number[];
   rotationIndices: number[];
 }
+
 export interface InputTransitionRow {
   fromControls: InputControlId[];
   toControls: InputControlId[];
@@ -29,16 +30,19 @@ export interface InputTransitionRow {
   /** Both ends of every occurrence, for timeline highlighting. */
   rotationIndices: number[];
 }
+
 export interface InputSection extends InputWindow {
   /** Only timeline identities are needed when a chart section is selected. */
   readonly rotationIndices: readonly number[];
 }
+
 export interface InputKeyUsage {
   readonly code: string;
   readonly count: number;
   readonly controls: readonly InputControlId[];
   readonly modifier: boolean;
 }
+
 export interface InputAnalysisSummary {
   readonly duration: number;
   readonly pace: number | null;

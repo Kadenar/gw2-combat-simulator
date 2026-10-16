@@ -18,6 +18,7 @@ import type { RotationStateSnapshotItem } from '#gw2/platform/profession-present
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
+
 export const spellbreakerUi: WarriorUiSlice = Object.freeze({
   /** Spellbreaker's starting cap belongs to its own resource profile; Core applies the shared configuration field. */
   previewControls(context) {

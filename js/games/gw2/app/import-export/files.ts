@@ -22,7 +22,9 @@ export function jsonExportFilename(entered: string, fallback: string): string {
  * Passing an array of choices lets the user pick which payload to export; the first choice is selected by default.
  */
 export function downloadJson(filename: string, payload: unknown): void;
+
 export function downloadJson(choices: readonly JsonExportChoice[]): void;
+
 export function downloadJson(filenameOrChoices: string | readonly JsonExportChoice[], payload?: unknown): void {
   const choices =
     typeof filenameOrChoices === 'string' ? [{ label: '', filename: filenameOrChoices, payload }] : filenameOrChoices;

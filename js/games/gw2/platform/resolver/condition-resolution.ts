@@ -687,6 +687,7 @@ export interface Gw2ConditionResolution {
   startDamageClock(context: Gw2ResolverRuntime): void;
   handleEnvironmentConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
 }
+
 /** Resolver-private references never belong to the persisted or worker event payload contract. */
 export interface Gw2ConditionWork {
   readonly application?: Gw2ResolvedConditionApplication;

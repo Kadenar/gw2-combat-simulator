@@ -29,6 +29,7 @@ type RotationWorkspaceController = {
 };
 
 const controllers = new WeakMap<Document, RotationWorkspaceController>();
+
 export const ROTATION_FOCUS_EXIT_EVENT = 'rotation-workspace-focus-exit';
 
 /** Closes transient rotation UI before leaving the workspace view. */

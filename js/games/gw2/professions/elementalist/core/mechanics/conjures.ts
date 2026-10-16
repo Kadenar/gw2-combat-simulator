@@ -78,6 +78,7 @@ function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<Eleme
 }
 
 const pickupWindows = new WeakMap<RuntimeCast<ElementalistSkill>, number>();
+
 /** A pickup accepted before ground expiry retains that copy through its animation. */
 export function captureConjurePickup(runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const weapon = CONJURE_PICKUP_WEAPONS[Number(cast.skill.id)];

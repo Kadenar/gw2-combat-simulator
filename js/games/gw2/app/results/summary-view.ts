@@ -1,5 +1,6 @@
 import { escapeHtml } from '#ui/shared/html.js';
 import { resultNumber as number } from '#gw2/app/results/formatting.js';
+
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
 

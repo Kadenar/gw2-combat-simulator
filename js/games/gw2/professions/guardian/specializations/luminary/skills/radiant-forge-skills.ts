@@ -24,6 +24,7 @@ import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/
  */
 
 export const LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID = 25_518;
+
 export const LUMINARY_INITIAL_STATE_SKILL_IDS = Object.freeze({
   resolution: 873,
   claw: 73_955,
@@ -355,7 +356,9 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 });
 
 export const HAMMER = 'guardian.luminary.hammer';
+
 export const BOON = 'guardian.luminary.weapon-boon';
+
 export const BLADE_IMMOBILIZE = 'guardian.luminary.blade-immobilize';
 
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */

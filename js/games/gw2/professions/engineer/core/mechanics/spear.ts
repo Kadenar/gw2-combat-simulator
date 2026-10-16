@@ -359,6 +359,7 @@ export function engineerSpearAvailability(
 }
 
 const CUSTOM_SPEAR = new Set<number>([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
+
 /** Stateful spear packets replace authored effects to avoid emitting both paths. */
 export const engineerSpearEffects: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['modifyEffects']> = (
   _runtime,

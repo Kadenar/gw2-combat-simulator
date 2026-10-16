@@ -58,6 +58,7 @@ interface DeliveryHost {
   observePacket(event: Gw2ResolverEvent): void;
   weaponSwap?(event: Gw2ResolverEvent): void;
 }
+
 /** Admission and resolution share packet metadata, preparation timing, and lethal-target settlement. */
 export function createEffectDelivery<T extends object>(
   runtime: Gw2Runtime<T>,

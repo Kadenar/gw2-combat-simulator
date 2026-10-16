@@ -39,6 +39,7 @@ export function moveRotationEntry(rotation: RotationCommand[], fromIndex: number
  * the input `entry`.
  */
 type RotationEntryChanges = Partial<Omit<CastCommand, 'type' | 'skillId'> & Pick<WaitCommand, 'durationMs'>>;
+
 export function updateRotationEntry(entry: RotationCommand, changes: RotationEntryChanges = {}): RotationCommand {
   // Canonical commands always remain objects; undefined changes remove optional command settings.
   const updated = { ...entry };

@@ -16,6 +16,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 
 /** Schedules Weave Self at its profiled mid-cast activation point. */

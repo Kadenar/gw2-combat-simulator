@@ -20,6 +20,7 @@ export const INPUT_CONTROL_IDS = [
   'profession-6',
   'profession-7'
 ] as const;
+
 export type InputControlId = (typeof INPUT_CONTROL_IDS)[number];
 const actionIds = new Set<string>(INPUT_CONTROL_IDS);
 

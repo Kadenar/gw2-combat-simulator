@@ -15,6 +15,7 @@ export interface ResourceClock {
 
 // Runtime observations retain one fixed segment; only resource mutations replace its anchor.
 const resourceAnchors = new WeakMap<ResourceClock, ResourceClock>();
+
 export function resourceAnchor(clock: ResourceClock): ResourceClock {
   return resourceAnchors.get(clock) ?? clock;
 }

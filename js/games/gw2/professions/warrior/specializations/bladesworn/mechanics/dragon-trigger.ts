@@ -19,6 +19,7 @@ import {
 } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { timeKey } from '#kernel/core/clock.js';
+
 const CHARGE_TICK = 'warrior.dragon-charge';
 const TRIGGER_EXPIRY = 'warrior.dragon-trigger-expiry';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -29,6 +30,7 @@ import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/pro
 import { clamp } from '#kernel/core/numeric.js';
 
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
+
 export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = 'dragon trigger charge';
 
 /** Immutable acceptance facts survive mode exit and belong to the actual cast, independent of reused string IDs. */
@@ -342,6 +344,7 @@ export const dragonTriggerHooks = {
     }
   }
 } satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;
+
 /** Entry and release readiness use observed charge thresholds and the current Flow pool. */
 export const dragonTriggerAvailability: NonNullable<
   RuntimeProfession<WarriorRuntimeState, WarriorSkill>['availability']

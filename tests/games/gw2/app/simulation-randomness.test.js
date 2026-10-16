@@ -1,4 +1,5 @@
 import { loadBuildContext } from '#gw2/build-context/load.js';
+
 const contexts = new Map(
   await Promise.all(['engineer', 'necromancer'].map(async (id) => [id, await loadBuildContext(id)]))
 );

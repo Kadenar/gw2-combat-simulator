@@ -13,6 +13,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+
 /** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
   return skill.weapon || skill.skillWeapon || '';

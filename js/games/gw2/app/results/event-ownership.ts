@@ -48,6 +48,7 @@ const effectOf = (trigger: SimulationEvent | undefined): EventLogParentLink => (
 const skillKey = (event: SimulationEvent): string => String(event.skillId ?? event.sourceId ?? '');
 
 export const CAST_LINK = PART_OF;
+
 export const ENTITY_SOURCE: EventLogSource = Object.freeze({ id: 'entity', label: 'Spawned' });
 const SKILL_SOURCE: EventLogSource = Object.freeze({ id: 'skill', label: 'Skill', badge: false });
 const SUMMON_SOURCE: EventLogSource = Object.freeze({ id: 'summon', label: 'Summon' });

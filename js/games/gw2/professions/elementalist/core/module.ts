@@ -17,6 +17,7 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistCoreTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
+
 /**
  * Core Elementalist module: binds the shared attunement/endurance state, its
  * live cast and impact hooks, and the Core UI into one registration

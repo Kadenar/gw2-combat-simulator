@@ -9,10 +9,12 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
+
 export { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(elementalistProfession);
+
 export const createBuildContext = bindBuildContext<ElementalistCanonicalBuild>(
   profession,
   createCalculateAttributes(

@@ -9,10 +9,12 @@ import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
+
 export { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(engineerProfession);
+
 export const createBuildContext = bindBuildContext<EngineerCanonicalBuild>(
   profession,
   createCalculateAttributes(

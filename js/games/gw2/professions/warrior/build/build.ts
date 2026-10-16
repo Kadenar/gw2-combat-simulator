@@ -62,5 +62,7 @@ const warriorBuildCodec = createProfessionBuildCodec<WarriorCanonicalBuild>({
 });
 
 export const migrateWarriorBuild = warriorBuildCodec.migrateBuild;
+
 export const validateWarriorBuild = warriorBuildCodec.validateBuild;
+
 export const toApplicationBuild = warriorBuildCodec.toApplicationBuild;

@@ -1,5 +1,6 @@
 /** Owns persisted timeline display preferences independently of builds and simulation inputs. */
 const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
+
 export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
 const TRANSITION_DELAY_VISIBILITY_KEY = 'gw2-rotation-transition-delays';
 const TIMING_DISPLAY_STORAGE_KEY = 'gw2-rotation-timing-display';
