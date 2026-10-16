@@ -1,7 +1,10 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { selectedSlotSkillAvailability, denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
+import {
+  type AvailabilityResult,
+  selectedSlotSkillAvailability,
+  denySkillCast as unavailable
+} from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -15,7 +18,7 @@ import {
 } from '#gw2/professions/elementalist/core/constants.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
+import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import {
   activeHammerOrbElements,
   hammerOrbMatchesAttunement
@@ -37,19 +40,8 @@ function ready(): AvailabilityResult {
   return { ready: true };
 }
 
-/**
- * First-match availability gate for every Core Elementalist skill: returns ready,
- * a permanent denial, or a denial carrying the time the command is worth retrying.
- */
-export function elementalistCoreAvailability(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
-): AvailabilityResult {
-  // Glyph summons and elemental command skills answer through their own gate first.
-  const elementalAvailability = elementalistElementalAvailability(context, skill);
-
-  if (elementalAvailability) return elementalAvailability;
-
+/** Pistol finishers require all four stored bullets. */
+function pistolAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
   const state = professionCoreState(context);
 
   // Pistol's finisher needs one stored bullet of every element.
@@ -60,6 +52,15 @@ export function elementalistCoreAvailability(
     return unavailable(skill, 'elementalist.pistol-bullets', 'requires all four elemental bullets.');
   }
 
+  return null;
+}
+
+/** Attunement swaps preserve same-element denials and Fresh Air retry deadlines. */
+function attunementAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult | null {
+  const state = professionCoreState(context);
   // Attunement swaps: permanently denied while already attuned, otherwise retried
   // when the target attunement recharges (Fresh Air may pull Air in earlier).
   const target = targetAttunement(skill);
@@ -81,6 +82,16 @@ export function elementalistCoreAvailability(
       : ready();
   }
 
+  return null;
+}
+
+/** Bundle commands require an equipped conjure or a live ground pickup. */
+function conjureCommandAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult | null {
+  const state = professionCoreState(context);
+
   // Synthetic bundle commands: dropping needs an equipped conjure, and picking one
   // up needs a ground pickup that has not expired.
   if (Number(skill.id) === ID.DROP_BUNDLE) {
@@ -100,6 +111,11 @@ export function elementalistCoreAvailability(
       : unavailable(skill, 'elementalist.conjure-pickup', `the ${weapon} pickup is unavailable or expired.`);
   }
 
+  return null;
+}
+
+/** Equipment selection follows elemental, attunement, and bundle command gates. */
+function slotAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
   // Keep selection here so elemental, attunement, and bundle denials retain precedence.
   if (
     selectedSlotSkillAvailability(
@@ -111,12 +127,28 @@ export function elementalistCoreAvailability(
     return unavailable(skill, 'elementalist.not-equipped', 'the skill is not equipped.');
   }
 
+  return null;
+}
+
+/** Transmutes require their matching live aura. */
+function auraAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+  const state = professionCoreState(context);
   // Transmute skills consume a matching aura that must currently be active.
   const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
 
   if (aura && !activeAura(state, aura, context.time)) {
     return unavailable(skill, 'elementalist.aura-transmute', `requires an active ${aura}.`);
   }
+
+  return null;
+}
+
+/** Rock Barrier and Hurl share one live flip window and its expiry. */
+function rockBarrierAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult | null {
+  const state = professionCoreState(context);
 
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
@@ -133,6 +165,12 @@ export function elementalistCoreAvailability(
     );
   }
 
+  return null;
+}
+
+/** Spear payoffs require the stage reached by accepted casts. */
+function etchingAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+  const state = professionCoreState(context);
   // Spear etchings unlock their lesser and full payoffs by chain stage, which only
   // other casts can advance, so these denials are never retried on a timer.
   const chain = etchingChain(skill.id);
@@ -152,6 +190,12 @@ export function elementalistCoreAvailability(
     }
   }
 
+  return null;
+}
+
+/** Hammer commands respect shared lockout, active orbs, and compatible attunements. */
+function hammerAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+  const state = professionCoreState(context);
   // Hammer orbs: a short shared lockout after any orb cast (retryable) plus a flat
   // denial while that element's orb is still floating and unconsumed.
   const skillId = Number(skill.id);
@@ -201,6 +245,13 @@ export function elementalistCoreAvailability(
     }
   }
 
+  return null;
+}
+
+/** Conjures replace the weapon bar before ordinary weapon attunement checks. */
+function weaponAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+  const state = professionCoreState(context);
+
   // A conjure replaces the weapon bar, so bundle skills and normal weapon skills
   // exclude each other; otherwise the weapon skill is gated on its attunement.
   if (skill.type === 'Weapon') {
@@ -221,6 +272,16 @@ export function elementalistCoreAvailability(
     return weaponAttunementAvailable(context, skill, state);
   }
 
+  return null;
+}
+
+/** Single-element utilities require the current primary attunement. */
+function utilityAttunementAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult | null {
+  const state = professionCoreState(context);
+
   // Single-element utilities require that attunement to be the active one.
   if (skill.attunement && !String(skill.attunement).includes('+') && skill.type !== 'Profession') {
     return String(skill.attunement) === state.primaryAttunement
@@ -228,7 +289,28 @@ export function elementalistCoreAvailability(
       : unavailable(skill, 'elementalist.attuned-utility', `requires ${String(skill.attunement)} attunement.`);
   }
 
-  return ready();
+  return null;
+}
+
+/** Preserve the first matching result, including ready short circuits and retry deadlines. */
+export function elementalistCoreAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult {
+  return (
+    elementalistElementalAvailability(context, skill) ??
+    pistolAvailability(context, skill) ??
+    attunementAvailability(context, skill) ??
+    conjureCommandAvailability(context, skill) ??
+    slotAvailability(context, skill) ??
+    auraAvailability(context, skill) ??
+    rockBarrierAvailability(context, skill) ??
+    etchingAvailability(context, skill) ??
+    hammerAvailability(context, skill) ??
+    weaponAvailability(context, skill) ??
+    utilityAttunementAvailability(context, skill) ??
+    ready()
+  );
 }
 
 /** Pending damage supplies a wake, never a predicted resource or critical result. */

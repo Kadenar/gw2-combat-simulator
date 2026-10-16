@@ -5,7 +5,22 @@ import path from 'node:path';
 import test from 'node:test';
 
 const boundaries = {
-  elementalist: ['core/state.ts', 'core/traits/critical-eligibility.ts'],
+  elementalist: [
+    'core/state.ts',
+    'core/traits/critical-eligibility.ts',
+    'core/mechanics/availability.ts',
+    'core/mechanics/elementals/queries.ts',
+    'core/mechanics/elementals/attacks.ts',
+    'core/mechanics/elementals/runtime.ts',
+    'specializations/weaver/mechanics/attunements.ts',
+    'specializations/weaver/mechanics/weave-self.ts',
+    'specializations/weaver/skills/slot-skills.ts',
+    'specializations/tempest/mechanics/overloads.ts',
+    'specializations/tempest/mechanics/lightning-jolt.ts',
+    'specializations/catalyst/mechanics/resources.ts',
+    'specializations/catalyst/skills/jade-sphere.ts',
+    'specializations/catalyst/skills/augment-skills.ts'
+  ],
   engineer: [
     'core/traits/firearms/index.ts',
     'specializations/holosmith/mechanics/availability.ts',

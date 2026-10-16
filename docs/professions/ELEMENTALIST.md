@@ -46,6 +46,31 @@ Preserve these boundaries when changing behavior:
 - Evoker mechanics own familiar casts and deferred resource settlement; traits own familiar rewards, recharge policies,
   and enchantment payloads.
 
+Related behavior stays with its mechanic or skill family:
+
+- `core/mechanics/availability.ts` keeps the ordered availability coordinator and its named checks in one file.
+  Elemental commands, weapon resources, attunements, bundles, and equipment selection retain their original precedence,
+  including successful short-circuits and retry deadlines.
+- `core/mechanics/elementals/queries.ts` owns read-only selection, companion identity, generation validity, and
+  availability. `attacks.ts` keeps action interruption, impact scheduling, and effect delivery together. `runtime.ts`
+  owns summon replacement, expiry, commands, and autonomous decisions; `lifecycle.ts` exposes the actor lifetime
+  boundary to elites. Attack impacts validate both summon and action generations before emitting effects.
+- Weaver's `mechanics/attunements.ts` owns hand initialization, availability, transitions, Unravel, and primary-hand
+  refreshes. `mechanics/weave-self.ts` owns Perfect Weave availability and consumption alongside activation. Fervent
+  Stance's declaration, activation task, and dual-attack reward stay in `skills/slot-skills.ts`; hooks preserve
+  completion traits before that reward.
+- Tempest's `mechanics/overloads.ts` owns overload eligibility, attunement lockouts, Fresh Air recharge handling, and
+  extra etching credits. `mechanics/lightning-jolt.ts` owns both player emission and the replaceable elemental charge.
+  Hooks retain the order of starting, completing, and completed trait boundaries.
+- Catalyst's `mechanics/resources.ts` owns energy initialization and accepted-hit gains. `skills/jade-sphere.ts` groups
+  sphere declarations, effects, availability, deployment, and active windows. `skills/augment-skills.ts` groups augment
+  declarations, modifiers, conditional effects, and Elemental Celerity's weapon recharge resets. Hooks keep energy gains
+  before damage reactions and defer augment effect selection until commitment.
+
+Architecture tests check all Elementalist value imports for cycles, keep Core mechanics independent of elite
+implementations, and keep elemental queries independent of attack execution and lifecycle registration. Owner-loading
+checks verify that mechanic and skill modules initialize without importing hook assembly.
+
 Build and live queries share `elementalistProfession.attributeContributions`. Core skill attributes come from
 `core/skills/attributes.ts`; selected traits add their declarations. The shared evaluator starts from equipment seeds,
 uses the active balance context, and reads live attunements, boons, and stacks. Detached previews select contributions

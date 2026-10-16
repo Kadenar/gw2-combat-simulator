@@ -1,4 +1,4 @@
-import type { ElementalKind } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
+import type { ElementalKind } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Elemental impacts carry their own activation identity so elite effects follow the summon action. */
@@ -30,3 +30,6 @@ export function beforeElementalStrike(context: ElementalistRuntime, strike: Elem
 export function retireElemental(context: ElementalistRuntime, summonGeneration: number): void {
   observers.get(context)?.retire(context, summonGeneration);
 }
+
+/** Summon expiry and queued attack impacts share the actor lifetime; replacement cancels both. */
+export const ELEMENTAL_TASK_OWNER = 'elementalist.summoned-elemental';

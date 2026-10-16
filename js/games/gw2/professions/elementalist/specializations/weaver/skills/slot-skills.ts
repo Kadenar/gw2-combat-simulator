@@ -1,14 +1,27 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-/**
- * Owns Weaver stance, profession, heal, and elite skill fragments.
- * Dual-weapon fragments remain under `skills/weapons/`.
- */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import {
+  balanceNumberFromContext,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { PRIMORDIAL_STANCE_EFFECTS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  PRIMORDIAL_STANCE_EFFECTS,
+  WEAVER_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Shares stance timing while retaining independent effect arrays and stable patch selectors for each variant. */
 function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
@@ -175,3 +188,49 @@ export const weaveSelfModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) => activeBuffStacks(context, 'weave self fire', 1) > 0
   }
 ]);
+
+/** Dual attacks grant the stance reward only while its committed window remains active. */
+export function applyFerventStance(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  dualAttunements: readonly ElementalistAttunement[] | null
+): void {
+  const state = weaverState.from(context);
+  const at = cast.effectiveEnd;
+  const skill = cast.skill;
+
+  // Swift Revenge pays out per element of the dual skill that was just cast.
+  // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
+  // Dual attacks grant Might only while the stance is armed and strictly unexpired.
+  if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
+    const ferventStanceProfile = requireBalanceProfileFromContext(context, PROFILE.ferventStance);
+    const might = requireEffect(ferventStanceProfile, 'boon', 'Might');
+
+    if (might) {
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill: skill,
+            at,
+            source: 'Fervent Stance',
+            sourceId: skill.id,
+            actorType: 'player',
+            kind: String(might.boon).toLowerCase(),
+            stacks: Number(might.stacks),
+            duration: might.duration,
+            skillName: 'Fervent Stance'
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
+    }
+  }
+}
+
+/** Fervent Stance activation and its dual-attack reward share the same expiry state. */
+export const ferventStanceTasks = {
+  'elementalist.weaver.arm-fervent-stance'(runtime) {
+    weaverState.from(runtime).ferventStanceUntil =
+      runtime.time + balanceNumberFromContext(runtime, PROFILE.ferventStance, 'durationMultiplier');
+  }
+} satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;

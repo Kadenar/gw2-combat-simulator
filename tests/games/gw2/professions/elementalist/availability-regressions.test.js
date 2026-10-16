@@ -1,12 +1,14 @@
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative, runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
@@ -17,6 +19,45 @@ import { weaverState } from '#gw2/professions/elementalist/specializations/weave
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+
+// Specific weapon-state denials must survive competing bundle restrictions and preserve retry deadlines.
+test('Rock Barrier availability precedes weapon-bar restrictions and retains its expiry retry', () => {
+  const result = runElementalist([], { startAttunement: 'Fire' });
+  assert.deepEqual(result.warnings, []);
+  const runtime = observedRuntime(result);
+  const core = runtime.profession.core;
+  core.conjureEquipped = 'Fiery Greatsword';
+  const check = (id) => elementalistCoreAvailability(runtime.mechanics.queries, runtime.helpers.skillsById.get(id));
+
+  assert.equal(check(ID.HURL).code, 'elementalist.rock-barrier');
+  armSkillFlip(core.availableFlips, ID.HURL, runtime.time, runtime.time + 5);
+  const barrier = check(ID.ROCK_BARRIER);
+  assert.equal(barrier.code, 'elementalist.rock-barrier-active');
+  assert.equal(barrier.retryAt, runtime.time + 5);
+  assert.equal(check(ID.HURL).code, 'elementalist.bundle-equipped');
+});
+
+// Orb lockout is retryable; an existing orb remains a permanent denial until another command consumes it.
+test('hammer availability orders shared lockout before duplicate orbs and weapon-bar restrictions', () => {
+  const result = runElementalist([], { startAttunement: 'Fire' });
+  assert.deepEqual(result.warnings, []);
+  const runtime = observedRuntime(result);
+  const core = runtime.profession.core;
+  core.conjureEquipped = 'Fiery Greatsword';
+  core.hammerOrbLastCastAt = runtime.time;
+  core.hammerOrbs.Fire = runtime.time + 5;
+  const skill = runtime.helpers.skillsById.get(ID.FLAME_WHEEL);
+  const check = () => elementalistCoreAvailability(runtime.mechanics.queries, skill);
+
+  const lockout = check();
+  assert.equal(lockout.code, 'elementalist.hammer-orb-lockout');
+  assert.ok(lockout.retryAt > runtime.time);
+  core.hammerOrbLastCastAt = -Infinity;
+  assert.equal(check().code, 'elementalist.hammer-orb-active');
+  assert.equal(check().retryAt, null);
+  delete core.hammerOrbs.Fire;
+  assert.equal(check().code, 'elementalist.bundle-equipped');
+});
 
 test('slot selection admits authored attunement variants and follow-ups before checking their state', () => {
   // Selection equivalence never bypasses the active-attunement gate or admits an unrelated same-name skill.

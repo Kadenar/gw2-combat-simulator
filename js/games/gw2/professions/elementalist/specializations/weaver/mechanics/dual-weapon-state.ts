@@ -7,7 +7,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
  * `skills/weapons/hammer.ts`.
  */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
+import { denyCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import {
   balanceNumberFromContext,
   requireBalanceProfileFromContext,
@@ -67,12 +67,7 @@ export function weaverWeaponAttunementAvailable(
 export function weaverHammerAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
-): {
-  ready: boolean;
-  retryAt?: number | null;
-  code?: string;
-  reason?: string;
-} | null {
+): AvailabilityResult | null {
   if (skillWeapon(skill) !== 'Hammer') return null;
 
   const elements = weaverDualAttunements(skill);

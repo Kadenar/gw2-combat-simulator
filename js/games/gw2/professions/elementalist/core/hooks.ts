@@ -18,8 +18,8 @@ import {
   resolveElementalistAura
 } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
+import { elementalistElementalCompanionId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import {
-  elementalistElementalCompanionId,
   elementalistElementalTasks,
   ensureElementalistElemental
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';

@@ -4,7 +4,7 @@ import { compileRechargeRules } from '#gw2/platform/profession-definition/trigge
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
+import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { reservePistolRecharge } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { aeromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/air/index.js';

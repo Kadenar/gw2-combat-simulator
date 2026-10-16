@@ -10,7 +10,7 @@ import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-de
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { applyCatalystResolvedDamage } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { relentlessFireModifiers } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
+import { relentlessFireModifiers } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyCatalystEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';

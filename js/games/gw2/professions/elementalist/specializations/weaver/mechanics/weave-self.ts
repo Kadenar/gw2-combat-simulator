@@ -1,11 +1,9 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-/**
- * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
- * Skill fragments remain in `skills/slot-skills.ts`.
- */
+import { type AvailabilityResult, denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -15,7 +13,12 @@ import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/prof
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistRuntime,
+  ElementalistSkill,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 
@@ -138,3 +141,26 @@ export function applyWeaveSelfAttunement(
     );
   }
 }
+
+/** Tailored Victory requires the live Perfect Weave window created by Weave Self. */
+export function weaveSelfAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult {
+  // Tailored Victory is the Weave Self flipover and only exists while Perfect
+  // Weave is up.
+  if (skill.id !== ID.TAILORED_VICTORY) return { ready: true };
+
+  const state = weaverState.from(context);
+  return state.perfectWeaveUntil > context.time
+    ? { ready: true }
+    : denySkillCast(skill, 'elementalist.weaver-perfect-weave', `requires Perfect Weave.`);
+}
+
+/** Weave Self owns activation and consumption of its Perfect Weave follow-up window. */
+export const weaveSelfTasks = {
+  [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,
+  'elementalist.weaver.consume-perfect-weave'(runtime) {
+    weaverState.from(runtime).perfectWeaveUntil = 0;
+  }
+} satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;

@@ -5,7 +5,7 @@ import {
   elementalForGlyphId,
   elementalRuntimeProfile,
   selectedElementalFromSkills
-} from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
+} from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   commandDefinitionFor,
