@@ -1,6 +1,7 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
@@ -123,4 +124,47 @@ export interface MesmerPhantasmAttackTiming {
   readonly repeatDamageTicks?: Readonly<Record<string, readonly MesmerAttackTimingTick[]>>;
   readonly repeatDamageTicksByEntity?: readonly Readonly<Record<string, readonly MesmerAttackTimingTick[]>>[];
   readonly phantasmalBladeDelayAfterSpawnMs?: number;
+}
+
+/** Accepted summon snapshots are shared by lifecycle coordination, attacks, and resource conversion. */
+export interface MesmerPhantasmExecution {
+  readonly policy: MesmerPhantasmPolicy;
+  readonly delivery: EffectDelivery;
+  readonly skill: MesmerSkill;
+  // Index among co-spawned entities (e.g. Bountiful Blades spawns 2 Berserkers: 0 and 1).
+  readonly entityIndex: number;
+  // Scales coefficient down when multiple phantasms share a skill's total damage budget (Bountiful Blades: 0.66).
+  readonly damageMultiplier: number;
+  readonly summonAt: number;
+  readonly damageAt: number;
+  // When a specialization repeat policy re-summons the phantasm; equals damageAt otherwise.
+  readonly spawnAt: number;
+  // Timestamp for the optional repeat attack.
+  readonly repeatDamageAt: number;
+  // When the phantasm converts to a blade/resource. Equals spawnAt normally;
+  // equals the specialization-authored re-spawn time when repeat is active.
+  readonly conversionAt: number;
+  // When a specialization bonus strike fires; uses a post-spawn delay when supplied.
+  readonly initialBladeAt: number;
+  readonly hasRepeat: boolean;
+  // Optional specialization policy override for the generic conversion timestamp.
+  readonly resourceAtOverride: number | null;
+  readonly timing: MesmerPhantasmAttackTiming;
+  // Converts a raw post-cast millisecond offset from timing metadata into a simulation
+  // timestamp, accounting for cast duration and Phantasmal Haste speed scaling.
+  readonly endpoint: (atMs: number | undefined) => number;
+}
+
+export interface MesmerPhantasmEffectController {
+  prepare(
+    skill: MesmerSkill,
+    castStart: number,
+    summonAt: number,
+    clarityConsumed: boolean,
+    delivery?: EffectDelivery
+  ): readonly MesmerPhantasmExecution[];
+  scheduleLifecycle(executions: readonly MesmerPhantasmExecution[]): void;
+  scheduleStrike(execution: MesmerPhantasmExecution, group: MesmerStrikeEffect, castStart: number): void;
+  scheduleStatuses(execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void;
+  queueConversion(execution: MesmerPhantasmExecution, amount?: number): void;
 }

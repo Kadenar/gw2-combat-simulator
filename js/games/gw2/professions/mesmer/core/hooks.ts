@@ -8,7 +8,11 @@ import { mesmerBuffPolicies, mesmerEffectStates } from '#gw2/professions/mesmer/
 import { completeMesmerCast, mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
-import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
+import {
+  applyMesmerClarity,
+  captureMesmerClarity,
+  grantMesmerClarity
+} from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import {
   mesmerConditionApplied,
   mesmerControlAccepted,
@@ -75,36 +79,11 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       },
       // Start declarations run after cast bookkeeping and before effect selection or summon preparation.
       'mesmer.consume-clarity'(runtime, context) {
-        if (context.kind === 'cast')
-          runtime.profession.core.castDetails.get(context.cast.id)!.clarityConsumed = consumeMesmerClarity(
-            runtime,
-            context.cast.start
-          );
+        if (context.kind === 'cast') captureMesmerClarity(runtime, context.cast);
       },
       'mesmer.grant-clarity'(runtime, context) {
-        if (context.kind !== 'cast') return;
-
-        const skill = context.skill;
-        const delivery = mesmerCastDelivery(context.cast, skill);
-        // Emit only the Clarity reward while attributing it to the accepted skill's identity.
-        runtime.effects.emit({
-          ...delivery,
-          kind: 'profile',
-          profile: {
-            ...skill,
-            effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
-          },
-          at: runtime.time,
-          fullEnd: runtime.time,
-          attribution: {
-            source: 'Player',
-            sourceId: skill.id,
-            actorType: 'player',
-            skillId: skill.id,
-            skillName: skill.name
-          },
-          priority: 0
-        });
+        if (context.kind === 'cast')
+          grantMesmerClarity(runtime, context.skill, mesmerCastDelivery(context.cast, context.skill));
       },
       'mesmer.signet-reset': applyMesmerSignetReset,
       'mesmer.tracked-hit'(runtime, context) {

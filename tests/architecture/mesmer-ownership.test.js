@@ -3,8 +3,25 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import ts from 'typescript';
+import { assertIndependentProfessionOwners, professionSourceGraph } from '#tests/helpers/profession-source-graph.js';
 
 const root = path.resolve(import.meta.dirname, '../../js/games/gw2/professions/mesmer');
+
+// Attack delivery consumes prepared snapshots without constructing the lifecycle or choosing specialization policies.
+test('phantasm attacks remain independent of lifecycle and family assembly', () => {
+  assertIndependentProfessionOwners(
+    professionSourceGraph('mesmer'),
+    ['core/mechanics/illusions/phantasm-attacks.ts'],
+    /(?:^|\/)(?:hooks|module|catalog|profession|family-mechanics)\.ts$|^core\/mechanics\/illusions\/(?:phantasms|lifecycle|resources)\.ts$|^specializations\//
+  );
+});
+
+// Moving mechanic actions out of hooks must preserve acyclic loading across every specialization.
+test('all Mesmer modules have acyclic value dependencies', () => {
+  const source = professionSourceGraph('mesmer');
+  const entries = [...source.graph.keys()].map((file) => path.relative(source.root, file));
+  assertIndependentProfessionOwners(source, entries, null);
+});
 
 /** Follow value dependencies so moving a factory behind another import cannot restore a construction cycle. */
 function assertIndependentLoading(entry) {

@@ -3,7 +3,7 @@ import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js
 import type {
   MesmerPhantasmEffectController,
   MesmerPhantasmExecution
-} from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
+} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerQueueResources } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 

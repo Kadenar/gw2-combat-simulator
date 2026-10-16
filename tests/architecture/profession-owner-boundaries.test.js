@@ -73,7 +73,13 @@ const boundaries = {
     'specializations/specter/mechanics/shadow-shroud.ts'
   ],
   guardian: ['specializations/luminary/mechanics/radiant-forge.ts', 'specializations/luminary/skills/hammer-impact.ts'],
-  mesmer: ['family-resources.ts'],
+  mesmer: [
+    'family-resources.ts',
+    'core/mechanics/illusions/phantasms.ts',
+    'core/mechanics/illusions/phantasm-attacks.ts',
+    'core/mechanics/clarity.ts',
+    'specializations/troubadour/mechanics/tales.ts'
+  ],
   warrior: ['core/state.ts']
 };
 

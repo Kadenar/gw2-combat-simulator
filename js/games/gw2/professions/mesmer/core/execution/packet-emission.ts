@@ -15,7 +15,7 @@ import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timi
 import type {
   MesmerPhantasmEffectController,
   MesmerPhantasmExecution
-} from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
+} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 

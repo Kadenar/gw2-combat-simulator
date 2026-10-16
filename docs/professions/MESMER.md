@@ -25,6 +25,15 @@ Definitions own profiles, modifiers, build contributions, triggers, and recharge
 entities, resources, snapshots, and packet emission. `family-resources.ts` binds clone scheduling and resource rewards
 without creating an import cycle through `family-mechanics.ts`.
 
+Phantasm preparation, accepted trait policies, lifecycle announcements, and conversion coordination stay in
+`core/mechanics/illusions/phantasms.ts`. Its sibling `phantasm-attacks.ts` delivers strikes, conditions, controls, and
+bonus strikes from the same prepared execution record, including repeated attacks. Shared contracts live in
+`illusions/types.ts`; `illusions/resources.ts` retains simultaneous conversion batching.
+
+`core/mechanics/clarity.ts` owns Clarity consumption snapshots and reward emission alongside its applied window. Core
+hooks supply the accepted cast delivery. Troubadour's `mechanics/tales.ts` owns both the cast-start instrument
+eligibility snapshot and the commitment handlers that consume it; hooks register those actions.
+
 Preserve the explicit reaction order: Master Fencer, Sharper Images, then Fencer's Finesse on critical hits; Maim before
 Illusionary Membrane after shatters; Deadly Blades before Jagged Mind for Virtuoso. Master of Fragmentation transforms
 specialization effects before emission. Applied buffs retain their granted lifetime independently of current selection.

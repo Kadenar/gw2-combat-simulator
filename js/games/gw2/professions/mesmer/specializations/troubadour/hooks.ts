@@ -10,8 +10,7 @@ import {
   resolveCrescendo,
   scheduleTroubadourPerformance
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
-import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
-import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import { troubadourTaleActions } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
@@ -68,33 +67,7 @@ export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
         context.cast
       );
     },
-    // Capture the event-order-sensitive gate while the accepted action is still the latest history entry.
-    'mesmer.troubadour.prepare-tale'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      const required = context.skill.tale?.instrument;
-      const action = runtime.facts
-        .read()
-        .find((event) => event.type === 'action' && event.activationId === context.cast.id);
-      runtime.profession.core.castDetails.get(context.cast.id)!.taleEligible = Boolean(
-        required &&
-        activeTroubadourInstrumentsAt(
-          runtime.facts.read().filter((event) => event.type === 'mesmer.instrument'),
-          context.cast.start,
-          action
-        ).has(required)
-      );
-    },
-    'mesmer.troubadour.resolve-tale'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      resolveTroubadourTale({
-        context: runtime,
-        skill: context.skill,
-        at: runtime.time,
-        eligible: Boolean(runtime.profession.core.castDetails.get(context.cast.id)?.taleEligible)
-      });
-    }
+    ...troubadourTaleActions
   },
   tasks: {
     'mesmer.troubadour.dodge'(runtime, data) {

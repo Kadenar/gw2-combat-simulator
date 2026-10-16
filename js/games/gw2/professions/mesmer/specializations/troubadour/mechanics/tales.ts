@@ -1,3 +1,6 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -48,3 +51,34 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
 
   context.fireTrigger(troubadourTaleResolved, { skill, at });
 }
+
+/** Capture instrument eligibility at acceptance and resolve the Tale using that snapshot at commitment. */
+export const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, MesmerSkill>['sideEffectHandlers']> = {
+  // Capture the event-order-sensitive gate while the accepted action is still the latest history entry.
+  'mesmer.troubadour.prepare-tale'(runtime, context) {
+    if (context.kind !== 'cast') return;
+
+    const required = context.skill.tale?.instrument;
+    const action = runtime.facts
+      .read()
+      .find((event) => event.type === 'action' && event.activationId === context.cast.id);
+    runtime.profession.core.castDetails.get(context.cast.id)!.taleEligible = Boolean(
+      required &&
+      activeTroubadourInstrumentsAt(
+        runtime.facts.read().filter((event) => event.type === 'mesmer.instrument'),
+        context.cast.start,
+        action
+      ).has(required)
+    );
+  },
+  'mesmer.troubadour.resolve-tale'(runtime, context) {
+    if (context.kind !== 'cast') return;
+
+    resolveTroubadourTale({
+      context: runtime,
+      skill: context.skill,
+      at: runtime.time,
+      eligible: Boolean(runtime.profession.core.castDetails.get(context.cast.id)?.taleEligible)
+    });
+  }
+};
