@@ -1,0 +1,186 @@
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
+import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
+import {
+  avatarEffects,
+  eclipseAstralForceMultiplier
+} from '#gw2/professions/ranger/specializations/druid/traits/behavior.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const avatarExited = defineTriggerPoint<{ readonly at: number }>('ranger.avatar-exited', [
+  TRAIT.NATURAL_BALANCE
+]);
+
+/** Avatar changes the one resource clock and bar; expiration cannot retire a later entry. */
+function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): void {
+  const state = druidState.from(runtime);
+
+  if (state.celestialAvatarActive === active) return;
+
+  state.celestialAvatarActive = active;
+  const duration = balanceNumberFromContext(runtime, PROFILE.resources, 'duration');
+  state.celestialAvatarEndsAt = active ? canonicalTime(runtime.time + duration) : 0;
+  runtime.resourceController.refresh('astralForce');
+
+  if (active) {
+    armSkillFlip(
+      runtime.profession.core.availableFlips,
+      ID.RELEASE_CELESTIAL_AVATAR,
+      runtime.time,
+      state.celestialAvatarEndsAt
+    );
+  } else {
+    consumeSkillFlip(runtime.profession.core.availableFlips, ID.RELEASE_CELESTIAL_AVATAR);
+    const retained = exhausted
+      ? 0
+      : balanceNumberFromContext(runtime, PROFILE.resources, 'astralForceRetentionMultiplier');
+    runtime.resourceController.spend('astralForce', state.astralClock.value * (1 - retained));
+  }
+
+  runtime.fireTrigger(avatarExited, { at: runtime.time });
+
+  resetAutoattackChains(runtime);
+  const skill = runtime.helpers.skillsById.get(active ? ID.CELESTIAL_AVATAR : ID.RELEASE_CELESTIAL_AVATAR)!;
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildRangerPacket(
+      { at: runtime.time, skillId: skill.id, skillName: skill.name, weaponSet: runtime.activeWeaponSet },
+      'sigil_swap'
+    )
+  });
+  runtime.fireTrigger(weaponSwapped, { skill: skill, at: runtime.time });
+}
+
+/** Keep Avatar transitions, Astral Force, availability, and depletion on the same lifetime and resource clock. */
+export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+  resources: {
+    astralForce: {
+      kind: 'continuous',
+      state: (runtime) => druidState.from(runtime).astralClock,
+      maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
+      initial: (runtime, maximum) => (runtime as RangerRuntime).config.initialAstralForce ?? maximum,
+      recovery(runtime) {
+        const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+        const duration = balanceProfileNumber(profile, 'duration');
+        return druidState.from(runtime).celestialAvatarActive && duration > 0
+          ? -balanceProfileNumber(profile, 'maximumStacks') / duration
+          : 0;
+      },
+      nextChange(runtime) {
+        const state = druidState.from(runtime);
+        state.pendingHitTimes = state.pendingHitTimes.filter((at) => at > runtime.time);
+        return Math.min(state.naturalMenderAt, ...state.pendingHitTimes);
+      },
+      depletion: {
+        // Any live spend or rate change replaces the pending deadline; stale wakes cannot end a newer lifetime.
+        refresh(runtime) {
+          const state = druidState.from(runtime);
+          const next = state.celestialAvatarActive
+            ? canonicalTime(
+                Math.min(
+                  state.celestialAvatarEndsAt,
+                  state.astralClock.rate < 0
+                    ? runtime.time + state.astralClock.value / -state.astralClock.rate
+                    : Infinity
+                )
+              )
+            : Infinity;
+
+          if (next === state.avatarDepletionAt) return;
+
+          state.avatarDepletionAt = next;
+
+          if (Number.isFinite(next)) runtime.schedule('ranger.avatar-exit', next, next);
+        },
+        stop(runtime) {
+          druidState.from(runtime).avatarDepletionAt = Infinity;
+        }
+      }
+    }
+  },
+  prepareEvent(runtime, event) {
+    // Pending impacts provide retry boundaries, never predicted force; only landed hits grant the resource.
+    if (
+      event.type === 'damage' &&
+      event.at > runtime.time &&
+      !event.cancelled &&
+      !event.offTarget &&
+      event.actorType !== 'summon' &&
+      event.ownerActorType !== 'summon' &&
+      !event.independentSummonStrike
+    )
+      druidState.from(runtime).pendingHitTimes.push(event.at);
+
+    return event;
+  },
+  availability(runtime, skill) {
+    const state = druidState.from(runtime);
+
+    if ((skill.celestialAvatarSkill || skill.id === ID.RELEASE_CELESTIAL_AVATAR) && !state.celestialAvatarActive)
+      return deny(skill, 'ranger.avatar-inactive', 'enter Celestial Avatar first.');
+
+    if (skill.id === ID.CELESTIAL_AVATAR) {
+      if (state.celestialAvatarActive)
+        return deny(skill, 'ranger.avatar-active', 'Celestial Avatar is already active.');
+
+      if (state.astralClock.value < state.astralClock.maximum)
+        return {
+          ready: false,
+          retryAt: runtime.resourceController.readyAt('astralForce', state.astralClock.maximum),
+          code: 'ranger.astral-force',
+          reason: 'Celestial Avatar requires full astral force.'
+        };
+    }
+
+    if (state.celestialAvatarActive && skill.type === 'Weapon' && !skill.celestialAvatarSkill)
+      return deny(skill, 'ranger.avatar-weapon-bar', 'Celestial Avatar replaces weapon skills.');
+
+    return { ready: true };
+  },
+  modifyEffects: avatarEffects,
+  sideEffectHandlers: {
+    'ranger.avatar-enter'(runtime) {
+      avatar(runtime, true);
+    },
+    'ranger.avatar-release'(runtime) {
+      avatar(runtime, false);
+    }
+  },
+  tasks: {
+    'ranger.avatar-exit'(runtime, deadline) {
+      if (druidState.from(runtime).avatarDepletionAt === deadline) avatar(runtime, false, true);
+    }
+  },
+  reactions: {
+    'damage.resolved'(runtime, event) {
+      if (
+        druidState.from(runtime).celestialAvatarActive ||
+        event.actorType === 'summon' ||
+        event.ownerActorType === 'summon' ||
+        isPetStrike(event) ||
+        event.independentSummonStrike
+      )
+        return;
+
+      runtime.resourceController.grant(
+        'astralForce',
+        balanceNumberFromContext(runtime, PROFILE.resources, 'resourceGain') * eclipseAstralForceMultiplier(runtime)
+      );
+    }
+  }
+};

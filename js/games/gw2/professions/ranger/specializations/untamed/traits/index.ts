@@ -1,4 +1,3 @@
-import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
@@ -26,13 +25,16 @@ import {
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
-import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
-import { grantAmbush } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
-import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import {
+  grantAmbush,
+  untamedStrike
+} from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
+import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {

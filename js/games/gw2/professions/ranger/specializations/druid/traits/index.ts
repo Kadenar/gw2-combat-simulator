@@ -1,12 +1,11 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { rangerInitialized } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceNumberFromContext,
@@ -14,9 +13,10 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import { rangerInitialized } from '#gw2/professions/ranger/core/mechanics/combat.js';
 
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { avatarExited } from '#gw2/professions/ranger/specializations/druid/hooks.js';
+import { avatarExited } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 

@@ -1,19 +1,15 @@
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   createDiscreteResourceClock,
   createResourceClock,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
-import { type ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
 } from '#gw2/platform/profession-definition/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 export interface GaleshotState {
   cycloneBowActive: boolean;
@@ -52,25 +48,3 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
 }
 
 export const galeshotState = defineProfessionSpecializationState('Galeshot', createGaleshotState);
-
-/** Wind Force starts empty; owned cast-relative tasks grant it without passive recovery. */
-export const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
-  kind: 'continuous',
-  state: (context) => galeshotState.from(context).windForce,
-  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
-  initial: () => 0,
-  recovery: () => 0
-};
-
-/** Fixed-cadence arrows use the selected profile without profession-owned clock advancement. */
-export const galeshotArrows: ResourcePolicy<RangerRuntime> = {
-  kind: 'discrete',
-  state: (context) => galeshotState.from(context).arrows,
-  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
-  initial: (context, maximum) => context.config.initialArrows ?? maximum,
-  recovery: (context) => ({
-    interval: balanceNumberFromContext(context, PROFILE.resources, 'pulseInterval'),
-    amount: 1,
-    start: 'immediate'
-  })
-};

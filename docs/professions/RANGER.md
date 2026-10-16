@@ -5,6 +5,18 @@ Native shared-engine profession. Entry point `ranger.html`. `profession.ts` comp
 swapping and commands, weapon state, Hammer variants, shared traits, and profession resources. Each specialization owns
 its data, state, mechanics, and UI under `specializations/<name>/`.
 
+## Mechanic ownership
+
+- Druid's `specializations/druid/mechanics/celestial-avatar.ts` owns Avatar entry/release, Astral Force gains and drain,
+  retry boundaries, availability, depletion, and the transition trigger. Stale depletion work cannot retire a newer
+  Avatar lifetime.
+- Untamed's `specializations/untamed/mechanics/unleash-effects.ts` owns unleash transitions, shared recharge, ambush
+  grants and consumption, availability, and the ordered strike trigger. Hooks retain pet command routing and execution.
+- Galeshot's `specializations/galeshot/mechanics/cyclone-bow.ts` owns bow transitions, arrow and Wind Force policies,
+  delayed resource gains, Mistral activation and missile reactions, availability, and mechanic triggers. State creation
+  stays independent of active behavior; skill declarations retain their authored action boundaries. Dismissing the bow
+  preserves already scheduled Wind Force gains.
+
 ## Data
 
 - Generated identity metadata lives in `data/`; consult its header for snapshot provenance. Pet identity lives in

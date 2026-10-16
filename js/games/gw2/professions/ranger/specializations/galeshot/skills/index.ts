@@ -1,18 +1,8 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
-import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { cloudburstBlusterReset } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
 
@@ -339,43 +329,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     windForceApplyMs: 760
   }
 });
-
-/** Schedule at acceptance because authored tasks are registered too late for precommit Wind Force. */
-export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
-  const skill = cast.skill;
-
-  if (!(Number(skill.windForceGain) > 0)) return;
-
-  const at = canonicalTime(cast.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000);
-
-  if (!castWasInterrupted(cast) || at <= cast.effectiveEnd)
-    runtime.schedule('ranger.wind-force', at, Number(skill.windForceGain));
-}
-
-/** Later projectiles consume this live window through the shared Mistral observer. */
-export function activateMistral(runtime: RangerRuntime): void {
-  galeshotState.from(runtime).mistralUntil = canonicalTime(
-    runtime.time + balanceNumberFromContext(runtime, PROFILE.mistral, 'duration')
-  );
-}
-
-/** Keep bar state, dismiss-only resource clearing, chain reset, and swap notification ordered together. */
-export function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: boolean): void {
-  const state = galeshotState.from(runtime);
-  state.cycloneBowActive = active;
-
-  if (!active) runtime.resourceController.replace('windForce', 0);
-
-  resetAutoattackChains(runtime);
-  runtime.effects.emit({
-    kind: 'packet',
-    event: buildRangerPacket(
-      { at: runtime.time, skillId: skill.id, skillName: skill.name, weaponSet: runtime.activeWeaponSet },
-      'weapon_set'
-    )
-  });
-  runtime.fireTrigger(weaponSwapped, { skill: skill, at: runtime.time });
-}
 
 /** Piercing Gales reads live vulnerability in addition to the ordinary platform multiplier. */
 export const piercingGalesModifier: Gw2ModifierRule = {

@@ -1,6 +1,6 @@
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { galeshotPetStrike } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
+import { galeshotPetStrike } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';

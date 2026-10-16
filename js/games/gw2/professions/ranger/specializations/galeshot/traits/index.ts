@@ -24,15 +24,15 @@ import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/c
 import { isBeastSkill } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import {
   cycloneBowCompleted,
   galeshotCastCompleted,
   galeshotControlAccepted,
-  galeshotPetStrike
-} from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
-import { missileResolved } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+  galeshotPetStrike,
+  missileResolved
+} from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { RangerModifierContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';

@@ -46,7 +46,15 @@ const boundaries = {
     'core/traits/nature-magic/index.ts',
     'core/mechanics/combat.ts',
     'core/traits/skirmishing/index.ts',
-    'specializations/soulbeast/skills/stance-skills.ts'
+    'specializations/soulbeast/skills/stance-skills.ts',
+    'specializations/druid/mechanics/celestial-avatar.ts',
+    'specializations/druid/traits/index.ts',
+    'specializations/untamed/mechanics/unleash-effects.ts',
+    'specializations/untamed/traits/index.ts',
+    'specializations/galeshot/mechanics/cyclone-bow.ts',
+    'specializations/galeshot/state.ts',
+    'specializations/galeshot/skills/index.ts',
+    'specializations/galeshot/traits/index.ts'
   ],
   revenant: [
     'core/mechanics/resources.ts',

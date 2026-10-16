@@ -1,5 +1,5 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
+import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';

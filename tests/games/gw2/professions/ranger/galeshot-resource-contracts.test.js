@@ -1,5 +1,8 @@
-import { missileResolved } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
-import { galeshotControlAccepted } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
+import {
+  galeshotControlAccepted,
+  missileResolved,
+  scheduleWindForce
+} from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -10,7 +13,6 @@ import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { scheduleWindForce } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => galeshotState.from(observedRuntime(result));
