@@ -1770,6 +1770,36 @@ test('Herald consume skills apply their full outgoing profiles', () => {
   assert.ok(chaos.events.some((event) => event.type === 'buff' && event.kind === 'superspeed' && event.duration === 5));
 });
 
+// Potency must scale other outgoing bonuses; checking it alone cannot distinguish additive from multiplicative stacking.
+test('Reinforced Potency multiplies the outgoing bucket and counts unique active boons', () => {
+  const context = {
+    config: {
+      specialization: 'Herald',
+      selectedTraitIds: [TRAIT.REINFORCED_POTENCY, TRAIT.FEROCIOUS_AGGRESSION],
+      boons: { fury: true, might: 25 }
+    },
+    time: 5,
+    event: { actorType: 'player' },
+    runtime: {
+      boons: new Map(),
+      buffs: new Map([
+        ['burst-of-strength', [{ resolvedAudience: { includesSelf: true }, at: 1, expiresAt: 11, stacks: 1 }]]
+      ]),
+      profession: {}
+    }
+  };
+  const strike = () => revenantModifiers.modifyStrikeDamage(context, 1);
+  assert.ok(Math.abs(strike() - 1.2 * 1.02) < 1e-9);
+  // Removing the temporary consume bonus leaves Fury's additive bonus scaled by the same two unique boons.
+  context.runtime.buffs.clear();
+  assert.ok(Math.abs(strike() - 1.1 * 1.02) < 1e-9);
+  context.config.boons.might = 1;
+  assert.ok(Math.abs(strike() - 1.1 * 1.02) < 1e-9);
+  context.config.boons.might = 0;
+  assert.ok(Math.abs(strike() - 1.1 * 1.01) < 1e-9);
+  assert.equal(revenantModifiers.modifyConditionDamage(context, 1), 1.1);
+});
+
 // Cross-line duration contributions respect the effective selection used by isolated build previews.
 test('Numinous Gift augments Yearning Empowerment only while both owners are selected', () => {
   const build = createRevenantBuildDefaults();

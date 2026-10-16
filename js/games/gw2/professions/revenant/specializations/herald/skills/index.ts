@@ -92,10 +92,13 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     ],
     // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
     castTimeMs: 480,
+    // Once released, the blast keeps its pulses and cast lockout through an aftercast interruption.
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 12,
     energyCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         name: 'Elemental Blast',

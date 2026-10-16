@@ -185,14 +185,15 @@ const reinforcedPotency = defineTrait({
       id: 'revenant.reinforced-potency',
       order: 103,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'damage-additive',
-      // Count unique boons only up to the selected balance cap.
-
-      amount: (context) =>
+      operation: 'multiply',
+      // Boons add within Potency's own multiplier, which then scales the shared outgoing damage bucket.
+      factor: (context) =>
+        1 +
         Math.min(
           balanceNumberFromContext(context, TRAIT.REINFORCED_POTENCY, 'maximumBoons'),
           countActiveBoons(context)
-        ) * balanceNumberFromContext(context, TRAIT.REINFORCED_POTENCY, 'damagePerBoon'),
+        ) *
+          balanceNumberFromContext(context, TRAIT.REINFORCED_POTENCY, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
