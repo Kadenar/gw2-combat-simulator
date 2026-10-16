@@ -32,6 +32,8 @@ const boundaries = {
     'core/traits/invocation/queries.ts',
     'specializations/conduit/mechanics/affinity.ts',
     'specializations/conduit/mechanics/forms.ts',
+    'specializations/herald/mechanics/facets.ts',
+    'specializations/herald/skills/facet-of-nature.ts',
     'specializations/herald/traits/index.ts',
     'specializations/renegade/skills/warband.ts',
     'specializations/vindicator/skills/profession-skills.ts'

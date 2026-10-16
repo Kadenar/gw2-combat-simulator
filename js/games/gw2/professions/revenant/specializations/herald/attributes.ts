@@ -5,12 +5,11 @@ import {
 } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 
 /** Dragon Nature adds duration after the normal cap without changing Concentration. */
 export const heraldAttributes: Gw2AttributeContributionCalculator = (context) => {
   const core = revenantRuntimeCoreState(context);
-  const state = revenantRuntimeSpecializationState(context, 'Herald') as Partial<HeraldState>;
+  const state = revenantRuntimeSpecializationState(context, 'Herald');
 
   if (!heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, context.time)) return [];
 

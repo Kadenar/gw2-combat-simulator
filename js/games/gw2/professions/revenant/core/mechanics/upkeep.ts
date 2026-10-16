@@ -8,7 +8,7 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 

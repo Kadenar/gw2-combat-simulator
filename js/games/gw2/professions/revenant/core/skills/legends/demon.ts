@@ -6,7 +6,7 @@ import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 /** Owns Legendary Demon Stance skill fragments and its Unyielding Impact follow-up. */

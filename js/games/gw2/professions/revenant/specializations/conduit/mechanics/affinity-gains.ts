@@ -4,7 +4,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';

@@ -2,7 +2,7 @@ import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';

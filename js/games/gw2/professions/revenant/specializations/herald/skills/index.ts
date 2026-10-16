@@ -1,3 +1,4 @@
+import { HERALD_NATURE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/facet-of-nature.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 /**
@@ -8,11 +9,6 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
-// Facet of Nature has one legend-dependent consume, but every variant occupies
-// the same profession-mechanic tile as the activating facet.
-const FACET_OF_NATURE_PALETTE_TILE = 'revenant-herald-facet-of-nature';
-const TRUE_NATURE_SHARED_COOLDOWN = 20;
-
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
     // The declaration owns this activation; shared mechanics retain its live state.
@@ -21,7 +17,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.start-facet' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -41,7 +37,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.start-facet' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -58,7 +54,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ],
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
     castTimeMs: 0,
     cooldown: 15,
     energyCost: 0,
@@ -94,7 +90,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ],
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
     castTimeMs: 480,
     cooldown: 12,
     energyCost: 0,
@@ -157,7 +153,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.start-facet' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
     castTimeMs: 200,
     cooldown: 0,
     energyCost: 0,
@@ -174,7 +170,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ],
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
     castTimeMs: 0,
     cooldown: 30,
     energyCost: 0,
@@ -189,7 +185,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.start-facet' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -206,7 +202,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ],
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
     castTimeMs: 600,
     cooldown: 20,
     energyCost: 0,
@@ -240,7 +236,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ],
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
+    // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
     castTimeMs: 840,
     cooldown: 12,
     energyCost: 0,
@@ -270,7 +266,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.start-facet' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -281,138 +277,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     pulseInterval: 3,
     upkeepPulse: { kind: 'fury', duration: 3, stacks: 1 }
   },
-  [ID.FACET_OF_NATURE]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.start-facet' } }
-    ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
-    castTimeMs: 0,
-    cooldown: 0,
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 1,
-    energyCost: 0,
-    upkeepCost: 2,
-    effects: [],
-    // Herald's F2 remains available outside Glint so the active legend can select its True Nature variant.
-    facet: true,
-    pulseInterval: 3,
-    upkeepConsumeByLegendId: {
-      LegendaryAssassin: ID.TRUE_NATURE_ASSASSIN,
-      LegendaryDwarf: ID.TRUE_NATURE_DWARF,
-      LegendaryDragon: ID.TRUE_NATURE_DRAGON,
-      LegendaryCentaur: ID.TRUE_NATURE_CENTAUR,
-      LegendaryDemon: ID.TRUE_NATURE_DEMON
-    }
-  },
-  [ID.TRUE_NATURE_ASSASSIN]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
-    castTimeMs: 480,
-    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
-    energyCost: 0,
-    // Assassin's consume strikes with the currently equipped weapon's strength.
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'True Nature (assassin)',
-        actorType: 'player',
-        weaponStrengthSource: 'equipped'
-      }
-    ],
-    consume: true
-  },
-  [ID.TRUE_NATURE_DWARF]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
-    castTimeMs: 480,
-    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 4,
-        stacks: 2,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
-      }
-    ],
-    consume: true
-  },
-  [ID.TRUE_NATURE_DRAGON]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.complete-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.true-nature-dragon' } }
-    ],
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
-    castTimeMs: 480,
-    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
-    energyCost: 0,
-    effects: [
-      {
-        type: 'custom',
-        eventType: 'proc',
-        event: {
-          procType: 'boon-extension',
-          name: 'True Nature (dragon) — Boon Extension',
-          duration: 2,
-          audience: { recipients: 'party' as const, maximumRecipients: 5 }
-        }
-      }
-    ],
-    consume: true
-  },
-  [ID.TRUE_NATURE_CENTAUR]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
-    castTimeMs: 480,
-    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
-    energyCost: 0,
-    effects: [],
-    consume: true
-  },
-  [ID.TRUE_NATURE_DEMON]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
-      { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
-    ],
-    paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
-    castTimeMs: 480,
-    cooldown: TRUE_NATURE_SHARED_COOLDOWN,
-    energyCost: 0,
-    // Demon's condition transfer has no simulated effect; consuming still ends the upkeep.
-    effects: [],
-    consume: true
-  },
+  ...HERALD_NATURE_SKILL_MECHANICS,
   [ID.LEGENDARY_DRAGON_STANCE]: {
     castTimeMs: 0,
     cooldown: 0,

@@ -31,7 +31,7 @@ const professionBoundaryPattern = {
 const professionPublicEntryPatterns = [
   {
     regex:
-      '^#gw2/professions/(?!shared/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|catalog[./]|state|presentation|modules|definition)',
+      '^#gw2/professions/(?!shared/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|energy-cost\\.js$|catalog[./]|state|presentation|modules|definition)',
     message: 'Import professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
   }
 ];

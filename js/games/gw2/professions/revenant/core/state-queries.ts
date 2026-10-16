@@ -4,7 +4,12 @@ import {
   readProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import type { RevenantState } from '#gw2/professions/revenant/types.js';
+import type { RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
+
+// Derive query results from the live union so new specializations cannot drift from their owned state types.
+type SpecializationStateByKind = {
+  [Specialization in RevenantRuntimeState['specialization'] as Specialization['kind']]: Specialization['state'];
+};
 
 /** Runtime and detached previews expose the same owned state without loading modifier execution. */
 function revenantRuntimeState(context: Gw2ModifierContext): object | undefined {
@@ -15,9 +20,13 @@ export function revenantRuntimeCoreState(context: Gw2ModifierContext): Partial<R
   return readProfessionCoreState<RevenantCoreState>(revenantRuntimeState(context));
 }
 
-export function revenantRuntimeSpecializationState(
+/** Expose only the requested specialization's fields; absent or inactive state remains an empty partial. */
+export function revenantRuntimeSpecializationState<Kind extends keyof SpecializationStateByKind>(
   context: Gw2ModifierContext,
-  expectedKind: string
-): Partial<RevenantState> {
-  return readProfessionSpecializationState<RevenantState>(revenantRuntimeState(context), expectedKind) || {};
+  expectedKind: Kind
+): Partial<SpecializationStateByKind[Kind]> {
+  return (
+    readProfessionSpecializationState<SpecializationStateByKind[Kind]>(revenantRuntimeState(context), expectedKind) ||
+    {}
+  );
 }

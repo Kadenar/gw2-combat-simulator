@@ -10,7 +10,7 @@ import {
 import { HERALD_ELEVATED_COMPASSION_PROFILE_ID as COMPASSION } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';

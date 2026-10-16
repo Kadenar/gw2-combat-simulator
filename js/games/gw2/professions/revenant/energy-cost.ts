@@ -1,7 +1,6 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { applyVindicatorEnergyCostRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
 import type {
@@ -13,14 +12,6 @@ import type {
 
 // Family Energy cost composition: Core supplies the base cost and each elite specialization applies its own policy.
 // It lives at the family root because Core modules may not import specialization rules.
-
-// Family composition supplies elite declarations without making Core import specialization modules.
-export const REVENANT_ELITE_INVOCATIONS: Readonly<Record<string, { song: SkillId }>> = {
-  [LEGEND.DRAGON]: { song: ID.CALL_OF_THE_DRAGON },
-  [LEGEND.RENEGADE]: { song: ID.CALL_OF_THE_RENEGADE },
-  // This family-owned identifier must initialize without loading Vindicator's runtime behavior.
-  [LEGEND.ALLIANCE]: { song: ID.CALL_OF_THE_ALLIANCE }
-};
 
 /** Resolves the shared upkeep-aware base cost before an elite specialization applies its own policy. */
 function baseRevenantEnergyCost({ state }: RevenantEnergyCostInput, skill: RevenantSkill): number {

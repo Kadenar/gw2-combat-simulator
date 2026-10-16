@@ -324,7 +324,8 @@ module is active for an elite build. `defineNativeProfession()` composes them in
   profession.ts            native profession contract; re-exports catalog.ts
   catalog.ts               Core-first module tuple and assembled catalog
   types.ts                 shared family types; composes module state types
-  family-state.ts          optional: shared state queries (Elementalist, Mesmer, Revenant, Thief)
+  family-state.ts          optional: shared state queries (Elementalist, Mesmer, Thief)
+  energy-cost.ts           optional: Revenant family energy-cost composition
   family-presentation.ts   optional: family-level presentation (Elementalist, Necromancer)
   family-mechanics.ts      optional: Mesmer family mechanic construction
   family-resources.ts      optional: Mesmer resource construction shared by Core and elites

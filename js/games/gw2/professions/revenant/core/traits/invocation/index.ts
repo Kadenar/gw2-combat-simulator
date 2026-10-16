@@ -19,7 +19,7 @@ import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/family-state.js';
+import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/data/legends.js';
 
 /** Owns Charged Mists tuning and behavior at its established execution boundaries. */
 export const chargedMists = defineTrait({

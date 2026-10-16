@@ -6,7 +6,7 @@ import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/p
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Cost policies consume explicit inputs regardless of where the state originated.
