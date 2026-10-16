@@ -1,18 +1,25 @@
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import {
+  gw2AlliedEffectRecipients,
+  prepareGw2BuffCompanionCandidates
+} from '#gw2/platform/combat/state/allied-players.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import { jadeCannonsAttack } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { GW2_QUICKNESS_ACTION_RATE, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
@@ -306,3 +313,66 @@ export function activateOverclockSignet(context: EngineerRuntime, skill: Enginee
     }
   });
 }
+
+/** Command reservations, completion, and autonomous wakes share the mech's current lane and combat lifetime. */
+export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
+  initialize(runtime) {
+    // Preserve implicit-start admission before the autonomous mech lane starts.
+    if (!runtime.combatStartPending) runtime.fireTrigger(mechanistCombatReady, {});
+
+    initializeEngineerMech(runtime);
+  },
+  onCombatStart(runtime) {
+    // Deferred explicit combat starts the same guarded producer, never a second renewal loop.
+    if (runtime.hasExplicitCombatStart) runtime.fireTrigger(mechanistCombatReady, {});
+
+    initializeEngineerMech(runtime);
+  },
+  castDurationMs(runtime, skill, durationMs) {
+    if (!isEngineerMechCommand(skill)) return durationMs;
+
+    return engineerMechHasQuickness(runtime, runtime.time) ? summonQuicknessCastTimeMs(skill) : skill.castTimeMs || 0;
+  },
+  prepareEvent(runtime, event) {
+    return prepareEngineerMechEvent(
+      runtime,
+      prepareGw2BuffCompanionCandidates(event, mechanistState.from(runtime).mech.active ? ['engineer.mech'] : [])
+    );
+  },
+  onCastStart(runtime, cast) {
+    const mech = mechanistState.from(runtime).mech;
+
+    if (mech.active && isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
+      mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
+  },
+  sideEffectHandlers: {
+    'engineer.overclock-signet'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Overclock requires a cast trigger.');
+
+      activateOverclockSignet(runtime, context.skill);
+    }
+  },
+  onCastCommit(runtime, cast) {
+    completeEngineerMechCast(runtime, cast.skill);
+  },
+  // The mech's autonomous loop does not define the lifetime of a player skill or its reactions.
+  backgroundTasks: ['engineer.mech-attack'],
+  tasks: {
+    'engineer.mech-attack'(runtime, data) {
+      const mech = mechanistState.from(runtime).mech;
+
+      if (!autonomousActionsAllowed(runtime) || !mech.enabled || !mech.active) return;
+
+      const phase = data as MechAttackPayload;
+
+      // The autonomous attack waits until the same canonical instant as lane release.
+      if (runtime.time < canonicalTime(mech.busyUntil)) {
+        runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);
+        return;
+      }
+
+      const next = stepMechAttack(runtime, runtime.time, phase);
+      runtime.schedule('engineer.mech-attack', next.at, next.state);
+    }
+  }
+};

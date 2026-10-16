@@ -1,13 +1,16 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines Core toolbelt skill fragments and their parent-slot relationships. */
 export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MINE_FIELD]: {
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.mine-field' } }],
-    // Custom: Defers precast mines to combat start and applies detonation traits; see `core/hooks.ts`.
+    // Mine Field defers precast packets to the combat-start handler below, retaining detonation trait ordering.
 
     castTimeMs: 920,
     cooldown: 17,
@@ -117,3 +120,34 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     mechanicSlot: 5
   }
 });
+
+/** Precast mines retain activation ownership until the actual combat boundary permits detonation. */
+export function detonatePrecastMines(runtime: EngineerRuntime): void {
+  const skill = runtime.helpers.skillsById.get(ID.MINE_FIELD)!;
+  const detonation = runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!;
+  for (const activationId of runtime.profession.core.pendingMineFieldActivationIds.splice(0)) {
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: skill,
+      attribution: {
+        source: 'engineer',
+        sourceId: skill.id,
+        actorType: 'player',
+        activationId,
+        skillId: skill.id,
+        skillName: skill.name
+      }
+    });
+    notifyToolbeltActivation(runtime, detonation, activationId);
+  }
+}
+
+/** Mine Field captures pending activation identities; ordinary casts notify detonation traits immediately. */
+export const mineFieldActions: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers']> = {
+  'engineer.mine-field'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
+
+    if (runtime.combatStartPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
+    else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, context.cast.id);
+  }
+};

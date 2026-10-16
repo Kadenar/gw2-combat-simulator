@@ -22,7 +22,12 @@ const boundaries = {
     'specializations/catalyst/skills/augment-skills.ts'
   ],
   engineer: [
+    'core/mechanics/kits.ts',
+    'core/mechanics/availability.ts',
+    'core/skills/profession-skills.ts',
     'core/traits/firearms/index.ts',
+    'specializations/mechanist/mechanics/mech.ts',
+    'specializations/amalgam/mechanics/evolved-form.ts',
     'specializations/holosmith/mechanics/availability.ts',
     'specializations/holosmith/mechanics/photon-forge.ts'
   ],

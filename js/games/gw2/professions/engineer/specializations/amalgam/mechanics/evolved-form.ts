@@ -1,7 +1,11 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { activeEngineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -9,17 +13,16 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import { activeEngineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
   type AmalgamMorphKind
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** A committed Morph; its protocol kind is captured from the accepted skill. */
 export interface AmalgamMorph {
@@ -125,3 +128,59 @@ export const plasmaticStateModifiers: readonly Gw2ModifierRule[] = Object.freeze
       activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
   }
 ]);
+
+/** Schedule accepted form work beside its execution, preserving Core, retaliation, and Morph trait ordering. */
+export const evolvedFormLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
+  sideEffectHandlers: {
+    'engineer.schedule-evolve'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Evolve requires a cast trigger.');
+
+      const { cast } = context;
+      const at = cast.start + (cast.fullEnd - cast.start) * (520 / 640);
+
+      // Retain the accepted skill so each form reads the balance data from its own cast.
+      if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.evolve', at, cast, {}, undefined, -10);
+    },
+    'engineer.schedule-plasmatic'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Plasmatic State requires a cast trigger.');
+
+      const { cast } = context;
+      const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
+
+      if (!strike) return;
+
+      const at = effectFirstAt(cast.start, cast.fullEnd, strike);
+
+      if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.plasmatic-state', at, cast, {}, undefined, -10);
+    },
+    'engineer.thorns-retaliation'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Thorns requires a cast trigger.');
+
+      // Core cast traits emit first; retaliation then precedes the Morph trait tail and the next completion.
+      runtime.scheduleForCast('engineer.thorns-retaliation', runtime.time, context.cast, {}, undefined, -101);
+    }
+  },
+  onCastCommit(runtime, cast) {
+    if (cast.skill.categories?.includes('Morph'))
+      runtime.scheduleForCast('engineer.morph-traits', runtime.time, cast, {}, undefined, -101);
+  },
+  tasks: {
+    'engineer.evolve'(runtime, data) {
+      evolveAmalgam(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
+    },
+    'engineer.plasmatic-state'(runtime, data) {
+      activatePlasmaticState(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
+    },
+    'engineer.thorns-retaliation'(runtime, data) {
+      scheduleThornsRetaliation(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill, runtime.time);
+    },
+    'engineer.morph-traits'(runtime, data) {
+      const { skill } = (data as SkillTaskData<EngineerSkill>).cast;
+      runtime.fireTrigger(amalgamMorphed, {
+        skill,
+        morphKind: AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id),
+        at: runtime.time
+      });
+    }
+  }
+};

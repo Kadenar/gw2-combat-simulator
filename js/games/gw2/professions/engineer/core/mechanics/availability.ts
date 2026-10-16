@@ -1,12 +1,13 @@
-import { engineerSpearAvailability } from '#gw2/professions/engineer/core/mechanics/spear.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { engineerKitAvailability } from '#gw2/professions/engineer/core/mechanics/kits.js';
+import { engineerSpearAvailability } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
-import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */
@@ -24,31 +25,9 @@ export function engineerCoreCastAvailability(
 
   if (!spear.ready) return spear;
 
-  if (skill.kitId) {
-    if (state.activeKit !== skill.kitId) {
-      return denyEngineerCast(
-        skill,
-        'engineer.inactive-kit',
-        `equip ${context.helpers.skillsById.get(skill.kitId)?.name} first.`
-      );
-    }
-  } else if (skill.type === 'Weapon' && state.activeKit) {
-    // active kit completely replaces the weapon bar; baseline weapon skills are inaccessible
-    return denyEngineerCast(skill, 'engineer.weapon-bar-replaced', 'the active kit replaces weapon skills.');
-  }
+  const kit = engineerKitAvailability(context, skill);
 
-  if (skill.kitTransition === 'equip') {
-    if (
-      context.config.selectedSkillIds !== undefined &&
-      !selectedSkillIdSet(context.config.selectedSkillIds).has(skill.id)
-    ) {
-      return denyEngineerCast(skill, 'engineer.kit-not-equipped', 'the kit is not selected in a slot.');
-    }
-
-    if (state.activeKit === skill.id) {
-      return denyEngineerCast(skill, 'engineer.kit-active', `use Stow ${skill.name} to leave this kit.`);
-    }
-  }
+  if (!kit.ready) return kit;
 
   if (
     skill.requiresArmedFlip &&

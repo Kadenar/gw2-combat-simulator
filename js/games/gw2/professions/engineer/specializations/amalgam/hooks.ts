@@ -1,20 +1,13 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
-import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
-import {
-  activatePlasmaticState,
-  amalgamMorphed,
-  evolveAmalgam,
-  scheduleThornsRetaliation
-} from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import { evolvedFormLifecycle } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import type { EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-/** Form grants occur at their commitment timestamp; only accepted control can reduce Evolve recharge. */
+/** Register scheduled form transitions while previews, eligibility, and hit reactions retain their existing roles. */
 export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
+  ...evolvedFormLifecycle,
   /** Hold selected bonuses throughout isolated damage queries without casting Morph or Evolve. */
   prepareDamageState(runtime, _skill, inputs) {
     const state = amalgamState.from(runtime);
@@ -24,57 +17,5 @@ export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
     state.plasmaticStateUntil = inputs.plasmaticState ? Infinity : 0;
   },
   availability: amalgamCastAvailability,
-  sideEffectHandlers: {
-    'engineer.schedule-evolve'(runtime, context) {
-      if (context.kind !== 'cast') throw new TypeError('Evolve requires a cast trigger.');
-
-      const { cast } = context;
-      const at = cast.start + (cast.fullEnd - cast.start) * (520 / 640);
-
-      // Retain the accepted skill so each form reads the balance data from its own cast.
-      if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.evolve', at, cast, {}, undefined, -10);
-    },
-    'engineer.schedule-plasmatic'(runtime, context) {
-      if (context.kind !== 'cast') throw new TypeError('Plasmatic State requires a cast trigger.');
-
-      const { cast } = context;
-      const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
-
-      if (!strike) return;
-
-      const at = effectFirstAt(cast.start, cast.fullEnd, strike);
-
-      if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.plasmatic-state', at, cast, {}, undefined, -10);
-    },
-    'engineer.thorns-retaliation'(runtime, context) {
-      if (context.kind !== 'cast') throw new TypeError('Thorns requires a cast trigger.');
-
-      // Core cast traits emit first; retaliation then precedes the Morph trait tail and the next completion.
-      runtime.scheduleForCast('engineer.thorns-retaliation', runtime.time, context.cast, {}, undefined, -101);
-    }
-  },
-  onCastCommit(runtime, cast) {
-    if (cast.skill.categories?.includes('Morph'))
-      runtime.scheduleForCast('engineer.morph-traits', runtime.time, cast, {}, undefined, -101);
-  },
-  tasks: {
-    'engineer.evolve'(runtime, data) {
-      evolveAmalgam(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
-    },
-    'engineer.plasmatic-state'(runtime, data) {
-      activatePlasmaticState(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
-    },
-    'engineer.thorns-retaliation'(runtime, data) {
-      scheduleThornsRetaliation(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill, runtime.time);
-    },
-    'engineer.morph-traits'(runtime, data) {
-      const { skill } = (data as SkillTaskData<EngineerSkill>).cast;
-      runtime.fireTrigger(amalgamMorphed, {
-        skill,
-        morphKind: AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id),
-        at: runtime.time
-      });
-    }
-  },
   reactions: { 'damage.resolved': amalgamResolverEventReactions.damage }
 };

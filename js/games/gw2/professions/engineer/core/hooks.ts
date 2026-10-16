@@ -1,13 +1,19 @@
-import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
-import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+import { controlOnSkillBar } from '#gw2/platform/results/input-trace.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import { dodgeAccepted, notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
+import {
+  engineerKitActions,
+  prepareEngineerKitDamageState,
+  resolveEngineerKitSkill
+} from '#gw2/professions/engineer/core/mechanics/kits.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import {
@@ -21,30 +27,9 @@ import {
   engineerTurretTasks
 } from '#gw2/professions/engineer/core/mechanics/turrets.js';
 import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
-import { dodgeAccepted, notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { detonatePrecastMines, mineFieldActions } from '#gw2/professions/engineer/core/skills/profession-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
-
-/** Precast mines retain activation ownership until the actual combat boundary permits detonation. */
-function detonatePrecastMines(runtime: EngineerRuntime): void {
-  const skill = runtime.helpers.skillsById.get(ID.MINE_FIELD)!;
-  const detonation = runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!;
-  for (const activationId of runtime.profession.core.pendingMineFieldActivationIds.splice(0)) {
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: skill,
-      attribution: {
-        source: 'engineer',
-        sourceId: skill.id,
-        actorType: 'player',
-        activationId,
-        skillId: skill.id,
-        skillName: skill.name
-      }
-    });
-    notifyToolbeltActivation(runtime, detonation, activationId);
-  }
-}
 
 export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   // Imperative trait invocations keep explicit occurrences; declarative invocations register automatically.
@@ -87,14 +72,11 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
     }))
   ],
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-  prepareDamageState(runtime, skill, _inputs) {
-    if (skill?.kitId != null) runtime.profession.core.activeKit = skill.kitId;
-  },
+  prepareDamageState: prepareEngineerKitDamageState,
 
   buffPolicies: engineerBuffPolicies,
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,
-  // The swap input leaves a kit first; only a subsequent precombat input changes equipped sets.
   /** Toolbelt buttons follow the currently equipped heal/utility slot, including their flip skills. */
   resolveInputControl(context, skill) {
     const parent =
@@ -110,42 +92,12 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
       ? { control: `profession-${Number(slot.slice(5)) - 5}` as InputControlId }
       : { control: null, unresolvedReason: 'Toolbelt parent is not in the selected utility bar.' };
   },
-  resolveCastSkill(context, skill) {
-    const kit = context.profession.core.activeKit;
-
-    if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !kit) return skill;
-
-    const stow = context.helpers.skills.find(
-      (candidate) => candidate.kitTransition === 'stow' && candidate.kitId === kit
-    );
-
-    if (!stow) throw new Error('Active kit has no stow action.');
-
-    return stow;
-  },
+  resolveCastSkill: resolveEngineerKitSkill,
   sideEffectHandlers: {
     ...engineerSpearSideEffectHandlers,
     ...engineerTurretSideEffectHandlers,
-    'engineer.kit-transition'(runtime, context) {
-      if (context.kind !== 'cast') throw new TypeError('Kit transitions require a cast trigger.');
-
-      const { cast } = context;
-      const skill = context.skill;
-      // Persist bundle identity as the equip skill ID; labels belong to presentation.
-      runtime.profession.core.activeKit = skill.kitTransition === 'equip' ? skill.id : null;
-      buildEngineerPackets(
-        'sigil_swap',
-        { at: runtime.time, activationId: cast.id, weaponSet: runtime.activeWeaponSet },
-        skill
-      ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
-    },
-    // Mine Field owns registration; the combat boundary still releases its pending activations.
-    'engineer.mine-field'(runtime, context) {
-      if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
-
-      if (runtime.combatStartPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
-      else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, context.cast.id);
-    },
+    ...engineerKitActions,
+    ...mineFieldActions,
     // Both sword finishers declare the reward while live cooldown selection and proc reporting share one owner.
     'engineer.sword-recharge'(runtime, context, action) {
       if (action.type !== 'engineer.sword-recharge' || action.amount == null)
