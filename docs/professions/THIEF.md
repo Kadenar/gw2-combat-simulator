@@ -5,6 +5,19 @@ Native shared-engine profession. Entry point `thief.html`. `profession.ts` compo
 initiative, stealth, weapons, and traits; each specialization owns a complete vertical slice under
 `specializations/<name>/`.
 
+## Runtime ownership
+
+- `core/mechanics/availability.ts` owns the ordered availability checks for follow-ups, spear stages, preparations,
+  stealth, rifle stance, and stolen inventory. Related checks remain in one file; spear and preparation checks use their
+  existing mechanic owners.
+- `specializations/deadeye/mechanics/malice.ts` owns the resource policy, per-activation hit and critical rewards,
+  malicious-attack spending, and accepted-cast damage snapshots. Shared cast facts remain in Deadeye's state module.
+- Deadeye's `skills/deadeyes-mark.ts` owns the Mark declaration, application, expiry, and eligibility queries.
+  `skills/stolen-skills.ts` owns stolen-skill definitions and their choice pool.
+- Deadeye's `skills/malicious-attacks.ts` and `skills/slot-skills.ts` keep each family's declarations, effect
+  transforms, intrinsic modifiers, and commitment actions together. `skills/index.ts` composes their definitions, and
+  hooks register their handlers while preserving shared event order.
+
 ## Data
 
 - Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
@@ -32,7 +45,7 @@ Ordered mechanic trigger points preserve these boundaries:
 - Specter emits barrier before Dark Sentry's task and resolves Amplified Siphoning before Improvisation. Siphon's skill
   owns Shadow Force calculation; Dark Sentry owns Rot Wallow Venom delivery.
 - Antiquary preserves artifact grant order, Sun Crystal before Mistburn, and the granted lifetime of applied charges and
-  windows. Mixed strike dispatch lives in `core/mechanics/reactions.ts`.
+  windows. Shared strike dispatch remains in `core/hooks.ts` and delegates venom consumption to its mechanic owner.
 
 ## Implemented systems
 

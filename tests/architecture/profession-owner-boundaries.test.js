@@ -61,7 +61,13 @@ const boundaries = {
     'specializations/vindicator/skills/profession-skills.ts'
   ],
   thief: [
+    'core/mechanics/availability.ts',
     'core/mechanics/venoms.ts',
+    'specializations/deadeye/mechanics/malice.ts',
+    'specializations/deadeye/skills/deadeyes-mark.ts',
+    'specializations/deadeye/skills/malicious-attacks.ts',
+    'specializations/deadeye/skills/slot-skills.ts',
+    'specializations/deadeye/skills/stolen-skills.ts',
     'specializations/antiquary/mechanics/artifacts.ts',
     'specializations/antiquary/skills/artifact-actions.ts',
     'specializations/specter/mechanics/shadow-shroud.ts'

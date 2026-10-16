@@ -25,13 +25,10 @@ import {
   type DeadeyeCast,
   type DeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
-import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
+import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
+import { STOLEN_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import {
-  activeBoonCount,
-  STOLEN_SKILLS,
-  stolenSkillGrant
-} from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { activeBoonCount, stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Owns Be Quick or Be Killed tuning and behavior at the existing execution boundaries. */

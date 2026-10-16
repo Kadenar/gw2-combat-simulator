@@ -26,7 +26,7 @@ import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';

@@ -6,7 +6,7 @@ import { createThiefBuildDefaults, validateThiefBuild } from '#gw2/professions/t
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { allArtifactChoices } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 

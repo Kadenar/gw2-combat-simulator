@@ -1,20 +1,16 @@
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
+import { pruneSkillFlips } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
+import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
 import {
   grantThiefGroundAxe,
   landThiefAxe,
@@ -24,10 +20,18 @@ import {
   THIEF_AXE_LAND
 } from '#gw2/professions/thief/core/mechanics/axes.js';
 import {
-  activateTrap,
-  prepareTrap,
-  thiefTrapAvailability
-} from '#gw2/professions/thief/core/mechanics/preparations.js';
+  signetCompleted,
+  stealAccepted,
+  stealthAttackCompleted,
+  thiefCastCompleted,
+  thiefConditionApplied,
+  thiefDodgeStarted,
+  thiefStruck,
+  thiefWeaponSwapped,
+  venomsConsumed
+} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
+import { activateTrap, prepareTrap } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { setThiefKneeling, thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   expireThiefScepterChain,
@@ -38,14 +42,12 @@ import { activateAssassinsSignet } from '#gw2/professions/thief/core/mechanics/s
 import {
   ashenAssaultLifecycle,
   grantDistractingThrowWindow,
-  thiefSpearAvailability,
   unsuspectingStrikeBonus,
   updateSpearChain
 } from '#gw2/professions/thief/core/mechanics/spear.js';
 import {
   completeThiefSteal,
   consumeThiefStolenSkill,
-  storedStolenSkillChoices,
   storeThiefStolenSkillChoices,
   THIEF_STOLEN_SKILL_IDS
 } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -53,102 +55,17 @@ import {
   beginThiefStealthAttack,
   commitThiefStealth,
   reactThiefStealthBreakingStrike,
-  selectThiefStealth,
-  thiefBonusStealthAttack,
-  thiefSameInstantStealthBreak,
-  thiefStealthed
+  selectThiefStealth
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { activateVenom, applyActiveVenoms, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
-import {
-  thiefStruck,
-  venomsConsumed,
-  signetCompleted,
-  stealAccepted,
-  stealthAttackCompleted,
-  thiefCastCompleted,
-  thiefConditionApplied,
-  thiefDodgeStarted,
-  thiefWeaponSwapped
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
-import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import {
   leadAttacksRechargeReduction,
   sleightOfHandRechargeReduction
 } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-
-/**
- * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
- * stolen skills, all read from the one live state at the current instant. Shared cost declarations gate initiative.
- */
-function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
-  const core = runtime.profession.core;
-  const now = runtime.time;
-
-  if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(core.availableFlips[skill.id], now)) {
-    const parent = runtime.helpers.skillsById.get(Number(skill.flipParentId));
-    return denySkillCast(
-      skill,
-      'thief.follow-up',
-      parent?.dualWieldOpener ? 'use its opening dual-wield skill first.' : 'use its opening weapon skill first.'
-    );
-  }
-
-  const spear = thiefSpearAvailability(runtime, skill);
-
-  if (spear) return spear;
-
-  const trap = thiefTrapAvailability(runtime, skill);
-
-  if (trap) return trap;
-
-  // A closed follow-up already answered above with its opener-specific reason.
-  if (weaponFollowUpOpen(core.availableFlips, skill, now))
-    return denySkillCast(skill, 'thief.follow-up-active', 'use or wait out the active follow-up skill.');
-
-  const [mainHand] = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1);
-  const stealthed = thiefStealthed(runtime);
-  const bonusStealthAttack = thiefBonusStealthAttack(runtime);
-
-  // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
-  if (skill.stealthAttack) {
-    if (!stealthed && !bonusStealthAttack && !thiefSameInstantStealthBreak(runtime))
-      return denySkillCast(skill, 'thief.not-stealthed', 'requires stealth.');
-
-    if (skill.requiredMainHand && skill.requiredMainHand !== (mainHand || ''))
-      return denySkillCast(skill, 'thief.stealth-weapon', `requires ${skill.requiredMainHand}.`);
-  } else if (
-    (stealthed || bonusStealthAttack) &&
-    !skill.shadowShroudSkill &&
-    skill.type === 'Weapon' &&
-    skill.slot === 'Weapon_1'
-  )
-    return denySkillCast(skill, 'thief.stealth-replacement', "the active weapon's stealth attack replaces skill 1.");
-
-  if (skill.id === ID.KNEEL && core.kneeling) return denySkillCast(skill, 'thief.kneeling', 'already kneeling.');
-
-  if (skill.id === ID.FREE_ACTION && !core.kneeling) return denySkillCast(skill, 'thief.not-kneeling', 'kneel first.');
-
-  if (
-    skill.weapon === 'Rifle' &&
-    skill.id !== ID.KNEEL &&
-    skill.id !== ID.FREE_ACTION &&
-    !skill.stealthAttack &&
-    Boolean(skill.kneelSkill) !== core.kneeling
-  )
-    return denySkillCast(skill, 'thief.rifle-stance', core.kneeling ? 'use a kneeling rifle skill.' : 'kneel first.');
-
-  if (
-    skill.slot === 'Profession_2' &&
-    (skill.categories || []).includes('stolen skill') &&
-    !storedStolenSkillChoices(core).includes(skill.id)
-  )
-    return denySkillCast(skill, 'thief.stolen-skill', 'steal this skill before using it.');
-
-  return { ready: true };
-}
 
 /** Additive steal reductions retain their combined formula; ordinary multipliers use declared rules. */
 function thiefRechargeWork(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill, work: number): number {
