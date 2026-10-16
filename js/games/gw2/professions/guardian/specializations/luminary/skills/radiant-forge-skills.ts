@@ -17,6 +17,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /**
  * Owns Radiant Forge weapon fragments and supplemental reconstruction identities.
@@ -422,7 +423,7 @@ function burstEffects(
 }
 
 /** Hammer samples its entitlement at impact; blade/staff consume theirs at acceptance and deliver at impact. */
-export const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.empower-hammer'(runtime, context) {
     if (context.kind === 'cast') runtime.scheduleForCast(HAMMER, luminaryImpactAt(context.cast), context.cast);
   },
@@ -460,6 +461,11 @@ export const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, Guar
     });
   }
 };
+
+/** Registers radiant weapon actions with the Luminary hook assembly. */
+export const luminaryWeaponLifecycle = {
+  sideEffectHandlers: luminaryWeaponActions
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
 /** Intrinsic weapon multipliers run after shared additive bonuses and query live empowerment at impact. */
 export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [

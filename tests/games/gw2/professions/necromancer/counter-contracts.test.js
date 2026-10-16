@@ -3,7 +3,7 @@ import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { harbingerBlightConsumed } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/combat-boundaries.js';
+import { harbingerBlightConsumed } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 

@@ -11,7 +11,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import { necromancerConditionApplied } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import { necromancerConditionApplied } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { shroudEntering } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';

@@ -7,7 +7,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
-import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Stealth is active from its entry instant until its expiry, unless Revealed blocks it. */

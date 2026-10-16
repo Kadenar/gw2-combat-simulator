@@ -16,7 +16,12 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerRuntime,
+  NecromancerRuntimeState,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 
@@ -68,11 +73,16 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
 }
 
 /** Expire only the current Soul Shards grant so stale scheduled tasks cannot clear refreshed charges. */
-export const soulShardTasks = {
+const soulShardTasks = {
   [SHARD_EXPIRY](runtime: NecromancerRuntime) {
     expireCharges(runtime.profession.core.soulShardGrant, runtime.time);
   }
 };
+
+/** Registers soul shard tasks with the Core hook assembly. */
+export const soulShardLifecycle = {
+  tasks: soulShardTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 
 /** Siphon packets apply the same active Soul Barbs window outside ordinary strike modifiers. */
 function soulBarbsSiphonMultiplier(runtime: NecromancerRuntime): number {

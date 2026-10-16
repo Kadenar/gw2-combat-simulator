@@ -27,7 +27,7 @@ import {
   mirageCloneAmbushRequested,
   mirageInitialized,
   mirageResourcesGained
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';

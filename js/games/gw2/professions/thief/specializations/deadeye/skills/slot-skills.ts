@@ -182,7 +182,7 @@ export const deadeyeSlotModifiers: readonly Gw2ModifierRule[] = [
 ];
 
 /** Register actions beside the skills whose accepted casts select them. */
-export const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
+const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
   'thief.clear-revealed'(runtime) {
     runtime.profession.core.revealedUntil = Math.min(runtime.profession.core.revealedUntil, runtime.time);
   },
@@ -199,3 +199,8 @@ export const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, Thi
     if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
   }
 };
+
+/** Registers Deadeye slot skill actions with the Deadeye hook assembly. */
+export const deadeyeSlotLifecycle = {
+  sideEffectHandlers: deadeyeSlotActions
+} satisfies RuntimeHooks<ThiefRuntimeState, ThiefSkill>;

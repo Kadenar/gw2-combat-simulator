@@ -13,8 +13,9 @@ import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const ASHES = 'guardian.firebrand.ashes';
 
@@ -147,7 +148,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
   });
 }
 
-export const firebrandEffectTasks = {
+const firebrandEffectTasks = {
   [ASHES](runtime: GuardianRuntime, data: unknown) {
     grantFirebrandAshes(runtime, (data as { cast: RuntimeCast<GuardianSkill> }).cast);
   },
@@ -155,3 +156,8 @@ export const firebrandEffectTasks = {
     expireCharges(firebrandState.from(runtime).ashes, runtime.time);
   }
 };
+
+/** Registers scheduled Firebrand effect work with the Firebrand hook assembly. */
+export const firebrandEffectLifecycle = {
+  tasks: firebrandEffectTasks
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

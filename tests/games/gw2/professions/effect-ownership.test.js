@@ -137,7 +137,7 @@ for (const { name, family, core, elites, observations = {} } of owners) {
     test(`${name} ${specialization} installs each applicable effect owner exactly once`, () => {
       const { profession, context } = initialized(family, specialization);
       const policies = profession.buffPolicies(context).map(({ kind }) => kind);
-      const effects = profession.observeEffects(context.queries).map(({ kind }) => kind);
+      const effects = (profession.observeEffects?.(context.queries) ?? []).map(({ kind }) => kind);
       assert.equal(new Set(policies).size, policies.length);
       assert.equal(new Set(effects).size, effects.length);
       for (const kind of core) assert.ok(policies.includes(kind), kind);

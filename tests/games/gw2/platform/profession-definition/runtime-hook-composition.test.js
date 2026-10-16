@@ -73,7 +73,8 @@ test('cast detail composition retains declaration order and the last defined lab
     composeRuntimeHooks([contribution('core', 'Core'), contribution('trait', '')]).castDetail(context, cast),
     ''
   );
-  assert.equal(composeRuntimeHooks([{}]).castDetail(context, cast), undefined);
+  // Without contributors the slot is omitted, so callers observe no label.
+  assert.equal(composeRuntimeHooks([{}]).castDetail?.(context, cast), undefined);
 });
 
 // Every callback category has a distinct contract; the composer must preserve more than field presence.
@@ -143,6 +144,35 @@ test('named owners and unsupported fields fail instead of silently replacing or 
       ]).effectOwner({}, {}),
     /Conflicting effect lifetime owners/
   );
+});
+
+// Contributor count and nesting are layout choices; a callback's result must not depend on either.
+test('callbacks combine identically for one, many, and nested contributions and are omitted when absent', () => {
+  const noChange = {
+    maximumAmmo: () => undefined,
+    castDetail: () => null,
+    effectOwner: () => null,
+    availability: () => undefined,
+    onCastStart: () => 'ignored'
+  };
+  const layouts = [
+    composeRuntimeHooks([noChange]),
+    composeRuntimeHooks([noChange, {}]),
+    composeRuntimeHooks([noChange, noChange]),
+    composeRuntimeHooks([composeRuntimeHooks([noChange])]),
+    composeRuntimeHooks([composeRuntimeHooks([noChange]), composeRuntimeHooks([{}])])
+  ];
+  for (const hooks of layouts) {
+    assert.equal(hooks.maximumAmmo({}, {}, 3), 3);
+    assert.equal(hooks.castDetail({}, {}), undefined);
+    assert.equal(hooks.effectOwner({}, {}), undefined);
+    assert.deepEqual(hooks.availability({ time: 0 }, {}, {}), { ready: true });
+    assert.equal(hooks.onCastStart({}, {}), undefined);
+  }
+
+  const empty = composeRuntimeHooks([composeRuntimeHooks([{}]), {}]);
+  for (const key of ['maximumAmmo', 'castDetail', 'effectOwner', 'availability', 'onCastStart', 'prepareEvent'])
+    assert.equal(key in empty, false, key);
 });
 
 test('declarative collections survive mechanic composition before native expansion', () => {

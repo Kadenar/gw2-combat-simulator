@@ -1,5 +1,5 @@
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
+import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';

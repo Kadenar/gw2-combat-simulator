@@ -11,7 +11,7 @@ import {
 
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
-import type { StealAcceptance, StealthTransition } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import type { StealAcceptance, StealthTransition } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
   stealAccepted,
   stealthEntered,
@@ -20,7 +20,7 @@ import {
   venomsConsumed,
   type ThiefConditionApplication,
   type VenomConsumption
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';

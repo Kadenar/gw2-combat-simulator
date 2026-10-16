@@ -727,7 +727,7 @@ export function defineNativeProfession<
 
         if (cost && !cost.ready && cost.retryAt == null) return cost;
 
-        const result = composed.availability!(context, skill, command);
+        const result = composed.availability?.(context, skill, command) ?? { ready: true };
 
         if (!result.ready && result.retryAt == null) return result;
 

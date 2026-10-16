@@ -12,7 +12,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { guardianStruck, type GuardianStrike } from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
+import { guardianStruck, type GuardianStrike } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianRuntimeState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { justiceActivated, type JusticeActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';

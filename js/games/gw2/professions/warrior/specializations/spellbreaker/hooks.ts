@@ -5,7 +5,10 @@ import {
   spellbreakerBuffPolicies,
   spellbreakerEffectStates
 } from '#gw2/professions/warrior/specializations/spellbreaker/effect-state.js';
-import { spellbreakerReactions } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/combat.js';
+import {
+  spellbreakerControlAccepted,
+  spellbreakerStrike
+} from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/trigger-points.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -30,5 +33,15 @@ export const spellbreakerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> 
   buffPolicies: spellbreakerBuffPolicies,
   observeEffects: spellbreakerEffectStates,
   resources: { adrenaline: spellbreakerAdrenalinePolicy },
-  reactions: spellbreakerReactions
+  // Accepted control and strikes reach their trait boundaries before selected trait reactions.
+  reactions: {
+    // Queue No Escape from accepted player control; Insight still updates before the condition resolves.
+    'control.resolved'(runtime, event) {
+      runtime.fireTrigger(spellbreakerControlAccepted, { event });
+    },
+    // The resolver checks committed recharge before admitting each tether opportunity.
+    'damage.resolved'(runtime, event) {
+      runtime.fireTrigger(spellbreakerStrike, { event });
+    }
+  }
 };

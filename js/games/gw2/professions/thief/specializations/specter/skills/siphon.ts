@@ -8,7 +8,7 @@ import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/s
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { stealAccepted } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { stealAccepted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Siphon's force grant stays between steal traits and completion so sibling mechanics observe the same balance. */

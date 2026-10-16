@@ -4,12 +4,10 @@ import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engin
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Definitions own cast-phase flips; the deployed generation owns automatic pulses and face expiry. */
-export const engineerTurretSideEffectHandlers: RuntimeProfession<
-  EngineerRuntimeState,
-  EngineerSkill
->['sideEffectHandlers'] = {
+const engineerTurretSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers'] = {
   'engineer.retire-turret'(runtime) {
     const state = runtime.profession.core;
     runtime.cancelOwner({ id: 'engineer.turret', generation: state.healingTurretGeneration++ });
@@ -37,7 +35,7 @@ export const engineerTurretSideEffectHandlers: RuntimeProfession<
 };
 
 /** The deployed turret generation owns its pulse and flip deadlines. */
-export const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['tasks'] = {
+const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['tasks'] = {
   'engineer.turret-pulse'(runtime, data) {
     const skill = runtime.helpers.skillsById.get(ID.CLEANSING_BURST)!;
     const activationId = `${data}:cleansing-burst`;
@@ -74,3 +72,9 @@ export const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, Engine
     armSkillFlip(runtime.profession.core.availableFlips, ID.CLEANSING_BURST, runtime.time);
   }
 };
+
+/** Turret deployment actions and autonomous attacks share one owner. */
+export const engineerTurretLifecycle = {
+  sideEffectHandlers: engineerTurretSideEffectHandlers,
+  tasks: engineerTurretTasks
+} satisfies RuntimeHooks<EngineerRuntimeState, EngineerSkill>;

@@ -6,18 +6,23 @@ import { explosiveEntrance } from '#gw2/professions/engineer/core/traits/explosi
 import { ENGINEER_SKILL_IDS, ENGINEER_TRAIT_IDS as N } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mechanistCastCompleted } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
-import { guardianCastCompleted, guardianStruck } from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
+import { guardianCastCompleted, guardianStruck } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { justiceActivated } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_TRAIT_IDS as G, GUARDIAN_SKILL_IDS as GS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { MESMER_TRAIT_IDS as M, MESMER_SKILL_IDS as MS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { maliciousSwarm } from '#gw2/professions/necromancer/core/traits/spite/index.js';
 import { NECROMANCER_TRAIT_IDS as D, NECROMANCER_SKILL_IDS as DS } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { castCompleted, mergedBeastHit, petSwapped, strike } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import {
+  castCompleted,
+  mergedBeastHit,
+  petSwapped,
+  strike
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_TRAIT_IDS as R, RANGER_SKILL_IDS as RS } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { THIEF_TRAIT_IDS as T, THIEF_SKILL_IDS as TS } from '#gw2/professions/thief/data/ids.js';
@@ -35,9 +40,9 @@ const explosiveEntranceStrike = (runtime, event) =>
   }).reactions['damage.resolved'](runtime, event, {});
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { strikeResourcesGranted } from '#gw2/professions/warrior/core/mechanics/combat.js';
+import { strikeResourcesGranted } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
-import { spellbreakerStrike } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/combat.js';
+import { spellbreakerStrike } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/trigger-points.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -200,7 +205,7 @@ for (const [family, trait, id, , , specialization = 'Core'] of [
       profession: {
         ...native,
         initialize(runtime) {
-          native.initialize(runtime);
+          native.initialize?.(runtime);
           runtime.cooldownController.startRecharge(skill, 0, 20);
           runtime.procs.setDeadline('fixture-passive-trait', 20);
         }

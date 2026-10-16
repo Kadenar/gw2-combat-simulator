@@ -1,8 +1,8 @@
 import {
   necromancerStrike,
   necromancerConditionApplied
-} from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
-import { scourgeConditionApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/combat-boundaries.js';
+} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
+import { scourgeConditionApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
@@ -23,7 +23,7 @@ import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import { mesmerControlAccepted } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { mesmerControlAccepted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { NECROMANCER_TRAIT_IDS, NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';

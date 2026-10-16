@@ -4,7 +4,7 @@ import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/ex
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { facetConsumed } from '#gw2/professions/revenant/specializations/herald/mechanics/boundaries.js';
+import { facetConsumed } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';

@@ -45,16 +45,17 @@ export function engineerKitAvailability(
 }
 
 /** Isolated damage queries select the kit bar needed by the requested occurrence. */
-export const prepareEngineerKitDamageState: NonNullable<
+const prepareEngineerKitDamageState: NonNullable<
   RuntimeHooks<EngineerRuntimeState, EngineerSkill>['prepareDamageState']
 > = (runtime, skill, _inputs) => {
   if (skill?.kitId != null) runtime.profession.core.activeKit = skill.kitId;
 };
 
 /** A swap input stows the current kit before a later input can change the equipped weapon set. */
-export const resolveEngineerKitSkill: NonNullable<
-  RuntimeHooks<EngineerRuntimeState, EngineerSkill>['resolveCastSkill']
-> = (context, skill) => {
+const resolveEngineerKitSkill: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['resolveCastSkill']> = (
+  context,
+  skill
+) => {
   const kit = context.profession.core.activeKit;
 
   if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !kit) return skill;
@@ -69,19 +70,26 @@ export const resolveEngineerKitSkill: NonNullable<
 };
 
 /** Committed kit transitions update bundle identity before publishing the sigil-swap event. */
-export const engineerKitActions: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers']> =
-  {
-    'engineer.kit-transition'(runtime, context) {
-      if (context.kind !== 'cast') throw new TypeError('Kit transitions require a cast trigger.');
+const engineerKitActions: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers']> = {
+  'engineer.kit-transition'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Kit transitions require a cast trigger.');
 
-      const { cast } = context;
-      const skill = context.skill;
-      // Persist bundle identity as the equip skill ID; labels belong to presentation.
-      runtime.profession.core.activeKit = skill.kitTransition === 'equip' ? skill.id : null;
-      buildEngineerPackets(
-        'sigil_swap',
-        { at: runtime.time, activationId: cast.id, weaponSet: runtime.activeWeaponSet },
-        skill
-      ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
-    }
-  };
+    const { cast } = context;
+    const skill = context.skill;
+    // Persist bundle identity as the equip skill ID; labels belong to presentation.
+    runtime.profession.core.activeKit = skill.kitTransition === 'equip' ? skill.id : null;
+    buildEngineerPackets(
+      'sigil_swap',
+      { at: runtime.time, activationId: cast.id, weaponSet: runtime.activeWeaponSet },
+      skill
+    ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
+  }
+};
+
+/** Kit equip and stow actions, isolated kit previews, and kit skill resolution share one owner. */
+export const engineerKitLifecycle = {
+  sideEffectHandlers: engineerKitActions,
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState: prepareEngineerKitDamageState,
+  resolveCastSkill: resolveEngineerKitSkill
+} satisfies RuntimeHooks<EngineerRuntimeState, EngineerSkill>;

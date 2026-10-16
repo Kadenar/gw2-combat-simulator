@@ -1,10 +1,7 @@
-import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
-import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
-
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
@@ -75,33 +72,6 @@ export const dragonSlashCompleted = defineTriggerPoint<{
   readonly cast: RuntimeCast<WarriorSkill>;
   readonly adrenalineSpent: number;
 }>('warrior.dragon-slash-completed', [TRAIT.BERSERKERS_POWER]);
-
-/** Misses never enter this surviving-hit boundary; activation identity prevents later packets claiming again. */
-export function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolean {
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
-
-  if (!skill?.burst || event.activationId == null) return false;
-
-  if (!claimActivation(runtime.profession.core.activationClaims, 'warrior.burst-hit', event.activationId)) return false;
-
-  runtime.fireTrigger(burstFirstHit, { event, skill });
-  return true;
-}
-
-/** Derive one opportunity for every critical trait so independent proc chances share the hit fact. */
-export function resolveCriticalOpportunity(
-  runtime: WarriorRuntime,
-  event: Gw2ResolverEvent,
-  hit: Gw2HitResolutionContext,
-  firstBurst: boolean
-): void {
-  const opportunity = criticalOpportunity(
-    hit.critEligible ? hit.critical.chance : 0,
-    hit.critical.didCrit,
-    Math.max(1, event.hits ?? 1)
-  );
-  runtime.fireTrigger(critical, { event, opportunity, firstBurst });
-}
 
 /** Immobilization uses the same Arms reward without the control-only hammer reward. */
 export const immobilized = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>('warrior.immobilized', [

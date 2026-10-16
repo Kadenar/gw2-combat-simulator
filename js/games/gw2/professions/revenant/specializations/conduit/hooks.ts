@@ -23,7 +23,7 @@ import {
 import {
   entityBoonCompleted,
   entityCastCompleted
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
 import { FORM_EXPIRY } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
   cosmicWisdom,

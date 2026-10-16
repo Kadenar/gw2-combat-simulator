@@ -21,17 +21,15 @@ import {
   attunementChanged,
   attunementInvoked,
   attunementReentered,
-  type ElementalistEntry
-} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import {
   auraAccepted,
   elementalistCastCompleted,
-  elementalistConditionApplied,
   type ElementalistCastCompleted,
+  elementalistConditionApplied,
+  type ElementalistEntry,
   type ElementalistReaction
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { emitEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,

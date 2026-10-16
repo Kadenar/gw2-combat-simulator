@@ -1,6 +1,6 @@
-import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
+import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { troubadourBuffPolicies } from '#gw2/professions/mesmer/specializations/troubadour/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -10,78 +10,80 @@ import {
   resolveCrescendo,
   scheduleTroubadourPerformance
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
-import { troubadourTaleActions } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
+import { troubadourTaleLifecycle } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
-export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
-  /** Hold the selected preview state while evaluating detached damage queries. */
-  prepareDamageState(runtime, _skill, inputs) {
-    const state = troubadourState.from(runtime);
-    for (const instrument of ['Lute', 'Flute', 'Harp', 'Drum'].slice(0, Number(inputs.instruments ?? 0))) {
-      state.instruments[instrument] = Infinity;
-      runtime.observations.record({
-        type: 'mesmer.instrument',
-        at: runtime.time,
-        expiresAt: Infinity,
-        instrument,
-        source: 'Fortissimo',
-        sourceId: 'assumption.instruments',
-        actorType: 'player'
-      });
-    }
-  },
-  buffPolicies: troubadourBuffPolicies,
-  // Seed the selected pool before initialization; only earned gains trigger illusion rewards.
-  resources: {
-    notes: {
-      kind: 'continuous',
-      state: (context) => troubadourState.from(context).notes,
-      maximum: (context) => mesmerResourceDefinition('Troubadour', context).maximum,
-      initial: (context, maximum) => boundedNumber(context.config.initialResource ?? 0, 0, 0, maximum),
-      recovery: () => 0
-    }
-  },
-  initialize(runtime) {
-    // Seed selected instrument ammo before accepting casts.
-    for (const skill of runtime.helpers.skills) runtime.cooldownController.ensureAmmo(skill);
-    // Keep the completed-heal consequence queued at the same boundary without observing log text.
-  },
-  endurance: troubadourEndurance,
-  sideEffectHandlers: {
-    'mesmer.troubadour.performance-traits'(runtime, context) {
-      if (context.kind === 'cast') scheduleTroubadourPerformance(runtime, context.cast, context.skill);
+export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSkill>([
+  troubadourTaleLifecycle,
+  {
+    /** Hold the selected preview state while evaluating detached damage queries. */
+    prepareDamageState(runtime, _skill, inputs) {
+      const state = troubadourState.from(runtime);
+      for (const instrument of ['Lute', 'Flute', 'Harp', 'Drum'].slice(0, Number(inputs.instruments ?? 0))) {
+        state.instruments[instrument] = Infinity;
+        runtime.observations.record({
+          type: 'mesmer.instrument',
+          at: runtime.time,
+          expiresAt: Infinity,
+          instrument,
+          source: 'Fortissimo',
+          sourceId: 'assumption.instruments',
+          actorType: 'player'
+        });
+      }
     },
-    'mesmer.troubadour.commit-instrument'(runtime, context) {
-      if (context.kind === 'cast') completeTroubadourPerformance(runtime, context.cast, context.skill);
+    buffPolicies: troubadourBuffPolicies,
+    // Seed the selected pool before initialization; only earned gains trigger illusion rewards.
+    resources: {
+      notes: {
+        kind: 'continuous',
+        state: (context) => troubadourState.from(context).notes,
+        maximum: (context) => mesmerResourceDefinition('Troubadour', context).maximum,
+        initial: (context, maximum) => boundedNumber(context.config.initialResource ?? 0, 0, 0, maximum),
+        recovery: () => 0
+      }
     },
-    'mesmer.troubadour.schedule-crescendo'(runtime, context) {
-      if (context.kind !== 'cast' || context.cast.cancelled) return;
+    initialize(runtime) {
+      // Seed selected instrument ammo before accepting casts.
+      for (const skill of runtime.helpers.skills) runtime.cooldownController.ensureAmmo(skill);
+      // Keep the completed-heal consequence queued at the same boundary without observing log text.
+    },
+    endurance: troubadourEndurance,
+    sideEffectHandlers: {
+      'mesmer.troubadour.performance-traits'(runtime, context) {
+        if (context.kind === 'cast') scheduleTroubadourPerformance(runtime, context.cast, context.skill);
+      },
+      'mesmer.troubadour.commit-instrument'(runtime, context) {
+        if (context.kind === 'cast') completeTroubadourPerformance(runtime, context.cast, context.skill);
+      },
+      'mesmer.troubadour.schedule-crescendo'(runtime, context) {
+        if (context.kind !== 'cast' || context.cast.cancelled) return;
 
-      runtime.scheduleForCast(
-        'mesmer.crescendo',
-        context.cast.start + Number(context.skill.damageAtMs || 0) / 1000,
-        context.cast
-      );
+        runtime.scheduleForCast(
+          'mesmer.crescendo',
+          context.cast.start + Number(context.skill.damageAtMs || 0) / 1000,
+          context.cast
+        );
+      }
     },
-    ...troubadourTaleActions
-  },
-  tasks: {
-    'mesmer.troubadour.dodge'(runtime, data) {
-      runtime.fireTrigger(troubadourDodgeCompleted, data as { cast: RuntimeCast<MesmerSkill> });
+    tasks: {
+      'mesmer.troubadour.dodge'(runtime, data) {
+        runtime.fireTrigger(troubadourDodgeCompleted, data as { cast: RuntimeCast<MesmerSkill> });
+      },
+      'mesmer.crescendo'(runtime, data) {
+        const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
+        resolveCrescendo(runtime, cast, cast.skill, cast.fullEnd, mesmerCastDelivery(cast, cast.skill));
+      }
     },
-    'mesmer.crescendo'(runtime, data) {
-      const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
-      resolveCrescendo(runtime, cast, cast.skill, cast.fullEnd, mesmerCastDelivery(cast, cast.skill));
-    }
-  },
-  eventHandlers: {
-    // Executed commitments supply historical cast-start and isolated attribute queries in both output modes.
-    'mesmer.instrument': (runtime, event) => {
-      runtime.observations.record(event);
+    eventHandlers: {
+      // Executed commitments supply historical cast-start and isolated attribute queries in both output modes.
+      'mesmer.instrument': (runtime, event) => {
+        runtime.observations.record(event);
+      }
     }
   }
-};
+]);

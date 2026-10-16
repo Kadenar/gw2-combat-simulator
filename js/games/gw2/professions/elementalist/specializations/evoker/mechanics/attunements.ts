@@ -2,7 +2,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { attunementReentered } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { attunementReentered } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
   targetAttunement,
   type ElementalistAttunementTraitTrigger

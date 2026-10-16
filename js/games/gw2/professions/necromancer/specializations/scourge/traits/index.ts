@@ -24,7 +24,7 @@ import {
   scourgeConditionApplied,
   scourgeShadeCommitted,
   scourgeShadeManifested
-} from '#gw2/professions/necromancer/specializations/scourge/mechanics/combat-boundaries.js';
+} from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import {
   heraldOfSorrowAvailability,
   sandSavantMaximumAmmo

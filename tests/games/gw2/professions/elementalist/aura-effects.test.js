@@ -1,9 +1,8 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { auraAccepted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import { attunementChanged, auraAccepted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystEffectStates } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';

@@ -7,7 +7,7 @@ import {
   attunementChanged,
   attunementInvoked,
   attunementReentered
-} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';

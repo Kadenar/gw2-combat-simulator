@@ -24,7 +24,7 @@ import {
   mesmerCritical,
   mesmerEvaded,
   mesmerStrikeResolved
-} from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+} from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { cloneShatterMaterialized } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';

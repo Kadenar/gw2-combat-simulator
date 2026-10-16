@@ -15,7 +15,7 @@ import {
 import {
   mirageInitialized,
   mirageResourcesGained
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';

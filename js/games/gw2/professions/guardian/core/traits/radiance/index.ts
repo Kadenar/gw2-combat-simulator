@@ -20,7 +20,7 @@ import {
   guardianCastCompleted,
   type GuardianBuffApplication,
   type GuardianCastCompletion
-} from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
+} from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { justiceBlinding, type JusticeBlinding } from '#gw2/professions/guardian/core/mechanics/virtues.js';

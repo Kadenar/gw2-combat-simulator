@@ -30,8 +30,13 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistRuntime,
+  ElementalistSkill,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 // Actor step: picks the next autonomous attack. Prefers the secondary attack
 // (Flame Burst / Enervating Punch) whenever its cooldown is ready, else the auto.
@@ -258,7 +263,7 @@ export function ensureElementalistElemental(context: ElementalistRuntime, skill?
 }
 
 /** The summon owner registers decisions and expiry alongside the attack owner's generation-checked impacts. */
-export const elementalistElementalTasks = {
+const elementalistElementalTasks = {
   'elementalist.elemental-decision'(context: ElementalistRuntime, data: unknown): void {
     const generation = Number(data);
     const elemental = context.profession.core.summonedElemental;
@@ -297,3 +302,10 @@ export const elementalistElementalTasks = {
   },
   ...elementalistElementalAttackTasks
 };
+
+/** Physical elementals own independent attacks, expiry, and combat-entry summoning; their lifetime does not extend player skill previews. */
+export const elementalistElementalLifecycle = {
+  backgroundTasks: Object.keys(elementalistElementalTasks),
+  tasks: elementalistElementalTasks,
+  onCombatStart: ensureElementalistElemental
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

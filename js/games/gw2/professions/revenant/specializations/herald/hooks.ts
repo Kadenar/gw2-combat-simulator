@@ -2,7 +2,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { revenantFacetParents } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { heraldBuffPolicies } from '#gw2/professions/revenant/specializations/herald/effect-state.js';
-import { heraldUpkeepSettled } from '#gw2/professions/revenant/specializations/herald/mechanics/boundaries.js';
+import { heraldUpkeepSettled } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
 import {
   FACET_PULSE,
   facetPulse,

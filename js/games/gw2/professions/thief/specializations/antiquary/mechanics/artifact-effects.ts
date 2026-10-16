@@ -7,7 +7,7 @@ import {
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { antiquaryStruck } from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
+import { antiquaryStruck } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 

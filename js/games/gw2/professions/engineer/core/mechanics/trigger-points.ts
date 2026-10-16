@@ -1,7 +1,7 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** One accepted toolbelt activation; the cause is the toolbelt action that triggered skills keep as their parent. */
 export interface ToolbeltActivation {
@@ -31,29 +31,3 @@ export const dodgeAccepted = defineTriggerPoint<DodgeAcceptance>('engineer.dodge
   TRAIT.POWER_WRENCH,
   TRAIT.ADRENAL_IMPLANT
 ]);
-
-/** Detects explicit specialization toolbelt skills and ordinary parent-linked toolbelt skills. */
-export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {
-  return skill?.countsAsToolbeltSkill ?? Boolean(skill?.toolbeltParentId);
-}
-
-/** Every toolbelt entry path fires the same point at the live clock; other skills are not toolbelt activations. */
-export function notifyToolbeltActivation(runtime: EngineerRuntime, skill: EngineerSkill, activationId: string): void {
-  if (!isEngineerToolbeltSkill(skill)) return;
-
-  const at = runtime.time;
-  runtime.fireTrigger(toolbeltActivated, {
-    skill,
-    activationId,
-    at,
-    cause: {
-      type: 'action',
-      at,
-      source: 'engineer',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name
-    }
-  });
-}

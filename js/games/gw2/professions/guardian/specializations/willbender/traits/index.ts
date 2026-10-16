@@ -22,7 +22,7 @@ import {
   willbenderVirtueOpened,
   willbenderVirtueTriggered,
   type WillbenderVirtueBoundary
-} from '#gw2/professions/guardian/specializations/willbender/activations.js';
+} from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import {

@@ -26,7 +26,7 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 import {
   ammunitionCommitted,
   explosionAccepted
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/combat.js';
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/trigger-points.js';
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { gunsaberEntered } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';

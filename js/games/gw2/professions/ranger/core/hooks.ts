@@ -11,21 +11,19 @@ import {
   castCompleted,
   criticalResolved,
   dodged,
-  isBeastSkill,
   petSwapped,
   weaponSwapped
-} from '#gw2/professions/ranger/core/mechanics/combat.js';
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isRangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import {
   beginRangerPetCommand,
   prepareRangerPetEvent,
-  rangerBoonDuration,
-  rangerPetCastDurationMs,
-  rangerPetTasks,
+  rangerPetLifecycle,
   startRangerPet
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
+import { isBeastSkill } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
 import { petSwapLifecycle } from '#gw2/professions/ranger/core/skills/actions.js';
 import { armPetSharpenSpines, consumePetSharpenSpines } from '#gw2/professions/ranger/core/skills/pets/bristleback.js';
@@ -56,10 +54,8 @@ import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/ty
 
 const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   buffPolicies: rangerBuffPolicies,
-  boonDuration: rangerBoonDuration,
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
-  castDurationMs: rangerPetCastDurationMs,
   // Pet recharge belongs to the incarnation accepting the command, not whichever pet is active later.
   rechargeCompanionId: (runtime, skill) => (skill.petSkill ? rangerPetCompanionId(runtime) : undefined),
   // Pet packets and delayed field creation end with their caster; existing fields and ranger-stat packets survive.
@@ -128,10 +124,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     // Completed pet commands grant Rejuvenation and Wolfsong rewards.
     if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill, at: runtime.time });
   },
-  // Autonomous pet attacks keep running during combat but cannot prolong the player's isolated damage preview.
-  backgroundTasks: Object.keys(rangerPetTasks),
   tasks: {
-    ...rangerPetTasks,
     'ranger.stealth'(runtime, duration) {
       const state = runtime.profession.core;
 
@@ -179,6 +172,7 @@ export const rangerCoreHooks = composeRuntimeHooks<RangerRuntimeState, RangerSki
   spearLifecycle,
   axeLifecycle,
   coreLifecycle,
+  rangerPetLifecycle,
   petSwapLifecycle,
   maulLifecycle,
   stalkersStrikeLifecycle,

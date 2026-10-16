@@ -9,7 +9,7 @@ import { hematicFocus } from '#gw2/professions/engineer/core/traits/firearms/ind
 import { appliedForce } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
 import { mechStruck } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { firebrandBuffApplied } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
+import { firebrandBuffApplied } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { liberatorsVow } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';

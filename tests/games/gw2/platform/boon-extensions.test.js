@@ -16,7 +16,7 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
-import { thiefStruck } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';

@@ -7,7 +7,7 @@ import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { legendInvoked } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { legendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { clearRevenantLegendFlips, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';

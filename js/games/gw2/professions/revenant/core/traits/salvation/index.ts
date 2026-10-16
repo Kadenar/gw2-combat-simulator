@@ -6,7 +6,7 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantCastCompleted,
   type RevenantCastCompletion
-} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 

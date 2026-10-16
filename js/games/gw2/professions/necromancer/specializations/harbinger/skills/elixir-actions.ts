@@ -6,7 +6,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { publishBlight, spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
-import { harbingerElixirLaunched } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/combat-boundaries.js';
+import { harbingerElixirLaunched } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
 import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import {
   addBlight,
@@ -35,7 +35,7 @@ function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<Necromancer
 }
 
 /** Elixir acceptance queues its launch; only launch spends Blight and selects empowerment. */
-export const harbingerElixirActions = {
+const harbingerElixirActions = {
   'harbinger.elixir-launch'(runtime, context) {
     if (context.kind !== 'cast' || context.cast.cancelled) return;
 
@@ -50,7 +50,7 @@ export const harbingerElixirActions = {
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 
 /** Elixir impacts retain launch empowerment and apply their own Blight gain before emission. */
-export const harbingerElixirTasks = {
+const harbingerElixirTasks = {
   [COMMIT](runtime, data) {
     const { cast, impactAt } = data as { cast: RuntimeCast<NecromancerSkill>; impactAt: number };
     launchElixir(runtime, cast, impactAt);
@@ -86,3 +86,9 @@ export const harbingerElixirTasks = {
     });
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
+
+/** Elixir launch actions and their impact tasks share one owner. */
+export const harbingerElixirLifecycle = {
+  sideEffectHandlers: harbingerElixirActions,
+  tasks: harbingerElixirTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

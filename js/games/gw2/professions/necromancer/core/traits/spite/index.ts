@@ -19,7 +19,7 @@ import {
   necromancerStrike,
   necromancerStrikeLifeForce,
   necromancerStrikePreparing
-} from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { shroudEntered } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT, NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type {

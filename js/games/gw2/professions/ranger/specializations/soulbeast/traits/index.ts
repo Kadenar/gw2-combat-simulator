@@ -12,7 +12,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 
-import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { rangerProfileEffectRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';

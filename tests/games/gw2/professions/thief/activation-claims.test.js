@@ -1,6 +1,6 @@
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { thiefStruck } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';

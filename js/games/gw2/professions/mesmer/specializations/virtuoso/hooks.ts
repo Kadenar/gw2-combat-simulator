@@ -7,7 +7,7 @@ import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/vi
 import {
   virtuosoBladeCritical,
   virtuosoInitialized
-} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/combat-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/trigger-points.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';

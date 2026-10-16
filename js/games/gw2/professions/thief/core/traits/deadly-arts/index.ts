@@ -30,18 +30,18 @@ import type {
   ThiefConditionApplication,
   ThiefStrike,
   VenomConsumption
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
   stealAccepted,
+  stealCompleted,
+  type StealCompletion,
   thiefConditionApplied,
   thiefStruck,
   venomsConsumed
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
-
-import { stealCompleted, type StealCompletion } from '#gw2/professions/thief/core/mechanics/boundaries.js';
 
 /** Owns Dagger Training tuning and behavior at the existing execution boundaries. */
 export const daggerTraining = defineTrait({

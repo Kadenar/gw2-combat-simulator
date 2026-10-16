@@ -27,10 +27,17 @@ import {
   attunementInvoked,
   attunementReentered,
   attunementReleased,
+  conjureEquipped,
   type ElementalistAttunementChanged,
   type ElementalistAttunementCount,
-  type ElementalistEntry
-} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+  elementalistCastCompleted,
+  type ElementalistCastCompleted,
+  elementalistConditionApplied,
+  elementalistDamageResolved,
+  type ElementalistDamageResolved,
+  type ElementalistEntry,
+  type ElementalistReaction
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -38,15 +45,6 @@ import {
   elementalistMightStacks,
   primaryAttunement
 } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
-import {
-  conjureEquipped,
-  elementalistCastCompleted,
-  elementalistConditionApplied,
-  elementalistDamageResolved,
-  type ElementalistCastCompleted,
-  type ElementalistDamageResolved,
-  type ElementalistReaction
-} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
 import {
   emitFlameExpulsion,

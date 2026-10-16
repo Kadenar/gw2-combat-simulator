@@ -25,7 +25,7 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import {
   willbenderVirtueOpened,
   willbenderVirtueTriggered
-} from '#gw2/professions/guardian/specializations/willbender/activations.js';
+} from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderVirtueWindowProfile } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
@@ -121,7 +121,7 @@ function flames(runtime: GuardianRuntime, data: unknown): void {
 }
 
 /** Accepted player strikes and Air sigil procs advance each currently open virtue; no scheduler prediction is consulted. */
-export function reactToWillbenderHit(
+function reactToWillbenderHit(
   runtime: GuardianRuntime,
   event: Gw2ResolverEvent,
   details: NativeResolvedDamageDetails
@@ -216,7 +216,7 @@ const ACTIVATE = 'guardian.willbender.activate';
 const FLAMES = 'guardian.willbender.flames';
 
 /** Activation recipes preserve the window/flame boundaries and priority ahead of shared lifetime work. */
-export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
+const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
   Object.fromEntries(
     (
       [
@@ -241,7 +241,7 @@ export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, Gu
   );
 
 /** Capture virtue readiness at acceptance before the skill changes its window. */
-export function prepareWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
+function prepareWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   if (cast.cancelled) return;
 
   const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
@@ -254,7 +254,7 @@ export function prepareWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeC
 }
 
 /** Committed virtues publish shared activation rewards only for their accepted readiness. */
-export function completeWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
+function completeWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 
   if (virtue) {
@@ -269,7 +269,7 @@ export function completeWillbenderVirtue(runtime: GuardianRuntime, cast: Runtime
 }
 
 /** Keep scheduled work with the state and generation that own its lifetime. */
-export const willbenderVirtueTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
+const willbenderVirtueTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
   [ACTIVATE]: activate,
   [FLAMES]: flames,
   [PULSE](runtime, data) {
@@ -280,3 +280,12 @@ export const willbenderVirtueTasks: NonNullable<RuntimeHooks<GuardianRuntimeStat
     });
   }
 };
+
+/** Virtue readiness, activation recipes, active windows, hit counters, and flame tasks share one owner. */
+export const willbenderVirtueLifecycle = {
+  sideEffectHandlers: willbenderVirtueActions,
+  onCastStart: prepareWillbenderVirtue,
+  onCastCommit: completeWillbenderVirtue,
+  tasks: willbenderVirtueTasks,
+  reactions: { 'damage.resolved': reactToWillbenderHit }
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

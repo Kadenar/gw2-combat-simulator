@@ -170,7 +170,7 @@ function activateElementalCelerity(
 }
 
 /** Augments sample sphere windows at commitment; Elemental Celerity resets only eligible weapon recharges. */
-export const catalystAugmentActions = {
+const catalystAugmentActions = {
   'elementalist.catalyst.refresh-weapons': activateElementalCelerity,
   // A sphere can deploy during an augment's cast; select and emit its authored window only on commitment.
   'elementalist.catalyst.augment-window'(runtime, context) {
@@ -193,3 +193,8 @@ export const catalystAugmentActions = {
     });
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers']>;
+
+/** Registers augment windows and recharge resets with the Catalyst hook assembly. */
+export const catalystAugmentLifecycle = {
+  sideEffectHandlers: catalystAugmentActions
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

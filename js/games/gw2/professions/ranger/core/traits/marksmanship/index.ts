@@ -28,7 +28,7 @@ import {
   openingStrikeConsumed,
   petSwapped,
   strike
-} from '#gw2/professions/ranger/core/mechanics/combat.js';
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import {
   isPetStrike,
   isPlayerStrike,

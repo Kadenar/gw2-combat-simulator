@@ -50,7 +50,7 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
   behavior.
 - `core/traits/<line>/index.ts` and each elite's `traits/index.ts` — trait definitions, profiles, modifiers, attribute
   contributions, and triggers. Supporting helpers remain beside their definitions.
-- `core/mechanics/activations.ts` — ordered trait trigger points; mechanics retain kit/toolbelt state and recharge.
+- `core/mechanics/trigger-points.ts` — ordered trait trigger points; mechanics retain kit/toolbelt state and recharge.
 - Scrapper traits own combo rewards and Function Gyro ammo; specialization state retains the pending Stability pulse.
 - Holosmith traits own heat policies and Solar Focusing Lens rewards; mechanics own heat cadence and transitions.
 - Mechanist traits own command selection, arm procs, and attribute inheritance; mechanics own the independent mech lane

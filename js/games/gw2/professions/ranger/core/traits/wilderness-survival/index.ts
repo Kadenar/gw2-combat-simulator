@@ -1,6 +1,7 @@
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   isActivePetStrike,
+  isBeastSkill,
   isPetStrike,
   isPlayerStrike,
   petDerivedConditionMetadata
@@ -26,12 +27,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 
-import {
-  isBeastSkill,
-  castCompleted,
-  strike,
-  strikeEffectsApplied
-} from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { castCompleted, strike, strikeEffectsApplied } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';

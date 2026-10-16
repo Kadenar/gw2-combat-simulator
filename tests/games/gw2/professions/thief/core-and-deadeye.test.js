@@ -30,7 +30,7 @@ import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
+import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';

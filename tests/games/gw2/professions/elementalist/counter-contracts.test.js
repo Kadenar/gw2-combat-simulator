@@ -8,7 +8,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,

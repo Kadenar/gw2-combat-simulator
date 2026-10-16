@@ -17,7 +17,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   guardianCastCompleted,
   type GuardianCastCompletion
-} from '#gw2/professions/guardian/core/mechanics/combat-boundaries.js';
+} from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';

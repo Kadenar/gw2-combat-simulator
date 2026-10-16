@@ -1,7 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -13,7 +13,7 @@ import {
   renegadeBoonApplied,
   renegadeCastCompleted,
   renegadeStruck
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/trigger-points.js';
 import {
   activeKallasFervorStacks,
   bandTogetherReady

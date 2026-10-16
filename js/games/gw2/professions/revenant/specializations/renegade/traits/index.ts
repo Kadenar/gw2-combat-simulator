@@ -23,13 +23,13 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { invocationFervorGranted } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { invocationFervorGranted } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   renegadeBoonApplied,
   renegadeCastCompleted,
   renegadeStruck
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/trigger-points.js';
 import {
   activeKallasFervorStacks,
   bandTogetherReady,

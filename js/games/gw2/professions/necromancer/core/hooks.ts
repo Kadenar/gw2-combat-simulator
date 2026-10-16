@@ -13,10 +13,10 @@ import {
   necromancerStrike,
   necromancerStrikeLifeForce,
   necromancerStrikePreparing
-} from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import {
   completeNecromancerCorruption,
-  necromancerConditionTasks,
+  necromancerConditionLifecycle,
   resolveNecromancerSkillConditions,
   resolveNecromancerTransfer,
   resolvePlagueSignetTransfer,
@@ -28,31 +28,27 @@ import {
   enterNecromancerShroud,
   exitLich,
   exitNecromancerShroud,
-  necromancerFormTasks
+  necromancerFormLifecycle
 } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   commandNecromancerMinion,
-  necromancerMinionTasks,
-  startNecromancerMinions,
+  necromancerMinionLifecycle,
   summonNecromancerHorrors,
   summonNecromancerMinion
 } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import {
   initializeNecromancerPassives,
-  necromancerPassiveTasks
+  necromancerPassiveLifecycle
 } from '#gw2/professions/necromancer/core/mechanics/passives.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import {
   emitSoulShard,
   grantNecromancerSoulShards,
   perforate,
-  soulShardTasks
+  soulShardLifecycle
 } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
-import {
-  necromancerSwordTasks,
-  observeNecromancerAutoattackTransition
-} from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
+import { necromancerSwordLifecycle } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
@@ -207,9 +203,6 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     runtime.resourceController.refresh('lifeForce');
     initializeNecromancerPassives(runtime);
   },
-  onCombatStart(runtime) {
-    startNecromancerMinions(runtime);
-  },
   availability: necromancerAvailability,
   // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.
   // Rules scale accepted work; shroud entry and minion death still own their recharge anchors.
@@ -218,20 +211,9 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
 
   // Cast-derived attribution remains local to the declaration; balance profiles own all packets.
 
-  onAutoattackChainTransition: observeNecromancerAutoattackTransition,
   onCooldownReset(runtime) {
     runtime.resourceController.grant('lifeForce', runtime.profession.core.lifeForce.maximum);
     runtime.profession.core.selfConditions = [];
-  },
-  // Minion autos and passive resource/allied loops remain ambient while an isolated cast settles.
-  backgroundTasks: ['necromancer.minion-attack', ...Object.keys(necromancerPassiveTasks)],
-  tasks: {
-    ...necromancerSwordTasks,
-    ...soulShardTasks,
-    ...necromancerConditionTasks,
-    ...necromancerMinionTasks,
-    ...necromancerPassiveTasks,
-    ...necromancerFormTasks
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
@@ -255,8 +237,14 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   }
 };
 
-/** Compose the torch-owned impact action with the shared profession lifecycle. */
+/** Compose the shared profession lifecycle with each mechanic and skill owner's registered work. */
 export const necromancerCoreHooks = composeRuntimeHooks<NecromancerRuntimeState, NecromancerSkill>([
   coreLifecycle,
-  torchLifecycle
+  torchLifecycle,
+  necromancerSwordLifecycle,
+  soulShardLifecycle,
+  necromancerConditionLifecycle,
+  necromancerMinionLifecycle,
+  necromancerPassiveLifecycle,
+  necromancerFormLifecycle
 ]);

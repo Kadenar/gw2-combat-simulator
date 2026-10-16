@@ -31,7 +31,7 @@ import {
   dodged,
   packStrikeApplied,
   weaponSwapped
-} from '#gw2/professions/ranger/core/mechanics/combat.js';
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 
 import { activeBuff, qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { shortbowConditionDuration } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';

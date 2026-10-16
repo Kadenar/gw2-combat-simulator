@@ -27,22 +27,20 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   attunementChanged,
   attunementsCounted,
+  controlAccepted,
   type ElementalistAttunementChanged,
-  type ElementalistAttunementCount
-} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+  type ElementalistAttunementCount,
+  elementalistCastCompleted,
+  type ElementalistCastCompleted,
+  elementalistDamageResolved,
+  type ElementalistDamageResolved,
+  elementalistDodgeCompleted,
+  type ElementalistReaction
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
   elementalistAnnouncement,
   elementalistEventSkill
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import {
-  controlAccepted,
-  elementalistCastCompleted,
-  elementalistDamageResolved,
-  elementalistDodgeCompleted,
-  type ElementalistCastCompleted,
-  type ElementalistDamageResolved,
-  type ElementalistReaction
-} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
 import {

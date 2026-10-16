@@ -33,7 +33,7 @@ import {
   type FirebrandControl,
   type FirebrandStrike,
   type TomeOpening
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import {
   alliedAshes,
   attribution,

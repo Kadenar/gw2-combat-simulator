@@ -13,7 +13,7 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
-import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
@@ -52,7 +52,7 @@ const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 // Seed the off-hand element from the build (falling back to the starting
 // attunement) and, when both hands open on the same element, carry Elements of
 // Rage into the opener the way a real fully-attuned swap would.
-export function initializeWeaverAttunements(context: ElementalistRuntime): void {
+function initializeWeaverAttunements(context: ElementalistRuntime): void {
   registerElementalistEliteEvents(context, (runtime, event) => {
     onAcceptedEvent(runtime, event);
   });
@@ -67,7 +67,7 @@ export function initializeWeaverAttunements(context: ElementalistRuntime): void 
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
-export function weaverAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
+function weaverAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   const hammerAvailability = weaverHammerAvailability(context, skill);
 
   // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
@@ -168,7 +168,7 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast<
 }
 
 /** Unravel and primary-hand refreshes settle through the same dual-attunement owner. */
-export const weaverAttunementActions = {
+const weaverAttunementActions = {
   'elementalist.weaver.unravel'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Unravel requires a cast trigger.');
 
@@ -187,7 +187,7 @@ export const weaverAttunementActions = {
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers']>;
 
 /** Unravel unifies the hands after completion traits and before the next same-time cast. */
-export const weaverAttunementTasks = {
+const weaverAttunementTasks = {
   'elementalist.weaver.unravel'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
@@ -248,3 +248,11 @@ export const weaverAttunementTasks = {
     }
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
+
+/** Dual-attunement initialization, availability, transitions, and their scheduled work share one owner. */
+export const weaverAttunementLifecycle = {
+  sideEffectHandlers: weaverAttunementActions,
+  tasks: weaverAttunementTasks,
+  initialize: initializeWeaverAttunements,
+  availability: weaverAvailability
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

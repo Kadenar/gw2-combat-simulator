@@ -19,6 +19,7 @@ import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const consumedCharges = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
@@ -332,7 +333,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   }
 });
 
-export const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.spear-illumination'(runtime, context) {
     if (context.kind === 'cast') completeSpearIllumination(runtime, context.cast, false);
   },
@@ -340,3 +341,8 @@ export const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, Guard
     if (context.kind === 'cast') completeSpearIllumination(runtime, context.cast, true);
   }
 };
+
+/** Registers spear actions with the Core hook assembly. */
+export const guardianSpearLifecycle = {
+  sideEffectHandlers: guardianSpearActions
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

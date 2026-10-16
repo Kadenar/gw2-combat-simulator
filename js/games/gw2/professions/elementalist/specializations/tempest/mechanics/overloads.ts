@@ -6,10 +6,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import {
-  attunementInvoked,
-  attunementReleased
-} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { attunementInvoked, attunementReleased } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -29,7 +26,7 @@ const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_S
 
 // Gate overloads on the current attunement and on the singularity: the attunement must already be
 // the primary one and must have been held for the dwell time. Non-overload skills pass through.
-export function tempestOverloadAvailability(
+function tempestOverloadAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
 ): AvailabilityResult {
@@ -101,10 +98,7 @@ export function completeTempestOverload(
 }
 
 // Attribute every overload-sourced event to the profession mechanic rather than a held weapon.
-export function prepareTempestOverloadEvent(
-  _context: ElementalistRuntime,
-  event: SimulationEventBase
-): SimulationEventBase {
+function prepareTempestOverloadEvent(_context: ElementalistRuntime, event: SimulationEventBase): SimulationEventBase {
   return OVERLOAD_SKILL_IDS.has(Number(event.skillId ?? event.sourceId))
     ? { ...event, skillWeapon: 'Profession mechanic' }
     : event;
@@ -128,7 +122,7 @@ export function observeTempestAttunement(
 }
 
 /** Overload completion owns attunement lockouts and the additional etching credits. */
-export const tempestOverloadActions = {
+const tempestOverloadActions = {
   'elementalist.tempest.overload-lockout'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Overload lockout requires a cast trigger.');
 
@@ -153,7 +147,7 @@ export const tempestOverloadActions = {
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers']>;
 
 /** Extra overload credits follow Core credit settlement before another cast can observe the etching. */
-export const tempestOverloadTasks = {
+const tempestOverloadTasks = {
   'elementalist.tempest.etching-credits'(context) {
     const state = professionCoreState(context);
     for (const [name, progress] of Object.entries(state.etchings)) {
@@ -164,3 +158,11 @@ export const tempestOverloadTasks = {
     }
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
+
+/** Overload actions, channel work, eligibility, and event preparation share one owner. */
+export const tempestOverloadLifecycle = {
+  sideEffectHandlers: tempestOverloadActions,
+  tasks: tempestOverloadTasks,
+  availability: tempestOverloadAvailability,
+  prepareEvent: prepareTempestOverloadEvent
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

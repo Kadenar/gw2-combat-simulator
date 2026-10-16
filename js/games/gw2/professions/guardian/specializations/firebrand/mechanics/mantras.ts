@@ -9,8 +9,9 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
-import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
+import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
 const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });
@@ -81,13 +82,13 @@ export function initializeFirebrandMantras(runtime: GuardianRuntime): void {
 }
 
 /** Alacrity and explicit resets settle the real recharge maps before reprojecting visible flips and wakes. */
-export function refreshFirebrandMantras(runtime: GuardianRuntime): void {
+function refreshFirebrandMantras(runtime: GuardianRuntime): void {
   runtime.cooldownController.refresh(runtime.time);
   for (const definition of MANTRAS)
     if (Object.hasOwn(firebrandState.from(runtime).mantraRechargeReadyAt, definition.rootId)) sync(runtime, definition);
 }
 
-export function firebrandMantraWake(runtime: GuardianRuntime, rootId: unknown): void {
+function firebrandMantraWake(runtime: GuardianRuntime, rootId: unknown): void {
   if (rootId == null) {
     refreshFirebrandMantras(runtime);
     return;
@@ -133,7 +134,7 @@ export function firebrandMantraAvailability(runtime: MechanicQueriesOf<GuardianR
 }
 
 /** Declarations choose the phase; shared charge pools and generation wakes retain one controller. */
-export const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
+const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
   Object.fromEntries(
     MANTRAS.flatMap((definition) => [
       [
@@ -161,3 +162,10 @@ export const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, Gua
       ]
     ])
   );
+
+/** Mantra actions, the charge wake that reprojects them, and cooldown-reset refreshes share one owner. */
+export const firebrandMantraLifecycle = {
+  sideEffectHandlers: firebrandMantraActions,
+  tasks: { [FIREBRAND_MANTRA_WAKE]: firebrandMantraWake },
+  onCooldownReset: refreshFirebrandMantras
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

@@ -528,9 +528,14 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, mal
 }
 
 /** Register actions beside the skills whose accepted casts select them. */
-export const maliciousAttackActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
+const maliciousAttackActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
   'thief.sneak-torment'(runtime, context) {
     if (context.kind === 'cast')
       maliceTorment(runtime, context.cast, deadeyeCastFacts.get(context.cast)?.markedMalice ?? 0);
   }
 };
+
+/** Registers malicious attack actions with the Deadeye hook assembly. */
+export const maliciousAttackLifecycle = {
+  sideEffectHandlers: maliciousAttackActions
+} satisfies RuntimeHooks<ThiefRuntimeState, ThiefSkill>;

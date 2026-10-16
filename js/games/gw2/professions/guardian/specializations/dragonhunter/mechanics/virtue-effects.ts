@@ -23,7 +23,7 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { indomitableCourageInterval } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { dragonhunterCastCompleted } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/activations.js';
+import { dragonhunterCastCompleted } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/trigger-points.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import { bigGameHunterTetherDuration } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';

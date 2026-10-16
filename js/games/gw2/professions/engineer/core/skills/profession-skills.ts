@@ -1,5 +1,5 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -122,7 +122,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
 });
 
 /** Precast mines retain activation ownership until the actual combat boundary permits detonation. */
-export function detonatePrecastMines(runtime: EngineerRuntime): void {
+function detonatePrecastMines(runtime: EngineerRuntime): void {
   const skill = runtime.helpers.skillsById.get(ID.MINE_FIELD)!;
   const detonation = runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!;
   for (const activationId of runtime.profession.core.pendingMineFieldActivationIds.splice(0)) {
@@ -143,7 +143,7 @@ export function detonatePrecastMines(runtime: EngineerRuntime): void {
 }
 
 /** Mine Field captures pending activation identities; ordinary casts notify detonation traits immediately. */
-export const mineFieldActions: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers']> = {
+const mineFieldActions: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers']> = {
   'engineer.mine-field'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
 
@@ -151,3 +151,9 @@ export const mineFieldActions: NonNullable<RuntimeHooks<EngineerRuntimeState, En
     else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, context.cast.id);
   }
 };
+
+/** Mine Field activations register here and detonate once at combat entry. */
+export const mineFieldLifecycle = {
+  sideEffectHandlers: mineFieldActions,
+  onCombatStart: detonatePrecastMines
+} satisfies RuntimeHooks<EngineerRuntimeState, EngineerSkill>;

@@ -6,7 +6,7 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import {
   harbingerBlightConsumed,
   harbingerShroudEntered
-} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/combat-boundaries.js';
+} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
 import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import {
   addBlight,
@@ -71,7 +71,7 @@ export function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<Necro
 }
 
 /** Every shroud exit stops Blight accrual, including automatic life-force depletion. */
-export function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
+function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
   registerNecromancerShroudLifecycle(runtime, 'harbinger.shroud', {
     onEnter(skill) {
       if (skill.shroudEntry !== 'harbinger') return;
@@ -89,7 +89,7 @@ export function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
 }
 
 /** Accrual and expiry share one replaceable wake so spending observes settled Blight. */
-export const harbingerBlightTasks = {
+const harbingerBlightTasks = {
   [BLIGHT](runtime) {
     const state = harbingerState.from(runtime);
     purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime));
@@ -109,3 +109,9 @@ export const harbingerBlightTasks = {
     publishBlight(runtime);
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
+
+/** Blight initialization and expiry share one owner. */
+export const harbingerBlightLifecycle = {
+  tasks: harbingerBlightTasks,
+  initialize: initializeHarbingerBlight
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

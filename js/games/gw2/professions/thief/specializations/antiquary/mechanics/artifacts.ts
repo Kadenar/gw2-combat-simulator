@@ -8,7 +8,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { improvisationArtifactUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
-import { artifactsPilfered } from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
+import { artifactsPilfered } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_ARTIFACT_IDS,
@@ -18,7 +18,7 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import { stealAccepted, stealCompleted } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { stealAccepted, stealCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 
 /** The slot each accepted artifact cast spent, which selects its Possessive Hoarder family boon. */
 export const artifactSlotsUsed = new WeakMap<RuntimeCast<ThiefSkill>, ThiefArtifactSlot | undefined>();

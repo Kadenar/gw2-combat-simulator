@@ -4,7 +4,7 @@ import { skillTaskAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTask } from '#gw2/platform/skills/types.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerEvaded } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { mesmerEvaded } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -17,7 +17,7 @@ import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/m
 import {
   mirageCastCommitted,
   mirageInitialized
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 

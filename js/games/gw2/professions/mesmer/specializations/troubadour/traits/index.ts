@@ -43,7 +43,7 @@ import {
   troubadourInstrumentControl,
   troubadourInstrumentStrike,
   troubadourTaleResolved
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Harmonize owns its existing profile and ordered performance consequences. */

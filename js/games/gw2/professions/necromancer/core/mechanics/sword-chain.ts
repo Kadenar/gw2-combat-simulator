@@ -9,15 +9,20 @@ import {
 } from '#gw2/platform/execution/autoattack-chains.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-import type { NecromancerSkill, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerSkill,
+  NecromancerRuntime,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const SWORD_AUTOATTACK_EXPIRY_OWNER = 'necromancer.sword-autoattack-chain';
 const SWORD_AUTOATTACK_EXPIRY_TASK = 'necromancer.sword-autoattack-chain-expire';
 const SWORD_AUTOATTACK_RETENTION_SECONDS = 3;
 
 /** A committed live sword transition replaces its expiry; preserving another cast never extends the deadline. */
-export function observeNecromancerAutoattackTransition(
+function observeNecromancerAutoattackTransition(
   runtime: NecromancerRuntime,
   _cast: RuntimeCast<NecromancerSkill>,
   result: AutoattackChainTransitionResult
@@ -40,8 +45,14 @@ export function observeNecromancerAutoattackTransition(
     );
 }
 
-export const necromancerSwordTasks = {
+const necromancerSwordTasks = {
   [SWORD_AUTOATTACK_EXPIRY_TASK](runtime: NecromancerRuntime) {
     resetAutoattackChains(runtime, [ID.ENERVATION_BLADE]);
   }
 };
+
+/** Sword chain tasks and autoattack chain transitions share one owner. */
+export const necromancerSwordLifecycle = {
+  tasks: necromancerSwordTasks,
+  onAutoattackChainTransition: observeNecromancerAutoattackTransition
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

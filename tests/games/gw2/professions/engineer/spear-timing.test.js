@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { engineerSpearSideEffectHandlers } from '#gw2/professions/engineer/core/mechanics/spear.js';
+import { engineerSpearLifecycle } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
@@ -135,7 +135,7 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
           fullEnd: 0,
           effectiveEnd: 0
         };
-        applySkillSideEffects(runtime, cast, 'castCommit', engineerSpearSideEffectHandlers);
+        applySkillSideEffects(runtime, cast, 'castCommit', engineerSpearLifecycle.sideEffectHandlers);
         runtime.schedule('test.replace-rod', 0.2, cast);
       },
       extend(native) {
@@ -153,7 +153,7 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
                   effectiveEnd: runtime.time
                 },
                 'castCommit',
-                engineerSpearSideEffectHandlers
+                engineerSpearLifecycle.sideEffectHandlers
               );
             }
           }

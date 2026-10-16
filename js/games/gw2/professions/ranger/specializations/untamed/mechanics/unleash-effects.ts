@@ -76,7 +76,7 @@ function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerU
 }
 
 /** Both unleash transitions and ambush consumption share the availability and grant owner. */
-export const unleashActions: NonNullable<RuntimeHooks<RangerRuntimeState, RangerSkill>['sideEffectHandlers']> = {
+const unleashActions: NonNullable<RuntimeHooks<RangerRuntimeState, RangerSkill>['sideEffectHandlers']> = {
   'ranger.ambush-consume'(runtime) {
     untamedState.from(runtime).ambushReadyUntil = 0;
   },
@@ -89,7 +89,7 @@ export const unleashActions: NonNullable<RuntimeHooks<RangerRuntimeState, Ranger
 };
 
 /** Accepted player and pet strikes notify the ordered trait listeners once through the unleash owner. */
-export function reactToUntamedStrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
+function reactToUntamedStrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if (
     // Only hitting strikes (coefficient > 0) advance trait state; misses and barrier hits are excluded.
     !(Number(event.coefficient) > 0) ||
@@ -100,3 +100,10 @@ export function reactToUntamedStrike(context: RangerRuntime, event: Gw2ResolverE
 
   context.fireTrigger(untamedStrike, { event });
 }
+
+/** Unleash transitions, ambush availability, and the ordered strike trigger share one owner. */
+export const untamedUnleashLifecycle = {
+  availability: untamedCastAvailability,
+  sideEffectHandlers: unleashActions,
+  reactions: { 'damage.resolved': reactToUntamedStrike }
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;

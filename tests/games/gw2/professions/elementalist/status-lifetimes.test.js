@@ -5,7 +5,7 @@ import test from 'node:test';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
-import { elementalistRockBarrierTasks } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
+import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import {
   completeElementalistGlyphCast,
@@ -33,7 +33,7 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
     hurl = elementalistCatalog.skillsById.get(ID.HURL);
   const result = runElementalist([{ type: 'wait', durationMs: 72000 }], config, {
     timeline: [
-      { at: 0.301, run: elementalistRockBarrierTasks['elementalist.core.open-rock-barrier'] },
+      { at: 0.301, run: elementalistRockBarrierLifecycle.tasks['elementalist.core.open-rock-barrier'] },
       ...[30.300999, 30.301, 30.301001].map((at) => ({
         at,
         run: (r) => {
@@ -43,8 +43,8 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
         }
       })),
       { at: 40, run: (r) => assert.equal(r.cooldownController.readyAt(root.id), 36.701) },
-      { at: 41, run: elementalistRockBarrierTasks['elementalist.core.open-rock-barrier'] },
-      { at: 42, run: elementalistRockBarrierTasks['elementalist.core.release-rock-barrier'] }
+      { at: 41, run: elementalistRockBarrierLifecycle.tasks['elementalist.core.open-rock-barrier'] },
+      { at: 42, run: elementalistRockBarrierLifecycle.tasks['elementalist.core.release-rock-barrier'] }
     ]
   });
   assert.equal(observedRuntime(result).cooldownController.readyAt(root.id), 48.4);

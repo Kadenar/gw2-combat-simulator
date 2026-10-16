@@ -28,7 +28,7 @@ import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary
 import {
   artifactActivated,
   artifactCompleted
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import {
   artifactWindow,
   forgedSurferProfile,

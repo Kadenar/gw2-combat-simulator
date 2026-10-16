@@ -25,13 +25,13 @@ import {
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
-import type { StealthAttackCompletion } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import type { StealthAttackCompletion } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
   signetCompleted,
   stealthAttackCompleted,
   thiefStruck,
   type ThiefStrike
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';

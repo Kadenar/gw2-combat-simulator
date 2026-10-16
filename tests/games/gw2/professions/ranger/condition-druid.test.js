@@ -4,7 +4,7 @@ import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
-import { criticalResolved } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { criticalResolved } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';

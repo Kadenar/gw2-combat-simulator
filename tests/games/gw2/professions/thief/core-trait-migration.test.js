@@ -14,7 +14,7 @@ import { reactThiefCoreDamage } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { thiefConditionApplied, thiefStruck } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { thiefConditionApplied, thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';

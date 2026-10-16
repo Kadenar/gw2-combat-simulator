@@ -28,6 +28,7 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
@@ -103,10 +104,7 @@ export function weaverHammerAvailability(
 }
 
 /** Payload declarations run before this shared all-matching-bullets settlement. */
-export const weaverPistolSideEffects: RuntimeProfession<
-  ElementalistRuntimeState,
-  ElementalistSkill
->['sideEffectHandlers'] = {
+const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers'] = {
   'elementalist.weaver.pistol.settle'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol settlement requires a cast trigger.');
 
@@ -280,3 +278,8 @@ export const weaverPistolSideEffects: RuntimeProfession<
     );
   }
 };
+
+/** Registers dual-attunement pistol bullet actions with the Weaver hook assembly. */
+export const weaverPistolLifecycle = {
+  sideEffectHandlers: weaverPistolSideEffects
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

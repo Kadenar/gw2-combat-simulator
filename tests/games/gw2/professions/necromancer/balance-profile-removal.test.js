@@ -1,5 +1,5 @@
 import { baseAttributeInputs } from '#gw2/platform/builds/attribute-inputs.js';
-import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';

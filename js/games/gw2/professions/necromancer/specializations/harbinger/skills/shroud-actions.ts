@@ -36,7 +36,7 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
 }
 
 /** Movement attacks queue their committed action and spend Blight when that action settles. */
-export const harbingerShroudActions = {
+const harbingerShroudActions = {
   'harbinger.movement-launch'(runtime, context, action) {
     if (context.kind !== 'cast') return;
 
@@ -56,8 +56,14 @@ export const harbingerShroudActions = {
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 
 /** Movement effects use the Blight and empowerment selected by their launch. */
-export const harbingerShroudTasks = {
+const harbingerShroudTasks = {
   [MOVEMENT](runtime, data) {
     launchMovement(runtime, (data as { cast: RuntimeCast<NecromancerSkill> }).cast);
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
+
+/** Harbinger shroud actions and their impact tasks share one owner. */
+export const harbingerShroudLifecycle = {
+  sideEffectHandlers: harbingerShroudActions,
+  tasks: harbingerShroudTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

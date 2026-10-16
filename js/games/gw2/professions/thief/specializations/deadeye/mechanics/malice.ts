@@ -6,7 +6,7 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { maliceGained, maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
+import { maliceGained, maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeMarked } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';

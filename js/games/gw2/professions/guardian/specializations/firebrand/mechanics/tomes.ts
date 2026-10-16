@@ -26,7 +26,10 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { powerOfTheVirtuousRechargeMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { tomeOpened, tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
+import {
+  tomeOpened,
+  tomeStowed
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import {
@@ -184,9 +187,7 @@ const courage = createPassiveCourageTask({
 });
 
 /** Declarations select these actions; their state transitions stay with the mechanic owner. */
-export const firebrandTomeActions: NonNullable<
-  RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers']
-> = {
+const firebrandTomeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers']> = {
   // Declarations select the virtue; the controller retains dormancy and session invariants.
   'guardian.open-justice'(runtime, context) {
     if (context.kind === 'cast') openTome(runtime, context.cast, 'justice');
@@ -240,7 +241,7 @@ export function firebrandTomeAvailability(
 }
 
 /** Pages recover from their first spend; opening or stowing a tome does not restart their clock. */
-export const firebrandTomePages: ResourcePolicy<GuardianRuntime> = {
+const firebrandTomePages: ResourcePolicy<GuardianRuntime> = {
   kind: 'discrete',
   state: (runtime) => firebrandState.from(runtime).tomePages,
   maximum: (runtime) => firebrandPageTuning(runtime).maximum,
@@ -249,7 +250,7 @@ export const firebrandTomePages: ResourcePolicy<GuardianRuntime> = {
 };
 
 /** Completed Renewed Focus restores pages without moving their recovery phase. */
-export function refillFirebrandTomePages(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
+function refillFirebrandTomePages(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   if (cast.skill.id !== ID.RENEWED_FOCUS || castWasInterrupted(cast)) return;
 
   const state = firebrandState.from(runtime);
@@ -262,6 +263,15 @@ export function initializeFirebrandTomes(runtime: GuardianRuntime): void {
 }
 
 /** Keep passive tome work registered with the same session and dormancy owner. */
-export const firebrandTomeTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
+const firebrandTomeTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
   [COURAGE]: courage
 };
+
+/** Tome actions, page resources, scheduled page work, and Renewed Focus refills share one owner. */
+export const firebrandTomeLifecycle = {
+  sideEffectHandlers: firebrandTomeActions,
+  tasks: firebrandTomeTasks,
+  resources: { tomePages: firebrandTomePages },
+  /** Core resets virtue dormancy; full Renewed Focus completion refills pages without moving their recovery phase. */
+  onCastCommit: refillFirebrandTomePages
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

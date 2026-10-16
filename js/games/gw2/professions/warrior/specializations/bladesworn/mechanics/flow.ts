@@ -12,11 +12,12 @@ import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warr
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { timeKey } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const FLOW_TICK = 'warrior.flow-tick';
 
 /** Flow uses the absolute action grid; a grant at a tick cannot receive regeneration for that same tick. */
-export function scheduleFlowTick(runtime: WarriorRuntime): void {
+function scheduleFlowTick(runtime: WarriorRuntime): void {
   const tick = Math.floor(timeKey(runtime.time) / (GW2_ACTION_TICK_MS * 1000)) + 1;
   runtime.schedule(FLOW_TICK, (tick * GW2_ACTION_TICK_MS) / 1000, null, undefined, -250);
 }
@@ -47,13 +48,20 @@ function flowTick(runtime: WarriorRuntime): void {
   scheduleFlowTick(runtime);
 }
 
-export const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = { [FLOW_TICK]: flowTick };
+const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = { [FLOW_TICK]: flowTick };
 
 /** The shared pool owns Flow arithmetic; only the absolute-grid task supplies regeneration. */
-export const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {
+const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => bladeswornState.from(runtime).flow,
   maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
   initial: (runtime, maximum) => boundedNumber(runtime.config.initialResource ?? 0, 0, 0, maximum),
   recovery: () => 0
 };
+
+/** Flow owns its pool, its absolute-grid tick, and starting that tick at initialization. */
+export const bladeswornFlowLifecycle = {
+  resources: { flow: bladeswornFlowPolicy },
+  initialize: scheduleFlowTick,
+  tasks: flowTasks
+} satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;

@@ -13,7 +13,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { rangerInitialized } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { rangerInitialized } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { avatarExited } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';

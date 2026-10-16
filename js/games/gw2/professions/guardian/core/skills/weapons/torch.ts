@@ -6,6 +6,7 @@ import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 
@@ -84,7 +85,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
 });
 
 /** Torch activation owns its flip duration and lockout; later eligible skills clear the shared lockout. */
-export const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-zealots-fire'(runtime, context) {
     const duration = Number(context.skill.flipDuration) * radiantFireDurationMultiplier(runtime);
     runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration), expiryPriority: -220 });
@@ -94,6 +95,11 @@ export const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, Guard
       runtime.castController.setLockout(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
   }
 };
+
+/** Registers torch actions with the Core hook assembly. */
+export const guardianTorchLifecycle = {
+  sideEffectHandlers: guardianTorchActions
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
 /** Select the same duration multiplier for the torch flip window and its Burning packets. */
 function radiantFireDurationMultiplier(context: unknown): number {

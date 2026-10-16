@@ -20,8 +20,13 @@ import {
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
 import { necromanticCorruptionMultiplier } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
-import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerRuntime,
+  NecromancerSkill,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const ATTACK = 'necromancer.minion-attack';
 const COMMAND = 'necromancer.minion-command-impact';
@@ -416,7 +421,7 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
 }
 
 /** Existing creature cursors own startup, so combat entry neither replays preparation nor duplicates loops. */
-export function startNecromancerMinions(runtime: NecromancerRuntime, recoveringKey?: string): void {
+function startNecromancerMinions(runtime: NecromancerRuntime, recoveringKey?: string): void {
   if (!autonomousActionsAllowed(runtime)) return;
 
   const state = runtime.profession.core;
@@ -449,7 +454,7 @@ export function startNecromancerMinions(runtime: NecromancerRuntime, recoveringK
   }
 }
 
-export const necromancerMinionTasks = {
+const necromancerMinionTasks = {
   [ATTACK]: attack,
   [COMMAND]: commandImpact,
   [HORROR_SPAWN]: spawnHorror,
@@ -458,3 +463,10 @@ export const necromancerMinionTasks = {
     delete runtime.profession.core.minionAttackCursors[companion(String(key), 0)];
   }
 };
+
+/** Minions start at combat entry; their autos remain ambient while an isolated cast settles. */
+export const necromancerMinionLifecycle = {
+  onCombatStart: startNecromancerMinions,
+  backgroundTasks: [ATTACK],
+  tasks: necromancerMinionTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

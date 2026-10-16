@@ -11,8 +11,13 @@ import {
   applyNecromancerSignetPassive
 } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerRuntime,
+  NecromancerRuntimeState,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const PASSIVE = 'necromancer.resource-passive';
 
@@ -65,7 +70,13 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
   runtime.fireTrigger(necromancerPassivesInitialized, { at: runtime.time });
 }
 
-export const necromancerPassiveTasks = { [PASSIVE]: passivePulse };
+const necromancerPassiveTasks = { [PASSIVE]: passivePulse };
+
+/** Passive resource and allied loops remain ambient while an isolated cast settles. */
+export const necromancerPassiveLifecycle = {
+  backgroundTasks: Object.keys(necromancerPassiveTasks),
+  tasks: necromancerPassiveTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 
 /** Keep the original reward order at the passives-initialized boundary. */
 export const necromancerPassivesInitialized = defineTriggerPoint<{ readonly at: number }>(

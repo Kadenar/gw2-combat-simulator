@@ -1,15 +1,17 @@
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import { burstCompleted } from '#gw2/professions/warrior/core/mechanics/combat.js';
+import { burstCompleted, burstFirstHit } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -101,6 +103,18 @@ export function completeWarriorBurst(runtime: WarriorRuntime, cast: RuntimeCast<
   // Successful bursts refund the captured spend at completion, independently of target acceptance.
   const spent = warriorBurstSpends.get(cast) ?? 0;
   runtime.fireTrigger(burstCompleted, { cast, spent });
+}
+
+/** Misses never enter this surviving-hit boundary; activation identity prevents later packets claiming again. */
+export function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolean {
+  const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+
+  if (!skill?.burst || event.activationId == null) return false;
+
+  if (!claimActivation(runtime.profession.core.activationClaims, 'warrior.burst-hit', event.activationId)) return false;
+
+  runtime.fireTrigger(burstFirstHit, { event, skill });
+  return true;
 }
 
 /** Cooldown resets refill only families whose burst rules use the adrenaline pool. */

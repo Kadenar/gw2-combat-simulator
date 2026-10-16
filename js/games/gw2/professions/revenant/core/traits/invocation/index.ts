@@ -12,7 +12,7 @@ import {
   eliteLegendInvoked,
   invocationFervorGranted,
   legendInvoked
-} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_CORE_CALL_BY_LEGEND } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
 import {
   REVENANT_SKILL_IDS as ID,

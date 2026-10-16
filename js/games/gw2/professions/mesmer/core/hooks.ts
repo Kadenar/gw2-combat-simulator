@@ -18,7 +18,7 @@ import {
   mesmerControlAccepted,
   mesmerCritical,
   mesmerStrikeResolved
-} from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+} from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import {
   armMesmerSkillFlip,
   exhaustMesmerMantra,

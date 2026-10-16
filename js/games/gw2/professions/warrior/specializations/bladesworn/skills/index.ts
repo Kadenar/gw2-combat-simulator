@@ -22,6 +22,7 @@ import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warr
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
 
@@ -749,7 +750,7 @@ function tacticalReload(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
 }
 
 /** Intrinsic recipes execute at their declared phase; shared Flow and Trigger lifetimes remain separate. */
-export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
+const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.tactical-reload'(runtime, context) {
     if (context.kind === 'cast') tacticalReload(runtime, context.cast);
   },
@@ -794,11 +795,17 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
   }
 };
 
-export const bladeswornSkillTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = {
+const bladeswornSkillTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = {
   [CARTRIDGE_ACTIVATE](runtime, data) {
     activateCartridges(runtime, (data as { cast: RuntimeCast<WarriorSkill> }).cast);
   }
 };
+
+/** Bladesworn skill actions and their scheduled tasks share one owner. */
+export const bladeswornSkillLifecycle = {
+  sideEffectHandlers: bladeswornSkillActions,
+  tasks: bladeswornSkillTasks
+} satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;
 
 function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   // A newer cartridge application replaces the older bonus, even after the newer one expires.

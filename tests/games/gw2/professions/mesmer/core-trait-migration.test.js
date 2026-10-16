@@ -1,4 +1,4 @@
-import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';

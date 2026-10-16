@@ -19,7 +19,7 @@ import {
   dragonhunterControlAccepted,
   type DragonhunterCastCompletion,
   type DragonhunterControl
-} from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/activations.js';
+} from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/trigger-points.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Soaring Devastation's tuning and behavior at the existing Dragonhunter boundaries. */

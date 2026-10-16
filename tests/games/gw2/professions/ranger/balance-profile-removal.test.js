@@ -9,7 +9,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';

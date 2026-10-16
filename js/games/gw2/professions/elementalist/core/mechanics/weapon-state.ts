@@ -20,9 +20,14 @@ import {
 } from '#gw2/platform/execution/autoattack-chains.js';
 import { denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistRuntime,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
 
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** How long an advanced Aerial Agility stage stays offered before its chain resets. */
 const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
@@ -130,7 +135,7 @@ export function inFlightAutoattackCarryover(
 }
 
 /** Every new stage replaces the old deadline; expiry checks the selected stage. */
-export const elementalistWeaponStateTasks = {
+const elementalistWeaponStateTasks = {
   'elementalist.aerial-agility-expire'(context: ElementalistRuntime, data: unknown): void {
     const state = professionCoreState(context);
 
@@ -140,6 +145,12 @@ export const elementalistWeaponStateTasks = {
     resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
   }
 };
+
+/** Scheduled weapon-state work and autoattack chain transitions share one owner. */
+export const elementalistWeaponStateLifecycle = {
+  tasks: elementalistWeaponStateTasks,
+  onAutoattackChainTransition: observeElementalistAutoattackTransition
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
 function updateAerialAgilityFlip(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
@@ -163,7 +174,7 @@ function updateAerialAgilityFlip(
 }
 
 /** Keeps Elementalist's attunement carryover metadata synchronized with shared chain transition results. */
-export function observeElementalistAutoattackTransition(
+function observeElementalistAutoattackTransition(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
   result: AutoattackChainTransitionResult

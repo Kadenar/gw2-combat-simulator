@@ -4,7 +4,7 @@ import {
   packStrikeApplied,
   strike,
   strikeEffectsApplied
-} from '#gw2/professions/ranger/core/mechanics/combat.js';
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { triggerSharpeningStone, triggerStrengthOfThePack } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { triggerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';

@@ -17,7 +17,7 @@ import { justiceBlinding } from '#gw2/professions/guardian/core/mechanics/virtue
 import {
   lightAuraGranting,
   luminaryCastStarted
-} from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import {
@@ -25,7 +25,8 @@ import {
   LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID
 } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianSkill, GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 export const AURA_GRANT = 'guardian.luminary.aura-grant';
 
@@ -126,7 +127,7 @@ export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEv
   state.effulgentStacks = Math.min(maximum, state.effulgentStacks + 1);
 }
 
-export const luminaryEffectTasks = {
+const luminaryEffectTasks = {
   [AURA_GRANT]: (runtime: GuardianRuntime, data: unknown) => grantLuminaryAura(runtime, data as Gw2ResolverEvent),
   [STANCE](runtime: GuardianRuntime, data: unknown) {
     const { cast, piercing } = data as { cast: RuntimeCast<GuardianSkill>; piercing: boolean };
@@ -209,6 +210,11 @@ export const luminaryEffectTasks = {
       });
   }
 };
+
+/** Registers scheduled Luminary effect work with the Luminary hook assembly. */
+export const luminaryEffectLifecycle = {
+  tasks: luminaryEffectTasks
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
 /** Applies a stance modifier to its own impact or proc only when an older application was already active. */
 function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId: number, skillName: string): boolean {

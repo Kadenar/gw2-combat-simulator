@@ -20,6 +20,7 @@ import type {
   GuardianRuntime
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 
@@ -188,7 +189,7 @@ export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntim
     : [];
 }
 
-export const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.place-ignition'(runtime) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
     const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
@@ -201,6 +202,11 @@ export const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, Gu
     );
   }
 };
+
+/** Registers pistol ignition actions with the Core hook assembly. */
+export const guardianIgnitionLifecycle = {
+  sideEffectHandlers: guardianIgnitionActions
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
 // Symbol hits and projectile hits have independent ignition cooldowns. Torch pulses
 // and fire-whirl bolts also ignite, but ordinary conditions and ignition itself do not.

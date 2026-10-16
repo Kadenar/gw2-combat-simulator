@@ -1,10 +1,12 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -16,6 +18,7 @@ import {
   beginWarriorBurst,
   completeWarriorBurst,
   coreAdrenalinePolicy,
+  firstBurstHit,
   modifyWarriorBurstEffects,
   resetWarriorAdrenaline,
   warriorAdrenalineAvailability
@@ -25,23 +28,37 @@ import {
   castStarting,
   controlAccepted,
   coreInitialized,
-  firstBurstHit,
+  critical,
   immobilized,
-  resolveCriticalOpportunity,
   strikeResourcesGranted,
   weaponSwapped
-} from '#gw2/professions/warrior/core/mechanics/combat.js';
+} from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
-import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
+import { counterblowLifecycle } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
 import { swordFlipLifecycle } from '#gw2/professions/warrior/core/skills/weapons/sword.js';
 import { resolveWarriorDualWieldSkill } from '#gw2/professions/warrior/data/dual-wielding.js';
 
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+
+/** Derive one opportunity for every critical trait so independent proc chances share the hit fact. */
+function resolveCriticalOpportunity(
+  runtime: WarriorRuntime,
+  event: Gw2ResolverEvent,
+  hit: Gw2HitResolutionContext,
+  firstBurst: boolean
+): void {
+  const opportunity = criticalOpportunity(
+    hit.critEligible ? hit.critical.chance : 0,
+    hit.critical.didCrit,
+    Math.max(1, event.hits ?? 1)
+  );
+  runtime.fireTrigger(critical, { event, opportunity, firstBurst });
+}
 
 /** Core dispatches shared burst packets through the burst rules selected by the Warrior family. */
 const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
@@ -77,7 +94,6 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     'warrior.spend-magazine'(runtime, context) {
       if (context.kind === 'cast') spendWarriorMagazine(runtime, context.cast);
     },
-    ...counterblowActions,
     // Reuse existing delivery priority and labels; the skill declaration owns eligibility and its profile owns tuning.
     'warrior.critical-might'(runtime, context) {
       if (context.kind === 'effect') {
@@ -191,6 +207,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 /** Install the complete skill lifecycle so new signet callbacks retain their owner automatically. */
 export const warriorCoreHooks = composeRuntimeHooks<WarriorRuntimeState, WarriorSkill>([
   coreLifecycle,
+  counterblowLifecycle,
   swordFlipLifecycle,
   signetOfRageLifecycle
 ]);

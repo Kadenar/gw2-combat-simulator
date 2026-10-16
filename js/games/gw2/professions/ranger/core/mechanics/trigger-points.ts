@@ -94,11 +94,6 @@ export const openingStrikeConsumed = defineTriggerPoint<{ readonly event: Gw2Res
   [TRAIT.ALPHA_FOCUS]
 );
 
-/** Commandable pet Beast skills exclude their independently delivered family skills. */
-export function isBeastSkill(skill: RangerSkill): boolean {
-  return Boolean(skill.petSkill && !skill.petFamilySkill);
-}
-
 /** Native initialization admits configured trait loops once; their tasks own subsequent delivery. */
 export const rangerInitialized = defineTriggerPoint<Record<string, never>>('ranger.initialized', [
   TRAIT.FORTIFYING_BOND,

@@ -14,7 +14,7 @@ import {
   mirageAmbushAccepted,
   mirageCloakGranted,
   mirageCloneAmbushRequested
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';

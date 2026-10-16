@@ -2,7 +2,7 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

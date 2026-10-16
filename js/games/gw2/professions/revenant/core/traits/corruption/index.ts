@@ -22,7 +22,7 @@ import {
   legendInvoked,
   revenantConditionApplied,
   type RevenantStrike
-} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Owns Abyssal Chill tuning and behavior at its established execution boundaries. */

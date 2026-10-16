@@ -7,7 +7,7 @@ import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-regist
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
-import { thiefConditionApplied } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { thiefConditionApplied } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import {
   THIEF_SKILL_IDS as ID,

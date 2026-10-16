@@ -12,7 +12,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { battleScarConsumed, type RevenantStrike } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { battleScarConsumed, type RevenantStrike } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Owns Dwarven Battle Training tuning and behavior at its established execution boundaries. */

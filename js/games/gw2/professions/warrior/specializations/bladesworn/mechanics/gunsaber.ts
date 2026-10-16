@@ -4,7 +4,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { focusReset } from '#gw2/professions/warrior/core/mechanics/combat.js';
+import { focusReset } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';

@@ -30,7 +30,7 @@ import {
   harbingerElixirLaunched,
   harbingerShroudEntered,
   harbingerStrike
-} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/combat-boundaries.js';
+} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type {

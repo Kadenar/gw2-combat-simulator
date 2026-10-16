@@ -1,17 +1,19 @@
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import { dragonSlashCompleted, dragonSlashReleased } from '#gw2/professions/warrior/core/mechanics/combat.js';
+import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
+import { dragonSlashCompleted, dragonSlashReleased } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   bladeswornBuffPolicies,
   bladeswornEffectStates
 } from '#gw2/professions/warrior/specializations/bladesworn/effect-state.js';
 import {
-  completeBladeswornAmmunition,
-  prepareBladeswornAmmunition,
-  reactToBladeswornExplosion
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/combat.js';
+  ammunitionCommitted,
+  explosionAccepted
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/trigger-points.js';
 import {
   dragonChargesToAdrenalineSpent,
   dragonSlashRelease,
@@ -19,29 +21,52 @@ import {
   dragonTriggerHooks,
   exitDragonTrigger
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import {
-  bladeswornFlowPolicy,
-  flowTasks,
-  scheduleFlowTick
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
+import { bladeswornFlowLifecycle } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import {
   gunsaberAttackAvailability,
   gunsaberBarAvailability,
   swapGunsaber
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import {
-  bladeswornSkillActions,
-  bladeswornSkillTasks
+  bladeswornSkillLifecycle,
+  cartridgeExplosion
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+
+/** Capture the magazine before the cast spends its ammunition so completion sees the accepted balance. */
+function prepareBladeswornAmmunition(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  if (cast.ammo) {
+    const ammo = runtime.cooldownController.readAmmo(cast.skill.id)!;
+    warriorAmmunition.set(cast, { rounds: 1, startedFull: ammo.charges >= ammo.maximum });
+  }
+}
+
+/** Completed ammunition casts publish their captured spend before Dragon Slash and bar completion work. */
+function completeBladeswornAmmunition(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
+  const spent = warriorAmmunition.get(cast);
+
+  if (spent) runtime.fireTrigger(ammunitionCommitted, { cast, spent });
+}
+
+/** Only actual player explosions extend Glory or create cartridge Burning; neither derived condition can recurse. */
+function reactToBladeswornExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
+
+  runtime.fireTrigger(explosionAccepted, { event });
+
+  cartridgeExplosion(runtime, event);
+}
 
 /** Native declarations own actual resources, bar transitions, completed ammunition rewards, and accepted explosions. */
 export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = composeRuntimeHooks([
   dragonTriggerHooks,
+  bladeswornSkillLifecycle,
+  bladeswornFlowLifecycle,
   {
-    // Bladesworn disables adrenaline at initialization; authored rewards select its independent Flow pool.
-    resources: { adrenaline: { ...coreAdrenalinePolicy, maximum: () => 0 }, flow: bladeswornFlowPolicy },
+    // Bladesworn disables adrenaline at initialization; authored rewards select the Flow pool its lifecycle registers.
+    resources: { adrenaline: { ...coreAdrenalinePolicy, maximum: () => 0 } },
     buffPolicies: bladeswornBuffPolicies,
     observeEffects: bladeswornEffectStates,
     prepareDamageState(runtime, skill) {
@@ -49,7 +74,6 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     },
 
     sideEffectHandlers: {
-      ...bladeswornSkillActions,
       // Bar declarations invoke the shared transition, including recharge and entry trait observers.
       'warrior.gunsaber-enter'(runtime, context) {
         if (context.kind === 'cast') swapGunsaber(runtime, context.cast, true);
@@ -76,9 +100,6 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
 
       return gunsaberAttackAvailability(runtime, skill);
     },
-    initialize(runtime) {
-      scheduleFlowTick(runtime);
-    },
     onCastStart(runtime, cast) {
       prepareBladeswornAmmunition(runtime, cast);
 
@@ -100,10 +121,6 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
 
       if (cast.skill.gunsaberSkill && !runtime.helpers.autoattackChainPositions.has(Number(cast.skill.id)))
         resetAutoattackChains(runtime);
-    },
-    tasks: {
-      ...bladeswornSkillTasks,
-      ...flowTasks
     },
     reactions: { 'damage.resolved': reactToBladeswornExplosion }
   }

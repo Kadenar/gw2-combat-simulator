@@ -4,6 +4,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MACE_SMASH]: {
@@ -160,8 +161,13 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
   }
 });
 
-export const counterblowActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
+const counterblowActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.counterblow-arm'(runtime, context) {
     if (context.kind === 'cast') runtime.armFlip(ID.TACTICAL_BLOW, { expiresAt: context.cast.fullEnd });
   }
 };
+
+/** Registers Counterblow actions with the Core hook assembly. */
+export const counterblowLifecycle = {
+  sideEffectHandlers: counterblowActions
+} satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;

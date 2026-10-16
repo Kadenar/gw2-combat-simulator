@@ -18,7 +18,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
-import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { necromancerPassivesInitialized } from '#gw2/professions/necromancer/core/mechanics/passives.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { TasteForBloodGrant } from '#gw2/professions/necromancer/core/state.js';

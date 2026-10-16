@@ -16,7 +16,11 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
-import { beastSkillUsed, mergedBeastHit, mergedCommandApplied } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import {
+  beastSkillUsed,
+  mergedBeastHit,
+  mergedCommandApplied
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
   isPlayerStrike,

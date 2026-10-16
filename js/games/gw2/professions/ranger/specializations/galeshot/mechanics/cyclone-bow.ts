@@ -16,7 +16,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/core/events.js';
-import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';

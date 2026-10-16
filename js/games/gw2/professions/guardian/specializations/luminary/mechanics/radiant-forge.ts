@@ -15,7 +15,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { radiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
+import { radiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -118,50 +118,49 @@ function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>):
 }
 
 /** Declarations select these actions; their state transitions stay with the mechanic owner. */
-export const radiantForgeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers']> =
-  {
-    // Form transitions share expiry/recharge ownership; declarations choose when to invoke them.
-    'guardian.enter-forge'(runtime, context) {
-      if (context.kind === 'cast') enterForge(runtime, context.cast);
-    },
-    'guardian.exit-forge'(runtime, context) {
-      if (context.kind === 'cast') exitForge(runtime, context.cast);
-    },
-    'guardian.snapshot-forge'(runtime, context) {
-      if (context.kind === 'cast') equipForge.set(context.cast, luminaryState.from(runtime).forgeActivationId);
-    },
-    'guardian.equip-forge'(runtime, context) {
-      if (context.kind !== 'cast') return;
+const radiantForgeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers']> = {
+  // Form transitions share expiry/recharge ownership; declarations choose when to invoke them.
+  'guardian.enter-forge'(runtime, context) {
+    if (context.kind === 'cast') enterForge(runtime, context.cast);
+  },
+  'guardian.exit-forge'(runtime, context) {
+    if (context.kind === 'cast') exitForge(runtime, context.cast);
+  },
+  'guardian.snapshot-forge'(runtime, context) {
+    if (context.kind === 'cast') equipForge.set(context.cast, luminaryState.from(runtime).forgeActivationId);
+  },
+  'guardian.equip-forge'(runtime, context) {
+    if (context.kind !== 'cast') return;
 
-      const cast = context.cast;
-      const state = luminaryState.from(runtime);
+    const cast = context.cast;
+    const state = luminaryState.from(runtime);
 
-      if (state.radiantForge && equipForge.get(cast) === state.forgeActivationId) {
-        state.radiantWeapon = String(cast.skill.radiantWeapon);
-        state.radiantWeaponsUsed[String(cast.skill.radiantWeapon)] = true;
+    if (state.radiantForge && equipForge.get(cast) === state.forgeActivationId) {
+      state.radiantWeapon = String(cast.skill.radiantWeapon);
+      state.radiantWeaponsUsed[String(cast.skill.radiantWeapon)] = true;
 
-        if (cast.skill.radiantWeapon === 'blade') state.glaringBurstSwordSlow = false;
+      if (cast.skill.radiantWeapon === 'blade') state.glaringBurstSwordSlow = false;
 
-        const flips = runtime.profession.core.availableFlips;
-        for (const id of Object.keys(flips)) {
-          const skill = runtime.helpers.skillsById.get(Number(id));
+      const flips = runtime.profession.core.availableFlips;
+      for (const id of Object.keys(flips)) {
+        const skill = runtime.helpers.skillsById.get(Number(id));
 
-          if (skill?.radiantWeapon && skill.flipParentId != null) consumeSkillFlip(flips, id);
-        }
-
-        if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
-
-        runtime.effects.emit({
-          kind: 'packet',
-          event: { ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet }
-        });
-        runtime.scheduleForCast(EQUIP, canonicalTime(runtime.time + 0.001), cast);
+        if (skill?.radiantWeapon && skill.flipParentId != null) consumeSkillFlip(flips, id);
       }
+
+      if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
+
+      runtime.effects.emit({
+        kind: 'packet',
+        event: { ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet }
+      });
+      runtime.scheduleForCast(EQUIP, canonicalTime(runtime.time + 0.001), cast);
     }
-  };
+  }
+};
 
 /** The live forge form selects the usable bar before any cast can mutate it. */
-export function radiantForgeAvailability(
+function radiantForgeAvailability(
   runtime: MechanicQueriesOf<GuardianRuntime>,
   skill: GuardianSkill
 ): AvailabilityResult {
@@ -183,7 +182,7 @@ export function radiantForgeAvailability(
 }
 
 /** Keep scheduled work with the state and generation that own its lifetime. */
-export const radiantForgeTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
+const radiantForgeTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
   [EXIT](runtime, data) {
     if (luminaryState.from(runtime).forgeActivationId === data) exitForge(runtime);
   },
@@ -191,3 +190,10 @@ export const radiantForgeTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, G
   [EQUIP]: (runtime, data) =>
     runtime.fireTrigger(radiantWeaponEquipped, { cast: (data as { cast: RuntimeCast<GuardianSkill> }).cast })
 };
+
+/** Radiant Forge transitions, availability, and their expiry and equip tasks share one owner. */
+export const radiantForgeLifecycle = {
+  sideEffectHandlers: radiantForgeActions,
+  tasks: radiantForgeTasks,
+  availability: radiantForgeAvailability
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

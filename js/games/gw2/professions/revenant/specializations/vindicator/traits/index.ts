@@ -19,7 +19,7 @@ import {
   energyMeldCompleted,
   energyMeldEnduranceGranted,
   vindicatorLanded
-} from '#gw2/professions/revenant/specializations/vindicator/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/specializations/vindicator/mechanics/trigger-points.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { enduranceNotFull } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';

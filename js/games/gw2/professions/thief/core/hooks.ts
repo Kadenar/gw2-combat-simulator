@@ -29,7 +29,7 @@ import {
   thiefStruck,
   thiefWeaponSwapped,
   venomsConsumed
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import { activateTrap, prepareTrap } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { setThiefKneeling, thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';

@@ -30,7 +30,7 @@ import {
   type LightAuraGrant,
   type LuminaryCast,
   type RadiantVirtueArming
-} from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';

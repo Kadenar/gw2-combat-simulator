@@ -10,7 +10,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { thiefCastCompleted, type ThiefCastCompletion } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { thiefCastCompleted, type ThiefCastCompletion } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 

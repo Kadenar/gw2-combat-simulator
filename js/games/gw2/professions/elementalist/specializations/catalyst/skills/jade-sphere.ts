@@ -151,10 +151,7 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
 
 // Jade Sphere deployment requires the matching attunement and the profile energy
 // cost; every other skill passes through untouched.
-export function catalystSphereAvailability(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
-): AvailabilityResult {
+function catalystSphereAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
 
   const core = professionCoreState(context);
@@ -206,13 +203,19 @@ function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<Elemen
 }
 
 /** Sphere spending and field windows settle before deployment traits and effects. */
-export const catalystSphereActions = {
+const catalystSphereActions = {
   'elementalist.catalyst.deploy-sphere'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Jade Sphere requires a cast trigger.');
 
     deployJadeSphere(runtime, context.cast, context.skill);
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers']>;
+
+/** Jade Sphere deployment actions and availability share one owner. */
+export const catalystSphereLifecycle = {
+  sideEffectHandlers: catalystSphereActions,
+  availability: catalystSphereAvailability
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
 
 /** Sphere traits adjust the selected deployment effects without resampling the active attunement. */
 export const modifyJadeSphereEffects: NonNullable<

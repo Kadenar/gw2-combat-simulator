@@ -9,10 +9,15 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
-import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerRuntime,
+  NecromancerSkill,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const CORRUPTION = 'necromancer.corruption';
 const DEVOURING = 'necromancer.devouring-impact';
@@ -302,11 +307,16 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
     });
 }
 
-export const necromancerConditionTasks = {
+const necromancerConditionTasks = {
   [CORRUPTION]: corruption,
   [DEVOURING]: devouring,
   [EXPIRY]: purge
 };
+
+/** Registers self-condition tasks with the Core hook assembly. */
+export const necromancerConditionLifecycle = {
+  tasks: necromancerConditionTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 
 /** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */
 function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {

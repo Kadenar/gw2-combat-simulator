@@ -22,7 +22,7 @@ import {
   critical,
   immobilized,
   strikeResourcesGranted
-} from '#gw2/professions/warrior/core/mechanics/combat.js';
+} from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import {
   warriorActiveBuffStacks,
   warriorBoonActive,

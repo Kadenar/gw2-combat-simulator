@@ -20,7 +20,11 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 
-import { beastSkillUsed, petSwapped, rangerInitialized } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import {
+  beastSkillUsed,
+  petSwapped,
+  rangerInitialized
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { emitStormSpiritSlam, emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';

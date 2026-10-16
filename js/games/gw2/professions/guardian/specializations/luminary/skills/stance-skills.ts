@@ -12,6 +12,7 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 const PIERCING_STANCE_IMPACT_MS = 160;
@@ -89,7 +90,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
 });
 
 /** Priority preserves fresh Piercing before its hit and fresh Daring after Sovereign's detonation. */
-export const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.start-piercing'(runtime, context) {
     if (context.kind === 'cast')
       runtime.scheduleForCast(STANCE, luminaryImpactAt(context.cast), context.cast, { piercing: true }, undefined, -30);
@@ -111,3 +112,8 @@ export const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, Guar
     runtime.schedule(EFFULGENT, state.effulgentActiveUntil, event);
   }
 };
+
+/** Registers Luminary stance actions with the Luminary hook assembly. */
+export const luminaryStanceLifecycle = {
+  sideEffectHandlers: luminaryStanceActions
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

@@ -40,8 +40,14 @@ import {
   rangerPetSkillsRequireCommands
 } from '#gw2/professions/ranger/data/pet-commands.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerPetDefinition, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type {
+  RangerPetDefinition,
+  RangerRuntime,
+  RangerSkill,
+  RangerRuntimeState
+} from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
@@ -95,11 +101,7 @@ function petBoonActive(context: MechanicQueriesOf<RangerRuntime>, kind: string):
 }
 
 /** Pet commands use their companion's speed rather than inheriting the player's Quickness. */
-export function rangerPetCastDurationMs(
-  context: MechanicQueriesOf<RangerRuntime>,
-  skill: Skill,
-  durationMs: number
-): number {
+function rangerPetCastDurationMs(context: MechanicQueriesOf<RangerRuntime>, skill: Skill, durationMs: number): number {
   if (!skill.petSkill) return durationMs;
 
   const petName = context.profession.core.activePet;
@@ -393,7 +395,7 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<
   context.scheduleForCast(PET_COMMAND_START_TASK, start, cast, {}, owner(context));
 }
 
-export const rangerPetTasks = {
+const rangerPetTasks = {
   [PET_AUTO_TASK](context: RangerRuntime, data: unknown): void {
     const state = context.profession.core;
 
@@ -528,8 +530,16 @@ export const rangerPetTasks = {
   }
 };
 
+/** Autonomous pet attacks, pet cast timing, and boon sharing durations share one owner; pet attacks cannot prolong an isolated damage preview. */
+export const rangerPetLifecycle = {
+  backgroundTasks: Object.keys(rangerPetTasks),
+  tasks: rangerPetTasks,
+  boonDuration: rangerBoonDuration,
+  castDurationMs: rangerPetCastDurationMs
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
+
 /** Pet-created boons use companion concentration; recipient alone never changes the granting actor's stats. */
-export function rangerBoonDuration(
+function rangerBoonDuration(
   context: import('#gw2/platform/profession-definition/runtime-context.js').SelectedContentContext,
   event: Gw2ResolverEvent,
   baseDuration: number,

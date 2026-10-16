@@ -21,9 +21,8 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/core/events.js';
-import { isBeastSkill } from '#gw2/professions/ranger/core/mechanics/combat.js';
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { isBeastSkill, isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
 import {

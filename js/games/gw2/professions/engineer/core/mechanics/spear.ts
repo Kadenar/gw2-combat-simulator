@@ -30,10 +30,7 @@ import {
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
-export const engineerSpearSideEffectHandlers: RuntimeProfession<
-  EngineerRuntimeState,
-  EngineerSkill
->['sideEffectHandlers'] = {
+const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers'] = {
   'engineer.lightning-rod'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Lightning Rod requires a cast trigger.');
 
@@ -99,7 +96,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
 };
 
 /** Spear tasks retain their cast and generation owners through release and impact. */
-export const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['tasks'] = {
+const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['tasks'] = {
   'engineer.rod-pulse'(runtime, data) {
     const { cast, index } = data as { cast: RuntimeCast<EngineerSkill>; index: number };
     buildEngineerPackets(
@@ -377,15 +374,23 @@ export function engineerSpearAvailability(
 const CUSTOM_SPEAR = new Set<number>([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
 
 /** Stateful spear packets replace authored effects to avoid emitting both paths. */
-export const engineerSpearEffects: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['modifyEffects']> = (
+const engineerSpearEffects: NonNullable<RuntimeHooks<EngineerRuntimeState, EngineerSkill>['modifyEffects']> = (
   _runtime,
   cast,
   effects
 ) => (CUSTOM_SPEAR.has(Number(cast.skill.id)) ? [] : effects);
 
 /** Core hooks register this feature without owning its impact policy. */
-export const engineerSpearEventHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['eventHandlers'] = {
+const engineerSpearEventHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['eventHandlers'] = {
   'engineer.lightning-rod-pulse': handleLightningRodPulse,
   'engineer.conduit-surge': handleConduitSurge,
   'engineer.electric-artillery': handleElectricArtillery
 };
+
+/** Spear actions, scheduled stages, observed events, and empowered packets share one owner. */
+export const engineerSpearLifecycle = {
+  sideEffectHandlers: engineerSpearSideEffectHandlers,
+  tasks: engineerSpearTasks,
+  eventHandlers: engineerSpearEventHandlers,
+  modifyEffects: engineerSpearEffects
+} satisfies RuntimeHooks<EngineerRuntimeState, EngineerSkill>;

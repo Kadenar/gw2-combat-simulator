@@ -29,7 +29,7 @@ import { affinityGranted, gainAffinity } from '#gw2/professions/revenant/special
 import {
   entityBoonCompleted,
   entityCastCompleted
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
 import { scheduleFormExpiry } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
   conduitLegendReset,

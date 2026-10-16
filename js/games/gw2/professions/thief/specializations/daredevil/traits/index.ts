@@ -24,14 +24,14 @@ import type {
   DaredevilCast,
   DaredevilStrike,
   PhysicalSkillStart
-} from '#gw2/professions/thief/specializations/daredevil/mechanics/boundaries.js';
+} from '#gw2/professions/thief/specializations/daredevil/mechanics/trigger-points.js';
 import {
   daredevilCastCompleted,
   daredevilCastStarted,
   daredevilDodged,
   daredevilStruck,
   physicalSkillStarted
-} from '#gw2/professions/thief/specializations/daredevil/mechanics/boundaries.js';
+} from '#gw2/professions/thief/specializations/daredevil/mechanics/trigger-points.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 

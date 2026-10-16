@@ -8,7 +8,12 @@ import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
 } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+
+/** Commandable pet Beast skills exclude their independently delivered family skills. */
+export function isBeastSkill(skill: RangerSkill): boolean {
+  return Boolean(skill.petSkill && !skill.petFamilySkill);
+}
 
 /** Pet-sourced packets, including Ranger-stat effects that a pet skill launched. */
 export function isPetStrike(event: { readonly source?: unknown } | null | undefined): boolean {

@@ -13,10 +13,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import {
-  mesmerControlAccepted,
-  mesmerHealCompleted
-} from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { mesmerControlAccepted, mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';

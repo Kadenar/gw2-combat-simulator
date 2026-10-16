@@ -30,7 +30,7 @@ import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/pro
 import {
   virtuosoBladeCritical,
   virtuosoInitialized
-} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/combat-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/trigger-points.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 

@@ -38,7 +38,7 @@ export function startWeaveSelfCast(
 }
 
 /** Starts Weave Self's recharge at the same partial-cast point as its activation. */
-export function modifyWeaveSelfRechargeStart(
+function modifyWeaveSelfRechargeStart(
   context: import('#gw2/platform/profession-definition/runtime-context.js').RechargeStartContext,
   cast: Pick<RuntimeCast<ElementalistSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd'>,
   rechargeStart: number
@@ -158,9 +158,15 @@ export function weaveSelfAvailability(
 }
 
 /** Weave Self owns activation and consumption of its Perfect Weave follow-up window. */
-export const weaveSelfTasks = {
+const weaveSelfTasks = {
   [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,
   'elementalist.weaver.consume-perfect-weave'(runtime) {
     weaverState.from(runtime).perfectWeaveUntil = 0;
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
+
+/** Weave Self expiry, Perfect Weave work, and its recharge anchor share one owner. */
+export const weaveSelfLifecycle = {
+  tasks: weaveSelfTasks,
+  rechargeStart: modifyWeaveSelfRechargeStart
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

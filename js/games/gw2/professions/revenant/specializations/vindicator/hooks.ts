@@ -5,7 +5,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { vindicatorBuffPolicies } from '#gw2/professions/revenant/specializations/vindicator/effect-state.js';
@@ -13,7 +13,7 @@ import {
   energyMeldCompleted,
   energyMeldEnduranceGranted,
   vindicatorLanded
-} from '#gw2/professions/revenant/specializations/vindicator/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/specializations/vindicator/mechanics/trigger-points.js';
 import {
   VINDICATOR_LANDING_TASK,
   scheduleLanding,

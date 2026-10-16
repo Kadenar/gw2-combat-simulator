@@ -21,7 +21,7 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 import {
   spellbreakerControlAccepted,
   spellbreakerStrike
-} from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/combat.js';
+} from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/trigger-points.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';

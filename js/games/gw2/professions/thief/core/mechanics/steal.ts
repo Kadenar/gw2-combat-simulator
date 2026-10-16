@@ -3,7 +3,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { improvisationStolenUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
-import { stealCompleted } from '#gw2/professions/thief/core/mechanics/boundaries.js';
+import { stealCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 

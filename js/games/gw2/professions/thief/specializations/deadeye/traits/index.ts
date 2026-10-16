@@ -24,7 +24,7 @@ import {
   markCompleted,
   type DeadeyeCast,
   type DeadeyeMalice
-} from '#gw2/professions/thief/specializations/deadeye/mechanics/boundaries.js';
+} from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import { STOLEN_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';

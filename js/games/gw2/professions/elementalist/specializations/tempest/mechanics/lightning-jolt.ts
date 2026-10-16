@@ -94,7 +94,7 @@ export function registerTempestLightningJolt(context: ElementalistRuntime): void
 }
 
 /** Lightning Jolt emits the player strike and arms its elemental charge from the same selected profile. */
-export const tempestLightningJoltActions = {
+const tempestLightningJoltActions = {
   'elementalist.tempest.lightning-jolt'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Lightning Jolt requires a cast trigger.');
 
@@ -145,3 +145,8 @@ export const tempestLightningJoltActions = {
     }
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers']>;
+
+/** Registers Lightning Jolt delivery with the Tempest hook assembly. */
+export const tempestLightningJoltLifecycle = {
+  sideEffectHandlers: tempestLightningJoltActions
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

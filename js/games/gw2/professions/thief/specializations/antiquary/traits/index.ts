@@ -21,14 +21,14 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import type {
   AntiquaryStrike,
   ArtifactActivation
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import {
   antiquaryStruck,
   artifactActivated,
   artifactCompleted,
   artifactsPilfered,
   type ArtifactPilfer
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/boundaries.js';
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';

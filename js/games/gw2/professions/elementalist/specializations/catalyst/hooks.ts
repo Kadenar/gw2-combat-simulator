@@ -1,4 +1,4 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
   catalystBuffPolicies,
@@ -16,10 +16,9 @@ import {
   catalystCombatStarted,
   catalystTransitionObserved
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
-import { catalystAugmentActions } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
+import { catalystAugmentLifecycle } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
 import {
-  catalystSphereAvailability,
-  catalystSphereActions,
+  catalystSphereLifecycle,
   modifyJadeSphereEffects
 } from '#gw2/professions/elementalist/specializations/catalyst/skills/jade-sphere.js';
 import type {
@@ -36,29 +35,32 @@ function initialize(context: ElementalistRuntime): void {
 }
 
 /** Compose resource and skill owners; accepted-hit energy gains precede Catalyst trait reactions. */
-export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
-  buffPolicies: catalystBuffPolicies,
-  observeEffects: catalystEffectStates,
-  resources: { catalystEnergy: catalystEnergyPolicy },
-  initialize,
-  // Publish combat entry so selection and isolation govern admission of trait renewal loops.
-  onCombatStart(runtime) {
-    runtime.fireTrigger(catalystCombatStarted, {});
-  },
-  availability: catalystSphereAvailability,
-  sideEffectHandlers: { ...catalystSphereActions, ...catalystAugmentActions },
-  modifyEffects(runtime, cast, effects) {
-    // Augment actions sample live conditions at commitment instead of materializing effects at cast start.
-    if (cast.skill.sideEffects?.some((effect) => effect.do.type === 'elementalist.catalyst.augment-window')) return [];
-
-    return modifyJadeSphereEffects(runtime, cast, effects);
-  },
-
-  reactions: {
-    'damage.resolved'(runtime, event) {
-      gainCatalystEnergy(runtime, event);
-      applyCatalystResolvedDamage(runtime, event);
+export const catalystHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
+  catalystSphereLifecycle,
+  catalystAugmentLifecycle,
+  {
+    buffPolicies: catalystBuffPolicies,
+    observeEffects: catalystEffectStates,
+    resources: { catalystEnergy: catalystEnergyPolicy },
+    initialize,
+    // Publish combat entry so selection and isolation govern admission of trait renewal loops.
+    onCombatStart(runtime) {
+      runtime.fireTrigger(catalystCombatStarted, {});
     },
-    'buff.applied': applyShatteringIce
+    modifyEffects(runtime, cast, effects) {
+      // Augment actions sample live conditions at commitment instead of materializing effects at cast start.
+      if (cast.skill.sideEffects?.some((effect) => effect.do.type === 'elementalist.catalyst.augment-window'))
+        return [];
+
+      return modifyJadeSphereEffects(runtime, cast, effects);
+    },
+
+    reactions: {
+      'damage.resolved'(runtime, event) {
+        gainCatalystEnergy(runtime, event);
+        applyCatalystResolvedDamage(runtime, event);
+      },
+      'buff.applied': applyShatteringIce
+    }
   }
-};
+]);

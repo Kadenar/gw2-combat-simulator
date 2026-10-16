@@ -19,7 +19,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { mesmerConditionApplied } from '#gw2/professions/mesmer/core/mechanics/combat-boundaries.js';
+import { mesmerConditionApplied } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';

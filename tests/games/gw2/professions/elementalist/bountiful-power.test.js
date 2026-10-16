@@ -1,5 +1,5 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,

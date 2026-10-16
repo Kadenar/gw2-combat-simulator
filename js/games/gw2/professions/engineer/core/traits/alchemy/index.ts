@@ -7,7 +7,7 @@ import {
   type TraitDefinition
 } from '#gw2/platform/profession-definition/traits.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/activations.js';
+import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { type EngineerRuntime, type EngineerSkill } from '#gw2/professions/engineer/types.js';
 

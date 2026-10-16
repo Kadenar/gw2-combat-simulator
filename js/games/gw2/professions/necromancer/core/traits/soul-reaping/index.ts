@@ -19,7 +19,7 @@ import {
   necromancerConditionApplied,
   necromancerStrike,
   necromancerStrikeLifeForce
-} from '#gw2/professions/necromancer/core/mechanics/combat-boundaries.js';
+} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { shroudEntered, shroudExited, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';

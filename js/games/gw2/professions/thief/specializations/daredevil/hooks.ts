@@ -7,7 +7,7 @@ import {
   daredevilDodged,
   daredevilStruck,
   physicalSkillStarted
-} from '#gw2/professions/thief/specializations/daredevil/mechanics/boundaries.js';
+} from '#gw2/professions/thief/specializations/daredevil/mechanics/trigger-points.js';
 import { queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';

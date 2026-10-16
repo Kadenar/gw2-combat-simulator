@@ -23,7 +23,7 @@ import {
   castStarting,
   critical,
   dragonSlashCompleted
-} from '#gw2/professions/warrior/core/mechanics/combat.js';
+} from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';

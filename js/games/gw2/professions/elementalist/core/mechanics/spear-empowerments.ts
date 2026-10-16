@@ -13,8 +13,10 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
 import type {
   ElementalistRuntime,
   ElementalistSimulationEvent,
-  ElementalistSkill
+  ElementalistSkill,
+  ElementalistRuntimeState
 } from '#gw2/professions/elementalist/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Snapshots armed one-shot bonuses for the next eligible spear activation. */
 export function beginElementalistSpearCast(
@@ -106,7 +108,7 @@ export function completeElementalistSpearProgression(context: ElementalistRuntim
 }
 
 /** Mechanic-trigger handlers arm each one-shot spear bonus for a future cast. */
-export const elementalistSpearMechanicHandlers = Object.freeze({
+const elementalistSpearMechanicHandlers = Object.freeze({
   'elementalist.core.arm-spear-damage': (context: ElementalistRuntime): void => {
     professionCoreState(context).spearNextDamageBonus = true;
   },
@@ -120,3 +122,8 @@ export const elementalistSpearMechanicHandlers = Object.freeze({
     professionCoreState(context).spearNextControlHit = true;
   }
 });
+
+/** Registers scheduled spear empowerment work with the Core hook assembly. */
+export const elementalistSpearEmpowermentLifecycle = {
+  tasks: elementalistSpearMechanicHandlers
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

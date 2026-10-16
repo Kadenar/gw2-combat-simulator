@@ -15,13 +15,13 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import {
   dodgeAccepted,
-  isEngineerToolbeltSkill,
   toolbeltActivated,
   type DodgeAcceptance,
   type ToolbeltActivation
-} from '#gw2/professions/engineer/core/mechanics/activations.js';
+} from '#gw2/professions/engineer/core/mechanics/trigger-points.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';

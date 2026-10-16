@@ -4,7 +4,12 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Releasing or expiring the stored barrier starts the root skill's held recharge once. */
 function releaseRockBarrier(runtime: ElementalistRuntime): void {
@@ -24,7 +29,7 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
 }
 
 /** The flip and its expiry share a deadline; replacing a barrier retires its previous timer. */
-export const elementalistRockBarrierTasks = {
+const elementalistRockBarrierTasks = {
   'elementalist.core.open-rock-barrier'(runtime: ElementalistRuntime): void {
     const expiresAt = runtime.time + balanceNumberFromContext(runtime, PROFILE.rockBarrier, 'durationMultiplier');
     armSkillFlip(runtime.profession.core.availableFlips, ID.HURL, runtime.time, expiresAt);
@@ -36,3 +41,8 @@ export const elementalistRockBarrierTasks = {
   },
   'elementalist.core.release-rock-barrier': releaseRockBarrier
 };
+
+/** Registers Rock Barrier opening and release with the Core hook assembly. */
+export const elementalistRockBarrierLifecycle = {
+  tasks: elementalistRockBarrierTasks
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

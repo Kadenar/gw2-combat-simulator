@@ -17,14 +17,14 @@ import type {
   StealAcceptance,
   ThiefCastCompletion,
   ThiefDodge
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
   stealAccepted,
   stealCompleted,
   thiefCastCompleted,
   thiefDodgeStarted,
   thiefWeaponSwapped
-} from '#gw2/professions/thief/core/mechanics/boundaries.js';
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 

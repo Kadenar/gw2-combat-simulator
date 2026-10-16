@@ -7,7 +7,7 @@ import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professi
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
+import { tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';

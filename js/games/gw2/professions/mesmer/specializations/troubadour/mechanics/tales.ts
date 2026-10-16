@@ -5,7 +5,7 @@ import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
-import { troubadourTaleResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
+import { troubadourTaleResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface TroubadourTaleInvocation {
@@ -53,7 +53,7 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
 }
 
 /** Capture instrument eligibility at acceptance and resolve the Tale using that snapshot at commitment. */
-export const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, MesmerSkill>['sideEffectHandlers']> = {
+const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, MesmerSkill>['sideEffectHandlers']> = {
   // Capture the event-order-sensitive gate while the accepted action is still the latest history entry.
   'mesmer.troubadour.prepare-tale'(runtime, context) {
     if (context.kind !== 'cast') return;
@@ -82,3 +82,8 @@ export const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState,
     });
   }
 };
+
+/** Registers tale commitment actions with the Troubadour hook assembly. */
+export const troubadourTaleLifecycle = {
+  sideEffectHandlers: troubadourTaleActions
+} satisfies RuntimeHooks<MesmerRuntimeState, MesmerSkill>;

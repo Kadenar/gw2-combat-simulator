@@ -4,8 +4,9 @@ import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/even
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import { radiantVirtueArmed } from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
+import { radiantVirtueArmed } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /**
  * Owns Luminary Radiant Virtue skill fragments.
@@ -40,7 +41,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   }
 });
 
-export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   // Resolve's intrinsic aura replaces an old aura after any Sovereign detonation at the same boundary.
   'guardian.resolve-aura'(runtime, context) {
     if (context.kind !== 'cast') return;
@@ -92,3 +93,8 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
     runtime.fireTrigger(radiantVirtueArmed, { context });
   }
 };
+
+/** Registers Luminary virtue actions with the Luminary hook assembly. */
+export const luminaryVirtueLifecycle = {
+  sideEffectHandlers: luminaryVirtueActions
+} satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

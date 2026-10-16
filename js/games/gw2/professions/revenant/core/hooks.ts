@@ -14,7 +14,7 @@ import {
   revenantConditionApplied,
   revenantLifecycleAnchored,
   revenantWeaponSwapped
-} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import {

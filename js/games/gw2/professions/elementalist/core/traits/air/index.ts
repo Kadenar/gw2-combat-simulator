@@ -28,22 +28,20 @@ import {
   attunementChanged,
   attunementInvoked,
   attunementReentered,
+  auraAccepted,
+  controlAccepted,
   type ElementalistAttunementChanged,
-  type ElementalistEntry
-} from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+  elementalistCastCompleted,
+  type ElementalistCastCompleted,
+  elementalistDamageResolved,
+  type ElementalistDamageResolved,
+  type ElementalistEntry,
+  elementalistEventPreparing,
+  type ElementalistReaction
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { combatStarted, elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
-import {
-  auraAccepted,
-  controlAccepted,
-  elementalistCastCompleted,
-  elementalistDamageResolved,
-  elementalistEventPreparing,
-  type ElementalistCastCompleted,
-  type ElementalistDamageResolved,
-  type ElementalistReaction
-} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
 import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
 import {

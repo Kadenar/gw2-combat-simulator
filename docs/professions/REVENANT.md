@@ -35,8 +35,8 @@ model.
 
 Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
 Definitions own profiles, modifiers, triggers, build contributions, and trait policies. Supporting helpers remain beside
-them. `core/mechanics/boundaries.ts` declares ordered trigger points; Core hooks interleave trait and intrinsic on-hit
-work, and `core/mechanics/resources.ts` owns Energy and Endurance policies.
+them. `core/mechanics/trigger-points.ts` declares ordered trigger points; Core hooks interleave trait and intrinsic
+on-hit work, and `core/mechanics/resources.ts` owns Energy and Endurance policies.
 
 Herald mechanics own facets; Facet of Nature's skill owns its boon extension and the Assassin passive siphon. Core
 completion rewards run before facet completion and the settled-upkeep observer. Draconic Echo's duration policy belongs

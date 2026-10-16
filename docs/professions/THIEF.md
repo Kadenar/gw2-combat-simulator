@@ -32,7 +32,7 @@ the active balance context. Preparedness owns initiative capacity for both initi
 Ordered mechanic trigger points preserve these boundaries:
 
 - Stealth breaks before Unrelenting Strikes and No Quarter; steal traits run before stolen-skill acquisition and
-  initiative rewards. `core/mechanics/steal.ts` dispatches the boundary from `core/mechanics/boundaries.ts`.
+  initiative rewards. `core/mechanics/steal.ts` dispatches the boundary from `core/mechanics/trigger-points.ts`.
 - Dodge packets resolve before their new damage windows; Mark resets precede stolen-skill replacement and malice
   rewards.
 - Specter emits barrier before Dark Sentry's task and resolves Amplified Siphoning before Improvisation. Siphon's skill

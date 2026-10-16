@@ -21,7 +21,7 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 import {
   facetConsumed,
   heraldUpkeepSettled
-} from '#gw2/professions/revenant/specializations/herald/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
 import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import {
   HERALD_DRACONIC_ECHO_PROFILE_ID,

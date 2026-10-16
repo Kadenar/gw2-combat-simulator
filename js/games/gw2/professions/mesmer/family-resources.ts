@@ -4,7 +4,7 @@ import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusio
 import { createIllusionRewardController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/skills/weapons/clone-attacks.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
-import { mirageResourcesGained } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trait-boundaries.js';
+import { mirageResourcesGained } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

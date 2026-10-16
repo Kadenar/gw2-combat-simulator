@@ -3,7 +3,7 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
-import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
+import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   inFlightAutoattackCarryover,

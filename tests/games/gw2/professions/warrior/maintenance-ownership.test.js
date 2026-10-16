@@ -58,7 +58,7 @@ test('the composed runtime installs only the selected elite policies and observa
   for (const specialization of ['Core', ...Object.keys(eliteKinds), 'Paragon']) {
     const { profession, context } = initialized(specialization);
     const policies = profession.buffPolicies(context).map(({ kind }) => kind);
-    const observations = profession.observeEffects(context.queries).map(({ kind }) => kind);
+    const observations = (profession.observeEffects?.(context.queries) ?? []).map(({ kind }) => kind);
     assert.equal(new Set(policies).size, policies.length);
     assert.equal(new Set(observations).size, observations.length);
     for (const [owner, kinds] of Object.entries(eliteKinds)) {

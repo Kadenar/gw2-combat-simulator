@@ -228,9 +228,14 @@ export function applyFerventStance(
 }
 
 /** Fervent Stance activation and its dual-attack reward share the same expiry state. */
-export const ferventStanceTasks = {
+const ferventStanceTasks = {
   'elementalist.weaver.arm-fervent-stance'(runtime) {
     weaverState.from(runtime).ferventStanceUntil =
       runtime.time + balanceNumberFromContext(runtime, PROFILE.ferventStance, 'durationMultiplier');
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
+
+/** Registers Fervent Stance tasks with the Weaver hook assembly. */
+export const ferventStanceLifecycle = {
+  tasks: ferventStanceTasks
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;

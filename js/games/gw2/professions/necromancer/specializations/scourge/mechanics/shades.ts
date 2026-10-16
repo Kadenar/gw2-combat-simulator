@@ -11,7 +11,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { scourgeShadeManifested } from '#gw2/professions/necromancer/specializations/scourge/mechanics/combat-boundaries.js';
+import { scourgeShadeManifested } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
@@ -129,7 +129,7 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
 }
 
 /** Shade commands share manifestation, lifetime replacement, and their common strike. */
-export const scourgeShadeActions = {
+const scourgeShadeActions = {
   'scourge.manifest-start'(runtime, context) {
     if (context.kind === 'cast' && !context.cast.cancelled)
       runtime.scheduleForCast(
@@ -147,7 +147,7 @@ export const scourgeShadeActions = {
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 
 /** Shade expiry and queued manifestation settle through the same lifetime and strike owners. */
-export const scourgeShadeTasks = {
+const scourgeShadeTasks = {
   [EXPIRE](runtime) {
     purgeScourgeTimedState(scourgeState.from(runtime), runtime.time);
     refreshShadeExpiry(runtime);
@@ -156,3 +156,9 @@ export const scourgeShadeTasks = {
     shadeStrike(runtime, (data as { cast: RuntimeCast<NecromancerSkill> }).cast);
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
+
+/** Shade commands, expiry, and queued manifestation share one owner. */
+export const scourgeShadeLifecycle = {
+  sideEffectHandlers: scourgeShadeActions,
+  tasks: scourgeShadeTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

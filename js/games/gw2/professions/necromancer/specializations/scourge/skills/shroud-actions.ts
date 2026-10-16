@@ -8,7 +8,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { scourgeBarrierApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/combat-boundaries.js';
+import { scourgeBarrierApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import type {
   NecromancerRuntime,
@@ -57,7 +57,7 @@ function emitShroudEffects(
 }
 
 /** Shroud commands own their cleanse, control, and delayed barrier effects. */
-export const scourgeShroudActions = {
+const scourgeShroudActions = {
   'scourge.barrier'(runtime, context) {
     if (context.kind === 'cast')
       runtime.fireTrigger(scourgeBarrierApplied, {
@@ -125,7 +125,7 @@ export const scourgeShroudActions = {
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 
 /** Barrier traits settle before the boon samples its live party audience. */
-export const scourgeShroudTasks = {
+const scourgeShroudTasks = {
   [BARRIER](runtime, data) {
     const { cast, event } = data as { cast: RuntimeCast<NecromancerSkill>; event: Gw2ResolverEvent };
     runtime.fireTrigger(scourgeBarrierApplied, { cast, at: runtime.time, activationId: cast.id });
@@ -137,3 +137,9 @@ export const scourgeShroudTasks = {
     });
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
+
+/** Scourge shroud actions and their delayed tasks share one owner. */
+export const scourgeShroudLifecycle = {
+  sideEffectHandlers: scourgeShroudActions,
+  tasks: scourgeShroudTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

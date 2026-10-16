@@ -24,7 +24,7 @@ import {
   troubadourInstrumentConditions,
   troubadourInstrumentControl,
   troubadourInstrumentStrike
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trait-boundaries.js';
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import {
   activeTroubadourInstrumentsAt,

@@ -41,6 +41,7 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 // Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
 export function releaseElementalProcession(
@@ -96,7 +97,7 @@ export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elem
 }
 
 /** Skill-selected commit work runs after this cast's shared trait/bookkeeping hooks and before the next completion. */
-export function scheduleEvokerSkillCommit(
+function scheduleEvokerSkillCommit(
   context: ElementalistRuntime,
   trigger: ActionContext<ElementalistSkill>,
   action: SideEffectAction
@@ -106,9 +107,7 @@ export function scheduleEvokerSkillCommit(
   context.scheduleForCast(action.type, context.time, trigger.cast, {}, undefined, -101);
 }
 
-export const evokerSkillCommitTasks: NonNullable<
-  RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['tasks']
-> = {
+const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['tasks']> = {
   'elementalist.evoker.lightning-blitz'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
@@ -255,6 +254,14 @@ export const evokerSkillCommitTasks: NonNullable<
     }
   }
 };
+
+/** Each familiar commit action schedules its matching task so deferred settlement keeps the cast it belongs to. */
+export const evokerSkillCommitLifecycle = {
+  sideEffectHandlers: Object.fromEntries(
+    Object.keys(evokerSkillCommitTasks).map((type) => [type, scheduleEvokerSkillCommit])
+  ),
+  tasks: evokerSkillCommitTasks
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
 
 /** Release each deferred grant after the familiar reset, then run the final familiar trait observer. */
 export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {

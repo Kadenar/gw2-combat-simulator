@@ -32,7 +32,7 @@ import {
   revenantWeaponSwapped,
   type RevenantCastCompletion,
   type RevenantStrike
-} from '#gw2/professions/revenant/core/mechanics/boundaries.js';
+} from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';

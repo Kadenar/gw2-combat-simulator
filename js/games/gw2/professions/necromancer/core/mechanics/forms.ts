@@ -12,8 +12,13 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerRuntime,
+  NecromancerSkill,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
 
@@ -121,13 +126,18 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   transition(runtime, true, skill);
 }
 
-export const necromancerFormTasks = {
+const necromancerFormTasks = {
   [DEPLETION](runtime: NecromancerRuntime) {
     exitNecromancerShroud(runtime);
     runNecromancerLifeForceDepletion(runtime);
   },
   [LICH_EXPIRY]: exitLich
 };
+
+/** Registers shroud and form tasks with the Core hook assembly. */
+export const necromancerFormLifecycle = {
+  tasks: necromancerFormTasks
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
 
 /** Keep the original reward order at the shroud-entering boundary. */
 export const shroudEntering = defineTriggerPoint<{
