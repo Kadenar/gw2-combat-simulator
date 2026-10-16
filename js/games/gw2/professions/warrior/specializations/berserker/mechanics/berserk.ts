@@ -1,0 +1,172 @@
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import {
+  balanceNumberFromContext,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
+import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
+import {
+  lastBlazeBerserkExtension,
+  smashBrawlerBerserkExtension
+} from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
+import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+
+const BERSERK_EXPIRE = 'warrior.berserk-expiry';
+
+// Base extensions are selected by the committed Rage skill and combined with trait extensions once.
+const berserkExtensions = new WeakMap<RuntimeCast<WarriorSkill>, number>();
+
+/** Accepted Berserk entry grants the intrinsic boon before the selected entry reward. */
+export const berserkEntered = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>(
+  'warrior.berserk-entered',
+  [TRAIT.BURST_OF_AGGRESSION, TRAIT.BLOODY_ROAR]
+);
+
+/** Completion observes the new mode deadline before boon and aura reactions. */
+export const berserkerCastCompleted = defineTriggerPoint<{ readonly cast: RuntimeCast<WarriorSkill> }>(
+  'warrior.berserker-cast-completed',
+  [TRAIT.HEAT_THE_SOUL, TRAIT.KING_OF_FIRES]
+);
+
+/** Berserk changes the shared pool cap; refresh clamps entry and preserves the remaining balance on expiry. */
+const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
+  ...coreAdrenalinePolicy,
+  // Build-only resource views have catalog/config but no live mode; they use the starting Core cap.
+  maximum: (runtime) =>
+    'profession' in runtime && berserkerState.from(runtime).berserkActive
+      ? balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks')
+      : coreAdrenalinePolicy.maximum(runtime)
+};
+
+/** The status and expiry task share one deadline; older wakes cannot close a refreshed mode. */
+function publishBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  const state = berserkerState.from(runtime);
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Berserker',
+      sourceId: ID.BERSERK,
+      actorType: 'effect',
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      name: 'Berserk',
+      kind: 'berserk',
+      stacks: 1,
+      duration: state.berserkUntil - runtime.time
+    }
+  });
+  runtime.schedule(BERSERK_EXPIRE, state.berserkUntil, state.berserkUntil, undefined, -220);
+}
+
+/** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
+function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  const state = berserkerState.from(runtime);
+  const skill = cast.skill;
+
+  if (skill.id === ID.BERSERK) {
+    runtime.fireTrigger(berserkEntered, { cast });
+    return;
+  }
+
+  // An unbounded preview window is already held open and must not schedule a finite extension.
+  if (!state.berserkActive || !Number.isFinite(state.berserkUntil)) return;
+
+  const extension =
+    (berserkExtensions.get(cast) ?? 0) +
+    smashBrawlerBerserkExtension(runtime, cast) +
+    lastBlazeBerserkExtension(runtime, cast);
+
+  if (extension > 0) {
+    state.berserkUntil = gw2EffectExpiresAt(state.berserkUntil, extension);
+    publishBerserk(runtime, cast);
+  }
+}
+
+/** Entry and base extension capture share the mode owner with completion and expiry. */
+const berserkActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
+  'warrior.berserk-spend'(runtime, context) {
+    runtime.resourceController.spend('adrenaline', context.skill.adrenalineCost ?? 0);
+  },
+  'warrior.berserk-enter'(runtime, context) {
+    if (context.kind !== 'cast') return;
+
+    const cast = context.cast;
+    const state = berserkerState.from(runtime);
+    const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+    const effect = requireEffect(profile, 'buff', 'berserk');
+
+    if (effect && effectNumber(profile, effect, 'duration') > 0) {
+      state.berserkActive = true;
+      state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));
+      // Mode entry changes capacity without refilling the pool.
+      runtime.resourceController.refresh('adrenaline');
+      publishBerserk(runtime, cast);
+    }
+  },
+  'warrior.berserk-extension'(runtime, context, action) {
+    if (context.kind === 'cast' && action.type === 'warrior.berserk-extension' && action.amount != null)
+      berserkExtensions.set(context.cast, sideEffectAmount(runtime, action.amount));
+  }
+};
+
+/** Keep entry, extensions, availability, capacity, and stale-expiry protection in one mode lifecycle. */
+export const berserkLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  resources: { adrenaline: berserkerAdrenalinePolicy },
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, inputs) {
+    // Primal bursts require Berserk; ordinary attacks can inspect either form without a prerequisite cast.
+    const state = berserkerState.from(runtime);
+    state.berserkActive = Boolean(skill?.primalBurst || inputs.berserk);
+    state.berserkUntil = state.berserkActive ? Infinity : 0;
+  },
+  availability(runtime, skill) {
+    const state = berserkerState.from(runtime);
+
+    if (skill.primalBurst && !state.berserkActive)
+      return { ready: false, retryAt: null, code: 'warrior.berserk', reason: 'Primal bursts require berserk mode.' };
+
+    if (skill.id === ID.BERSERK && state.berserkActive)
+      return {
+        ready: false,
+        retryAt: state.berserkUntil,
+        code: 'warrior.berserk-active',
+        reason: 'Already in berserk mode.'
+      };
+
+    return { ready: true };
+  },
+  sideEffectHandlers: {
+    ...berserkActions,
+    // The live catalog defines eligibility, including patched primal skills; ordinary recharges are untouched.
+    'warrior.reset-primal-bursts'(runtime) {
+      for (const skill of runtime.helpers.skills) if (skill.primalBurst) runtime.cooldownController.clear(skill.id);
+    }
+  },
+  onCastCommit(runtime, cast) {
+    completeBerserk(runtime, cast);
+    runtime.fireTrigger(berserkerCastCompleted, { cast });
+  },
+  tasks: {
+    [BERSERK_EXPIRE](runtime, deadline) {
+      const state = berserkerState.from(runtime);
+
+      if (state.berserkUntil !== deadline) return;
+
+      state.berserkActive = false;
+      state.berserkUntil = 0;
+      runtime.resourceController.refresh('adrenaline');
+    }
+  }
+};

@@ -23,7 +23,10 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { ammunitionCommitted, explosionAccepted } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
+import {
+  ammunitionCommitted,
+  explosionAccepted
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/combat.js';
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { gunsaberEntered } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
@@ -31,7 +34,7 @@ import {
   resolveSharpAsTheWindSkillId,
   runtimeBuffActive
 } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
-import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */

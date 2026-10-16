@@ -2,6 +2,15 @@ import path from 'node:path';
 import test from 'node:test';
 import { assertIndependentProfessionOwners, professionSourceGraph } from '../helpers/profession-source-graph.js';
 
+// State creation must stay independent of the mode lifecycle and the traits that react to it.
+test('Berserker state initializes without importing active mode or trait behavior', () => {
+  assertIndependentProfessionOwners(
+    professionSourceGraph('warrior'),
+    ['specializations/berserker/state.ts'],
+    /(?:^|\/)(?:hooks|module|catalog|profession)\.ts$|^specializations\/berserker\/(?:mechanics|skills|traits)\//
+  );
+});
+
 // Trait line roots additionally forbid their dispatcher; all Core roots forbid elite dependencies.
 test('Warrior Core value dependencies never reach an elite and trait lines never depend on their dispatcher', () => {
   const source = professionSourceGraph('warrior');

@@ -13,7 +13,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { warriorBurstSpends, warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import { warriorBurstSpend, warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -27,7 +27,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       NonNullable<Skill['effectVariants']>[number]
     >((profileId, index) => ({
       profileId,
-      when: (runtime, cast) => warriorBurstTier(runtime, warriorBurstSpends.get(cast)!) === index + 1,
+      when: (runtime, cast) => warriorBurstTier(runtime, warriorBurstSpend(cast)!) === index + 1,
       transform: (runtime, cast) => {
         const profile = requireBalanceProfileFromContext(runtime, profileId);
         const strike = requireEffect(profile, 'strike', 'Strike');
@@ -74,7 +74,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         when: () => true,
         transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpends.get(cast)!);
+          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
           return effects.map((effect) =>
             effect.type === 'boon' && effect.boon === 'fury'
               ? { ...effect, duration: effect.duration * [1, 1.5, 2][tier - 1] }
@@ -142,7 +142,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         when: () => true,
         transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpends.get(cast)!);
+          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
           return effects.map((effect) =>
             effect.type === 'strike'
               ? { ...effect, coefficient: (Number(effect.coefficient) * [2.25, 2.75, 3.25][tier - 1]) / 2.25 }
@@ -204,7 +204,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         profileId: PROFILE.combustiveShot,
         when: () => true,
         transform(runtime, cast) {
-          const spent = warriorBurstSpends.get(cast)!;
+          const spent = warriorBurstSpend(cast)!;
           const tier = warriorBurstTier(runtime, spent);
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot);
           const interval = balanceProfileNumber(profile, 'pulseInterval');
@@ -410,7 +410,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         when: () => true,
         transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpends.get(cast)!);
+          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodthirsterTiers);
           const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`);
           return effects.flatMap<SkillEffect>((effect) =>

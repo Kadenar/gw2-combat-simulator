@@ -5,6 +5,18 @@ Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of 
 Paragon. Core owns adrenaline, bursts, weapon state, shared traits, and profession actions; each specialization owns its
 state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 
+## Mechanic ownership
+
+- Core's `core/mechanics/adrenaline.ts` owns burst readiness, spending, the private accepted-spend snapshot, tier
+  metadata, and completion/reset handling. Skill variants read that snapshot through `warriorBurstSpend`; hooks retain
+  the ordering of cast-start traits, resource spending, completion rewards, and weapon-swap rewards.
+- Berserker's `specializations/berserker/mechanics/berserk.ts` owns entry, base and trait extensions, mode publication,
+  adrenaline capacity, availability, and expiry. Its state module only declares and initializes state. The same mode
+  owner defines entry and completion triggers for trait consumers.
+- Bladesworn's `specializations/bladesworn/mechanics/combat.ts` owns ammunition acceptance/completion observations and
+  explosion dispatch, alongside their trigger definitions. Traits import those definitions without depending on hook
+  assembly; Dragon Trigger, Flow, and Gunsaber keep their existing owners.
+
 ## Data
 
 - Generated identity metadata lives in `data/`; consult its header for snapshot provenance. API-omitted Bladesworn

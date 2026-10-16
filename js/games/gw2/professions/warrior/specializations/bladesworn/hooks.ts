@@ -1,17 +1,17 @@
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { dragonSlashCompleted, dragonSlashReleased } from '#gw2/professions/warrior/core/mechanics/combat.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   bladeswornBuffPolicies,
   bladeswornEffectStates
 } from '#gw2/professions/warrior/specializations/bladesworn/effect-state.js';
+import {
+  completeBladeswornAmmunition,
+  prepareBladeswornAmmunition,
+  reactToBladeswornExplosion
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/combat.js';
 import {
   dragonChargesToAdrenalineSpent,
   dragonSlashRelease,
@@ -31,20 +31,10 @@ import {
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import {
   bladeswornSkillActions,
-  bladeswornSkillTasks,
-  cartridgeExplosion
+  bladeswornSkillTasks
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
-
-/** Only actual player explosions extend Glory or create cartridge Burning; neither derived condition can recurse. */
-function explosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
-
-  runtime.fireTrigger(explosionAccepted, { event });
-
-  cartridgeExplosion(runtime, event);
-}
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Native declarations own actual resources, bar transitions, completed ammunition rewards, and accepted explosions. */
 export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = composeRuntimeHooks([
@@ -90,18 +80,12 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
       scheduleFlowTick(runtime);
     },
     onCastStart(runtime, cast) {
-      if (cast.ammo) {
-        const ammo = runtime.cooldownController.readAmmo(cast.skill.id)!;
-        warriorAmmunition.set(cast, { rounds: 1, startedFull: ammo.charges >= ammo.maximum });
-      }
+      prepareBladeswornAmmunition(runtime, cast);
 
       if (!cast.skill.dragonSlash && cast.fullEnd > cast.start) exitDragonTrigger(runtime);
     },
     onCastCommit(runtime, cast) {
-      // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
-      const spent = warriorAmmunition.get(cast);
-
-      if (spent) runtime.fireTrigger(ammunitionCommitted, { cast, spent });
+      completeBladeswornAmmunition(runtime, cast);
 
       const release = dragonSlashRelease(cast);
 
@@ -121,18 +105,6 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
       ...bladeswornSkillTasks,
       ...flowTasks
     },
-    reactions: { 'damage.resolved': explosion }
+    reactions: { 'damage.resolved': reactToBladeswornExplosion }
   }
 ]);
-
-/** Completed ammunition rewards use the spend captured before the magazine transaction. */
-export const ammunitionCommitted = defineTriggerPoint<{
-  readonly cast: RuntimeCast<WarriorSkill>;
-  readonly spent: { readonly rounds: number; readonly startedFull: boolean };
-}>('warrior.ammunition-committed', [TRAIT.FIERCE_AS_FIRE, TRAIT.LUSH_FOREST]);
-
-/** Explosion Glory extends before cartridge effects inspect the accepted strike. */
-export const explosionAccepted = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
-  'warrior.explosion-accepted',
-  [TRAIT.GUNS_AND_GLORY]
-);

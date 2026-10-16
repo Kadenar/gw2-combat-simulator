@@ -15,7 +15,10 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { berserkEntered, berserkerCastCompleted } from '#gw2/professions/warrior/specializations/berserker/hooks.js';
+import {
+  berserkEntered,
+  berserkerCastCompleted
+} from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import {
   DETONATE,
@@ -24,7 +27,7 @@ import {
   detonate,
   isBerserkerSkill
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
-import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 const burstOfAggression = defineTrait({

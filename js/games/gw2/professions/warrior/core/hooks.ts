@@ -1,10 +1,9 @@
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import {
   balanceNumberFromContext,
@@ -14,14 +13,15 @@ import {
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import {
+  beginWarriorBurst,
+  completeWarriorBurst,
   coreAdrenalinePolicy,
-  warriorBurstSpends,
-  warriorBurstTier
+  modifyWarriorBurstEffects,
+  resetWarriorAdrenaline,
+  warriorAdrenalineAvailability
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { resolveWarriorDualWieldSkill } from '#gw2/professions/warrior/data/dual-wielding.js';
 import {
-  burstCompleted,
   castStarting,
   controlAccepted,
   coreInitialized,
@@ -37,9 +37,10 @@ import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot
 import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
 import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
 import { swordFlipLifecycle } from '#gw2/professions/warrior/core/skills/weapons/sword.js';
+import { resolveWarriorDualWieldSkill } from '#gw2/professions/warrior/data/dual-wielding.js';
 
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { grantWarriorResource, warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Core dispatches shared burst packets through the burst rules selected by the Warrior family. */
@@ -144,52 +145,21 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
         reason: 'Tactical Blow requires an active Counterblow.'
       };
 
-    const rules = warriorBurstRules(runtime);
-    const cost = rules.required(runtime, skill);
-
-    // Readiness and strict spending share the same tolerance for fractional trait rewards.
-    if (!rules.bypass(runtime, skill) && !resourceAtLeast(runtime.resourceController.value('adrenaline'), cost))
-      return {
-        ready: false,
-        retryAt: runtime.resourceController.readyAt('adrenaline', cost),
-        code: 'warrior.adrenaline',
-        reason: `${skill.name} requires ${cost} adrenaline.`
-      };
-
-    return { ready: true };
+    return warriorAdrenalineAvailability(runtime, skill);
   },
   onCastStart(runtime, cast) {
     runtime.fireTrigger(castStarting, { cast });
 
-    if (cast.skill.burst && !cast.skill.dragonSlash) {
-      const spent = warriorBurstRules(runtime).spend(runtime, cast.skill);
-      runtime.resourceController.spend('adrenaline', spent);
-      warriorBurstSpends.set(cast, spent);
-    }
+    beginWarriorBurst(runtime, cast);
   },
   modifyComboFields: combustiveShotFields,
-  modifyEffects(runtime, cast, effects) {
-    if (!cast.skill.burst || cast.skill.dragonSlash) return effects;
-
-    const spent = warriorBurstSpends.get(cast)!;
-    const tier = warriorBurstTier(runtime, spent);
-
-    return effects.map((effect) => ({
-      ...effect,
-      metadata: { ...effect.metadata, warriorAdrenalineSpent: spent, warriorBurstTier: tier }
-    }));
-  },
+  modifyEffects: modifyWarriorBurstEffects,
   onCastCommit(runtime, cast) {
-    // Successful bursts refund the captured spend at completion, independently of target acceptance.
-    const spent = warriorBurstSpends.get(cast) ?? 0;
-    runtime.fireTrigger(burstCompleted, { cast, spent });
+    completeWarriorBurst(runtime, cast);
 
     if (cast.skill.inputCategory === 'weapon-swap') runtime.fireTrigger(weaponSwapped, {});
   },
-  onCooldownReset(runtime) {
-    if (warriorBurstRules(runtime).resetEligible)
-      runtime.resourceController.grant('adrenaline', runtime.profession.core.adrenaline.maximum);
-  },
+  onCooldownReset: resetWarriorAdrenaline,
   reactions: {
     'damage.resolving': fierceBlowDamage,
     'damage.resolved'(runtime, event, details) {

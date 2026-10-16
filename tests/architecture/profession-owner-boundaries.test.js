@@ -85,7 +85,16 @@ const boundaries = {
     'core/mechanics/clarity.ts',
     'specializations/troubadour/mechanics/tales.ts'
   ],
-  warrior: ['core/state.ts']
+  warrior: [
+    'core/state.ts',
+    'core/mechanics/adrenaline.ts',
+    'specializations/berserker/state.ts',
+    'specializations/berserker/mechanics/berserk.ts',
+    'specializations/berserker/skills/index.ts',
+    'specializations/berserker/traits/index.ts',
+    'specializations/bladesworn/mechanics/combat.ts',
+    'specializations/bladesworn/traits/index.ts'
+  ]
 };
 
 // These boundaries protect independent initialization, not a required filename or directory layout.

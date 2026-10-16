@@ -1,24 +1,10 @@
 /** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import {
-  berserkerState,
-  publishBerserk,
-  berserkExtensions
-} from '#gw2/professions/warrior/specializations/berserker/state.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
@@ -530,30 +516,3 @@ export const slicingMaelstromModifiers: readonly Gw2ModifierRule[] = [
       skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.SLICING_MAELSTROM
   }
 ];
-
-/** Skill-owned entry and base extensions leave expiry and combined trait publication with the mode owner. */
-export const berserkSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
-  'warrior.berserk-spend'(runtime, context) {
-    runtime.resourceController.spend('adrenaline', context.skill.adrenalineCost ?? 0);
-  },
-  'warrior.berserk-enter'(runtime, context) {
-    if (context.kind !== 'cast') return;
-
-    const cast = context.cast;
-    const state = berserkerState.from(runtime);
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-    const effect = requireEffect(profile, 'buff', 'berserk');
-
-    if (effect && effectNumber(profile, effect, 'duration') > 0) {
-      state.berserkActive = true;
-      state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));
-      // Mode entry changes capacity without refilling the pool.
-      runtime.resourceController.refresh('adrenaline');
-      publishBerserk(runtime, cast);
-    }
-  },
-  'warrior.berserk-extension'(runtime, context, action) {
-    if (context.kind === 'cast' && action.type === 'warrior.berserk-extension' && action.amount != null)
-      berserkExtensions.set(context.cast, sideEffectAmount(runtime, action.amount));
-  }
-};
