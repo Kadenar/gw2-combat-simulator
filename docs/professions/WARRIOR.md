@@ -7,6 +7,10 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 
 ## Mechanic ownership
 
+- Paragon's `mechanics/refrains.ts` owns Motivation, chant entry, pulse replacement, and their trait boundaries;
+  `mechanics/command-echoes.ts` owns command instances, repeat consumption, and burst-completion ordering. Hooks compose
+  those lifecycles. Spellbreaker's `mechanics/combat.ts` owns accepted-control and strike dispatch alongside its trigger
+  definitions, keeping trait modules independent of hook assembly.
 - Core's `core/mechanics/adrenaline.ts` owns burst readiness, spending, the private accepted-spend snapshot, tier
   metadata, and completion/reset handling. Skill variants read that snapshot through `warriorBurstSpend`; hooks retain
   the ordering of cast-start traits, resource spending, completion rewards, and weapon-swap rewards.

@@ -1,13 +1,11 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
@@ -147,33 +145,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
 
     arcaneEchoUntil: 0
   };
-}
-
-/** Attunement readiness belongs to the shared cooldown controller, including temporary recharge rates. */
-export function setElementalistAttunementReadyAt(
-  context: ElementalistRuntime,
-  attunement: ElementalistAttunement,
-  readyAt: number
-): void {
-  const skill = context.helpers.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
-
-  if (!skill) throw new Error('Missing attunement skill.');
-
-  // Keeping an existing deadline must also keep the work already earned under earlier recharge rates.
-  if (context.cooldownController.readyAt(skill.id) === readyAt) return;
-
-  if (readyAt > context.time)
-    context.cooldownController.startRecharge(
-      skill,
-      context.time,
-      (readyAt - context.time) * context.cooldownController.rate(skill)
-    );
-  else context.cooldownController.clear(skill.id);
-}
-
-/** Resets the actual attunement recharge pools at the shared reset boundary. */
-export function resetElementalistAttunementCooldowns(context: ElementalistRuntime): void {
-  for (const element of ELEMENTALIST_ATTUNEMENTS) setElementalistAttunementReadyAt(context, element, context.time);
 }
 
 // Publish presentation state; pending spear rewards stay with the live mechanics that consume them.

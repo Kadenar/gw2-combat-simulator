@@ -1,13 +1,13 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
-import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

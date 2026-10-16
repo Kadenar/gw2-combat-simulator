@@ -2,6 +2,15 @@ import { assertIndependentProfessionOwners, professionSourceGraph } from '#tests
 import path from 'node:path';
 import test from 'node:test';
 
+// State initialization must not load the live cooldown mutations used by attunement transitions and Fresh Air.
+test('Elementalist Core state stays independent of attunement cooldown execution', () => {
+  assertIndependentProfessionOwners(
+    professionSourceGraph('elementalist'),
+    ['core/state.ts'],
+    /^core\/mechanics\/attunement-cooldowns\.ts$|(?:^|\/)(?:hooks|module|catalog|profession)\.ts$/
+  );
+});
+
 /** Check every owner so moving a helper cannot hide a cycle outside a hand-maintained entry list. */
 test('all Elementalist modules have acyclic value dependencies', () => {
   const source = professionSourceGraph('elementalist');

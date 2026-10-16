@@ -7,6 +7,9 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Mechanic ownership
 
+- Soulbeast's `specializations/soulbeast/mechanics/beastmode-effects.ts` owns merge transitions, pet initialization,
+  availability, and merged-command completion alongside its hit reactions. The Beastmode skill catalog declares actions;
+  hooks add stance grants and preserve the order of shared reactions.
 - Druid's `specializations/druid/mechanics/celestial-avatar.ts` owns Avatar entry/release, Astral Force gains and drain,
   retry boundaries, availability, depletion, and the transition trigger. Stale depletion work cannot retire a newer
   Avatar lifetime.

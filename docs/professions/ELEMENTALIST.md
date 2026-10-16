@@ -87,6 +87,12 @@ from their own inputs.
 - **Evoker** — specialized-element familiars, charges, empowerment, recharge rules, skill handlers, modifiers, state,
   and UI.
 
+## Attunement cooldown ownership
+
+`core/mechanics/attunement-cooldowns.ts` owns live attunement recharge updates and resets. Core, Weaver, Evoker, and
+Fresh Air share this low-level owner without importing the higher-level attunement transition dispatcher. State retains
+attunement definitions and initialization; the cooldown controller remains the sole owner of recharge progress.
+
 ## Data
 
 - Generated identity metadata lives in `data/`; consult its header for snapshot provenance.

@@ -2,6 +2,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
@@ -9,11 +10,7 @@ import {
   progressedAutoattackCarryover
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  setElementalistAttunementReadyAt,
-  type ElementalistAttunement
-} from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';

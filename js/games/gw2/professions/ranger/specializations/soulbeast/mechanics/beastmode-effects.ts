@@ -5,7 +5,9 @@ import type { ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
@@ -13,19 +15,25 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import { beastSkillUsed, mergedBeastHit, mergedCommandApplied } from '#gw2/professions/ranger/core/mechanics/combat.js';
+import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
   isPlayerStrike,
   rangerProfileEffectRequest
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { triggerMergedPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
-import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type {
+  RangerResolverContext,
+  RangerRuntime,
+  RangerRuntimeState,
+  RangerSkill
+} from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Soulbeast resolver-phase reactions and event handlers. */
@@ -281,3 +289,52 @@ export function soulbeastCastAvailability(
 
   return { ready: true };
 }
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
+  'ranger.beastmode-changed',
+  [TRAIT.UNSTOPPABLE_UNION]
+);
+
+/** Keep merge, pet lifetime, and Unstoppable Union in one ordered transition. */
+export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boolean): void {
+  soulbeastState.from(runtime).beastmodeActive = active;
+  setRangerPetActive(runtime, !active, skill.id);
+  runtime.fireTrigger(beastmodeChanged, { skill, at: runtime.time });
+}
+
+/** Merge transitions, pet presence, availability, and merged-command rewards share one Beastmode lifecycle. */
+export const beastmodeLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, inputs) {
+    soulbeastState.from(runtime).beastmodeActive = Boolean(skill?.beastmodeSkill || inputs.merged);
+  },
+  initialize(runtime) {
+    setRangerPetActive(runtime, !soulbeastState.from(runtime).beastmodeActive, ID.BEASTMODE);
+  },
+  availability: soulbeastCastAvailability,
+  onCastCommit(runtime, cast) {
+    const state = soulbeastState.from(runtime);
+    const skill = cast.skill;
+
+    if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;
+
+    if (!state.beastmodeActive) return;
+
+    runtime.fireTrigger(mergedCommandApplied, { skill: skill, at: runtime.time });
+
+    if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
+      runtime.fireTrigger(beastSkillUsed, {
+        skill,
+        at: runtime.time
+      });
+  },
+  sideEffectHandlers: {
+    'ranger.beastmode-enter'(runtime, context) {
+      setBeastmode(runtime, context.skill, true);
+    },
+    'ranger.beastmode-leave'(runtime, context) {
+      setBeastmode(runtime, context.skill, false);
+    }
+  }
+};

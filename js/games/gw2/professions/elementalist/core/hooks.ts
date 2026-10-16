@@ -12,6 +12,7 @@ import {
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
 import { CONJURED_WEAPONS, HAMMER_ORB_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
+import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
   acceptElementalistAuraReaction,
   applyElementalistAura,
@@ -55,10 +56,7 @@ import {
   triggerShatteringStone
 } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  resetElementalistAttunementCooldowns
-} from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
 import { emitEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
 import {

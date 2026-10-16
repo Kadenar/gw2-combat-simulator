@@ -20,21 +20,18 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
  * is disabled - fire the entry effects from empowered familiar casts without any
  * attunement actually changing.
  */
+import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  isElementalistAttunement,
-  setElementalistAttunementReadyAt
-} from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS, isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import {
   consumeEvokerAttunementTraitCooldown,
   evocationAllowsAttunementTrait
 } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
-import { type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 
 /**
  * Runs Core's attunement completion with Evoker's proc policy attached, and

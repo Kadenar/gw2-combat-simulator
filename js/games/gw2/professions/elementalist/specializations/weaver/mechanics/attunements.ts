@@ -12,6 +12,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/attunement-triggers.js';
 import {
   elementalistAttunementRechargeDuration,
@@ -20,11 +21,7 @@ import {
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  isElementalistAttunement,
-  setElementalistAttunementReadyAt
-} from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS, isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   weaverHammerAvailability,

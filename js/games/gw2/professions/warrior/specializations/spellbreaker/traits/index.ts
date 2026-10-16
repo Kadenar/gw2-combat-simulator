@@ -1,9 +1,9 @@
-import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -14,14 +14,14 @@ import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
-  requireSkillFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
   spellbreakerControlAccepted,
   spellbreakerStrike
-} from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
+} from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/combat.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';

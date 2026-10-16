@@ -12,6 +12,9 @@ Firebrand's `initial-state.ts` supplies default profiles without importing trait
 
 ## Mechanic ownership
 
+- Dragonhunter's `specializations/dragonhunter/mechanics/virtue-effects.ts` owns accepted virtue readiness, passive
+  Courage, tether attachment/breaking, burning, follow-up expiry, and Justice reactions. Hooks retain control-trigger
+  dispatch while registering the complete virtue lifecycle.
 - Willbender's `specializations/willbender/mechanics/virtues.ts` owns accepted virtue readiness, activation recipes,
   active windows, hit counters, flame generation and cancellation, and scheduled tasks. Skill declarations stay in the
   existing catalog; hooks register the mechanic's actions and lifecycle handlers.

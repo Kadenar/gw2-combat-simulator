@@ -1,13 +1,9 @@
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 /**
  * Owns Soulbeast mode-toggle and pet-swap action fragments.
- * Persistent merge state and transitions remain in `mechanics/beastmode-effects.ts` and `hooks.ts`.
+ * Persistent merge state and transitions belong to `mechanics/beastmode-effects.ts`.
  */
 
 // Entering and leaving Beastmode are two states of the same F5 palette tile.
@@ -37,16 +33,3 @@ export const SOULBEAST_BEASTMODE_SKILL_MECHANICS: Readonly<Record<number, Partia
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   }
 });
-
-/** Keep merge, pet lifetime, and Unstoppable Union in one ordered transition. */
-export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boolean): void {
-  soulbeastState.from(runtime).beastmodeActive = active;
-  setRangerPetActive(runtime, !active, skill.id);
-  runtime.fireTrigger(beastmodeChanged, { skill, at: runtime.time });
-}
-
-/** The selected trait observes this accepted transition before subsequent mechanic work. */
-export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill; readonly at: number }>(
-  'ranger.beastmode-changed',
-  [TRAIT.UNSTOPPABLE_UNION]
-);

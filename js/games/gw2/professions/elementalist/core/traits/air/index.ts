@@ -2,7 +2,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks, targetHealthBelow, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBuffStacks, boonActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -23,6 +23,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
+import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
   attunementChanged,
   attunementInvoked,
@@ -43,7 +44,6 @@ import {
   type ElementalistDamageResolved,
   type ElementalistReaction
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/state.js';
 import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
 import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
 import {

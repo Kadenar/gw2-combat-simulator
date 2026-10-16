@@ -7,6 +7,7 @@ import test from 'node:test';
 const boundaries = {
   elementalist: [
     'core/state.ts',
+    'core/mechanics/attunement-cooldowns.ts',
     'core/traits/critical-eligibility.ts',
     'core/mechanics/availability.ts',
     'core/mechanics/elementals/queries.ts',
@@ -52,6 +53,7 @@ const boundaries = {
     'core/mechanics/combat.ts',
     'core/traits/skirmishing/index.ts',
     'specializations/soulbeast/skills/stance-skills.ts',
+    'specializations/soulbeast/mechanics/beastmode-effects.ts',
     'specializations/druid/mechanics/celestial-avatar.ts',
     'specializations/druid/traits/index.ts',
     'specializations/untamed/mechanics/unleash-effects.ts',
@@ -86,6 +88,7 @@ const boundaries = {
     'specializations/specter/mechanics/shadow-shroud.ts'
   ],
   guardian: [
+    'specializations/dragonhunter/mechanics/virtue-effects.ts',
     'specializations/willbender/mechanics/virtues.ts',
     'specializations/firebrand/mechanics/tomes.ts',
     'specializations/luminary/mechanics/radiant-forge.ts',
@@ -106,19 +109,28 @@ const boundaries = {
     'specializations/berserker/skills/index.ts',
     'specializations/berserker/traits/index.ts',
     'specializations/bladesworn/mechanics/combat.ts',
-    'specializations/bladesworn/traits/index.ts'
+    'specializations/bladesworn/traits/index.ts',
+    'specializations/paragon/mechanics/refrains.ts',
+    'specializations/paragon/mechanics/command-echoes.ts',
+    'specializations/spellbreaker/mechanics/combat.ts'
   ]
 };
 
 // These boundaries protect independent initialization, not a required filename or directory layout.
-for (const [profession, entries] of Object.entries(boundaries)) {
-  // Every registered line must initialize independently, including lines without separate support files.
-  const traitRoot = path.resolve(import.meta.dirname, '../../js/games/gw2/professions', profession, 'core/traits');
-  entries.push(
-    ...readdirSync(traitRoot, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => `core/traits/${entry.name}/index.ts`)
-  );
+for (const [profession, owners] of Object.entries(boundaries)) {
+  // Discover Core and elite trait roots so new specializations cannot bypass the assembly boundary checks.
+  const root = path.resolve(import.meta.dirname, '../../js/games/gw2/professions', profession);
+  const entries = [
+    ...new Set([
+      ...owners,
+      ...readdirSync(path.join(root, 'core/traits'), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => `core/traits/${entry.name}/index.ts`),
+      ...readdirSync(path.join(root, 'specializations'), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => `specializations/${entry.name}/traits/index.ts`)
+    ])
+  ];
   test(`${profession} skill, trait, and resource owners remain independent of hook assembly`, () => {
     assertIndependentProfessionOwners(professionSourceGraph(profession), entries);
   });

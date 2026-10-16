@@ -13,15 +13,15 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { paragonCastCompleted } from '#gw2/professions/warrior/specializations/paragon/mechanics/command-echoes.js';
 import {
   chantActivated,
   motivationSpent,
-  paragonCastCompleted,
-  paragonCombatStarted
-} from '#gw2/professions/warrior/specializations/paragon/hooks.js';
-import { startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
+  paragonCombatStarted,
+  startRefrain
+} from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import { paragonState, type ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
-import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 const inspiringImplements = defineTrait({
