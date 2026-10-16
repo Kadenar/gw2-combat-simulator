@@ -67,7 +67,11 @@ export function simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patc
   });
   const context = adapter.createBuildContext({ build, patchId, transitionDelays: normalizeTransitionDelays() });
   const config = deterministicSimulationConfig(context.simulationConfig());
-  return { build, result: simulateGw2({ profession: context.profession, rotation: build.rotation, config }) };
+  // Benchmarks need combat events and APM, but never consume chart histories or projected party-boon reports.
+  return {
+    build,
+    result: simulateGw2({ profession: context.profession, rotation: build.rotation, config, collectChartData: false })
+  };
 }
 
 async function captureProfession(professionId, gameId, patchId) {

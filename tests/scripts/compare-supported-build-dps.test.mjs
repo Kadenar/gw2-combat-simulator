@@ -27,6 +27,9 @@ test('capture leaves saved input unchanged and rejects unknown patches', async (
   const rotation = { rotation: [] };
   const { build, result } = simulateBenchmarkPreset(module, source, rotation);
   assert.ok(Number.isFinite(result.dps));
+  // Headless captures must not allocate presentation histories that benchmark metrics never consume.
+  assert.equal(result.effectReport, null);
+  assert.equal(result.boonGeneration, null);
   assert.notEqual(build, source);
   assert.deepEqual(source, snapshot);
   assert.deepEqual(rotation, { rotation: [] });
