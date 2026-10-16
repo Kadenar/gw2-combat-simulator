@@ -1,3 +1,8 @@
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -39,3 +44,30 @@ export const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
   maximum: () => REVENANT_MAXIMUM_ENDURANCE,
   regenerationRate: (runtime, vigor) => revenantEnduranceRate(runtime, vigor)
 };
+
+/** Energy readiness respects precombat recovery and the shared action grid before allowing a cast. */
+export function revenantEnergyAvailability(
+  runtime: MechanicQueriesOf<RevenantRuntime>,
+  skill: Skill
+): AvailabilityResult {
+  const core = runtime.profession.core;
+  const now = runtime.time;
+  const cost = revenantEnergyCost(runtime, skill);
+  const energy = runtime.resourceController.value('energy');
+  const energyReadyAt =
+    !resourceAtLeast(energy, cost) && core.combatBeganAt == null
+      ? null
+      : runtime.resourceController.readyAt('energy', cost);
+  // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
+  if (!resourceAtLeast(energy, cost) || (energyReadyAt != null && energyReadyAt > now)) {
+    const cooldownReadyAt = runtime.cooldownController.readyAt(skill.id) || 0;
+    return denySkillCast(
+      skill,
+      'revenant.insufficient-energy',
+      `requires ${cost} energy.`,
+      cooldownReadyAt > now ? cooldownReadyAt : energyReadyAt
+    );
+  }
+
+  return { ready: true };
+}

@@ -1,3 +1,14 @@
+import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /** Owns Legendary Demon Stance skill fragments and its Unyielding Impact follow-up. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -134,7 +145,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.embrace-opening' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
     castTimeMs: 440,
     interruptCommitMs: 400,
     cooldown: 3,
@@ -170,16 +181,6 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       }
     ],
     legendId: 'LegendaryDemon'
-  },
-  [ID.RELINQUISH_POWER]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }],
-    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
-    castTimeMs: 0,
-    cooldown: 0,
-    energyCost: 0,
-    effects: [],
-    legendId: 'LegendaryAssassin'
   },
   [ID.UNYIELDING_IMPACT]: {
     // A committed follow-up consumes its window and restores the parent.
@@ -222,3 +223,77 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryDemon'
   }
 });
+
+/** Demon follow-ups retain their specific denial before generic legend or resource gates. */
+export function demonAvailability(
+  runtime: MechanicQueriesOf<RevenantRuntime>,
+  skill: Skill
+): AvailabilityResult | null {
+  const flips = runtime.profession.core.availableFlips;
+  const now = runtime.time;
+  if (skill.id === ID.UNYIELDING_IMPACT && !skillFlipReady(flips[ID.UNYIELDING_IMPACT], now))
+    return denySkillCast(skill, 'revenant.unyielding-impact-inactive', 'cast Call to Anguish first.');
+  if (skill.id === ID.CALL_TO_ANGUISH && skillFlipReady(flips[ID.UNYIELDING_IMPACT], now))
+    return denySkillCast(skill, 'revenant.unyielding-impact-ready', 'use Unyielding Impact first.');
+  return null;
+}
+
+// Emit one Embrace the Darkness pulse; an armed empowered pulse selects the stronger Torment packet once.
+export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number, empowered: boolean): void {
+  const strike = skill.effects?.find((effect) => effect.type === 'strike');
+  const torment = skill.effects?.find(
+    (effect) =>
+      effect.type === 'condition' && (effect.metadata?.trigger || '') === (empowered ? 'empowered-upkeep-pulse' : '')
+  );
+  if (strike?.type !== 'strike' || torment?.type !== 'condition')
+    throw new Error('Embrace the Darkness is missing its pulse effects.');
+  const tick = conditionEffectTicks(torment)[0];
+  const common = {
+    at,
+    source: 'revenant',
+    sourceId: skill.id,
+    actorType: 'player' as const,
+    skillId: skill.id,
+    skillName: skill.name
+  };
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
+      ...common,
+      name: skill.name,
+      coefficient: strikeEffectCoefficient(strike),
+      skillWeapon: 'Unequipped'
+    })
+  });
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
+      ...common,
+      // Label empowered applications in chart attribution while keeping the shared skill identity.
+      name: empowered ? `${skill.name} — Empowered Torment` : `${skill.name} — Torment`,
+      ...(torment.metadata ? { metadata: torment.metadata } : {}),
+      condition: 'Torment',
+      stacks: tick?.stacks || 0,
+      duration: tick?.duration || 0
+    })
+  });
+}
+
+/** A committed Embrace activation lands its opening pulse at the authored offset, before drain begins. */
+export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
+  if (activeRevenantUpkeep(runtime, skill.id)) return;
+  const strike = skill.effects?.find((effect) => effect.type === 'strike');
+  if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
+  embracePulse(runtime, skill, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);
+}
+
+/** A committed paid skill, including Embrace's own activation, arms Embrace's next pulse. */
+export function empowerRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
+  if (skill.id === ID.RESIST_THE_DARKNESS) return;
+  // Activation already enabled Embrace, so its cost query now describes a free toggle.
+  if (skill.id !== ID.EMBRACE_THE_DARKNESS && !(revenantEnergyCost(runtime, skill) > 0)) return;
+  const embrace = activeRevenantUpkeep(runtime, ID.EMBRACE_THE_DARKNESS);
+  if (embrace) embrace.empoweredNextPulse = true;
+}

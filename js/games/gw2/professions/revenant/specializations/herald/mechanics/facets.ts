@@ -21,7 +21,7 @@ export function heraldFacetPassiveActive(
 ): boolean {
   const lingering = state.lingeringFacets?.[skillId];
   return Boolean(
-    core.activeUpkeeps?.some((upkeep) => upkeep.skillId === skillId && (upkeep.startsAt || 0) <= at) ||
+    core.activeUpkeeps?.some((upkeep) => upkeep.skillId === skillId && upkeep.startsAt <= at) ||
     (lingering && lingering.startsAt <= at && at < lingering.expiresAt)
   );
 }

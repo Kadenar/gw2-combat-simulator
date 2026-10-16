@@ -474,8 +474,8 @@ test('Revenant snapshots expose shared drains and elite stack/form windows', () 
       'Renegade',
       {
         activeUpkeeps: [
-          { skillId: 1, upkeepCost: 6 },
-          { skillId: 2, upkeepCost: 2 }
+          { skillId: 1, upkeepCost: 6, startsAt: 0, empoweredNextPulse: false },
+          { skillId: 2, upkeepCost: 2, startsAt: 0, empoweredNextPulse: false }
         ],
         crushingAbyss: [3, 9, 11],
         kallasFervor: [

@@ -27,7 +27,12 @@ test('Conduit costs preserve follow-up charges, unmapped skills, and free active
   assert.equal(effectiveRevenantEnergyCost(input, haze), 20);
   const upkeep = revenantCatalog.skillsById.get(SKILL.EMBRACE_THE_DARKNESS);
   assert.equal(effectiveRevenantEnergyCost(input, upkeep), 1);
-  state.activeUpkeeps.push({ skillId: upkeep.id });
+  state.activeUpkeeps.push({
+    skillId: upkeep.id,
+    upkeepCost: upkeep.upkeepCost,
+    startsAt: 0,
+    empoweredNextPulse: false
+  });
   assert.equal(effectiveRevenantEnergyCost(input, upkeep), 0);
 });
 

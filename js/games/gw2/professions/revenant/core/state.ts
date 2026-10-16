@@ -13,7 +13,8 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 export interface RevenantUpkeepState {
   skillId: SkillId;
   upkeepCost: number;
-  startsAt?: number;
+  /** Every upkeep has an activation instant so teardown can retire its scheduled work. */
+  startsAt: number;
   empoweredNextPulse: boolean;
 }
 

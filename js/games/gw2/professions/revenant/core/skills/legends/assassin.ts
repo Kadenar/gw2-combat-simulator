@@ -1,3 +1,6 @@
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -8,7 +11,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /** Owns Legendary Assassin Stance skill fragments and their alternate identities. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -47,13 +50,23 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ],
     legendId: 'LegendaryAssassin'
   },
+  [ID.RELINQUISH_POWER]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }],
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
+    castTimeMs: 0,
+    cooldown: 0,
+    energyCost: 0,
+    effects: [],
+    legendId: 'LegendaryAssassin'
+  },
   [ID.IMPOSSIBLE_ODDS]: {
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
       { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Shared upkeep owns the drain and release; qualifying strikes trigger the follow-up defined below.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
@@ -266,3 +279,49 @@ export const enchantedDaggersLifecycle = {
     return cast.skill.id === ID.ENCHANTED_DAGGERS ? [] : effects;
   }
 } satisfies RuntimeHooks<RevenantRuntimeState, RevenantSkill>;
+
+/** Only eligible owned strikes may trigger the Assassin upkeep without recursive procs. */
+function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
+  return (
+    (event.coefficient || 0) > 0 &&
+    event.skillId !== ID.IMPOSSIBLE_ODDS &&
+    // Form attacks inherit player modifiers but must not recursively trigger on-hit attacks.
+    event.skillId !== ID.LESSER_ENCHANTED_DAGGERS &&
+    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK &&
+    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK_ELITE &&
+    // Only Assassin's final shockwave triggers a follow-up.
+    (event.skillId !== ID.RELEASE_POTENTIAL_ASSASSIN || event.hitIndex === event.totalHits) &&
+    // Player-owned strikes include equipment effects; display source labels do not gate the proc.
+    (event.actorType === 'player' || (event.actorType === 'effect' && isGw2PlayerModifierOwnedEvent(event)))
+  );
+}
+
+/** An accepted qualifying strike launches Impossible Odds' follow-up while the upkeep is active and ready. */
+export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
+  if (!triggersImpossibleOdds(event) || !activeRevenantUpkeep(runtime, ID.IMPOSSIBLE_ODDS)) return;
+  // Integer clock keys allow the expiry instant without admitting hits just before it.
+  if (timeKey(runtime.time) < timeKey(runtime.procs.deadline('impossibleOdds') || 0)) return;
+  const impossible = runtime.helpers.skillsById.get(ID.IMPOSSIBLE_ODDS);
+  const strike = impossible && requireEffect(impossible, 'strike', 'Impossible Odds');
+  // The trigger interval gates only this strike, so a removed strike leaves it ready.
+  if (!impossible || !strike) return;
+  runtime.procs.setDeadline('impossibleOdds', canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000));
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverStrike({
+      at: canonicalTime(runtime.time + (effectFirstAtMs(strike) || 0) / 1000),
+      source: 'revenant',
+      sourceId: impossible.id,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: impossible.id,
+      skillName: 'Impossible Odds',
+      name: 'Impossible Odds',
+      triggeredBy: event.skillName || event.name || undefined,
+      coefficient: strikeEffectCoefficient(strike),
+      skillWeapon: 'Unequipped',
+      canTriggerCriticalSigils: true
+    })
+  });
+}

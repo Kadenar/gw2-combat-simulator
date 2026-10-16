@@ -1,36 +1,36 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
-
-export const REVENANT_UPKEEP_PULSE = 'revenant.upkeep-pulse';
+import { timeKey } from '#kernel/core/clock.js';
 
 export const REVENANT_ENERGY_DEPLETED = 'revenant.energy-depleted';
 
-const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
-
 const STARVATION_OWNER = 'revenant.energy-depleted';
 
-interface UpkeepPulse {
-  readonly skillId: SkillId;
-  readonly startsAt: number;
+// Deferred upkeep costs are immutable acceptance facts, spent only if the activation commits.
+const upkeepCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
+
+/** Capture the accepted cost before the active upkeep changes live cost queries. */
+export function reserveRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  upkeepCosts.set(cast, revenantEnergyCost(runtime, cast.skill));
+}
+
+/** Cancellation discards the accepted cost without spending Energy. */
+export function cancelRevenantUpkeep(_runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  upkeepCosts.delete(cast);
 }
 
 /** Each activation owns its recurring work; a later activation of the same skill has a new generation. */
-function revenantUpkeepOwner(skillId: SkillId, startsAt: number) {
+export function revenantUpkeepOwner(skillId: SkillId, startsAt: number) {
   return { id: `revenant.upkeep:${skillId}`, generation: timeKey(startsAt) };
 }
 
@@ -51,7 +51,7 @@ export function removeRevenantUpkeep(runtime: RevenantRuntime, skillId: SkillId)
   const active = activeRevenantUpkeep(runtime, skillId);
   if (!active) return undefined;
   core.activeUpkeeps = core.activeUpkeeps.filter((upkeep) => upkeep !== active);
-  runtime.cancelOwner(revenantUpkeepOwner(skillId, Number(active.startsAt)));
+  runtime.cancelOwner(revenantUpkeepOwner(skillId, active.startsAt));
   return active;
 }
 
@@ -66,7 +66,7 @@ export function clearRevenantLegendFlips(runtime: RevenantRuntime): void {
 /** Aggregate drain includes only upkeeps whose activation has completed. */
 export function revenantUpkeepDrain(runtime: RevenantRuntime): number {
   return runtime.profession.core.activeUpkeeps
-    .filter((active) => (active.startsAt || 0) <= runtime.time)
+    .filter((active) => active.startsAt <= runtime.time)
     .reduce((sum, active) => sum + (active.upkeepCost || 0), 0);
 }
 
@@ -105,84 +105,11 @@ export function starveRevenantUpkeeps(runtime: RevenantRuntime): void {
   runtime.resourceController.refresh('energy');
 }
 
-// Emit one Embrace the Darkness pulse; an armed empowered pulse selects the stronger Torment packet once.
-function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number, empowered: boolean): void {
-  const strike = skill.effects?.find((effect) => effect.type === 'strike');
-  const torment = skill.effects?.find(
-    (effect) =>
-      effect.type === 'condition' && (effect.metadata?.trigger || '') === (empowered ? 'empowered-upkeep-pulse' : '')
-  );
-  if (strike?.type !== 'strike' || torment?.type !== 'condition')
-    throw new Error('Embrace the Darkness is missing its pulse effects.');
-  const tick = conditionEffectTicks(torment)[0];
-  const common = {
-    at,
-    source: 'revenant',
-    sourceId: skill.id,
-    actorType: 'player' as const,
-    skillId: skill.id,
-    skillName: skill.name
-  };
-  runtime.effects.emit({
-    kind: 'packet',
-    event: buildResolverStrike({
-      ...common,
-      name: skill.name,
-      coefficient: strikeEffectCoefficient(strike),
-      skillWeapon: 'Unequipped'
-    })
-  });
-  runtime.effects.emit({
-    kind: 'packet',
-    event: buildResolverCondition({
-      ...common,
-      // Label empowered applications in chart attribution while keeping the shared skill identity.
-      name: empowered ? `${skill.name} — Empowered Torment` : `${skill.name} — Torment`,
-      ...(torment.metadata ? { metadata: torment.metadata } : {}),
-      condition: 'Torment',
-      stacks: tick?.stacks || 0,
-      duration: tick?.duration || 0
-    })
-  });
-}
-
-/** Vengeful Hammers divides one pulse's coefficient across its simultaneous hammers. */
-function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number): void {
-  const strike = skill.effects?.find((effect) => effect.type === 'strike');
-  if (strike?.type !== 'strike') throw new Error('Vengeful Hammers is missing its strike effect.');
-  const hammers = Math.max(1, Math.trunc(strike.hits ?? 1));
-  if (!(Number(strike.atMs) >= 0))
-    throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
-  for (let index = 1; index <= hammers; index += 1)
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildResolverStrike({
-        at: canonicalTime(at + Number(strike.atMs) / 1000),
-        source: 'revenant',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        name: `Vengeful Hammers — Hammer ${index}`,
-        coefficient: (strike.coefficient || 0) / hammers,
-        hitIndex: index,
-        totalHits: hammers,
-        skillWeapon: 'Unequipped'
-      })
-    });
-}
-
-/** A committed Embrace activation lands its opening pulse at the authored offset, before drain begins. */
-export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const skill = cast.skill;
-  if (activeRevenantUpkeep(runtime, skill.id)) return;
-  const strike = skill.effects?.find((effect) => effect.type === 'strike');
-  if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
-  embracePulse(runtime, skill, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);
-}
-
-/** Activation starts the sustained drain at completion, arms the release, and owns its recurring pulses. */
+/** Spend the reserved cost before activation changes live cost queries, then start drain and arm the release. */
 export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const cost = upkeepCosts.get(cast);
+  upkeepCosts.delete(cast);
+  if (cost != null) runtime.resourceController.spend('energy', cost);
   const skill = cast.skill;
   const core = runtime.profession.core;
   const active: RevenantUpkeepState = {
@@ -195,20 +122,6 @@ export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCa
   runtime.resourceController.refresh('energy');
   const release = skill.flipSkillId == null ? null : runtime.helpers.skillsById.get(Number(skill.flipSkillId));
   if (release) armSkillFlip(core.availableFlips, release.id, runtime.time);
-  // Core owns its packet cadence. The next whole second follows the exact canonical activation instant.
-  const first =
-    skill.id === ID.EMBRACE_THE_DARKNESS
-      ? Math.floor(canonicalTime(runtime.time)) + 1
-      : VENGEFUL_HAMMERS_IDS.has(skill.id)
-        ? runtime.time + Math.max(0, skill.pulseInterval ?? 1)
-        : null;
-  if (first != null)
-    runtime.schedule(
-      REVENANT_UPKEEP_PULSE,
-      canonicalTime(first),
-      { skillId: skill.id, startsAt: runtime.time } satisfies UpkeepPulse,
-      revenantUpkeepOwner(skill.id, runtime.time)
-    );
 }
 
 /** Releasing removes the parent's drain and follow-up, then applies its manual-release recharge. */
@@ -225,76 +138,22 @@ export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCas
   if (cooldown > 0) runtime.cooldownController.startRecharge({ ...parent, cooldown }, runtime.time);
 }
 
-/** One pulse per activation; only the owning activation schedules its successor. */
-export function revenantUpkeepPulse(runtime: RevenantRuntime, data: unknown): void {
-  const { skillId, startsAt } = data as UpkeepPulse;
-  const active = activeRevenantUpkeep(runtime, skillId, startsAt);
-  const skill = runtime.helpers.skillsById.get(skillId);
-  if (!active || !skill) return;
-  if (skill.id === ID.EMBRACE_THE_DARKNESS) {
-    embracePulse(runtime, skill, runtime.time, active.empoweredNextPulse);
-    active.empoweredNextPulse = false;
-  } else if (VENGEFUL_HAMMERS_IDS.has(skill.id)) hammerPulse(runtime, skill, runtime.time);
-  else return;
-  runtime.schedule(
-    REVENANT_UPKEEP_PULSE,
-    canonicalTime(runtime.time + Math.max(0, skill.pulseInterval ?? 1)),
-    data,
-    revenantUpkeepOwner(skillId, startsAt)
-  );
+/** Releases are identified through the live catalog's upkeep parents. */
+export function upkeepRelease(runtime: MechanicQueriesOf<RevenantRuntime>, skill: Skill): boolean {
+  return isRevenantUpkeepRelease(skill, (id) => runtime.helpers.skillsById.get(id));
 }
 
-/** A committed paid skill, including Embrace's own activation, arms Embrace's next pulse. */
-export function empowerRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const skill = cast.skill;
-  if (skill.id === ID.RESIST_THE_DARKNESS) return;
-  // Activation already enabled Embrace, so its cost query now describes a free toggle.
-  if (skill.id !== ID.EMBRACE_THE_DARKNESS && !(revenantEnergyCost(runtime, skill) > 0)) return;
-  const embrace = activeRevenantUpkeep(runtime, ID.EMBRACE_THE_DARKNESS);
-  if (embrace) embrace.empoweredNextPulse = true;
-}
-
-function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
-  return (
-    (event.coefficient || 0) > 0 &&
-    event.skillId !== ID.IMPOSSIBLE_ODDS &&
-    // Form attacks inherit player modifiers but must not recursively trigger on-hit attacks.
-    event.skillId !== ID.LESSER_ENCHANTED_DAGGERS &&
-    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK &&
-    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK_ELITE &&
-    // Only Assassin's final shockwave triggers a follow-up.
-    (event.skillId !== ID.RELEASE_POTENTIAL_ASSASSIN || event.hitIndex === event.totalHits) &&
-    // Player-owned strikes include equipment effects; display source labels do not gate the proc.
-    (event.actorType === 'player' || (event.actorType === 'effect' && isGw2PlayerModifierOwnedEvent(event)))
-  );
-}
-
-/** An accepted qualifying strike launches Impossible Odds' follow-up while the upkeep is active and ready. */
-export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (!triggersImpossibleOdds(event) || !activeRevenantUpkeep(runtime, ID.IMPOSSIBLE_ODDS)) return;
-  // Integer clock keys allow the expiry instant without admitting hits just before it.
-  if (timeKey(runtime.time) < timeKey(runtime.procs.deadline('impossibleOdds') || 0)) return;
-  const impossible = runtime.helpers.skillsById.get(ID.IMPOSSIBLE_ODDS);
-  const strike = impossible && requireEffect(impossible, 'strike', 'Impossible Odds');
-  // The trigger interval gates only this strike, so a removed strike leaves it ready.
-  if (!impossible || !strike) return;
-  runtime.procs.setDeadline('impossibleOdds', canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000));
-  runtime.effects.emit({
-    kind: 'packet',
-    cause: event,
-    event: buildResolverStrike({
-      at: canonicalTime(runtime.time + (effectFirstAtMs(strike) || 0) / 1000),
-      source: 'revenant',
-      sourceId: impossible.id,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: impossible.id,
-      skillName: 'Impossible Odds',
-      name: 'Impossible Odds',
-      triggeredBy: event.skillName || event.name || undefined,
-      coefficient: strikeEffectCoefficient(strike),
-      skillWeapon: 'Unequipped',
-      canTriggerCriticalSigils: true
-    })
-  });
+/** Upkeep releases require an armed flip, while already active parents cannot activate again. */
+export function revenantUpkeepAvailability(
+  runtime: MechanicQueriesOf<RevenantRuntime>,
+  skill: Skill
+): AvailabilityResult | null {
+  const core = runtime.profession.core;
+  const flips = core.availableFlips;
+  const now = runtime.time;
+  if (upkeepRelease(runtime, skill) && !skillFlipReady(flips[skill.id], now))
+    return denySkillCast(skill, 'revenant.upkeep-inactive', 'activate the matching upkeep skill first.');
+  if (isRevenantUpkeep(skill) && core.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id))
+    return denySkillCast(skill, 'revenant.upkeep-active', 'use the matching release skill.');
+  return null;
 }

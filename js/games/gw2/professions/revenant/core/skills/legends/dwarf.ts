@@ -1,3 +1,7 @@
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /** Owns Legendary Dwarf Stance skill fragments and their alternate identities. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -9,7 +13,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
@@ -171,7 +175,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
     ],
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
+    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
@@ -232,3 +236,29 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryDwarf'
   }
 });
+
+/** Vengeful Hammers divides one pulse's coefficient across its simultaneous hammers. */
+export function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number): void {
+  const strike = skill.effects?.find((effect) => effect.type === 'strike');
+  if (strike?.type !== 'strike') throw new Error('Vengeful Hammers is missing its strike effect.');
+  const hammers = Math.max(1, Math.trunc(strike.hits ?? 1));
+  if (!(Number(strike.atMs) >= 0))
+    throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
+  for (let index = 1; index <= hammers; index += 1)
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
+        at: canonicalTime(at + Number(strike.atMs) / 1000),
+        source: 'revenant',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: `Vengeful Hammers — Hammer ${index}`,
+        coefficient: (strike.coefficient || 0) / hammers,
+        hitIndex: index,
+        totalHits: hammers,
+        skillWeapon: 'Unequipped'
+      })
+    });
+}

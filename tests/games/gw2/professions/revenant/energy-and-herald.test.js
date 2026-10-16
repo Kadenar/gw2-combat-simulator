@@ -831,7 +831,12 @@ test('Forceful Persistence counts active upkeeps additively with Ferocious Aggre
     [[SKILL.FACET_OF_STRENGTH, SKILL.FACET_OF_NATURE], 1.3],
     [[SKILL.IMPOSSIBLE_ODDS, SKILL.FACET_OF_NATURE], 1.45]
   ]) {
-    context.runtime.profession.core.activeUpkeeps = skills.map((skillId) => ({ skillId }));
+    context.runtime.profession.core.activeUpkeeps = skills.map((skillId) => ({
+      skillId,
+      upkeepCost: 0,
+      startsAt: 0,
+      empoweredNextPulse: false
+    }));
     assert.ok(Math.abs(revenantModifiers.modifyStrikeDamage(context, 1) - expected) < 1e-9);
     assert.equal(revenantModifiers.modifyConditionDamage(context, 1), 1.1);
   }
