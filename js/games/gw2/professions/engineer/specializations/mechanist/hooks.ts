@@ -35,17 +35,20 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
   initialize(runtime) {
     // Preserve implicit-start admission before the autonomous mech lane starts.
     if (!runtime.combatStartPending) runtime.fireTrigger(mechanistCombatReady, {});
+
     initializeEngineerMech(runtime);
   },
   onCombatStart(runtime) {
     // Deferred explicit combat starts the same guarded producer, never a second renewal loop.
     if (runtime.hasExplicitCombatStart) runtime.fireTrigger(mechanistCombatReady, {});
+
     initializeEngineerMech(runtime);
   },
   availability: mechanistCastAvailability,
   rechargeRules: overclockRechargeRules,
   castDurationMs(runtime, skill, durationMs) {
     if (!isEngineerMechCommand(skill)) return durationMs;
+
     return engineerMechHasQuickness(runtime, runtime.time) ? summonQuicknessCastTimeMs(skill) : skill.castTimeMs || 0;
   },
   prepareEvent(runtime, event) {
@@ -56,12 +59,14 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
   },
   onCastStart(runtime, cast) {
     const mech = mechanistState.from(runtime).mech;
+
     if (mech.active && isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
       mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
   },
   sideEffectHandlers: {
     'engineer.overclock-signet'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Overclock requires a cast trigger.');
+
       activateOverclockSignet(runtime, context.skill);
     }
   },
@@ -73,8 +78,11 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
   tasks: {
     'engineer.mech-attack'(runtime, data) {
       const mech = mechanistState.from(runtime).mech;
+
       if (!autonomousActionsAllowed(runtime) || !mech.enabled || !mech.active) return;
+
       const phase = data as MechAttackPayload;
+
       // The autonomous attack waits until the same canonical instant as lane release.
       if (runtime.time < canonicalTime(mech.busyUntil)) {
         runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);

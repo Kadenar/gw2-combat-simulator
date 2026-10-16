@@ -105,6 +105,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       // Live recipient stores and reporting history receive the same explicit consumption.
       for (const buffs of [runtime.buffs, ...[...runtime.companions.values()].map((effects) => effects.buffs)]) {
         const applications = buffs.get(kind);
+
         if (applications)
           buffs.set(
             kind,
@@ -117,6 +118,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
     retireCompanion(companionId: string, removedAt: number): void {
       // Retire the entity, not its shared grants to other recipients or ranger-owned damage.
       if (runtime.retiredCompanions.has(companionId)) return;
+
       runtime.retiredCompanions.set(companionId, removedAt);
       const effects = runtime.companions.get(companionId);
       effects?.boons.clear();
@@ -126,14 +128,17 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       for (const condition of runtime.conditionState.values())
         for (const stack of condition.stacks) {
           const application = stack.application;
+
           if (
             !application.independentConditionOwner ||
             application.actorType !== 'summon' ||
             application.summonOwner !== companionId
           )
             continue;
+
           // Even naturally expired stacks can have unpaid buffered damage, which removal cancels.
           application.removedAt = Math.min(application.removedAt ?? Infinity, removedAt);
+
           if (stack.expiresAt > removedAt) {
             stack.expiresAt = removedAt;
             reviseEffectState(condition);
@@ -144,6 +149,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       [...runtime.combo.fields.values()].find((field) => field.skillId === skillId && field.at === at),
     expireField(fieldId: string, at: number): void {
       const field = runtime.combo.fields.get(fieldId);
+
       if (field) runtime.combo.fields.set(fieldId, { ...field, expiresAt: at });
     },
     allocateEffectActivation(prefix: string): string {

@@ -59,6 +59,7 @@ export function resolverSkill(
   skillId: SkillId | null | undefined
 ): EngineerSkill | undefined {
   if (skillId == null) return;
+
   return context.helpers.skillsById.get(skillId);
 }
 
@@ -181,5 +182,6 @@ export function activeBoonStacks(context: EngineerResolverContext, kind: string,
 // Damage modifiers and on-hit traits share the same explosion tags and skill-category classification.
 export function isExplosion(event: Partial<SimulationEventBase> | null | undefined, skill: Skill | undefined): boolean {
   if (event?.explosion || event?.damageKind === 'explosion') return true;
+
   return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'explosion'));
 }

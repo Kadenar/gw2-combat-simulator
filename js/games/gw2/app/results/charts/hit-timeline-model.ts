@@ -33,6 +33,7 @@ export function groupSkillHits(hits: readonly SkillHit[], timeOffsetMs = 0): Ski
   const conditions = new Map<number, SkillHit[]>();
   for (const hit of [...hits].sort((left, right) => left.t - right.t)) {
     if (!(hit.v > 0)) continue;
+
     if (hit.damageType === 'condition') {
       const window = Math.floor((hit.t + timeOffsetMs) / CONDITION_WINDOW_MS);
       const ticks = conditions.get(window) || [];
@@ -53,6 +54,7 @@ export function groupSkillHits(hits: readonly SkillHit[], timeOffsetMs = 0): Ski
   for (const group of groups.values()) {
     if (group[0]!.t - burstEnd > 1500) bursts.push([...group]);
     else bursts.at(-1)!.push(...group);
+
     burstEnd = Math.max(burstEnd, group.at(-1)!.t);
   }
 

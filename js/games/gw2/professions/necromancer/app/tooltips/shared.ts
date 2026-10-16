@@ -24,13 +24,16 @@ export const flipTooltip: DescribeSimulationTooltip = skillTooltip(
 
 export const shroudTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   if (selected.shroudExit)
     return {
       description:
         'Leave shroud, restore your weapon skills, and begin the shroud-entry recharge. Triggers applicable shroud-exit traits.',
       facts: []
     };
+
   const profileId = String(selected.shroudProfileId);
   return {
     description: `Enter shroud, replace your weapon skills, and trigger applicable shroud-entry traits. Life force drains while shroud is active.${selected.shroudEntry === 'harbinger' ? " Gain Blight on the shroud's recurring resource pulse." : ''}`,

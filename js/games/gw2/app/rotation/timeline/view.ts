@@ -19,7 +19,9 @@ function createTimelineRow(root: HTMLElement, html: string): HTMLElement {
   const template = root.ownerDocument.createElement('template');
   template.innerHTML = html.trim();
   const row = template.content.firstElementChild;
+
   if (!(row instanceof HTMLElement)) throw new Error('Timeline row rendering produced no element.');
+
   return row;
 }
 
@@ -43,6 +45,7 @@ export function reconcileTimelineRows(
 
   nodes.forEach((node, index) => {
     const current = root.children[index] || null;
+
     if (current !== node) root.insertBefore(node, current);
   });
   while (root.children.length > nodes.length) root.removeChild(root.lastElementChild!);
@@ -61,6 +64,7 @@ export function authoredStepIndexesAtPreviewTime(
   previewTimeMs: number | null | undefined
 ): number[] {
   if (!result || previewTimeMs == null) return [];
+
   const schedulerTimeMs = rotationPreviewSchedulerTimeMs(result, previewTimeMs);
   const authored = (result.steps || []).filter((step) => Number(step.ri) >= 0 && !step.invalid);
   const active = authored.filter((step) => {
@@ -68,6 +72,7 @@ export function authoredStepIndexesAtPreviewTime(
     const end = Math.max(start, Number(step.end ?? step.start ?? 0));
     return start <= schedulerTimeMs && schedulerTimeMs <= end;
   });
+
   if (active.length) return [...new Set(active.map((step) => Number(step.ri)))];
 
   const latestStart = Math.max(
@@ -86,6 +91,7 @@ export function applyTimelinePreviewHighlight(
   previewTimeMs: number | null | undefined
 ): void {
   if (!root) return;
+
   const indexes = new Set(authoredStepIndexesAtPreviewTime(result, previewTimeMs));
   root.querySelectorAll<HTMLElement>('.rot-skill[data-idx]').forEach((skill) => {
     skill.classList.toggle('rot-preview-active', indexes.has(Number(skill.dataset.idx)));
@@ -119,11 +125,15 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   const rotation = build.rotation;
   const resultIsExplicit = Object.hasOwn(options, 'result');
   const results = resultIsExplicit ? options.result || null : currentTimelineResults(app);
+
   // Keyed reconciliation retains unchanged rows and may replace changed editor anchors.
   if (!readOnly) closeFloatingEditor();
+
   const element = options.root === undefined ? document.getElementById('rotation-timeline') : options.root;
   const procElement = options.procRoot === undefined ? document.getElementById('rotation-procs') : options.procRoot;
+
   if (!element) return;
+
   element.dataset.buildRevision = String(app.buildRevision);
   element.dataset.resultRevision = String(app.resultRevision);
   // Explicit reference results are ready; live timelines stay busy until their revisions match.
@@ -135,8 +145,10 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   element.ondragover = null;
   element.ondragleave = null;
   element.ondrop = null;
+
   if (!readOnly && options.root === undefined) {
     const loading = app.templateRotationLoading;
+
     // Only template requests replace the timeline with a skeleton; edits invalidate their revision.
     if (
       loading?.revision === app.buildRevision &&
@@ -145,6 +157,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
       element.setAttribute('aria-busy', 'true');
       // An overlay hides existing rows without changing content-sized timeline geometry.
       element.scrollTop = 0;
+
       if (!element.querySelector(':scope > .rotation-skeleton')) {
         element.insertAdjacentHTML(
           'beforeend',
@@ -173,6 +186,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   const bindInsertionCursor = (): void => {
     const selectInsertion = (index: number | null): void => {
       if (!interactionOptions.canInteract?.()) return;
+
       app.selectRotationInsertion(index);
     };
 
@@ -187,6 +201,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
   if (!rotation.length) {
     if (!readOnly) app.rotationSkillHighlightKey = null;
+
     delete element.dataset.skillHighlightKey;
     element.classList.add('is-empty');
     element.innerHTML = `<div class="rot-empty">
@@ -194,7 +209,9 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
             <span>Click or drag skills from the palette above</span>
         </div>`;
     timelineRowsByRoot.delete(element);
+
     if (procElement) procElement.innerHTML = '';
+
     if (!readOnly) {
       bindInsertionCursor();
       bindTimelineInteractions(element, interactionOptions);
@@ -218,8 +235,11 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     procVisibility,
     procPanelWasOpen
   );
+
   if (procElement) procElement.innerHTML = procHtml;
+
   reconcileTimelineRows(element, timelineRows);
+
   if (!readOnly) {
     bindInsertionCursor();
   }
@@ -228,6 +248,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     const skills = [...element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]')];
     const key = readOnly ? element.dataset.skillHighlightKey : app.rotationSkillHighlightKey;
     const active = !!key && skills.some((skill) => skill.dataset.skillHighlightKey === key);
+
     if (!active) {
       if (readOnly) delete element.dataset.skillHighlightKey;
       else app.rotationSkillHighlightKey = null;
@@ -243,9 +264,11 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   // Read-only timelines allow inspection, with a local selection that cannot change the editable timeline's highlight.
   element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
     if (skill.dataset.highlightBound === 'true') return;
+
     skill.dataset.highlightBound = 'true';
     skill.addEventListener('click', () => {
       const key = skill.dataset.skillHighlightKey;
+
       if (readOnly) {
         if (element.dataset.skillHighlightKey === key) delete element.dataset.skillHighlightKey;
         else element.dataset.skillHighlightKey = key || '';
@@ -260,6 +283,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
   const procFilter = procElement?.querySelector<HTMLDetailsElement>('.proc-filter') || null;
   const activeProcVisibility = app.procVisibility || new Set();
+
   if (!readOnly && procFilter && procElement) {
     procFilter.addEventListener('toggle', () => {
       app.procFilterOpen = procFilter.open;
@@ -268,8 +292,10 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     // keeping the panel open and avoiding an expensive full timeline rebuild.
     procFilter.querySelectorAll('input[data-proc-key]').forEach((input) => {
       if (!(input instanceof HTMLInputElement)) return;
+
       input.addEventListener('change', () => {
         const key = input.dataset.procKey || '';
+
         if (input.checked) activeProcVisibility.add(key);
         else activeProcVisibility.delete(key);
 
@@ -281,13 +307,16 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
         app.procFilterOpen = true;
         procElement.querySelectorAll('.proc-icon[data-proc-key]').forEach((procIcon) => {
           if (!(procIcon instanceof HTMLElement)) return;
+
           procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
         });
         element.querySelectorAll('.rot-proc-entry[data-proc-key]').forEach((procEntry) => {
           if (!(procEntry instanceof HTMLElement)) return;
+
           procEntry.hidden = !activeProcVisibility.has(procEntry.dataset.procKey || '');
         });
         const count = procFilter.querySelector('.proc-filter-count');
+
         if (count) {
           const visible = procFilter.querySelectorAll('input[data-proc-key]:checked').length;
           const total = procFilter.querySelectorAll('input[data-proc-key]').length;
@@ -298,14 +327,18 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   }
 
   const procIconsRow = procElement?.querySelector<HTMLElement>('.proc-icons-row') || null;
+
   if (!readOnly && procIconsRow) {
     const applyProcHighlight = (): void => {
       const icons = [...procIconsRow.querySelectorAll('.proc-icon[data-proc-key]')];
       const key = app.procHighlightKey;
       const active = !!key && icons.some((icon) => icon instanceof HTMLElement && icon.dataset.procKey === key);
+
       if (!active) app.procHighlightKey = null;
+
       icons.forEach((icon) => {
         if (!(icon instanceof HTMLElement)) return;
+
         const match = active && icon.dataset.procKey === key;
         icon.classList.toggle('proc-highlight', match);
         icon.classList.toggle('proc-faded', active && !match);
@@ -314,6 +347,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
     procIconsRow.querySelectorAll('.proc-icon[data-proc-key]').forEach((icon) => {
       if (!(icon instanceof HTMLElement)) return;
+
       icon.addEventListener('click', () => {
         const key = icon.dataset.procKey;
         app.procHighlightKey = app.procHighlightKey === key ? null : key;
@@ -324,5 +358,6 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   }
 
   if (!readOnly) bindTimelineInteractions(element, interactionOptions);
+
   applyTimelinePreviewHighlight(element, results, options.previewTimeMs);
 }

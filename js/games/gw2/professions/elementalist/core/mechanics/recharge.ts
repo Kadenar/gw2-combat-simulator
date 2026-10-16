@@ -39,6 +39,7 @@ export function elementalistRechargeWork(
   // The summon owns this recharge: `mechanics/elementals/runtime.ts` starts the glyph cooldown
   // when the elemental expires, so the cast itself must not start one.
   if (elementalForGlyphId(skill.id)) return 0;
+
   // Rock Barrier holds its recharge until the stored barrier is released; the
   // release handler re-requests the duration with that flag set.
   if (skill.id === ID.ROCK_BARRIER && !releasing) {
@@ -60,7 +61,9 @@ export function elementalistRechargeWork(
 /** Spends the eligible empowerment when a cast is accepted; its reservation retains the selected duration. */
 export function reserveElementalistRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
   if (skill.type !== 'Weapon' || String(skill.slot || '') === 'Weapon_1') return duration;
+
   const state = professionCoreState(context);
+
   if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear') {
     state.spearNextRechargeReduction = false;
     return duration * balanceNumberFromContext(context, PROFILE.spearEmpowerments, 'rechargeMultiplier');

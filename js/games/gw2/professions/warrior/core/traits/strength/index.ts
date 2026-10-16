@@ -344,6 +344,7 @@ export const greatFortitude = defineTrait({
 
 function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2ResolverEvent): void {
   if (Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE || event.kind !== 'peak-performance') return;
+
   context.effects.emit({
     kind: 'announcement',
     announcement: {
@@ -358,8 +359,11 @@ function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2Resolver
 
 function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
+
   if (!skill.categories?.includes('Physical')) return;
+
   let at = cast.effectiveEnd;
+
   if (skill.id === ID.KICK) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     const timing = strike && scaleCastBoundTiming(cast, skill, strike);
@@ -371,6 +375,7 @@ function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<Warrior
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.PEAK_PERFORMANCE);
     const selectedEffect = requireEffect(traitProfile, 'buff', 'peak-performance');
+
     if (selectedEffect)
       emitTraitProfile(runtime, TRAIT.PEAK_PERFORMANCE, TRAIT.PEAK_PERFORMANCE, undefined, {
         at: at,
@@ -390,11 +395,13 @@ function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<Warrior
 
 function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
+
   if (skill.movementSkill) {
     grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.BRAVE_STRIDE, 'resourceGain'));
     {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE);
       const selectedEffect = requireEffect(traitProfile, 'boon', 'stability');
+
       if (selectedEffect)
         emitTraitProfile(runtime, TRAIT.BRAVE_STRIDE, TRAIT.BRAVE_STRIDE, undefined, {
           at: runtime.time,
@@ -464,6 +471,7 @@ function forcefulGreatswordCritical(
     randomStream: 'warrior.forceful-greatsword',
     roll: (chance, stream) => runtime.random.roll(chance, stream)
   });
+
   if (proc) {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD);
     emitTraitProfile(runtime, TRAIT.FORCEFUL_GREATSWORD, TRAIT.FORCEFUL_GREATSWORD, event, {

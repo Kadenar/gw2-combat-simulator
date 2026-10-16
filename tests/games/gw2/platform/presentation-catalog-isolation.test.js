@@ -124,6 +124,7 @@ test('Guardian virtue and mode helpers use each Core or elite instance catalog',
       )
     );
     assertIsolated(bind, catalogs, (ui) => groupIds(ui, {}, 'profession'), [[id], [id]]);
+
     if (bind === bindFirebrandUi || bind === bindLuminaryUi) {
       const group = bind === bindFirebrandUi ? 'tome-justice' : 'radiant-forge';
       assertIsolated(bind, catalogs, (ui) => groupIds(ui, {}, group), [[1], [2]]);

@@ -13,6 +13,7 @@ import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/pro
 /** Resolve every Nature projection from this selection, so changing catalogs cannot retain stale relationships. */
 function natureConsumes(context: Pick<RevenantUiContext, 'catalog'>): Readonly<Record<string, SkillId>> {
   if (!context.catalog) throw new Error('Herald facet presentation requires the selected catalog.');
+
   const nature: RevenantSkill | undefined = context.catalog.skillsById.get(SKILL.FACET_OF_NATURE);
   return nature?.upkeepConsumeByLegendId ?? {};
 }
@@ -42,7 +43,9 @@ export const heraldUi: RevenantUiSlice = Object.freeze({
   // Tile identity follows the active bar even when the visible skill cannot currently be cast.
   paletteOverride: (context, skill) => {
     const consumes = natureConsumes(context);
+
     if (!Object.values(consumes).includes(skill.id)) return;
+
     return {
       tileActive:
         skill.id === consumes[activeRevenantLegend(context)] &&

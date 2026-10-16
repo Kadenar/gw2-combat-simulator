@@ -76,7 +76,9 @@ function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
       const url = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directoryUrl);
 
       if (entry.isDirectory()) return collectTypeScriptSources(url, relativePath);
+
       if (!entry.isFile() || !entry.name.endsWith('.ts')) return [];
+
       return [{ relativePath, source: readFileSync(url, 'utf8') }];
     });
 }
@@ -113,21 +115,29 @@ test('Thief modules register unique behavior owners and respect dependency bound
       const parsed = ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true);
       for (const statement of parsed.statements) {
         if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
+
         const specifier = statement.moduleSpecifier?.text;
+
         if (!specifier) continue;
+
         const alias = '#gw2/professions/thief/';
         const target = specifier.startsWith(alias)
           ? specifier.slice(alias.length)
           : specifier.startsWith('.')
             ? path.posix.normalize(path.posix.join(directory, path.posix.dirname(relativePath), specifier))
             : null;
+
         if (!target) continue;
+
         const label = `${directory}/${relativePath} -> ${target}`;
+
         if (target.startsWith('specializations/')) assert.ok(target.startsWith(`${directory}/`), label);
+
         assert.ok(
           !/^(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js$/.test(target),
           label
         );
+
         if (relativePath !== 'module.ts') assert.notEqual(target, 'catalog.js', label);
       }
     }

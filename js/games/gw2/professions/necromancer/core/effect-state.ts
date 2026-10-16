@@ -28,6 +28,8 @@ export function necromancerEffectStates(
       { recipient }
     )
   );
+
   if (!effects.some((effect) => effect.recipient === 'self')) effects.push(timedEffectState('taste-for-blood', []));
+
   return effects;
 }

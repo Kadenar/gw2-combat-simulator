@@ -108,8 +108,10 @@ async function newBuild(page) {
 // Closing a build leaves the switcher menu open, so only toggle it when it is closed.
 async function openSwitcher(page) {
   const menu = page.locator('#build-switcher-menu');
+
   if (!(await menu.evaluate((element) => element.matches(':popover-open'))))
     await page.locator('#build-switcher').click();
+
   await expect(menu).toBeVisible();
   return menu;
 }
@@ -635,6 +637,7 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     expect(Math.abs(result.y + result.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
     expect(await dps.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     expect(Math.abs(newButton.y - actions.y)).toBeLessThan(2);
+
     // Wide strips center the actions on the switcher's row; narrow strips stack them beneath it.
     if (mobile) expect(newButton.y).toBeGreaterThanOrEqual(switcher.y + switcher.height);
     else expect(Math.abs(newButton.y + newButton.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
@@ -648,8 +651,11 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     const help = await page.locator('.community-actions').boundingBox();
     expect(nav.x).toBe(switcher.x);
     const wrapped = help.y >= nav.y + nav.height;
+
     if (width === 700) expect(wrapped).toBe(true);
+
     if (width === 1600) expect(wrapped).toBe(false);
+
     if (wrapped) expect(help.y - (nav.y + nav.height)).toBeGreaterThanOrEqual(8);
     else expect(help.x - (nav.x + nav.width)).toBeGreaterThanOrEqual(24);
   }

@@ -39,6 +39,7 @@ export function weaponStrengthProfileIdForEvent(
   // Explicit effect profiles own transformations; names below describe equipped weapons only.
   for (const candidate of [event.weapon, event.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);
+
     if (profile) return profile.id;
   }
 
@@ -46,6 +47,7 @@ export function weaponStrengthProfileIdForEvent(
     const activeSet = activeWeaponSet === 2 ? 2 : 1;
     const configured = gw2ActivePrimaryWeapon(config, activeSet);
     const profile = weaponStrengthProfileForName(configured);
+
     if (profile) return profile.id;
   }
 
@@ -55,6 +57,7 @@ export function weaponStrengthProfileIdForEvent(
 
   for (const candidate of [skill?.weapon, skill?.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);
+
     if (profile) return profile.id;
   }
 
@@ -80,7 +83,9 @@ function streamActor(event: Gw2ResolverEvent): string {
   }
 
   if (event.actorType === 'effect') return 'effect';
+
   if (event.actorType === 'environment') return 'environment';
+
   return 'player';
 }
 
@@ -98,6 +103,7 @@ export function resolvedWeaponStrength(
   event: Gw2ResolverEvent
 ): Gw2ResolvedWeaponStrength {
   const explicit = Number(event.weaponStrength);
+
   if (event.weaponStrength != null && Number.isFinite(explicit)) {
     return {
       activationId: typeof event.activationId === 'string' ? event.activationId : null,
@@ -109,6 +115,7 @@ export function resolvedWeaponStrength(
 
   const skill = skillForEvent(context.helpers, event) ?? null;
   const profileId = weaponStrengthProfileIdForEvent(event, { skill });
+
   if (!profileId) {
     // Scaling strikes must resolve through a canonical profile or explicit override so malformed packets fail loudly.
     throw new TypeError(
@@ -118,6 +125,7 @@ export function resolvedWeaponStrength(
   }
 
   const profile = weaponStrengthProfile(profileId);
+
   if (!context.random.stochastic) {
     return {
       activationId: typeof event.activationId === 'string' ? event.activationId : null,
@@ -130,6 +138,7 @@ export function resolvedWeaponStrength(
   const activationId =
     typeof event.activationId === 'string' && event.activationId ? event.activationId : generatedActivationId(context);
   const existing = context.weaponStrengthRolls.get(activationId);
+
   if (existing) {
     if (existing.profileId !== profile.id) {
       throw new Error(

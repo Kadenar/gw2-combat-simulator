@@ -21,7 +21,9 @@ export function lethalTempoParameters(context: unknown) {
   const profileId = tyrantsMomentum ? TRAIT.TYRANTS_MOMENTUM : TRAIT.LETHAL_TEMPO;
   const profile = requireBalanceProfileFromContext(context, profileId);
   const window = requireEffect(profile, 'buff', 'lethal-tempo');
+
   if (!window) return undefined;
+
   return {
     maximumStacks: balanceNumberFromContext(context, TRAIT.LETHAL_TEMPO, 'maximumStacks'),
     stacks: effectNumber(profile, window, 'stacks'),

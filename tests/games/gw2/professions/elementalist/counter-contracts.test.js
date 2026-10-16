@@ -38,6 +38,7 @@ test('Bountiful Power resets at the cap and preserves progress earned by nested 
     effects: captureEffectEmissions({
       submit(event) {
         observations.push([event.kind, core.bountifulPowerProgress]);
+
         if (!nested && event.kind === 'quickness') {
           nested = true;
           context.fireTrigger(attunementsCounted, { at: 1, stacks: 0.5, sourceId: ID.AIR_ATTUNEMENT });

@@ -43,7 +43,9 @@ export function canEquipWeaponSigil(
   return !weaponSigils.some((set, otherSet) =>
     set.some((equipped, otherSlot) => {
       if (otherSet === setIndex && otherSlot === slotIndex) return false;
+
       if (SIGIL_DATA[name]?.stackingStats && SIGIL_DATA[equipped]?.stackingStats) return true;
+
       return equipped === name && otherSet === setIndex;
     })
   );
@@ -97,9 +99,12 @@ export function setWeaponSigil(build: Gw2Build, setIndex: number, slotIndex: num
   const sigils = normalized[setIndex];
   const otherSlot = slotIndex === 0 ? 1 : 0;
   const previous = sigils[slotIndex];
+
   if (sigils[otherSlot] === name) sigils[otherSlot] = previous;
+
   // Reject conflicting programmatic selections too, preserving the existing same-set slot swap.
   if (!canEquipWeaponSigil(normalized, setIndex, slotIndex, name)) return;
+
   sigils[slotIndex] = name;
 }
 
@@ -142,7 +147,9 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
 
   for (const name of new Set(sigilNames || [])) {
     const sigil = SIGIL_DATA[name];
+
     if (!sigil) continue;
+
     effects.criticalChanceBonus += sigil.criticalChance || 0;
     effects.strikeAdd += (sigil.strikeDamageA || 0) / 100;
     // Keep multiplicative bonuses outside the additive bucket used by profession modifiers.
@@ -153,6 +160,7 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
     effects.boonDurationBonus += sigil.boonDuration || 0;
     for (const [field, condition] of Object.entries(durationFields)) {
       const bonus = Number(sigil[field] || 0);
+
       if (bonus) {
         effects.conditionDurationBonuses[condition] = (effects.conditionDurationBonuses[condition] || 0) + bonus;
       }

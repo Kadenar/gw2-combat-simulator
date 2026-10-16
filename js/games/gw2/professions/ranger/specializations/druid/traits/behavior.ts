@@ -21,11 +21,14 @@ export function avatarEffects(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (!cast.skill.celestialAvatarSkill) return effects;
+
   const pulses = cast.skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
   const result = [...effects];
+
   if (hasTrait(runtime, TRAIT.GRACE_OF_THE_LAND)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.GRACE_OF_THE_LAND);
     const effect = requireEffect(profile, 'boon', 'alacrity');
+
     if (effect)
       for (const atMs of pulses)
         result.push({
@@ -43,6 +46,7 @@ export function avatarEffects(
   }
 
   if (!hasTrait(runtime, TRAIT.ECLIPSE)) return result;
+
   const names = new Map<number, string>([
     [ID.COSMIC_RAY, 'Cosmic Ray'],
     [ID.SEED_OF_LIFE, 'Seed of Life'],
@@ -57,8 +61,11 @@ export function avatarEffects(
           ? 'Natural Convergence final pulse'
           : 'Natural Convergence'
         : names.get(Number(cast.skill.id));
+
     if (!name) continue;
+
     const effect = requireEffect(profile, 'condition', name);
+
     if (effect)
       result.push({
         ...effect,

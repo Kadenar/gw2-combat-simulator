@@ -16,13 +16,17 @@ type WingmanCastTuple = readonly [number, number, number, number, number];
 // AnimationStatus enum (GW2EIEvtcParser CastEvent.cs): Unknown, Reduced, Interrupted, Full, Instant.
 function timeGainedFromStatus(statusId: number): number {
   if (statusId === 1) return 1; // Reduced: quickness/other trimmed the aftercast short.
+
   if (statusId === 2) return -1; // Interrupted: cast was cancelled before completing.
+
   return 0; // Unknown / Full / Instant: castStatus() decides those from duration alone.
 }
 
 function normalizeRotationTuple(tuple: unknown): WingmanCastTuple | null {
   if (!Array.isArray(tuple) || tuple.length < 5) return null;
+
   const [at, skillId, durationMs, statusId, quickness] = tuple;
+
   if (
     ![at, skillId, durationMs, statusId, quickness].every(
       (value) => typeof value === 'number' && Number.isFinite(value)
@@ -39,9 +43,12 @@ function buildRotationGroups(entries: readonly unknown[]): { readonly id: number
   const groups = new Map<number, unknown[]>();
   for (const raw of entries) {
     const tuple = normalizeRotationTuple(raw);
+
     if (!tuple) continue;
+
     const [at, skillId, durationMs, statusId, quickness] = tuple;
     let skills = groups.get(skillId);
+
     if (!skills) {
       skills = [];
       groups.set(skillId, skills);
@@ -64,7 +71,9 @@ function fullFightPhaseIndex(phases: readonly unknown[]): number {
   let bestSpan = -Infinity;
   phases.forEach((phase, index) => {
     if (!record(phase) || typeof phase.start !== 'number' || typeof phase.end !== 'number') return;
+
     const span = phase.end - phase.start;
+
     if (span > bestSpan) {
       bestSpan = span;
       bestIndex = index;
@@ -78,6 +87,7 @@ function normalizeSkillMap(rawMap: Record<string, unknown>): Record<string, unkn
   const result: Record<string, unknown> = {};
   for (const [key, metadata] of Object.entries(rawMap)) {
     if (!record(metadata)) continue;
+
     result[key] = {
       name: metadata.name,
       icon: metadata.icon,

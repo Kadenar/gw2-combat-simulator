@@ -8,9 +8,12 @@ export async function bootstrapGameApp(
 ): Promise<unknown> {
   const gameId = root.body.dataset.game;
   const contentId = root.body.dataset.content;
+
   if (!gameId || !contentId) throw new Error('Simulator page requires data-game and data-content.');
 
   const content = await loadGameContent(gameId, contentId, registry);
+
   if (!content) throw new Error(`No playable content is registered for "${gameId}/${contentId}".`);
+
   return content.mount(root);
 }

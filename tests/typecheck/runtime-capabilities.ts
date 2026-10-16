@@ -104,6 +104,7 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     const state = context.readProfessionState();
     // @ts-expect-error A label cannot mutate its profession's nested state.
     state.core.adrenaline.value = 0;
+
     if (state.specialization.kind === 'Bladesworn') {
       const charges: number = state.specialization.state.dragonCharges.value;
       // @ts-expect-error A label cannot change the active charge pool's capacity.
@@ -137,6 +138,7 @@ composeRuntimeHooks([hooks]);
 function castStores(runtime: Gw2Runtime<WarriorRuntimeState, WarriorSkill>) {
   runtime.castController.hasInFlight(1);
   const release = runtime.castController.pendingChargeRelease();
+
   if (release) {
     const charges: number | undefined = release.charges;
     // @ts-expect-error Release intent is immutable.

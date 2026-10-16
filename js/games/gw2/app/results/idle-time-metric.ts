@@ -19,6 +19,7 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
   const cancellations = new Map<string, { count: number; durationMs: number }>();
   for (const marker of markers) {
     if (marker.reason == null || marker.reason === 'explicit-wait') continue;
+
     const skill = marker.skill || 'Unknown skill';
     const current = cancellations.get(skill) || { count: 0, durationMs: 0 };
     current.count += 1;
@@ -27,6 +28,7 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
   }
 
   const details: ResultSummaryMetricDetail[] = [];
+
   if (legitimateMs > 0) {
     details.push({ label: 'Idle time between skills', value: formatTimelineDuration(legitimateMs) });
   }

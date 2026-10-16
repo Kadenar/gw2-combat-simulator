@@ -24,13 +24,16 @@ self.addEventListener(
       ]);
       const key = comparisonKey(data.row);
       let request = prepared.get(key);
+
       if (!request) {
         request = await loadComparisonRequest(data.row, data.buildData);
         prepared.set(key, request);
       }
 
       const profession = await loadGw2WorkerDriver(request.contentId);
+
       if (!profession) throw new Error(`Unknown profession: ${request.contentId}`);
+
       const result = comparisonResult(
         simulateGw2({
           profession,

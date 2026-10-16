@@ -67,7 +67,9 @@ export function guardianUiSkillIds(
   const activeFlips = guardianUiState(context).availableFlips ?? {};
   return ids.flatMap((id) => {
     const skill = catalog.skillsById.get(id);
+
     if (!skill) return [];
+
     const flipId = skill.flipSkillId;
     const flip = flipId == null ? undefined : catalog.skillsById.get(flipId);
     // Direct UI callers may supply an older snapshot, so apply the same expiry gate as cast availability.
@@ -89,9 +91,13 @@ export function guardianUiSkillsByMode(
     .filter((skill) => skill[property] === value)
     .sort((left, right) => {
       const slotOrder = String(left.slot).localeCompare(String(right.slot));
+
       if (slotOrder) return slotOrder;
+
       if (left.flipParentId === right.id) return 1;
+
       if (right.flipParentId === left.id) return -1;
+
       return left.name.localeCompare(right.name);
     })
     .map((skill) => skill.id);
@@ -103,7 +109,9 @@ function guardianPaletteWeaponSkills(context: GuardianUiContext, skills: readonl
   // identity should reach the shared weapon palette.
   return skills.filter((skill) => {
     if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) return !glacialHeart;
+
     if (skill.id === GUARDIAN_SKILL_IDS.GLACIAL_BLOW) return glacialHeart;
+
     return true;
   });
 }
@@ -130,6 +138,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Inspiring Virtue', 'inspiringVirtue', 'guardian-inspiring-virtue');
       preview.boon('aegis', 'Unscathed Contender');
+
       // Seed the native symbol stack pool so all weapon rows can show an established damage window.
       if (preview.has('Symbolic Avenger'))
         preview.trait('Symbolic Avenger', {

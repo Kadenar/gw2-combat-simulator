@@ -189,6 +189,7 @@ function summonExplosiveGrowth(
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXPLOSIVE_GROWTH);
   const strike = requireEffect(profile, 'strike', 'Strike');
+
   if (strike)
     emitTraitProfile(runtime, TRAIT.EXPLOSIVE_GROWTH, TRAIT.EXPLOSIVE_GROWTH, undefined, {
       at: at,
@@ -215,6 +216,7 @@ function applyEmpoweringSpirits(runtime: NecromancerRuntime, cast: RuntimeCast<N
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERING_SPIRITS);
   for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
     const effect = requireEffect(profile, 'boon', kind);
+
     if (effect) {
       runtime.effects.emit({
         kind: 'profile',
@@ -234,6 +236,7 @@ function armSoulTwisting(runtime: NecromancerRuntime): void {
 /** Only a committed summon spends the refund. */
 function consumeSoulTwisting(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const state = ritualistState.from(runtime);
+
   if (state.soulTwistingAvailable) {
     state.soulTwistingAvailable = false;
     runtime.cooldownController.clear(cast.skill.id);

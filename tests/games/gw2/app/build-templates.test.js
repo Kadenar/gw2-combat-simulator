@@ -115,7 +115,9 @@ test('template bundles fetch build and rotation concurrently', async (t) => {
   t.mock.method(globalThis, 'fetch', async (url) => {
     const path = String(url).split('?')[0];
     requested.push(path);
+
     if (path === 'build.json') await buildReady;
+
     return { ok: true, json: async () => (path === 'build.json' ? { profession: 'mesmer' } : { rotation: [] }) };
   });
   const loading = loadPresetBundle({ build: 'build.json', rotation: 'rotation.json' });

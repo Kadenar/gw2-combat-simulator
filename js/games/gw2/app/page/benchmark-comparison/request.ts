@@ -13,7 +13,9 @@ export function prepareComparisonRequest(
   rotationItems: unknown
 ): ComparisonRequest {
   if (!buildData || typeof buildData !== 'object' || Array.isArray(buildData)) throw new Error('Invalid saved build.');
+
   if (!Array.isArray(rotationItems) || !rotationItems.length) throw new Error('A saved rotation is required.');
+
   const build = adapter.toApplicationBuild({ ...buildData, rotation: rotationItems });
   const context = adapter.createBuildContext({
     build,
@@ -31,10 +33,13 @@ export function prepareComparisonRequest(
 /** Load only requested preset assets; a missing rotation is an actionable failure, never an empty successful run. */
 export async function loadComparisonRequest(row: Benchmark, buildData: unknown): Promise<ComparisonRequest> {
   if (!row.rotation) throw new Error('This preset has no saved rotation.');
+
   const [adapter, rotationData] = await Promise.all([
     loadBuildContext(row.profession),
     fetchJsonAsset(row.rotation, { optional: true })
   ]);
+
   if (!adapter) throw new Error(`Unknown profession: ${row.profession}`);
+
   return prepareComparisonRequest(adapter, buildData, getRotationItems(rotationData));
 }

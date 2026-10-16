@@ -111,6 +111,7 @@ function assertNativeModuleDefinition(definition: object): void {
     readonly kind?: string;
     readonly modifiers?: ProfessionModifierDefinition | readonly unknown[];
   };
+
   if (!(candidate.id || '').trim()) {
     throw new TypeError('Native profession module id is required.');
   }
@@ -150,6 +151,7 @@ function assertNativeModuleDefinition(definition: object): void {
   ) {
     assertObject(candidate.modifiers, `${candidate.id}.modifiers`);
     const rules = (candidate.modifiers as ProfessionModifierDefinition).modifierRules;
+
     if (rules != null && !Array.isArray(rules))
       throw new TypeError(`${candidate.id} modifiers.modifierRules must be an array.`);
   }
@@ -176,8 +178,10 @@ export function defineNativeModule<
   definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill>
 ): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill> {
   assertNativeModuleDefinition(definition);
+
   if (definition.traitDefinitions != null && !Array.isArray(definition.traitDefinitions))
     throw new TypeError(`${definition.id}.traitDefinitions must be an array.`);
+
   const traits = definition.traitDefinitions?.map(defineTrait<TSkill>) ?? [];
   const sourceModifiers: ProfessionModifierDefinition = Array.isArray(definition.modifiers)
     ? { modifierRules: definition.modifiers }
@@ -312,6 +316,7 @@ function composeModuleModifiers(
   ) as Record<(typeof MODIFIER_HOOK_NAMES)[number], ProfessionHook[]>;
   const declarations = modifiers.flatMap((source) => source.modifierRules ?? []);
   const owners = modifiers.flatMap((source, index) => (source.compileModifierRules == null ? [] : [index]));
+
   if (owners.length > 1) {
     throw new TypeError(
       `modifiers.compileModifierRules has multiple owners: ${owners.map((index) => modules[index].id).join(', ')}.`
@@ -319,16 +324,21 @@ function composeModuleModifiers(
   }
 
   if (!declarations.length) return result;
+
   const compiler: NonNullable<ProfessionModifierDefinition['compileModifierRules']> =
     modifiers[owners[0]]?.compileModifierRules ?? compileGw2ModifierRules;
+
   if (typeof compiler !== 'function') throw new TypeError('modifiers.compileModifierRules must be a function.');
+
   const compiled = compiler(declarations);
+
   if (!compiled || typeof compiled !== 'object' || Array.isArray(compiled)) {
     throw new TypeError('modifiers.compileModifierRules must return a hook object.');
   }
 
   for (const name of MODIFIER_HOOK_NAMES) {
     const hook = compiled[name];
+
     if (hook != null) result[name].push(hook);
   }
 
@@ -347,7 +357,9 @@ function invokedDamageEffects<T extends object, TSkill extends Skill>(
   for (const rule of triggers) {
     const skill = rule.invoke == null ? undefined : catalog.skillsById.get(rule.invoke);
     const id = `trait-skill.${rule.trait}.${rule.invoke}`;
+
     if (!skill || declared.has(id)) continue;
+
     declared.set(id, {
       id,
       name: skill.name,
@@ -372,6 +384,7 @@ function composeStateFragments(
 ): object {
   const fragments = modules.map((module) => {
     const fragment = module.state.create(config, preparation) || {};
+
     if (typeof fragment !== 'object' || Array.isArray(fragment)) {
       throw new TypeError(`${module.id} state factory must return an object.`);
     }
@@ -408,8 +421,10 @@ export function defineNativeProfession<
   }
 
   assertDefinition(definition);
+
   if (definition.runtimeHooks != null && typeof definition.runtimeHooks !== 'function')
     throw new TypeError('profession.runtimeHooks must be a function.');
+
   validateAutoattackChainOptions(definition.autoattackChains ?? {});
   // Module data fixes the skill type for both catalog selection and execution callbacks.
   const modules: readonly AnyNativeModule<string, TSkill>[] = definition.modules;
@@ -421,7 +436,9 @@ export function defineNativeProfession<
   for (const module of modules) {
     for (const trait of module.traitDefinitions ?? []) {
       if (traitOwners.has(String(trait.id))) throw new TypeError(`Duplicate trait definition ${trait.id}.`);
+
       traitOwners.add(String(trait.id));
+
       if (!module.data.traits?.some((entry) => String(entry.id) === String(trait.id)))
         throw new TypeError(`${module.id} trait definition ${trait.id} has no owned trait metadata.`);
     }
@@ -429,6 +446,7 @@ export function defineNativeProfession<
     const rules = module.modifiers.modifierRules ?? [];
     for (const rule of rules) {
       if (ruleOwners.has(rule.id)) throw new TypeError(`Duplicate modifier rule ${rule.id}.`);
+
       ruleOwners.add(rule.id);
     }
 
@@ -441,8 +459,10 @@ export function defineNativeProfession<
     );
     for (const trigger of module.hooks?.traitTriggers ?? []) {
       assertTraitTrigger(trigger, `${module.id} trait ${trigger.trait}`);
+
       if (trigger.emit != null && !profiles.has(trigger.emit))
         throw new TypeError(`Unknown trait trigger profile ${trigger.emit} in ${module.id}.`);
+
       if (trigger.invoke != null && !assembly.catalog.skillsById.has(trigger.invoke))
         throw new TypeError(`Unknown trait trigger skill ${trigger.invoke} in ${module.id}.`);
     }
@@ -450,6 +470,7 @@ export function defineNativeProfession<
     for (const rule of module.hooks?.rechargeRules ?? [])
       if (typeof rule.multiplier === 'object') {
         const { profile, field } = rule.multiplier;
+
         if (typeof profiles.get(profile)?.[field] !== 'number')
           throw new TypeError(`Invalid recharge profile reference ${profile}.${field} in ${module.id}.`);
       }
@@ -479,6 +500,7 @@ export function defineNativeProfession<
         for (const trait of module.traits) {
           if (trait.attributes && hasTrait(context, trait.id))
             traits.push(prepareTraitAttributes(trait.attributes, context));
+
           if (active && trait.grantedAttributes) traits.push(trait.grantedAttributes);
         }
 
@@ -491,14 +513,17 @@ export function defineNativeProfession<
   const calculateContributions: Gw2AttributeContributionCalculator = (input) => {
     const context = input.profession ? input : { ...input, profession: { catalog: input.balanceContext.catalog } };
     let selected = context.query && selectedByQuery.get(context.query);
+
     if (!selected) {
       selected = selectAttributeModules(context);
+
       if (context.query) selectedByQuery.set(context.query, selected);
     }
 
     const contributions: Gw2AttributeContributions[] = [];
     for (const module of selected) {
       if (module.attributes) contributions.push(...module.attributes(context));
+
       // Constants are already resolved; only declarations with live inputs need another evaluation.
       for (const contribute of module.traits)
         contributions.push(typeof contribute === 'function' ? contribute(context) : contribute);
@@ -518,8 +543,11 @@ export function defineNativeProfession<
   /** Query and execution share selected catalogs, state factories, and compiled modifiers. */
   function selectionFor(specialization: string) {
     const cached = selections.get(specialization);
+
     if (cached) return cached;
+
     const elite = specializations.get(specialization);
+
     if (specialization !== 'Core' && !elite) {
       throw new Error(
         `Unknown ${definition.name} elite specialization "${specialization}". Expected Core or one of: ${[...specializations.keys()].join(', ')}.`
@@ -544,6 +572,7 @@ export function defineNativeProfession<
     const selectedContributions: NonNullable<NormalizedProfessionContract['attributeContributions']> = (input) => {
       const selectedCatalog = input.catalog ?? input.profession?.catalog ?? catalog;
       let selectedBalance = attributeBalanceContexts.get(selectedCatalog);
+
       if (!selectedBalance) {
         selectedBalance = { ...balanceContext, catalog: selectedCatalog };
         attributeBalanceContexts.set(selectedCatalog, selectedBalance);
@@ -637,12 +666,16 @@ export function defineNativeProfession<
     { traitTriggers = true }: ProfessionRuntimeOptions = {}
   ): RuntimeProfession<State, TSkill> {
     const specialization = config.specialization ?? 'Core';
+
     if (specialization !== 'Core' && !specializations.has(specialization))
       throw new TypeError(`Unknown specialization: ${specialization}.`);
+
     const selection = selectionFor(specialization);
     // Cache each hook composition separately so a preview cannot change subsequent combat registration.
     const cached = selection.runtimes.get(traitTriggers);
+
     if (cached) return cached;
+
     const { modules: selected, source } = selection;
     // Family bindings capture only the active contribution; runtime callbacks still query the selected live catalog.
     const hooks = [
@@ -678,23 +711,32 @@ export function defineNativeProfession<
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
       availability(context, skill, command) {
         const swap = weaponSetSwapAvailability(context, source.canSwapWeaponSetsInCombat, skill);
+
         if (swap) return swap;
+
         if (!isBuildSkillAvailable(skill, context.config))
           return denyCast('gw2.build-unavailable', `${skill.name} is unavailable for this build.`);
+
         if (definition.requireEquippedSlotSkills) {
           const slot = selectedSlotSkillAvailability({ config: context.config, catalog: context.helpers }, skill);
+
           if (slot) return slot;
         }
 
         const cost = skillCostAvailability(context, skill);
+
         if (cost && !cost.ready && cost.retryAt == null) return cost;
+
         const result = composed.availability!(context, skill, command);
+
         if (!result.ready && result.retryAt == null) return result;
+
         if (cost && !cost.ready)
           return {
             ...(!result.ready ? result : cost),
             retryAt: Math.max(context.time, cost.retryAt, !result.ready ? result.retryAt : context.time)
           };
+
         return result;
       }
     };

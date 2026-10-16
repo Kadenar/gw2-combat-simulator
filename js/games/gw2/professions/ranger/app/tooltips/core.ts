@@ -27,7 +27,9 @@ import { rangerWildernessSurvivalTooltips } from '#gw2/professions/ranger/app/to
 function spiritTooltip(description: string): DescribeSimulationTooltip {
   return (context, entity) => {
     const skill = context.catalog.skillsById.get(entity.id);
+
     if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
     const effects = (skill.effects ?? []).filter(
       (effect) =>
         !(

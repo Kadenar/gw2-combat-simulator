@@ -177,6 +177,7 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
       atSeconds: at
     });
     assert.equal(items.length, stacks ? 1 : 0);
+
     if (stacks) assert.ok(items[0].value.startsWith(stacks + '/5'));
   }
 
@@ -793,6 +794,7 @@ for (const [name, primaryWeapon, traitId] of [
     const lastBaseStrike = Math.max(...packets(baseline, 'damage').map((event) => event.at));
     assert.ok(Number.isFinite(lastBaseStrike));
     assert.ok(packets(committed, 'damage').some((event) => event.at > lastBaseStrike));
+
     if (name === 'Purging Flames') {
       assert.ok(
         packets(committed, 'action')[0].comboFields[0].duration > packets(baseline, 'action')[0].comboFields[0].duration

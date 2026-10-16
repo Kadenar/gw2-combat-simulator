@@ -16,7 +16,9 @@ const FIELDS = new Set(['id', 'label', 'target', 'operation', 'amount', 'factor'
 /** Validate authoring at the catalog boundary, retaining only immutable declarations and existing formula semantics. */
 export function normalizeSkillDamageModifiers(value: unknown, label: string): readonly SkillDamageModifier[] {
   if (!Array.isArray(value)) throw new TypeError(`${label} modifiers must be an array.`);
+
   if (!value.length) return Object.freeze([]);
+
   for (const rule of value) {
     if (
       !rule ||
@@ -69,7 +71,9 @@ export function nativeSkillModifierRules(data: NativeModuleCatalogData): readonl
     );
     for (const effect of skill.effects ?? []) {
       if (effect.modifiers == null) continue;
+
       if (effect.type !== 'strike') throw new TypeError(`Skill ${id} modifiers require a strike effect.`);
+
       rules.push(
         ...normalizeSkillDamageModifiers(effect.modifiers, `Skill ${id} effect`).map((rule) => scoped(rule, true))
       );

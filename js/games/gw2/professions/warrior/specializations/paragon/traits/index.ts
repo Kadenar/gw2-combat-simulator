@@ -116,12 +116,15 @@ const callToAction = defineTrait({
     onTriggerPoint(paragonCombatStarted, {
       run(runtime) {
         const state = paragonState.from(runtime);
+
         if (state.callToActionActivated) return;
+
         state.callToActionActivated = true;
         runtime.resourceController.grant(
           'motivation',
           balanceNumberFromContext(runtime, TRAIT.CALL_TO_ACTION, 'resourceGain')
         );
+
         if (state.activeRefrainId == null) {
           state.activeRefrainId = ID.CHANT_OF_ACTION;
           startRefrain(runtime);
@@ -143,6 +146,7 @@ const rallyTheValiant = defineTrait({
       on: 'castStart',
       run(runtime, cast) {
         if (cast.cancelled) return;
+
         if (
           cast.skill.burst &&
           !cast.skill.categories?.includes('Chant') &&
@@ -234,7 +238,9 @@ function motivation(context: Gw2ModifierContext): number {
 function briskPacingAmount(context: Gw2ModifierContext, target: string): number {
   const profile = requireBalanceProfileFromContext(context, TRAIT.BRISK_PACING);
   const current = motivation(context);
+
   if (current <= 0) return 0;
+
   const strike =
     current >= balanceProfileNumber(profile, 'highThreshold')
       ? balanceProfileNumber(profile, 'strikeHigh')
@@ -277,6 +283,7 @@ function applyFeverishPulse(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   const feverish = requireBalanceProfileFromContext(runtime, TRAIT.FEVERISH_PULSE);
   for (const id of CHANTS) {
     const skill = runtime.helpers.skillsById.get(id);
+
     if (skill && id !== cast.skill.id)
       runtime.cooldownController.reduceSkillRecharge(
         skill,

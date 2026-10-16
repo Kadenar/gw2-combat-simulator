@@ -19,6 +19,7 @@ export const mirage = defineRelic({
       !isInternalCooldownReady(dodge.at, state.readyAt)
     )
       return;
+
     state.readyAt = dodge.at + 1;
     emitDamagePayload(ctx, state, dodge);
   },

@@ -29,10 +29,12 @@ export function createExecutedFacts(events: Gw2ResolverEvent[]) {
     // Apply lifecycle facts to the owning history without requiring optional report collections.
     updateAction(activationId: unknown, update: Pick<Gw2ResolverEvent, 'endsAt' | 'interrupted'>): void {
       const action = events.find((event) => event.type === 'action' && event.activationId === activationId);
+
       if (action) Object.assign(action, { endsAt: update.endsAt, interrupted: update.interrupted });
     },
     interruptAction(activationId: unknown, at: number): void {
       const action = events.find((event) => event.type === 'action' && event.activationId === activationId);
+
       if (action && Number(action.fullEndsAt || action.endsAt || 0) > at)
         Object.assign(action, { endsAt: at, interrupted: true });
     }

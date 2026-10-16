@@ -61,12 +61,15 @@ test("Sniper's Cover spends four initiative and opens a five-second smoke field 
       extend: (native) => ({
         availability(runtime, skill, command) {
           const result = native.availability(runtime, skill, command);
+
           if (result.ready && skill.id === ID.SNIPERS_COVER) available = runtime.resourceController.value('initiative');
+
           return result;
         },
         onCastStart(runtime, cast) {
           if (cast.skill.id === ID.SNIPERS_COVER)
             spent.push(available - runtime.resourceController.value('initiative'));
+
           native.onCastStart(runtime, cast);
         }
       })
@@ -263,6 +266,7 @@ test('permanent Vigor bypasses history for Thief advancement and readiness', () 
     runtime.history = new Proxy(history, {
       get(events, key, receiver) {
         if (key === 'filter') assert.fail('Permanent Vigor scanned history');
+
         return Reflect.get(events, key, receiver);
       }
     });
@@ -558,6 +562,7 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       assert.equal(runtime.profession.specialization.state.malice.value, 2);
+
       if (weapon === 'Sword') {
         near(runtime.profession.core.endurance.value, runtime.time * 5 + malice * 10);
       } else if (weapon === 'Staff') {
@@ -650,6 +655,7 @@ test('THF-011: Heartseeker produces a smoke leap only inside a live field', () =
     assert.deepEqual(result.warnings, []);
     const stealth = result.events.filter((event) => event.type === 'buff' && event.kind === 'stealth' && event.comboId);
     assert.equal(stealth.length, expiresAt ? 1 : 0);
+
     if (expiresAt) assert.equal(stealth[0].at, result.events.find((event) => event.type === 'damage').at);
   }
 });

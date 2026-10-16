@@ -33,6 +33,7 @@ const definitions = [
       const release = result.events.find(
         (event) => event.resource === 'dragon charges' && event.reason === 'profession mechanic'
       );
+
       if (release?.chargesReached !== 2 || release.at <= 1.44)
         throw new Error('Dragon fixture must stall on Flow and hold its release.');
     }
@@ -51,6 +52,7 @@ const definitions = [
     ],
     verify(result) {
       const details = result.steps.filter((step) => step.skill === 'Glaring Burst').map((step) => step.detail);
+
       if (details.join('|') !== 'Variant: Sword (fast)|Variant: Sword (slow)|Variant: Staff')
         throw new Error('Luminary fixture must exercise variant selection.');
     }
@@ -93,20 +95,26 @@ for (const definition of definitions) {
   const catalog = profession.runtimeFor(config).catalog;
   const rotation = definition.rotation.map((command) => {
     if (typeof command !== 'string' && !command.name) return command;
+
     const { name, ...options } = typeof command === 'string' ? { name: command } : command;
     const skill = catalog.skillsByName.get(name);
+
     if (!skill) throw new Error(`Unknown performance skill: ${name}`);
+
     return { type: 'cast', skillId: skill.id, ...options };
   });
   const options = { profession, config, rotation, observationPolicy: { kind: 'tail', durationMs: 5000 } };
   const smoke = simulateGw2(options);
+
   if (smoke.warnings.length || !(smoke.totalDamage > 0))
     throw new Error(`Invalid ${definition.name}: ${smoke.warnings.join('; ')}`);
+
   definition.verify?.(smoke);
   const runs = {
     detailed: (onPhase) => simulateGw2({ ...options, onPhase }),
     score: (onPhase) => simulateGw2({ ...options, output: 'score', onPhase })
   };
+
   if (definition.isolated) {
     const skill = catalog.skillsByName.get(definition.isolated);
     const occurrence = {
@@ -118,6 +126,7 @@ for (const definition of definitions) {
       unit: 'activation'
     };
     runs.isolated = () => evaluateSkillDamage({ config, occurrences: [occurrence] }, profession);
+
     if (runs.isolated().occurrences[0].status !== 'measured') throw new Error(`Unmeasurable ${definition.name}`);
   }
 

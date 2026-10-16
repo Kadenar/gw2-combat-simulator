@@ -5,6 +5,7 @@ import type { ProfessionApp } from '#gw2/app/profession-app.js';
 /** Starts the existing GW2 profession application while preserving its browser globals and lifecycle. */
 async function mountProfession(contentId: string, root: Document): Promise<ProfessionApp> {
   const entry = getProfessionEntry(contentId);
+
   if (!entry) throw new TypeError(`Unknown GW2 profession "${contentId}".`);
 
   const [{ ProfessionApp }, adapter] = await Promise.all([
@@ -13,12 +14,17 @@ async function mountProfession(contentId: string, root: Document): Promise<Profe
   ]);
   // Report the real data-to-render transition and keep unfinished controls out of keyboard navigation.
   const loadingStatus = root.getElementById('loading-status');
+
   if (loadingStatus) loadingStatus.textContent = 'Loading builds and controls…';
+
   const app = new ProfessionApp(adapter);
   const globalScope = (root.defaultView || window) as unknown as Record<string, unknown>;
   globalScope.professionApp = app;
+
   if (adapter.globalName) globalScope[adapter.globalName] = app;
+
   await app.init();
+
   if (new URLSearchParams(root.defaultView?.location.search).has('benchmark')) {
     const { openBenchmarkWorkspace } = await import('#gw2/app/page/benchmark-workspace.js');
     await openBenchmarkWorkspace(app, root);
@@ -34,6 +40,7 @@ export const gw2Plugin: GamePlugin = Object.freeze({
   content: Object.freeze(professionRegistry.map(({ id }) => Object.freeze({ id }))),
   async loadContent(contentId: string): Promise<PlayableContentPlugin | null> {
     const entry = getProfessionEntry(contentId);
+
     if (!entry) return null;
 
     return Object.freeze({

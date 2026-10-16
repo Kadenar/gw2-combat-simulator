@@ -15,11 +15,15 @@ export const visionary = defineRelic({
   createState: () => ({ stacks: 0, whirlReadyAt: 0, windows: [] }),
   combo(ctx, state, event) {
     if (!isGw2PlayerActorEvent(event)) return;
+
     const windows = state.windows as { from: number; until: number }[];
+
     // Like Bloodstone, stacks cannot accumulate while Vloxx's Vision is active.
     if (windows.some((window) => isTimeInWindow(event.at, window.from, window.until))) return;
+
     if (event.finisherType === 'Whirl') {
       if (!isInternalCooldownReady(event.at, state.whirlReadyAt || 0)) return;
+
       state.whirlReadyAt = event.at + VISIONARY_WHIRL_INTERNAL_COOLDOWN;
     }
 
@@ -41,6 +45,7 @@ export const visionary = defineRelic({
         effectState: { stacks: state.stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
       }
     });
+
     if (!progress.reached) return;
 
     const until = gw2EffectExpiresAt(event.at, VISIONARY_BUFF_DURATION);

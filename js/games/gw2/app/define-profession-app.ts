@@ -86,18 +86,24 @@ export function defineProfessionApp({
         // Trait changes invalidate cached payloads even when the selected balance patch stays the same.
         const selection = JSON.stringify(build?.specializations ?? []);
         let cached = skillTooltips.get(context);
+
         if (cached?.selection !== selection) {
           cached = { selection, models: new Map() };
           skillTooltips.set(context, cached);
         }
 
         const existing = cached.models.get(skill.id);
+
         if (existing) return existing;
+
         const selected = context.catalog.skillsById.get(skill.id);
+
         // Palette-only actions have explicit local descriptions but no combat catalog entry.
         if (!selected && tooltips.skills?.[skill.id])
           return tooltips.skills[skill.id](context, skill, undefined, build);
+
         if (!selected) throw new Error(`Missing tooltip skill: ${skill.id}`);
+
         const model = describeSimulationSkill(context, selected, tooltips, build);
         cached.models.set(skill.id, model);
         return model;

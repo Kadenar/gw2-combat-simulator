@@ -37,6 +37,7 @@ function flowTick(runtime: WarriorRuntime): void {
       : 0);
   runtime.resourceController.grant('flow', rate * (GW2_ACTION_TICK_MS / 1000));
   state.flowStabilizerWindows = state.flowStabilizerWindows.filter((window) => window.expiresAt > runtime.time);
+
   if (state.traitPositiveFlowUntil <= runtime.time) {
     state.traitPositiveFlowStartedAt = 0;
     state.traitPositiveFlowUntil = 0;

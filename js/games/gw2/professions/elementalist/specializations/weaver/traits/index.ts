@@ -55,7 +55,9 @@ const elementalPolyphony = defineTrait({
     const secondary =
       readProfessionSpecializationState<{ secondaryAttunement?: string }>(context.runtime?.profession, 'Weaver')
         ?.secondaryAttunement ?? config?.secondaryAttunement;
+
     if (typeof secondary === 'string') active.add(secondary);
+
     return {
       attributeEffects: [
         {
@@ -256,6 +258,7 @@ export const weaverTraits = [
 function initializeElementsOfRage(context: ElementalistRuntime): void {
   const core = professionCoreState(context),
     state = weaverState.from(context);
+
   if (core.primaryAttunement === state.secondaryAttunement) {
     context.effects.emit(
       elementalistBuffRequest({
@@ -281,6 +284,7 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
     sourceId = event.skillId ?? event.sourceId,
     source = event.skillName || event.source || 'Attunement',
     unravelActive = weaverState.from(context).unravelUntil > at;
+
   if (target === previous || unravelActive) {
     context.effects.emit(
       elementalistBuffRequest({
@@ -305,9 +309,11 @@ function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEven
     previous = event.from,
     sourceId = event.skillId ?? event.sourceId,
     unravelActive = weaverState.from(context).unravelUntil > at;
+
   if (unravelActive || target === previous) {
     const weaversProwessProfile = requireBalanceProfileFromContext(context, TRAIT.WEAVERS_PROWESS);
     const resistance = requireEffect(weaversProwessProfile, 'boon', 'Resistance');
+
     if (resistance) {
       emitTraitProfile(context, TRAIT.WEAVERS_PROWESS, TRAIT.WEAVERS_PROWESS, undefined, {
         at: at,
@@ -330,6 +336,7 @@ function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEven
 function applyBolsteredElements(context: ElementalistRuntime, { cast }: WeaverCastCompleted): void {
   const skill = cast.skill,
     at = cast.effectiveEnd;
+
   if (skill.skillFamily === 'Stance') {
     emitTraitProfile(context, TRAIT.BOLSTERED_ELEMENTS, TRAIT.BOLSTERED_ELEMENTS, undefined, {
       at: at,
@@ -354,6 +361,7 @@ function applyBolsteredElements(context: ElementalistRuntime, { cast }: WeaverCa
 function applySwiftRevenge(context: ElementalistRuntime, { cast, dualAttunements }: WeaverCastCompleted): void {
   const skill = cast.skill,
     at = cast.effectiveEnd;
+
   if (dualAttunements) {
     for (const element of dualAttunements) {
       if (element === 'Fire') {
@@ -401,6 +409,7 @@ function applySwiftRevenge(context: ElementalistRuntime, { cast, dualAttunements
 function applySuperiorElements(context: ElementalistRuntime, { cast, dualAttunements }: WeaverCastCompleted): void {
   const skill = cast.skill,
     at = cast.effectiveEnd;
+
   if (dualAttunements && context.procs.claim(TRAIT.SUPERIOR_ELEMENTS, 'elementalist.weaver.superiorElements', at)) {
     emitTraitProfile(context, TRAIT.SUPERIOR_ELEMENTS, TRAIT.SUPERIOR_ELEMENTS, undefined, {
       at: at,
@@ -423,6 +432,7 @@ function applyUnravelElementsOfRage(
   previousSecondary: string | null
 ): void {
   const skill = cast.skill;
+
   if (previousPrimary !== previousSecondary) {
     context.effects.emit(
       elementalistBuffRequest(

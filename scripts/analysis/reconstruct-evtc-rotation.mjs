@@ -21,7 +21,9 @@ import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '#gw2/integra
 import { parseGameOption } from '../lib/game-data.mjs';
 
 const { gameId, args } = parseGameOption(process.argv.slice(2));
+
 if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" does not support EVTC logs.`);
+
 const input = args[0];
 
 if (!input) {

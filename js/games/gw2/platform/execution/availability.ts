@@ -55,10 +55,14 @@ export function weaponSetSwapAvailability(
   skill: Skill
 ): AvailabilityResult | null {
   if (skill.inputCategory !== 'weapon-swap') return null;
+
   if (context.combatActive && !canSwapInCombat)
     return denyCast('gw2.weapon-swap-disabled', 'This build cannot swap weapon sets in combat.');
+
   const destination = context.activeWeaponSet === 1 ? context.config.weaponSet2Primary : context.config.primaryWeapon;
+
   if (!destination) return denyCast('gw2.weapon-set-empty', 'The other weapon set is not equipped.');
+
   return null;
 }
 
@@ -76,14 +80,19 @@ export function selectedSlotSkillAvailability(
   policy: SlotSelectionPolicy = {}
 ): AvailabilityResult | null {
   if (!['Heal', 'Utility', 'Elite'].includes(skill.type || '')) return null;
+
   // Ordinary sandbox casts allow omission; summon policies can require explicit equipment.
   const loadout = context.config.selectedSkillIds;
+
   if (loadout == null && policy.omittedLoadout !== 'deny') return null;
+
   const selected = selectedSkillIdSet(loadout);
   let root = skill;
   while (root.flipParentId != null) {
     const parent = context.catalog.skillsById.get(root.flipParentId);
+
     if (!parent) break;
+
     root = parent;
   }
 

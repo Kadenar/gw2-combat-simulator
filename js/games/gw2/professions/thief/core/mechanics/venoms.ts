@@ -67,7 +67,9 @@ export function addVenomCharges(
   cap = Infinity
 ): void {
   const venom = venomForSkill(skillId);
+
   if (!venom) return;
+
   refreshVenomCharges(state, at);
   const pool = { grants: state.venomChargeBatches };
   grantChargePool(pool, String(skillId), at, charges, duration, cap);
@@ -76,12 +78,15 @@ export function addVenomCharges(
 /** Consumes one charge from every active venom on a player strike and applies each venom's complete proc packet. */
 export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): number {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return 0;
+
   const state = professionCoreState(context);
   refreshVenomCharges(state, event.at);
   let procCount = 0;
   for (const venom of VENOMS) {
     const batch = state.venomChargeBatches[String(venom.skillId)]?.find((entry) => entry.charges > 0);
+
     if (!consumeCharge(batch, event.at)) continue;
+
     procCount += 1;
     emitVenom(context, event, venom);
   }
@@ -123,7 +128,9 @@ export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEve
 /** Arms the caster and allies with live charges, retaining each grant's original expiry. */
 export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const venom = venomForSkill(cast.skill.id);
+
   if (!venom) return;
+
   const core = runtime.profession.core;
   const at = runtime.time;
   const profile = requireBalanceProfileFromContext(runtime, venom.profileId);

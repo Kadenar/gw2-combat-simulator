@@ -12,6 +12,7 @@ export const shackles = defineRelic({
   createState: () => ({ readyAt: 0 }),
   emitConditionEffects(ctx, state, application) {
     const actorType = gw2EventActorType(application);
+
     if (
       application.condition !== 'Immobilized' ||
       (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER && actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||

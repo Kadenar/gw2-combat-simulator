@@ -111,12 +111,14 @@ function closeContributions(contributors: Gw2ModifierContribution[], total: numb
   }
 
   const product = (1 + additive) * multiplier;
+
   if (product > 0) traceFactor(contributors, 'other', 'Other effects', total / product);
 }
 
 /** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */
 function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | null {
   if (event?.actorType !== 'summon' || event.independentConditionOwner) return event;
+
   return {
     ...event,
     actorType: 'player',
@@ -178,6 +180,7 @@ export function createGw2CombatQuery({
   const staticAttributesAt = (weaponSet: number): Gw2ResolvedStats => {
     const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
     let base = staticAttributesByWeaponSet.get(normalizedWeaponSet);
+
     if (!base) {
       base = gw2StaticAttributes(activeConfigForWeaponSet(normalizedWeaponSet), normalizedWeaponSet);
       staticAttributesByWeaponSet.set(normalizedWeaponSet, base);
@@ -193,7 +196,9 @@ export function createGw2CombatQuery({
   function activeConfigForWeaponSet(weaponSet: number): Gw2Config {
     const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
     const cached = activeConfigsByWeaponSet.get(normalizedWeaponSet);
+
     if (cached) return cached;
+
     const resolved = { ...config, startingWeaponSet: normalizedWeaponSet };
     activeConfigsByWeaponSet.set(normalizedWeaponSet, resolved);
     return resolved;
@@ -209,7 +214,9 @@ export function createGw2CombatQuery({
     gw2EventActorType(event) === 'summon' && event?.summonInheritsAttributes !== true && !isGw2PhantasmEvent(event);
   const summonCompanionId = (event: SimulationEvent | null | undefined): string | null => {
     if (!event || gw2EventActorType(event) !== 'summon') return null;
+
     if (event.summonOwner) return String(event.summonOwner);
+
     return null;
   };
 
@@ -224,6 +231,7 @@ export function createGw2CombatQuery({
     // Isolated summons don't inherit the player's configured permanent boons —
     // they only receive boons explicitly targeted at summons via the runtime.
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
+
     if (isolatedSummon) {
       return appliedEffectStacks({ runtime, timeline, time }, kind, maximum, {
         actor: 'companion',
@@ -233,6 +241,7 @@ export function createGw2CombatQuery({
 
     // Nonnegative dynamic grants cannot change an already-capped permanent assumption.
     if (configured >= maximum) return maximum;
+
     const dynamic = appliedEffectStacks({ runtime, timeline, time }, kind, maximum, { actor: 'player' }, 1);
     return clamp(configured + dynamic, 0, maximum);
   };
@@ -249,6 +258,7 @@ export function createGw2CombatQuery({
     event: SimulationEvent | null | undefined
   ): boolean => {
     if (event?.summonIgnoresBoons === true) return false;
+
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     const inheritsOwnerCriticalState =
       event?.summonInheritsAttributes === true || event?.summonInheritsCriticalAttributes === true;
@@ -256,6 +266,7 @@ export function createGw2CombatQuery({
     // player-configured permanent Fury. They gain Fury only when a skill
     // applies it dynamically (handled by the runtime/timeline branch below).
     const illusionEvent = isGw2IllusionEvent(event);
+
     if ((!isolatedSummon || inheritsOwnerCriticalState) && !illusionEvent && config.boons?.fury) {
       return true;
     }
@@ -281,6 +292,7 @@ export function createGw2CombatQuery({
     event: SimulationEvent | null | undefined
   ): number => {
     if (event?.summonIgnoresBoons === true) return 0;
+
     return appliedEffectStacks({ runtime, timeline, time }, 'might', 25, {
       actor: 'companion',
       companionId: summonCompanionId(event)
@@ -350,6 +362,7 @@ export function createGw2CombatQuery({
     runtime: Gw2QueryRuntime | null = null
   ): Gw2ResolvedStats => {
     if (event?.type === 'condition') event = conditionOwnerEvent(event);
+
     const activeWeaponSet = attributeWeaponSetAt(time, event, runtime);
     const input = hookContext(time, { event, runtime });
     // The profession owns attribute-fact construction; professions without declarations incur no attribute-context work.
@@ -373,6 +386,7 @@ export function createGw2CombatQuery({
       relicConditionDamage > 0
         ? { ...modifiedStats, conditionDamage: modifiedStats.conditionDamage + relicConditionDamage }
         : modifiedStats;
+
     // Independent summons use their own base stats instead of the player's,
     // including condition duration so food and other owner bonuses cannot leak in.
     // summonInheritsCriticalAttributes=true lets them share precision/ferocity
@@ -419,6 +433,7 @@ export function createGw2CombatQuery({
     ) {
       // Preserve the hit's boon fact even when forced critical chance replaces its presentation contributors.
       const furyActive = furyActiveAt(time, runtime, event);
+
       if (
         event.independentSummonStrike === true &&
         event.summonInheritsAttributes !== true &&
@@ -445,6 +460,7 @@ export function createGw2CombatQuery({
       let contributors: Gw2CriticalChanceContributor[] = [];
       const addContributor = (id: string, label: string, amount: number) => {
         if (Math.abs(amount) <= Number.EPSILON) return;
+
         contributors.push({ id, label, amount });
       };
 
@@ -455,6 +471,7 @@ export function createGw2CombatQuery({
       // chance. Player-only gear bonuses — configured crit-chance and weapon
       // sigils — do not carry over to them.
       const illusionEvent = isGw2IllusionEvent(event);
+
       if (!illusionEvent) {
         const configuredBonus = (stats.criticalChanceBonus || 0) / 100;
         chance += configuredBonus;
@@ -466,6 +483,7 @@ export function createGw2CombatQuery({
 
       chance += professionAttributeBonus;
       addContributor('profession-attributes', 'Profession attributes', professionAttributeBonus);
+
       if (furyActive) {
         chance += 0.25;
         addContributor('fury', 'Fury', 0.25);
@@ -502,7 +520,9 @@ export function createGw2CombatQuery({
       contributors.push(...severanceCritical.chanceContributors);
       damage += severanceCritical.damage;
       let chanceBeforeCap = chance;
+
       if (event.canCrit === false) chance = 0;
+
       // forceCrit (e.g. Wild Blow) overrides everything including canCrit=false.
       if (event.forceCrit) {
         chance = 1;
@@ -537,6 +557,7 @@ export function createGw2CombatQuery({
           : relicOutgoingDamageBonus(relicContext, 'strike', time, event);
       const modifier = activeProfession.modifyStrikeDamage as Gw2ModifierHook;
       const vulnerability = 1 + vulnerabilityStacksAt(time, runtime) / 100;
+
       if (event.independentSummonStrike === true) {
         // Independent profiles already apply their eligible relic bonus as a separate factor; only sigil leakage changes.
         const base = vulnerability * Number(event.summonStrikeMultiplier ?? 1) * (1 + relicBonus);
@@ -544,6 +565,7 @@ export function createGw2CombatQuery({
           event.summonUsesProfessionModifiers === true
             ? modifier(hookContext(time, { event, runtime, damageContributors: contributors }), base)
             : base;
+
         if (contributors) {
           traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
           closeContributions(contributors, total);
@@ -580,6 +602,7 @@ export function createGw2CombatQuery({
         }),
         base
       );
+
       if (contributors) {
         // Query-owned factors sit outside the profession hook; any untraced remainder stays visible as one entry.
         traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
@@ -629,6 +652,7 @@ export function createGw2CombatQuery({
         }),
         base
       );
+
       if (contributors) {
         traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
         traceFactor(contributors, 'equipment.sigils-and-relic', 'Sigils and relic', equipmentFactor);
@@ -656,6 +680,7 @@ export function createGw2CombatQuery({
         : 0;
       const relicBonus = usesEquipmentModifiers ? equipmentConditionDurationBonus(runtime, time) : 0;
       const base = gw2ConditionDurationMultiplier(name, stats, sigilBonus + relicBonus);
+
       if (contributors) {
         // Gear, sigils, and relics are summed into the base multiplier before profession rules run.
         traceBonus(contributors, 'stats.condition-duration', 'Expertise and gear', base - 1 - sigilBonus - relicBonus);
@@ -675,6 +700,7 @@ export function createGw2CombatQuery({
       // Clamped to [1, 2]: condition duration never drops below baseline and
       // cannot exceed +100% regardless of how many sources stack.
       const total = boundedNumber(modified || 1, 1, 1, 2);
+
       if (contributors) {
         traceFactor(contributors, 'duration.cap', 'Duration cap (+100%)', total / (modified || 1));
         closeContributions(contributors, total);
@@ -802,6 +828,7 @@ export function conditionApplicationDuration(
   const baseDurationMultiplier = event.fixedDuration
     ? 1
     : query.conditionBaseDurationMultiplier(name, event.at, event, runtime);
+
   if (trace) {
     // Diagnostics reuse the multipliers computed for this application rather than querying again.
     trace.durationMultiplier = durationMultiplier;

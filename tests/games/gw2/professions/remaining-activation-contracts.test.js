@@ -254,6 +254,7 @@ test('Eternal Life admits no isolated loop or readiness while native signets sti
       });
       assert.equal(runtime.profession.core.passiveNextAt['eternal-life'] != null, selected && traitTriggers);
       assert.equal(lifeForcePercent(runtime.profession.core.lifeForce) > 0, selected && traitTriggers);
+
       if (!selected || !traitTriggers) assert.equal(runtime.resourceController.readyAt('lifeForce', 3), null);
     }
 
@@ -338,6 +339,7 @@ test('Harbinger shroud and finisher rewards obey isolation while shroud remains 
       assert.equal(runtime.profession.core.activeShroud, 'harbinger');
       const boons = rewards(result, NT.DEATHLY_HASTE).filter((event) => event.type === 'buff');
       assert.equal(boons.length > 0, selected && traitTriggers);
+
       if (boons.length) assert.ok(boons.every((event) => event.resolvedAudience.alliedPlayerCount === 2));
     }
 });

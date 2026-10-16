@@ -125,6 +125,7 @@ test('nested immediate grants are recorded before their descendants and visible 
       professionReactions: {
         'buff.applied'(context, event) {
           observations.push(context.combat.timeline.buffStacksAt('might', 0, 0, 25));
+
           if (event.sourceId === 'grant') {
             context.effects.emit({
               kind: 'packet',
@@ -269,6 +270,7 @@ test('an immediate extension records execution without resurrecting an expired b
     professionReactions: {
       'buff.applied'(context, event) {
         if (event.kind !== 'might') return;
+
         context.effects.emit({
           kind: 'packet',
           settlement: 'reaction',

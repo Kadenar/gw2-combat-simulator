@@ -52,6 +52,7 @@ const hazeMainCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
 export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
   const state = conduitState.from(runtime);
+
   if (hazeMainCasts.has(cast)) {
     hazeMainCasts.delete(cast);
     state.beguilingHazeCharges = Math.max(
@@ -70,12 +71,15 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
   }
 
   const ammo = runtime.cooldownController.readAmmo(skill.id);
+
   if (!ammo) return;
+
   if (state.beguilingHazeCharges > 0) {
     runtime.cooldownController.replaceAmmoCharges(skill, state.beguilingHazeCharges, state.beguilingHazeCharges, []);
     runtime.cooldownController.clear(skill.id);
   } else {
     if (!state.beguilingHazeRecharge) throw new Error('Beguiling Haze follow-ups require a main-cast recharge.');
+
     // Follow-up charges are temporary; exhausting them resumes only the saved main-cast timer.
     runtime.cooldownController.replaceAmmoCharges(skill, 1, 0, [state.beguilingHazeRecharge]);
     state.beguilingHazeReadyAt = runtime.cooldownController.readAmmo(skill.id)!.nextRechargeAt!;
@@ -98,6 +102,7 @@ function hexEaterEffects(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (cast.cancelled) return [];
+
   const core = runtime.profession.core;
   const maximum = Math.max(
     0,
@@ -116,6 +121,7 @@ function hexEaterEffects(
   hexEaterCleanses.set(cast, { configured, conditions });
 
   const projectiles = core.selectedLegendIds.includes(LEGEND.DEMON) ? maximum : configured + conditions.length;
+
   if (projectiles === 0) return [];
 
   // Omit empty components so the materializer cannot synthesize a fallback hit.
@@ -141,16 +147,21 @@ function selectBeguilingHaze(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (cast.cancelled) return [];
+
   const state = conduitState.from(runtime);
+
   if (state.beguilingHazeCharges > 0) state.beguilingHazeCharges -= 1;
   else hazeMainCasts.add(cast);
+
   return effects;
 }
 
 /** Cleanse only the condition objects reserved when this skill was accepted. */
 export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const selected = hexEaterCleanses.get(cast);
+
   if (!selected) return;
+
   const core = runtime.profession.core;
   core.selfConditionCount = Math.max(0, core.selfConditionCount - selected.configured);
   core.selfConditions = core.selfConditions.filter(

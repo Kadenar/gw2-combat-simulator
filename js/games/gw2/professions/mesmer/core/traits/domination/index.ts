@@ -193,12 +193,15 @@ function triggerRendingShatter(
   resolution: MesmerShatterResolution
 ): void {
   if (!resolution.traitHits.length) return;
+
   const effect = requireEffect(
     requireBalanceProfileFromContext(context, TRAIT.RENDING_SHATTER),
     'condition',
     'Vulnerability'
   );
+
   if (!effect) return;
+
   // The dispatcher already resolved the active shatter; trait execution never reconstructs family controllers.
   const kind = shatter?.kind;
   const hits =
@@ -209,6 +212,7 @@ function triggerRendingShatter(
         : resolution.traitHits;
   for (const hit of hits) {
     if (hit.count <= 0) continue;
+
     buildMesmerConditions(
       context,
       resolution.skill.name,
@@ -244,6 +248,7 @@ export function bountifulBladesSpawnModifiers(
   context: MesmerRuntime
 ): Record<number, { countMultiplier: number; damageMultiplier: number }> {
   if (!hasTrait(context, TRAIT.BOUNTIFUL_BLADES)) return {};
+
   const bountifulBladesProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_BLADES);
   return {
     [ID.PHANTASMAL_BERSERKER]: {

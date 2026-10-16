@@ -26,6 +26,7 @@ export interface LifeForceGrantAction extends ResourceGrantAction {
 
 function record(value: unknown, keys: readonly string[], label: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError(`${label} must be an object.`);
+
   for (const key of Object.keys(value))
     if (!keys.includes(key)) throw new TypeError(`${label} has unsupported field ${key}.`);
   return value as Record<string, unknown>;
@@ -40,17 +41,24 @@ function percentage(value: unknown, label: string): void {
 function validateLifeForceParameters(value: unknown, on?: string): asserts value is LifeForceParameters {
   const parameters = record(value, ['unit', 'percent', 'perCondition'], 'Life-force parameters');
   const { unit } = parameters;
+
   if (typeof unit !== 'string' || !['hit', 'pulse', 'application', 'cast'].includes(unit))
     throw new TypeError('Life-force grant has an invalid unit.');
+
   const expected = unit === 'cast' ? 'castCommit' : unit === 'application' ? 'condition.applied' : 'damage.resolved';
+
   if (on !== undefined && on !== expected) throw new TypeError('Life-force unit does not match its trigger.');
+
   percentage(parameters.percent, 'Life-force percent');
+
   if (parameters.perCondition !== undefined) {
     const bonus = record(parameters.perCondition, ['percent', 'count'], 'Life-force perCondition');
     percentage(bonus.percent, 'Life-force perCondition percent');
     const count = record(bonus.count, ['kind', 'maximum'], 'Life-force condition count');
+
     if (count.kind === 'live-target') {
       percentage(count.maximum, 'Life-force condition maximum');
+
       if (!Number.isInteger(count.maximum)) throw new TypeError('Life-force condition maximum must be an integer.');
     } else if (count.kind !== 'packet-snapshot' || 'maximum' in count) {
       throw new TypeError('Life-force grant requires a live-target maximum or a packet snapshot.');
@@ -66,6 +74,7 @@ const resolveLifeForceAmount: ResourceGrantRecipe['resolve'] = (queries, context
   const runtime = queries as MechanicQueriesOf<NecromancerRuntime>;
   let percent = parameters.percent;
   const bonus = parameters.perCondition;
+
   if (bonus) {
     const count =
       bonus.count.kind === 'live-target'
@@ -73,8 +82,10 @@ const resolveLifeForceAmount: ResourceGrantRecipe['resolve'] = (queries, context
         : context.kind === 'effect'
           ? context.trigger.event.metadata?.necromancerConditionCount
           : undefined;
+
     if (typeof count !== 'number' || !Number.isFinite(count) || count < 0)
       throw new TypeError('Life-force condition grants require their declared condition count.');
+
     percent += count * bonus.percent;
   }
 
@@ -116,6 +127,7 @@ function lifeForceActions(actions: readonly ResourceGrantAction[]): readonly Lif
   return actions.filter((action): action is LifeForceGrantAction => {
     if (action.resource !== 'lifeForce' || typeof action.amount !== 'object' || !('parameters' in action.amount))
       return false;
+
     validateLifeForceParameters(action.amount.parameters);
     return true;
   });

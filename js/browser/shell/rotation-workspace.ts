@@ -35,14 +35,18 @@ export const ROTATION_FOCUS_EXIT_EVENT = 'rotation-workspace-focus-exit';
 /** Closes transient rotation UI before leaving the workspace view. */
 export function resetRotationWorkspace(root: Document = document): void {
   const controller = controllers.get(root);
+
   if (!controller) return;
+
   applyWorkspaceState(controller, DEFAULT_ROTATION_WORKSPACE_STATE);
 }
 
 /** Enters the existing full-screen rotation workspace without coupling callers to its button markup. */
 export function enterRotationFocus(root: Document = document): void {
   const controller = controllers.get(root);
+
   if (!controller || controller.state.focus) return;
+
   applyWorkspaceState(controller, { configOpen: false, focus: true });
 }
 
@@ -76,6 +80,7 @@ export function isSimulationConfigVisible(state: RotationWorkspaceState): boolea
 function applyWorkspaceState(controller: RotationWorkspaceController, state: RotationWorkspaceState): void {
   const previous = controller.state;
   const view = controller.document.defaultView;
+
   if (!previous.focus && state.focus) {
     const scrollingElement = controller.document.scrollingElement;
     controller.focusScrollPosition = {
@@ -101,12 +106,14 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   controller.configPanel.inert = !configVisible;
   controller.configPanel.setAttribute('role', 'dialog');
   controller.configPanel.toggleAttribute('aria-modal', state.configOpen);
+
   if (controller.configDialog) {
     if (state.configOpen && !previous.configOpen) {
       controller.stopConfigViewport = showDialog(controller.configDialog);
     } else if (!state.configOpen) {
       controller.stopConfigViewport?.();
       controller.stopConfigViewport = undefined;
+
       if (controller.configDialog.open) controller.configDialog.close();
     }
   }
@@ -141,7 +148,9 @@ function dispatchWorkspaceAction(
 ): void {
   const previous = controller.state;
   const next = reduceRotationWorkspaceState(previous, action);
+
   if (next === previous) return;
+
   applyWorkspaceState(controller, next);
 
   if (!previous.configOpen && next.configOpen && !controller.configDialog) {
@@ -181,6 +190,7 @@ function mountRotationHeading(
   const headingTitle = root.createElement('span');
   headingTitle.className = 'rotation-builder-heading-title';
   headingTitle.append(label);
+
   // Keep the compact interaction guide beside the title instead of consuming a separate builder row.
   if (hint) headingTitle.append(hint);
 
@@ -226,8 +236,11 @@ function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonEle
 /** Adds the live DPS strip between the timeline and its expandable analysis panels. */
 export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLElement): void {
   if (root.getElementById('rotation-dps-summary')) return;
+
   const timeline = rotationPanel.querySelector<HTMLElement>('#rotation-timeline');
+
   if (!timeline) return;
+
   const summary = root.createElement('div');
   summary.id = 'rotation-dps-summary';
   summary.className = 'rotation-dps-summary';
@@ -244,6 +257,7 @@ export function mountRotationWorkspace(root: Document = document): void {
   const rotationSection = rotationPanel?.closest<HTMLElement>('.rotation-section');
   let configPanel = workspace?.querySelector<HTMLElement>('.perma-section');
   const configHeading = configPanel?.querySelector<HTMLElement>('.perma-panel > h3');
+
   if (
     !root.body ||
     !workspace ||
@@ -264,6 +278,7 @@ export function mountRotationWorkspace(root: Document = document): void {
 
   // Embedded settings use a native modal so focus and background interaction stay inside the dialog.
   const configDialog = root.documentElement.classList.contains('embed') ? root.createElement('dialog') : undefined;
+
   if (configDialog) {
     configDialog.className = configPanel.className;
     configDialog.id = configPanel.id;
@@ -297,16 +312,23 @@ export function mountRotationWorkspace(root: Document = document): void {
 
   configButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-config', true));
   configCloseButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'close-config', true));
+
   if (configDialog) bindDialog(configDialog, () => dispatchWorkspaceAction(controller, 'close-config', true));
+
   focusButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-focus'));
   root.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || event.defaultPrevented) return;
+
     if (root.querySelector('dialog[open]')) return;
+
     const next = reduceRotationWorkspaceState(controller.state, 'escape');
+
     if (next === controller.state) return;
+
     event.preventDefault();
     const restoreConfigFocus = controller.state.configOpen;
     applyWorkspaceState(controller, next);
+
     if (restoreConfigFocus) controller.configButton.focus();
   });
 }

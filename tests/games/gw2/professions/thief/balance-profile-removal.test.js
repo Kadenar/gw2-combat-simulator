@@ -108,6 +108,7 @@ for (const id of [SPECTER.enterShadowShroud, SPECTER.dawnsReposeBarrier]) {
     );
     assert.equal(result.planningState.profession.shadowShroudActive, true);
     assert.ok(result.planningState.profession.shadowClock.value < 100);
+
     if (id === SPECTER.dawnsReposeBarrier) assert.ok(packet(result, 'buff', TRAIT.SHADESTEP).length);
   });
 }

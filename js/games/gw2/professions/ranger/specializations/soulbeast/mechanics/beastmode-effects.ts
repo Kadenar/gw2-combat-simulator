@@ -40,7 +40,9 @@ export function activeSoulbeastBuff(context: RangerResolverContext, kind: string
 function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
   const activePet = rangerPetByName(professionCoreState(context).activePet);
   const beastSkillId = activePet.beastmodeSkillIds.at(-1);
+
   if (event.skillId !== beastSkillId || !event.activationId) return false;
+
   return claimActivation(
     soulbeastState.from(context).soulbeastActivationClaims,
     'ranger.beast-ability',
@@ -119,7 +121,9 @@ function queueStanceProc(
   if (wolfPack) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.oneWolfPack);
     const strike = requireEffect(profile, 'strike', 'Strike');
+
     if (!strike) return;
+
     startCooldown(balanceProfileNumber(profile, 'internalCooldown'));
     queueOneWolfPackStrike(context, event, profile, strike);
     return;
@@ -128,7 +132,9 @@ function queueStanceProc(
   const profile = requireBalanceProfileFromContext(context, PROFILE.vultureStance);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   const might = requireEffect(profile, 'boon', 'might');
+
   if (!poison && !might) return;
+
   startCooldown(balanceProfileNumber(profile, 'internalCooldown'));
   queueVultureStanceEffects(context, event, profile, poison, might);
 }
@@ -136,9 +142,13 @@ function queueStanceProc(
 /** Allied stance cooldowns block their exact deadline independently, including across overlapping applications. */
 export function handleSharedStanceHit(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const allyIndex = event.metadata?.triggeredByAlly;
+
   if (!allyIndex) return;
+
   const key = `${event.kind}:${allyIndex}`;
+
   if (!isInternalCooldownReady(event.at, context.procs.deadline(`ranger.soulbeast.alliedStance:${key}`))) return;
+
   queueStanceProc(context, event, event.kind === 'one-wolf-pack', (internalCooldown) => {
     context.procs.setDeadline(`ranger.soulbeast.alliedStance:${key}`, event.at + internalCooldown);
   });
@@ -146,6 +156,7 @@ export function handleSharedStanceHit(context: RangerResolverContext, event: Gw2
 
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
+
   triggerMergedPoisonousStrikes(context, event);
 
   // One Wolf Pack must not trigger from its own echo or from effect-sourced hits to avoid infinite recursion.
@@ -175,13 +186,16 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
   }
 
   if (!firstBeastAbilityHit(context, event)) return;
+
   context.fireTrigger(mergedBeastHit, { event });
 }
 
 /** Quickness extends existing boons once; shared attacks wait for an actual combat boundary. */
 export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const extension = essenceOfSpeedExtension(context, event);
+
   if (extension) context.effects.emit({ kind: 'packet', event: extension });
+
   scheduleSharedStance(context, event);
 }
 
@@ -189,8 +203,11 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2R
 function scheduleSharedStance(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Shared windows use the existing ally attack assumptions and end at half the personal duration.
   if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
+
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;
+
   if (!maximumAllies) return;
+
   // Live windows share the global strike cadence; the existing recipient ICD handles overlapping grants.
   context.alliedStrikes.registerRecipients(
     (allyIndex) => ({
@@ -219,6 +236,7 @@ function scheduleSharedStance(context: RangerResolverContext, event: Gw2Resolver
 // and is reset by the ranger core when a new weapon cycle begins, not on cooldown expiry.
 export function reactToRangerWinterBite(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
+
   if (
     !core.winterBiteReady ||
     // Guard against the Winter's Bite proc re-triggering itself.
@@ -231,6 +249,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   core.winterBiteReady = false;
   const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
+
   if (weakness)
     context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));
 }
@@ -243,6 +262,7 @@ export function soulbeastCastAvailability(
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
   // Swapping while unmerged changes which pet grants merged skills on reentry.
   const pet = rangerPetByName(professionCoreState(context).activePet);
+
   if (skill.beastmodeSkill && !toggle && !pet.beastmodeSkillIds.includes(skill.id)) {
     return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
   }

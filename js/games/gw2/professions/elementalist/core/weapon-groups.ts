@@ -15,6 +15,7 @@ export function elementalistWeaponGroups(
   }
 
   if ([...groups.keys()].filter((label) => label !== 'Special').length < 2) return null;
+
   const order = (label: string) =>
     ATTUNEMENT_ORDER.includes(label) ? ATTUNEMENT_ORDER.indexOf(label) : Number.MAX_SAFE_INTEGER;
   return [...groups]

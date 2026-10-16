@@ -237,6 +237,7 @@ const unyieldingDragon = defineTrait({
   hooks: {
     modifyEffects(runtime, cast, effects) {
       if (!cast.skill.dragonSlash || !hasTrait(runtime, TRAIT.UNYIELDING_DRAGON)) return effects;
+
       const strike = effects.find((effect) => effect.type === 'strike');
       return [
         ...effects,
@@ -270,9 +271,13 @@ export const warriorBladeswornTraits = [
 
 function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, trait: number): void {
   if (runtime.hasExplicitCombatStart && !runtime.combatActive) return;
+
   const state = bladeswornState.from(runtime);
+
   if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.bladesworn.gunsaberSwapTrait'))) return;
+
   if (trait === TRAIT.UNSEEN_SWORD && !runtime.combatActive) return;
+
   const profile = requireBalanceProfileFromContext(runtime, trait);
   const event = {
     at: runtime.time,
@@ -283,8 +288,10 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
     skillId: ID.UNSHEATHE_GUNSABER,
     skillName: 'Unsheathe Gunsaber'
   };
+
   if (trait === TRAIT.UNSEEN_SWORD) {
     const strike = requireEffect(profile, 'strike', 'Strike');
+
     if (strike)
       emitTraitProfile(runtime, trait, trait, undefined, {
         // The shared materializer applies the authored impact offset once, after entry rewards.
@@ -303,6 +310,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
         },
         transform: (packet) => ({ ...packet, weaponStrengthProfileId: 'nonweapon.unequipped' })
       });
+
     runtime.effects.emit({
       kind: 'announcement',
       log: true,
@@ -311,6 +319,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
     });
   } else if (trait === TRAIT.SHARP_AS_THE_WIND) {
     const burning = requireEffect(profile, 'condition', 'Burning');
+
     if (burning)
       emitTraitProfile(runtime, trait, trait, undefined, {
         at: runtime.time,
@@ -329,6 +338,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
       });
   } else {
     const might = requireEffect(profile, 'boon', 'might');
+
     if (might)
       emitTraitProfile(runtime, trait, trait, undefined, {
         at: runtime.time,
@@ -352,8 +362,11 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
     canonicalTime(runtime.time + balanceProfileNumber(profile, 'internalCooldown'))
   );
   const flow = requireEffect(profile, 'buff', 'positive-flow');
+
   if (!flow) return;
+
   if (state.traitPositiveFlowUntil <= runtime.time) state.traitPositiveFlowStartedAt = runtime.time;
+
   const duration = effectNumber(profile, flow, 'duration');
   state.traitPositiveFlowUntil = gw2EffectExpiresAt(runtime.time, duration);
   state.traitPositiveFlowStacks = effectNumber(profile, flow, 'stacks');
@@ -404,6 +417,7 @@ function lushForestAmmo(
   spent: { readonly rounds: number; readonly startedFull: boolean }
 ): void {
   if (!spent.startedFull || cast.skill.id === ID.ARTILLERY_SLASH) return;
+
   const state = bladeswornState.from(runtime);
   const weapons = new Set(
     gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean)
@@ -414,9 +428,12 @@ function lushForestAmmo(
       [ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER, ID.ARTILLERY_SLASH].some((id) => id === skill.id)
     )
       return false;
+
     if (skill.gunsaberSkill) return state.gunsaberActive || state.dragonTriggerActive;
+
     if (skill.type === 'Weapon' || skill.weapon)
       return !state.gunsaberActive && !state.dragonTriggerActive && (!weapons.size || weapons.has(skill.weapon ?? ''));
+
     return (
       // Only equipped slot skills join the visible weapon bar; triggered skills own separate recharge.
       ['Heal', 'Utility', 'Elite'].includes(String(skill.type)) &&
@@ -431,6 +448,7 @@ function lushForestAmmo(
     ...runtime.cooldownController.ammoSkillIds()
   ])) {
     const skill = runtime.helpers.skillsById.get(id);
+
     if (skill && onBar(skill))
       reduced += runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
   }
@@ -459,6 +477,7 @@ function gunsAndGloryExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent)
       balanceProfileNumber(profile, 'maximumStacks'),
       Math.max(0, state.gunsAndGloryUntil - runtime.time) + balanceProfileNumber(profile, 'resourceGain')
     );
+
     if (duration > 0) {
       // Tick rounding must not extend a full duration pool beyond its configured ceiling.
       state.gunsAndGloryUntil = Math.min(

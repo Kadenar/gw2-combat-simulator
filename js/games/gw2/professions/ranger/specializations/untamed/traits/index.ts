@@ -88,6 +88,7 @@ const letLoose = defineTrait({
       on: 'castCommit',
       run(runtime, cast) {
         const state = untamedState.from(runtime);
+
         if (
           cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
           runtime.combatActive &&
@@ -95,6 +96,7 @@ const letLoose = defineTrait({
         ) {
           // An immediate swap ambush spends the refreshed grant's cooldown, preventing intervening toggles from rearming it.
           runtime.procs.setDeadline('ranger.untamed.unleashedPower', 0);
+
           if (
             state.rangerUnleashed &&
             runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time)
@@ -353,9 +355,12 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'duration');
   const pet = context.profession.core.pet;
+
   if (!pet) return;
+
   if (isPlayerStrike(event)) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPet', event.at)) return;
+
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
     pet.ferociousSymbiosis = grantRefreshedStacks(
       pet.ferociousSymbiosis,
@@ -367,6 +372,7 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
     );
   } else if (isPetStrike(event) && event.actorType === 'summon' && event.summonOwner === pet.id) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPlayer', event.at)) return;
+
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
     state.ferociousSymbiosisPlayer = grantRefreshedStacks(
       state.ferociousSymbiosisPlayer,

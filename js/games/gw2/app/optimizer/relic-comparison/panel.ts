@@ -111,9 +111,13 @@ export function mountRelicComparison(
 /** Compares relics against the equipped workspace build and waits for its baseline to finish. */
 export function renderRelicComparison(app: ProfessionAppState): void {
   if (typeof document === 'undefined') return;
+
   const container = document.getElementById('optimizer-relic-comparison');
+
   if (!container || document.body?.dataset.simulatorView !== 'gear-optimizer') return;
+
   const result = app.results;
+
   // Keep the comparison UI empty until a rotation exists to compare.
   if (!app.build.rotation.length) {
     container.innerHTML = '';
@@ -142,5 +146,6 @@ export function renderRelicComparison(app: ProfessionAppState): void {
   );
   // A queued baseline must finish before its output can be used as the comparison opponent.
   const button = container.querySelector<HTMLButtonElement>('[data-role="relic-comparison-run"]');
+
   if (button && (app.simulationStatus !== 'idle' || app.resultRevision !== app.buildRevision)) button.disabled = true;
 }

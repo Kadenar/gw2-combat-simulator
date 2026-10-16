@@ -83,7 +83,9 @@ export function rotationDeadTimeVisibility(root: Document): boolean {
 /** Applies and persists dead-time visibility without treating it as a simulation configuration change. */
 export function setRotationDeadTimeVisibility(root: Document, visible: boolean): void {
   const panel = root.getElementById('rotation-timeline')?.closest<HTMLElement>('.rotation-panel');
+
   if (panel) panel.dataset.showDeadTime = String(visible);
+
   storeDeadTimeVisibility(root, visible);
 }
 
@@ -91,6 +93,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
   const timeline = root.getElementById('rotation-timeline');
   const toolbar = timeline?.closest<HTMLElement>('.rotation-panel')?.querySelector<HTMLElement>('.rotation-mid');
   const panel = timeline?.closest<HTMLElement>('.rotation-panel');
+
   if (!timeline || !toolbar || !panel) return;
 
   const storedSize = readStoredSize(root);
@@ -100,6 +103,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
 
   // Group display preferences so narrow panels can stack them within one toolbar grid cell.
   let controls = toolbar.querySelector('.rotation-display-controls');
+
   if (!controls) {
     controls = root.createElement('div');
     controls.className = 'rotation-display-controls';
@@ -110,6 +114,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
   }
 
   const existing = root.getElementById('rotation-timeline-size');
+
   if (existing?.tagName === 'SELECT') {
     (existing as HTMLSelectElement).value = storedSize;
   } else {

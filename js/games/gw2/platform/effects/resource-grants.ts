@@ -25,7 +25,9 @@ export function castResourceGrants(skill: Skill | BalanceProfile): readonly Reso
 /** Numeric parameters are the shared source for editable controls; formulas and nonnumeric choices stay owner-authored. */
 export function resourceGrantNumericFields(action: ResourceGrantAction): Record<string, number> {
   if (typeof action.amount === 'number') return { amount: action.amount };
+
   if (!('parameters' in action.amount)) return {};
+
   const fields: Record<string, number> = {};
   const visit = (value: unknown, path: string): void => {
     if (typeof value === 'number') fields[path] = value;

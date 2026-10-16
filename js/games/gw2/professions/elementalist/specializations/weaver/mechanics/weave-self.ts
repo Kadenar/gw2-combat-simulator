@@ -27,8 +27,10 @@ export function startWeaveSelfCast(
 ): void {
   const at =
     cast.start + (cast.fullEnd - cast.start) * balanceNumberFromContext(context, PROFILE.resources, 'firstPacketRatio');
+
   // Activation must occur within the cast lifetime, including its exact final instant.
   if (canonicalTime(at) > cast.effectiveEnd) return;
+
   context.schedule(WEAVE_SELF_ACTIVATION_TASK, at, skill.id, { id: cast.id, generation: 0 });
 }
 
@@ -39,6 +41,7 @@ export function modifyWeaveSelfRechargeStart(
   rechargeStart: number
 ): number {
   if (cast.skill.id !== ID.WEAVE_SELF) return rechargeStart;
+
   const resourcesProfile = context.requireBalanceProfile(PROFILE.resources);
   return context.time + (rechargeStart - context.time) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
 }
@@ -58,7 +61,9 @@ export function handleWeaveSelfActivation(
   state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
+
   if (core.primaryAttunement !== 'Fire' && core.primaryAttunement !== 'Air') return;
+
   context.effects.emit(
     elementalistBuffRequest(
       {
@@ -86,12 +91,15 @@ export function applyWeaveSelfAttunement(
   sourceId: Skill['id']
 ): void {
   const state = weaverState.from(context);
+
   if (!(state.weaveSelfUntil > at)) return;
+
   // Attunement completion already applied recharge; this observer only advances Weave Self's buffs and visited elements.
   const visited = new Set(state.weaveSelfVisited);
   visited.add(target);
   state.weaveSelfVisited = [...visited];
   const remaining = Math.max(0, state.weaveSelfUntil - at);
+
   if (target === 'Fire' || target === 'Air') {
     context.effects.emit(
       elementalistBuffRequest({
@@ -109,6 +117,7 @@ export function applyWeaveSelfAttunement(
   }
 
   if (visited.size < ELEMENTALIST_ATTUNEMENTS.length) return;
+
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
   const perfectWeaveDuration = balanceNumberFromContext(context, PROFILE.resources, 'recharge');

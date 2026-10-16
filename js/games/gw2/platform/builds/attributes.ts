@@ -143,10 +143,14 @@ export function resolveAttributeEffects(
   // Share the copied pool until a profession-only grant requires different inputs for traits and equipment.
   for (const effect of effects) {
     if (effect.enabled === false || effect.kind !== 'flat') continue;
+
     addAttribute(attributes, effect.to, effect.amount);
+
     if (!effect.amount || effect.feedsConversions === 'none') continue;
+
     if (effect.feedsConversions === 'profession-only') {
       if (eligibleConversionPool === genericConversionPool) eligibleConversionPool = { ...eligibleConversionPool };
+
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
     } else if (eligibleConversionPool === genericConversionPool) {
       if (eligibleConversionPool === commonConversionPool) {
@@ -157,6 +161,7 @@ export function resolveAttributeEffects(
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
     } else {
       if (genericConversionPool === commonConversionPool) genericConversionPool = { ...commonConversionPool };
+
       addAttribute(eligibleConversionPool, effect.to, effect.amount);
       addAttribute(genericConversionPool, effect.to, effect.amount);
     }
@@ -165,6 +170,7 @@ export function resolveAttributeEffects(
   const groups: AttributeConversionGroup[] = [];
   for (const effect of effects) {
     if (effect.enabled === false || effect.kind !== 'conversion') continue;
+
     const pool = effect.input === 'common' ? commonConversionPool : eligibleConversionPool;
     attributeConversionGroup(groups, effect.from, effect.to, effect.rounding).traits +=
       (pool[effect.from] ?? 0) * effect.multiplier;
@@ -173,6 +179,7 @@ export function resolveAttributeEffects(
   for (const conversion of conversions) {
     const group = attributeConversionGroup(groups, conversion.from, conversion.to, conversion.rounding);
     const amount = (genericConversionPool[conversion.from] ?? 0) * conversion.multiplier;
+
     if (conversion.source === 'utility') group.utility += amount;
     else group.reinforcement += amount;
   }
@@ -288,10 +295,12 @@ function recomputeDerivedAttributes(
   for (const key of specificKeys) {
     const value =
       (runeDurations[key] || 0) + (traitDurations[key] || 0) + (foodDurations[key] || 0) + (sigilDurations[key] || 0);
+
     if (!value) {
       // Finalize prunes zero-valued provisional entries to keep the public
       // result sparse; the common pass simply never adds them.
       if (pruneZeros) delete attributes[key];
+
       continue;
     }
 
@@ -327,6 +336,7 @@ export function calculateCommonAttributes(
     // A two-handed weapon occupies both weapon stat budgets: skip Weapon2 and
     // read the main-hand selection from the Weapon2H coefficient table.
     if (isTwoHanded && slot === 'Weapon2') continue;
+
     const statSlot = isTwoHanded && slot === 'Weapon1' ? 'Weapon2H' : slot;
     const weaponSlot = slot === 'Weapon1' ? 0 : slot === 'Weapon2' ? 1 : -1;
     const prefix =
@@ -382,7 +392,9 @@ export function calculateCommonAttributes(
   const effectiveSigils = new Set(selectedSigils);
   for (const name of effectiveSigils) {
     const sigil = SIGIL_DATA[name];
+
     if (!sigil) continue;
+
     if (sigil.conditionDuration) {
       addAttribute(sigilDurations, 'Condition Duration', sigil.conditionDuration);
     }
@@ -485,6 +497,7 @@ export function finalizeBuildAttributes(
   const attributes = structuredClone(common.attributes);
   for (const [name, amount] of Object.entries(traitStats)) {
     if (!attributes[name]) continue;
+
     attributes[name].traits += amount;
     attributes[name].final += amount;
   }
@@ -492,12 +505,14 @@ export function finalizeBuildAttributes(
   // Add the utility's resolved conversion once, retaining its source attribution alongside trait grants.
   for (const [name, amount] of Object.entries(utilityStats)) {
     if (!attributes[name]) continue;
+
     attributes[name].utility += amount;
     attributes[name].final += amount;
   }
 
   for (const [name, amount] of Object.entries(reinforcedArmorStats)) {
     if (!attributes[name]) continue;
+
     attributes[name].reinforcedArmor = amount;
     attributes[name].final += amount;
   }

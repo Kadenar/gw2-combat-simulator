@@ -74,8 +74,11 @@ for (const [label, durationMs, health, captureTimes, terminalCount] of [
     assert.equal(persistent.terminal.count, terminalCount);
     assert.deepEqual(transient.segments, []);
     assert.equal(transient.terminal.count, 0);
+
     if (durationMs) assert.equal(effectStateAt(result.effectReport, persistent, 0.5).count, 1);
+
     if (durationMs && !health) assert.equal(effectStateAt(result.effectReport, persistent, 1.5).count, 2);
+
     assert.deepEqual(result.warnings, []);
   });
 }

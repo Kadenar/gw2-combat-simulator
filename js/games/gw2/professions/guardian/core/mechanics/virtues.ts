@@ -94,7 +94,9 @@ export function applyJusticeBurn(
 ): void {
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
   const burn = requireEffect(justiceProfile, 'condition', active ? 'Burning (active)' : 'Burning (passive)');
+
   if (!burn) return;
+
   const sourceId = active ? 'guardian.justice-active' : 'guardian.justice-passive';
   // Justice burns resolve immediately so passive/active counters and chained
   // condition reactions remain synchronized at the triggering hit timestamp.
@@ -120,8 +122,10 @@ export function applyJusticeBurn(
         !active && passiveBurnDuration != null ? passiveBurnDuration : effectNumber(justiceProfile, burn, 'duration')
     })
   });
+
   if (active) professionCoreState(context).justiceActiveBurns += 1;
   else professionCoreState(context).justicePassiveBurns += 1;
+
   // Proc rows use the owning virtue's artwork instead of the attack that triggered the burn.
   context.effects.emit({
     kind: 'announcement',
@@ -157,9 +161,11 @@ export function reactToJusticeHitWithOptions(
   // the player, such as Sovereign of Light, without admitting gear procs.
   const isGuardianOwnedHit =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && isGw2PlayerModifierOwnedEvent(event));
+
   if (!hitContext || !isGuardianOwnedHit || !(Number(event.coefficient) > 0)) return;
 
   const state = professionCoreState(context);
+
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
     applyJusticeBurn(context, event, {
@@ -174,12 +180,16 @@ export function reactToJusticeHitWithOptions(
   if (!retainsPassive && event.at < (state.virtueReadyAt.justice || 0)) return;
 
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
+
   if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return;
+
   const triggerHits = permeatingWrathThreshold(context, 'justice', PROFILE.justice);
   // Reset accepted passive hit progress before burning can cause another reaction.
   const progress = advanceCounter(state.justiceHitCount, 1, triggerHits, 'reset');
   state.justiceHitCount = progress.value;
+
   if (!progress.reached) return;
+
   applyJusticeBurn(context, event, {
     active: false,
     skillId,
@@ -223,7 +233,9 @@ export function refreshGuardianVirtues(runtime: GuardianRuntime): void {
           : kind === 'Luminary'
             ? LUMINARY_VIRTUES
             : null;
+
   if (!virtues) return;
+
   runtime.cooldownController.refresh(runtime.time);
   for (const [id, virtue] of virtues)
     runtime.profession.core.virtueReadyAt[virtue] = gw2CooldownReadyAt(runtime.cooldownController.readyAt(id) ?? 0);

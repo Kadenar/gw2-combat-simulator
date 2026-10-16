@@ -60,6 +60,7 @@ export function paletteView(
   context: ProfessionPaletteContext
 ): NormalizedPaletteGroup[] {
   const groups = profession.ui.paletteGroups(context);
+
   if (!Array.isArray(groups)) {
     throw new TypeError('paletteGroups must return an array.');
   }
@@ -115,8 +116,11 @@ function uniqueById(skills: readonly Skill[]): Skill[] {
 // Authored tile families choose the active specialization without conflating unrelated display labels.
 function weaponVariantRank(skill: Skill, specialization: string): number {
   const spec = String(skill.specialization || '');
+
   if (spec === specialization) return 0;
+
   if (spec === '') return 1;
+
   return 2;
 }
 
@@ -125,6 +129,7 @@ function uniqueBySpecializedIdentity(skills: readonly Skill[], specialization: s
   for (const skill of skills) {
     const identity = skill.weaponVariantRootId ?? skill.id;
     const existing = byIdentity.get(identity);
+
     if (!existing || weaponVariantRank(skill, specialization) < weaponVariantRank(existing, specialization)) {
       byIdentity.set(identity, skill);
     }
@@ -141,6 +146,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
       // Temporary bars and supplemental effects are exposed by profession
       // palette groups, never as skills on an equipped weapon set.
       if (skill.type !== 'Weapon' || !skill.weapon) return false;
+
       if (
         !app.adapter.isSkillAvailable(skill, {
           build: app.build,
@@ -163,9 +169,13 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
     activeSpecialization(app)
   ).sort((left, right) => {
     const slotOrder = String(left.slot).localeCompare(String(right.slot));
+
     if (slotOrder) return slotOrder;
+
     if (left.flipSkillId === right.id) return -1;
+
     if (right.flipSkillId === left.id) return 1;
+
     const chainOrder =
       Number(left.weaponBarChainStep ?? left.chainStep ?? Number.MAX_SAFE_INTEGER) -
       Number(right.weaponBarChainStep ?? right.chainStep ?? Number.MAX_SAFE_INTEGER);
@@ -241,14 +251,18 @@ function paletteFlipFamilies(
 
   for (const child of catalogSkills) {
     if (child.paletteFlip === false || child.flipParentId == null || isReplacementAttack(child)) continue;
+
     const parent = skillById.get(Number(child.flipParentId));
+
     if (parent) register(parent, child);
   }
 
   for (const parent of catalogSkills) {
     if (parent.paletteFlip === false || parent.flipSkillId == null || parent.flipSkillId === parent.nextChainId)
       continue;
+
     const child = skillById.get(Number(parent.flipSkillId));
+
     if (child) register(parent, child);
   }
 
@@ -256,9 +270,13 @@ function paletteFlipFamilies(
   // catalog order identifies the root while chain metadata keeps autoattacks out.
   for (const skill of catalogSkills) {
     if (skill.nextChainId == null) continue;
+
     const linked = skillById.get(Number(skill.nextChainId));
+
     if (!linked || linked.nextChainId !== skill.id) continue;
+
     if ((catalogOrder.get(Number(skill.id)) || 0) > (catalogOrder.get(Number(linked.id)) || 0)) continue;
+
     register(skill, linked);
   }
 
@@ -269,12 +287,16 @@ function paletteFlipFamilies(
   const visited = new Set<number>();
   for (const skill of catalogSkills) {
     const startId = Number(skill.id);
+
     if (visited.has(startId) || !neighborsBySkillId.has(startId)) continue;
+
     const pending = [startId];
     const memberIds: number[] = [];
     while (pending.length) {
       const id = pending.pop() as number;
+
       if (visited.has(id)) continue;
+
       visited.add(id);
       memberIds.push(id);
       for (const neighbor of neighborsBySkillId.get(id) || []) {
@@ -325,23 +347,34 @@ function compositePaletteAvailability(
   planning: Gw2SimulationPlanningState
 ): PaletteSkillAvailability {
   const missing = { available: false, message: 'No runtime availability verdict for this skill.' };
+
   // A missing ordinary skill verdict remains an error; only profession-owned UI actions can expand into components.
   if (app.activeCatalog.skillsById.has(skill.id)) return missing;
+
   const action = app.profession.ui?.resolvePaletteAction?.(context, { name: skill.name, skillId: skill.id });
   const commands = Array.isArray(action) ? action : action ? [action] : [];
+
   if (!commands.length) return missing;
+
   let result: PaletteSkillAvailability = { available: true, message: '' };
   for (const command of commands) {
     if (command.type !== 'cast') return missing;
+
     const component = app.activeCatalog.skillsById.get(command.skillId);
     const verdict = planning.availability[command.skillId];
+
     if (!component || !verdict) return missing;
+
     if (!isBuildSkillAvailable(component, { specialization: context.specialization }))
       return { available: false, message: `${component.name} is unavailable for this build.` };
+
     if (verdict.ready) continue;
+
     // A permanent denial vetoes the action; otherwise retain the latest component retry for ordinary waitable insertion.
     const denied = { available: false, message: verdict.reason, retryAt: verdict.retryAt };
+
     if (verdict.retryAt == null) return denied;
+
     if (result.available || verdict.retryAt > (result.retryAt ?? 0)) result = denied;
   }
 
@@ -356,12 +389,19 @@ export function paletteAvailability(
 ): PaletteSkillAvailability {
   if (!isBuildSkillAvailable(skill, { specialization: context.specialization }))
     return { available: false, message: `${skill.name} is unavailable for this build.` };
+
   const planning = palettePlanningState(app);
+
   if (!planning) return { available: true, message: 'Runtime availability has not been evaluated yet.' };
+
   const verdict = planning.availability[skill.id];
+
   if (!verdict) return compositePaletteAvailability(app, context, skill, planning);
+
   const override = app.profession.ui?.paletteOverride?.(context, skill);
+
   if (override?.available != null) return { available: override.available, message: override.message || '' };
+
   return verdict.ready
     ? { available: true, message: '' }
     : { available: false, message: verdict.reason, retryAt: verdict.retryAt };
@@ -377,16 +417,23 @@ function paletteCandidateActive(
 
 function paletteTileEntryKey(skill: Skill, flipFamilyIdBySkillId: ReadonlyMap<number, number>, index: number): string {
   if (skill.paletteTileId != null) return `declared:${String(skill.paletteTileId)}`;
+
   if (skill.chainRoot != null) return `autoattack:${String(skill.chainRoot)}`;
+
   const flipFamilyId = flipFamilyIdBySkillId.get(Number(skill.id));
+
   if (flipFamilyId != null) return `flip:${String(flipFamilyId)}`;
+
   if (skill.paletteLegendId != null) return `skill:${String(skill.id)}:legend:${String(skill.paletteLegendId)}`;
+
   return `skill:${String(skill.id)}:${index}`;
 }
 
 function paletteTileCandidateOrder(skill: Skill, fallback: number): number {
   const declared = Number(skill.paletteTileOrder);
+
   if (Number.isFinite(declared)) return declared;
+
   const chainStep = Number(skill.chainStep);
   return Number.isFinite(chainStep) ? chainStep : fallback;
 }
@@ -427,6 +474,7 @@ export function displayedSkillTiles(
   return [...grouped.values()].map((entries) => {
     const byId = new Map(entries.map((entry) => [Number(entry.skill.id), entry.skill]));
     const first = entries[0].skill;
+
     if (first.paletteTileId != null) {
       // UI-only declarations are catalog families too: a caller can contribute
       // one known side and still receive the live sibling through this hook.
@@ -443,6 +491,7 @@ export function displayedSkillTiles(
     }
 
     const firstFlipFamilyId = familyIdBySkillId.get(Number(first.id));
+
     if (firstFlipFamilyId != null) {
       // Root-only callers (notably selected utilities) inherit every connected
       // branch while keeping the root tile's keyboard binding.
@@ -462,13 +511,16 @@ export function displayedSkillTiles(
         paletteTileCandidateOrder(right, entries.find((entry) => entry.skill.id === right.id)?.index ?? skills.length)
     );
     const chainRoot = candidates.find((candidate) => candidate.chainRoot != null)?.chainRoot;
+
     if (chainRoot != null) {
       const expected = autoattackChains[String(chainRoot)] ?? chainRoot;
       const activeChainSkill = candidates.find((candidate) => candidate.id === expected);
+
       if (activeChainSkill) return activeChainSkill;
     }
 
     const activeFlips = candidates.filter((candidate) => paletteFlipAvailable(candidate, availableFlips, at));
+
     if (activeFlips.length) {
       const availableActiveFlips = activeFlips.filter(
         (candidate) => paletteCandidateActive(app, context, candidate) !== false
@@ -518,7 +570,9 @@ export function displayedWeaponSkills(
     weaponSet === activeWeaponSet
       ? projected.find((skill) => {
           if (!isWeaponOneReplacement(skill)) return false;
+
           if (skill.ambush) return skill.name === availableAmbushName;
+
           return paletteCandidateActive(app, paletteContext, skill) === true;
         })
       : undefined;
@@ -530,12 +584,16 @@ export function displayedWeaponSkills(
   let insertedReplacement = false;
   const replaced = projected.flatMap((skill) => {
     if (isWeaponOneReplacement(skill)) return [];
+
     const sharesTile =
       skill.slot === activeReplacement.slot &&
       skill.weapon === activeReplacement.weapon &&
       (!skill.attunement || !activeReplacement.attunement || skill.attunement === activeReplacement.attunement);
+
     if (!sharesTile) return [skill];
+
     if (insertedReplacement) return [];
+
     insertedReplacement = true;
     return [activeReplacement];
   });
@@ -633,6 +691,7 @@ export function paletteActionSkills(
 
 export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
   if (app.adapter.slotLoadout) return [];
+
   const skills = Object.values(app.build.selectedSkillIds).flatMap((id) => {
     const skill = id === null ? undefined : app.skillById.get(id);
     return skill ? [skill] : [];
@@ -723,7 +782,9 @@ function currentCooldown(
 function currentAmmo(app: ProfessionAppState, skill: Skill): (Gw2PlanningAmmo & { readonly remaining: number }) | null {
   const planningState = palettePlanningState(app);
   const ammo = planningState?.ammoBySkillId[String(skill.id)];
+
   if (!ammo) return null;
+
   return {
     ...ammo,
     remaining: ammo.nextRechargeAt == null ? 0 : Math.max(0, (ammo.nextRechargeAt - planningState.atSeconds) * 1000)
@@ -918,8 +979,11 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
   // A resource retry cannot bypass weapon placement or the currently active replacement attack.
   const weaponSkillMatchesContext = (skill: Skill, weaponSet: number): boolean => {
     if (weaponSet !== activeWeaponSet) return false;
+
     if (skill.ambush) return String(availableAmbush?.name || '') === skill.name;
+
     if (availableAmbush && skill.slot === 'Weapon_1') return false;
+
     return true;
   };
 

@@ -35,6 +35,7 @@ test('Slaying is limited per set and stacking sigils are limited across both set
           }
 
           setWeaponSigil(build, 1 - set, slot, candidate);
+
           if (equipped === 'Slaying') assert.equal(build.weaponSigils[1 - set][slot], 'Slaying');
           else assert.deepEqual(build.weaponSigils, original);
         }

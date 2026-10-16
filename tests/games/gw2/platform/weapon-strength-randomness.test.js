@@ -216,6 +216,7 @@ test('derived proc activations own their strength roll independently of the trig
         reactions: {
           'damage.resolved'(runtime, cause) {
             if (cause.actorType !== 'player') return;
+
             runtime.effects.emit({
               kind: 'packet',
               cause: cause,

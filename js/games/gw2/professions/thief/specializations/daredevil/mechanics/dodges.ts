@@ -30,7 +30,9 @@ function dodgeSkillName(runtime: ThiefRuntime): string {
  */
 export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const profile = selectedDodgeProfile(runtime);
+
   if (!profile) return;
+
   const skill = cast.skill;
   const name = dodgeSkillName(runtime);
   runtime.effects.emit({

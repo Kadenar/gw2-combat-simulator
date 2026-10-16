@@ -45,6 +45,7 @@ const dragonSlashReleases = new WeakMap<RuntimeCast<WarriorSkill>, DragonSlashRe
 
 function dragonSlashCoefficient(minimum: number, maximum: number, charges: number, maximumCharges: number): number {
   if (maximumCharges <= 1) return maximum;
+
   const resolvedCharges = clamp(charges, 1, maximumCharges);
   return minimum + (maximum - minimum) * ((resolvedCharges - 1) / (maximumCharges - 1));
 }
@@ -53,13 +54,16 @@ function dragonSlashCoefficient(minimum: number, maximum: number, charges: numbe
 // 5-9 → 20, 10 → 30. Used by burst traits that scale on adrenaline bars.
 export function dragonChargesToAdrenalineSpent(charges: number): number {
   if (charges >= 10) return 30;
+
   if (charges >= 5) return 20;
+
   return charges > 0 ? 10 : 0;
 }
 
 /** Missing release thresholds use the mechanic's current maximum; authored thresholds stay within its charge range. */
 function requestedDragonCharges(configured: number | undefined, maximumCharges: number): number {
   if (configured == null) return maximumCharges;
+
   return clamp(configured, 1, maximumCharges);
 }
 // Shared reason string so both the availability check and the charge-release
@@ -70,7 +74,9 @@ export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using th
 /** Charge windows own their next actual tick; release or replacement invalidates all remaining wakes by activation ID. */
 export function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): void {
   const state = bladeswornState.from(runtime);
+
   if (!state.dragonTriggerActive) return;
+
   runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.DRAGON_TRIGGER)!, at);
   state.dragonTriggerActive = false;
   state.dragonTriggerStartedAt = 0;
@@ -92,6 +98,7 @@ function scheduleCharge(runtime: WarriorRuntime): void {
     state.dragonTriggerStartedAt +
       dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1, hasTrait(runtime, TRAIT.DARING_DRAGON))
   );
+
   if (
     state.nextDragonChargeAt <= state.dragonTriggerChargeDeadline &&
     state.dragonCharges.value < maximumDragonCharges(runtime)
@@ -102,7 +109,9 @@ function scheduleCharge(runtime: WarriorRuntime): void {
 /** Entry spends once; the first interval is prepaid, and every subsequent interval checks then spends current Flow. */
 function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime);
+
   if (!state.gunsaberActive) swapGunsaber(runtime, cast, true);
+
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonTrigger);
   runtime.resourceController.refresh('dragonCharges');
   const cost = balanceProfileNumber(profile, 'threshold');
@@ -112,7 +121,9 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   state.dragonTriggerChargeDeadline = canonicalTime(runtime.time + balanceProfileNumber(profile, 'cooldown'));
   runtime.resourceController.replace('dragonCharges', 0);
   state.dragonChargesPerInterval = state.tacticalReloadUntil > 0 && runtime.time < state.tacticalReloadUntil ? 2 : 1;
+
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
+
   state.dragonChargeTickCount = 0;
   state.dragonChargeReachedAt = [];
   state.dragonTriggerFlowSpent = 0;
@@ -150,10 +161,13 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
 
 function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
   const state = bladeswornState.from(runtime);
+
   if (!state.dragonTriggerActive || state.dragonTriggerEventActivationId !== identity) return;
+
   runtime.resourceController.refresh('dragonCharges');
   // A pending delayed release holds its selected charges without spending Flow; the ordinary clock still advances.
   const pending = runtime.castController.pendingChargeRelease();
+
   if (
     pending &&
     runtime.helpers.skillsById.get(pending.skillId)?.dragonSlash &&
@@ -168,6 +182,7 @@ function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
   // Use pool affordability so accepted charges cannot fail strict spending on a near-threshold fraction.
   const granted = resourceAtLeast(runtime.resourceController.value('flow'), cost);
   const before = state.dragonCharges.value;
+
   if (granted) {
     runtime.resourceController.spend('flow', cost);
     state.dragonTriggerFlowSpent += cost;
@@ -226,6 +241,7 @@ export function slashEffects(_runtime: WarriorRuntime, cast: RuntimeCast<Warrior
   ];
   const min = skill.dragonSlashMinimumBurningDuration ?? 0;
   const max = skill.dragonSlashMaximumBurningDuration ?? 0;
+
   if (min > 0 && max > 0) {
     const stacks = dragonSlashCoefficient(1, 20, released.charges, released.maximum);
     const duration = dragonSlashCoefficient(min, max, released.charges, released.maximum);
@@ -315,10 +331,13 @@ export const dragonTriggerHooks = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = bladeswornState.from(runtime);
+
     if (skill?.dragonSlash) {
       const charges = Number(inputs.charges ?? maximumDragonCharges(runtime));
+
       if (!Number.isInteger(charges) || charges < 1 || charges > maximumDragonCharges(runtime))
         throw new RangeError('Dragon charges exceed the selected build maximum.');
+
       state.dragonTriggerActive = true;
       runtime.resourceController.replace('dragonCharges', charges);
       state.dragonChargeReachedAt = Array.from({ length: charges + 1 }, () => 0);
@@ -339,6 +358,7 @@ export const dragonTriggerHooks = {
     [CHARGE_TICK]: chargeTick,
     [TRIGGER_EXPIRY](runtime, identity) {
       const state = bladeswornState.from(runtime);
+
       if (state.dragonTriggerActive && state.dragonTriggerEventActivationId === identity)
         exitDragonTrigger(runtime, state.dragonTriggerChargeDeadline);
     }
@@ -350,23 +370,29 @@ export const dragonTriggerAvailability: NonNullable<
   RuntimeProfession<WarriorRuntimeState, WarriorSkill>['availability']
 > = (runtime, skill, command) => {
   const state = bladeswornState.from(runtime);
+
   if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive)
     return denyCast('warrior.dragon-trigger', ENTER_DRAGON_TRIGGER_REASON);
+
   if (skill.id === ID.DRAGON_TRIGGER) {
     if (state.dragonTriggerActive) return denyCast('warrior.dragon-trigger', 'Dragon Trigger is already active.');
+
     const cost = balanceNumberFromContext(runtime, PROFILE.dragonTrigger, 'threshold');
+
     if (!resourceAtLeast(runtime.resourceController.value('flow'), cost))
       return denyCast('warrior.flow', `Dragon Trigger requires at least ${cost} flow.`);
   }
 
   if (skill.dragonSlash) {
     const requested = requestedDragonCharges(command.releaseAtCharges, maximumDragonCharges(runtime));
+
     if (state.dragonCharges.value < requested) {
       if (state.nextDragonChargeAt > state.dragonTriggerChargeDeadline)
         return denyCast(
           'warrior.flow',
           `Dragon Slash could not reach ${requested} charges before Dragon Trigger ended; it reached ${state.dragonCharges.value}.`
         );
+
       return retryCast(
         state.nextDragonChargeAt,
         'warrior.dragon-trigger-charging',
@@ -377,13 +403,17 @@ export const dragonTriggerAvailability: NonNullable<
     // Anchor the hold to the actual selected threshold, so retries cannot restart it or bypass Flow stalls.
     if (Number(command.releaseDelayMs) > 0) {
       const reachedAt = state.dragonChargeReachedAt[requested];
+
       if (reachedAt == null) throw new TypeError('A delayed Dragon Slash requires its observed charge threshold.');
+
       const releaseAt = canonicalTime(reachedAt + command.releaseDelayMs! / 1000);
+
       if (releaseAt > state.dragonTriggerChargeDeadline)
         return denyCast(
           'warrior.dragon-trigger-delay',
           "The additional release delay exceeds Dragon Trigger's duration."
         );
+
       if (runtime.time < releaseAt)
         return retryCast(releaseAt, 'warrior.dragon-trigger-delay', 'Holding Dragon Slash before release.');
     }

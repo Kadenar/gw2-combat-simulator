@@ -71,18 +71,25 @@ function bladeswornSkillDamageOccurrence(context: SkillDamagePreviewContext, ski
   const id = Number(skill.id);
   const includes = (ids: readonly number[]): boolean => ids.includes(id);
   const chainIndex = (GUNSABER_CHAIN as readonly number[]).indexOf(id);
+
   if (chainIndex >= 0)
     return {
       context: `Gunsaber 1 · chain ${chainIndex + 1} of ${GUNSABER_CHAIN.length}`
     };
+
   if (includes(GUNSABER_SKILLS)) return {};
 
   const isDragonSlash = includes(DRAGON_SLASH_SKILLS);
+
   if (!isDragonSlash && !includes(DRAGON_TRIGGER_SKILLS) && id !== ID.DRAGON_TRIGGER) return null;
+
   // Entering the stance spends Flow, so every Dragon Trigger probe starts from the selected Flow maximum.
   const flow = balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+
   if (id === ID.DRAGON_TRIGGER) return { initialResource: flow };
+
   if (!isDragonSlash) return { initialResource: flow };
+
   const charges = maximumDragonCharges({
     catalog: context.catalog,
     traits: new Set(context.activeTraits.map((trait) => trait.id))
@@ -107,6 +114,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
   },
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+
     // Cartridge states are mutually exclusive, matching native detonation behavior.
     if (preview.skills.has(ID.OVERCHARGED_CARTRIDGES))
       preview.add({
@@ -123,6 +131,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
         },
         description: 'Active explosion damage bonus'
       });
+
     if (preview.has('Fierce as Fire'))
       preview.add({
         key: 'fierceAsFire',
@@ -134,6 +143,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
         scope: ['damage'],
         description: 'stacks; strike and condition damage'
       });
+
     preview.buff('Guns and Glory', 'gunsAndGlory', 'guns-and-glory', 'Explosion hit recently; Ferocity');
     return preview.controls;
   },
@@ -163,9 +173,12 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
   // Tile identity follows the active bar even when the visible skill cannot currently be cast.
   paletteOverride: (context, skill) => {
     const state = warriorUiState(context);
+
     // Stow remains insertable while authoring; runtime validation still owns the actual cast.
     if (skill.id === ID.SHEATHE_GUNSABER) return { tileActive: Boolean(state.gunsaberActive), available: true };
+
     if (skill.id === ID.UNSHEATHE_GUNSABER) return { tileActive: !state.gunsaberActive };
+
     // The release editor validates configured charges through its existing prefix previews.
     if (skill.dragonSlash) return { editorAccess: Boolean(state.dragonTriggerActive) };
   },
@@ -173,6 +186,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
   // Describe recorded charge outcomes without recalculating Flow gain or the charging cadence.
   timelineAnnotation: ({ skill, entry, spend, formattedTime }) => {
     if (!skill?.dragonSlash || entry?.type !== 'cast') return null;
+
     const outcome = spend?.resource === 'dragon charges' ? spend : undefined;
     const requested = entry.releaseAtCharges ?? outcome?.maximumCharges;
     const actual = outcome?.chargesReached ?? outcome?.count;
@@ -236,6 +250,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
   ],
   timelineWeaponLineTransition: (context: WarriorUiContext) => {
     const skillId = Number((context.skill as { readonly id?: number } | undefined)?.id);
+
     if ((skillId === ID.UNSHEATHE_GUNSABER || skillId === ID.DRAGON_TRIGGER) && context.weaponLine !== 'Gunsaber') {
       return 'Gunsaber';
     }
@@ -256,6 +271,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     // this snapshot aligned with the damage and ferocity modifier gates.
     const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE, 'maximumStacks');
     const fierceAsFire = planningBuffStacks(context.planningState, 'fierce-as-fire');
+
     if (fierceAsFire > 0) {
       items.push({
         id: 'bladesworn-fierce-as-fire',
@@ -266,6 +282,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     }
 
     const gunsAndGlory = planningBuffAt(context.planningState, 'guns-and-glory');
+
     if (gunsAndGlory) {
       items.push({
         id: 'bladesworn-guns-and-glory',
@@ -278,6 +295,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const window = (state.overchargedCartridgeWindows || []).find(
       (candidate) => candidate.startedAt <= at && candidate.expiresAt > at
     );
+
     if (window) {
       const name = window.supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges';
       items.push({
@@ -294,6 +312,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
         stacks: candidate.stacks,
         expiresAt: candidate.expiresAt
       }));
+
     if ((state.traitPositiveFlowStartedAt || 0) <= at && (state.traitPositiveFlowUntil || 0) > at) {
       positiveFlowSources.push({
         stacks: Number(state.traitPositiveFlowStacks),

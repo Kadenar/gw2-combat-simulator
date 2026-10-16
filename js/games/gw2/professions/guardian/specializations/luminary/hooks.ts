@@ -65,6 +65,7 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
     state.radiantForge = Boolean(skill?.radiantForgeSkill);
     state.radiantForgeEndsAt = Infinity;
     state.radiantWeapon = skill?.radiantWeapon ?? '';
+
     if (inputs.radiantHammer)
       runtime.effects.emit({
         kind: 'packet',
@@ -99,19 +100,25 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
     },
     'guardian.equip-forge'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       const cast = context.cast;
       const state = luminaryState.from(runtime);
+
       if (state.radiantForge && equipForge.get(cast) === state.forgeActivationId) {
         state.radiantWeapon = String(cast.skill.radiantWeapon);
         state.radiantWeaponsUsed[String(cast.skill.radiantWeapon)] = true;
+
         if (cast.skill.radiantWeapon === 'blade') state.glaringBurstSwordSlow = false;
+
         const flips = runtime.profession.core.availableFlips;
         for (const id of Object.keys(flips)) {
           const skill = runtime.helpers.skillsById.get(Number(id));
+
           if (skill?.radiantWeapon && skill.flipParentId != null) consumeSkillFlip(flips, id);
         }
 
         if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
+
         runtime.effects.emit({
           kind: 'packet',
           event: { ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet }
@@ -126,18 +133,22 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
   },
   availability(runtime, skill) {
     const active = luminaryState.from(runtime).radiantForge;
+
     if (skill.type === 'Weapon' && active)
       return denyCast(
         'guardian.radiant-forge-weapon-lockout',
         `${skill.name} is unavailable — exit Radiant Forge first.`
       );
+
     if ((skill.radiantForgeSkill || skill.id === ID.EXIT_RADIANT_FORGE) && !active)
       return denyCast('guardian.radiant-forge-inactive', `${skill.name} is unavailable — requires Radiant Forge.`);
+
     if (skill.id === ID.ENTER_RADIANT_FORGE && active)
       return denyCast(
         'guardian.radiant-forge-active',
         `${skill.name} is unavailable — Radiant Forge is already active.`
       );
+
     return CAST_READY;
   },
   castDurationMs(runtime, skill, duration) {
@@ -148,10 +159,13 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
   },
   onCastStart(runtime, cast) {
     if (cast.cancelled) return;
+
     startLuminaryEffects(runtime, cast);
+
     if (VIRTUES.includes(Number(cast.skill.id))) {
       refreshGuardianVirtues(runtime);
       const virtue = guardianVirtueForSlot(cast.skill.slot)!;
+
       if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
     }
 
@@ -159,10 +173,13 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
   },
   onCastCommit(runtime, cast) {
     if (!VIRTUES.includes(Number(cast.skill.id))) return;
+
     const virtue = guardianVirtueForSlot(cast.skill.slot)!;
     refreshGuardianVirtues(runtime);
+
     if (readyVirtues.has(cast)) {
       runtime.fireTrigger(virtueActivated, { cast, virtue });
+
       if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
     }
 

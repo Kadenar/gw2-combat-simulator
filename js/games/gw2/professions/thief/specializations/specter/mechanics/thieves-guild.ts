@@ -91,8 +91,10 @@ export const SPECTER_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.fre
 /** Well of Sorrow chooses the first missing condition from the target's state at its own impact. */
 export function guildAttackConditions(runtime: ThiefRuntime, attack: ThiefSummonStrike) {
   if (attack.skillId !== WELL_OF_SORROW) return attack.conditions || [];
+
   if (WELL_OF_SORROW_PRIORITY.every((condition) => permanentTargetConditionStacks(runtime.config, condition) > 0))
     return attack.conditions?.[3] ? [attack.conditions[3]] : [];
+
   const missing = WELL_OF_SORROW_PRIORITY.findIndex(
     (condition) => !runtime.combat.targetHasCondition(condition, runtime.time)
   );

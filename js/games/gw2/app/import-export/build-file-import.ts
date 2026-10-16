@@ -38,18 +38,22 @@ export function previewBuildFileImport(
   app: ProfessionAppState
 ): BuildFileImportPreview {
   if (!saved || typeof saved !== 'object') throw new Error('File is not a build or rotation JSON.');
+
   const items = getRotationItems(saved);
   const rotation = items?.length ? items : null;
   // Rotation exports are `{ rotation }` or a bare array; only core build fields mark saved build configuration.
   const hasBuild = !Array.isArray(saved) && BUILD_FIELDS.some((key) => Object.hasOwn(saved, key));
+
   if (!hasBuild && !rotation) {
     throw new Error('No build or rotation found in this file. Import combat logs with Load rotation.');
   }
 
   const build = hasBuild ? replaceBuild(saved, app.adapter) : null;
   const warnings: string[] = [];
+
   if (rotation) {
     const normalized = (build ?? replaceBuildRotation(rotation, app.build, app.adapter)).rotation.length;
+
     if (normalized < rotation.length) {
       const skipped = rotation.length - normalized;
       warnings.push(
@@ -79,10 +83,13 @@ export function applyBuildFileImport(
 ): void {
   const applyBuild = selection.build && preview.build !== null;
   const applyRotation = selection.rotation && preview.rotation !== null;
+
   if (applyBuild) {
     // The preview already converted the build through the codec; copy it instead of converting it again.
     const build = structuredClone(preview.build!);
+
     if (!applyRotation) build.rotation = app.build.rotation;
+
     app.build = build;
     // The imported build is no longer the highlighted template; Reset still returns to the tab's loaded baseline.
     app.currentTemplate = null;

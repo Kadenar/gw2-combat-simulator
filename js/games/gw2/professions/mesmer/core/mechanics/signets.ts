@@ -22,6 +22,7 @@ export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionCont
       : (state.profession.specialization.kind === 'Troubadour' && Boolean(candidate.instrument)) ||
           (shatter && shatter.resetBySignetOfIllusions !== false);
   });
+
   // Catalog selection stays local; the shared actions own recharge and existing ammo restoration.
   if (!phantasms)
     applySideEffect(state, context, {
@@ -29,6 +30,7 @@ export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionCont
       skillIds: targets.filter((target) => state.cooldownController.hasAmmo(target.id)).map((target) => target.id),
       count: 1
     });
+
   applySideEffect(state, context, { type: 'rechargeReset', skillIds: targets.map((target) => target.id) });
   {
     const packet = buildMesmerPacket({
@@ -54,7 +56,9 @@ export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionCont
  */
 function equippedSignetOfIllusions(context: MesmerRuntime): MesmerSkill | null {
   const skill = context.helpers.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
+
   if (!skill) return null;
+
   const equipped = selectedSkillIdSet(context.config.selectedSkillIds).has(skill.id);
   return equipped ? skill : null;
 }
@@ -62,9 +66,13 @@ function equippedSignetOfIllusions(context: MesmerRuntime): MesmerSkill | null {
 /** Replace the passive deadline when a cast or explicit combat boundary restarts its interval. */
 export function restartSignetIllusionsPassive(context: MesmerRuntime, activeAt: number): void {
   const skill = equippedSignetOfIllusions(context);
+
   if (!skill) return;
+
   const interval = balanceNumberFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval');
+
   if (!(interval > 0)) return;
+
   const at = Math.max(context.time, Math.max(activeAt, context.cooldownController.readyAt(skill.id) ?? 0) + interval);
   context.profession.core.signetIllusionsAt = at;
   context.schedule(SIGNET_ILLUSIONS_OWNER, at, at, undefined, -20);
@@ -73,9 +81,13 @@ export function restartSignetIllusionsPassive(context: MesmerRuntime, activeAt: 
 /** A due pulse reads current cooldown and resources; it never grants a predicted future clone. */
 export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): void {
   if (context.profession.core.signetIllusionsAt !== data) return;
+
   const skill = equippedSignetOfIllusions(context);
+
   if (!skill || context.combatStartPending) return;
+
   const ready = context.cooldownController.readyAt(skill.id) ?? 0;
+
   if (ready > context.time) {
     restartSignetIllusionsPassive(context, ready);
     return;

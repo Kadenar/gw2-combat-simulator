@@ -17,8 +17,11 @@ export const peitha = defineRelic({
   // Qualifying activations share one cooldown; their delayed payloads settle through ordinary effect handling.
   emitActionEffects(ctx, state, event, skill) {
     if (!isGw2PlayerActorEvent(event)) return;
+
     if (!skill?.shadowstepSkill && !skill?.categories?.includes('Deception')) return;
+
     if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+
     state.readyAt = event.at + 4;
     const anchorOffsetMs =
       skill.peithaImpactAnchor === 'castEnd' ? (Number(event.fullEndsAt ?? event.at) - event.at) * 1000 : 0;
@@ -28,14 +31,19 @@ export const peitha = defineRelic({
   },
   strikeMultiplier(ctx, _state, event) {
     if (!isGw2PlayerModifierOwnedEvent(event)) return 1;
+
     const at = canonicalTime(event.at);
     const applications = ctx.buffs?.get(PEITHA_BUFF);
+
     if (!applications) return 1;
+
     // Equal-duration grants land chronologically, so the newest eligible grant decides the inclusive damage boundary.
     // Live hits inspect one entry; historical queries skip later grants without scanning older expired history.
     for (let index = applications.length - 1; index >= 0; index -= 1) {
       const application = applications[index]!;
+
       if (application.at > at || !application.resolvedAudience.includesSelf || application.stacks <= 0) continue;
+
       return at <= application.expiresAt ? 1.1 : 1;
     }
 

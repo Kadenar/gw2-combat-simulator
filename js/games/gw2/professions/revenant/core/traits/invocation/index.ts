@@ -237,6 +237,7 @@ function invokeSpiritBoon(runtime: RevenantRuntime): void {
       ? core.selectedLegendIds.find((id) => id !== LEGEND.ENTITY)
       : core.activeLegendId;
   const matchesLegend = (effect: SkillEffect) => effect.metadata?.legendId === legendId;
+
   if (legendId) {
     const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.SPIRIT_BOON);
     emitTraitProfile(runtime, TRAIT.SPIRIT_BOON, invocationProfile.id, undefined, {
@@ -267,6 +268,7 @@ function invokeSongOfTheMists(runtime: RevenantRuntime): void {
   if (legendId) {
     // Calls share catalog mechanics while retaining the invocation trait as their triggering source.
     const song = runtime.helpers.skillsById.get(elite?.song ?? REVENANT_CORE_CALL_BY_LEGEND[legendId]);
+
     if (song)
       runtime.effects.emit({
         kind: 'profile',
@@ -289,8 +291,11 @@ function invokeSongOfTheMists(runtime: RevenantRuntime): void {
 /** Core emits the invocation packets; Kalla additionally grants two Fervor stacks for Song of the Mists. */
 function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
   if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.combatStartedAt()) return;
+
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_RENEGADE);
+
   if (!song) return;
+
   for (let index = 0; index < balanceNumberFromContext(runtime, TRAIT.SONG_OF_THE_MISTS, 'resourceGain'); index += 1)
     runtime.fireTrigger(invocationFervorGranted, {
       sourceId: TRAIT.SONG_OF_THE_MISTS,
@@ -302,7 +307,10 @@ function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
 /** Core emits the invocation packets; Alliance additionally restores the Song skill's authored endurance. */
 function grantAllianceInvocationEndurance(runtime: RevenantRuntime): void {
   if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !runtime.combatStartedAt()) return;
+
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
+
   if (!song) return;
+
   runtime.endurance.grant(song.resourceGain || 0);
 }

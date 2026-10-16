@@ -16,6 +16,7 @@ test('command boundaries see settled conditions and hit gains before same-time s
   while (queue.peek()?.at === 1) {
     const event = queue.dequeue();
     trace.push(event.type);
+
     if (event.type === 'damage') resource++;
   }
 

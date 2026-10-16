@@ -46,6 +46,7 @@ export function photonicOverheatTiming(
   at: number
 ): { at: number; cooldown: number } | undefined {
   if (!hasTrait(context.traits, TRAIT.PHOTONIC_BLASTING_MODULE)) return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.PHOTONIC_BLASTING_MODULE);
   return {
     at: at + balanceProfileNumber(profile, 'initialDelay'),

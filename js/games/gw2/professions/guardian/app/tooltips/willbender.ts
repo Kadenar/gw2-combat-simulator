@@ -17,7 +17,9 @@ import { WILLBENDER_BALANCE_PROFILE_IDS as WILLBENDER } from '#gw2/professions/g
 
 const willbenderVirtueTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   const index = entity.id === ID.RUSHING_JUSTICE ? 0 : entity.id === ID.FLOWING_RESOLVE ? 1 : 2;
   return {
     description:

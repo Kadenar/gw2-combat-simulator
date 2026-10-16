@@ -20,6 +20,7 @@ export function revenantLegendAvailability(
   skill: Skill
 ): AvailabilityResult | null {
   const core = runtime.profession.core;
+
   if (skill.id === ID.SWAP_LEGENDS) {
     const specialization = runtime.config.specialization || 'Core';
     return core.selectedLegendIds.length !== 2 ||
@@ -30,6 +31,7 @@ export function revenantLegendAvailability(
 
   if (skill.legendId && skill.legendId !== core.activeLegendId)
     return denySkillCast(skill, 'revenant.inactive-legend', 'invoke the matching legend first.');
+
   return null;
 }
 
@@ -47,6 +49,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
     // Only a declared cross-legend relationship retains an upkeep after a swap.
     const consumeId =
       upkeep?.upkeepConsumeByLegendId != null ? revenantUpkeepConsumeId(upkeep, core.activeLegendId) : undefined;
+
     if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
     else removeRevenantUpkeep(runtime, active.skillId);
   }
@@ -66,6 +69,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
       weaponSet: runtime.activeWeaponSet
     }
   });
+
   if (runtime.combatStartedAt()) runtime.fireTrigger(legendInvoked, { at: runtime.time });
 }
 

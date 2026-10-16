@@ -7,7 +7,9 @@ export type ActivationClaims = Record<string, true>;
 export function claimActivation(claims: ActivationClaims, scope: string, activationId: string): boolean {
   // Tuple encoding keeps scopes and IDs distinct even when they contain separators.
   const key = JSON.stringify([scope, activationId]);
+
   if (Object.hasOwn(claims, key)) return false;
+
   claims[key] = true;
   return true;
 }

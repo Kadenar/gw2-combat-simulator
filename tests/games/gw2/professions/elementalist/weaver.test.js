@@ -97,6 +97,7 @@ test('Weaver hammer orbs require both distinct hands and respect Unravel replace
     );
     assert.equal(Boolean(result.planningState.profession.hammerOrbs.Fire), ready);
     assert.equal(Boolean(result.planningState.profession.hammerOrbs.Air), ready);
+
     if (ready) assert.deepEqual(result.warnings, []);
     else assert.match(result.warnings[0], unravel ? /while Unravel is active/ : /matching Weaver hand/);
   }

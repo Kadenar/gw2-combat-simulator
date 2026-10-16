@@ -12,10 +12,12 @@ import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 /** Successful completion claims the current grant against the utility's start, including exact expiry. */
 export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
+
   if (cast.cancelled) return;
 
   const at = canonicalTime(context.time);
   const core = professionCoreState(context);
+
   if (
     skill.id === ID.MIMIC ||
     skill.type !== 'Utility' ||

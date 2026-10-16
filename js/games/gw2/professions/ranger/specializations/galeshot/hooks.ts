@@ -49,7 +49,9 @@ export const galeshotHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
+
     if (skill.cycloneBowSkill) runtime.fireTrigger(cycloneBowCompleted, { skill, at: runtime.time });
+
     runtime.fireTrigger(galeshotCastCompleted, { skill, at: runtime.time });
   },
   tasks: {

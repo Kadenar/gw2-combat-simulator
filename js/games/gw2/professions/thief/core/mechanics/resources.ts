@@ -25,6 +25,7 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
   // Besides regeneration, the pending signet pulse and the running cast's completion are the known grant boundaries.
   nextChange(runtime, cost) {
     if (cost > runtime.profession.core.initiative.maximum) return Infinity;
+
     const pulse = runtime.profession.core.infiltratorsSignetPulseAt;
     const completion = runtime.castController.currentLaneEnd();
     return Math.min(

@@ -36,20 +36,27 @@ export function createEffectReactions<T extends object>(
   return {
     register(skill: Skill, effect: SkillEffect): number | undefined {
       if (effect.reactions === undefined) return undefined;
+
       validateEffectReactions(catalog, skill, effect);
+
       if (!effect.reactions.length) return undefined;
+
       let byRules = identities.get(skill);
       const existing = byRules?.get(effect.reactions);
+
       if (existing !== undefined) return existing;
+
       for (const rule of effect.reactions)
         for (const action of Array.isArray(rule.do) ? rule.do : [rule.do]) {
           // Transformed effects must support their grants too; validate each registered declaration only once.
           actions.validate(skill, action);
+
           if (action.type.includes('.') && !actions.hasHandler(action.type))
             throw new TypeError(`Skill ${skill.id} has no side-effect handler registered for ${action.type}.`);
         }
 
       if (!byRules) identities.set(skill, (byRules = new WeakMap()));
+
       const group = groups.push({ skill, rules: effect.reactions }) - 1;
       byRules.set(effect.reactions, group);
       return group;
@@ -61,10 +68,14 @@ export function createEffectReactions<T extends object>(
       details: NativeResolvedDamageDetails & { readonly conditionStackIndex?: number }
     ) {
       const ref = event.effectReaction;
+
       if (!ref) return;
+
       const group = groups[ref.group];
+
       if (!group || !Number.isSafeInteger(ref.packet) || ref.packet < 1)
         throw new TypeError('Invalid resolved-effect reaction reference.');
+
       const { skill, rules } = group;
       for (const rule of rules) {
         // Splitting the first authored condition packet must not repeat a first-packet action for every stack.
@@ -74,6 +85,7 @@ export function createEffectReactions<T extends object>(
           (rule.packets === 'first' && (ref.packet !== 1 || (details.conditionStackIndex ?? 1) !== 1))
         )
           continue;
+
         const eligible =
           rule.on === 'damage.resolved'
             ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event, details })
@@ -82,7 +94,9 @@ export function createEffectReactions<T extends object>(
               : rule.on === 'control.resolved'
                 ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
                 : !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event });
+
         if (!eligible) continue;
+
         const trigger: ResolvedEffectTrigger =
           on === 'damage.resolved' ? { on, skill, event, details } : { on, skill, event };
         for (const action of Array.isArray(rule.do) ? rule.do : [rule.do])

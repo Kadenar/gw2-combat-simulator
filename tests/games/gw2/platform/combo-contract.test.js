@@ -231,6 +231,7 @@ for (const entry of professionRegistry) {
     let descriptors = 0;
     const visit = (value, path) => {
       if (!value || typeof value !== 'object') return;
+
       for (const [key, child] of Object.entries(value)) {
         if (key === 'comboFields' || key === 'comboFinishers') {
           assert.ok(Array.isArray(child), `${path}.${key}`);

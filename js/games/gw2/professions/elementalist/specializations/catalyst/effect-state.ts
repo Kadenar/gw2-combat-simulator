@@ -12,18 +12,22 @@ export function catalystBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'shattering ice', maximumStacks: 1 }
   ];
   const elementalEmpowerment = balanceProfileFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT);
+
   if (elementalEmpowerment)
     policies.push({
       kind: 'elemental empowerment',
       maximumStacks: balanceProfileNumber(elementalEmpowerment, 'maximumStacks')
     });
+
   const empoweringAuras = balanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+
   if (empoweringAuras)
     policies.push({
       kind: 'empowering auras',
       owner: 'profession',
       maximumStacks: balanceProfileNumber(empoweringAuras, 'maximumStacks')
     });
+
   return policies;
 }
 

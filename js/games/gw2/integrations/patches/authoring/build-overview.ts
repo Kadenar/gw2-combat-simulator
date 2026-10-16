@@ -53,6 +53,7 @@ export function buildRelevantPatch(
   for (const module of modules) {
     for (const trait of module.traitDefinitions ?? []) {
       if (trait.balance) profileOwners.set(trait.balance.id ?? trait.id, trait.id);
+
       for (const profile of trait.profiles ?? []) profileOwners.set(profile.id, trait.id);
       for (const rule of trait.modifierRules ?? []) modifierOwners.set(rule.id, trait.id);
     }
@@ -62,20 +63,29 @@ export function buildRelevantPatch(
   const ruleIds = new Set<string>();
   for (const module of metadata.modules) {
     if (!selectedModules.has(module.id)) continue;
+
     for (const entry of [...module.balanceProfiles, ...module.skillVariants]) {
       const owner = profileOwners.get(entry.id);
+
       if (owner != null && !traits.has(owner)) continue;
+
       const parentId = entry.profile.parentId;
+
       if ((typeof parentId === 'string' || typeof parentId === 'number') && !relevantIds.has(parentId)) continue;
+
       if (entry.profile.profileKind === 'trait' && owner == null && !relevantIds.has(entry.id)) continue;
+
       profileIds.add(String(entry.id));
       profileIds.add(entry.name);
     }
 
     for (const rule of module.modifierRules) {
       const skillOwner = skillModifierOwners.get(rule.id);
+
       if (skillOwner != null && !relevantIds.has(skillOwner)) continue;
+
       const owner = modifierOwners.get(rule.id);
+
       if (owner == null || traits.has(owner)) ruleIds.add(rule.id);
     }
   }
@@ -83,7 +93,9 @@ export function buildRelevantPatch(
   const skillIds = new Set<string>();
   for (const id of relevantIds) {
     const skill = catalog.skillsById.get(id);
+
     if (!skill) continue;
+
     skillIds.add(String(id));
     skillIds.add(skill.name);
   }

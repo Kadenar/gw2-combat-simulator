@@ -52,6 +52,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   prepareDamageState(runtime, _skill, inputs) {
     if ('signetOfFury' in inputs && inputs.signetOfFury !== 'passive')
       runtime.cooldownController.setReadyAt(ID.SIGNET_OF_FURY, Infinity);
+
     // Emit an independent assumption so elite-owned initial buffs, such as cartridges, remain available.
     if (inputs.signetOfFury === 'active')
       runtime.effects.emit({
@@ -90,6 +91,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     'warrior.grant-combat-resource'(runtime, _cast, action) {
       if (action.type !== 'warrior.grant-combat-resource' || action.amount == null)
         throw new TypeError('Combat resource grants require an amount.');
+
       grantWarriorResource(runtime, sideEffectAmount(runtime, action.amount));
     },
     'warrior.rifle-restock'(runtime, context) {
@@ -133,6 +135,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 
   availability(runtime, skill) {
     const state = runtime.profession.core;
+
     if (skill.id === ID.TACTICAL_BLOW && !skillFlipReady(state.availableFlips[ID.TACTICAL_BLOW], runtime.time))
       return {
         ready: false,
@@ -140,8 +143,10 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
         code: 'warrior.counterblow',
         reason: 'Tactical Blow requires an active Counterblow.'
       };
+
     const rules = warriorBurstRules(runtime);
     const cost = rules.required(runtime, skill);
+
     // Readiness and strict spending share the same tolerance for fractional trait rewards.
     if (!rules.bypass(runtime, skill) && !resourceAtLeast(runtime.resourceController.value('adrenaline'), cost))
       return {
@@ -150,10 +155,12 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
         code: 'warrior.adrenaline',
         reason: `${skill.name} requires ${cost} adrenaline.`
       };
+
     return { ready: true };
   },
   onCastStart(runtime, cast) {
     runtime.fireTrigger(castStarting, { cast });
+
     if (cast.skill.burst && !cast.skill.dragonSlash) {
       const spent = warriorBurstRules(runtime).spend(runtime, cast.skill);
       runtime.resourceController.spend('adrenaline', spent);
@@ -163,6 +170,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   modifyComboFields: combustiveShotFields,
   modifyEffects(runtime, cast, effects) {
     if (!cast.skill.burst || cast.skill.dragonSlash) return effects;
+
     const spent = warriorBurstSpends.get(cast)!;
     const tier = warriorBurstTier(runtime, spent);
 
@@ -175,6 +183,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     // Successful bursts refund the captured spend at completion, independently of target acceptance.
     const spent = warriorBurstSpends.get(cast) ?? 0;
     runtime.fireTrigger(burstCompleted, { cast, spent });
+
     if (cast.skill.inputCategory === 'weapon-swap') runtime.fireTrigger(weaponSwapped, {});
   },
   onCooldownReset(runtime) {
@@ -196,6 +205,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
         Number(event.coefficient) > 0
       )
         runtime.resourceController.grant('adrenaline', Math.max(1, event.hits ?? 1));
+
       runtime.fireTrigger(strikeResourcesGranted, { event });
     },
 

@@ -240,10 +240,14 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
 /** Vengeful Hammers divides one pulse's coefficient across its simultaneous hammers. */
 export function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number): void {
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
+
   if (strike?.type !== 'strike') throw new Error('Vengeful Hammers is missing its strike effect.');
+
   const hammers = Math.max(1, Math.trunc(strike.hits ?? 1));
+
   if (!(Number(strike.atMs) >= 0))
     throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
+
   for (let index = 1; index <= hammers; index += 1)
     runtime.effects.emit({
       kind: 'packet',

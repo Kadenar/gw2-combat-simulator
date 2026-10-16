@@ -86,6 +86,7 @@ import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/profession
 function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const core = runtime.profession.core;
   const now = runtime.time;
+
   if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(core.availableFlips[skill.id], now)) {
     const parent = runtime.helpers.skillsById.get(Number(skill.flipParentId));
     return denySkillCast(
@@ -96,9 +97,13 @@ function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
   }
 
   const spear = thiefSpearAvailability(runtime, skill);
+
   if (spear) return spear;
+
   const trap = thiefTrapAvailability(runtime, skill);
+
   if (trap) return trap;
+
   // A closed follow-up already answered above with its opener-specific reason.
   if (weaponFollowUpOpen(core.availableFlips, skill, now))
     return denySkillCast(skill, 'thief.follow-up-active', 'use or wait out the active follow-up skill.');
@@ -106,10 +111,12 @@ function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
   const [mainHand] = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1);
   const stealthed = thiefStealthed(runtime);
   const bonusStealthAttack = thiefBonusStealthAttack(runtime);
+
   // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
   if (skill.stealthAttack) {
     if (!stealthed && !bonusStealthAttack && !thiefSameInstantStealthBreak(runtime))
       return denySkillCast(skill, 'thief.not-stealthed', 'requires stealth.');
+
     if (skill.requiredMainHand && skill.requiredMainHand !== (mainHand || ''))
       return denySkillCast(skill, 'thief.stealth-weapon', `requires ${skill.requiredMainHand}.`);
   } else if (
@@ -121,7 +128,9 @@ function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
     return denySkillCast(skill, 'thief.stealth-replacement', "the active weapon's stealth attack replaces skill 1.");
 
   if (skill.id === ID.KNEEL && core.kneeling) return denySkillCast(skill, 'thief.kneeling', 'already kneeling.');
+
   if (skill.id === ID.FREE_ACTION && !core.kneeling) return denySkillCast(skill, 'thief.not-kneeling', 'kneel first.');
+
   if (
     skill.weapon === 'Rifle' &&
     skill.id !== ID.KNEEL &&
@@ -130,6 +139,7 @@ function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
     Boolean(skill.kneelSkill) !== core.kneeling
   )
     return denySkillCast(skill, 'thief.rifle-stance', core.kneeling ? 'use a kneeling rifle skill.' : 'kneel first.');
+
   if (
     skill.slot === 'Profession_2' &&
     (skill.categories || []).includes('stolen skill') &&
@@ -143,6 +153,7 @@ function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
 /** Additive steal reductions retain their combined formula; ordinary multipliers use declared rules. */
 function thiefRechargeWork(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill, work: number): number {
   if (!skill.stealTraitSkill || skill.stealRechargeMode !== 'additive') return work;
+
   return work * (1 - leadAttacksRechargeReduction(runtime) - sleightOfHandRechargeReduction(runtime));
 }
 
@@ -153,7 +164,9 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
   const skill = cast.skill;
   const committed = !cast.cancelled;
   pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
+
   if (committed && skill.stealthAttack) runtime.fireTrigger(stealthAttackCompleted, { cast });
+
   // Swapping weapons stands up before swap rewards.
   if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     setThiefKneeling(runtime, false);
@@ -171,14 +184,19 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     // Off and Active suppress the passive; the active bonus is supplied by the preview's native buff.
     if ('assassinsSignet' in inputs)
       runtime.profession.core.assassinsSignetPassiveDisabledUntil = inputs.assassinsSignet === 'passive' ? 0 : Infinity;
+
     // These detached windows must be available even when Lead Attacks is not selected.
     runtime.profession.core.revealedUntil = inputs.revealed ? Infinity : 0;
     runtime.profession.core.stealthUntil = inputs.stealth ? Infinity : 0;
+
     if (!hasTrait(runtime, TRAIT.LEAD_ATTACKS)) return;
+
     const stacks = Number(inputs.leadAttacks ?? 0);
     const maximum = balanceNumberFromContext(runtime, TRAIT.LEAD_ATTACKS, 'maximumStacks');
+
     if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
       throw new RangeError('Lead Attacks exceeds the selected build maximum.');
+
     runtime.profession.core.leadAttackExpirations = Array(stacks).fill(Infinity);
   },
   // Previously stolen inventory is available during setup without firing a steal or its trait effects.
@@ -211,6 +229,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.consume-stolen': (runtime, context) => consumeThiefStolenSkill(runtime, context.skill),
     'thief.steal'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Preserve the shared trait notification before acquisition and Kleptomaniac.
       runtime.fireTrigger(stealAccepted, { cast: context.cast });
       completeThiefSteal(runtime, THIEF_STOLEN_SKILL_IDS);
@@ -248,7 +267,9 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
+
     if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(thiefDodgeStarted, { cast });
+
     if (skill.stealthAttack) beginThiefStealthAttack(runtime, cast);
   },
   modifyEffects: selectThiefStealth,

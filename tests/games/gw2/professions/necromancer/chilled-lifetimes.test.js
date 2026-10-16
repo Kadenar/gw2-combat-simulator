@@ -76,6 +76,7 @@ function checkChilled({ conditions = {}, applications = [], at = 1, removedAt, e
       }
 
       if (removedAt != null) runtime.schedule('test.remove-chill', removedAt);
+
       runtime.schedule('test.probe', at, null, undefined, 1);
     }
   });

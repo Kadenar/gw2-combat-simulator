@@ -55,7 +55,9 @@ function initialize(context: ElementalistRuntime): void {
 // cost; every other skill passes through untouched.
 function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
+
   const core = professionCoreState(context);
+
   if (skill.attunement !== core.primaryAttunement) {
     return denyCast(
       'elementalist.catalyst-attunement',
@@ -78,6 +80,7 @@ function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<Elemen
   context.resourceController.spend('catalystEnergy', sphereCost);
   // The sphere field owns its active window; removing it leaves the energy cost intact.
   const field = skill.comboFields?.find((entry) => entry.ownerId === 'elementalist');
+
   if (field) {
     const duration = requireBalanceNumber(field.duration, `skill=${skill.id} combo-field duration`);
     state.sphereActiveUntil = Math.max(state.sphereActiveUntil, cast.effectiveEnd + duration);
@@ -128,18 +131,21 @@ function activateElementalCelerity(
 /** Only accepted non-summon strikes grant energy, using the sphere window at impact. */
 function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void {
   const state = catalystState.from(runtime);
+
   if (
     event.actorType === 'summon' ||
     !(Number(event.coefficient) > 0) ||
     (runtime.time < state.sphereActiveUntil && !sphereSpecialistAllowsEnergy(runtime))
   )
     return;
+
   const before = runtime.resourceController.value('catalystEnergy');
   runtime.resourceController.grant(
     'catalystEnergy',
     balanceNumberFromContext(runtime, PROFILE.resources, 'resourceGain')
   );
   const after = runtime.resourceController.value('catalystEnergy');
+
   if (after !== before)
     runtime.effects.emit({
       kind: 'packet',
@@ -173,12 +179,14 @@ export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistS
   sideEffectHandlers: {
     'elementalist.catalyst.deploy-sphere'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Jade Sphere requires a cast trigger.');
+
       deployJadeSphere(runtime, context.cast, context.skill);
     },
     'elementalist.catalyst.refresh-weapons': activateElementalCelerity,
     // A sphere can deploy during an augment's cast; select and emit its authored window only on commitment.
     'elementalist.catalyst.augment-window'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Catalyst augment windows require a cast trigger.');
+
       const { skill, cast } = context;
       runtime.effects.emit({
         kind: 'profile',
@@ -199,7 +207,9 @@ export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistS
   modifyEffects(runtime, cast, effects) {
     // The commit action owns augment emission so cast-start materialization cannot freeze the sphere choice.
     if (cast.skill.sideEffects?.some((effect) => effect.do.type === 'elementalist.catalyst.augment-window')) return [];
+
     if (cast.skill.skillFamily !== 'Jade Sphere') return effects;
+
     runtime.fireTrigger(sphereDeployed, { cast });
     return applySphereSpecialistDurations(runtime, effects);
   },

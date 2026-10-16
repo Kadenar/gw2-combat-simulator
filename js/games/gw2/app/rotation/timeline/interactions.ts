@@ -26,6 +26,7 @@ export interface TimelineInteractionOptions {
 
 export function clearTimelineDropIndicators(root: HTMLElement | null | undefined): void {
   if (!root) return;
+
   root.classList.remove('drag-active', 'drag-over-empty');
   root
     .querySelectorAll<HTMLElement>('.drag-drop-target')
@@ -34,9 +35,13 @@ export function clearTimelineDropIndicators(root: HTMLElement | null | undefined
 
 export function getSkillDropInsertionIndex(skillElement: HTMLElement, clientX: number): number | null {
   const rawIndex = skillElement?.dataset?.idx;
+
   if (rawIndex == null || String(rawIndex).trim() === '') return null;
+
   const index = Number(rawIndex);
+
   if (!Number.isInteger(index)) return null;
+
   const rect = skillElement.getBoundingClientRect();
   // Dropping on the left/right half inserts before/after the hovered entry.
   return clientX < rect.left + rect.width / 2 ? index : index + 1;
@@ -52,6 +57,7 @@ export function bindTimelineInteractions(
     }
   | undefined {
   if (!root) return;
+
   // Interaction helpers mutate the caller-owned rotation in place, then use
   // onChanged as the single rerender/persistence notification.
   const rotation = options.rotation || [];
@@ -64,12 +70,18 @@ export function bindTimelineInteractions(
 
   const applyDrop = (insertAt: number): boolean => {
     const drag = getDragState();
+
     if (!drag) return false;
+
     setDragState(null);
+
     if (!canInteract()) return false;
+
     if (drag.source === 'timeline') {
       const fromIndex = Number(drag.index);
+
       if (!options.moveEntry(fromIndex, insertAt)) return false;
+
       changed();
       return true;
     }
@@ -79,7 +91,9 @@ export function bindTimelineInteractions(
       const resolved = options.resolvePaletteEntry?.(name, drag, insertAt);
       // Palette macros may resolve to multiple adjacent entries.
       const entries = Array.isArray(resolved) ? resolved : resolved ? [resolved] : [];
+
       if (!options.insertEntries(entries, insertAt)) return false;
+
       changed();
       return true;
     }
@@ -96,6 +110,7 @@ export function bindTimelineInteractions(
   for (const item of root.querySelectorAll<HTMLElement>('.rot-skill[data-idx]:not(.rot-injected)')) {
     const index = Number(item.dataset.idx);
     const remove = item.querySelector<HTMLElement>('.rot-x');
+
     if (remove) {
       remove.setAttribute('draggable', 'false');
       remove.onmousedown = (event) => {
@@ -111,13 +126,17 @@ export function bindTimelineInteractions(
       remove.onclick = (event) => {
         event.preventDefault();
         event.stopPropagation();
+
         if (!canInteract() || !Number.isInteger(index)) return;
+
         if (event.shiftKey) {
           // Shift-remove is the fast "truncate rotation here" gesture.
           if (!options.onTruncate) return;
+
           options.onTruncate(index);
         } else {
           if (!options.onRemove) return;
+
           options.onRemove(index);
         }
 
@@ -127,6 +146,7 @@ export function bindTimelineInteractions(
 
     // Editor pencils must behave as controls instead of starting a timeline drag.
     const editControl = item.querySelector<HTMLElement>('.rot-edit-activation, .rot-edit-wait');
+
     if (editControl) {
       editControl.setAttribute('draggable', 'false');
       editControl.onmousedown = (event) => {
@@ -148,6 +168,7 @@ export function bindTimelineInteractions(
       setDragState({ source: 'timeline', index });
       item.classList.add('dragging');
       event.dataTransfer?.setData('text/plain', String(index));
+
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
     };
 
@@ -158,9 +179,13 @@ export function bindTimelineInteractions(
   const dropIndex = (event: DragEvent): number => {
     const target = event.target instanceof Element ? event.target : null;
     const gap = target?.closest<HTMLElement>('.rot-insertion-gap');
+
     if (gap) return Number(gap.dataset.insertionIndex);
+
     const skill = target?.closest<HTMLElement>('.rot-skill[data-idx]:not(.rot-injected)');
+
     if (skill) return getSkillDropInsertionIndex(skill, event.clientX) ?? rotation.length;
+
     const row = target?.closest('.rot-row-skills');
     let nearest: HTMLElement | undefined;
     let distance = Infinity;
@@ -169,6 +194,7 @@ export function bindTimelineInteractions(
       const dx = Math.max(rect.left - event.clientX, 0, event.clientX - rect.right);
       const dy = Math.max(rect.top - event.clientY, 0, event.clientY - rect.bottom);
       const candidateDistance = dx * dx + dy * dy;
+
       if (candidateDistance < distance) {
         nearest = card;
         distance = candidateDistance;
@@ -180,10 +206,12 @@ export function bindTimelineInteractions(
 
   root.ondragover = (event) => {
     if (!canInteract() || !getDragState()) return;
+
     event.preventDefault();
     event.stopPropagation();
     const index = dropIndex(event);
     const marker = root.querySelector<HTMLElement>(`.rot-insertion-gap[data-insertion-index="${index}"]`);
+
     // Keep the marker stable across repeated events and transitions between a card's children.
     if (!marker?.classList.contains('drag-drop-target')) {
       clearTimelineDropIndicators(root);
@@ -191,12 +219,15 @@ export function bindTimelineInteractions(
     }
 
     root.classList.add('drag-active');
+
     if (!marker) root.classList.add('drag-over-empty');
   };
 
   root.ondragleave = (event) => {
     if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+
     const rect = root.getBoundingClientRect();
+
     if (
       event.clientX >= rect.left &&
       event.clientX < rect.right &&
@@ -204,11 +235,13 @@ export function bindTimelineInteractions(
       event.clientY < rect.bottom
     )
       return;
+
     clearTimelineDropIndicators(root);
   };
 
   root.ondrop = (event) => {
     if (!getDragState()) return;
+
     event.preventDefault();
     event.stopPropagation();
     const index = dropIndex(event);
@@ -218,11 +251,14 @@ export function bindTimelineInteractions(
 
   const bindEdit = (selector: string, callback: ((index: number, event?: Event) => unknown) | undefined): void => {
     if (!callback) return;
+
     for (const badge of root.querySelectorAll<HTMLElement>(selector)) {
       badge.onclick = (event) => {
         event.stopPropagation();
         const index = Number(badge.dataset.idx);
+
         if (!canInteract() || !Number.isInteger(index)) return;
+
         // Returning false means the editor cancelled and no rerender is needed.
         if (callback(index, event) !== false) changed();
       };

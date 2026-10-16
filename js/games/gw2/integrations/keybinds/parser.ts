@@ -108,18 +108,27 @@ function parseAttributes(source: string): Record<string, string> {
 
 function hotkeyActionFromName(name: string): InputControlId | null {
   const normalized = name.trim().replace(/\s+/g, ' ').toLowerCase();
+
   if (normalized === 'dodge') return 'dodge';
+
   if (normalized === 'swap weapons' || normalized === 'weapon swap') return 'weapon-swap';
+
   const numbered = /^(weapon|utility|profession) skill ([1-7])$/.exec(normalized);
+
   if (numbered) {
     const index = Number(numbered[2]);
+
     if (numbered[1] === 'weapon' && index <= 5) return `weapon-${index}` as InputControlId;
+
     if (numbered[1] === 'utility' && index <= 3) return `slot-${index + 6}` as InputControlId;
+
     if (numbered[1] === 'profession') return `profession-${index}` as InputControlId;
   }
 
   if (normalized === 'healing skill' || normalized === 'heal skill') return 'slot-6';
+
   if (normalized === 'elite skill') return 'slot-10';
+
   return null;
 }
 
@@ -129,24 +138,34 @@ function hotkeyActionForAttributes(attributes: Record<string, string>): InputCon
 
 export function gw2KeyboardCode(button: string | undefined): string | null {
   if (!button || !/^\d+$/.test(button)) return null;
+
   const keyCode = Number(button);
+
   if (keyCode >= 32 && keyCode <= 43) return `F${keyCode - 31}`;
+
   if (keyCode >= 48 && keyCode <= 57) return `Digit${keyCode - 48}`;
+
   if (keyCode >= 65 && keyCode <= 90) return `Key${String.fromCharCode(keyCode)}`;
+
   if (keyCode >= 95 && keyCode <= 104) return `Numpad${keyCode - 95}`;
+
   if (keyCode >= 112 && keyCode <= 123) return `F${keyCode - 99}`;
+
   return SPECIAL_GW2_KEY_CODES[keyCode] || null;
 }
 
 export function gw2MouseCode(button: string | undefined): string | null {
   if (!button || !/^\d+$/.test(button)) return null;
+
   const mouseButton = Number(button);
   return ({ 2: 'Mouse3', 3: 'Mouse4', 4: 'Mouse5' } as Record<number, string>)[mouseButton] ?? null;
 }
 
 function hotkeyWithModifiers(code: string, rawModifier: string | undefined): string | null {
   const modifier = rawModifier === undefined || rawModifier === '' ? 0 : Number(rawModifier);
+
   if (!Number.isInteger(modifier) || modifier < 0 || modifier > 7) return null;
+
   return inputBindingForKey(code, {
     ctrlKey: Boolean(modifier & 2),
     altKey: Boolean(modifier & 4),
@@ -194,11 +213,15 @@ export function parseGw2HotkeyBindingsXml(xml: string): InputBindingImportResult
   while ((match = actionPattern.exec(xml))) {
     const attributes = parseAttributes(match[1]);
     const action = hotkeyActionForAttributes(attributes);
+
     if (!action) continue;
+
     const { binding, options } = bindingsForAttributes(attributes);
     bindingOptions[action] = options;
+
     if (binding === null) {
       if (!imported.has(action)) skipped.add(action);
+
       continue;
     }
 

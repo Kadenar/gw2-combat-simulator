@@ -12,10 +12,13 @@ import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profes
 function skillCostAmount(runtime: Pick<MechanicQueryContext, 'helpers'>, skill: Skill): number {
   // Read the authoritative authored field so patches affect admission and payment together.
   const field = skill.cost!.skillAmount;
+
   if (field != null) {
     const amount = skill[field];
+
     if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0)
       throw new TypeError(`Skill ${skill.id} has an invalid cost amount field "${field}".`);
+
     return amount;
   }
 
@@ -29,14 +32,19 @@ export function skillCostAvailability<T extends object>(
   skill: Skill
 ): AvailabilityResult | null {
   if (!skill.cost) return null;
+
   const { resource } = skill.cost;
   const amount = skillCostAmount(runtime, skill);
+
   // Free skills need no pool readiness and remain valid when recovery is disabled.
   if (amount === 0) return null;
+
   const readyAt =
     resource === 'endurance' ? runtime.endurance.readyAt(amount) : runtime.resourceController.readyAt(resource, amount);
+
   // Resource owners decide affordability; a future deadline cannot fund the current activation.
   if (readyAt != null && readyAt <= runtime.time) return null;
+
   return denySkillCast(
     skill,
     `gw2.insufficient-${resource}`,
@@ -48,6 +56,7 @@ export function skillCostAvailability<T extends object>(
 /** Pays the declared cost from the live pool. */
 export function spendSkillCost<T extends object>(runtime: MechanicContext<T>, skill: Skill): void {
   const amount = skillCostAmount(runtime, skill);
+
   if (skill.cost!.resource === 'endurance') runtime.endurance.spend(amount);
   else runtime.resourceController.spend(skill.cost!.resource, amount);
 }

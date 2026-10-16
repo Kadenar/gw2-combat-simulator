@@ -47,6 +47,7 @@ function groupRows(
   for (const row of rows) {
     const id = key(row);
     const group = groups.get(id);
+
     if (group) group.push(row);
     else groups.set(id, [row]);
   }
@@ -60,12 +61,17 @@ export function patchBenchmarks(
   patch: BenchmarkPreview | null | undefined
 ): PatchBenchmark[] {
   if (!patch) return [];
+
   return rows.flatMap<PatchBenchmark>((build) => {
     if (!build.rotation || !Number.isFinite(build.benchmarkDps) || build.benchmarkDps <= 0) return [];
+
     // Reworks remain discoverable before capture; exact build selectors keep weapon-specific flags narrowly scoped.
     const pending = findPendingPatchBenchmark(build, patch);
+
     if (pending) return [{ build, outcome: 'tbd', reason: pending.reason }];
+
     const preview = build.patchPreview;
+
     if (
       !preview ||
       preview.patchId !== patch.id ||
@@ -86,6 +92,7 @@ export function patchBenchmarks(
       })
     )
       return [];
+
     const difference = preview.benchmarkDps - build.benchmarkDps;
     return [
       {
@@ -102,6 +109,7 @@ export function patchBenchmarks(
 /** Keep small nonzero changes readable instead of rounding them to an apparently unchanged result. */
 function patchPercent(value: number): string {
   if (!value) return '0.00%';
+
   return `${value > 0 ? '+' : '−'}${Math.abs(value) < 0.01 ? '<0.01' : Math.abs(value).toFixed(2)}%`;
 }
 
@@ -132,6 +140,7 @@ export function sortPatchBenchmarks(rows: readonly PatchBenchmark[], sort: strin
   // Pending builds stay after measured builds within their specialization, regardless of sort direction.
   const compareMeasurements = (a: PatchBenchmark, b: PatchBenchmark): number => {
     if (a.outcome === 'tbd' || b.outcome === 'tbd') return Number(a.outcome === 'tbd') - Number(b.outcome === 'tbd');
+
     return sort === 'gains'
       ? b.percent - a.percent
       : sort === 'losses'
@@ -181,6 +190,7 @@ export function mountBenchmarkPatchPreview(
       const collapsed = collapsedGroups.has(button.dataset.patchToggle!);
       button.setAttribute('aria-expanded', String(!collapsed));
       const summary = button.querySelector<HTMLElement>('[data-patch-profession-summary]');
+
       if (summary) {
         summary.hidden = !collapsed;
         const meta = button.querySelector<HTMLElement>('.benchmark-patch-profession-meta')!;
@@ -256,10 +266,14 @@ export function mountBenchmarkPatchPreview(
   // Toggle existing rows in place so mouse and keyboard activation retain focus on the same header button.
   panel.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('[data-patch-toggle]');
+
     if (!button) return;
+
     const key = button.dataset.patchToggle!;
+
     if (collapsedGroups.has(key)) collapsedGroups.delete(key);
     else collapsedGroups.add(key);
+
     applyCollapsedGroups();
   });
   outcome.addEventListener('change', render);

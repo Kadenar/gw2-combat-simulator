@@ -75,7 +75,9 @@ let nextTimelineCommandKey = 1;
 function timelineCommandKey(command: RotationCommand): number {
   const object = command as object;
   const existing = timelineCommandKeys.get(object);
+
   if (existing) return existing;
+
   const key = nextTimelineCommandKey++;
   timelineCommandKeys.set(object, key);
   return key;
@@ -144,7 +146,9 @@ export function timelineRowsView(
     weaponLineTransition: (entry, current, index) => {
       const item = timelineItem(entry);
       const step = steps.get(index);
+
       if (step?.invalid) return undefined;
+
       const skill =
         (step?.skillId == null ? undefined : app.skillById.get(step.skillId)) ?? resolveEntrySkill(app, item.command);
       return app.profession.ui.timelineWeaponLineTransition({
@@ -622,7 +626,9 @@ export function timelineRowsView(
     const procs = groupConsecutiveProcSteps(procSteps)
       .map((group) => {
         const proc = group.steps[0];
+
         if (!proc) return '';
+
         const { key } = group;
         const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
         // Compact proc labels use hundredths; hover details retain millisecond precision.

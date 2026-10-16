@@ -57,7 +57,9 @@ const plural = (count: number, noun: string, many = `${noun}s`): string => `${co
 /** Render a binding as keycaps so modifiers read as separate keys held together. */
 function keycaps(binding: string): string {
   const parsed = parseInputBinding(binding);
+
   if (!parsed) return `<kbd class="input-key">${html(formatInputBinding(binding))}</kbd>`;
+
   return [
     ...parsed.modifiers.map((modifier) => `<kbd class="input-key is-modifier">${modifier}</kbd>`),
     `<kbd class="input-key">${html(formatInputBinding(parsed.key))}</kbd>`
@@ -114,7 +116,9 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
   const summaryHtml = (error: unknown = analysisError): string => {
     if (error)
       return `<summary>Input activity &middot; ${error instanceof InputProfileError ? 'profile unavailable' : 'analysis unavailable'}</summary>`;
+
     if (!analysis) return '<summary>Input activity &middot; analysis unavailable</summary>';
+
     const duration = trace.end - trace.start;
     const pace = duration > 0 ? `${(analysis.coverage.actions / duration).toFixed(2)} actions/s` : 'no combat duration';
     return `<summary>Input activity &middot; ${pace}</summary>`;
@@ -127,13 +131,16 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     `<details class="input-activity rotation-procs-wrap">${summaryHtml()}</details>`
   );
   const mountedPanel = container.querySelector<HTMLDetailsElement>('.input-activity');
+
   if (!mountedPanel) return;
+
   const panel = mountedPanel;
   const document = container.ownerDocument;
   ensureInputProfileStyles(document);
   panel.open = disclosureState.get(document) ?? false;
   panel.addEventListener('toggle', () => {
     disclosureState.set(document, panel.open);
+
     if (panel.open) render();
   });
   let summary: InputAnalysisSummary | null = null;
@@ -157,7 +164,9 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     nodes.forEach((node) => node.classList.add('input-activity-highlight'));
     const first = nodes[0];
     const timeline = document.getElementById('rotation-timeline');
+
     if (!first || !timeline) return;
+
     first.classList.add('input-activity-start');
     timeline.classList.add('input-activity-selection');
     // Align below the visible clip edge and sticky header without moving any ancestor scroll position.
@@ -166,6 +175,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     let clipTop = 0;
     for (let ancestor = timeline.parentElement; ancestor; ancestor = ancestor.parentElement) {
       const overflow = document.defaultView?.getComputedStyle(ancestor).overflowY;
+
       if (overflow && /auto|scroll|hidden|clip/.test(overflow))
         clipTop = Math.max(clipTop, ancestor.getBoundingClientRect().top + ancestor.clientTop);
     }
@@ -180,6 +190,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     // reserve that strip inside the bounded timeline so they can sit below it, without changing the timeline's outer
     // height or page position. A timeline already scrolled out of view gains no blank space.
     const internalScroll = /auto|scroll/.test(document.defaultView?.getComputedStyle(timeline).overflowY ?? '');
+
     if (
       internalScroll &&
       timelineTop >= clipTop &&
@@ -197,9 +208,12 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
   // Hover previews a key or transition; with no hover, a key or transition selection stays emphasised.
   const emphasis = (focus: Focus | null): Emphasis | null => {
     if (!summary || !focus) return null;
+
     if (focus.kind === 'transition') {
       const row = summary.transitions[focus.index];
+
       if (!row) return null;
+
       return {
         codes: new Set([...bindingCodes(row.fromBinding), ...bindingCodes(row.toBinding)]),
         bindings: new Set(),
@@ -246,12 +260,15 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
         row.classList.toggle('is-emphasis', current?.transition === Number(row.dataset.selectTransition))
       );
     const chart = panel.querySelector<HTMLElement>('[data-input-chart]');
+
     if (chart) markInputPaceChart(chart, current?.times ?? [], current?.tone ?? 'key');
   };
 
   const drawChart = (): void => {
     const chart = panel.querySelector<HTMLElement>('[data-input-chart]');
+
     if (!chart || !summary || !panel.open) return;
+
     drawInputPaceChart(chart, summary, selected?.kind === 'section' ? selected.index : null, (index) =>
       select({ kind: 'section', index })
     );
@@ -262,6 +279,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
   const select = (next: Selection): void => {
     selected = JSON.stringify(next) === JSON.stringify(selected) ? null : next;
     clearHighlights();
+
     // Selection updates reuse the analysis, keyboard, and evidence DOM until the profile changes.
     if (summary) {
       for (const button of panel.querySelectorAll<HTMLElement>(
@@ -287,6 +305,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
   // Reach groups partition the bar; modifiers share the legend styling but report overlapping usage separately.
   const splitHtml = (data: InputAnalysisSummary): string => {
     if (!data.totalActions) return '';
+
     const groups = REACH_GROUPS.filter(({ id }) => id !== 'unknown' || data.reachCounts.unknown > 0);
     const share = (id: keyof InputAnalysis['reachCounts']): number => data.reachCounts[id] / data.totalActions;
     return `<div><h4>Key reach</h4>
@@ -309,7 +328,9 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
 
   const keysHtml = (data: InputAnalysisSummary): string => {
     const rows = data.keys.slice(0, KEY_ROWS);
+
     if (!rows.length) return '<div><h4>Keys used most</h4><p class="input-muted">No bound inputs.</p></div>';
+
     // Relative bars make usage easy to compare; the adjacent percentage still reports the share of all actions.
     const maxCount = Math.max(...rows.map((row) => row.count));
     return `<div><h4>Keys used most</h4>
@@ -332,8 +353,10 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     const simultaneous = data.sameInstantTransitions
       ? `<p class="input-muted">${plural(data.sameInstantTransitions, 'same-instant transition')} excluded from timing ranks.</p>`
       : '';
+
     if (!rows.length)
       return `<div><h4>Fastest transitions</h4><p class="input-muted">No repeated transitions with a positive gap.</p>${simultaneous}</div>`;
+
     // Rank recurring timed pairs; simultaneous inputs are noted separately instead of implying fast finger movement.
     const maxCount = Math.max(...rows.map((row) => row.count));
     return `<div><h4>Fastest transitions</h4><div class="input-rows"><div class="input-rows-head input-transition-head"><span>Keys</span><span>Transition</span><span>Count</span><span>Median gap</span></div>${rows
@@ -353,6 +376,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
 
   const timelineHtml = (data: InputAnalysisSummary): string => {
     if (data.duration <= 0) return '';
+
     const empty = data.sections.length
       ? ''
       : `<p class="input-muted">${data.duration < 5 ? 'Highlighted sections need a rotation of at least 5 seconds.' : 'No manual inputs to highlight.'}</p>`;
@@ -376,6 +400,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     const scrollTop = panel.querySelector('.input-activity-body')?.scrollTop ?? 0;
     try {
       if (!analysis) throw analysisError;
+
       const data = summarizeInputAnalysis(trace, analysis);
       summary = data;
       const missingBindings = analysis.coverage.missing.filter((item) => item.control != null);
@@ -417,10 +442,15 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
   // Delegate once on the persistent disclosure; its contents are replaced on every render.
   const focusOf = (target: EventTarget | null): Focus | null => {
     if (!(target instanceof Element)) return null;
+
     const key = target.closest<HTMLElement>('[data-select-key]');
+
     if (key) return { kind: 'key', binding: key.dataset.selectKey ?? '' };
+
     const transition = target.closest<HTMLElement>('[data-select-transition]');
+
     if (transition) return { kind: 'transition', index: Number(transition.dataset.selectTransition) };
+
     const code = target.closest<SVGGElement>('.input-kb-key.is-used');
     return code ? { kind: 'code', code: code.dataset.keyCode ?? '' } : null;
   };
@@ -429,7 +459,9 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     JSON.stringify(left) === JSON.stringify(right);
   const keyTooltip = (code: string): string => {
     const usage = summary?.keyUsage.get(code);
+
     if (!usage || !summary) return '';
+
     const rows = summary.keys.filter((row) => bindingCodes(row.binding).includes(code));
     return `<div><b>${html(formatInputBinding(code))}</b></div>${rows
       .map(
@@ -441,18 +473,24 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
 
   const enter = (event: Event): void => {
     const focus = focusOf(event.target);
+
     if (!focus || sameFocus(focus, hovered)) return;
+
     hovered = focus;
     paint();
   };
 
   const leave = (event: Event): void => {
     const focus = focusOf(event.target);
+
     if (!focus || sameFocus(focus, focusOf((event as FocusEvent).relatedTarget))) return;
+
     hovered = null;
     paint();
+
     if (focus.kind === 'code') {
       const tooltip = panel.querySelector<HTMLElement>('.input-kb .chart-tooltip');
+
       if (tooltip) tooltip.style.display = 'none';
     }
   };
@@ -465,6 +503,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     const key = (event.target as Element | null)?.closest?.<SVGGElement>('.input-kb-key.is-used');
     const wrapper = panel.querySelector<HTMLElement>('.input-kb');
     const tooltip = wrapper?.querySelector<HTMLElement>('.chart-tooltip');
+
     if (key && wrapper && tooltip)
       placeInputTooltip(wrapper, tooltip, event.clientX, event.clientY, keyTooltip(key.dataset.keyCode ?? ''));
   });
@@ -475,6 +514,7 @@ export function mountInputActivity(container: HTMLElement, trace: InputTrace): v
     const key = target.closest<HTMLElement>('[data-select-key]');
     const transition = target.closest<HTMLElement>('[data-select-transition]');
     const section = target.closest<HTMLElement>('[data-select-section]');
+
     if (key) {
       select({ kind: 'key', binding: key.dataset.selectKey ?? '' });
       restore(`[data-select-key="${key.dataset.selectKey}"]`);

@@ -23,6 +23,7 @@ import type { RuntimeProfession } from '#gw2/platform/profession-definition/runt
 
 function amount(value: number): number {
   if (!Number.isFinite(value) || value < 0) throw new RangeError('Resource amounts must be finite and non-negative.');
+
   return value;
 }
 
@@ -37,15 +38,20 @@ export function createRuntimeResources<T extends object>(
   const keys = (Object.keys(policies) as ResourceKey[]).filter((key) => policies[key] != null);
   const get = (key: ResourceKey) => {
     const policy = policies[key];
+
     if (!policy) throw new TypeError(`Unsupported resource: ${key}.`);
+
     const state = policy.state(runtime.mechanics);
+
     if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite))
       throw new TypeError('Invalid resource clock.');
+
     return { policy, state };
   };
 
   const changed = (key: ResourceKey) => {
     const { policy, state } = get(key);
+
     if (policy.depletion) {
       if (state.maximum > 0) policy.depletion.refresh(runtime.mechanics);
       else policy.depletion.stop(runtime.mechanics);
@@ -60,24 +66,32 @@ export function createRuntimeResources<T extends object>(
     const before = [state.maximum, state.value, state.rate, state.recoveryMaximum];
     state.maximum = amount(policy.maximum(runtime.mechanics));
     state.value = Math.min(state.value, state.maximum);
+
     // Pools without a recovery ceiling keep the factory's shape instead of gaining an undefined field.
     if (policy.recoveryMaximum) state.recoveryMaximum = amount(policy.recoveryMaximum(runtime.mechanics));
     else delete state.recoveryMaximum;
+
     const recovery = policy.recovery(runtime.mechanics);
+
     if ((policy.kind === 'continuous') !== (typeof recovery === 'number'))
       throw new TypeError('Resource recovery must match its kind.');
+
     if (typeof recovery === 'number') {
       if (!Number.isFinite(recovery)) throw new TypeError('Invalid resource rate.');
+
       state.rate = recovery;
     } else {
       const discrete = state as DiscreteResourceClock;
       const disabled = !(discrete.interval > 0 && discrete.amount > 0);
       discrete.interval = amount(recovery.interval);
       discrete.amount = amount(recovery.amount);
+
       if (discrete.interval > 0 && canonicalTime(discrete.interval) === 0)
         throw new RangeError('Resource cadence is below clock precision.');
+
       if (!['immediate', 'first-spend'].includes(recovery.start))
         throw new TypeError('Invalid resource cadence start.');
+
       if (!discrete.interval || !discrete.amount) discrete.nextAt = Infinity;
       else if (disabled && (recovery.start === 'immediate' || state.value < state.maximum))
         discrete.nextAt = canonicalTime(runtime.time + discrete.interval);
@@ -85,19 +99,24 @@ export function createRuntimeResources<T extends object>(
 
     if (before.some((value, index) => value !== [state.maximum, state.value, state.rate, state.recoveryMaximum][index]))
       anchorResourceClock(state);
+
     changed(key);
   };
 
   const initialize = () => {
     for (const key of keys) {
       const { policy, state } = get(key);
+
       if (pools.has(state)) throw new TypeError('Resource pool has multiple owners.');
+
       pools.add(state);
       state.maximum = amount(policy.maximum(runtime.mechanics));
       state.value = Math.min(state.maximum, amount(policy.initial(runtime.mechanics, state.maximum)));
       state.updatedAt = runtime.time;
       state.rate = 0;
+
       if (policy.kind === 'discrete') Object.assign(state, { interval: 0, amount: 0, nextAt: Infinity });
+
       anchorResourceClock(state);
       refresh(key);
     }
@@ -118,7 +137,9 @@ export function createRuntimeResources<T extends object>(
       const { state } = get(key);
       advanceResource(state, runtime.time);
       const next = Math.min(state.maximum, value);
+
       if (next === state.value) return;
+
       if (
         'nextAt' in state &&
         next < state.value &&
@@ -127,6 +148,7 @@ export function createRuntimeResources<T extends object>(
         state.amount > 0
       )
         state.nextAt = canonicalTime(runtime.time + state.interval);
+
       state.value = next;
       anchorResourceClock(state);
       changed(key);
@@ -136,20 +158,28 @@ export function createRuntimeResources<T extends object>(
       const { state } = get(key);
       advanceResource(state, runtime.time);
       const next = Math.min(state.maximum, state.value + value);
+
       if (next === state.value) return;
+
       state.value = next;
       anchorResourceClock(state);
       changed(key);
     },
     spend(key: ResourceKey, value: number) {
       amount(value);
+
       if (value === 0) return;
+
       const { state } = get(key);
+
       if (!resourceAtLeast(resourceAt(state, runtime.time), value)) throw new RangeError(`Insufficient ${key}.`);
+
       advanceResource(state, runtime.time);
       state.value = Math.max(0, state.value - value);
+
       if ('nextAt' in state && value > 0) {
         const discrete = state;
+
         if (discrete.nextAt === Infinity && discrete.interval > 0 && discrete.amount > 0)
           discrete.nextAt = canonicalTime(runtime.time + discrete.interval);
       }
@@ -177,10 +207,13 @@ export function createRuntimeEndurance<T extends object>(
   const policy = profession.endurance;
   const pool = () => {
     if (!policy) throw new TypeError('Profession does not model endurance.');
+
     const state = policy.state(runtime.mechanics);
     const maximum = amount(policy.maximum(runtime.mechanics));
+
     if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite) || maximum === 0)
       throw new TypeError('Invalid endurance pool.');
+
     return { state, maximum };
   };
 
@@ -194,6 +227,7 @@ export function createRuntimeEndurance<T extends object>(
     );
   const advance = () => {
     if (!policy) return;
+
     const { state, maximum } = pool();
     // One interval traversal settles the balance and its current rate; ordinary pool advancement never accrues it again.
     Object.assign(
@@ -220,7 +254,9 @@ export function createRuntimeEndurance<T extends object>(
     },
     grant(value: number) {
       amount(value);
+
       if (!policy) return false;
+
       advance();
       const { state } = pool();
       Object.assign(state, grantEndurance(state, value, runtime.time));
@@ -230,8 +266,10 @@ export function createRuntimeEndurance<T extends object>(
       amount(value);
       advance();
       const { state } = pool();
+
       // Readiness and payment share resource rounding, never the simulation clock's time allowance.
       if (!resourceAtLeast(state.value, value)) throw new RangeError('Insufficient endurance.');
+
       Object.assign(state, spendEndurance(state, value, runtime.time));
     }
   });

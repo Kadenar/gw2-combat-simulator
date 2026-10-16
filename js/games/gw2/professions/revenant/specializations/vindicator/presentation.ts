@@ -29,8 +29,10 @@ function activeAutoattack(context: RevenantUiContext): Skill | null {
 function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | null {
   // Guard specialization first: this helper is called from shared palette code that doesn't know the spec.
   if ((context.specialization || '') !== 'Vindicator') return null;
+
   // No auto-attack means there's nothing to pair a dodge with; suppress the synthetic entry.
   if (!activeAutoattack(context)) return null;
+
   return {
     id: VINDICATOR_DODGE_AUTO_ACTION,
     name: VINDICATOR_DODGE_AUTO_ACTION,
@@ -47,7 +49,9 @@ function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | nu
 /** The combined palette action starts the active autoattack concurrently with dodge takeoff. */
 export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext): RotationCommand[] {
   const autoattack = activeAutoattack(context);
+
   if (!autoattack) return [];
+
   return [
     {
       type: 'cast',
@@ -69,7 +73,9 @@ function vindicatorPaletteActionSkills(context: RevenantUiContext, skills: reado
     // Manual reconstruction uses the full jump; legacy landing-only commands remain loadable by ID.
     .map((skill) => (skill.id === SHARED_SKILL_IDS.DODGE ? VINDICATOR_JUMP_SKILL : skill));
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);
+
   if (!dodgeAuto) return ordinarySkills;
+
   const dodgeIndex = ordinarySkills.findIndex((skill) => skill.id === VINDICATOR_JUMP_SKILL.id);
   // Insert immediately after Dodge in the palette; if Dodge is absent, prepend at index 0.
   ordinarySkills.splice(dodgeIndex < 0 ? 0 : dodgeIndex + 1, 0, dodgeAuto);

@@ -22,6 +22,7 @@ function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerU
   const readyAt = cast.start + balanceNumberFromContext(runtime, PROFILE.resources, 'recharge');
   runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
   runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
+
   if (rangerUnleashed && runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time))
     grantAmbush(runtime);
 }
@@ -42,12 +43,14 @@ export const untamedHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   // Delayed strikes belong to the pet accepting the command, even if a swap precedes impact.
   modifyEffects(runtime, cast, effects) {
     if (!cast.skill.unleashedPetSkill) return effects;
+
     emitRangerPetSkill(runtime, { ...cast.skill, effects }, cast.start, cast.fullEnd, cast.id, cast);
     return [];
   },
   /** Natural pet commands occupy F1/F2/F3 on the currently selected pet, with the beast skill in F2. */
   resolveInputControl(context, skill) {
     if (!skill.petSkill) return undefined;
+
     const ids = rangerPetCommandBar(context.profession.core.activePetSkillIds, context.helpers.skillsById, 'Untamed');
     const index = ids.indexOf(skill.id);
     return index >= 0 && index < 3

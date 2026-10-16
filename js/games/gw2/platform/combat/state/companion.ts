@@ -14,9 +14,12 @@ export function createCompanionEffects(): CompanionEffects {
 /** Fan an accepted grant out to independent live recipients without duplicating the reporting event. */
 export function recordCompanionBuff(companions: Map<string, CompanionEffects>, event: SimulationEvent): void {
   const audience = event.resolvedAudience;
+
   if (!audience) throw new TypeError('Companion grants require resolved recipients.');
+
   for (const id of audience.companionIds) {
     let effects = companions.get(id);
+
     if (!effects) {
       effects = createCompanionEffects();
       companions.set(id, effects);

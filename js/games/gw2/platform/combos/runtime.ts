@@ -11,6 +11,7 @@ import type { ComboFieldType } from '#gw2/platform/combos/types.js';
 /** Bind fields only when an authored finisher reaches its timestamp, using executed field registrations. */
 export function bindRuntimeCombo(runtime: Gw2Runtime, event: Gw2ResolverEvent): Gw2ResolverEvent {
   if (event.type !== 'combo_finisher' || !event.comboAllowRebind) return event;
+
   const candidates = [...runtime.combo.fields.values()].filter(
     (field) =>
       field.ownerId === event.comboOwnerId &&
@@ -36,11 +37,13 @@ export function produceRuntimeCombos(
 ): void {
   // Non-damaging activations can declare a finisher explicitly without inventing a strike or boon.
   const explicitMarkerFinisher = event.type === 'marker' && Array.isArray(event.comboFinishers);
+
   if (
     event.cancelled ||
     (!explicitMarkerFinisher && !['action', 'damage', 'condition', 'control', 'buff'].includes(event.type))
   )
     return;
+
   if (!Array.isArray(event.comboFields) || Number(event.hitIndex ?? event.applicationIndex ?? 1) === 1) {
     fieldDescriptors(catalog, event).forEach((descriptor, index) => {
       const at = canonicalTime(fieldAt(event, descriptor));
@@ -76,8 +79,10 @@ export function produceRuntimeCombos(
           ? event
           : runtime.facts.actionFor(event.activationId)
         : undefined;
+
     if (descriptor.fieldSelectionAnchor === 'castStart' && !action)
       throw new TypeError('Cast-start combo requires an owning action.');
+
     for (let attempt = 1; attempt <= descriptor.attempts; attempt++) {
       const packet = descriptor.finisherType === 'Projectile' ? `:${event.eventOrder ?? event.hitIndex}` : '';
       runtime.effects.emit({

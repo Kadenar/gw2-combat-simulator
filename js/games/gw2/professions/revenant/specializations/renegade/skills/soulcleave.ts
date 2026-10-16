@@ -8,6 +8,7 @@ import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/speci
 export function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const soulcleave = runtime.helpers.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = runtime.helpers.skillsById.get(PROFILE.soulcleavesSummitProc);
+
   if (
     !soulcleave ||
     !proc ||
@@ -16,6 +17,7 @@ export function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEve
     !runtime.procs.claimCooldown('revenant.renegade.soulcleave', runtime.time, Math.max(0, proc.cooldown || 0))
   )
     return;
+
   runtime.effects.emit({
     kind: 'profile',
     profile: proc,
@@ -36,7 +38,9 @@ export function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEve
 export function grantSoulcleaveAllies(runtime: RevenantRuntime): void {
   const skill = runtime.helpers.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = runtime.helpers.skillsById.get(PROFILE.soulcleavesSummitProc);
+
   if (!skill || !proc) return;
+
   const startsAt = runtime.time;
   runtime.alliedStrikes.registerRecipients((allyIndex) => ({
     id: `soulcleave:${allyIndex}`,

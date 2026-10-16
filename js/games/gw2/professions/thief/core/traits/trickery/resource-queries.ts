@@ -40,6 +40,7 @@ export function leadAttacksSiphonMultiplier(
   at: number
 ): number {
   if (!hasTrait(context.traits, TRAIT.LEAD_ATTACKS)) return 1;
+
   const state = readProfessionCoreState<ThiefCoreState>(context.profession);
   const leadAttacksProfile = requireBalanceProfileFromContext(context, TRAIT.LEAD_ATTACKS);
   const stacks = Math.min(

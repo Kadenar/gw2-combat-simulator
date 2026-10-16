@@ -17,12 +17,17 @@ function revenantWeaponAvailability(
   const flips = runtime.profession.core.availableFlips;
   const now = runtime.time;
   const imperialGuardBlock = imperialGuardAvailability(runtime, skill);
+
   if (imperialGuardBlock) return imperialGuardBlock;
+
   const flipBlock = weaponFlipBlock(flips, runtime.helpers.skillsById, skill, now);
+
   if (flipBlock?.kind === 'closed')
     return denySkillCast(skill, 'revenant.weapon-flip-inactive', `use ${flipBlock.parent.name} first.`);
+
   if (flipBlock?.kind === 'open')
     return denySkillCast(skill, 'revenant.weapon-flip-active', 'use or wait out the active follow-up skill.');
+
   return null;
 }
 

@@ -21,6 +21,7 @@ export function withSmallHitboxCap(skill: Partial<Skill>, smallHitboxCap: number
   effects
     .flatMap((effect, effectIndex) => {
       if (effect.type !== 'strike') return [];
+
       if (Array.isArray(effect.ticks)) {
         return effect.ticks.map((tick, tickIndex) => ({ effectIndex, tickIndex, atMs: Number(tick.atMs) }));
       }

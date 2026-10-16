@@ -23,10 +23,13 @@ export function observeNecromancerAutoattackTransition(
   result: AutoattackChainTransitionResult
 ): void {
   const sword = result.transitions.find((change) => change.chainRootId === ID.ENERVATION_BLADE);
+
   if (!sword || sword.decision === 'preserve') return;
+
   const state = runtime.profession.core;
   runtime.cancelOwner({ id: SWORD_AUTOATTACK_EXPIRY_OWNER, generation: state.swordChainGeneration });
   state.swordChainGeneration++;
+
   if (sword.decision === 'advance')
     runtime.schedule(
       SWORD_AUTOATTACK_EXPIRY_TASK,

@@ -50,6 +50,7 @@ test('profession weapon eligibility is shared with headless simulation', () => {
       rotation: ['Sword Strike'],
       config: { primaryWeapon: 'Sword', specialization }
     });
+
     if (specialization === 'Core') {
       assert.equal(result.totalDamage, 0);
       assert.match(result.warnings.join(' '), /unavailable/);

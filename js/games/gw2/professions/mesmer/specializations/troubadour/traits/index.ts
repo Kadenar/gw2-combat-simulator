@@ -63,7 +63,9 @@ const mayhem = defineTrait<MesmerSkill>({
     onTriggerPoint(troubadourDodgeCompleted, {
       run(runtime, { cast }: TriggerPointInput<typeof troubadourDodgeCompleted>) {
         const flute = runtime.helpers.skillsById.get(ID.FLUSTERING_FLUTE);
+
         if (!flute || !runtime.cooldownController.hasCooldown(flute.id)) return;
+
         runtime.cooldownController.reduceSkillRecharge(
           flute,
           balanceNumberFromContext(runtime, TRAIT.MAYHEM, 'rechargeReduction'),
@@ -329,10 +331,14 @@ export const troubadourTraits = [
 /** Grants Harmonize's resource only once a phantasm has crossed its summon point. */
 function completeTroubadourPhantasm(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
+
   if (skill.resource?.mode !== 'phantasm') return;
+
   const interrupted = castWasInterrupted(cast);
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
+
   if (interrupted && !completedInterruptedPhantasm) return;
+
   createMesmerIllusionRewards(context).queueResources(
     context.time,
     balanceNumberFromContext(context, TRAIT.HARMONIZE, 'resourceGain'),
@@ -348,8 +354,10 @@ function shreddingStrike(context: MesmerRuntime, data: MesmerInstrument): Strike
     data.instrument === 'Lute'
       ? requireEffect(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), 'strike', 'Strike')
       : undefined;
+
   if (shredding && !shredding.ticks)
     effectNumber(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), shredding, 'atMs');
+
   return shredding;
 }
 
@@ -365,6 +373,7 @@ function applyMayhemInstrument(
 ): void {
   if (data.instrument === 'Flute') {
     const condition = mesmerConditionFromProfile(context, TRAIT.MAYHEM, 'Torment');
+
     if (condition)
       buildMesmerConditions(context, skill.name, damageAt, condition, source, 'Mayhem — Torment', {
         source,
@@ -392,6 +401,7 @@ function applyLuteLifeOfTheParty(
   delivery: EffectDelivery = {}
 ): void {
   if (data.instrument !== 'Lute') return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.LIFE_OF_THE_PARTY);
   // Named grants retain independent removal and their original party attribution.
   for (const name of ['Lute Quickness', 'Lute Might'])
@@ -436,6 +446,7 @@ function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: n
   if (spent > 0) {
     const crescendo = context.helpers.skillsById.get(ID.CRESCENDO);
     const ready = crescendo ? context.cooldownController.readyAt(crescendo.id) : undefined;
+
     if (crescendo && ready) {
       context.cooldownController.reduceSkillRecharge(
         crescendo,
@@ -449,7 +460,9 @@ function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: n
 /** Raconteur follows the Tale's own boons and eligible note grant. */
 function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
+
   if (!requireEffect(profile, 'boon', 'protection')) return;
+
   const proc = context.effects.emit({
     receipt: true,
     kind: 'announcement',
@@ -478,8 +491,10 @@ function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): 
   if (event.type !== 'control') return;
 
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
+
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');
+
   if (!damage) return;
 
   const skillName = event.skillName || event.name || 'Control effect';
@@ -518,8 +533,11 @@ function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): 
 /** The committed heal triggers its immediate wave even when diagnostic proc output is suppressed. */
 function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
+
   const damage = requireEffect(requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE), 'strike', 'Immediate wave');
+
   if (!damage) return;
+
   buildMesmerStrikes(context, { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, context.time, {
     ...damage,
     name: undefined,
@@ -553,12 +571,15 @@ function scheduleSyncopateDrumWave(
   delivery: EffectDelivery = {}
 ): void {
   if (instrument.instrument !== 'Drum') return;
+
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const delayedAt = damageAt + balanceProfileNumber(syncopateProfile, 'initialDelay');
   const delayedWave = requireEffect(syncopateProfile, 'strike', 'Delayed wave');
   const daze = requireEffect(syncopateProfile, 'control', 'Delayed daze');
+
   // The delayed strike and disable survive independently; empty output produces no proc.
   if (!delayedWave && !daze) return;
+
   if (delayedWave)
     buildMesmerStrikes(
       context,
@@ -596,6 +617,7 @@ function scheduleSyncopateDrumWave(
         priority: Number(packet.priority ?? 0)
       });
     });
+
   if (daze) {
     const packet = buildMesmerPacket({
       type: 'control',
@@ -696,6 +718,7 @@ function resolveAlteredChord(
     }
   } else if (lastInstrument === 'Flute') {
     const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, 'Confusion');
+
     if (condition)
       buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {
         skillId: skill.id
@@ -708,6 +731,7 @@ function resolveAlteredChord(
           priority: Number(packet.priority ?? 0)
         });
       });
+
     if (condition)
       context.effects.emit({
         ...delivery,
@@ -775,8 +799,10 @@ function emitShredding(
   { skill, data, damageAt, source, actorType, delivery }: TriggerPointInput<typeof troubadourInstrumentStrike>
 ): void {
   const shredding = shreddingStrike(context, data);
+
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
   if (shredding?.type !== 'strike') return;
+
   buildMesmerStrikes(
     context,
     skill,

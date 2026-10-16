@@ -19,6 +19,7 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
     // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
     const { optimizerEquipment, optimizerScore, verifyOptimizerScore } =
       await import('#gw2/app/optimizer/gear/search.js');
+
     if (data.kind === 'init') {
       activeId = data.requestId;
       const [{ loadOptimizerContext }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
@@ -27,8 +28,11 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
         import('#gw2/app/optimizer/gear/fast-search.js')
       ]);
       const adapter = await loadOptimizerContext(data.request.contentId);
+
       if (!adapter) throw new TypeError('Optimizer profession is unavailable.');
+
       if (activeId !== data.requestId) return;
+
       job =
         data.request.search === 'fast'
           ? createFastOptimizer(data.request, adapter)
@@ -44,9 +48,11 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
     }
 
     if (data.requestId !== activeId || !job) throw new TypeError('Optimizer worker is not initialized.');
+
     // Every worker derives the same bounded round from the merged winners before ranges are divided again.
     if (data.kind === 'refine') {
       if (!('refine' in job) || data.candidates.length > 20) throw new TypeError('Invalid optimizer refinement.');
+
       job.refine(data.candidates);
       post({ kind: 'ready', count: job.space.count.toString(), rawCount: job.space.ordinary.rawCount.toString() });
       return;
@@ -55,12 +61,15 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
     if (data.kind === 'chunk') {
       if (!Number.isSafeInteger(data.chunkId) || !/^\d+$/.test(data.start) || !/^\d+$/.test(data.end))
         throw new TypeError('Invalid optimizer chunk identity.');
+
       const started = performance.now();
       let lastProgress = started;
       // Rejections and simulations have very different costs; keep counts moving within adaptive batches.
       const result = job.evaluateRange(BigInt(data.start), BigInt(data.end), (completed, represented, simulations) => {
         const now = performance.now();
+
         if (now - lastProgress < 150) return;
+
         lastProgress = now;
         post({
           kind: 'progress',
@@ -76,6 +85,7 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
 
     if (data.kind !== 'verify' || data.candidates.length > 20)
       throw new TypeError('Invalid optimizer verification request.');
+
     for (const candidate of data.candidates) {
       const detailed = job.evaluator.evaluate(candidate.equipment);
       verifyOptimizerScore(candidate.score, optimizerScore(detailed));

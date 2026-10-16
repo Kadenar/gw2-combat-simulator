@@ -85,15 +85,21 @@ export function createCastExecution<T extends object>(
   /** Settle the accepted reservation once, preserving commitment before completion observers. */
   function complete(reservationId: string): void {
     const cast = reservations.get(reservationId);
+
     if (!cast) throw new Error('Cast completion lost its reservation.');
+
     inFlight.get(cast.skill.id)?.delete(cast.id);
+
     if (!inFlight.get(cast.skill.id)?.size) inFlight.delete(cast.skill.id);
+
     if (cast.ammo) {
       cooldownController.spendAmmo(cast.skill, cast.rechargeStart, cast.rechargeWork);
       cooldownController.setAmmoLockout(cast.skill, cast.ammoLockoutWork, cast.rechargeStart);
     } else if (cast.rechargeWork > 0 && cast.skill.rechargeOwner !== 'actor')
       cooldownController.startRecharge(cast.skill, cast.rechargeStart, cast.rechargeWork, cast.rechargeCompanionId);
+
     const cancelled = cast.cancelled;
+
     // Ordinary swaps commit one actual set transition before completion hooks and queued equipment reactions.
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) {
       const weaponSwapFromSet = runtime.activeWeaponSet;
@@ -131,7 +137,9 @@ export function createCastExecution<T extends object>(
       profession.autoattackChainOverrides
     );
     profession.onAutoattackChainTransition?.(runtime.mechanics, cast, transition);
+
     if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelled) execution.spendCost?.(runtime, cast.skill);
+
     // One successful-cast phase owns rewards and tasks; cancelled attempts only release profession state.
     if (cast.cancelled) profession.onCastCancel?.(runtime.mechanics, cast);
     else {
@@ -159,12 +167,14 @@ export function createCastExecution<T extends object>(
         (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
     });
     execution.castCompleted?.(runtime, completion);
+
     if (
       Number(cast.skill.selfStunMs) > 0 &&
       !config.boons?.stability &&
       query.timeline.buffStacksAt('stability', runtime.time, 0, 25) === 0
     )
       cursor.selfStunUntil = Math.max(cursor.selfStunUntil, runtime.time + Number(cast.skill.selfStunMs) / 1000);
+
     reservations.delete(cast.id);
   }
 
@@ -176,6 +186,7 @@ export function createCastExecution<T extends object>(
         : (command?.type ?? 'command');
     // Carry the rejection time through scores and worker results, including repeated failures of the same input.
     runtime.warnings.push(`${name} at ${runtime.time.toFixed(3)}s: ${reason}`);
+
     if (runtime.reporting)
       runtime.steps.push({
         ri: cursor.index,
@@ -186,6 +197,7 @@ export function createCastExecution<T extends object>(
         invalid: true,
         invalidReason: reason
       });
+
     cursor.consume();
   }
 
@@ -217,8 +229,10 @@ export function createCastExecution<T extends object>(
         : (skill.castTimeMs ?? 0);
     // Capture profession timing once so completion, interruption, and cast-relative packets share the reservation.
     const durationMs = profession.castDurationMs?.(runtime.mechanicQueries, skill, baseDurationMs) ?? baseDurationMs;
+
     if (!Number.isFinite(durationMs) || durationMs < 0)
       throw new RangeError('Cast duration must be finite and non-negative.');
+
     // Cast reservations finish on action ticks; effect packets retain their authored canonical timestamps.
     const fullEnd = gw2CooldownReadyAt(start + durationMs / 1000);
     // Authored overrides replace the skill's default interruption; both occupy the same reservation and lane.
@@ -244,7 +258,9 @@ export function createCastExecution<T extends object>(
         { skill, start, fullEnd, effectiveEnd, cancelled },
         canonicalRechargeStart
       ) ?? canonicalRechargeStart;
+
     if (!Number.isFinite(rechargeStart)) throw new RangeError('Recharge start must be finite.');
+
     const cast = reservations.reserve({
       firstStrikeAt: Infinity,
       skill,
@@ -262,6 +278,7 @@ export function createCastExecution<T extends object>(
       ammo,
       cancelled
     });
+
     if (inputControl)
       runtime.inputActions.push({
         ...inputControl,
@@ -272,7 +289,9 @@ export function createCastExecution<T extends object>(
         skillId: skill.id,
         skillName: skill.name
       });
+
     if (!inFlight.has(skill.id)) inFlight.set(skill.id, new Set());
+
     inFlight.get(skill.id)!.add(cast.id);
     for (const lockout of skill.lockouts ?? [])
       lockouts.set(
@@ -281,6 +300,7 @@ export function createCastExecution<T extends object>(
         Math.max(lockouts.get(lockout.group) ?? 0, canonicalTime(start + lockout.durationMs / 1000))
       );
     const detail = profession.castDetail?.(castDetailContext, cast);
+
     if (runtime.reporting)
       runtime.steps.push({
         ri: cursor.index,
@@ -298,6 +318,7 @@ export function createCastExecution<T extends object>(
           : {}),
         ...(detail == null ? {} : { detail })
       });
+
     cursor.acceptCast(skill, command, start, effectiveEnd, laneEnd);
     const attribution = {
       source: profession.id,
@@ -307,8 +328,10 @@ export function createCastExecution<T extends object>(
       skillName: skill.name,
       activationId: cast.id
     };
+
     if (!Number.isFinite(cast.rechargeWork) || cast.rechargeWork < 0)
       throw new RangeError('Reserved recharge work must be finite and non-negative.');
+
     // Select fields from current acceptance state once; their registrations still execute on the common queue.
     const comboFields =
       profession.modifyComboFields?.(runtime.mechanicQueries, cast, skill.comboFields) ?? skill.comboFields;
@@ -360,17 +383,22 @@ export function createCastExecution<T extends object>(
         causalOrder: action.eventOrder
       })
     );
+
     // A declared cost is paid on acceptance unless it requires successful completion.
     if (skill.cost && skill.cost.spendOn !== 'castCommit') execution.spendCost?.(runtime, skill);
+
     profession.onCastStart?.(runtime.mechanics, cast);
     applySkillSideEffects(runtime.mechanics, cast, 'castStart', profession.sideEffectHandlers);
     // Custom skill owners select their packets once; scheduled effects still apply through the common live queue.
     const selectedEffects = selectSkillEffects(runtime.mechanics, cast);
     for (const effect of profession.modifyEffects?.(runtime.mechanics, cast, selectedEffects) ?? selectedEffects) {
       if (effect.when && !effect.when(runtime.mechanicQueries, cast)) continue;
+
       const perPacket = skill.interruptMode === 'per-packet';
+
       if (interrupted && !perPacket && cancelledBeforeEffectCommit(skill, effect, start, fullEnd, effectiveEnd))
         continue;
+
       runtime.effects.emit({
         kind: 'profile',
         profile: skill,
@@ -390,6 +418,7 @@ export function createCastExecution<T extends object>(
           // Compare on the same clock as the reservation; raw addition can place an equal-time impact just beyond it.
           if (interrupted && (perPacket || !effect.persistsAfterInterrupt) && canonicalTime(event.at) > effectiveEnd)
             return null;
+
           return {
             ...event,
             at: event.at + (isHostileTargetEvent(event) ? (command.impactDelayMs ?? 0) / 1000 : 0),
@@ -420,6 +449,7 @@ export function createCastExecution<T extends object>(
 
     // A wrong chain command is invalid now; waiting for recharge must not let its flip expire into validity.
     const chainAvailability = autoattackChainAvailability(runtime, profession.catalog, skill);
+
     if (!chainAvailability.ready) {
       return chainAvailability;
     }
@@ -439,6 +469,7 @@ export function createCastExecution<T extends object>(
 
     if (nextCommandAt > runtime.time)
       return { ready: false, retryAt: nextCommandAt, code: 'recharge', reason: 'Waiting for cast readiness.' };
+
     return profession.availability?.(runtime.mechanicQueries, skill, command) ?? { ready: true };
   }
 
@@ -467,6 +498,7 @@ export function createCastExecution<T extends object>(
     /** Only accepted player impacts inform per-packet cast commitment. */
     observePacket(packet: SimulationEvent) {
       const cast = packet.activationId == null ? undefined : reservations.get(packet.activationId);
+
       if (cast && packet.type === 'damage' && packet.actorType === 'player' && packet.skillId === cast.skill.id)
         cast.firstStrikeAt = Math.min(cast.firstStrikeAt, packet.at);
     },

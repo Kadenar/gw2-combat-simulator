@@ -206,7 +206,9 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
   const party = gw2AlliedPlayerAssumptions(runtime.config);
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_SENTRY);
   const venom = requireEffect(profile, 'buff', 'rot-wallow-venom');
+
   if (!venom) return;
+
   // Claim only validated, distinct allies after confirming that venom can be granted.
   const allies = [
     ...new Set(
@@ -215,7 +217,9 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
         .filter((ally) => Number.isInteger(ally) && ally >= 1 && ally <= party.count)
     )
   ].filter((ally) => runtime.procs.claim(TRAIT.DARK_SENTRY, `thief.specter.darkSentry:${ally}`, runtime.time));
+
   if (!allies.length) return;
+
   const torment = requireEffect(profile, 'condition', 'Torment');
   const venomDuration = effectNumber(profile, venom, 'duration');
   emitTraitProfile(runtime, TRAIT.DARK_SENTRY, TRAIT.DARK_SENTRY, undefined, {
@@ -234,7 +238,9 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
     },
     transform: (packet) => ({ ...packet, duration: venomDuration, fixedDuration: true })
   });
+
   if (!torment) return;
+
   // Barrier grants stack per recipient; one shared strike consumes only one surviving batch.
   runtime.alliedStrikes.registerRecipients(
     (allyIndex) => ({
@@ -277,9 +283,11 @@ function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEv
     !hasTrait(runtime, TRAIT.LARCENOUS_TORMENT)
   )
     return;
+
   const stacks = Math.max(0, Math.trunc(application.stacks || 0));
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.LARCENOUS_TORMENT);
   const strike = requireEffect(profile, 'strike', 'Larcenous Torment');
+
   if (strike)
     for (let stack = 1; stack <= stacks; stack += 1)
       emitTraitProfile(runtime, TRAIT.LARCENOUS_TORMENT, TRAIT.LARCENOUS_TORMENT, application, {
@@ -299,6 +307,7 @@ function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEv
           triggeredBy: application.skillName
         }
       });
+
   if (!specterState.from(runtime).shadowShroudActive && stacks > 0)
     runtime.resourceController.grant('shadowForce', stacks * balanceProfileNumber(profile, 'resourceGain'));
 }

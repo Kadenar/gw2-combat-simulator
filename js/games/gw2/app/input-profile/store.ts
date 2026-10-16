@@ -23,6 +23,7 @@ export function readInputProfile(storage: StoragePort | null = browserStorage())
   }
 
   if (!raw) return createInputProfile();
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);

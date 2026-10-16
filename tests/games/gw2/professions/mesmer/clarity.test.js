@@ -53,7 +53,9 @@ test('Clarity consumption and its derived timer exclude exact expiry without mut
     const before = structuredClone(core.clarity);
     const effect = mesmerEffectStates(runtime)[0];
     assert.equal(effectStateValue(effect, at).count, at < 5 ? 1 : 0);
+
     if (at >= 5) assert.equal(projectObservedState(mesmerProfession, runtime).clarityRemaining, 0);
+
     assert.deepEqual(core.clarity, before);
     assert.equal(consumeMesmerClarity(runtime, at), at < 5);
     assert.equal(consumeMesmerClarity(runtime, at), false);

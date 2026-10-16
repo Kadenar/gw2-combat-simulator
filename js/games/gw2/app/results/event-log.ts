@@ -49,11 +49,15 @@ const EVENT_LOG_ORDER: Readonly<Record<string, number>> = Object.freeze({
  */
 function normalizeProfessionEventLogDescriptor(descriptor: unknown): NormalizedEventLogDescriptor | null | undefined {
   if (descriptor === null) return null;
+
   if (!descriptor || typeof descriptor !== 'object') return undefined;
+
   const value = descriptor as Record<string, unknown>;
   const type = String(value.type || '').trim();
   const description = String(value.description || '').trim();
+
   if (!type || !description) return undefined;
+
   return {
     type,
     description,
@@ -172,7 +176,9 @@ export function simulationEventLogRows(
         event
       )
     );
+
     if (normalized === null) return;
+
     if (normalized) {
       const displayAt = Number(event.at || 0) - displayReferenceSeconds;
       rows.push({
@@ -196,6 +202,7 @@ export function simulationEventLogRows(
 
   for (const event of result?.events || []) {
     if (event.type === 'damage' || event.type === 'condition') continue;
+
     switch (event.type) {
       case 'gw2.transition-lockout':
         // Recovery is a scheduling fact with no combat effect, presented separately from skill casts.
@@ -231,6 +238,7 @@ export function simulationEventLogRows(
               return `Clone #${String(clone.id ?? '')}${clone.weapon ? ` [${String(clone.weapon)}]` : ''}`;
             })
             .join(', ');
+
           if (amount > 0) {
             push(
               event,
@@ -353,11 +361,15 @@ export function simulationEventLogRows(
     )
     .map(({ order: _order, activationOrder: _activationOrder, event, castEnd, ...row }): AttributedEventLogRow => {
       const owner = event ? owners.get(event) : undefined;
+
       if (!event || !owner) return row;
+
       const source = eventLogSource(event);
+
       // END markers fold into their cast in the tree but stay linked so the chronological layout names the owner.
       if (castEnd)
         return { ...row, parentId: owner.id, parentLink: CAST_LINK, ...(source ? { source } : {}), layout: 'flat' };
+
       return {
         ...row,
         event,
@@ -382,8 +394,10 @@ export function simulationEventLogRows(
 export function renderEventLog(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-event-log');
   const result = app.results;
+
   if (!element || !app.build.rotation.length || !result) {
     if (element) element.innerHTML = '';
+
     return;
   }
 
@@ -394,7 +408,9 @@ export function renderEventLog(app: ProfessionAppState): void {
   });
   // Keep GW2 debug controls beside the log while the shared renderer remains game-independent.
   const controls = element.querySelector('.log-controls');
+
   if (!controls) return;
+
   const label = document.createElement('label');
   label.className = 'log-filter-label';
   label.title = 'Rerun with the same seed and expand hits to inspect their calculations. Resets on reload.';
@@ -404,10 +420,14 @@ export function renderEventLog(app: ProfessionAppState): void {
   capture.onchange = () => app.setDamageDiagnostics(capture.checked);
   label.append(capture, 'Capture damage calculations');
   controls.append(label);
+
   // Reuse the log's single download control; the shared CSV handler remains active when capture is off.
   if (!app.damageDiagnostics) return;
+
   const download = element.querySelector<HTMLButtonElement>('[data-role="event-log-download"]');
+
   if (!download) return;
+
   download.textContent = 'Download debug JSON';
   const canDownload = () =>
     app.damageDiagnostics &&
@@ -419,6 +439,7 @@ export function renderEventLog(app: ProfessionAppState): void {
   download.onclick = () => {
     // Recheck freshness at click time because an edit can start while these controls are still visible.
     if (!canDownload()) return;
+
     downloadJson(`${app.contentId}-damage-debug.json`, damageDebugPayload(result));
   };
 }

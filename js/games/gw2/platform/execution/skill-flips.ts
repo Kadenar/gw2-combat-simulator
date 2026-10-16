@@ -35,6 +35,7 @@ export function armSkillFlip(
     availableAt: canonicalTime(availableAt),
     expiresAt: expiresAt === Infinity ? null : canonicalTime(expiresAt)
   };
+
   if (window.visibleAt > window.availableAt || window.availableAt > (window.expiresAt ?? Infinity)) {
     throw new RangeError('Flip visibility, availability, and expiry must be ordered.');
   }
@@ -67,8 +68,10 @@ export function expireSkillFlip(
   identity = flips[skillId]?.identity
 ): (SkillFlipWindow & { readonly expiresAt: number }) | undefined {
   const window = flips[skillId];
+
   if (!window || window.identity !== identity || window.expiresAt === null || window.expiresAt > canonicalTime(at))
     return undefined;
+
   consumeSkillFlip(flips, skillId);
   return window as SkillFlipWindow & { readonly expiresAt: number };
 }
@@ -93,8 +96,11 @@ export function weaponFlipBlock(
   at: number
 ): WeaponFlipBlock | null {
   if (skill.type !== 'Weapon') return null;
+
   const parent = skill.flipParentId == null ? undefined : skillsById.get(Number(skill.flipParentId));
+
   if (parent?.flipSkillId === skill.id && !skillFlipReady(flips?.[skill.id], at)) return { kind: 'closed', parent };
+
   return weaponFollowUpOpen(flips, skill, at) ? { kind: 'open' } : null;
 }
 

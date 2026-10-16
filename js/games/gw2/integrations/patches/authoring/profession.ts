@@ -165,6 +165,7 @@ function preparePreviewModifierRules(
   readonly targets: readonly NativePreviewModifierRuleTarget[];
 } {
   const entries = Object.entries(patch || {});
+
   if (!entries.length) {
     return { byModule: new Map(), targets: Object.freeze([]) };
   }
@@ -176,7 +177,9 @@ function preparePreviewModifierRules(
   const byModule = new Map<string, readonly Gw2ModifierRule[]>();
   for (const module of modules) {
     const rules = module.modifiers.modifierRules ?? [];
+
     if (!rules.length) continue;
+
     for (const rule of rules) ownerById.set(rule.id, module.id);
     byModule.set(module.id, Object.freeze(rules.map((rule) => patchedById.get(rule.id) || rule)));
   }
@@ -200,7 +203,9 @@ function modulesWithModifierRules(
 ): readonly AnyNativeModule[] {
   return modules.map((module) => {
     const modifierRules = modifierRulesByModule.get(module.id);
+
     if (!modifierRules) return module;
+
     const modifiers = Object.freeze({ ...module.modifiers, modifierRules });
 
     // Clone only declaration shells touched by a preview; catalog data and state factories stay shared.
@@ -231,6 +236,7 @@ export function withPatchPreview<
   let previewFamily: NativeProfessionContract<TModules, TPresentation, TBuild> | null = null;
   const familyForPreview = () => {
     if (!previewModifierRules.targets.length) return family;
+
     previewFamily ||= defineStableNativeProfession({
       ...definition,
       modules: modulesWithModifierRules(modules, previewModifierRules.byModule) as TModules
@@ -258,7 +264,9 @@ export function withPatchPreview<
   const runtimeOverlays = new WeakMap<object, object>();
   const assertPatchId = (patchId = CURRENT_PATCH_ID): string => {
     if (patchId === CURRENT_PATCH_ID) return patchId;
+
     if (preview && patchId === preview.id) return patchId;
+
     throw new TypeError(
       `Unknown ${definition.name} patch ${patchId}. Expected ${CURRENT_PATCH_ID}` +
         (preview ? ` or ${preview.id}.` : '.')
@@ -267,6 +275,7 @@ export function withPatchPreview<
 
   const catalogFor = (patchId = CURRENT_PATCH_ID): Readonly<CanonicalCatalog> => {
     if (assertPatchId(patchId) === CURRENT_PATCH_ID) return family.catalog;
+
     return validatedPreviewCatalog();
   };
 
@@ -275,6 +284,7 @@ export function withPatchPreview<
   const balanceContextFor = (patchId = CURRENT_PATCH_ID): ProfessionBalanceContext => {
     const catalog = catalogFor(patchId);
     let context = balanceContexts.get(patchId);
+
     if (!context) {
       const selectedRules =
         patchId === CURRENT_PATCH_ID || !previewModifierRules.targets.length
@@ -289,6 +299,7 @@ export function withPatchPreview<
 
   const validatePatch = (candidate: ProfessionPatchPreview | null | undefined): true => {
     if (!candidate) return true;
+
     assertProfessionPatchShape(definition.id, candidate);
     const catalog = previewCatalogSource(family.catalog);
     applySkillPatch(catalog, candidate);
@@ -308,7 +319,9 @@ export function withPatchPreview<
   ): T => {
     validatedPreviewCatalog();
     const cachedRuntime = runtimeOverlays.get(runtime);
+
     if (cachedRuntime) return cachedRuntime as typeof runtime;
+
     const cached = runtimeCatalogs.get(runtime.catalog);
     const catalog =
       cached ||
@@ -319,8 +332,11 @@ export function withPatchPreview<
         professionPatch,
         { unknownProfiles: 'ignore' }
       );
+
     if (!cached) runtimeCatalogs.set(runtime.catalog, catalog);
+
     if (catalog === runtime.catalog) return runtime;
+
     // Attribute-derived resources must use the same patched profiles as later combat queries.
     const overlay = Object.freeze({
       ...runtime,
@@ -353,6 +369,7 @@ export function withPatchPreview<
     // Generate from filtered edits so similarly named skill variants cannot leak unrelated notes into a build.
     patchOverviewFor(config: Gw2Config, observedIds: readonly (string | number)[]) {
       if (!preview || !professionPatch) return [];
+
       const relevantPatch = buildRelevantPatch(
         professionPatch,
         config,

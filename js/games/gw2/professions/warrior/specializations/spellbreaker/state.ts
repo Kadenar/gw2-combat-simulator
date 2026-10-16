@@ -37,6 +37,8 @@ export function projectSpellbreakerPlanningState(input: Gw2PlanningStateInput) {
     SPELLBREAKER_PUBLIC_STATE_PROJECTION.defaults
   );
   state.attackerInsightExpiries = purgeExpiredStacks(state.attackerInsightExpiries, input.time);
+
   if (state.magebaneTetherUntil <= input.time) state.magebaneTetherUntil = 0;
+
   return state;
 }

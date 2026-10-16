@@ -600,6 +600,7 @@ test('Tactical Reload can be consumed before expiry and closes exactly at its de
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(state(result).dragonCharges.value, expected);
+
     if (expected === 2) assert.equal(state(result).tacticalReloadUntil, 0);
     else assert.ok(state(result).tacticalReloadUntil <= observedRuntime(result).time);
   }

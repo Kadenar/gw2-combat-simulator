@@ -24,7 +24,9 @@ export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<Ele
 /** Dropping reports a swap only when a real equipped bundle was removed. */
 export function dropConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = professionCoreState(context);
+
   if (!state.conjureEquipped) return;
+
   state.conjureEquipped = null;
   finishConjureSwap(context, cast, skill);
 }
@@ -32,7 +34,9 @@ export function dropConjure(context: ElementalistRuntime, cast: RuntimeCast<Elem
 /** A successful pickup consumes the ground copy captured at acceptance, even if its deadline passed during the cast. */
 export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const expiresAt = pickupWindows.get(cast);
+
   if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt) || expiresAt <= cast.start) return;
+
   const state = professionCoreState(context);
   const weapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
   state.conjureEquipped = weapon;
@@ -82,6 +86,7 @@ const pickupWindows = new WeakMap<RuntimeCast<ElementalistSkill>, number>();
 /** A pickup accepted before ground expiry retains that copy through its animation. */
 export function captureConjurePickup(runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const weapon = CONJURE_PICKUP_WEAPONS[Number(cast.skill.id)];
+
   if (weapon) pickupWindows.set(cast, runtime.profession.core.conjurePickups[weapon]);
 }
 

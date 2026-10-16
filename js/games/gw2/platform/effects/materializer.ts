@@ -47,6 +47,7 @@ function nestedEffectMetadata(
   tickMetadata?: EffectMetadata
 ): { readonly metadata: EffectMetadata } | Record<string, never> {
   if (!baseMetadata && !effectMetadata && !tickMetadata) return {};
+
   return { metadata: { ...baseMetadata, ...effectMetadata, ...tickMetadata } };
 }
 
@@ -85,11 +86,13 @@ function strikeEventFields(source: StrikeEffect | StrikeTick) {
 /** Resolves the first timestamp at which an effect should fire. */
 export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffect): number {
   const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
+
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return origin + Number(effect.ticks[0].atMs) / 1000;
   }
 
   if (effect.atMs != null) return origin + effect.atMs / 1000;
+
   return fullEnd;
 }
 
@@ -109,6 +112,7 @@ export function materializeSkillEffectApplications({
   const label = `${skill.name} (${skill.id}) effect=${effect.type}/${effect.name ?? '<unnamed>'}`;
   // Reject oversized batches before inspecting their packets; procedural callers obey the catalog's numeric contract.
   const count = effectApplicationCount(effect, label);
+
   if (effect.type === 'strike' || effect.type === 'condition') {
     if (effect.ticks) {
       for (const tick of effect.ticks) requireBalanceNumber(tick.atMs, `${label} tick offset`);
@@ -282,5 +286,6 @@ export function materializeSkillEffectApplications({
       ...application,
       event: { ...application.event, effectReaction: { group: reactionGroup, packet: index + 1 } }
     }));
+
   return applications;
 }

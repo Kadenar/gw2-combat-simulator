@@ -69,7 +69,9 @@ function transformWeaverAttunements(
           : event.stateChange === 0 && event.activation === 0 && event.buffRemove !== 0;
         const selected =
           ((application || extension) && event.target === playerAddress) || (removal && event.source === playerAddress);
+
         if (selected) buffs.push({ event, eventIndex, apply: application && !extension });
+
         // Suppress component buffs even when incomplete, just as EI invalidates the original attunement events.
         return !selected;
       })
@@ -79,6 +81,7 @@ function transformWeaverAttunements(
   const groups: (typeof buffs)[] = [];
   for (const buff of buffs.sort((a, b) => a.event.time - b.event.time || a.eventIndex - b.eventIndex)) {
     const last = groups.at(-1);
+
     // EI GroupByTime uses a strict 10 ms window anchored at the group's first event, including removals/extensions.
     if (last && buff.event.time - last[0].event.time < 10) last.push(buff);
     else groups.push([buff]);
@@ -91,6 +94,7 @@ function transformWeaverAttunements(
     let id = 0;
     const loneBasic =
       applies.length === 1 ? WEAVER_ELEMENTS.findIndex(({ basic }) => basic === applies[0].event.skillId) : -1;
+
     if (loneBasic >= 0) id = WEAVER_ATTUNEMENT_IDS[loneBasic][loneBasic];
     else {
       for (const { event } of applies) {
@@ -103,6 +107,7 @@ function transformWeaverAttunements(
           ({ basic, major }) => event.skillId === basic || event.skillId === major
         );
         const minor = WEAVER_ELEMENTS.findIndex(({ minor }) => event.skillId === minor);
+
         if (major >= 0) primary = major;
         else if (minor >= 0) secondary = minor;
       }
@@ -151,9 +156,12 @@ function isLegacyBuffApplication(event: ParsedEvtcEvent): boolean {
 /** EI BuffGainCastFinder excludes snapshots and extensions; custom animated finders opt into snapshots explicitly. */
 export function isBuffApply(log: ParsedEvtc, event: ParsedEvtcEvent, initial = false): boolean {
   const modern = Number(log.header.arcdpsBuild) >= 20260501;
+
   // EI CombatEventFactory classifies legacy offcycle records as extensions, never BuffApplyEvent evidence.
   if (!modern && event.offcycle > 0) return false;
+
   if (event.stateChange === 18) return initial;
+
   return modern ? event.stateChange === 69 : isLegacyBuffApplication(event);
 }
 
@@ -172,13 +180,16 @@ export function agentOwners(log: ParsedEvtc): ReadonlyMap<bigint, bigint> {
   const ambiguousMasters = new Set<bigint>();
   const record = (address: bigint, instance: number, master: number): void => {
     if (!addresses.has(address)) return;
+
     if (instance) {
       if (instances.has(instance) && instances.get(instance) !== address) ambiguousInstances.add(instance);
+
       instances.set(instance, address);
     }
 
     if (master) {
       if (masterInstances.has(address) && masterInstances.get(address) !== master) ambiguousMasters.add(address);
+
       masterInstances.set(address, master);
     }
   };
@@ -195,13 +206,16 @@ export function agentOwners(log: ParsedEvtc): ReadonlyMap<bigint, bigint> {
     let ambiguous = false;
     while (!visited.has(owner)) {
       visited.add(owner);
+
       if (ambiguousMasters.has(owner) || ambiguousInstances.has(masterInstances.get(owner) ?? 0)) {
         ambiguous = true;
         break;
       }
 
       const next = instances.get(masterInstances.get(owner) ?? 0);
+
       if (next == null) break;
+
       if (visited.has(next)) {
         ambiguous = true;
         break;
@@ -258,7 +272,9 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
     group.push({ event, eventIndex });
     eventsBySkill.set(event.skillId, group);
   });
+
   if (profile.specializationId === 'weaver') transformWeaverAttunements(log, playerAddress, eventsBySkill);
+
   const names = new Map(log.skills.map((s) => [s.id, s.name]));
   // CombatData.HasRelatedHit checks credited damage ownership within the strict 10 ms server tolerance.
   const isDamage = (event: ParsedEvtcEvent): boolean =>
@@ -293,6 +309,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
     const owns = (address: bigint): boolean =>
       (finalOwner ? (owners.get(address) ?? address) : address) === playerAddress;
     let signals: { event: ParsedEvtcEvent; eventIndex: number; time?: number }[];
+
     if (rule.kind === 'effect' || rule.kind === 'effect-dst') {
       const caster = (e: ParsedEvtcEvent): bigint => (rule.kind === 'effect-dst' ? e.target : e.source);
       signals = effects.filter(
@@ -392,12 +409,17 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
     )) {
       const time = sourceTime ?? event.time;
       const duplicate = time - lastTime < (rule.icd ?? 50);
+
       // EI MinionCastCastFinder does not advance the accepted-event clock or apply offsets.
       if (rule.kind !== 'minion-cast' || duplicate) lastTime = time;
+
       if (duplicate) continue;
+
       let start = time + (rule.kind === 'minion-cast' ? 0 : (rule.timeOffset ?? 0));
+
       if (rule.swapOffset) {
         const swap = swaps.find((e) => e.source === playerAddress && Math.abs(e.time - start) < 5);
+
         if (swap) start = rule.swapOffset < 0 ? Math.min(start, swap.time - 1) : Math.max(start, swap.time + 1);
       }
 

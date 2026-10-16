@@ -18,9 +18,13 @@ const inheritedByQuery = new WeakMap<object, Map<number, ReturnType<typeof inher
 /** Replaces player attributes with the mech's inherited attribute set for mech-owned events. */
 export const mechanistAttributes: Gw2AttributeContributionCalculator = (context) => {
   if (!isEngineerMechEvent(context.event)) return [];
+
   let byWeaponSet = context.query ? inheritedByQuery.get(context.query) : undefined;
+
   if (context.query && !byWeaponSet) inheritedByQuery.set(context.query, (byWeaponSet = new Map()));
+
   let base = byWeaponSet?.get(context.weaponSet);
+
   if (!base) {
     base = inheritedMechAttributes(context);
     byWeaponSet?.set(context.weaponSet, base);

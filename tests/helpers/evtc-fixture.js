@@ -115,6 +115,7 @@ export function expandedEvtcFixture({
   recordingEnd.writeBigUInt64LE(EVTC_FIXTURE_PLAYER, 8);
   recordingEnd.writeUInt16LE(1, 40);
   recordingEnd[56] = 2;
+
   if (!interruptedDamage) {
     return Buffer.concat([
       header,

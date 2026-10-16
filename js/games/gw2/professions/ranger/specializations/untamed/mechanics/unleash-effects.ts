@@ -13,6 +13,7 @@ export function untamedCastAvailability(
   skill: RangerSkill
 ): AvailabilityResult {
   const state = untamedState.from(context);
+
   if (skill.id === ID.UNLEASH_RANGER && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');
   }

@@ -31,6 +31,7 @@ export function decideCriticalSigils(
 ): CriticalSigilDecision {
   const next = { procs: [] as CriticalSigilIntent[] };
   const active = [...new Set(ids.filter(isCriticalSigil))];
+
   if (
     !active.length ||
     event.type !== 'damage' ||
@@ -48,6 +49,7 @@ export function decideCriticalSigils(
 
   // The shared seeded hit outcome decides eligibility in both modes; ICDs stay blocked through their deadline.
   if (critical.didCrit !== true) return next;
+
   for (const id of active) {
     if (isInternalCooldownReady(event.at, procs.deadline(`sigil.${id}`))) {
       next.procs.push({ id, readyAt: event.at + PROCS[id].cooldown });

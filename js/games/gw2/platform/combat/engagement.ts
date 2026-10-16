@@ -21,6 +21,7 @@ export function combatStartedAt(
   at = runtime.time
 ): boolean {
   if (!runtime.hasExplicitCombatStart) return true;
+
   return (
     !runtime.combatStartPending &&
     runtime.cursor.command?.type !== 'combat-start' &&

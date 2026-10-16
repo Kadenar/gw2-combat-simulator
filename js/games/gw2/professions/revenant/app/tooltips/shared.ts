@@ -60,10 +60,13 @@ export function variantEffects(effects: readonly SkillEffect[] = [], context = '
   for (const effect of effects) {
     const key = effect.metadata?.legendId ?? effect.metadata?.trigger;
     const qualifier = typeof key === 'string' ? labels[key] : '';
+
     if (key != null && !qualifier) throw new Error(`Unknown Revenant tooltip variant: ${key}`);
+
     const shared = key == null || key === 'entity-skill';
     const model = simulationEffectFacts([effect], [context, shared ? qualifier : ''].filter(Boolean).join(' · '));
     incomplete ||= !!model.incomplete;
+
     if (shared) facts.push(...model.facts);
     else tabs.set(qualifier, [...(tabs.get(qualifier) || []), ...model.facts]);
   }

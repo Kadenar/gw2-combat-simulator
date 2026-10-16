@@ -77,14 +77,18 @@ const validatedInputs = new WeakSet();
 /** Reject ambiguous or malformed sources before queries can silently lose conversion inputs. */
 export function validateAttributeInputs(value: unknown): asserts value is Gw2AttributeInputs {
   const inputs = value as { weaponSets?: unknown[] } | null;
+
   if (!inputs || !Array.isArray(inputs.weaponSets) || inputs.weaponSets.length !== 2)
     throw new TypeError('Attribute inputs require exactly two weapon-set seeds.');
+
   for (const candidate of inputs.weaponSets) {
     const seed = candidate as Partial<Gw2AttributeSeed> | null;
+
     if (!seed?.commonTotals || !seed.conversionPool || !seed.sources || !Array.isArray(seed.conversions))
       throw new TypeError(
         'Attribute seed requires common totals, conversion pool, conversion declarations, and sources.'
       );
+
     for (const conversion of seed.conversions) {
       if (
         !conversion ||
@@ -130,6 +134,7 @@ export function validateAttributeInputs(value: unknown): asserts value is Gw2Att
 /** The absence of authored equipment means a naked level-80 character, never precomputed profession stats. */
 export function attributeSeed(config: Gw2Config, weaponSet = config.startingWeaponSet): Gw2AttributeSeed {
   const inputs = config.attributeInputs ?? BASE_INPUTS;
+
   if (!validatedInputs.has(inputs)) {
     validateAttributeInputs(inputs);
     validatedInputs.add(inputs);
@@ -173,9 +178,13 @@ export function attributeSourcePool(
   weaponSet?: number
 ): Readonly<Gw2NumericAttributes> {
   const seed = attributeSeed(config, weaponSet);
+
   if (policy === 'common') return seed.conversionPool;
+
   const cached = equipmentSourcePools.get(seed);
+
   if (cached) return cached;
+
   const pool = Object.freeze(
     Object.fromEntries(
       Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => {

@@ -67,6 +67,7 @@ test('skill and trait providers share grant announcements while retaining patche
   for (const [id, task] of providers) {
     const skill = catalog.skillsById.get(id);
     const cast = { id: `grant:${id}`, effectiveEnd: 2, skill };
+
     if (task) evokerHooks.tasks[task](context, { cast });
     else {
       bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
@@ -129,8 +130,10 @@ test('combat and preview share patched payloads while only combat spends a charg
     const declared = native.damageEffects.find((entry) => entry.id === 'electric-enchantment');
     for (const hasCharges of [false, true]) {
       const preview = fixture(catalog);
+
       if (hasCharges)
         grantElectricEnchantments(preview.context, { at: 2, stacks: 2, duration: 5, skill, procType: 'skill' });
+
       const grants = structuredClone(preview.state.electricEnchantmentGrants);
       declared.emit(preview.context, {});
       assert.deepEqual(preview.state.electricEnchantmentGrants, grants);
@@ -160,7 +163,9 @@ test('combat and preview share patched payloads while only combat spends a charg
       assert.equal(event.skillId, skill.id);
       assert.equal(event.icon, declared.icon);
       assert.equal(event.skillName, declared.name);
+
       if (event.type === 'damage') assert.equal(event.coefficient, 1.25);
+
       if (event.type === 'condition') {
         assert.equal(event.stacks, 3);
         assert.equal(event.duration, 7);
@@ -169,6 +174,7 @@ test('combat and preview share patched payloads while only combat spends a charg
 
     const consumption = combat.announcements.slice(1);
     assert.equal(consumption.length, removed.length === 2 ? 0 : 1);
+
     if (consumption.length) {
       assert.equal(consumption[0].attribution.sourceId, skill.id);
       assert.equal(consumption[0].announcement.sourceSkill, skill.name);

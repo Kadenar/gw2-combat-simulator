@@ -54,6 +54,7 @@ test('Fortifying Bond shares only player-sourced self boons and scales its durat
       );
       assert.deepEqual(result.warnings, []);
       const shared = result.events.filter((event) => event.sourceId === TRAIT.FORTIFYING_BOND);
+
       if (!selected || specialization === 'Soulbeast') {
         assert.deepEqual(shared, []);
         continue;

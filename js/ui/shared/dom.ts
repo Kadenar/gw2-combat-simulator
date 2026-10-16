@@ -3,6 +3,7 @@
 /** Installs one lazily loaded feature stylesheet once per document. */
 export function ensureDocumentStyles(document: Document, id: string, textContent: string): void {
   if (document.getElementById(id)) return;
+
   const style = document.createElement('style');
   style.id = id;
   style.textContent = textContent;
@@ -12,7 +13,9 @@ export function ensureDocumentStyles(document: Document, id: string, textContent
 /** Leaves keyboard input to editable controls and dialogs instead of activating surrounding shortcuts. */
 export function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
   const target = event.target;
+
   if (!(target instanceof Element)) return false;
+
   return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
 }
 
@@ -24,7 +27,9 @@ export function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
  */
 export function requiredElement(id: string): HTMLElement {
   const element = document.getElementById(id);
+
   if (!element) throw new Error(`Required element #${id} is missing.`);
+
   return element;
 }
 
@@ -38,6 +43,7 @@ export function requiredElement(id: string): HTMLElement {
  */
 export function requiredInput(id: string): HTMLInputElement {
   const element = requiredElement(id);
+
   if (!(element instanceof HTMLInputElement)) {
     throw new TypeError(`Element #${id} must be an <input>.`);
   }
@@ -55,6 +61,7 @@ export function requiredInput(id: string): HTMLInputElement {
  */
 export function requiredSelect(id: string): HTMLSelectElement {
   const element = requiredElement(id);
+
   if (!(element instanceof HTMLSelectElement)) {
     throw new TypeError(`Element #${id} must be a <select>.`);
   }
@@ -72,6 +79,7 @@ export function requiredSelect(id: string): HTMLSelectElement {
  */
 export function requiredValueControl(id: string): HTMLInputElement | HTMLSelectElement {
   const element = requiredElement(id);
+
   if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) {
     throw new TypeError(`Element #${id} must expose a value.`);
   }

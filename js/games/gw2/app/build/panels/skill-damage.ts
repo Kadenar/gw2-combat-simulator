@@ -57,6 +57,7 @@ const CONTROL_GROUPS = Object.freeze([
 
 function panelState(app: ProfessionAppState): SkillDamagePanelState {
   let state = panels.get(app);
+
   if (!state) {
     let open = false;
     try {
@@ -91,19 +92,26 @@ export function receiveSkillDamage(
   error: string
 ): void {
   const current = panels.get(app);
+
   if (!current) return;
+
   current.error = error;
   current.failedSignature = error ? signature : null;
+
   if (result && current.plan?.signature === signature) current.evaluation = { signature, result, plan: current.plan };
+
   renderRegions(app);
 }
 
 /** Renders the collapsible section; measurement starts only once it is opened, and only for changed inputs. */
 export function renderSkillDamage(app: ProfessionAppState): void {
   const host = document.getElementById('skill-damage-preview');
+
   if (!host || !app.attributeData) return;
+
   const state = panelState(app);
   bindHost(host, app);
+
   if (!state.open) {
     state.runner.cancel();
     host.innerHTML = disclosureHtml(false, '');
@@ -124,10 +132,14 @@ export function renderSkillDamage(app: ProfessionAppState): void {
 function renderRegions(app: ProfessionAppState): void {
   const host = document.getElementById('skill-damage-preview');
   const state = panels.get(app);
+
   if (!host || !state?.open || !state.values) return;
+
   const stats = host.querySelector<HTMLElement>('[data-sd-region="stats"]');
   const table = host.querySelector<HTMLElement>('[data-sd-region="table"]');
+
   if (!stats || !table) return;
+
   const controls = skillDamageControls(app);
   try {
     state.plan = createSkillDamagePlan(app, controls, state.values);
@@ -138,12 +150,14 @@ function renderRegions(app: ProfessionAppState): void {
   }
 
   stats.innerHTML = statsHtml(app, state.values);
+
   if (!state.plan) {
     table.innerHTML = `<p class="skill-damage-empty">${esc(state.error || 'Skill damage could not be prepared.')}</p>`;
     return;
   }
 
   const current = state.evaluation?.signature === state.plan.signature;
+
   // A failed request stays visible until inputs change; rendering its error must not submit it again.
   if (!current && state.failedSignature !== state.plan.signature) {
     state.error = '';
@@ -173,14 +187,18 @@ function disclosureHtml(open: boolean, body: string): string {
 /** Delegated listeners are installed once per host, so repaints never stack handlers. */
 function bindHost(host: HTMLElement, app: ProfessionAppState): void {
   if (host.dataset.sdBound === 'true') return;
+
   host.dataset.sdBound = 'true';
   const state = panelState(app);
   host.addEventListener(
     'toggle',
     (event) => {
       const details = event.target;
+
       if (!(details instanceof HTMLDetailsElement) || !details.classList.contains('skill-damage')) return;
+
       if (state.open === details.open) return;
+
       state.open = details.open;
       try {
         localStorage.setItem(DISCLOSURE_STORAGE_KEY, String(state.open));
@@ -196,9 +214,12 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
     const target = (event.target as HTMLElement).closest<HTMLElement>(
       '[data-sd-group], [data-sd-row], [data-sd-filter], [data-sd-action]'
     );
+
     if (!target) return;
+
     if (target.dataset.sdGroup) {
       const id = target.dataset.sdGroup;
+
       if (state.closedGroups.has(id)) state.closedGroups.delete(id);
       else state.closedGroups.add(id);
     } else if (target.dataset.sdRow) {
@@ -229,7 +250,9 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
       )
     );
     const values = normalizeAttributePreview(controls, input);
+
     if (JSON.stringify(values) === JSON.stringify(state.values)) return;
+
     state.values = values;
     renderRegions(app);
   };
@@ -239,8 +262,11 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
   });
   host.addEventListener('change', (event) => {
     const control = event.target as HTMLInputElement;
+
     if (!control.matches('[data-skill-damage-control]')) return;
+
     readControls();
+
     // Write the clamped value back so the field never shows a number the preview did not use.
     if (control.type === 'number') control.value = String(state.values?.[control.dataset.skillDamageControl!] ?? '');
   });
@@ -248,6 +274,7 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
   const showVariant = (event: Event): void => {
     const bar = (event.target as HTMLElement).closest<HTMLElement>('[data-sd-variant]');
     const readout = bar?.closest('.sd-ladder')?.querySelector<HTMLElement>('.sd-ladder-readout');
+
     if (bar && readout) readout.textContent = bar.dataset.sdVariant || '';
   };
 
@@ -320,10 +347,15 @@ function assumptionsHtml(
   const fixed = [...new Set((build.weaponSigils || []).flat().filter(Boolean)).values()].map(
     (name) => `Sigil of ${name}`
   );
+
   if (build.rune) fixed.push(`Rune of ${build.rune}`);
+
   if (build.relic) fixed.push(`Relic of ${build.relic}`);
+
   if (build.food) fixed.push(build.food);
+
   if (build.utility) fixed.push(build.utility);
+
   fixed.push(
     ...calculateSkillDamageAttributes(app, values, controls).alwaysApplied.filter((name) => !fixed.includes(name))
   );
@@ -365,8 +397,10 @@ function tableHtml(model: SkillDamageViewModel, state: SkillDamagePanelState, cu
     '<span class="sd-num">Total (avg)</span>',
     '<span class="sd-num">Per cast s</span>'
   ].join('');
+
   // The first measurement has nothing to show yet; later ones keep the previous table, dimmed, beside a spinner.
   if (!state.evaluation && !state.error) return loadingHtml();
+
   const status = state.error
     ? `<p class="sd-status is-error">${esc(state.error)}</p>`
     : !current
@@ -415,6 +449,7 @@ function loadingHtml(): string {
 
 function castLabel(row: SkillDamageRowView): string {
   if (row.castSeconds == null) return 'proc';
+
   return row.castSeconds > 0 ? `${row.castSeconds.toFixed(2)}s` : 'instant';
 }
 
@@ -479,6 +514,7 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
   // Row columns already show totals and efficiency; expansion focuses on how the damage is calculated.
   const sections: string[] = [];
   const strike = m.strikeBreakdown;
+
   if (strike) {
     const inputs = [
       strike.weaponStrength == null ? '' : fact('Weapon strength', integer(strike.weaponStrength)),

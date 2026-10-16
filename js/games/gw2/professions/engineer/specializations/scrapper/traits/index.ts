@@ -208,7 +208,9 @@ const massMomentum = defineTrait<EngineerSkill>({
     tasks: {
       'engineer.mass-momentum'(runtime, data) {
         const state = scrapperState.from(runtime);
+
         if (state.massMomentumAt !== runtime.time) return;
+
         state.massMomentumAt = Infinity;
         triggerMassMomentum(runtime, { ...(data as EngineerResolverEvent), at: runtime.time });
       }
@@ -291,11 +293,14 @@ export const scrapperTraits = [
 function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
     return false;
+
   const state = context.procs;
   const massMomentumProfile = requireBalanceProfileFromContext(context, TRAIT.MASS_MOMENTUM);
+
   if ((state.deadline('massMomentum') || 0) <= event.at) {
     state.setDeadline('massMomentum', event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval'));
     const massMomentumMight = requireEffect(massMomentumProfile, 'boon', 'might');
+
     if (massMomentumMight) {
       emitTraitProfile(context, TRAIT.MASS_MOMENTUM, TRAIT.MASS_MOMENTUM, undefined, {
         at: event.at,
@@ -332,6 +337,7 @@ function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEv
   const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
   const next = Math.max(event.at + interval, state.deadline('massMomentum') || 0);
   const live = scrapperState.from(context);
+
   if (interval > 0 && live.massMomentumAt > next) {
     live.massMomentumAt = next;
     context.schedule('engineer.mass-momentum', next, event);
@@ -340,6 +346,7 @@ function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEv
 
 function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();
+
   // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
   if (
     kind === 'might' &&
@@ -354,6 +361,7 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
     if (context.procs.claim(TRAIT.APPLIED_FORCE, 'appliedForce', event.at)) {
       const appliedForceProfile = requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE);
       const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
+
       if (appliedForceStability) {
         emitTraitProfile(context, TRAIT.APPLIED_FORCE, TRAIT.APPLIED_FORCE, undefined, {
           at: event.at,
@@ -418,6 +426,7 @@ function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCas
 
 function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (!grantKineticAcceleratorBoons(context, event)) return;
+
   context.effects.emit({
     attribution: { source: 'Trait', sourceId: TRAIT.KINETIC_ACCELERATORS, actorType: 'effect' },
     kind: 'announcement',
@@ -429,6 +438,7 @@ function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverE
 /** Each accepted combo grants boons once, with a live Whirl-only internal cooldown. */
 function grantKineticAcceleratorBoons(context: EngineerResolverContext, event: SimulationEvent) {
   if (event.type !== 'combo' || !['Blast', 'Leap', 'Whirl'].includes(String(event.finisherType))) return false;
+
   if (event.finisherType === 'Whirl') {
     // Only Whirl finishers claim an interval; Blast and Leap remain independent.
     if (!context.procs.claim(TRAIT.KINETIC_ACCELERATORS, 'engineer.scrapper.kineticAcceleratorsWhirl', event.at))

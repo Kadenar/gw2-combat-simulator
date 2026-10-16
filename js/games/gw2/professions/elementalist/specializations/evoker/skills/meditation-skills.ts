@@ -42,9 +42,12 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
                 source: cast.skill.name,
                 actorType: 'player' as const
               };
+
               if (effect.type === 'strike')
                 return [{ ...effect, ...timing, name: cast.skill.name, weapon: 'Unequipped' }];
+
               if (effect.type !== 'condition') return [];
+
               return [
                 {
                   ...effect,

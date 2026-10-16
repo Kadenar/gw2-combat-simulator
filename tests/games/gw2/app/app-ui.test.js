@@ -1143,7 +1143,9 @@ test('reference rotation manifest builds load lazily once per template list', as
   let offline = true;
   const fetchAsset = async (path) => {
     fetched.push(path);
+
     if (offline && path === 'c.json') throw new Error('Could not load c.json');
+
     return { path };
   };
 

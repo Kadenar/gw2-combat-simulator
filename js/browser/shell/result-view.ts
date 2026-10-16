@@ -9,10 +9,15 @@ export interface SimulationRenderState {
 // Before navigation mounts, the URL hash still identifies whether detailed Analysis is visible.
 export function analysisViewIsActive(): boolean {
   if (typeof document === 'undefined') return true;
+
   const body = document.body;
+
   if (!body) return true;
+
   const mountedView = body.dataset.simulatorView;
+
   if (mountedView) return mountedView === 'analysis';
+
   return document.defaultView?.location.hash === '#analysis';
 }
 
@@ -20,6 +25,7 @@ export function analysisViewIsActive(): boolean {
 export function renderSimulationViewModel(viewModel: SimulationViewModel, state: SimulationRenderState): void {
   const summary = document.getElementById('rotation-dps-summary');
   const stale = state.outputRevision !== state.inputRevision;
+
   if (summary?.dataset) {
     summary.dataset.buildRevision = String(state.inputRevision);
     summary.dataset.resultRevision = String(state.outputRevision);
@@ -31,9 +37,12 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
   mountSimulationSection(summary, viewModel.summary);
 
   const element = document.getElementById('rotation-results');
+
   if (!element) return;
+
   if (!analysisViewIsActive()) {
     if (element.dataset) element.dataset.analysisStale = 'true';
+
     if (viewModel.workspace) {
       mountSimulationSection(element, viewModel.workspace);
     } else {
@@ -44,18 +53,23 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
   }
 
   if (element.dataset) delete element.dataset.analysisStale;
+
   if (!viewModel.analysis) {
     element.innerHTML = viewModel.analysisEmptyHtml || '';
     const mirror = document.getElementById('analysis-dps-summary');
+
     if (mirror) mirror.innerHTML = '';
+
     return;
   }
 
   mountSimulationSection(element, viewModel.analysis);
   const mirror = document.getElementById('analysis-dps-summary');
+
   if (mirror) {
     mirror.innerHTML = '';
     const summaryContent = summary?.querySelector('.res-summary');
+
     if (summaryContent) mirror.appendChild(summaryContent.cloneNode(true));
   }
 

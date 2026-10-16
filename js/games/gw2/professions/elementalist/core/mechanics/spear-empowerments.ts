@@ -23,13 +23,17 @@ export function beginElementalistSpearCast(
   skill: Skill
 ): void {
   const state = professionCoreState(context);
+
   if (skillWeapon(skill) !== 'Spear' || String(skill.slot || '') === 'Weapon_1') return;
+
   const followup = {
     damage: state.spearNextDamageBonus,
     critical: state.spearNextGuaranteedCritical,
     control: state.spearNextControlHit
   };
+
   if (!followup.damage && !followup.critical && !followup.control) return;
+
   state.spearFollowups[cast.id] = followup;
   state.spearNextDamageBonus = false;
   state.spearNextGuaranteedCritical = false;
@@ -44,6 +48,7 @@ export function empowerElementalistSpearPacket(
   emissionCast?: EffectDelivery['cast']
 ): ElementalistSimulationEvent {
   if (!followup || event.type !== 'damage' || !(Number(event.coefficient) > 0)) return event;
+
   if (followup.control) {
     followup.control = false;
     context.effects.emit(elementalistControlRequest({ ...event, controlKind: 'crowd-control' }, emissionCast));
@@ -77,10 +82,14 @@ export function consumeElementalistEtching(context: ElementalistRuntime, skill: 
 export function completeElementalistSpearProgression(context: ElementalistRuntime, skill: Skill): void {
   const state = professionCoreState(context);
   const chain = etchingChain(skill.id);
+
   if (chain && Number(skill.id) !== chain.etchingId) return;
+
   for (const candidate of ETCHING_CHAINS) {
     const progress = state.etchings[candidate.etching];
+
     if (!progress || progress.stage !== 'lesser' || Number(skill.id) === candidate.etchingId) continue;
+
     // Full etchings stop earning credit; retain the crossing count rather than consuming or clamping it.
     const counter = advanceCounter(
       progress.otherCasts,

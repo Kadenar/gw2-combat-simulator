@@ -38,7 +38,9 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         'Trigger the shared shade attack, pulse party protection and barrier traits, then detonate for damage, Torment, and a final protection grant. Activates applicable shroud traits.'
     } as Record<number, string>
   )[id];
+
   if (!description) throw new Error(`Unknown shade skill: ${id}`);
+
   const profileId = (
     {
       [ID.GARISH_PILLAR]: SCOURGE.garishPillar,

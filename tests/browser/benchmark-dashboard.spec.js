@@ -9,7 +9,9 @@ async function openDashboard(page, path = '/mesmer.html#benchmarks') {
 // Explicit test populations use the same additive profession controls as real comparisons.
 async function selectProfessions(page, ...ids) {
   const all = page.locator('[data-benchmark-profession="all"]');
+
   if ((await all.getAttribute('aria-pressed')) !== 'true') await all.click();
+
   await all.click();
   for (const id of ids) await page.locator(`[data-benchmark-profession="${id}"]`).click();
 }
@@ -47,6 +49,7 @@ test('shared header combines profession toggles and retains damage and role filt
     const labels = await content
       .locator('[data-bar-point], [data-point], [data-health-point]')
       .evaluateAll((points) => points.map((point) => point.getAttribute('aria-label')));
+
     if (panel !== 'builds') {
       expect(labels.length).toBeGreaterThan(0);
       expect(labels.every((label) => /^(Elementalist|Ranger)/.test(label) && /Power.*Quickness/i.test(label))).toBe(
@@ -571,7 +574,9 @@ test('bar previews load saved builds, cache requests, and ignore stale responses
   let firstRequests = 0;
   await page.route('**/data/gw2/benchmark-previews/elementalist/*.json', async (route) => {
     if (!firstUrl) firstUrl = route.request().url();
+
     if (route.request().url() === firstUrl) firstRequests += 1;
+
     if (!heldRequest) heldRequest = route;
     else await route.continue();
   });
@@ -1045,8 +1050,10 @@ test('chart inspection stays in the top-left of the canvas and can be dismissed'
     await expect(inspection).toBeHidden();
     await expect(point).toBeFocused();
     await page.keyboard.press('Enter');
+
     if (panel === 'apm') await expect(chart.locator('#benchmark-scatter-inspector')).toBeVisible();
     else await expect(inspection).toBeVisible();
+
     await page.keyboard.press('Escape');
     await expect(inspection).toBeHidden();
   }
@@ -1346,20 +1353,26 @@ async function previewFixtures(page, state = { active: true, removePreview: fals
   );
   await page.route('**/data/gw2/builds/*/manifest.json', async (route) => {
     const profession = route.request().url().split('/').at(-2);
+
     if (state.failWarrior && profession === 'warrior') return route.fulfill({ status: 503, body: 'Unavailable' });
+
     if (!['guardian', 'mesmer'].includes(profession)) return route.fulfill({ json: [] });
+
     const response = await route.fetch();
     const sections = await response.json();
     const section = sections.find((entry) => entry.presets.some((preset) => preset.rotation));
     const preset = { ...section.presets.find((entry) => entry.rotation) };
     delete preset.patchPreview;
+
     if (!state.removePreview)
       preset.patchPreview = {
         patchId: 'ui-preview',
         benchmarkDps: preset.benchmarkDps + (profession === 'guardian' ? 100 : -100),
         benchmarkDpsByHealth: preset.benchmarkDpsByHealth
       };
+
     const fixtures = [{ section: section.section, presets: [preset] }];
+
     // Mixed summary fixtures exercise wrapping and the pending disclosure in one row.
     if (state.summaryVariants && profession === 'guardian') {
       fixtures[0].presets.push({
@@ -1384,6 +1397,7 @@ async function previewFixtures(page, state = { active: true, removePreview: fals
           }
         ]
       });
+
     await route.fulfill({ response, json: fixtures });
   });
 }
@@ -1440,7 +1454,9 @@ for (const destination of ['/benchmarks.html', '/mesmer.html']) {
     async ({ page }) => {
       await previewFixtures(page, { active: true, summaryVariants: true });
       await page.goto(`${destination}?embed=1&standalone=1#benchmarks`);
+
       if (destination !== '/benchmarks.html') await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+
       await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
       await page.getByRole('button', { name: 'Patch preview', exact: true }).click();
       const group = page.locator('[data-chart-panel="patch"] [data-patch-group="guardian"]');

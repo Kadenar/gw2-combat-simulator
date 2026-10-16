@@ -231,10 +231,13 @@ export function demonAvailability(
 ): AvailabilityResult | null {
   const flips = runtime.profession.core.availableFlips;
   const now = runtime.time;
+
   if (skill.id === ID.UNYIELDING_IMPACT && !skillFlipReady(flips[ID.UNYIELDING_IMPACT], now))
     return denySkillCast(skill, 'revenant.unyielding-impact-inactive', 'cast Call to Anguish first.');
+
   if (skill.id === ID.CALL_TO_ANGUISH && skillFlipReady(flips[ID.UNYIELDING_IMPACT], now))
     return denySkillCast(skill, 'revenant.unyielding-impact-ready', 'use Unyielding Impact first.');
+
   return null;
 }
 
@@ -245,8 +248,10 @@ export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at:
     (effect) =>
       effect.type === 'condition' && (effect.metadata?.trigger || '') === (empowered ? 'empowered-upkeep-pulse' : '')
   );
+
   if (strike?.type !== 'strike' || torment?.type !== 'condition')
     throw new Error('Embrace the Darkness is missing its pulse effects.');
+
   const tick = conditionEffectTicks(torment)[0];
   const common = {
     at,
@@ -282,18 +287,26 @@ export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at:
 /** A committed Embrace activation lands its opening pulse at the authored offset, before drain begins. */
 export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
+
   if (activeRevenantUpkeep(runtime, skill.id)) return;
+
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
+
   if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
+
   embracePulse(runtime, skill, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);
 }
 
 /** A committed paid skill, including Embrace's own activation, arms Embrace's next pulse. */
 export function empowerRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
+
   if (skill.id === ID.RESIST_THE_DARKNESS) return;
+
   // Activation already enabled Embrace, so its cost query now describes a free toggle.
   if (skill.id !== ID.EMBRACE_THE_DARKNESS && !(revenantEnergyCost(runtime, skill) > 0)) return;
+
   const embrace = activeRevenantUpkeep(runtime, ID.EMBRACE_THE_DARKNESS);
+
   if (embrace) embrace.empoweredNextPulse = true;
 }

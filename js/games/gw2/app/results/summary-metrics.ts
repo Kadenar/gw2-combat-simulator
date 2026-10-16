@@ -82,6 +82,7 @@ export function baseResultSummaryMetrics(result: Gw2ResolverResult): ResultSumma
       className: 'condi'
     }
   );
+
   if (Number(result.environmentDamage || 0) > 0) {
     // Keep external damage visually separate while still exposing the combined damage that reduced target health.
     metrics.push(
@@ -122,7 +123,9 @@ export function targetHealthBreakpointSnapshots(
   startingHealthPercent: unknown = 100
 ): TargetHealthBreakpointSnapshot[] {
   const health = Number(targetHealth || 0);
+
   if (!(health > 0)) return [];
+
   const configuredStartingPercent = Number(startingHealthPercent);
   const startingPercent = Number.isFinite(configuredStartingPercent) ? clamp(configuredStartingPercent, 0, 100) : 100;
 
@@ -130,7 +133,9 @@ export function targetHealthBreakpointSnapshots(
   const addDamage = (at: unknown, damage: unknown, owner: 'player' | 'environment'): void => {
     const time = Number(at);
     const amount = Number(damage);
+
     if (!Number.isFinite(time) || !(amount > 0)) return;
+
     const current = damageByTime.get(time) || { player: 0, environment: 0 };
     current[owner] += amount;
     damageByTime.set(time, current);

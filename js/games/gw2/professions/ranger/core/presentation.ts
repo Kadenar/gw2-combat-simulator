@@ -61,6 +61,7 @@ export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
 
 function activePetSkillIds(context: RangerUiContext): SkillId[] {
   const state = rangerUiState(context);
+
   if (Array.isArray(state.activePetSkillIds)) {
     return [...state.activePetSkillIds];
   }
@@ -121,9 +122,12 @@ export function activeRangerUiPet(context: RangerUiContext) {
 
 function updatePetSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
   if (!['selectedPet', 'selectedPet2'].includes(String(selection.key)) || !context.build) return false;
+
   if (!isRangerPetName(selection.value)) return false;
+
   if (selection.key === 'selectedPet2') context.build.selectedPet2 = selection.value;
   else context.build.selectedPet = selection.value;
+
   return true;
 }
 
@@ -149,6 +153,7 @@ function updateHammerSelection(context: RangerUiContext, selection: RangerUiSele
 
   const index = Number(selection.index);
   const skillId = Number(selection.skillId);
+
   if (
     !Number.isInteger(index) ||
     index < 0 ||
@@ -185,6 +190,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
           kind: 'special',
           description: 'Positional Critical Chance'
         });
+
       preview.passives(ID.SIGNET_OF_THE_WILD);
       return preview.controls;
     },
@@ -192,6 +198,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       // Opening Strike is a single-hit bonus, so it does not belong in persistent attribute previews.
       const { player } = readProfessionCoreState<RangerCoreState>(context.professionState);
+
       if (player) player.openingStrikeReady = false;
     },
 
@@ -199,6 +206,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     paletteOverride: (context, skill) => {
       const flip = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
       const stealth = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
+
       if (stealth || flip != null)
         return { tileActive: stealth === rangerSpearStealthAvailable(rangerUiState(context), context.time || 0) };
     },
@@ -289,6 +297,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
           layout
         }
       ];
+
       // State-controlled hammer bars do not expose independent build selections.
       if (rangerHammerUsesBuildSelection(context) && hasHammerEquipped(context)) {
         const selected = selectedHammerSkillIds(context);
@@ -312,6 +321,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     updateSkillBarSelection: updateRangerCoreSelection,
     paletteGroups: (context: RangerUiContext) => {
       if (uiSpecialization(context) !== 'Core') return [];
+
       return [rangerPetPaletteGroup(catalog, context, { resourceAnchor: true })];
     },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {

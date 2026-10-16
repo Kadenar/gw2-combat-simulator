@@ -73,6 +73,7 @@ export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): Floating
   const apply = editor.querySelector<HTMLButtonElement>('.activation-editor-apply');
   const success = editor.querySelector<HTMLInputElement>('input[value="success"]');
   const backfire = editor.querySelector<HTMLInputElement>('input[value="backfire"]');
+
   if (!icon || !name || !cancel || !apply || !success || !backfire) {
     throw new TypeError('Double Edge editor markup is incomplete.');
   }

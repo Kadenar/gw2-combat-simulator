@@ -16,6 +16,7 @@ import type {
 /** Resolves cloak sources from owned raw evidence; a cloak gain alone never proves a dodge. */
 function mesmerCloakActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.specializationId !== 'mirage') return [...context.recordedActions];
+
   const cloaks = context.recordedActions.filter((action) => action.rawSkillId === -17);
   const sourceBuffs = context.log.events.filter(
     (e) =>
@@ -49,6 +50,7 @@ function mesmerCloakActions(context: EvtcProfessionReconstructionContext): EvtcR
   );
   return context.recordedActions.map((action) => {
     if (action.rawSkillId !== -17) return action;
+
     const buffs = sourceBuffs.filter(
       (e) =>
         Math.abs(e.time - action.start) < 10 &&
@@ -75,9 +77,11 @@ function mesmerCloakActions(context: EvtcProfessionReconstructionContext): EvtcR
 /** EI EngineerHelper.EngineerKitFinder requires a real kit swap followed by a bundle animation. */
 function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'engineer') return [...context.recordedActions];
+
   const swaps = context.recordedActions.filter((a) => a.weaponSet != null);
   return context.recordedActions.map((action) => {
     if (action.weaponSet !== 2) return action;
+
     const nextSwap = swaps.find((a) => a.start > action.start + 10);
     const bundle = context.recordedActions.find(
       (a) =>
@@ -114,8 +118,10 @@ export function reconstructProfessionActions(
       ? context.log.events
           .flatMap((event): Array<readonly [number, number]> => {
             if (event.skillId !== SIGNET_OF_MIGHT_PASSIVE_ID) return [];
+
             if (event.target === context.playerAddress && isBuffApply(context.log, event, true))
               return [[event.time, 1]];
+
             // The passive is nonstacking, so a single-stack removal also ends its active state.
             if (
               event.source === context.playerAddress &&
@@ -124,6 +130,7 @@ export function reconstructProfessionActions(
                 (event.stateChange === 0 && event.activation === 0 && event.buffRemove !== 0))
             )
               return [[event.time, 0]];
+
             return [];
           })
           .sort((left, right) => left[0] - right[0])
@@ -135,6 +142,7 @@ export function reconstructProfessionActions(
   // Packet spacing only selects the represented Path of Scars range variant; it never creates a cast.
   const originals = engineerKitActions(represented).map((action, index, actions) => {
     if (context.profile.professionId !== 'ranger' || action.rawSkillId !== 12638) return action;
+
     const next = actions.slice(index + 1).find((a) => a.rawSkillId === 12638);
     const hits = context.log.events
       .filter(

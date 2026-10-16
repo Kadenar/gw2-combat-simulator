@@ -120,7 +120,9 @@ test('Electric Discharge shares supported patch edits and removed effects betwee
     const condition = combat.events.find((event) => event.type === 'condition');
     assert.equal(!!strike, !removed.includes('strike'));
     assert.equal(!!condition, !removed.includes('condition'));
+
     if (strike) assert.equal(strike.coefficient, 1.25);
+
     if (condition) {
       assert.equal(condition.condition, 'Vulnerability');
       assert.equal(condition.stacks, 3);

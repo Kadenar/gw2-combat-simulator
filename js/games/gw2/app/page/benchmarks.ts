@@ -44,6 +44,7 @@ export function benchmarkColors(
 /** Read canonical manifest sections; missing DPS is omitted rather than represented as zero damage. */
 export function readBenchmarks(profession: { id: string; name: string }, manifest: unknown): Benchmark[] {
   if (!Array.isArray(manifest)) throw new Error('Invalid benchmark manifest');
+
   return manifest.flatMap((section) => {
     if (!section || typeof section.section !== 'string' || !Array.isArray(section.presets)) {
       throw new Error('Invalid benchmark section');

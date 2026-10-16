@@ -1328,7 +1328,9 @@ test('event-log mounting keeps the search, escapes descriptions, and configures 
     },
     querySelector(selector) {
       if (mounted) return null;
+
       if (selector.includes('event-log-details')) return { open: true };
+
       if (selector.includes('event-log-search')) return { value: 'safe' };
 
       return null;

@@ -19,6 +19,8 @@ const guildContributions: Readonly<Record<string, ThiefGuildContribution | null>
 /** Select once at the family boundary; Core receives no inactive policies or static summon definitions. */
 export function thiefFamilyRuntimeHooks(specialization: string) {
   const contribution = guildContributions[specialization];
+
   if (contribution === undefined) throw new Error(`Unknown Thief guild specialization: ${specialization}`);
+
   return createThievesGuildHooks(contribution);
 }

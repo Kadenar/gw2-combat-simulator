@@ -266,8 +266,10 @@ export function imperialGuardAvailability(
 ): AvailabilityResult | undefined {
   const flips = runtime.profession.core.availableFlips;
   const now = runtime.time;
+
   if (skill.id === ID.TRUE_STRIKE && !skillFlipReady(flips[ID.TRUE_STRIKE], now))
     return denySkillCast(skill, 'revenant.imperial-guard-inactive', 'channel Imperial Guard first.');
+
   if (skill.id === ID.IMPERIAL_GUARD && skillFlipReady(flips[ID.TRUE_STRIKE], now))
     return denySkillCast(skill, 'revenant.true-strike-ready', 'use or let True Strike expire first.');
 }

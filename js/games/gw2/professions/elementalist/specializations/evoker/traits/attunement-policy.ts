@@ -25,6 +25,7 @@ export function commitRechargeDuration(context: ElementalistRuntime, skill: Skil
   }
 
   const state = evokerState.from(context);
+
   if (state.elementalBalanceUntil <= context.time) {
     return duration;
   }

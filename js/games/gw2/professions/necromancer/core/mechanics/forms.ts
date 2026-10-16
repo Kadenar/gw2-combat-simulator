@@ -22,7 +22,9 @@ const LICH_EXPIRY = 'necromancer.lich-expiry';
 /** Manual exit cancels the owned deadline so it cannot grant twice or end a replacement Lich Form. */
 export function exitLich(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
+
   if (state.activeShroud !== 'lich') return;
+
   runtime.cancelOwner({ id: LICH_EXPIRY, generation: state.lichGeneration });
   state.activeShroud = '';
   state.lichEndsAt = 0;
@@ -50,12 +52,16 @@ function transition(runtime: NecromancerRuntime, entering: boolean, skill?: Necr
 /** Exit mutates the same state seen by attacks and starts entry recharge only after the form ends. */
 export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
+
   if (!state.activeShroud || state.activeShroud === 'lich') return;
+
   // Depletion has no cast completion; the actual form exit still invalidates its pending attack chain.
   resetAutoattackChains(runtime);
   const entry =
     state.activeShroudEntryId == null ? undefined : runtime.helpers.skillsById.get(state.activeShroudEntryId);
+
   if (state.activeShroudExitId != null) consumeSkillFlip(state.availableFlips, state.activeShroudExitId);
+
   state.activeShroud = '';
   state.activeShroudEntryId = null;
   state.activeShroudExitId = null;
@@ -63,6 +69,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   runNecromancerShroudExit(runtime);
   runtime.resourceController.refresh('lifeForce');
   runtime.cooldownController.clear(ID.ISOLATE);
+
   if (entry) {
     // A known marker timestamp admits hostile packets but does not move an earlier authored exit into combat.
     if (
@@ -104,7 +111,9 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   state.activeShroudProfileId = skill.shroudProfileId || PROFILE.shroud;
   const exit = [...runtime.helpers.skillsById.values()].find((candidate) => candidate.shroudExit === skill.shroudEntry);
   state.activeShroudExitId = exit?.id ?? null;
+
   if (exit) armSkillFlip(state.availableFlips, exit.id, runtime.time);
+
   runtime.cooldownController.setReadyAt(skill.id, Infinity);
   runNecromancerShroudEnter(runtime, skill);
   runtime.resourceController.refresh('lifeForce');

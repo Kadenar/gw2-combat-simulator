@@ -82,6 +82,7 @@ export function groupOptimizerSpace(
 ): GroupedOptimizerSpace {
   if (!Number.isSafeInteger(totalLimit) || totalLimit < 1 || totalLimit > MAX_OPTIMIZER_STAT_TOTALS)
     throw new RangeError('Invalid optimizer preparation limit.');
+
   // Follow the equipment object's serialization order so ties preserve the ordinary oracle's representative.
   const slotOrder = [
     ...Object.keys(ordinary.request.build.gear),
@@ -122,8 +123,10 @@ export function groupOptimizerSpace(
         const key = varying.map((attribute, i) => vector[i] + addition[attribute]).join(',');
         const path = total.path + String.fromCharCode(index);
         const previous = next.get(key);
+
         if (previous) {
           previous.represented += total.represented;
+
           if (path < previous.path) previous.path = path;
         } else {
           // Abort before allocating an unbounded index; a memory-limited search must never claim complete coverage.
@@ -131,6 +134,7 @@ export function groupOptimizerSpace(
             throw new RangeError(
               'This search exceeds the preparation memory limit. Reduce prefix or infusion choices.'
             );
+
           next.set(key, { path, represented: total.represented });
         }
       });
@@ -156,6 +160,7 @@ export function groupedEquipmentAt(
   ordinal: bigint
 ): { equipment: OptimizerEquipment; represented: bigint } {
   if (ordinal < 0n || ordinal >= space.count) throw new RangeError('Candidate ordinal outside grouped search.');
+
   const equipment = optimizerEquipment(space.ordinary.request.build);
   const radix = BigInt(space.totals.length);
   const total = space.totals[Number(ordinal % radix)];
@@ -187,7 +192,9 @@ export function optimizerEquivalenceKey(
         : key.startsWith('Alternate')
           ? equipment.alternateWeaponPrefixes[Number(key.at(-1)) - 1]
           : equipment.gear[key];
+
     if (value === undefined) continue;
+
     const addition = contribution(key, value, space, adapter);
     vector = addition.map((value, index) => value + (vector[index] || 0));
   }
@@ -211,6 +218,7 @@ export function createGroupedOptimizer(request: GearOptimizerRequest, adapter: O
   const evaluator = createOptimizerEvaluator(request, adapter);
   const evaluateRange = (start: bigint, end: bigint, onProgress?: OptimizerRangeProgress) => {
     if (start < 0n || end > space.count || end <= start) throw new RangeError('Invalid optimizer chunk.');
+
     return scoreOptimizerRange(
       ordinary,
       adapter,
@@ -254,6 +262,7 @@ export function scoreOptimizerRange(
     // Rejected assignments still count toward coverage but never run combat or enter result groups.
     represented += candidate.represented;
     const result = evaluator.score(candidate.equipment);
+
     if (!result) {
       onProgress?.(ordinal - start + 1n, represented, simulations);
       continue;
@@ -283,8 +292,10 @@ export function scoreOptimizerRange(
         score,
         represented: candidate.represented.toString()
       };
+
       // The pinned row owns the equipped setup; keep the strongest alternative for each display group.
       if (optimizerEquipmentIdentity(result.equipment) === equippedIdentity) continue;
+
       for (const filter of Object.keys(groups) as OptimizerGroupedFilter[])
         retainOptimizerGroup(groups[filter], result, filter, sets);
     }

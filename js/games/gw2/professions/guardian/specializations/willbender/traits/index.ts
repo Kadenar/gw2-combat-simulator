@@ -51,9 +51,12 @@ export const lethalTempo = defineTrait({
     /** Imported stacks are absolute counts, while retaining the selected cap and refresh behavior. */
     initialize(runtime) {
       const parameters = lethalTempoParameters(runtime);
+
       if (!parameters) return;
+
       for (const buff of runtime.config.initialBuffs ?? []) {
         if (buff.kind !== 'lethal-tempo') continue;
+
         gainLethalTempo(willbenderState.from(runtime), runtime.time, {
           ...parameters,
           stacks: buff.stacks,
@@ -138,6 +141,7 @@ const restorativeVirtues = defineTrait({
   lifetime: {
     onCastStart(runtime, cast) {
       if (cast.cancelled) return;
+
       if (cast.skill.type === 'Weapon')
         willbenderState.from(runtime).weaponCastRecharge[cast.id] = {
           skillId: cast.skill.id,
@@ -150,6 +154,7 @@ const restorativeVirtues = defineTrait({
       const pending = state.pendingWeaponCooldownReduction[cast.id] ?? 0;
       delete state.pendingWeaponCooldownReduction[cast.id];
       delete state.weaponCastRecharge[cast.id];
+
       if (pending > 0) runtime.cooldownController.reduceSkillRecharge(cast.skill, pending, runtime.time);
     }
   }
@@ -302,7 +307,9 @@ function grantVirtueBoon(
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, trait);
   const effect = requireEffect(profile, 'boon', name);
+
   if (!effect) return;
+
   emitTraitProfile(runtime, trait, profile.id, undefined, {
     preserveName: true,
     effects: (candidate) => candidate === effect,
@@ -351,7 +358,9 @@ function gainLethalTempo(
 /** Both virtue boundaries grant and report the same inclusive stack window. */
 function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   const parameters = lethalTempoParameters(runtime);
+
   if (!parameters) return;
+
   const stacks = gainLethalTempo(willbenderState.from(runtime), runtime.time, parameters);
   runtime.effects.emit({
     kind: 'packet',
@@ -398,12 +407,15 @@ function reduceWeapons(runtime: GuardianRuntime, cause: Gw2ResolverEvent): void 
     ...runtime.cooldownController.ammoSkillIds()
   ])) {
     const skill = runtime.helpers.skillsById.get(id)!;
+
     if (matches(skill)) reduction += runtime.cooldownController.reduceSkillRecharge(skill, amount, runtime.time);
   }
 
   for (const [id, cast] of Object.entries(state.weaponCastRecharge)) {
     const skill = runtime.helpers.skillsById.get(cast.skillId)!;
+
     if (!matches(skill)) continue;
+
     const pending = state.pendingWeaponCooldownReduction[id] ?? 0;
     const available = runtime.cooldownController.remaining(
       skill,

@@ -58,8 +58,11 @@ function isCarriedAutoattackSkill(
   const state = elementalistUiState(context);
   const carryover = state.autoattackCarryover;
   const root = Number(carryover?.root);
+
   if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
+
   if ((carryover?.attunement || '') !== String(skill.attunement || '')) return false;
+
   const chains: ProfessionWeaponPaletteRenderContext['autoattackChains'] =
     state.autoattackChains || context.autoattackChains || {};
   const expected = chains[String(root)] ?? root;
@@ -71,6 +74,7 @@ function isCarriedAutoattackSkill(
 function unravelTimelineWeaponLineTransition(context: ElementalistUiContext): string | undefined {
   const skill = context.skill;
   const build = context.build;
+
   if (context.initial === true) {
     const primary = build?.startAttunement || 'Fire';
     const secondary = build?.secondaryAttunement || primary;
@@ -80,7 +84,9 @@ function unravelTimelineWeaponLineTransition(context: ElementalistUiContext): st
   const currentPrimary = (context.weaponLine || '').split('/')[0];
   const primary =
     ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement[0] === currentPrimary) || build?.startAttunement || 'Fire';
+
   if (skill?.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) return `${primary[0]}/${primary[0]}`;
+
   const target = skill?.name.replace(/ Attunement$/, '') || '';
   return skill?.skillFamily === 'Attunement' && ELEMENTALIST_ATTUNEMENTS.includes(target as never)
     ? `${target[0]}/${primary[0]}`
@@ -93,6 +99,7 @@ function eventLogRow(
   event: SimulationEvent
 ): ProfessionEventLogDescriptor | undefined {
   if (event.type !== 'elementalist.attunement' || !event.fromSecondaryAttunement) return undefined;
+
   return {
     type: event.type,
     description: `${String(event.from)}/${String(event.fromSecondaryAttunement)} → ${String(event.to)}`,
@@ -115,7 +122,9 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
     ['unravel', 'Unravel', state.unravelUntil || 0]
   ] as const) {
     const remaining = expiresAt - at;
+
     if (remaining <= 0) continue;
+
     items.push({
       id,
       label,
@@ -228,7 +237,9 @@ function elementRowsHtml(
   return rows
     .map((row) => {
       const visibleSkills = row.skills.filter((skill) => autoattackChainSkillAvailable(skill, autoattackChains));
+
       if (!visibleSkills.length) return '';
+
       return `<div class="weaver-attunement-row${row.attunement === selectedAttunement ? ' is-selected' : ''}"
           data-attunement="${esc(row.attunement)}">
           <span class="weaver-attunement-label">${esc(row.attunement)}</span>
@@ -248,8 +259,11 @@ function renderWeaverWeaponPalette(
   context: ProfessionWeaponPaletteRenderContext<Partial<ElementalistState>>
 ): ProfessionWeaponPaletteView | null {
   if ((context.specialization || '') !== 'Weaver') return null;
+
   const skills = context.skills;
+
   if (!skills.length) return null;
+
   const state = context.professionState;
   const build = context.build;
   const primaryAttunement = state?.primaryAttunement || build?.startAttunement || 'Fire';
@@ -274,13 +288,16 @@ function renderWeaverWeaponPalette(
   let placedCarriedAutoattack = false;
   const primarySkills = currentPrimarySkills.flatMap((skill) => {
     if (!carriedAutoattack || placedCarriedAutoattack || skill.slot !== 'Weapon_1') return [skill];
+
     placedCarriedAutoattack = true;
     // Keep the carried step first for normal weapon-1 input, while exposing the
     // current root beside it as an explicit way to cancel and restart the chain.
     return [carriedAutoattack, skill];
   });
+
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- The flatMap callback above mutates placedCarriedAutoattack.
   if (carriedAutoattack && !placedCarriedAutoattack) primarySkills.unshift(carriedAutoattack);
+
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));
   const currentCluster = (candidates: readonly Skill[], badge = false): string => `<div class="weaver-current-cluster">

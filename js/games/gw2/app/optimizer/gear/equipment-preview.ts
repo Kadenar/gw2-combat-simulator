@@ -146,7 +146,9 @@ export function renderOptimizerPreview(
     attributePreview
   );
   container.querySelector('.attribute-effects')!.toggleAttribute('open', attributePreviewOpen);
+
   if (onApply) container.querySelector('[data-apply]')?.addEventListener('click', onApply);
+
   container.querySelector<HTMLSelectElement>('select')!.addEventListener('change', (event) => {
     renderOptimizerPreview(
       container,

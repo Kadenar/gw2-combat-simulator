@@ -72,6 +72,7 @@ export function simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patc
 
 async function captureProfession(professionId, gameId, patchId) {
   if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" has no benchmark simulator.`);
+
   const data = resolveGameData(repoRoot, gameId);
   const [manifest, adapter] = await Promise.all([
     readJson(path.relative(repoRoot, path.join(data.builds, professionId, 'manifest.json'))),
@@ -85,6 +86,7 @@ async function captureProfession(professionId, gameId, patchId) {
   for (const section of manifest) {
     for (const preset of section.presets) {
       if (!preset.rotation) continue;
+
       const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
       const { build, result } = simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId);
       const finalPacket = finalDamagingPacket(result);

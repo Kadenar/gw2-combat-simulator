@@ -70,18 +70,29 @@ export function createAlliedStrikeController(
   // Exhausted windows leave no heartbeat; re-registration rejoins the original engagement grid.
   function start(): void {
     const context = runtime();
+
     if (!autonomousActionsAllowed(context)) return;
+
     anchor ??= context.hasExplicitCombatStart ? context.combatStartTime! : 0;
+
     if (nextAt != null || dispatching) return;
+
     const party = gw2AlliedPlayerAssumptions(context.config);
+
     if (!party.count || !party.strikesPerSecond) return;
+
     for (const [id, live] of grants) if (!liveAt(live, context.time)) grants.delete(id);
+
     if (!grants.size) return;
+
     let nextSequence = Math.max(sequence + 1, Math.floor((context.time - anchor) * party.strikesPerSecond) + 1);
     let at = canonicalTime(anchor + nextSequence / party.strikesPerSecond);
+
     // A grant accepted after the same-time opportunity cannot replay that opportunity.
     if (at <= context.time) at = canonicalTime(anchor + ++nextSequence / party.strikesPerSecond);
+
     if (![...grants.values()].some((live) => liveAt(live, at))) return;
+
     sequence = nextSequence;
     nextAt = at;
     services.schedule(at, sequence);
@@ -102,8 +113,10 @@ export function createAlliedStrikeController(
   const capability: AlliedStrikeGrants = {
     registerRecipients(create, recipients = {}) {
       const { count, strikesPerSecond } = gw2AlliedPlayerAssumptions(runtime().config);
+
       // A rejected opportunity cannot create profession-owned recipient charges as a callback side effect.
       if (!strikesPerSecond) return;
+
       const indices =
         recipients.allyIndices ??
         (recipients.alliedPlayerIndex == null
@@ -123,21 +136,27 @@ export function createAlliedStrikeController(
     // Expose pending grant ownership; the observation policy decides which deadlines to follow.
     pendingEffects(): { at: number; cause: Gw2ResolverEvent; grant: AlliedStrikeGrant }[] {
       if (nextAt == null) return [];
+
       return [...grants.values()].flatMap((live) =>
         live.cause && liveAt(live, nextAt!) ? [{ at: nextAt!, cause: live.cause, grant: live.grant }] : []
       );
     },
     strike(expectedSequence: number): void {
       const context = runtime();
+
       if (expectedSequence !== sequence || nextAt !== context.time) return;
+
       nextAt = null;
+
       if (!autonomousActionsAllowed(context)) return;
+
       const consumed = new Set<string>();
       dispatching = true;
       try {
         // Freeze membership before callbacks: new grants wait for the next causal strike.
         for (const [id, live] of [...grants]) {
           if (grants.get(id) !== live) continue;
+
           if (!liveAt(live, context.time)) {
             grants.delete(id);
             continue;
@@ -145,6 +164,7 @@ export function createAlliedStrikeController(
 
           const { grant } = live;
           const group = grant.consumptionGroup && `${grant.allyIndex}:${grant.consumptionGroup}`;
+
           // Recipient ICDs admit the strike landing exactly on the deadline; in-game logs show
           // Vampiric Presence procs at +0.5 s and Soulcleave grants one proc per 1 s window.
           if (
@@ -152,6 +172,7 @@ export function createAlliedStrikeController(
             (group && (consumed.has(group) || context.time < (groupReadyAt.get(group) ?? -Infinity)))
           )
             continue;
+
           if (
             // Parentage belongs to the grant; ordering belongs to this live opportunity.
             services.withCause(live.cause, () =>
@@ -163,8 +184,10 @@ export function createAlliedStrikeController(
             ) === false
           )
             continue;
+
           live.charges--;
           live.readyAt = canonicalTime(context.time + (grant.internalCooldown ?? 0));
+
           if (group) {
             consumed.add(group);
             groupReadyAt.set(group, live.readyAt);

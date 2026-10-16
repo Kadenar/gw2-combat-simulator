@@ -70,14 +70,18 @@ const expectsOwner = (event: SimulationEvent): boolean => OWNED_TYPES.has(event.
 /** Classifies a row's origin so reactions carry a badge and can be hidden as a group. */
 export function eventLogSource(event: SimulationEvent): EventLogSource | undefined {
   if (event.actorType === 'environment') return undefined;
+
   if (event.actorType === 'summon') return event.source === 'Clone' ? CLONE_SOURCE : SUMMON_SOURCE;
+
   return REACTION_SOURCES[event.source] ?? SKILL_SOURCE;
 }
 
 /** Converts stable minion ownership ids into readable per-minion log labels. */
 export function minionAttackerLabel(event: SimulationEvent): string {
   const match = /^minion:([^:]+):(\d+)$/.exec(String(event.summonOwner || ''));
+
   if (!match) return '';
+
   const name = match[1]
     .split('-')
     .filter(Boolean)
@@ -91,6 +95,7 @@ const finiteOrder = (value: unknown): number | undefined =>
 
 function findLast<T>(items: readonly T[] | undefined, predicate: (item: T) => boolean): T | undefined {
   if (!items) return undefined;
+
   for (let index = items.length - 1; index >= 0; index -= 1) if (predicate(items[index])) return items[index];
   return undefined;
 }
@@ -106,6 +111,7 @@ export function deriveEventLogOwnership(
   const byOrder = new Map<number, SimulationEvent>();
   for (const event of recorded) {
     const order = finiteOrder(event.eventOrder);
+
     if (order != null) byOrder.set(order, event);
   }
 
@@ -124,7 +130,9 @@ export function deriveEventLogOwnership(
           : `event:#${index}`;
     ids.set(event, id);
     eventById.set(id, event);
+
     if (order != null) idByOrder.set(order, id);
+
     if (event.type === 'action' && event.activationId) castIds.set(event.activationId, id);
   });
 
@@ -133,9 +141,12 @@ export function deriveEventLogOwnership(
     let order = finiteOrder(event.parentEventOrder);
     for (let guard = 0; order != null && guard < 64; guard += 1) {
       const id = idByOrder.get(order);
+
       if (id) return id;
+
       const hidden = byOrder.get(order);
       order = finiteOrder(hidden?.parentEventOrder);
+
       if (order == null && hidden?.activationId) return castIds.get(hidden.activationId);
     }
 
@@ -147,15 +158,20 @@ export function deriveEventLogOwnership(
   // Derived ids nest their spawner: `<kind>:<instance>:<spawner id>[:<time>]` or `cast:N:<kind>[:...]`.
   const resolveEntity = (activationId: string, event: SimulationEvent): string | undefined => {
     const cast = castIds.get(activationId);
+
     if (cast) return cast;
+
     const known = entityIds.get(activationId);
+
     if (known) return known;
+
     const name = String(event.skillName || event.name || '');
     const nested = /^([a-z][\w.-]*):(\d+):(.+)$/i.exec(activationId);
     const suffixed = /^(cast:\d+):([a-z][\w-]*)/i.exec(activationId);
     let key = activationId;
     let parentId: string | undefined;
     let label = '';
+
     if (nested && nested[1] !== 'cast') {
       parentId = resolveEntity(nested[3].replace(/:[\d.]+$/, ''), event);
       label = `${nested[1].split('.').pop()!.toUpperCase()} ${name}`;
@@ -163,6 +179,7 @@ export function deriveEventLogOwnership(
       // One group per spawning cast and kind keeps a minion's repeated attack chains together.
       key = `${suffixed[1]}:${suffixed[2]}`;
       const grouped = entityIds.get(key);
+
       if (grouped) {
         entityIds.set(activationId, grouped);
         return grouped;
@@ -176,6 +193,7 @@ export function deriveEventLogOwnership(
     }
 
     if (!parentId) return undefined;
+
     const id = `entity:${key}`;
     entities.push({ id, parentId, parentLink: SPAWNED_BY, label: label.trim(), firstEvent: event });
     entityIds.set(key, id);
@@ -204,12 +222,17 @@ export function deriveEventLogOwnership(
    */
   const owningCast = (event: SimulationEvent, parentId: string | undefined): string | undefined => {
     if (event.comboId != null || event.actorType === 'summon' || parentId?.startsWith('entity:')) return undefined;
+
     const trigger = parentId ? eventById.get(parentId) : undefined;
     const key = skillKey(event);
+
     if (!trigger || trigger.type === 'action' || !key || skillKey(trigger) === key) return undefined;
+
     const cast = findLast(castsBySkill.get(key), (entry) => canonicalTime(entry.at) <= canonicalTime(event.at));
+
     if (!cast || cast.id === parentId || (event.activationId != null && event.activationId === cast.activationId))
       return undefined;
+
     return cast.id;
   };
 
@@ -220,12 +243,14 @@ export function deriveEventLogOwnership(
     const id = ids.get(event)!;
     let parentId: string | undefined;
     let parentLink: EventLogParentLink | undefined;
+
     if (event.type !== 'action') {
       const recordedId = recordedParent(event);
       const proc =
         event.type === 'damage' && event.parentSkillName && event.activationId
           ? findLast(procs.get(event.activationId), (candidate) => candidate.name === event.skillName)
           : undefined;
+
       if (recordedId && recordedId !== id) {
         parentId = recordedId;
         parentLink = TRIGGERED_BY;
@@ -237,6 +262,7 @@ export function deriveEventLogOwnership(
         parentLink = PART_OF;
       } else if (event.activationId) {
         parentId = resolveEntity(event.activationId, event);
+
         if (parentId) parentLink = OWNED_BY;
       }
 
@@ -248,6 +274,7 @@ export function deriveEventLogOwnership(
         const trigger =
           latest &&
           (findLast(entries, (entry) => entry.hit && canonicalTime(entry.at) === canonicalTime(latest.at)) ?? latest);
+
         if (trigger) {
           parentId = trigger.id;
           parentLink = inferredFrom(event.triggeredBy);
@@ -255,6 +282,7 @@ export function deriveEventLogOwnership(
       }
 
       const owner = owningCast(event, parentId);
+
       if (owner) {
         const trigger = parentId ? eventById.get(parentId) : undefined;
         parentLink = effectOf(trigger);
@@ -275,6 +303,7 @@ export function deriveEventLogOwnership(
     if (event.type === 'damage' || event.type === 'condition' || event.type === 'proc') {
       for (const name of new Set([event.skillName, event.name])) {
         if (!name) continue;
+
         const entries = byName.get(name) || [];
         entries.push({ at: event.at, id, hit: event.type === 'damage' });
         byName.set(name, entries);

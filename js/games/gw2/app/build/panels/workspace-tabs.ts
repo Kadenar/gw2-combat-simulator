@@ -19,7 +19,9 @@ function buildActionIcon(paths: string): string {
 /** Confirm beside the chosen build without closing its menu; narrow viewports keep the popup within reach. */
 function confirmBuildClose(app: ProfessionAppState, id: string, trigger: HTMLButtonElement): void {
   const tab = app.workspace?.tabs.find((entry) => entry.id === id);
+
   if (!tab || app.workspace!.tabs.length < 2) return;
+
   const menu = trigger.closest<HTMLElement>('#build-switcher-menu')!;
   const list = menu.querySelector<HTMLElement>('.build-tab-list')!;
   const index = [...list.children].indexOf(trigger.closest('.build-tab')!);
@@ -45,6 +47,7 @@ function confirmBuildClose(app: ProfessionAppState, id: string, trigger: HTMLBut
     const gap = 8;
     let left = bounds.right + gap;
     let top = row.top;
+
     if (left + width > innerWidth - gap) {
       if (bounds.left - width - gap >= gap) left = bounds.left - width - gap;
       else {
@@ -62,9 +65,12 @@ function confirmBuildClose(app: ProfessionAppState, id: string, trigger: HTMLBut
     // Confirmation controls belong to this popup, not the parent menu's delegated action handler.
     event.stopPropagation();
     const button = (event.target as Element).closest('button');
+
     if (!button) return;
+
     confirmed = button.hasAttribute('data-close-confirm');
     popup.hidePopover();
+
     if (!confirmed) {
       trigger.focus({ preventScroll: true });
       return;
@@ -80,16 +86,19 @@ function confirmBuildClose(app: ProfessionAppState, id: string, trigger: HTMLBut
   });
   popup.addEventListener('toggle', () => {
     if (popup.matches(':popover-open')) return;
+
     window.removeEventListener('resize', position);
     window.removeEventListener('scroll', position, true);
     trigger.setAttribute('aria-expanded', 'false');
     trigger.removeAttribute('aria-controls');
+
     if (
       !confirmed &&
       menu.matches(':popover-open') &&
       (popup.contains(document.activeElement) || document.activeElement === document.body)
     )
       trigger.focus({ preventScroll: true });
+
     popup.remove();
   });
   // Nesting native popovers preserves the builds menu and supplies Escape and outside-click cancellation.
@@ -105,7 +114,9 @@ function confirmBuildClose(app: ProfessionAppState, id: string, trigger: HTMLBut
 /** Edits the chosen build in a modal without saving cancelled input. */
 function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
   const tab = app.workspace?.tabs.find((entry) => entry.id === id);
+
   if (!tab) return;
+
   const dialog = document.createElement('dialog');
   dialog.className = 'build-rename-dialog';
   dialog.setAttribute('aria-labelledby', 'build-rename-title');
@@ -127,7 +138,9 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
   dialog.querySelector('form')!.addEventListener('submit', (event) => {
     event.preventDefault();
     const name = input.value.trim();
+
     if (!name) return;
+
     tab.name = name.slice(0, 80);
     saveBuildWorkspace(app);
     dialog.close();
@@ -149,8 +162,11 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
  */
 export function mountBuildTabs(app: ProfessionAppState): void {
   if (!app.workspace || document.getElementById('build-workspace-tabs')) return;
+
   const header = document.querySelector('#app > header');
+
   if (!header) return;
+
   const strip = document.createElement('section');
   strip.id = 'build-workspace-tabs';
   strip.className = 'build-workspace-tabs';
@@ -203,6 +219,7 @@ export function mountBuildTabs(app: ProfessionAppState): void {
   strip.querySelectorAll<HTMLElement>('[popover]').forEach((menu) => {
     menu.addEventListener('toggle', () => {
       if (!menu.matches(':popover-open')) return;
+
       const bounds = strip.querySelector<HTMLButtonElement>(`[popovertarget="${menu.id}"]`)!.getBoundingClientRect();
       menu.style.left = `${clamp(innerWidth - menu.offsetWidth - 8, 8, bounds.left)}px`;
       menu.style.top = `${clamp(innerHeight - menu.offsetHeight - 8, 8, bounds.bottom + 4)}px`;
@@ -214,14 +231,19 @@ export function mountBuildTabs(app: ProfessionAppState): void {
   });
   strip.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
+
     if (!button || !app.workspace || button.hasAttribute('popovertarget')) return;
+
     const action = button.dataset.buildTabAction;
     // Rows name their own build; the remaining actions always apply to the build being edited.
     const id = button.dataset.buildTabId || app.workspace.activeTabId;
+
     // Pinning keeps the chosen build in reach without switching editors or dismissing the open build list.
     if (action === 'pin') {
       const tab = app.workspace.tabs.find((entry) => entry.id === id);
+
       if (!tab) return;
+
       tab.pinned = !tab.pinned;
       saveBuildWorkspace(app);
       renderBuildTabs(app);
@@ -238,9 +260,12 @@ export function mountBuildTabs(app: ProfessionAppState): void {
 
     const menu = button.closest<HTMLElement>('[popover]');
     menu?.hidePopover();
+
     // Triggers are never re-rendered, so dialogs opened from a menu return focus to them on their own.
     if (menu) strip.querySelector<HTMLButtonElement>(`[popovertarget="${menu.id}"]`)!.focus({ preventScroll: true });
+
     if (!action) return;
+
     if (action === 'save-library') {
       app.templateContainer?.dispatchEvent(
         new CustomEvent('open-build-save', { detail: document.getElementById('build-switcher') })
@@ -250,8 +275,11 @@ export function mountBuildTabs(app: ProfessionAppState): void {
 
     if (action === 'browse' || action === 'load') {
       if (app.templateContainer) app.templateContainer.dataset.newBuild = String(action === 'browse');
+
       const dialog = document.querySelector<HTMLDialogElement>('#build-templates-dialog');
+
       if (dialog) showDialog(dialog);
+
       return;
     }
 
@@ -261,7 +289,9 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     }
 
     if (action === 'select') app.activateBuildTab?.(id);
+
     if (action === 'new') addBuildTab(app);
+
     if (action === 'duplicate') {
       const tab = app.workspace.tabs.find((tab) => tab.id === id)!;
       addBuildTab(app, app.build, `${tab.name} copy`, app.patchId, tab.templateBuild);
@@ -285,6 +315,7 @@ function renderPinnedBuildTabs(app: ProfessionAppState, container: HTMLElement):
     let button = [...container.querySelectorAll<HTMLButtonElement>('button')].find(
       (entry) => entry.dataset.buildTabId === tab.id
     );
+
     if (!button) {
       button = document.createElement('button');
       button.type = 'button';
@@ -297,6 +328,7 @@ function renderPinnedBuildTabs(app: ProfessionAppState, container: HTMLElement):
     button.querySelector('span')!.textContent = tab.name;
     button.title = tab.name;
     button.setAttribute('aria-pressed', String(tab.id === workspace.activeTabId));
+
     if (container.children[index] !== button) container.insertBefore(button, container.children[index] ?? null);
   });
   container.hidden = pinned.length === 0;
@@ -305,9 +337,12 @@ function renderPinnedBuildTabs(app: ProfessionAppState, container: HTMLElement):
 /** Names are escaped; the switcher labels the build being edited and its menu lists every open build. */
 export function renderBuildTabs(app: ProfessionAppState): void {
   if (!app.workspace || typeof document === 'undefined') return;
+
   const strip = document.getElementById('build-workspace-tabs');
   const workspace = app.workspace;
+
   if (!strip || !workspace) return;
+
   const count = workspace.tabs.length;
   const active = workspace.tabs.find((tab) => tab.id === workspace.activeTabId);
   // Update the trigger in place so it keeps focus while builds are renamed, loaded, or closed.

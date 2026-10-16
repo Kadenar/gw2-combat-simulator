@@ -35,8 +35,10 @@ export function sideEffectAmount(
       : 'skillField' in amount
         ? skill?.[amount.skillField]
         : balanceNumberFromContext(runtime, amount.profile, amount.field);
+
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
     throw new RangeError('Side-effect amounts must be finite and non-negative.');
+
   return value;
 }
 
@@ -55,7 +57,9 @@ export function applySideEffect<TContext extends SideEffectServices>(
       const count = sideEffectAmount(runtime, action.count);
       for (const id of action.skillIds) {
         const skill = runtime.helpers.skillsById.get(id);
+
         if (!skill) throw new TypeError(`Unknown ammo restoration skill: ${id}.`);
+
         runtime.cooldownController.restoreAmmo(skill, count, runtime.time);
       }
 
@@ -71,13 +75,16 @@ export function applySideEffect<TContext extends SideEffectServices>(
           : action.amount,
         context.skill
       );
+
       if (action.resource === 'endurance') runtime.endurance.grant(amount);
       else runtime.resourceController.grant(action.resource, amount);
+
       return;
     }
 
     case 'flipArm':
       if (context.kind !== 'cast') throw new TypeError('flipArm requires a cast trigger.');
+
       runtime.armFlip(action.skillId, {
         expiresAt:
           action.durationSec === null
@@ -90,6 +97,7 @@ export function applySideEffect<TContext extends SideEffectServices>(
     case 'flipConsume':
       // Consumption is phase-owned by the declaration and leaves any later rearm's expiry independent.
       if (context.kind !== 'cast') throw new TypeError('flipConsume requires a cast trigger.');
+
       runtime.consumeFlip(action.skillId);
       return;
     case 'emitProfile': {
@@ -115,7 +123,9 @@ export function applySideEffect<TContext extends SideEffectServices>(
 
     default: {
       const handler = handlers[action.type];
+
       if (!handler) throw new TypeError(`No side-effect handler registered for ${action.type}.`);
+
       handler(runtime, context, action);
     }
   }

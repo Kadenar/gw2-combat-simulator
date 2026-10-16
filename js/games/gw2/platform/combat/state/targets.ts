@@ -66,6 +66,7 @@ export function canonicalTargetConditionName(value: unknown): string {
   const text = String(value || '');
   // Producers and queries reuse a small vocabulary, so each spelling is normalized once instead of per stack query.
   let name = canonicalConditionNames.get(text);
+
   if (name === undefined) {
     const normalized = text.trim().toLowerCase();
     name = normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : '';
@@ -91,6 +92,7 @@ function normalizeTargetConditions(
   const normalized = new Map<string, number | boolean>();
   for (const [condition, value] of Object.entries(conditions)) {
     const name = canonicalTargetConditionName(condition);
+
     if (!normalized.has(name)) normalized.set(name, value);
   }
 
@@ -109,6 +111,7 @@ function configuredConditionValue(
 ): number | boolean {
   const canonicalName = canonicalTargetConditionName(name);
   const conditions = config.target?.conditions || {};
+
   if (Object.hasOwn(conditions, canonicalName)) {
     return conditions[canonicalName];
   }
@@ -120,6 +123,7 @@ function configuredConditionValue(
   const entry = Object.entries(conditions).find(
     ([condition]) => canonicalTargetConditionName(condition) === canonicalName
   );
+
   if (entry) return entry[1];
 
   return 0;
@@ -130,7 +134,9 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
   const normalizedConditions = normalizeTargetConditions(config.target?.conditions || {});
   return (name: string): number => {
     const value = configuredConditionValue(config, name, normalizedConditions);
+
     if (value === true) return 1;
+
     return Math.min(conditionStackLimit(name) ?? Infinity, Math.max(0, Number(value) || 0));
   };
 }
@@ -144,7 +150,9 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
  */
 export function permanentTargetConditionStacks(config: Gw2Config, name: string): number {
   const value = configuredConditionValue(config, name);
+
   if (value === true) return 1;
+
   return Math.min(conditionStackLimit(name) ?? Infinity, Math.max(0, Number(value) || 0));
 }
 
@@ -169,6 +177,7 @@ export function runtimeTargetConditionStacks(
   at: number
 ): number {
   if (!(runtime?.conditionState instanceof Map)) return 0;
+
   const canonicalName = canonicalTargetConditionName(name);
   // Runtime writers store canonical condition names, so queries need only one lookup.
   const entry = runtime.conditionState.get(canonicalName);
@@ -190,8 +199,10 @@ export function targetConditionStacks(
   permanentStacks = permanentTargetConditionStacks(config, name)
 ): number {
   const maximum = conditionStackLimit(name) ?? Infinity;
+
   // Permanent assumptions already at the cap cannot gain intensity from nonnegative live stacks.
   if (permanentStacks >= maximum) return maximum;
+
   return Math.min(maximum, permanentStacks + runtimeTargetConditionStacks(runtime, name, at || 0));
 }
 
@@ -204,8 +215,11 @@ export function targetHasCondition(
   permanentStacks = permanentTargetConditionStacks(config, name)
 ): boolean {
   if (permanentStacks > 0) return true;
+
   const stacks = runtime?.conditionState?.get(canonicalTargetConditionName(name))?.stacks;
+
   if (!stacks) return false;
+
   for (let index = stacks.length - 1; index >= 0; index -= 1)
     if (activeRuntimeStackWeight(stacks[index]!, at || 0) > 0) return true;
   return false;

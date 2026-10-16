@@ -241,6 +241,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;
+
     if (strike) {
       context.effects.emit({
         kind: 'packet',
@@ -338,6 +339,7 @@ export function prepareHolosmithSwordEvent(
     )
   )
     return event;
+
   return { ...event, holosmithStrikeProfileId: PROFILE.swordHeatTier };
 }
 

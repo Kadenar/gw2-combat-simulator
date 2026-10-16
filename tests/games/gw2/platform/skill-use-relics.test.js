@@ -297,6 +297,7 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
     assert.equal(strike(7.04 + delay), 1);
     assert.equal(strike(4, { actorType: 'summon' }), 1);
     assert.equal(strike(4, { actorType: 'effect', ownerActorType: 'player' }), multiplier);
+
     if (relic === 'Director') {
       const applications = result.resolvedEvents.filter(
         (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`

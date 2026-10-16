@@ -39,7 +39,9 @@ function emitTransitionLockout(
   skill?: { readonly id: SkillId; readonly name: string }
 ): void {
   const duration = normalizeTransitionDelays(context.config?.transitionDelays)[kind] / 1000;
+
   if (!duration) return;
+
   context.effects.emit({
     kind: 'packet',
     event: {

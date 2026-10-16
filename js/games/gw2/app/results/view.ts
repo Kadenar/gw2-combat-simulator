@@ -90,13 +90,16 @@ function modifierContributionModel(app: ProfessionAppState) {
 /** Updates only the modifier section; the rest of Analysis remains mounted and interactive. */
 export function renderModifierContributions(app: ProfessionAppState): void {
   if (typeof document === 'undefined') return;
+
   const container = document.querySelector<HTMLElement>('#rotation-results [data-role="modifier-contributions"]');
+
   if (container) container.innerHTML = modifierContributionsHtml(modifierContributionModel(app));
 }
 
 /** Converts a GW2 resolver result into the neutral result-view contract. */
 export function createGw2SimulationViewModel(app: ProfessionAppState): SimulationViewModel {
   const result = app.results;
+
   if (!app.build.rotation.length || !result) {
     return {
       summary: resultSection((container) =>

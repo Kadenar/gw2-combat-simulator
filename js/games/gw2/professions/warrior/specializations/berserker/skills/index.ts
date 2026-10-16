@@ -538,10 +538,12 @@ export const berserkSkillActions: RuntimeProfession<WarriorRuntimeState, Warrior
   },
   'warrior.berserk-enter'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     const state = berserkerState.from(runtime);
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
     const effect = requireEffect(profile, 'buff', 'berserk');
+
     if (effect && effectNumber(profile, effect, 'duration') > 0) {
       state.berserkActive = true;
       state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));

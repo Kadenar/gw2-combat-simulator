@@ -95,15 +95,19 @@ export const piercingShards = defineTrait({
 function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
   const skill = cast.skill;
   const at = cast.effectiveEnd;
+
   if (skill.type !== 'Heal') {
     return;
   }
 
   const soothingIceProfile = requireBalanceProfileFromContext(context, TRAIT.SOOTHING_ICE);
+
   // Claim the existing owner-local timer before any derived effect.
   if (!context.procs.claimCooldown('soothingIce', at, balanceProfileNumber(soothingIceProfile, 'internalCooldown')))
     return;
+
   const soothingIceFrostAura = requireEffect(soothingIceProfile, 'buff', 'Frost Aura');
+
   if (soothingIceFrostAura) {
     applyElementalistAura(context, {
       at,

@@ -5,18 +5,26 @@ import type { ProfessionChargeReleaseContext } from '#gw2/platform/profession-pr
 /** Release choices are actual independent prefix runs, including their pending effects, cooldowns, and charge stalls. */
 export function dragonChargeReleaseProjection({ skill, preview }: ProfessionChargeReleaseContext) {
   const unavailable = { rows: [], unavailableMessage: ENTER_DRAGON_TRIGGER_REASON };
+
   if (!skill || !preview) return unavailable;
+
   const prefix = preview();
   const state = prefix.planningState.profession as { readonly dragonTriggerActive?: boolean } | null;
+
   if (!state?.dragonTriggerActive) return unavailable;
+
   const entry = prefix.events
     .filter((event) => event.type === 'resource' && event.reason === DRAGON_TRIGGER_ENTRY_RESOURCE_REASON)
     .at(-1);
+
   if (!entry) return unavailable;
+
   const maximum = Number(entry.maximumCharges);
   const interval = Number(entry.chargesPerInterval);
+
   if (!(Number.isInteger(maximum) && maximum > 0 && Number.isInteger(interval) && interval > 0))
     throw new TypeError('Dragon Trigger entry must record positive integer charge limits.');
+
   const levels: number[] = [];
   for (let charges = interval; charges < maximum; charges += interval) levels.push(charges);
   levels.push(maximum);

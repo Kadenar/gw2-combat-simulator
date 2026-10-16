@@ -38,12 +38,16 @@ export function bindPaletteInteractions(
   handlers: PaletteInteractionHandlers = {}
 ): void {
   if (!root) return;
+
   // Restore optional palette panels after every rerender and persist the next native disclosure toggle.
   for (const disclosure of root.querySelectorAll<HTMLDetailsElement>('details[data-palette-storage-key]')) {
     const storageKey = disclosure.dataset.paletteStorageKey;
+
     if (!storageKey) continue;
+
     try {
       const stored = root.ownerDocument.defaultView?.localStorage.getItem(storageKey);
+
       if (stored === 'true' || stored === 'false') disclosure.open = stored === 'true';
     } catch {
       // Browser storage may be unavailable in private or embedded contexts.
@@ -71,6 +75,7 @@ export function bindPaletteInteractions(
     const draggable = icon.getAttribute('draggable') === 'true';
     icon.onclick = (event) => {
       if (icon.classList.contains('pal-context-disabled')) return;
+
       handlers.onActivate?.(name, event as unknown as PaletteMouseEvent);
     };
 
@@ -87,6 +92,7 @@ export function bindPaletteInteractions(
 
       icon.classList.add('dragging');
       event.dataTransfer?.setData('text/plain', name);
+
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
     };
 
@@ -127,13 +133,17 @@ export function resolvePaletteDropItem(
   skillId: number | null = null
 ): RotationCommand | RotationCommand[] | null {
   if (!name) return null;
+
   const professionAction = resolveProfessionPaletteAction(app, name, skillId, createPaletteContext(app));
+
   if (professionAction !== undefined) return professionAction;
+
   if (name === '__combat_start' && app.build.rotation.some((entry) => rotationEntryName(entry) === '__combat_start')) {
     return null;
   }
 
   if (name === '__wait') return null;
+
   return createRotationItem(app, name, skillId == null ? {} : { skillId });
 }
 
@@ -160,12 +170,14 @@ export function dispatchPaletteActivation(
 ): void {
   // Retained palette tiles cannot author commands against a rotation whose new state has not rendered yet.
   if (app.resultRevision !== app.buildRevision) return;
+
   const icon = event.currentTarget;
   const parsedSkillId = Number(icon.dataset.skillId);
   const skillId = icon.dataset.skillId != null && Number.isFinite(parsedSkillId) ? parsedSkillId : null;
   const identity = skillId == null ? {} : { skillId };
   const context = createPaletteContext(app);
   const professionAction = resolveProfessionPaletteAction(app, name, skillId, context);
+
   // `undefined` means the profession does not own the action. `null` means it handled the activation without insertion.
   if (professionAction !== undefined) {
     if (professionAction !== null) {
@@ -195,6 +207,7 @@ export function dispatchPaletteActivation(
   }
 
   const skill = skillId == null ? app.skillByName.get(name) : app.skillById.get(skillId);
+
   if (skill?.dragonSlash) {
     const insertionIndex =
       normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length) ??
@@ -232,6 +245,7 @@ export function dispatchPaletteActivation(
   }
 
   const instant = paletteSkillIsInstant(app, context, skill, name);
+
   // Companion animations can overlap the player just like instant player skills.
   if (
     event.shiftKey &&
@@ -279,6 +293,7 @@ export function bindAppPaletteInteractions(
   bindPaletteInteractions(element, {
     onControlActivate(controlId) {
       if (app.resultRevision !== app.buildRevision) return;
+
       if (app.profession.ui.updatePaletteControl(paletteContext, controlId)) {
         app.changed();
       }
@@ -288,6 +303,7 @@ export function bindAppPaletteInteractions(
     },
     onDragStart(name, event) {
       if (app.resultRevision !== app.buildRevision) return false;
+
       const parsedSkillId = Number(event.currentTarget.dataset.skillId);
       app.dragState = {
         source: 'palette',
@@ -338,7 +354,9 @@ export function resolvePaletteDrop(
 
   if (name === '__wait') {
     const anchor = paletteDragAnchor(name);
+
     if (!anchor) return null;
+
     openDurationEditor({
       anchor,
       heading: 'Add wait',
@@ -355,7 +373,9 @@ export function resolvePaletteDrop(
 
   if (skill?.dragonSlash) {
     const anchor = paletteDragAnchor(name);
+
     if (!anchor) return null;
+
     openDragonSlashReleaseEditor({
       app,
       anchor,
@@ -373,7 +393,9 @@ export function resolvePaletteDrop(
 
   if (hasConfigurableDoubleEdgeOutcome(skill)) {
     const anchor = paletteDragAnchor(name);
+
     if (!anchor) return null;
+
     openDoubleEdgeEditor({
       anchor,
       skillName: String(skill.displayName || skill.name),

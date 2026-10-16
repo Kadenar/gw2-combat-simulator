@@ -63,6 +63,7 @@ export function workspaceStorageKey(adapter: Gw2AppAdapter): string {
 export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
   try {
     const saved = JSON.parse(localStorage.getItem(workspaceStorageKey(adapter)) || 'null');
+
     if (saved?.version === 1 && Array.isArray(saved.tabs)) {
       const tabs: BuildTab[] = [];
       let migrated = false;
@@ -80,6 +81,7 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
             tabs.some((tab) => tab.id === entry.id)
           )
             continue;
+
           const tab = createBuildTab(replaceBuild(entry.build, adapter), entry.name);
           tab.id = entry.id;
           // Pins are a workspace preference; only an explicit boolean enables a persistent shortcut.
@@ -145,7 +147,9 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
 /** Snapshots references owned by the outgoing tab without cloning large simulation results. */
 export function captureActiveBuildTab(app: ProfessionAppState): void {
   const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+
   if (!tab) return;
+
   tab.build = app.build;
   tab.patchId = app.patchId;
   tab.session = Object.fromEntries(
@@ -159,6 +163,7 @@ export function captureActiveBuildTab(app: ProfessionAppState): void {
 export function invalidateInactiveBuildTabs(app: ProfessionAppState): void {
   for (const tab of app.workspace?.tabs ?? []) {
     if (tab.id === app.workspace?.activeTabId) continue;
+
     tab.resultsFresh = false;
     queueRotationReference(tab.session);
   }
@@ -167,7 +172,9 @@ export function invalidateInactiveBuildTabs(app: ProfessionAppState): void {
 /** Persists only durable inputs; caches and undo stacks stay in this browser session. */
 export function saveBuildWorkspace(app: ProfessionAppState): void {
   const workspace = app.workspace;
+
   if (!workspace) return;
+
   captureActiveBuildTab(app);
   try {
     localStorage.setItem(
@@ -200,9 +207,12 @@ export function addBuildTab(
   templateBuild?: Gw2CanonicalBuild
 ): BuildTab | undefined {
   if (!app.workspace || !app.activateBuildTab) return;
+
   const tab = createBuildTab(structuredClone(build), name, patchId);
+
   // Copies retain the source template while keeping subsequent edits independent.
   if (templateBuild) tab.templateBuild = structuredClone(templateBuild);
+
   app.workspace.tabs.push(tab);
   app.activateBuildTab(tab.id);
   return tab;
@@ -211,10 +221,15 @@ export function addBuildTab(
 /** Closing the active tab selects its neighbor; the final build always stays open. */
 export function closeBuildTab(app: ProfessionAppState, id: string): void {
   const workspace = app.workspace;
+
   if (!workspace || workspace.tabs.length === 1) return;
+
   const index = workspace.tabs.findIndex((tab) => tab.id === id);
+
   if (index < 0) return;
+
   captureActiveBuildTab(app);
+
   if (id === workspace.activeTabId) {
     const neighbor = workspace.tabs[index + 1] || workspace.tabs[index - 1];
     app.activateBuildTab?.(neighbor.id);

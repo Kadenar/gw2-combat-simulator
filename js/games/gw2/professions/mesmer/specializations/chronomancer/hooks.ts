@@ -32,6 +32,7 @@ export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = 
     // The checkpoint owns its atomic clone spend and publishes the same resolved-shatter notification once.
     'mesmer.chronomancer.begin-continuum'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       const resolution = createChronomancerMechanics(runtime).beginContinuumSplit(context.skill, runtime.time, {
         activationId: context.cast.id
       });
@@ -41,6 +42,7 @@ export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = 
   tasks: {
     'mesmer.continuum-expire'(runtime, data) {
       if (chronomancerState.from(runtime).continuum?.expiresAt !== data) return;
+
       createChronomancerMechanics(runtime).restoreContinuum(runtime.time, 'split expired');
     },
     'mesmer.chronomancer.restore-continuum'(runtime) {

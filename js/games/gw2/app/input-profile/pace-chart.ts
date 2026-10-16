@@ -36,7 +36,9 @@ export function drawInputPaceChart(
   onSelectSection: (index: number) => void
 ): void {
   const width = host.clientWidth;
+
   if (width <= 0 || summary.duration <= 0) return;
+
   const compact = width < 520;
   const margin = { left: 28, right: 12, top: 24, bottom: 74 };
   const duration = summary.duration;
@@ -50,7 +52,9 @@ export function drawInputPaceChart(
     const middle = (x(section.start) + x(section.end)) / 2;
     const center = Math.max(labelWidth / 2 + 4, Math.min(width - labelWidth / 2 - 4, middle));
     let row = rowEnds.findIndex((end) => center - labelWidth / 2 >= end + 8);
+
     if (row < 0) row = rowEnds.length;
+
     rowEnds[row] = center + labelWidth / 2;
     return { center, row };
   });
@@ -139,12 +143,14 @@ export function drawInputPaceChart(
   });
   hit.addEventListener('click', (event) => {
     const section = sectionAt(timeAt(event.clientX));
+
     if (section >= 0) onSelectSection(section);
   });
   for (const bracket of host.querySelectorAll<SVGGElement>('[data-select-section]')) {
     const index = Number(bracket.dataset.selectSection);
     bracket.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
+
       event.preventDefault();
       event.stopPropagation();
       onSelectSection(index);
@@ -161,7 +167,9 @@ export function drawInputPaceChart(
 export function markInputPaceChart(host: HTMLElement, times: readonly number[], tone: 'key' | 'transition'): void {
   const scale = scales.get(host);
   const marks = host.querySelector('[data-chart-marks]');
+
   if (!scale || !marks) return;
+
   marks.innerHTML = times
     .map(
       (at) =>

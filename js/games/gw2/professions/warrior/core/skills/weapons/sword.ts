@@ -235,12 +235,14 @@ export const swordFlipLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill>
   },
   availability(runtime, skill) {
     if (skill.weapon !== 'Sword') return { ready: true };
+
     const block = weaponFlipBlock(
       runtime.profession.core.availableFlips,
       runtime.helpers.skillsById,
       skill,
       runtime.time
     );
+
     if (block?.kind === 'closed')
       return {
         ready: false,
@@ -248,6 +250,7 @@ export const swordFlipLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill>
         code: 'warrior.sword-flip-inactive',
         reason: `${skill.name} requires an active ${block.parent.name}.`
       };
+
     if (block?.kind === 'open')
       return {
         ready: false,
@@ -255,6 +258,7 @@ export const swordFlipLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill>
         code: 'warrior.sword-flip-active',
         reason: `${skill.name} is replaced by its active follow-up.`
       };
+
     return { ready: true };
   }
 };

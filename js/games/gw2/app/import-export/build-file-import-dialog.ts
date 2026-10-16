@@ -133,6 +133,7 @@ function buildSummary(document: Document, build: Gw2CanonicalBuild, app: Profess
   list.className = 'build-file-import-summary';
   for (const [label, value] of rows) {
     if (!value) continue;
+
     const term = document.createElement('dt');
     const detail = document.createElement('dd');
     term.textContent = label;
@@ -246,6 +247,7 @@ export function bindBuildFileImportDialog(
   elements.rotationCheckbox.addEventListener('change', syncApply);
   elements.applyButton.addEventListener('click', () => {
     if (!preview) return;
+
     try {
       importer.validateDestination();
       applyBuildFileImport(app, preview, selection());

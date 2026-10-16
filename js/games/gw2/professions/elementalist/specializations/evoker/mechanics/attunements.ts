@@ -47,6 +47,7 @@ export function completeEvokerAttunement(
   skill: Skill
 ): boolean {
   const target = targetAttunement(skill);
+
   if (!target) return false;
 
   const shouldTriggerAttunementTrait = (trigger: ElementalistAttunementTraitTrigger): boolean =>
@@ -100,6 +101,7 @@ export function applyEvokerAttunementRechargePolicy(
 
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     if (attunement === target || attunement === previous) continue;
+
     const defaultReadyAt =
       event.at +
       elementalistAttunementRechargeDuration(

@@ -331,6 +331,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
 /** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */
 function signetPulse(runtime: WarriorRuntime): void {
   if ((runtime.cooldownController.readyAt(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorResource(runtime, 2);
+
   runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
   runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
 }
@@ -351,6 +352,7 @@ export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSki
   },
   onCombatStart(runtime) {
     if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_RAGE)) return;
+
     runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
     runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
   },

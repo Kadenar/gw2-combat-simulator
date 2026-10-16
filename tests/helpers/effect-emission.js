@@ -37,6 +37,7 @@ export function captureAcceptedBuffEmissions() {
             ...event,
             resolvedAudience: gw2BuffApplicationRecipients({}, event)
           });
+
         return event;
       }
     })

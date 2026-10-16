@@ -108,7 +108,9 @@ export function createProfessionRuntime({
   function relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonJobRequest | null {
     const opponentRelic = String(app.build.relic || '');
     const targetRelic = String(comparisonRelic || '');
+
     if (!app.relicNames.includes(targetRelic) || !relicComparisonAvailable(opponentRelic, targetRelic)) return null;
+
     return {
       gameId: 'gw2',
       contentId: profession.id,
@@ -147,6 +149,7 @@ export function createProfessionRuntime({
   ): Gw2SimulationResult['planningState'] {
     const rotation = app.build.rotation;
     const index = clamp(rotation.length, 0, Math.floor(Number(insertionIndex) || 0));
+
     // A tail-resolved result cannot supply availability at the insertion boundary.
     if (
       index === rotation.length &&

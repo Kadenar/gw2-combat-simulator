@@ -104,12 +104,14 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
       });
       const packets = result.events.filter((event) => event.sourceId === trait);
       assert.equal(packets.length, removed ? 0 : 1);
+
       if (!removed) {
         assert.equal(packets[0].at, 4);
         assert.equal(packets[0].duration, 9);
       }
 
       if (name === 'Endless Enmity') assert.equal(observedRuntime(result).procs.deadline(profile), removed ? 0 : 12);
+
       assert.deepEqual(result.warnings, []);
     }
   });
@@ -181,7 +183,9 @@ for (const [name, profession, specialization, trait, skill, effect, configExtra]
           event.type === 'buff' && event.name === (name === 'Transcendent Tempest' ? name : `${name} \u2014 superspeed`)
       );
       assert.equal(packets.length, removed ? 0 : 1);
+
       if (!removed) assert.equal(packets[0].duration, 8);
+
       assert.deepEqual(result.warnings, []);
     }
   });

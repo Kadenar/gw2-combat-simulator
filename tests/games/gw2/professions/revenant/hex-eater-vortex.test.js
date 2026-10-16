@@ -106,7 +106,9 @@ test('Hex-Eater zero-condition salvo and Shared Wisdom are independently gated',
       );
       const resolution = result.events.find((event) => event.type === 'buff' && event.kind === 'resolution');
       assert.equal(Boolean(resolution), mode === 'selected');
+
       if (resolution) assert.equal(resolution.stacks, 2);
+
       assert.equal(observedRuntime(result).profession.core.selfConditionCount, 0);
     }
   }

@@ -303,14 +303,18 @@ export function validateComboDefinitions(values: readonly ComboDefinition[]): re
   const keys = new Set<string>();
   for (const definition of values) {
     const key = `${definition.fieldType}|${definition.finisherType}`;
+
     if (keys.has(key)) throw new TypeError(`Duplicate combo definition: ${key}.`);
+
     keys.add(key);
+
     if (!definition.outcome?.kind || !definition.outcome.name) {
       throw new TypeError(`Combo definition ${key} requires an outcome.`);
     }
   }
 
   const expected = COMBO_FIELD_TYPES.length * COMBO_FINISHER_TYPES.length;
+
   if (values.length !== expected || keys.size !== expected) {
     throw new TypeError(`Combo definitions require all ${expected} field/finisher pairs.`);
   }
@@ -318,6 +322,7 @@ export function validateComboDefinitions(values: readonly ComboDefinition[]): re
   for (const fieldType of COMBO_FIELD_TYPES) {
     for (const finisherType of COMBO_FINISHER_TYPES) {
       const key = `${fieldType}|${finisherType}`;
+
       if (!keys.has(key)) throw new TypeError(`Missing combo definition: ${key}.`);
     }
   }
@@ -334,6 +339,7 @@ const DEFINITION_BY_KEY = new Map(
 /** Returns the canonical outcome definition for a field and finisher pair. */
 export function comboDefinition(fieldType: ComboFieldType, finisherType: ComboFinisherType): ComboDefinition {
   const definition = DEFINITION_BY_KEY.get(`${fieldType}|${finisherType}`);
+
   if (!definition) {
     throw new TypeError(`Missing combo definition: ${fieldType}/${finisherType}.`);
   }

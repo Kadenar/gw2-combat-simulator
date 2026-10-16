@@ -747,7 +747,9 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<Record<string, PetSkillTimingDef
 /** Resolve the selected pet's measurements through one table without extending them to unmeasured pets. */
 export function rangerPetSkillTiming(petName: string, skillId: SkillId): PetSkillTiming | undefined {
   const definition = RANGER_PET_SKILL_TIMINGS[skillId];
+
   if (!definition || (definition.petNames && !definition.petNames.includes(petName))) return undefined;
+
   const { petNames: _petNames, overridesSkillCastTime: _overrides, petOverrides, ...timing } = definition;
   return { ...timing, ...petOverrides?.[petName] };
 }

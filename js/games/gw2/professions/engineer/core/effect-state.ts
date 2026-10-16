@@ -12,6 +12,7 @@ export function engineerBuffPolicies(context: unknown): BuffStatePolicy[] {
   ];
   for (const [kind, id] of [['explosive-temper', TRAIT.EXPLOSIVE_TEMPER]] as const) {
     const profile = balanceProfileFromContext(context, id);
+
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }
 

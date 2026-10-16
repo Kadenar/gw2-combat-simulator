@@ -29,7 +29,9 @@ function swapFixture({ family, specialization, weapons, trait, incomingForce, st
         : { names: ['Hydromancy', 'Accuracy'], criticalChanceBonus: 7 }
     ]
   };
+
   if (startingWeaponSet === 2) config.sigilSets.reverse();
+
   const native = family.runtimeFor(config);
   const probe = (at) => ({
     type: 'damage',

@@ -41,7 +41,9 @@ export function createThievesGuildHooks(
   function thievesGuildSummons(runtime: ThiefRuntime): ThiefSummonDefinition[] {
     const skill: ThiefSkill | undefined = runtime.helpers.skillsById.get(ID.THIEVES_GUILD);
     const profile = skill?.summonAttack;
+
     if (!profile) return [];
+
     const third = contribution
       ? (requireBalanceProfileFromContext(runtime, contribution.profileId) as ThiefGuildSummonProfile)
       : profile.summons.find((summon) => summon.variant === 'Core Thief');
@@ -51,7 +53,9 @@ export function createThievesGuildHooks(
   /** A committed summon replaces any active guild; its streams start with combat. */
   function summonThievesGuild(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
     const profile = cast.skill.summonAttack;
+
     if (!profile) return;
+
     const core = runtime.profession.core;
     const expiresAt = canonicalTime(cast.start + (profile.duration || 0));
     core.activeThievesGuild = {
@@ -66,11 +70,14 @@ export function createThievesGuildHooks(
   /** Starts every authored attack stream once, at the accepted combat boundary or the summon itself. */
   function startThievesGuild(runtime: ThiefRuntime): void {
     const active = runtime.profession.core.activeThievesGuild;
+
     if (!autonomousActionsAllowed(runtime) || !active || active.started || runtime.time >= active.expiresAt) return;
+
     active.started = true;
     for (const [summonIndex, summon] of thievesGuildSummons(runtime).entries())
       for (const [attackIndex, attack] of (summon.attacks || []).entries()) {
         const at = canonicalTime(runtime.time + (attack.initialDelay || 0));
+
         if (at < active.expiresAt)
           runtime.schedule(THIEF_GUILD_ATTACK, at, {
             ownerId: active.ownerId,
@@ -85,6 +92,7 @@ export function createThievesGuildHooks(
   function thievesGuildAttack(runtime: ThiefRuntime, data: unknown): void {
     const work = data as GuildAttackWork;
     const active = runtime.profession.core.activeThievesGuild;
+
     if (
       !autonomousActionsAllowed(runtime) ||
       !active ||
@@ -92,11 +100,14 @@ export function createThievesGuildHooks(
       runtime.time >= active.expiresAt
     )
       return;
+
     const skill: ThiefSkill | undefined = runtime.helpers.skillsById.get(ID.THIEVES_GUILD);
     const profile = skill?.summonAttack;
     const summon = thievesGuildSummons(runtime)[work.summonIndex];
     const attack = summon?.attacks?.[work.attackIndex];
+
     if (!profile || !summon || !attack) return;
+
     const hits = Math.max(1, attack.hits ?? 1);
     const summonName = `Thieves Guild — ${summon.name}`;
     const attackName = `${summonName} — ${attack.name}`;
@@ -144,6 +155,7 @@ export function createThievesGuildHooks(
         })
       });
     const next = canonicalTime(runtime.time + (attack.interval || 0));
+
     if ((attack.interval || 0) > 0 && next < active.expiresAt)
       runtime.schedule(THIEF_GUILD_ATTACK, next, {
         ...work,
@@ -154,6 +166,7 @@ export function createThievesGuildHooks(
   /** The guild's shared lifetime retires every stream at once. */
   function expireThievesGuild(runtime: ThiefRuntime, data: unknown): void {
     const core = runtime.profession.core;
+
     if (core.activeThievesGuild?.ownerId === (data as { ownerId: string }).ownerId) core.activeThievesGuild = null;
   }
 

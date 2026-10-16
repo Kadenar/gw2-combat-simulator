@@ -80,6 +80,7 @@ export function resolveCloneShatter(
 
     const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
     const confusion = cloneShatterConfusion(cryOfPainConfusion(context, baseConfusion), sources);
+
     if (confusion)
       buildMesmerConditions(context, skill.name, at, confusion, 'Player', '', {
         skillId: skill.id,

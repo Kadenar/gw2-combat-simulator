@@ -31,6 +31,7 @@ export function createCloneAttackScheduler({
 
   const sequenceStep = (clone: MesmerClone, attack: MesmerCloneAttack): MesmerCloneAttackStep => {
     if (!attack.sequence) return attack;
+
     const index = (clone.attackSequenceIndex || 0) % attack.sequence.length;
     return attack.sequence[index];
   };
@@ -116,7 +117,9 @@ export function createCloneAttackScheduler({
 
   const handleTask = (cloneId: number, at: number): number | null => {
     const clone = profession.clones.find((candidate) => candidate.id === cloneId);
+
     if (!clone) return null;
+
     scheduleAttack(clone, at);
     const attack = attackFor(clone);
     clone.nextAttackAt = at + sequenceStep(clone, attack).interval;

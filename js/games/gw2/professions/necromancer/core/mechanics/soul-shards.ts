@@ -29,6 +29,7 @@ export function grantNecromancerSoulShards(runtime: NecromancerRuntime, amount: 
 /** The consumed shard emits an independent siphon through the shared formula and cannot recursively consume another shard. */
 export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (!consumeSoulShards(runtime.profession.core, 1, runtime.time)) return;
+
   emitSoulShard(runtime, event);
 }
 
@@ -36,7 +37,9 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
 export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.soulShards);
   const strike = requireEffect(profile, 'strike', 'Soul Shards');
+
   if (!strike) return;
+
   runtime.effects.emit({
     kind: 'packet',
     cause: event,

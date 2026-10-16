@@ -95,6 +95,7 @@ export const earthenBlast = defineTrait({
       when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Earth',
       run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
         if (!input.claimTrait('Earth', TRAIT.EARTHEN_BLAST)) return;
+
         triggerEarthenBlast(runtime, input.at, input.skill.id, input.emissionCast);
       }
     })
@@ -144,6 +145,7 @@ export const rockSolid = defineTrait({
       when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Earth',
       run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
         if (!input.claimTrait('Earth', TRAIT.ROCK_SOLID)) return;
+
         grantElementalistRockSolid(runtime, input.at, input.skill.id, input.emissionCast);
       }
     })
@@ -178,7 +180,9 @@ export const writtenInStone = defineTrait({
 function applyEarthsEmbrace(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
   const skill = cast.skill;
   const at = cast.effectiveEnd;
+
   if (skill.type !== 'Heal') return;
+
   // Claim the existing owner-local timer before any derived effect.
   if (
     !context.procs.claimCooldown(
@@ -188,6 +192,7 @@ function applyEarthsEmbrace(context: ElementalistRuntime, { cast }: Elementalist
     )
   )
     return;
+
   emitTraitProfile(context, TRAIT.EARTHS_EMBRACE, TRAIT.EARTHS_EMBRACE, undefined, {
     at: at,
     fullEnd: at,
@@ -209,7 +214,9 @@ function applyEarthsEmbrace(context: ElementalistRuntime, { cast }: Elementalist
 /** Applies Written in Stone's signet-specific aura after a completed signet cast. */
 function applyWrittenInStone(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
   const skill = cast.skill;
+
   if (skill.skillFamily !== 'Signet') return;
+
   const signet =
     skill.id === ID.SIGNET_OF_RESTORATION
       ? 'Restoration'
@@ -218,9 +225,12 @@ function applyWrittenInStone(context: ElementalistRuntime, { cast }: Elementalis
         : skill.id === ID.SIGNET_OF_EARTH
           ? 'Earth'
           : null;
+
   if (!signet) return;
+
   const writtenInStoneProfile = requireBalanceProfileFromContext(context, TRAIT.WRITTEN_IN_STONE);
   const effect = requireEffect(writtenInStoneProfile, 'buff', signet);
+
   if (effect) {
     applyElementalistAura(context, {
       at: cast.effectiveEnd,
@@ -235,6 +245,7 @@ function applyWrittenInStone(context: ElementalistRuntime, { cast }: Elementalis
 /** Applies Strength of Stone after an already-classified immobilize event. */
 function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   const strengthOfStoneProfile = requireBalanceProfileFromContext(context, TRAIT.STRENGTH_OF_STONE);
+
   // Claim the existing owner-local timer before any derived effect.
   if (
     !context.procs.claimCooldown(
@@ -244,7 +255,9 @@ function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2Re
     )
   )
     return;
+
   const bleeding = requireEffect(strengthOfStoneProfile, 'condition', 'Strength of Stone');
+
   if (bleeding) {
     emitTraitProfile(context, TRAIT.STRENGTH_OF_STONE, TRAIT.STRENGTH_OF_STONE, undefined, {
       at: event.at,
@@ -307,6 +320,7 @@ function triggerEarthenBlast(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at)) return;
+
   emitEarthenBlast(context, at, sourceId, emissionCast);
 }
 
@@ -318,6 +332,7 @@ function grantElementalistRockSolid(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at)) return;
+
   emitTraitProfile(context, TRAIT.ROCK_SOLID, TRAIT.ROCK_SOLID, undefined, {
     at: at,
     fullEnd: at,

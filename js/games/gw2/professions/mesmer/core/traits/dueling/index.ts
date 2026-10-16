@@ -256,7 +256,9 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
   const count = Math.max(1, Math.trunc(event.count || 1));
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
   const effect = requireEffect(ineptitudeProfile, 'condition', 'Confusion');
+
   if (!effect) return;
+
   context.effects.emit({
     kind: 'announcement',
     announcement: {
@@ -291,10 +293,14 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
 /** Applies the interrupt half of Ineptitude with its defiant-target interval. */
 function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: MesmerResolverEvent): void {
   if (!context.config.target?.activatingSkills) return;
+
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
+
   // A removed Confusion packet owns no interrupt cooldown.
   if (!requireEffect(ineptitudeProfile, 'condition', 'Confusion')) return;
+
   const defiant = Boolean(context.config.target.defiant);
+
   // Non-defiant interrupts remain unlimited; defiant targets claim before Confusion can react.
   if (defiant && !context.procs.claim(TRAIT.INEPTITUDE, 'mesmer.core.ineptitude', event.at)) return;
 
@@ -316,7 +322,9 @@ function triggerBlindingDissipation(
 ): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.BLINDING_DISSIPATION);
   const effect = requireEffect(profile, 'condition', 'Blindness');
+
   if (!effect) return;
+
   // Shatter Blindness keeps its effect actor while using the shared profile payload path.
   emitTraitProfile(context, TRAIT.BLINDING_DISSIPATION, TRAIT.BLINDING_DISSIPATION, delivery.cause ?? undefined, {
     ...delivery,
@@ -359,7 +367,9 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
     const effect = requireEffect(masterFencerProfile, 'boon', name);
     return effect ? [effect] : [];
   });
+
   if (!furyEffects.length) return;
+
   const application = advanceCriticalProc(
     criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
     {
@@ -367,6 +377,7 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
       at: event.at
     }
   );
+
   // Only the canonical critical outcome can claim Master Fencer's cooldown.
   if (!application) return;
 
@@ -378,6 +389,7 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
     )
   )
     return;
+
   // Record one canonical proc as the cause of both grants so the log can summarize their resolved durations.
   const proc = context.effects.emit({
     receipt: true,
@@ -416,7 +428,9 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
 
   const sharperImagesProfile = requireBalanceProfileFromContext(context, TRAIT.SHARPER_IMAGES);
   const effect = requireEffect(sharperImagesProfile, 'condition', 'Bleeding');
+
   if (!effect) return;
+
   const application = advanceCriticalProc(
     criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
     {
@@ -424,7 +438,9 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
       at: event.at
     }
   );
+
   if (!application) return;
+
   const procCount = application.quantity;
 
   emitTraitProfile(context, TRAIT.SHARPER_IMAGES, TRAIT.SHARPER_IMAGES, event, {
@@ -498,7 +514,9 @@ export const fencersFinesseRecharge = compileRechargeRules<MesmerRuntimeState, M
 /** Sword strikes grant one live scalar-tuned stack after critical rewards; only the first hit announces the proc. */
 function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): void {
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+
   if (!skill || skill.weapon !== 'Sword' || event.summonKind === 'clone') return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.FENCERS_FINESSE);
   const traitSource = {
     source: 'Trait',

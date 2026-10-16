@@ -70,6 +70,7 @@ test('Rending Shatter applies one eight-second Vulnerability stack per blade spe
         conditions.every((event) => event.duration === 8),
         skill
       );
+
       if (skill === 'Bladesong Harmony') {
         const impacts = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skill);
         assert.deepEqual(

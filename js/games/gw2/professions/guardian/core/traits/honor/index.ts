@@ -148,6 +148,7 @@ export const invigoratedBulwark = defineTrait({
   hooks: {
     prepareEvent(runtime, event) {
       const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+
       if (
         !hasTrait(runtime, TRAIT.INVIGORATED_BULWARK) ||
         event.type !== 'buff' ||
@@ -156,6 +157,7 @@ export const invigoratedBulwark = defineTrait({
         event.sourceId !== skill.id
       )
         return event;
+
       const multiplier = balanceNumberFromContext(runtime, TRAIT.INVIGORATED_BULWARK, 'durationMultiplier');
       // Scaling the skill-owned packet also covers Writ's added pulses without consuming capped bonus duration.
       return { ...event, duration: Number(event.duration) * multiplier };
@@ -175,6 +177,7 @@ export function writOfPersistenceFields(
   if (isGuardianSymbolSkill(cast.skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
     const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
+
     if (window)
       fields = fields?.map((field, index) =>
         index === 0 ? { ...field, duration: Number(field.duration) + effectNumber(profile, window, 'duration') } : field
@@ -193,8 +196,10 @@ function writOfPersistenceEffects(
   const extra: SkillEffect[] = [];
   const skill = cast.skill;
   const field = skill.comboFields?.[0];
+
   if (field && isGuardianSymbolSkill(skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
+
     if (skill.id === ID.SYMBOL_OF_PUNISHMENT) {
       for (const effect of profile.effects ?? []) {
         if (effect.type === 'strike') extra.push({ ...effect, name: skill.name, weapon: 'Scepter' });
@@ -205,6 +210,7 @@ function writOfPersistenceEffects(
       const extension = window ? effectNumber(profile, window, 'duration') : 0;
       const interval = balanceProfileNumber(profile, 'pulseInterval');
       const pulse = effects.filter((effect) => effect.type === 'strike' && strikeEffectTicks(effect).length > 1).at(-1);
+
       if (pulse?.type === 'strike' && extension > 0 && interval > 0) {
         const ticks = strikeEffectTicks(pulse);
         const last = ticks.at(-1)!;
@@ -234,10 +240,12 @@ function writOfPersistenceEffects(
   }
 
   const selected = [...effects, ...extra];
+
   // A symbol's self boon belongs to each pulse even when its hostile packet misses the target.
   if (skill.id === ID.SYMBOL_OF_RESOLUTION || skill.id === ID.LUMINOUS_STAFF || skill.id === ID.SYMBOL_OF_FAITH)
     for (const effect of extra) {
       if (effect.type !== 'strike') continue;
+
       for (const tick of strikeEffectTicks(effect))
         selected.push({
           type: 'boon',

@@ -246,11 +246,15 @@ function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
   // Completing the missile-hit cycle resets buildup before granting the arrow refund and optional strike.
   const progress = advanceCounter(state.missileHits, 1, threshold, 'reset');
   state.missileHits = progress.value;
+
   if (!progress.reached) return;
+
   // The arrow refund is independent of the strike, so it survives strike removal.
   context.resourceController.grant('arrows', balanceProfileNumber(profile, 'resourceGain'));
   const strike = requireEffect(profile, 'strike', 'Strike');
+
   if (!strike) return;
+
   const hits = effectNumber(profile, strike, 'hits');
   const coefficient = effectNumber(profile, strike, 'coefficient');
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
@@ -282,21 +286,28 @@ function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
 /** Pet strikes claim Wuthering Wind once per accepted activation. */
 function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if (!isPetActorEvent(event) || !(Number(event.coefficient) > 0)) return;
+
   const at = event.at;
 
   const pet = context.profession.core.pet;
+
   if (!pet || event.summonOwner !== pet.id) return;
+
   const activationId = event.activationId || '';
+
   if (!pet.wutheringWindReady || canonicalTime(at) < pet.wutheringWindReadyAt) {
     return;
   }
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.WUTHERING_WIND);
   const strike = requireEffect(profile, 'strike', 'Strike');
+
   // The primed charge and proc exist only for the strike, so a removed strike leaves the charge armed.
   if (!strike) return;
+
   // ID-less packets may consume the charge; identified activations may consume it only once.
   if (activationId && !claimActivation(pet.activationClaims, 'ranger.wuthering-wind', activationId)) return;
+
   pet.wutheringWindReady = false;
   context.effects.emit({
     kind: 'announcement',
@@ -363,8 +374,10 @@ function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.FLOCK_TOGETHER);
   const quickness = requireEffect(profile, 'boon', 'quickness');
+
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!quickness || !context.procs.claim(TRAIT.FLOCK_TOGETHER, 'ranger.galeshot.flockTogether', context.time)) return;
+
   emitTraitProfile(context, TRAIT.FLOCK_TOGETHER, TRAIT.FLOCK_TOGETHER, undefined, {
     at: context.time,
     fullEnd: context.time,
@@ -388,6 +401,7 @@ function applyGaleForce(context: RangerRuntime, skill: RangerSkill): void {
   {
     const profile = requireBalanceProfileFromContext(context, TRAIT.GALE_FORCE);
     const effect = requireEffect(profile, 'buff', 'gale-force');
+
     // The damage window belongs to the buff, so a removed buff opens no window.
     if (effect) {
       const duration = effectNumber(profile, effect, 'duration');
@@ -415,7 +429,9 @@ function applyGaleForce(context: RangerRuntime, skill: RangerSkill): void {
 /** Bluster primes the pet follow-up after its own effects have been committed. */
 function primeWutheringWind(context: RangerRuntime): void {
   const pet = context.profession.core.pet;
+
   if (!pet) return;
+
   pet.wutheringWindReady = true;
   pet.wutheringWindReadyAt = context.time;
 }

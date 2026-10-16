@@ -74,6 +74,7 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = runtime.profession.core;
+
     if (skill?.legendId) {
       state.activeLegendId = skill.legendId;
     }
@@ -81,6 +82,7 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     // Both the stat strip and occurrences consume the control's canonical serialized skill identity.
     const upkeepId = JSON.parse(String(inputs.upkeep ?? 'null'));
     const upkeep = runtime.helpers.skills.find((entry) => entry.id === upkeepId && entry.upkeepCost != null);
+
     if (upkeep)
       // Prepared upkeep needs the same activation identity as combat so depletion can retire its owner.
       state.activeUpkeeps = [
@@ -107,6 +109,7 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     },
     'revenant.activate-upkeep'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       activateRevenantUpkeep(runtime, context.cast);
       scheduleRevenantUpkeepPulses(runtime, context.cast);
     }
@@ -120,6 +123,7 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     // Accepted combat raises the recovery ceiling; an authored marker also re-anchors Assassin's Presence.
     runtime.profession.core.combatBeganAt = runtime.time;
     runtime.resourceController.refresh('energy');
+
     if (runtime.hasExplicitCombatStart) runtime.fireTrigger(revenantLifecycleAnchored, { at: runtime.time });
   },
   availability: revenantAvailability,
@@ -128,18 +132,23 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   modifyEffects(runtime, cast, effects) {
     // Upkeep owners emit their own activation and recurring payloads.
     if (isRevenantUpkeep(cast.skill)) return [];
+
     if (upkeepRelease(runtime, cast.skill)) return [];
+
     return effects;
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill;
+
     if (DODGE_IDS.has(skill.id)) return;
+
     if (!isRevenantUpkeep(skill) && skill.id !== ID.SWAP_LEGENDS)
       runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));
   },
   onCastCancel: cancelRevenantUpkeep,
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
+
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
       runtime.fireTrigger(revenantWeaponSwapped, { cast });
     }
@@ -151,6 +160,7 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   onCooldownReset(runtime) {
     // Restores in-combat Energy after the shared runtime resets cooldowns.
     if (!runtime.combatStartedAt()) return;
+
     runtime.resourceController.grant('energy', runtime.profession.core.energy.maximum);
   },
   // Resolver triggers retain trait ownership and the accepted event's causal chain.
@@ -183,13 +193,16 @@ export const revenantCoreHooks = composeRuntimeHooks<RevenantRuntimeState, Reven
 /** Applies Fury's life-steal bonus to Core and elite specializations without using ordinary strike scaling. */
 function modifyRevenantLifeSiphon(context: RevenantResolverContext, event: Gw2ResolverEvent) {
   const bonus = revenantLifeSiphonBonus(context, event);
+
   if (bonus == null) return;
+
   return { flatStrikeMultiplier: (event.flatStrikeMultiplier ?? 1) * (1 + bonus) };
 }
 
 /** Landed player strikes interleave trait rewards, Battle Scars, and Enchanted Daggers in their established order. */
 function reactRevenantPlayerStrike(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !((event.coefficient || 0) > 0)) return;
+
   runtime.fireTrigger(revenantStruck, { cause: event });
   consumeBattleScar(runtime, event);
   runtime.fireTrigger(battleScarConsumed, { cause: event });

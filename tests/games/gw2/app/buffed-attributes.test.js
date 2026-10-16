@@ -30,7 +30,9 @@ function previewApp(name, traitNames = [], specialization = null) {
     const trait = adapter.profession.catalog.traits.find((trait) => trait.name === name);
     assert.ok(trait, name);
     const choices = selections.get(trait.specialization) || [0, 0, 0];
+
     if (trait.position > 0 && trait.tier > 0) choices[trait.tier - 1] = trait.position;
+
     selections.set(trait.specialization, choices);
   }
 
@@ -430,6 +432,7 @@ test('player health changes only the isolated stat preview', () => {
       .simulationConfig();
     const low = stats(app, { playerHealth: 50 });
     const high = stats(app, { playerHealth: 51 });
+
     if (profession === 'thief') {
       close(high['Critical Chance'].final, low['Critical Chance'].final + 5);
       close(high['Critical Damage'].final, (low['Critical Damage'].final / 1.05) * 1.07);

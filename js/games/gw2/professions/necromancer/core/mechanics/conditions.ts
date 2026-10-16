@@ -51,7 +51,9 @@ function applySelfCondition(
   const stats = { ...runtime.combat.statsAt(runtime.time, event), expertise: 0 };
   const effectiveDuration =
     duration * runtime.combat.conditionDurationMultiplier(condition, runtime.time, stats, event);
+
   if (!(effectiveDuration > 0) || !(stacks > 0)) return;
+
   purge(runtime);
   const expiresAt = canonicalTime(runtime.time + effectiveDuration);
   runtime.profession.core.selfConditions.push({
@@ -83,12 +85,15 @@ export function transfer(
     (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
   )
     return 0;
+
   purge(runtime);
   const state = runtime.profession.core;
   const types = new Set<string>();
+
   if (!latest)
     for (const application of state.selfConditions) {
       if (types.size >= maximum) break;
+
       types.add(application.condition);
     }
 
@@ -127,6 +132,7 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
   // Insert the selected trait's extra self-condition before the skill's boons, preserving transfer order.
   const effects = skill.effects?.filter(isCorruptionCompletionEffect) ?? [];
+
   if (hasTrait(runtime, TRAIT.MASTER_OF_CORRUPTION)) {
     const extras =
       requireBalanceProfileFromContext(runtime, TRAIT.MASTER_OF_CORRUPTION).effects?.filter(
@@ -138,6 +144,7 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
 
   for (const effect of effects) {
     if (effect.requiredTrait != null && !hasTrait(runtime, Number(effect.requiredTrait))) continue;
+
     if (effect.type === 'condition')
       applySelfCondition(
         runtime,
@@ -179,9 +186,11 @@ export function resolveNecromancerSkillConditions(
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   for (const effect of profile.effects ?? []) {
     if (effect.type !== 'condition') continue;
+
     const condition = String(effect.condition);
     const stacks = effectNumber(profile, effect, 'stacks');
     const duration = effectNumber(profile, effect, 'duration');
+
     if (effect.target === 'self') applySelfCondition(runtime, skill, condition, stacks, duration);
     else
       runtime.effects.emit({
@@ -221,6 +230,7 @@ export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: Ru
   const first = cast.skill.effects?.find((effect) => effect.type === 'strike');
   const timing = first && scaleCastBoundTiming(cast, cast.skill, first);
   const launchAt = timing?.type === 'strike' ? canonicalTime(cast.start + (effectFirstAtMs(timing) ?? 0) / 1000) : null;
+
   if (launchAt != null && launchAt <= cast.effectiveEnd)
     runtime.schedule(CORRUPTION, launchAt, { skillId: cast.skill.id, activationId: cast.id });
   // Removing the strike must not remove a successfully committed cast's independent self-conditions or boons.
@@ -240,6 +250,7 @@ export function resolvePlagueSignetTransfer(runtime: NecromancerRuntime, cast: R
 /** Devouring Darkness samples live conditions at its precommit impact, independently of its selected strike. */
 export function scheduleDevouringDarkness(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);
+
   if (impactAt <= cast.effectiveEnd)
     runtime.schedule(DEVOURING, impactAt + (cast.command.impactDelayMs ?? 0) / 1000, {
       skillId: cast.skill.id,
@@ -267,6 +278,7 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   const torment = skill.effects?.find((effect) => effect.type === 'condition');
   const reactionGroup = strike && runtime.effectReactions.register(skill, strike);
+
   if (strike)
     runtime.effects.emit({
       kind: 'packet',
@@ -277,6 +289,7 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
         skillWeapon: skill.weapon
       })
     });
+
   if (torment && count > 0)
     runtime.effects.emit({
       kind: 'packet',
@@ -313,6 +326,7 @@ export function removeNecromancerSelfCondition(
   const selected = new Set<string>();
   for (const application of active) {
     if (selected.size >= maximumConditionTypes) break;
+
     selected.add(application.condition);
   }
 

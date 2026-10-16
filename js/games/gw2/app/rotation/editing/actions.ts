@@ -15,12 +15,17 @@ export function resolveEntrySkill(
   item: RotationCommand | { readonly name: SkillId; readonly skillId?: unknown }
 ): Skill | undefined {
   if ('type' in item && item.type !== 'cast') return undefined;
+
   const identity = 'type' in item ? item.skillId : (item.skillId ?? item.name);
   const skillId = identity == null ? null : Number(identity);
+
   if (skillId !== null && Number.isFinite(skillId)) return app.skillById.get(skillId);
+
   const name = String(identity);
   const skill = app.skillByName.get(name);
+
   if (skill?.type !== 'Weapon') return skill;
+
   // Runtime catalog overrides already select specialization-specific weapon identities.
   return app.profession
     .runtimeFor({ specialization: activeSpecialization(app), patchId: app.patchId })
@@ -41,6 +46,7 @@ export function createRotationItem(
 ): RotationCommand {
   // Translate palette identities directly into the canonical discriminated command model.
   if (name === '__cooldown_reset') return { type: 'cooldown-reset' };
+
   if (name === '__combat_start') {
     return options.concurrentOffsetMs == null
       ? { type: 'combat-start' }
@@ -75,7 +81,9 @@ export function createRotationItem(
  */
 export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): boolean {
   if (!items.length) return false;
+
   const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
+
   if (insertionIndex === null) {
     app.rotationInsertionIndex = null;
     app.build.rotation.push(...items);
@@ -88,6 +96,7 @@ export function insertRotationItems(app: ProfessionAppState, items: readonly Rot
   // repaint resolved markers, making both the document and timeline jump between geometries.
   if (insertionIndex === null) app.changed(false);
   else app.changed(false, false, { deferRotationRender: true });
+
   return true;
 }
 

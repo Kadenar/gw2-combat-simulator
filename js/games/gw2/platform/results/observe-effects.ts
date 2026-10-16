@@ -43,6 +43,7 @@ function observeGenericBuff(
   policy: BuffStatePolicy
 ): readonly EffectState[] {
   const previous = cache.get(kind);
+
   if (
     previous &&
     at >= previous.at &&
@@ -64,7 +65,9 @@ function observeGenericBuff(
     const audience = application.resolvedAudience;
     allies = Math.max(allies, audience.alliedPlayerCount, audience.alliedPlayerIndex ?? 0);
     for (const id of audience.companionIds) companions.add(id);
+
     if (audience.includesSummons && !audience.companionIds.length) wildcard = true;
+
     if (application.at > at) until = Math.min(until, application.at);
   }
 
@@ -82,6 +85,7 @@ function observeGenericBuff(
         buffMatchesAudience(application, 'summon', id)
       )
     );
+
   if (wildcard)
     states.push(
       observeBuffState(
@@ -94,6 +98,7 @@ function observeGenericBuff(
           application.resolvedAudience.includesSummons && !application.resolvedAudience.companionIds.length
       )
     );
+
   // Duration pools can outlive individual grants; invalidate at the resolved deadline, not the grant's expiry.
   for (const state of states)
     for (const window of state.windows)
@@ -132,6 +137,7 @@ function visitRuntimeEffects<T extends object>(
 ): void {
   // Reuse clipped scopes until another entity retires, preserving unchanged report capture identity.
   let retirement = retirementObservations.get(runtime);
+
   if (runtime.retiredCompanions.size && retirement?.count !== runtime.retiredCompanions.size) {
     retirement = { count: runtime.retiredCompanions.size, states: new WeakMap() };
     retirementObservations.set(runtime, retirement);
@@ -139,7 +145,9 @@ function visitRuntimeEffects<T extends object>(
 
   const visit = (scope: string, states: readonly EffectState[]): void => {
     if (!retirement) return visitor(scope, states);
+
     let clipped = retirement.states.get(states);
+
     if (!clipped) {
       clipped = states.map((state) => {
         const removedAt = state.recipient.startsWith('companion:')
@@ -170,8 +178,10 @@ function visitRuntimeEffects<T extends object>(
   ]) {
     for (const policy of contributions) {
       const previous = sharedPolicies.has(policy.kind) ? 'shared' : owners.get(policy.kind);
+
       if (previous)
         throw new TypeError(`Duplicate ${owner} buff policy: ${policy.kind} (already owned by ${previous}).`);
+
       owners.set(policy.kind, owner);
       policies.set(policy.kind, policy);
     }
@@ -179,10 +189,12 @@ function visitRuntimeEffects<T extends object>(
 
   const owned = (profession.observeEffects?.(runtime.mechanicQueries) ?? []).map((state) => {
     if (state.source != null) return { ...state };
+
     const applications = (isStandardBoon(state.kind) ? runtime.boons : runtime.buffs).get(state.kind);
     // Only the latest accepted source is needed; do not allocate a filtered copy of its entire history.
     for (let index = (applications?.length ?? 0) - 1; index >= 0; index -= 1) {
       const application = applications![index]!;
+
       if (application.at <= runtime.time) return { ...state, source: application.event };
     }
 
@@ -192,6 +204,7 @@ function visitRuntimeEffects<T extends object>(
   const ownedRecipients = new Map<string, Set<string>>();
   for (const state of owned) {
     let recipients = ownedRecipients.get(state.kind);
+
     if (!recipients) {
       recipients = new Set();
       ownedRecipients.set(state.kind, recipients);
@@ -208,6 +221,7 @@ function visitRuntimeEffects<T extends object>(
   }
 
   let cache = buffObservations.get(runtime);
+
   if (!cache) {
     cache = new Map();
     buffObservations.set(runtime, cache);
@@ -218,10 +232,14 @@ function visitRuntimeEffects<T extends object>(
     for (const [kind, applications] of store) {
       // Registration makes new reportable effects declare their owner instead of silently bypassing caps.
       const policy = policies.get(kind) ?? sharedPolicies.get(kind);
+
       if (!policy) throw new TypeError(`Missing buff policy: ${kind}`);
+
       if (policy.owner === 'profession') continue;
+
       const generic = observeGenericBuff(cache, kind, applications, runtime.time, policy);
       const native = nativeScopes.get(kind);
+
       if (native) {
         for (const state of generic) if (!ownedRecipients.get(kind)?.has(state.recipient)) native.push(state);
       } else visit(`buff:${kind}`, generic);
@@ -244,7 +262,9 @@ const conditionObservations = new WeakMap<object, ConditionObservation>();
 function observeCondition(kind: string, state: Gw2ResolverConditionState, at: number): readonly EffectState[] {
   const previous = conditionObservations.get(state);
   const revision = effectStateRevision(state);
+
   if (previous && previous.revision === revision && at >= previous.at && at < previous.until) return previous.states;
+
   const windows: Array<{ stacks: number; expiresAt: number }> = [];
   let until = Infinity;
   for (const stack of state.stacks) {
@@ -276,6 +296,7 @@ function observeAssumptions(runtime: Gw2Runtime): EffectState[] {
   const result: EffectState[] = [];
   for (const [kind, value] of Object.entries(runtime.config.boons ?? {})) {
     if (!value || !isStandardBoon(kind)) continue;
+
     result.push({
       kind,
       category: 'boon',
@@ -290,6 +311,7 @@ function observeAssumptions(runtime: Gw2Runtime): EffectState[] {
 
   for (const kind of new Set(Object.keys(runtime.config.target?.conditions ?? {}).map(canonicalTargetConditionName))) {
     const stacks = permanentTargetConditionStacks(runtime.config, kind);
+
     if (stacks > 0)
       result.push({
         kind,
@@ -329,9 +351,12 @@ export function captureRuntimeEffects<T extends object>(
   profession: RuntimeProfession<T>
 ): void {
   const recorder = runtime.effectRecorder;
+
   if (!recorder) return;
+
   let capture = runtimeCaptures.get(runtime);
   const initial = !capture || capture.recorder !== recorder;
+
   if (initial) {
     capture = { recorder, scopes: new Map() };
     runtimeCaptures.set(runtime, capture);
@@ -341,13 +366,16 @@ export function captureRuntimeEffects<T extends object>(
   const seen = new Set<string>();
   visitRuntimeEffects(runtime, profession, (scope, states) => {
     seen.add(scope);
+
     if (scopes.get(scope) === states) return;
+
     recorder.capture(runtime.time, states, scope);
     scopes.set(scope, states);
   });
   // Omission clears only the disappeared scope; unchanged scopes retain their accepted deadlines.
   for (const scope of scopes.keys()) {
     if (seen.has(scope)) continue;
+
     recorder.capture(runtime.time, [], scope);
     scopes.delete(scope);
   }

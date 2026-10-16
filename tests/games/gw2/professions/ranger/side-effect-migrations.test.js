@@ -33,6 +33,7 @@ test('Exploding Spores variants retain base packets and honor boon removal', () 
       const events = result.events.filter((event) => event.skillId === ID.EXPLODING_SPORES);
       const boons = events.filter((event) => event.type === 'buff' && event.kind === kind);
       assert.equal(boons.length, removed ? 0 : 1);
+
       if (!removed) {
         assert.equal(boons[0].duration, 7);
         assert.equal(boons[0].at, result.steps[0].end / 1000);
@@ -66,6 +67,7 @@ test('Galeshot declared arrow grants preserve cancellation and recovery', () => 
       assert.deepEqual(result.warnings, []);
       const arrows = observedRuntime(result).profession.specialization.state.arrows;
       assert.equal(arrows.value, expected);
+
       if (expected < 8) assert.equal(arrows.nextAt, 5);
     }
   }

@@ -60,6 +60,7 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
   runtime.effects = captureEffectEmissions({
     submit(event) {
       if (event.type === 'mesmer.phantasm-summoned') prepared.push(event.count);
+
       return event;
     }
   }).effects;
@@ -142,6 +143,7 @@ test('Harp start protection is independent of its later playing-state commitment
     assert.equal(playing.at, cast.endsAt);
     const protection = result.events.find((event) => event.kind === 'distortion');
     assert.equal(Boolean(protection), !removed);
+
     if (protection) {
       assert.equal(protection.at, cast.at);
       assert.equal(protection.sourceId, ID.HARMONIOUS_HARP);

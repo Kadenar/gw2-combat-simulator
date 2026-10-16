@@ -47,6 +47,7 @@ export function completeArcaneEcho(
     at
   );
   const arcaneEcho = context.helpers.skillsById.get(ID.ARCANE_ECHO);
+
   if (arcaneEcho) {
     // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
     // Project combined work at the permanent recharge rate while preserving progress already earned.

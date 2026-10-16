@@ -44,7 +44,9 @@ export function retainsInterruptedCastLockout(skill: Skill | null, cancelledBefo
 export function summonQuicknessCastTimeMs(skill: Skill | null, fallbackBaseMs?: number): number {
   const baseMs = Math.max(0, fallbackBaseMs ?? skill?.castTimeMs ?? 0);
   const explicitMs = Math.max(0, skill?.quicknessCastTimeMs ?? 0);
+
   if (explicitMs > 0) return explicitMs;
+
   return quantizeGw2ActionDurationUp(baseMs / GW2_QUICKNESS_ACTION_RATE);
 }
 
@@ -58,7 +60,9 @@ export function referenceCastTimeMs(skill: Skill | null): number {
 /** Projects an authored effect timeline onto a skill variant's actual cast length. */
 export function castRelativeEffectTimingScale(skill: Skill, runtimeCastMs: number): number {
   const referenceMs = referenceCastTimeMs(skill);
+
   if (!(referenceMs > 0)) return 1;
+
   const runtimeMs = Math.max(0, runtimeCastMs);
   // Preserve the runtime ratio while projecting packets; the materializer canonicalizes their absolute deadlines.
   return runtimeMs / referenceMs;
@@ -75,7 +79,9 @@ export function projectCastRelativeEffectTimingMs(skill: Skill, runtimeCastMs: n
 
   const baseMs = Math.max(0, skill.castTimeMs || 0);
   const referenceMs = referenceCastTimeMs(skill);
+
   if (!(baseMs > 0) || !(referenceMs > 0)) return authoredMs;
+
   const baseTimelineMs = (authoredMs * baseMs) / referenceMs;
   return baseTimelineMs * (Math.max(0, runtimeCastMs) / baseMs);
 }
@@ -87,6 +93,7 @@ export function scaleCastBoundTiming(
   effect: SkillEffect
 ): SkillEffect {
   if (effect.timingScale !== 'cast' || !(Number(skill.castTimeMs) > 0)) return effect;
+
   const adjustedCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
   const firstTickAtMs = Array.isArray(effect.ticks) ? Number(effect.ticks[0]?.atMs || 0) : 0;
   // Return a copy because skill metadata is shared by every simulation run.

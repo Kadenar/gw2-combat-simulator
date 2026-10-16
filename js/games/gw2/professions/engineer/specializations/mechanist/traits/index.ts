@@ -217,7 +217,9 @@ export const mechanistTraits = [
 function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: MechStrike): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS);
   const packet = requireEffect(profile, 'condition', 'Bleeding');
+
   if (!packet || !context.procs.claim(TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'singleEdgeCutters', event.at)) return;
+
   emitTraitProfile(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, undefined, {
     at: event.at,
     effect: { type: 'condition', name: 'Bleeding' },
@@ -264,7 +266,9 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
 function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: MechStrike): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS);
   const packet = requireEffect(profile, 'boon', 'might');
+
   if (!packet || !context.procs.claim(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'highImpactDrivers', event.at)) return;
+
   emitTraitProfile(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, undefined, {
     at: event.at,
     effect: { type: 'boon', name: 'might' },
@@ -306,6 +310,7 @@ function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: Mech
 function applyJadeCannonsVulnerability(context: EngineerRuntime, { cause: event }: MechStrike): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+
   if (vulnerability)
     emitTraitProfile(context, TRAIT.MECH_ARMS_JADE_CANNONS, TRAIT.MECH_ARMS_JADE_CANNONS, undefined, {
       at: event.at,
@@ -361,6 +366,7 @@ function emitRocketPunch(context: EngineerRuntime, skill: EngineerSkill, at: num
 /** Weapon slot three invokes Rocket Punch after command recovery, using the mech's own recharge. */
 function triggerMechFighter(context: EngineerRuntime, { skill, at }: MechanistCastCompletion): void {
   const state = mechanistState.from(context);
+
   if (
     state.mech.active &&
     skill.type === 'Weapon' &&
@@ -378,7 +384,9 @@ function triggerMechFighter(context: EngineerRuntime, { skill, at }: MechanistCa
 /** The passive starts in combat and runs independently of the mech's command lane. */
 function startBarrierEngine(runtime: EngineerRuntime): void {
   const state = mechanistState.from(runtime);
+
   if (state.barrierEngineStarted || !state.mech.active) return;
+
   state.barrierEngineStarted = true;
   scheduleBarrierEngine(runtime);
 }
@@ -394,6 +402,7 @@ function scheduleBarrierEngine(runtime: EngineerRuntime): void {
 /** Each passive grant selects up to five recipients, with the mech behind players in recipient priority. */
 function pulseBarrierEngine(runtime: EngineerRuntime): void {
   if (!hasTrait(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE) || !mechanistState.from(runtime).mech.active) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE);
   emitTraitProfile(runtime, profile.id, profile.id, undefined, {
     attribution: {
@@ -415,15 +424,22 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
     (event.actorType !== 'player' && event.ownerActorType !== 'player' && event.summonOwner !== 'engineer.mech')
   )
     return;
+
   const audience = event.resolvedAudience;
+
   if (!audience) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
+
   if (!profile.effects?.some((effect) => effect.type === 'boon' && effect.boon === 'alacrity')) return;
+
   const interval = balanceProfileNumber(profile, 'internalCooldown');
   const claim = (recipient: string): boolean => {
     const key = `${TRAIT.MECH_FRAME_CHANNELING_CONDUITS}:${recipient}`;
+
     // A one-second barrier pulse is eligible as soon as this recipient's one-second ICD expires.
     if (canonicalTime(event.at) < canonicalTime(runtime.procs.deadline(key))) return false;
+
     runtime.procs.setDeadline(key, event.at + interval);
     return true;
   };
@@ -450,6 +466,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
   ];
   for (const recipient of recipients) {
     if (!claim(recipient.key)) continue;
+
     emitTraitProfile(runtime, profile.id, profile.id, event, {
       attribution: {
         source: 'Trait',

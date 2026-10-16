@@ -233,6 +233,7 @@ test('Revenant upkeep releases require an armed flip in the active legend', () =
         { specialization: release.specialization || 'Core', initialEnergy: 0 },
         (runtime) => {
           runtime.profession.core.activeLegendId = release.legendId || runtime.profession.core.activeLegendId;
+
           if (armed) armSkillFlip(runtime.profession.core.availableFlips, release.id, 0);
         }
       );
@@ -259,6 +260,7 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
       };
       const context = { specialization: 'Renegade', professionState };
       assert.equal(displayedSkillTiles(app, [parent], context)[0].id, parent.id);
+
       if (activeLegendId === LEGEND.RENEGADE) {
         armSkillFlip(professionState.availableFlips, release.id, 0);
         assert.equal(displayedSkillTiles(app, [parent], context)[0].id, release.id);
@@ -623,6 +625,7 @@ test('invocation packages are selected once and require combat and the matching 
           calls.map((event) => event.name),
           combat && song && traits.includes(TRAIT.SONG_OF_THE_MISTS) ? [song] : []
         );
+
         if (boons.length && calls.length) assert.ok(boons[0].eventOrder < calls[0].eventOrder);
       }
   }
@@ -1188,6 +1191,7 @@ test('starvation waits for the absolute action tick and preserves its boundary a
     const starvationReadyAt = observedRuntime(result).cooldownController.readyAt(SKILL.IMPOSSIBLE_ODDS);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession.activeUpkeeps.length, elapsedMs < 120 ? 1 : 0);
+
     if (elapsedMs < 120) {
       assert.equal(starvationReadyAt, undefined);
     } else {

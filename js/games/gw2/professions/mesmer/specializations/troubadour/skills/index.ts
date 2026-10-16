@@ -34,13 +34,16 @@ function instrumentEffects(profileId: string): NonNullable<MesmerSkill['effectVa
             timingScale: 'fixed' as const,
             atMs: damageAtMs + (effect.atMs ?? 0)
           };
+
           if (effect.type === 'condition' && effect.ticks)
             return {
               ...effect,
               ...timing,
               ticks: effect.ticks.map((tick) => ({ ...tick, atMs: damageAtMs + tick.atMs }))
             };
+
           if (effect.type !== 'strike') return { ...effect, ...timing };
+
           return {
             ...effect,
             ...timing,

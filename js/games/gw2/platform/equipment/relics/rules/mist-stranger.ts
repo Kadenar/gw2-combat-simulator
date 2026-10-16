@@ -9,6 +9,7 @@ export const mistStranger = defineRelic({
   damagePayload: emitDamagePayload,
   damageResolved(ctx, state, event) {
     if (!isGw2PlayerActorEvent(event)) return;
+
     emitDamagePayload(ctx, state, event);
   }
 });

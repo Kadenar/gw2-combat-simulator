@@ -24,7 +24,9 @@ export function triggerWeaverSpearFollowups(context: ElementalistResolverContext
           application.expiresAt > event.at
       )
       .at(-1);
+
     if (!grant) return [];
+
     // Retire every live application before emitting any payload, so simultaneous buffs cannot recursively retrigger.
     context.combat.reviseBuffExpiry(
       kind,

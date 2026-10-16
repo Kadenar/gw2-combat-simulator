@@ -59,6 +59,7 @@ test('a throwing preparation leaves the queue usable', () => {
   const queue = new StableEventQueue({
     prepare(event) {
       if (event.name === 'invalid') throw new Error('Preparation failed');
+
       return event;
     }
   });

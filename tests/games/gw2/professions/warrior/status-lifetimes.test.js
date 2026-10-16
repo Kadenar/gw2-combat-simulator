@@ -46,6 +46,7 @@ test('Tactical Reload follows an off-grid wait and closes exactly at its display
     const [buff] = timedBuffApplicationsAt(result.events, 'tactical-reload', application.at);
     assert.equal(Math.round((buff.expiresAt - buff.at) * 1000), 10000);
     assert.equal(state(result).dragonCharges.value, charges);
+
     if (charges === 2) assert.equal(state(result).tacticalReloadUntil, 0);
     else assert.ok(state(result).tacticalReloadUntil <= observedRuntime(result).time);
   }
@@ -83,9 +84,12 @@ test('trait and combo fire auras detonate once before their exclusive rounded ex
               : { ...event, type: 'aura', aura: 'Fire Aura', duration: 5 }
         });
       });
+
       if (source === 'trait')
         assert.equal(timedBuffApplicationsAt(result.events, 'fire-aura', 0.001)[0].expiresAt, 5.04);
+
       assert.equal(result.procSteps.filter((proc) => proc.skill === 'King of Fires').length, at < 5040 ? 1 : 0);
+
       if (at < 5040) assert.equal(state(result).fireAuraUntil, 0);
       else assert.ok(state(result).fireAuraUntil <= observedRuntime(result).time);
     }

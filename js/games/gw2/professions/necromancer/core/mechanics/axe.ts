@@ -9,15 +9,20 @@ export function reactToNecromancerAxeHealth(
   event: NecromancerResolverEvent
 ): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+
   const skill = skillForEvent(context.helpers, event);
+
   if (!skill || (skill.id !== ID.RENDING_CLAWS && skill.id !== ID.UNHOLY_FEAST)) return;
+
   if (!context.combat.targetHealthBelow(0.5)) return;
 
   if (skill.id === ID.RENDING_CLAWS) {
     const vulnerability = skill.effects?.find((effect) => effect.type === 'condition')?.ticks?.[
       Number(event.hitIndex || 1) - 1
     ];
+
     if (!vulnerability || !('condition' in vulnerability)) return;
+
     // Duplicate only this hit's authored Vulnerability application below half health.
     context.effects.emit({
       kind: 'packet',
@@ -37,7 +42,9 @@ export function reactToNecromancerAxeHealth(
   }
 
   const burst = context.helpers.skillsById.get(ID.UNHOLY_BURST);
+
   if (!burst) return;
+
   // The shared service expands the selected strike profile at the resolved crossing hit.
   context.effects.emit({
     kind: 'profile',

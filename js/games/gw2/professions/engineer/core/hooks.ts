@@ -100,7 +100,9 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
     const parent =
       skill.toolbeltParentId ??
       (skill.flipParentId != null ? context.helpers.skillsById.get(skill.flipParentId)?.toolbeltParentId : undefined);
+
     if (parent == null) return undefined;
+
     const bar = context.config.skillInputBars?.[0];
     const parentSkill = context.helpers.skillsById.get(parent);
     const slot = bar && parentSkill ? controlOnSkillBar(context.helpers, parentSkill, bar) : null;
@@ -110,11 +112,15 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   },
   resolveCastSkill(context, skill) {
     const kit = context.profession.core.activeKit;
+
     if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !kit) return skill;
+
     const stow = context.helpers.skills.find(
       (candidate) => candidate.kitTransition === 'stow' && candidate.kitId === kit
     );
+
     if (!stow) throw new Error('Active kit has no stow action.');
+
     return stow;
   },
   sideEffectHandlers: {
@@ -122,6 +128,7 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
     ...engineerTurretSideEffectHandlers,
     'engineer.kit-transition'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Kit transitions require a cast trigger.');
+
       const { cast } = context;
       const skill = context.skill;
       // Persist bundle identity as the equip skill ID; labels belong to presentation.
@@ -135,6 +142,7 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
     // Mine Field owns registration; the combat boundary still releases its pending activations.
     'engineer.mine-field'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
+
       if (runtime.combatStartPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
       else notifyToolbeltActivation(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, context.cast.id);
     },
@@ -142,7 +150,9 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
     'engineer.sword-recharge'(runtime, context, action) {
       if (action.type !== 'engineer.sword-recharge' || action.amount == null)
         throw new TypeError('Sword recharge reductions require an amount.');
+
       if (context.kind !== 'cast') throw new TypeError('Sword recharge requires a cast trigger.');
+
       const { cast } = context;
       reduceEngineerRecharge(
         runtime,
@@ -159,7 +169,9 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   modifyEffects: engineerSpearEffects,
   onCastStart(runtime, cast) {
     if (cast.skill.independentCast) notifyToolbeltActivation(runtime, cast.skill, cast.id);
+
     if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
+
     buildEngineerPackets('engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill).forEach((packet) =>
       runtime.effects.emit({ kind: 'packet', event: packet })
     );

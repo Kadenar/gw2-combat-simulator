@@ -19,6 +19,7 @@ export function extendPersistingFlamesEffects(
     !skill.comboFields?.some((field) => field.fieldType === 'Fire')
   )
     return effects;
+
   const strikes = effects
     .flatMap((effect) =>
       effect.type !== 'strike'
@@ -39,7 +40,9 @@ export function extendPersistingFlamesEffects(
     .sort((a, b) => a.at - b.at);
   const last = strikes.at(-1),
     previous = strikes.at(-2);
+
   if (!last || !previous || last.at <= previous.at) return effects;
+
   const interval = last.at - previous.at;
   const count = Math.max(0, Math.trunc(balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'summons')));
   const extra: SkillEffect[] = [];
@@ -53,6 +56,7 @@ export function extendPersistingFlamesEffects(
     });
     for (const effect of effects) {
       if (effect.type !== 'condition') continue;
+
       for (const tick of effect.ticks ?? [
         {
           atMs: 0,
@@ -84,6 +88,7 @@ export function extendPersistingFlamesFields(
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
   if (!hasTrait(context, TRAIT.PERSISTING_FLAMES) || cast.skill.type !== 'Weapon') return fields;
+
   const extension = balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'durationPerTier');
   return fields?.map((field) =>
     field.fieldType === 'Fire' ? { ...field, duration: Number(field.duration) + extension } : field

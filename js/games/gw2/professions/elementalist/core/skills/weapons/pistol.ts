@@ -525,6 +525,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   ...pistolBulletSideEffectHandlers,
   'elementalist.pistol.raging-ricochet'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 
@@ -538,11 +539,13 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.pistol.searing-salvo'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
     {
       const searingSalvoProfile = requireBalanceProfileFromContext(context, PROFILE.searingSalvo);
       const aura = requireEffect(searingSalvoProfile, 'buff', 'Fire');
+
       if (aura) {
         applyElementalistAura(context, {
           at,
@@ -556,6 +559,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.pistol.frozen-fusillade'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
     const { cast, skill } = trigger;
     {
       const frozenFusilladeProfile = requireBalanceProfileFromContext(context, PROFILE.frozenFusillade);
@@ -568,6 +572,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
           1000 +
         delay;
       const frozenFusilladeWaterBulletStrike = requireEffect(frozenFusilladeProfile, 'strike', 'Water Bullet');
+
       if (frozenFusilladeWaterBulletStrike) {
         context.effects.emit(
           elementalistStrikeRequest(
@@ -603,6 +608,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.pistol.dazing-discharge'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
     const { cast } = trigger;
     const at = cast.effectiveEnd;
 
@@ -613,6 +619,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.pistol.shattering-stone'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
     {
@@ -636,6 +643,7 @@ export const pistolSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.pistol.boulder-blast'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 
@@ -697,6 +705,7 @@ export const pistolBalanceProfiles: readonly BalanceProfile[] = Object.freeze([
 /** Arms Shattering Stone only when its self buff reaches the resolver timeline. */
 export function applyShatteringStoneBuff(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.kind !== 'shattering stone' || !event.resolvedAudience?.includesSelf) return;
+
   const core = professionCoreState(context);
   core.shatteringStone = grantCharges(event.stacks || 0, event.at + (event.duration || 0));
 }
@@ -704,6 +713,7 @@ export function applyShatteringStoneBuff(context: ElementalistResolverContext, e
 /** Spend Shattering Stone charges in resolved impact order, including previously scheduled attacks. */
 export function triggerShatteringStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
+
   if (
     (event.actorType === 'player' || event.actorType === 'effect') &&
     Number(event.coefficient) > 0 &&
@@ -711,6 +721,7 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
   ) {
     const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
     const bleeding = requireEffect(shatteringStoneProfile, 'condition', 'Triggered Bleeding');
+
     if (bleeding) {
       context.effects.emit({
         kind: 'packet',
@@ -735,7 +746,9 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
 /** An accepted non-auto pistol cast consumes Dazing Discharge once and keeps its reserved recharge. */
 export function reservePistolRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
   if (skill.type !== 'Weapon' || String(skill.slot || '') === 'Weapon_1') return duration;
+
   const state = professionCoreState(context);
+
   if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === 'Pistol') {
     state.dazingDischargeUntil = 0;
     return duration * balanceNumberFromContext(context, PROFILE.dazingDischarge, 'rechargeMultiplier');

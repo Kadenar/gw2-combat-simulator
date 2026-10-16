@@ -138,6 +138,7 @@ test('Toxic Shot checks existing poison at impact and preserves its condition ow
         observation: { kind: 'tail', durationMs: 2000 },
         initialize(runtime) {
           if (poisonAt == null) return;
+
           runtime.effects.emit({
             kind: 'packet',
             event: {

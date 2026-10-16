@@ -22,12 +22,15 @@ const FINISHER_TYPES_BY_LOWERCASE = new Map(COMBO_FINISHER_TYPES.map((type) => [
 
 function requiredString(value: unknown, label: string): string {
   const normalized = String(value ?? '').trim();
+
   if (!normalized) throw new TypeError(`${label} is required.`);
+
   return normalized;
 }
 
 function positiveInteger(value: unknown, label: string): number {
   const normalized = Number(value);
+
   if (!Number.isInteger(normalized) || normalized <= 0) {
     throw new TypeError(`${label} must be a positive integer.`);
   }
@@ -38,13 +41,16 @@ function positiveInteger(value: unknown, label: string): number {
 /** Normalizes and validates a combo field type. */
 export function normalizeComboFieldType(value: unknown): ComboFieldType {
   const normalized = FIELD_TYPES_BY_LOWERCASE.get(String(value ?? '').toLowerCase());
+
   if (!normalized) throw new TypeError(`Invalid combo field type: ${String(value)}.`);
+
   return normalized;
 }
 
 /** Normalizes and validates a combo finisher type. */
 export function normalizeComboFinisherType(value: unknown): ComboFinisherType {
   const normalized = FINISHER_TYPES_BY_LOWERCASE.get(String(value ?? '').toLowerCase());
+
   if (!normalized) {
     throw new TypeError(`Invalid combo finisher type: ${String(value)}.`);
   }
@@ -55,7 +61,9 @@ export function normalizeComboFinisherType(value: unknown): ComboFinisherType {
 /** Finishers select at their event by default; a cast-start anchor opens an earlier eligibility window. */
 export function normalizeComboFieldSelectionAnchor(value: unknown): ComboFieldSelectionAnchor {
   if (value == null || value === 'event') return 'event';
+
   if (value === 'castStart') return 'castStart';
+
   throw new TypeError(`Invalid combo fieldSelectionAnchor: ${String(value)}.`);
 }
 
@@ -66,7 +74,9 @@ function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
   }
 
   const binding = value as UnvalidatedFields;
+
   if (binding.kind === 'none') return Object.freeze({ kind: 'none' });
+
   if (binding.kind === 'field-id') {
     return Object.freeze({
       kind: 'field-id',
@@ -90,6 +100,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
     const at = event.at;
     const expiresAt = Number(event.expiresAt);
     const comboBindingPriority = event.comboBindingPriority == null ? null : Number(event.comboBindingPriority);
+
     if (!Number.isFinite(expiresAt) || !(canonicalTime(expiresAt) > canonicalTime(at))) {
       throw new TypeError('Combo field expiresAt must be later than at.');
     }
@@ -119,21 +130,25 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
   if (event.type === 'combo_finisher') {
     const at = event.at;
     const fieldSelectionAt = event.fieldSelectionAt == null ? null : Number(event.fieldSelectionAt);
+
     if (fieldSelectionAt != null && (!Number.isFinite(fieldSelectionAt) || fieldSelectionAt > at)) {
       throw new TypeError('Combo finisher fieldSelectionAt must be finite and must not follow at.');
     }
 
     const effectAt = Number(event.effectAt);
+
     if (!Number.isFinite(effectAt) || effectAt < at) {
       throw new TypeError('Combo finisher effectAt must not precede at.');
     }
 
     const chance = Number(event.chance);
+
     if (!Number.isFinite(chance)) {
       throw new TypeError('Combo finisher chance must be finite.');
     }
 
     const parentEventOrder = event.parentEventOrder == null ? null : Number(event.parentEventOrder);
+
     if (parentEventOrder != null && !Number.isFinite(parentEventOrder)) {
       throw new TypeError('Combo finisher parentEventOrder must be finite.');
     }
@@ -156,6 +171,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
 
   if (event.type === 'combo') {
     const outcome = event.outcome;
+
     if (!outcome || typeof outcome !== 'object' || Array.isArray(outcome)) {
       throw new TypeError('Combo outcome is required.');
     }
@@ -182,6 +198,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
 
   if (event.type === 'aura') {
     const duration = Number(event.duration);
+
     if (!requiredString(event.aura, 'Aura name') || !(duration > 0)) {
       throw new TypeError('Aura events require a positive duration.');
     }

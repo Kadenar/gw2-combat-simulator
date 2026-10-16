@@ -257,7 +257,9 @@ function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: Elementali
   };
   const proc = context.helpers.skillsById.get(ids[attunement])!;
   const at = cast.effectiveEnd;
+
   if (context.cooldownController.isOnCooldown(proc.id, context.time)) return;
+
   context.cooldownController.startRecharge(proc, context.time);
   invokeTraitSkill(
     context,
@@ -305,10 +307,13 @@ function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: Elementali
 /** Applies Arcane Lightning's shared ferocity window and named Arcane-skill follow-up. */
 function applyArcaneLightning(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
   const skill = cast.skill;
+
   if (skill.skillFamily !== 'Arcane') return;
+
   const at = cast.effectiveEnd;
   const arcaneLightningProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_LIGHTNING);
   const arcaneWindow = requireEffect(arcaneLightningProfile, 'buff', 'Arcane Lightning');
+
   if (arcaneWindow) {
     emitTraitProfile(context, TRAIT.ARCANE_LIGHTNING, TRAIT.ARCANE_LIGHTNING, undefined, {
       at: at,
@@ -392,6 +397,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
 /** Grants Elemental Lockdown's attunement-specific boon after a classified control event. */
 function applyElementalLockdown(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = professionCoreState(context);
+
   // Claim the existing owner-local timer before any derived effect.
   if (
     !context.procs.claimCooldown(
@@ -401,6 +407,7 @@ function applyElementalLockdown(context: ElementalistRuntime, event: SimulationE
     )
   )
     return;
+
   const attunement = state.primaryAttunement;
   emitTraitProfile(context, TRAIT.ELEMENTAL_LOCKDOWN, TRAIT.ELEMENTAL_LOCKDOWN, undefined, {
     at: event.at,
@@ -459,6 +466,7 @@ function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2Re
 function applyRenewingStamina(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const renewingStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA);
   const vigor = requireEffect(renewingStaminaProfile, 'boon', 'Vigor');
+
   if (vigor) {
     emitTraitProfile(context, TRAIT.RENEWING_STAMINA, TRAIT.RENEWING_STAMINA, undefined, {
       at: event.at,
@@ -580,13 +588,17 @@ function triggerBountifulPower(
 ): void {
   const bountifulPowerProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_POWER);
   const threshold = balanceProfileNumber(bountifulPowerProfile, 'threshold');
+
   // Nonpositive custom thresholds disable this proc.
   if (threshold <= 0) return;
+
   const state = professionCoreState(context);
   // Reaching the stack cap grants one buff package and resets buildup before rewards can start a new cycle.
   const progress = advanceCounter(state.bountifulPowerProgress, stacks, threshold, 'reset');
   state.bountifulPowerProgress = progress.value;
+
   if (!progress.reached) return;
+
   emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, undefined, {
     at: at,
     fullEnd: at,
@@ -604,6 +616,7 @@ function triggerBountifulPower(
     }
   });
   const active = requireEffect(bountifulPowerProfile, 'buff', 'Damage Window');
+
   if (active) {
     emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, undefined, {
       at: at,

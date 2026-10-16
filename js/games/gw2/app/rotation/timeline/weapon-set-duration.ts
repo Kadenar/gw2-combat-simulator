@@ -33,6 +33,7 @@ export function weaponSetActiveSegments(
   const timelineEnd = Math.max(timelineStartMs, Number.isFinite(Number(timelineEndMs)) ? Number(timelineEndMs) : 0);
   // Professions without in-combat swapping can still start on either equipped set.
   let activeSet: 1 | 2 = Number(startingWeaponSet) === 2 ? 2 : 1;
+
   if (!hasSecondWeaponSet) {
     return [
       { weaponSet: activeSet, startMs: timelineStartMs, endMs: timelineEnd, durationMs: timelineEnd - timelineStartMs }

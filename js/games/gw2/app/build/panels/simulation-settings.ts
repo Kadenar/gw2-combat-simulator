@@ -10,7 +10,9 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 /** Mount native numeric inputs outside build assumptions; changing them reruns every dependent simulation. */
 export function mountSimulationSettings(app: ProfessionAppState, root: Document = document): void {
   const container = root.getElementById('perma-boons');
+
   if (!container) return;
+
   container.querySelector('#simulation-transition-delays')?.remove();
   const section = root.createElement('details');
   section.id = 'simulation-transition-delays';
@@ -24,8 +26,10 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
   const settings = (app.simulationSettings ??= loadSimulationSettings());
   const update = (delays: TransitionDelays): void => {
     const normalized = normalizeTransitionDelays(delays);
+
     // Preserve valid caches for no-op inputs; changed shared delays refresh inactive tabs on their next activation.
     if (TRANSITION_DELAY_KEYS.every((key) => normalized[key] === settings.transitionDelays[key])) return;
+
     settings.transitionDelays = normalized;
     saveSimulationSettings(settings);
     invalidateInactiveBuildTabs(app);
@@ -53,6 +57,7 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
       [exit, 'exit']
     ] as const) {
       const cell = row.insertCell();
+
       if (!key) {
         cell.textContent = '—';
         continue;

@@ -33,8 +33,10 @@ function paletteGroups(
       resourceAnchor: true
     }
   ];
+
   // Pet palette is only meaningful when unmerged — in Beastmode the pet's skills are subsumed into beast skills.
   if (!active) groups.push(rangerPetPaletteGroup(catalog, context));
+
   return groups;
 }
 
@@ -61,6 +63,7 @@ export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>
       const preview = createPreviewControls(context);
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Twice as Vicious', 'twiceAsVicious', 'twice-as-vicious');
+
       if (preview.skills.has(ID.SIC_EM))
         preview.add({
           key: 'sicEm',
@@ -71,6 +74,7 @@ export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>
           scope: ['damage'],
           description: 'Merged damage bonus active'
         });
+
       preview.add({
         key: 'merged',
         label: 'Beastmode',

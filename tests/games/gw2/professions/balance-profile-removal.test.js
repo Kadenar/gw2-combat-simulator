@@ -65,6 +65,7 @@ for (const [type, name] of [
       events.some((event) => event.type === 'condition'),
       type !== 'condition'
     );
+
     if (type !== 'condition')
       assert.ok(
         result.resolvedEvents

@@ -13,12 +13,14 @@ export function amalgamCastAvailability(
   skill: EngineerSkill
 ): AvailabilityResult {
   if (context.config.specialization !== 'Amalgam') return { ready: true };
+
   // Direct availability queries must reject the inactive variant just as cast resolution selects the active one.
   if (resolveAmalgamSkillId(hasTrait(context.traits, TRAIT.DOUBLE_HELIX), skill.id) !== skill.id) {
     return denyEngineerCast(skill, 'engineer.evolve-selection', 'another Evolve variant is selected by Double Helix.');
   }
 
   const state = amalgamState.from(context);
+
   // Each protocol type (e.g., "Offensive Protocol: Shred") exists as several
   // distinct skill IDs depending on which mechanic slot it occupies. Block any
   // morph skill whose ID was not selected for its slot so rotations that

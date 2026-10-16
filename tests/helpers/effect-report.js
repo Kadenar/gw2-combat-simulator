@@ -20,8 +20,11 @@ export function effectFields(applications = [], end = 120, { policies = [], fram
   for (const at of times) {
     while (index < ordered.length && ordered[index].at <= at) {
       const event = ordered[index++];
+
       if (event.type === 'buff') recordBuffApplication(boons, event);
+
       if (event.type === 'boon_extension') applyBoonExtension(boons, event);
+
       if (event.type === 'condition') {
         const windows = conditions.get(event.condition) ?? [];
         windows.push({ stacks: event.stacks ?? 1, expiresAt: event.at + event.duration });

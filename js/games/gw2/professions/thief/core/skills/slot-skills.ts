@@ -478,7 +478,9 @@ const THIEF_INFILTRATORS_SIGNET_PULSE = 'thief.infiltrators-signet';
  */
 function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
+
   if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.INFILTRATORS_SIGNET)) return;
+
   const at = canonicalTime(
     Math.max(runtime.time, runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) + 10
   );
@@ -489,9 +491,12 @@ function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
 /** Grants one initiative while the signet is off cooldown, then schedules the next pulse. */
 function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
+
   if ((data as { at: number }).at !== core.infiltratorsSignetPulseAt) return;
+
   if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time)
     runtime.resourceController.grant('initiative', 1);
+
   restartThiefInfiltratorsSignet(runtime);
 }
 

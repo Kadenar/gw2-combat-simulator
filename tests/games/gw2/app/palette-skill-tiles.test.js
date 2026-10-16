@@ -198,6 +198,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     assert.ok(tile, name);
     assert.doesNotMatch(tile, /pal-context-disabled/, name);
     assert.match(tile, /Next check in:/, name);
+
     if (name === 'Heartseeker') {
       assert.match(tiles()[1][0], /pal-context-disabled/);
       assert.doesNotMatch(tiles()[1][0], /Next check in:/);

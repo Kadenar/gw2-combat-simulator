@@ -30,6 +30,7 @@ const EVTC_SKILL_NAME_ALIASES: Readonly<Record<string, string>> = Object.freeze(
  */
 function hasArcDpsFooter(bytes: Uint8Array, offset: number): boolean {
   if (bytes.byteLength - offset !== ARCDPS_FOOTER_SIZE) return false;
+
   return (
     bytes.subarray(offset, offset + 16).every((byte) => byte === 0) &&
     bytes.subarray(offset + 20).every((byte) => byte === 0)
@@ -60,6 +61,7 @@ function ensureRange(
 
 export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+
   if (bytes.byteLength > EVTC_PARSE_LIMITS.maximumExpandedBytes) {
     throw new EvtcError('EXPANDED_SIZE_EXCEEDED', 'The expanded EVTC file exceeds the 512 MiB safety limit.');
   }
@@ -67,16 +69,19 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   ensureRange(bytes.byteLength, 0, HEADER_SIZE, 'TRUNCATED_HEADER', 'header');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const magic = String.fromCharCode(...bytes.subarray(0, 4));
+
   if (magic !== 'EVTC') {
     throw new EvtcError('INVALID_MAGIC', 'The file does not contain EVTC data.');
   }
 
   const arcdpsBuild = String.fromCharCode(...bytes.subarray(4, 12));
+
   if (!/^\d{8}$/.test(arcdpsBuild)) {
     throw new EvtcError('INVALID_MAGIC', 'The EVTC header has an invalid ArcDPS build identifier.');
   }
 
   const rawRevision = view.getUint8(12);
+
   if (rawRevision !== 0 && rawRevision !== 1) {
     throw new EvtcError('UNSUPPORTED_REVISION', `EVTC combat-event revision ${rawRevision} is not supported.`);
   }
@@ -88,6 +93,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   ensureRange(bytes.byteLength, offset, 4, 'TRUNCATED_AGENTS', 'agent count');
   const agentCount = view.getUint32(offset, true);
   offset += 4;
+
   if (agentCount > EVTC_PARSE_LIMITS.maximumAgents) {
     throw new EvtcError('LIMIT_EXCEEDED', `The EVTC agent count (${agentCount}) exceeds the safety limit.`);
   }
@@ -117,6 +123,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   ensureRange(bytes.byteLength, offset, 4, 'TRUNCATED_SKILLS', 'skill count');
   const skillCount = view.getUint32(offset, true);
   offset += 4;
+
   if (skillCount > EVTC_PARSE_LIMITS.maximumSkills) {
     throw new EvtcError('LIMIT_EXCEEDED', `The EVTC skill count (${skillCount}) exceeds the safety limit.`);
   }
@@ -138,11 +145,13 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   const eventBytes = hasArcDpsFooter(bytes, bytes.byteLength - trailingBytes)
     ? remainingBytes - trailingBytes
     : remainingBytes;
+
   if (eventBytes % EVENT_SIZE !== 0) {
     throw new EvtcError('TRUNCATED_EVENTS', 'The EVTC combat-event table ends with a truncated record.');
   }
 
   const eventCount = eventBytes / EVENT_SIZE;
+
   if (eventCount > EVTC_PARSE_LIMITS.maximumEvents) {
     throw new EvtcError('LIMIT_EXCEEDED', `The EVTC combat-event count (${eventCount}) exceeds the safety limit.`);
   }

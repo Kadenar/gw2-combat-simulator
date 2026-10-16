@@ -63,6 +63,7 @@ function selectedIds(context: EngineerUiContext = {}): Set<SkillId> {
 /** Returns selected heal, utility, and elite skill names in their fixed slot order. */
 function selectedIdsInSlotOrder(context: EngineerUiContext = {}): (SkillId | undefined)[] {
   if (context.build) return SKILL_SLOT_ORDER.map((slot) => context.build!.selectedSkillIds?.[slot] ?? undefined);
+
   return [...(context.config?.selectedSkillIds ?? [])];
 }
 
@@ -99,6 +100,7 @@ export function hasActiveTrait(context: EngineerUiContext, name: string): boolea
 /** Detects the Tools trait line even when programmatic contexts omit build specialization metadata. */
 function usesToolsTraitline(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, context: EngineerUiContext): boolean {
   if ((context.build?.specializations || []).some((selection) => selection.name === 'Tools')) return true;
+
   // Programmatic UI contexts may omit build specialization metadata, so infer
   // the Tools line from the canonical trait selection.
   return catalog.traits.some((trait) => trait.specialization === 'Tools' && hasTrait(context, trait.id));
@@ -111,6 +113,7 @@ function toolbeltSkillId(
   parentId: SkillId | undefined
 ): SkillId | null {
   if (parentId == null) return null;
+
   return catalog.skills.find((skill) => skill.toolbeltParentId === parentId && skill.flipParentId == null)?.id ?? null;
 }
 
@@ -162,6 +165,7 @@ function engineerEventLogRow(
   }
 
   if (event.type === 'engineer.heat' && engineerUiSpecialization(context) !== 'Holosmith') return null;
+
   return undefined;
 }
 
@@ -192,14 +196,18 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = engineerUiState(context);
+
       if (skill.kitTransition === 'equip') return { tileActive: state.activeKit !== skill.id };
+
       if (skill.kitTransition === 'stow') return { tileActive: state.activeKit === skill.kitId };
     },
     // Swap Weapons also leaves an active kit, so it stays beside Dodge even without an alternate set; planning
     // availability disables it whenever it can neither stow a kit nor swap equipped sets before combat.
     paletteActionSkills(_context, skills) {
       const swap = catalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS);
+
       if (!swap || skills.some((skill) => skill.id === swap.id)) return [...skills];
+
       const dodge = skills.findIndex((skill) => skill.id === SHARED_SKILL_IDS.DODGE);
       return [...skills.slice(0, dodge + 1), swap, ...skills.slice(dodge + 1)];
     },
@@ -245,6 +253,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     // Tracks kit equip and stow operations as timeline weapon-line transitions.
     timelineWeaponLineTransition: (context: EngineerUiContext) => {
       const skill = context.skill;
+
       if (skill?.kitTransition === 'equip') {
         return skill.name;
       }
@@ -258,7 +267,9 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     // Shows endurance only when the Tools line makes dodge resource management relevant.
     resourceViews: (context: EngineerUiContext) => {
       const state = engineerUiState(context);
+
       if (!usesToolsTraitline(catalog, context)) return [];
+
       const maximum = state.endurance?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
       const endurance: ProfessionResourceView = {
         id: 'endurance',
@@ -280,6 +291,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     // Keep battery progress and its active buff timer together at the inspected rotation point.
     rotationStateSnapshot: (context): RotationStateSnapshotItem[] => {
       const items: RotationStateSnapshotItem[] = [];
+
       if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
         // The inspected rotation's balance source owns the cap displayed beside its charge count.
         const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.KINETIC_BATTERY, 'maximumStacks');
@@ -291,6 +303,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       }
 
       const buff = planningBuffAt(context.planningState, 'kinetic-battery');
+
       if (buff) {
         items.push({
           id: 'engineer-kinetic-battery',

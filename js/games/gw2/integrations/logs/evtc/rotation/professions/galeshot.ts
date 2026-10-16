@@ -14,6 +14,7 @@ export function galeshotCycloneBowActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   if (context.profile.specializationId !== 'galeshot') return context.recordedActions;
+
   const actions = [...context.recordedActions].sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
   const bowSkill = (action: EvtcRecordedRotationAction) =>
     (recordedActionSkill(action, context) as RangerSkill | undefined)?.cycloneBowSkill === true;
@@ -52,7 +53,9 @@ export function galeshotCycloneBowActions(
   let inBow = startsInBow;
   for (const action of actions) {
     if (action.rawSkillId === ID.SUMMON_CYCLONE_BOW) inBow = true;
+
     if (action.rawSkillId === ID.DISMISS_CYCLONE_BOW) inBow = false;
+
     if (action.weaponSet == null) {
       result.push(action);
       continue;
@@ -72,9 +75,11 @@ export function galeshotCycloneBowActions(
     const existing = actions.some(
       (candidate) => candidate.rawSkillId === explicitId && Math.abs(candidate.start - action.start) <= SIGNAL_WINDOW_MS
     );
+
     if (entersBow || (action.weaponSet !== BUNDLE_SET && (inBow || existing))) {
       // Effect and bar-change records describe one input; never emit a second transition or an equipment swap.
       if (!existing) result.push(transition(action, explicitId));
+
       inBow = entersBow;
     } else result.push(action);
   }

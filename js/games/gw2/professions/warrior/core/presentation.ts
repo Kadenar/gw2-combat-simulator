@@ -155,6 +155,7 @@ function warriorCoreStateSnapshot(
   const items: RotationStateSnapshotItem[] = [];
   const balance = context.balanceContext;
   const peakPerformance = planningBuffAt(context.planningState, 'peak-performance');
+
   if (peakPerformance) {
     // Show the active window here; the trait tooltip owns damage bonus details.
     items.push({
@@ -170,6 +171,7 @@ function warriorCoreStateSnapshot(
     const maximum = balanceProfileNumber(profile, 'maximumStacks');
     const bonus = balanceProfileNumber(profile, 'attributeBonus');
     const stacks = planningBuffStacks(context.planningState, 'signet-mastery');
+
     if (stacks > 0) {
       items.push({
         id: 'signet-mastery',
@@ -197,6 +199,7 @@ function warriorCoreStateSnapshot(
     ]
   ] as const) {
     const stacks = planningBuffStacks(context.planningState, kind);
+
     if (stacks > 0) items.push({ id, label, value: `${stacks}/${maximum}`, title: `${label} active stacks` });
   }
 
@@ -223,6 +226,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
     preview.boon('stability', 'Stalwart Strength');
     preview.condition('Weakness', 'Cull the Weak');
     preview.condition('Crippled', 'Leg Specialist');
+
     // Starting adrenaline selects the real burst tier; Bladesworn's charge ladder owns its separate Flow setup.
     if (!['Bladesworn', 'Spellbreaker'].includes(context.specialization))
       preview.add({
@@ -235,6 +239,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         initial: Number(context.build.initialResource) || 0,
         description: 'Adrenaline before setup; bursts spend it normally'
       });
+
     preview.trait('Peak Performance', {
       key: 'peakPerformance',
       kind: 'buff',
@@ -246,6 +251,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
     preview.buff('Signet Mastery', 'signetMastery', 'signet-mastery', 'Ferocity', true);
     preview.buff('Furious', 'furious', 'furious-surge', 'Condition Damage', true);
     preview.buff('Burst Precision', 'burstPrecision', 'burst-precision', 'Critical Chance / Ferocity');
+
     // The existing timed-buff path exposes the selected damage stack without duplicating its multiplier or cap.
     if (preview.has("Berserker's Power"))
       preview.trait("Berserker's Power", {
@@ -256,6 +262,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         description: 'Burst-earned strike damage',
         max: preview.maximumStacks("Berserker's Power")
       });
+
     if (preview.has('Unsuspecting Foe'))
       preview.add({
         key: 'defiant',
@@ -265,8 +272,10 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         initial: 1,
         description: 'Defiant-target critical bonuses'
       });
+
     preview.condition('Bleeding', 'Deep Strikes');
     preview.passives(ID.SIGNET_OF_MIGHT);
+
     // The active Precision/Ferocity window replaces the ready-state Precision passive.
     if (preview.skills.has(ID.SIGNET_OF_FURY))
       preview.add({
@@ -280,6 +289,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         initial: 'passive',
         description: 'Passive Precision, active Precision and Ferocity, or neither'
       });
+
     return preview.controls;
   },
 
@@ -290,6 +300,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
     if ('signetOfFury' in context.values && context.values.signetOfFury !== 'passive')
       context.setSkillOnCooldown(ID.SIGNET_OF_FURY);
+
     if (context.values.signetOfFury === 'active') context.addBuff('signet-of-fury-active', 1, 'Signet of Fury');
   },
 
@@ -316,6 +327,7 @@ export function warriorBurstPaletteOverride(
   const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) =>
     weaponSetBurstSkillId(context, weaponSet, burstsByWeapon)
   );
+
   if (weaponSetBurstIds.includes(Number(skill.id)) && activeBurstSkillId !== Number(skill.id)) {
     const requiredWeaponSet = weaponSetBurstIds.indexOf(Number(skill.id)) + 1;
     return {

@@ -13,8 +13,10 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
  */
 export function flattenProfessionState(professionState: unknown): UnvalidatedFields {
   if (!professionState || typeof professionState !== 'object') return {};
+
   const runtime = professionState as UnvalidatedFields;
   const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
+
   if (
     runtime.core &&
     typeof runtime.core === 'object' &&
@@ -35,6 +37,7 @@ export function readProfessionCoreState<TCoreState extends object = DynamicField
   professionState: unknown
 ): Partial<TCoreState> {
   if (!professionState || typeof professionState !== 'object') return {};
+
   const state = professionState as UnvalidatedFields;
   return state.core && typeof state.core === 'object' ? state.core : {};
 }
@@ -45,8 +48,10 @@ export function readProfessionSpecializationState<TState extends object = Dynami
   expectedKind: string
 ): Partial<TState> | undefined {
   if (!professionState || typeof professionState !== 'object') return undefined;
+
   const state = professionState as UnvalidatedFields;
   const specialization = state.specialization as UnvalidatedFields | undefined;
+
   if (
     !specialization ||
     specialization.kind !== expectedKind ||
@@ -140,6 +145,7 @@ function specializationStateForKind(context: unknown, expectedKind: string): obj
     };
   };
   const active = runtime.specialization;
+
   if (active.kind !== expectedKind) {
     throw new TypeError(`Expected active specialization ${expectedKind}, received ${active.kind}.`);
   }

@@ -133,6 +133,7 @@ const adapter = {
     migrateBuild: (value) => structuredClone(value),
     catalogFor(id) {
       if (!['current', 'preview'].includes(id)) throw new Error('Removed preview');
+
       return catalog;
     }
   },

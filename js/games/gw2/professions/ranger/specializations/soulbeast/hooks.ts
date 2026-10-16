@@ -47,9 +47,13 @@ export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   onCastCommit(runtime, cast) {
     const state = soulbeastState.from(runtime);
     const skill = cast.skill;
+
     if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;
+
     if (!state.beastmodeActive) return;
+
     runtime.fireTrigger(mergedCommandApplied, { skill: skill, at: runtime.time });
+
     if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
       runtime.fireTrigger(beastSkillUsed, {
         skill,

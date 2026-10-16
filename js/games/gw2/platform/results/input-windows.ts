@@ -10,7 +10,9 @@ export interface InputWindow {
 /** Shared rolling counts keep APM peaks and activity sections on the same accepted-input boundaries. */
 export function rankedInputWindows(trace: InputTrace, windowSeconds: number): InputWindow[] {
   const duration = Math.max(0, trace.end - trace.start);
+
   if (duration < windowSeconds) return [];
+
   const times = trace.actions.map((input) => input.at - trace.start).sort((a, b) => a - b);
   const starts = [...new Set([0, ...times.map((at) => Math.min(at, duration - windowSeconds))])].sort((a, b) => a - b);
   const windows: InputWindow[] = [];

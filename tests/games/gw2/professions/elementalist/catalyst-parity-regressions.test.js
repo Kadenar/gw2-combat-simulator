@@ -38,6 +38,7 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
       schedule: (...args) => scheduled.push(args)
     };
     const renew = () => catalystModule.hooks.tasks['elementalist.catalyst-base-empowerment'](runtime);
+
     if (duration === 2) {
       renew();
       assert.equal(emitted[0].duration, 2);

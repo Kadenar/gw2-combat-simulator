@@ -11,6 +11,7 @@ const preparedSkillIds = new WeakMap<object, ReadonlySet<SkillId>>();
 function checkedId(value: unknown): SkillId {
   if ((typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && value.length > 0))
     return value;
+
   throw new TypeError('Selected skills must contain canonical skill IDs.');
 }
 
@@ -18,6 +19,7 @@ function checkedId(value: unknown): SkillId {
 export function selectedSkillIdsFromSlots(value: unknown): SkillId[] {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new TypeError('selectedSkillIds must be a slot record.');
+
   return Object.values(value)
     .filter((id) => id !== null)
     .map(checkedId);
@@ -28,8 +30,11 @@ export function selectedSkillIdSet(
   value: readonly SkillId[] | Readonly<Gw2SelectedSkillSlots> | undefined
 ): ReadonlySet<SkillId> {
   if (value === undefined) return new Set();
+
   const prepared = preparedSkillIds.get(value);
+
   if (prepared) return prepared;
+
   return new Set(Array.isArray(value) ? value.map(checkedId) : selectedSkillIdsFromSlots(value));
 }
 
@@ -39,10 +44,13 @@ export function prepareSelectedSkillLoadout(
   catalog: Pick<CanonicalCatalog, 'skillsById'>
 ): readonly SkillId[] {
   if (!Array.isArray(value)) throw new TypeError('Simulation selectedSkillIds must be an array of canonical IDs.');
+
   const ids = Object.freeze(
     value.map((value) => {
       const id = checkedId(value);
+
       if (!catalog.skillsById.has(id)) throw new TypeError(`Unknown selected skill ID: ${id}.`);
+
       return id;
     })
   );
@@ -56,6 +64,8 @@ export function isBuildSkillAvailable(
   { specialization }: { readonly specialization?: string } = {}
 ): boolean {
   if (skill.simulatorExcluded) return false;
+
   if (skill.type === 'Weapon') return true;
+
   return !skill.specialization || skill.specialization === specialization;
 }

@@ -122,6 +122,7 @@ test('Harbinger recharge modifies pistol work while preserving Core shroud reduc
       ...native,
       onCastStart(runtime, cast) {
         native.onCastStart(runtime, cast);
+
         if ([ID.WEEPING_SHOTS, ID.DARK_BARRAGE].includes(cast.skill.id)) seen.push(cast.rechargeWork);
       }
     }

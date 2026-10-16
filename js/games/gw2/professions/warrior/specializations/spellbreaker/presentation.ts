@@ -68,6 +68,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
     const insight = activeStackCount(state.attackerInsightExpiries || [], at);
+
     if (insight > 0) {
       items.push({
         id: 'attackers-insight',
@@ -78,6 +79,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
     }
 
     const tether = (state.magebaneTetherUntil || 0) - at;
+
     if (tether > 0) {
       items.push({
         id: 'magebane-tether',

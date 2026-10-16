@@ -77,8 +77,11 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
 
     availability(runtime, skill, command) {
       const bar = gunsaberBarAvailability(runtime, skill);
+
       if (!bar.ready) return bar;
+
       const trigger = dragonTriggerAvailability(runtime, skill, command);
+
       if (!trigger.ready) return trigger;
 
       return gunsaberAttackAvailability(runtime, skill);
@@ -97,8 +100,11 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     onCastCommit(runtime, cast) {
       // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
       const spent = warriorAmmunition.get(cast);
+
       if (spent) runtime.fireTrigger(ammunitionCommitted, { cast, spent });
+
       const release = dragonSlashRelease(cast);
+
       if (release) {
         runtime.fireTrigger(dragonSlashReleased, { cast, flowSpent: release.flowSpent });
 

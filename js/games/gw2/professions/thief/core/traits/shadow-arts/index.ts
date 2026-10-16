@@ -194,6 +194,7 @@ function enterShadowsRejuvenation(runtime: ThiefRuntime): void {
 /** Applies Shadow's Rejuvenation at its established mechanical boundary. */
 function exitShadowsRejuvenation(runtime: ThiefRuntime): void {
   const initiativeGain = balanceNumberFromContext(runtime, TRAIT.SHADOWS_REJUVENATION, 'resourceGain');
+
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
@@ -208,6 +209,7 @@ function applyHiddenThief(runtime: ThiefRuntime, { cast }: StealAcceptance): voi
     )
   )
     return;
+
   emitTraitProfile(runtime, TRAIT.HIDDEN_THIEF, TRAIT.HIDDEN_THIEF, undefined, {
     at: runtime.time,
     activationId: cast.id,

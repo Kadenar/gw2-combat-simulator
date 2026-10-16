@@ -43,6 +43,7 @@ function procImportObservation(
   detail: string
 ): RotationImportObservation[] {
   if (!result) return [];
+
   return [
     {
       title,
@@ -91,6 +92,7 @@ function serratedSteelImportObservation(result: CriticalBleedingProcObservation 
 /** Reports observed Sharper Images procs because clone critical hits always trigger Bleeding. */
 function sharperImagesImportObservation(result: MesmerSharperImagesObservation | null): RotationImportObservation[] {
   if (!result) return [];
+
   return [
     {
       title: 'Sharper Images',
@@ -158,6 +160,7 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   const observations: RotationImportObservation[] = [];
   // Surface damage-proven dodge autos without turning supported bugged rotations into import warnings.
   const dodgeAutos = result.actions.filter((action) => action.vindicatorDodgeAuto);
+
   if (dodgeAutos.length) {
     observations.push({
       title: 'Vindicator Dodge + Auto bug',

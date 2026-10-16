@@ -78,11 +78,13 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
   availability(runtime, skill) {
     const state = conduitState.from(runtime);
+
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
       // Project the shared recharge without mutating state during an availability query.
       const readyAt = state.beguilingHazeRecharge
         ? gw2CooldownReadyAt(runtime.cooldownController.project(skill, state.beguilingHazeRecharge))
         : state.beguilingHazeReadyAt;
+
       if ((state.beguilingHazeCharges || 0) <= 0 && runtime.time < (readyAt || 0))
         return denySkillCast(skill, 'revenant.beguiling-haze-cooldown', 'Beguiling Haze is recharging.', readyAt);
     }
@@ -97,11 +99,13 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
         'revenant.release-variant',
         'the active legend supplies a different Release Potential variant.'
       );
+
     return { ready: true };
   },
   resolveCastSkill(runtime, skill) {
     // Select the follow-up cutoff before cancellation checks and charge consumption.
     if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id) || conduitState.from(runtime).beguilingHazeCharges <= 0) return skill;
+
     return {
       ...skill,
       interruptCommitMs: balanceNumberFromContext(runtime, PROFILE.beguilingHazeFollowUp, 'interruptCommitMs')
@@ -109,8 +113,11 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   castDurationMs(runtime, skill, durationMs) {
     if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id)) return durationMs;
+
     const specialization = runtime.profession.specialization;
+
     if (specialization.kind !== 'Conduit') throw new TypeError('Beguiling Haze requires Conduit state.');
+
     return (
       beguilingHazeCastDuration(
         durationMs / 1000,
@@ -128,14 +135,17 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
         : skill.id === ID.BANISH_ENCHANTMENT
           ? PROFILE.mesmerBanishEnchantment
           : null;
+
     // Mesmer form gives these Demon utilities a recharge; Alacrity still applies to the new base.
     if (mesmerProfile && revenantConduitFormIsActive(conduitState.from(runtime), 'Mesmer', runtime.time))
       return Math.max(0, balanceNumberFromContext(runtime, mesmerProfile, 'cooldown'));
+
     return kineticInsightRecharge(runtime, skill, work);
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     costAffinity(runtime, cast);
+
     if (
       skill.legendId === LEGEND.ENTITY &&
       revenantConduitFormIsActive(conduitState.from(runtime), 'Dervish', cast.start)
@@ -144,21 +154,27 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
+
     // Cosmic Wisdom form procs follow successful casts through the common completion path.
     if (skill.legendId === LEGEND.ASSASSIN) lesserDaggers(runtime, skill);
+
     if (dervishCasts.has(cast)) {
       dervishAttack(runtime, cast, runtime.time);
+
       if (TWIN_MOON_SKILL_IDS.has(skill.id)) dervishAttack(runtime, cast, runtime.time, true);
     }
 
     dervishCasts.delete(cast);
+
     // Shared Wisdom Swiftness belongs only to Entity legend skills.
     if (skill.legendId === LEGEND.ENTITY) runtime.fireTrigger(entityCastCompleted, { cast });
 
     if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
+
     if (isRevenantUpkeep(skill) && activeRevenantUpkeep(runtime, skill.id, runtime.time)) {
       const data = { skillId: skill.id, startsAt: runtime.time };
       runtime.schedule(UPKEEP_AFFINITY, canonicalTime(runtime.time + 3), data, undefined, -200);
+
       if (skill.id === ID.IMPOSSIBLE_ODDS)
         runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
     }
@@ -169,12 +185,14 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     },
     'revenant.complete-haze'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Shared Wisdom is already published; Core traits precede the shared-ammo transition.
       completeRevenantCast(runtime, context.cast);
       completeBeguilingHaze(runtime, context.cast);
     },
     'revenant.hex-eater-cleanse'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Hex-Eater cleanse requires a cast.');
+
       cleanseHexEater(runtime, context.cast);
     },
     'revenant.mesmer-release'(runtime, context) {
@@ -182,6 +200,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     },
     'revenant.cosmic-wisdom'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Core cast traits must see the pre-form attributes before Cosmic Wisdom opens its form.
       completeRevenantCast(runtime, context.cast);
       cosmicWisdom(runtime, context.cast);

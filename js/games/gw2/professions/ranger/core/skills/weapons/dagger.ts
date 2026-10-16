@@ -254,6 +254,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
 export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const actor = event.summonOwner ? rangerOwningPetState(state.pet, event.summonOwner) : state.player;
+
   if (actor)
     actor.poisonousStrikes = grantCharges(Math.max(0, Number(event.charges || 0)), event.at + (event.duration || 0));
 }
@@ -268,10 +269,14 @@ const POISONOUS_STRIKES_NAME = 'Poisonous Strikes - Poisoned';
 /** The current pet's own strikes spend its charges; Ranger-owned Cloud/vine effects cannot consume pet venom. */
 export function triggerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const { pet } = professionCoreState(context);
+
   if (!pet) return;
+
   // Pet charges belong only to this activation, including their inclusive final hit.
   expireCharges(pet.poisonousStrikes, event.at, true);
+
   if (!isActivePetStrike(context, event)) return;
+
   deliverChargedHit(
     context,
     event,
@@ -294,7 +299,9 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
 export function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const { player } = professionCoreState(context);
   expireCharges(player.poisonousStrikes, event.at, true);
+
   if (!rangerMerged(context.profession) || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) return;
+
   deliverChargedHit(
     context,
     event,

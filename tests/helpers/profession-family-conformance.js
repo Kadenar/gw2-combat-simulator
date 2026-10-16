@@ -187,6 +187,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       );
 
       const actual = family.ui[callback](context);
+
       if (callback === 'paletteGroups') {
         // The application sorts and combines anchored groups; every surviving group still needs an active owner.
         assert.ok(

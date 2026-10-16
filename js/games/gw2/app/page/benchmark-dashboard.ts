@@ -22,6 +22,7 @@ import {
 /** Mount the optional benchmark tool once so chart filters survive navigation back to the workspace. */
 export function mountBenchmarks(root: HTMLElement): void {
   if (root.dataset.benchmarkDashboard) return;
+
   root.dataset.benchmarkDashboard = 'mounted';
   root.dataset.benchmarkActivePanel = 'builds';
   root.dataset.buildView = 'cards';
@@ -95,6 +96,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   const status = root.querySelector<HTMLElement>('[data-benchmark-status]')!;
   const cards = root.querySelector<HTMLElement>('[data-benchmark-cards]')!;
   const buildTable = root.querySelector<HTMLElement>('[data-build-table]')!;
+
   // A profession-specific entry opens the comparison table immediately; the global overview starts with cards.
   if (initialProfession) {
     root.dataset.buildView = 'table';
@@ -127,7 +129,9 @@ export function mountBenchmarks(root: HTMLElement): void {
   /** Fit the side-by-side comparison below its actual header, including embedded and wrapped layouts. */
   function fitHealthViewport(): void {
     const chart = root.querySelector<HTMLElement>('[data-health-chart]')!;
+
     if (!pageWindow || !chart.getClientRects().length) return;
+
     const top = chart.getBoundingClientRect().top + pageWindow.scrollY;
     chart.style.setProperty('--health-viewport-height', `${Math.max(440, pageWindow.innerHeight - top - 28)}px`);
   }
@@ -143,7 +147,9 @@ export function mountBenchmarks(root: HTMLElement): void {
   function benchmarkWorkspaceHref(row: Benchmark): string {
     const entry = professionRegistry.find(({ id }) => id === row.profession)!;
     const params = new URLSearchParams({ benchmark: row.build });
+
     if (row.rotation) params.set('rotation', row.rotation);
+
     return navigationRoute(`${entry.route}?${params}#workspace`);
   }
 
@@ -171,8 +177,10 @@ export function mountBenchmarks(root: HTMLElement): void {
         b.benchmarkDps - a.benchmarkDps ||
         a.label.localeCompare(b.label)
       );
+
     if (sort.value === 'apm') {
       if (!hasBenchmarkApm(a)) return hasBenchmarkApm(b) ? 1 : a.label.localeCompare(b.label);
+
       if (!hasBenchmarkApm(b)) return -1;
     }
 
@@ -185,6 +193,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   function renderBuildTable(rows: readonly Benchmark[]): void {
     // Sorting retains the selected build; filtering it out dismisses details and invalidates pending responses.
     if (overviewInspectedBuild && !rows.includes(overviewInspectedBuild)) overviewInspectedBuild = null;
+
     const sortHeader = (key: string, label: string): string =>
       `<th scope="col" aria-sort="${sort.value === key ? (buildSortAscending ? 'ascending' : 'descending') : 'none'}"><button type="button" data-build-sort="${key}">${label}${sort.value === key ? (buildSortAscending ? ' ↑' : ' ↓') : ''}</button></th>`;
     buildTable.innerHTML = rows.length
@@ -198,6 +207,7 @@ export function mountBenchmarks(root: HTMLElement): void {
           })
           .join('')}</tbody></table></div>${buildInspectorMarkup('benchmark-overview-inspector')}</div>`
       : '<p class="benchmark-empty">No benchmarks match these filters.</p>';
+
     if (overviewInspectedBuild) openOverviewInspector(overviewInspectedBuild);
   }
 
@@ -222,6 +232,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   /** Dismissal restores keyboard focus to the selected build without changing scroll position. */
   function closeOverviewInspector(): void {
     if (!overviewInspectedBuild) return;
+
     const index = benchmarks.indexOf(overviewInspectedBuild);
     overviewInspectedBuild = null;
     buildTable.querySelector('#benchmark-overview-inspector')!.setAttribute('hidden', '');
@@ -235,14 +246,22 @@ export function mountBenchmarks(root: HTMLElement): void {
   // Rows only preview builds; the inspector owns workspace navigation and source links stay external.
   buildTable.addEventListener('click', (event) => {
     const target = event.target as Element;
+
     if (target.closest('[data-close-build-inspector]')) return closeOverviewInspector();
+
     if (target.closest('a')) return;
+
     const element = target.closest<HTMLElement>('[data-overview-row]');
+
     if (!element) return;
+
     const row = benchmarks[Number(element.dataset.overviewRow)];
+
     if (!row) return;
+
     openOverviewInspector(row);
     element.querySelector<HTMLElement>('[data-inspect-overview]')!.focus({ preventScroll: true });
+
     if (pageWindow?.matchMedia('(max-width: 1100px)').matches) {
       buildTable.querySelector('#benchmark-overview-inspector')!.scrollIntoView({ block: 'nearest' });
     }
@@ -253,6 +272,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       closeOverviewInspector();
       // Escape ends row interaction without leaving the restored button outlined; the close button still restores focus.
       const focused = root.ownerDocument.activeElement;
+
       if (focused instanceof HTMLElement && buildTable.contains(focused)) focused.blur();
     }
   });
@@ -276,11 +296,14 @@ export function mountBenchmarks(root: HTMLElement): void {
   function render(): void {
     const professionScope =
       selected.size === professionRegistry.length ? 'all' : selected.size === 1 ? [...selected][0]! : 'custom';
+
     // Keep a single-profession destination accurate after changing or resetting the overview picker.
     if (standalone && pageWindow) {
       const url = new URL(pageWindow.location.href);
+
       if (selected.size === 1) url.searchParams.set('profession', professionScope);
       else url.searchParams.delete('profession');
+
       if (url.href !== pageWindow.location.href) pageWindow.history.replaceState(null, '', url);
     }
 
@@ -291,6 +314,7 @@ export function mountBenchmarks(root: HTMLElement): void {
         String(id === 'all' ? selected.size === professionRegistry.length : selected.has(id))
       );
     });
+
     if (root.getAttribute('aria-busy') === 'true' && !benchmarks.length) {
       renderLoadingBenchmarks();
       return;
@@ -309,7 +333,9 @@ export function mountBenchmarks(root: HTMLElement): void {
       .filter(({ entry, rows: builds }) => builds.length || failures.includes(entry.name));
     groups.sort((a, b) => {
       if (!a.rows.length) return b.rows.length ? 1 : a.entry.name.localeCompare(b.entry.name);
+
       if (!b.rows.length) return -1;
+
       return compareOverviewBuilds(a.rows[0]!, b.rows[0]!);
     });
     sort.querySelector<HTMLOptionElement>('[value="name"]')!.textContent =
@@ -322,18 +348,22 @@ export function mountBenchmarks(root: HTMLElement): void {
     status.textContent = failures.length ? `Could not load ${failures.join(', ')}.` : '';
     const patchButton = root.querySelector<HTMLButtonElement>('[data-benchmark-panel="patch"]')!;
     const hasPreview = patchBenchmarks(benchmarks, activePatchPreview).length > 0;
+
     // Gate on loaded data before filtering, and recover navigation if a reload removes the preview.
     if (!hasPreview && root.dataset.benchmarkActivePanel === 'patch') {
       const restoreFocus =
         root.ownerDocument.activeElement === patchButton ||
         root.querySelector('[data-chart-panel="patch"]')!.contains(root.ownerDocument.activeElement);
       showPanel('builds');
+
       if (restoreFocus) root.querySelector<HTMLButtonElement>('[data-benchmark-panel="builds"]')!.focus();
     }
 
     patchButton.hidden = !hasPreview;
+
     if (activePatchPreview && !hasPreview)
       status.textContent += ' Preview benchmarks have not been captured for the active patch.';
+
     patchView.update(rows, professionScope);
     retry.hidden = failures.length === 0;
 
@@ -363,6 +393,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     const phase = root.querySelector<HTMLSelectElement>('[data-health-phase]')!.value;
     const bands = TARGET_HEALTH_BANDS.filter((band) => phase === 'all' || band.id === phase);
     const xPercent = (index: number): number => ((index + 0.5) / bands.length) * 100;
+
     if (healthSort !== 'name' && !bands.some((band) => band.id === healthSort)) {
       healthSort = phase;
     }
@@ -374,6 +405,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     const all = root.querySelector<HTMLSelectElement>('[data-health-builds]')!.value === 'all';
     const series = rows.filter((row) => {
       if (!all && seen.has(row.profession)) return false;
+
       seen.add(row.profession);
       return true;
     });
@@ -390,6 +422,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     const host = root.querySelector<HTMLElement>('[data-health-chart]')!;
     const seriesKey = (row: Benchmark): string =>
       html(JSON.stringify([row.profession, row.build, row.rotation, row.label]));
+
     if (!values.length) {
       host.innerHTML = '<p class="benchmark-empty">No completed health bands for matching benchmarks.</p>';
       healthInteractions.refresh();
@@ -415,7 +448,9 @@ export function mountBenchmarks(root: HTMLElement): void {
         bands
           .map((_, index) => {
             const value = valueAt(row, index);
+
             if (value === null) return '';
+
             const label = `${row.professionName} · ${row.specialization} · ${row.label} · ${bandLabel(index)}: ${number.format(value)} ${mode} DPS`;
             return `<button type="button" class="scatter-point profession-card-${row.profession}" data-health-point data-health-series="${seriesKey(row)}" data-health-name="${html(`${row.professionName} · ${row.specialization} · ${row.label}`)}" aria-pressed="false" style="${colorStyle(row)};left:${xPercent(index)}%;bottom:${heightPercent(value)}%" aria-label="${html(label)}"></button>`;
           })
@@ -428,11 +463,16 @@ export function mountBenchmarks(root: HTMLElement): void {
       const bandIndex = bands.findIndex((band) => band.id === healthSort);
       const ordered = [...series].sort((a, b) => {
         const nameOrder = buildName(a).localeCompare(buildName(b));
+
         if (bandIndex < 0) return (healthAscending ? 1 : -1) * nameOrder;
+
         const left = valueAt(a, bandIndex);
         const right = valueAt(b, bandIndex);
+
         if (left === null) return right === null ? nameOrder : 1;
+
         if (right === null) return -1;
+
         return (healthAscending ? 1 : -1) * (left - right) || nameOrder;
       });
       const columns = [['name', 'Build'], ...bands.map((band, index) => [band.id, bandLabel(index)])];
@@ -447,7 +487,9 @@ export function mountBenchmarks(root: HTMLElement): void {
     const table = host.querySelector<HTMLTableElement>('.health-values table')!;
     table.addEventListener('click', (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>('[data-health-sort]');
+
       if (!button) return;
+
       const key = button.dataset.healthSort!;
       healthAscending = key === healthSort ? !healthAscending : key === 'name';
       healthSort = key;
@@ -477,7 +519,9 @@ export function mountBenchmarks(root: HTMLElement): void {
     );
     const heightPercent = (value: number): number => ((value - dpsAxis.min) / (dpsAxis.max - dpsAxis.min)) * 100;
     apmRows = measurable;
+
     if (apmInspectedBuild && !apmRows.includes(apmInspectedBuild)) apmInspectedBuild = null;
+
     const host = root.querySelector<HTMLElement>('[data-apm-chart]')!;
     host.innerHTML = measurable.length
       ? `<div class="benchmark-apm-layout"><div class="benchmark-apm-content"><div class="scatter-layout"><div class="scatter-y-axis comparison-y-axis">${dpsAxis.ticks.map((tick, index) => `<span style="top:${100 - heightPercent(tick)}%">${number.format(tick)}${index === 0 ? ' DPS' : ''}</span>`).join('')}</div>
@@ -497,6 +541,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       )}</div></div><div class="benchmark-apm-table" data-apm-table></div></div>${buildInspectorMarkup('benchmark-scatter-inspector')}</div>`
       : '<p class="benchmark-empty">No matching benchmarks with APM data.</p>';
     renderApmTable();
+
     if (apmInspectedBuild) openApmInspector(apmInspectedBuild, apmInspectorOrigin);
   }
 
@@ -517,7 +562,9 @@ export function mountBenchmarks(root: HTMLElement): void {
 
   function renderApmTable(): void {
     const host = root.querySelector<HTMLElement>('[data-apm-table]');
+
     if (!host) return;
+
     const ordered = orderedApmRows();
     host.innerHTML = `<h3>Benchmarks</h3><div class="benchmark-apm-table-scroll" tabindex="0" role="region" aria-label="Benchmark table"><table><thead><tr>${[
       ['name', 'Build'],
@@ -541,7 +588,9 @@ export function mountBenchmarks(root: HTMLElement): void {
   root.querySelector('[data-apm-chart]')!.addEventListener('click', (event) => {
     const target = event.target as Element;
     const sortButton = target.closest<HTMLButtonElement>('[data-apm-sort]');
+
     if (!sortButton) return;
+
     apmAscending = apmSort === sortButton.dataset.apmSort ? !apmAscending : sortButton.dataset.apmSort !== 'dps';
     apmSort = sortButton.dataset.apmSort!;
 
@@ -568,6 +617,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     const viewport = scroll.getBoundingClientRect();
     const rowBounds = linkedRow.getBoundingClientRect();
     const headerHeight = scroll.querySelector('thead')!.getBoundingClientRect().height;
+
     if (rowBounds.top < viewport.top + headerHeight) scroll.scrollTop -= viewport.top + headerHeight - rowBounds.top;
     else if (rowBounds.bottom > viewport.bottom) scroll.scrollTop += rowBounds.bottom - viewport.bottom;
   }
@@ -587,6 +637,7 @@ export function mountBenchmarks(root: HTMLElement): void {
 
   function closeApmInspector(): void {
     if (!apmInspectedBuild) return;
+
     const index = apmRows.indexOf(apmInspectedBuild);
     apmInspectedBuild = null;
     apmChart.querySelector('#benchmark-scatter-inspector')!.setAttribute('hidden', '');
@@ -624,7 +675,9 @@ export function mountBenchmarks(root: HTMLElement): void {
       (row) => specialization.value === 'all' || specializationKey(row) === specialization.value
     );
     const host = root.querySelector<HTMLElement>('[data-bar-chart]')!;
+
     if (inspectedBuild && !builds.includes(inspectedBuild)) inspectedBuild = null;
+
     if (!builds.length) {
       host.innerHTML = '<p class="benchmark-empty">No benchmarks match these filters.</p>';
       return;
@@ -652,6 +705,7 @@ export function mountBenchmarks(root: HTMLElement): void {
         )}</div></div>${inspectionMarkup('data-bar-detail')}</div>${buildInspectorMarkup(`benchmark-build-inspector-${metric}`)}</div>`;
       })
       .join('');
+
     if (inspectedBuild) openBuildInspector(inspectedBuild);
   }
 
@@ -698,16 +752,21 @@ export function mountBenchmarks(root: HTMLElement): void {
           ? host.querySelector<HTMLButtonElement>(`[data-point="${tableRow.dataset.apmRow}"]`)
           : (healthEndpoint ??
             (event.target as Element).closest<HTMLButtonElement>('[data-point], [data-health-point]'));
+
         if (!point) return;
+
         clearTimeout(pendingHide);
+
         if (event.type === 'pointermove' && point.classList.contains('is-selected')) return;
 
         host.querySelectorAll('.is-selected').forEach((element) => element.classList.remove('is-selected'));
         point.classList.add('is-selected');
+
         if (point.dataset.point !== undefined) {
           const index = Number(point.dataset.point);
           const linkedRow = host.querySelector<HTMLElement>(`[data-apm-row="${index}"]`)!;
           linkedRow.classList.add('is-selected');
+
           // Graph inspection reveals its row inside the table without scrolling the surrounding page.
           if (!tableRow) revealApmRow(index);
         }
@@ -721,13 +780,17 @@ export function mountBenchmarks(root: HTMLElement): void {
 
     host.addEventListener('click', (event) => {
       if (!(event.target as Element).closest('[data-dismiss-inspection]')) return;
+
       dismiss();
     });
     host.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
+
       dismiss();
+
       if (host.hasAttribute('data-health-chart')) {
         const focused = root.ownerDocument.activeElement;
+
         if (focused instanceof HTMLElement && host.contains(focused)) focused.blur();
       }
     });
@@ -735,8 +798,10 @@ export function mountBenchmarks(root: HTMLElement): void {
     for (const eventName of ['pointerout', 'focusout'] as const) {
       host.addEventListener(eventName, (event) => {
         const next = event.relatedTarget;
+
         if (next instanceof Element && host.contains(next) && next.closest('.benchmark-inspection, .is-selected'))
           return;
+
         // Allow the pointer to cross the small gap into the adjacent preview without dismissing it mid-flight.
         if (event.type === 'pointerout') pendingHide = setTimeout(hide, 150);
         else hide();
@@ -748,9 +813,12 @@ export function mountBenchmarks(root: HTMLElement): void {
 
   apmChart.addEventListener('click', (event) => {
     const target = event.target as Element;
+
     if (target.closest('[data-close-build-inspector]')) return closeApmInspector();
+
     const row = target.closest<HTMLElement>('[data-apm-row]');
     const point = target.closest<HTMLElement>('[data-point]');
+
     if (row || point)
       openApmInspector(apmRows[Number(row?.dataset.apmRow ?? point!.dataset.point)]!, row ? 'table' : 'graph');
   });
@@ -780,6 +848,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     const scroll = point.closest<HTMLElement>('.bar-chart-scroll')!;
     const viewport = scroll.getBoundingClientRect();
     const bar = point.getBoundingClientRect();
+
     if (bar.left < viewport.left) scroll.scrollLeft -= viewport.left - bar.left + 8;
     else if (bar.right > viewport.right) scroll.scrollLeft += bar.right - viewport.right + 8;
   }
@@ -833,6 +902,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     inspectedBuild = null;
     barChart.querySelectorAll('.benchmark-build-inspector').forEach((panel) => panel.setAttribute('hidden', ''));
     barChart.querySelectorAll('.bar-chart-layout').forEach((chart) => chart.classList.remove('has-build-inspector'));
+
     if (point) {
       point.classList.remove('is-inspected');
       point.setAttribute('aria-expanded', 'false');
@@ -846,6 +916,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   barChart.addEventListener('pointermove', (event) => {
     const target = event.target as Element;
     const point = target.closest<HTMLButtonElement>('[data-bar-point]');
+
     if (point && target.closest('.benchmark-bar-fill, .benchmark-bar-label')) showBarHover(point);
     else hideBarHover();
   });
@@ -855,9 +926,13 @@ export function mountBenchmarks(root: HTMLElement): void {
     'wheel',
     (event) => {
       const scroll = (event.target as Element).closest<HTMLElement>('.bar-chart-scroll');
+
       if (!scroll || event.ctrlKey) return;
+
       hideBarHover();
+
       if (Math.abs(event.deltaX) > Math.abs(event.deltaY) || !event.deltaY) return;
+
       const unit =
         event.deltaMode === WheelEvent.DOM_DELTA_LINE
           ? 16
@@ -868,7 +943,9 @@ export function mountBenchmarks(root: HTMLElement): void {
         0,
         Math.min(scroll.scrollWidth - scroll.clientWidth, scroll.scrollLeft + event.deltaY * unit)
       );
+
       if (next === scroll.scrollLeft) return;
+
       event.preventDefault();
       scroll.scrollLeft = next;
       hideBarHover();
@@ -877,15 +954,20 @@ export function mountBenchmarks(root: HTMLElement): void {
   );
   barChart.addEventListener('focusin', (event) => {
     const point = (event.target as Element).closest<HTMLButtonElement>('[data-bar-point]');
+
     if (point) showBarHover(point);
     else hideBarHover();
   });
   barChart.addEventListener('focusout', hideBarHover);
   barChart.addEventListener('click', (event) => {
     const target = event.target as Element;
+
     if (target.closest('[data-close-build-inspector]')) return closeBuildInspector();
+
     if (target.closest('[data-dismiss-inspection]')) return hideBarHover();
+
     const point = target.closest<HTMLButtonElement>('[data-bar-point]');
+
     if (point && (event.detail === 0 || target.closest('.benchmark-bar-fill, .benchmark-bar-label'))) {
       openBuildInspector(
         benchmarks[Number(point.dataset.barPoint)]!,
@@ -895,10 +977,13 @@ export function mountBenchmarks(root: HTMLElement): void {
   });
   barChart.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+
     if (inspectedBuild) closeBuildInspector();
     else hideBarHover();
+
     // Escape dismisses chart interaction completely; ordinary close actions still return focus to the build.
     const focused = root.ownerDocument.activeElement;
+
     if (focused instanceof HTMLElement && barChart.contains(focused)) focused.blur();
   });
 
@@ -909,11 +994,15 @@ export function mountBenchmarks(root: HTMLElement): void {
     // Skeletons show initial progress; aria-busy covers reloads while status text is reserved for failures.
     status.textContent = '';
     retry.hidden = true;
+
     if (!benchmarks.length) render();
+
     const results = await Promise.allSettled(
       professionRegistry.map(async (entry) => {
         const response = await fetch(`data/gw2/builds/${entry.id}/manifest.json`);
+
         if (!response.ok) throw new Error(`Could not load ${entry.name}`);
+
         return readBenchmarks(entry, await response.json());
       })
     );
@@ -942,9 +1031,11 @@ export function mountBenchmarks(root: HTMLElement): void {
     if (profession === 'all') {
       const selectAll = selected.size !== professionRegistry.length;
       selected.clear();
+
       if (selectAll) professionRegistry.forEach(({ id }) => selected.add(id));
     } else if (selected.has(profession)) selected.delete(profession);
     else selected.add(profession);
+
     root.querySelector<HTMLSelectElement>('[data-bar-specialization]')!.value = 'all';
     render();
   }
@@ -986,6 +1077,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       button.setAttribute('aria-pressed', String(button.dataset.benchmarkPanel === name));
     });
     fitHealthViewport();
+
     if (name === 'comparison') void loadComparison();
     else comparison?.deactivate();
   }
@@ -993,6 +1085,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   /** Import the live tool only on entry; ordinary benchmark visits never load its simulation pipeline. */
   async function loadComparison(): Promise<void> {
     if (comparison || comparisonLoading) return;
+
     const panel = root.querySelector<HTMLElement>('[data-chart-panel="comparison"]')!;
     panel.textContent = 'Loading comparison…';
     comparisonLoading = import('#gw2/app/page/benchmark-comparison/view.js')
@@ -1013,6 +1106,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   root.addEventListener('click', (event) => {
     const target = event.target as Element;
     const view = target.closest<HTMLElement>('[data-build-view]')?.dataset.buildView;
+
     if (view) {
       root.dataset.buildView = view;
       cards.hidden = view !== 'cards';
@@ -1024,9 +1118,11 @@ export function mountBenchmarks(root: HTMLElement): void {
 
     const professionToggle = target.closest<HTMLButtonElement>('button[data-benchmark-profession]')?.dataset
       .benchmarkProfession;
+
     if (professionToggle) toggleProfession(professionToggle);
 
     const buildSort = target.closest<HTMLElement>('[data-build-sort]')?.dataset.buildSort;
+
     if (buildSort) {
       buildSortAscending = sort.value === buildSort ? !buildSortAscending : buildSort !== 'dps';
       sort.value = buildSort;
@@ -1035,8 +1131,11 @@ export function mountBenchmarks(root: HTMLElement): void {
     }
 
     const panel = target.closest<HTMLElement>('[data-benchmark-panel]')?.dataset.benchmarkPanel;
+
     if (panel) showPanel(panel);
+
     const profession = target.closest<HTMLElement>('[data-profession-bars]')?.dataset.professionBars;
+
     if (profession) {
       selected.clear();
       selected.add(profession);

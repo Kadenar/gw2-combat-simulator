@@ -33,6 +33,7 @@ test('slot selection admits authored attunement variants and follow-ups before c
     context.config.selectedSkillIds = selectedSkillIds;
     const verdict = elementalistCoreAvailability(context, fire);
     assert.equal(verdict.ready, selectedSkillIds?.length !== 0);
+
     if (!verdict.ready) assert.equal(verdict.code, 'elementalist.not-equipped');
   }
 
@@ -63,6 +64,7 @@ test('only the selected Weaver delegates weapon eligibility and supplies a secon
     };
     assert.equal(elementalistCoreAvailability(context, weapon).ready, kind === 'Weaver');
     assert.equal(elementalistAttunementPolicy(context).secondaryAttunement, kind === 'Weaver' ? 'Air' : null);
+
     if (kind !== 'Weaver') {
       const attunement = elementalistCatalog.skillsByName.get('Fire Attunement');
       assert.equal(elementalistCoreAvailability(context, attunement).code, 'elementalist.same-attunement');
@@ -135,6 +137,7 @@ test('Arcane Echo accepts weapon starts through its ten-second deadline and cons
     const context = arcaneEchoContext();
     context.cooldownController.setReadyAt(weapon.id, 20);
     context.cooldownController.startRecharge(echo, 0);
+
     if (armed) {
       armArcaneEcho(context, { effectiveEnd: 0 });
       assert.equal(context.profession.core.arcaneEchoUntil, 10);
@@ -146,6 +149,7 @@ test('Arcane Echo accepts weapon starts through its ten-second deadline and cons
     assert.equal(context.cooldownController.readyAt(weapon.id), active ? canonicalTime(context.time + 1) : 20);
     const expectedEcho = active ? 15 + gw2BaseRecharge(weapon) : 15;
     assert.equal(context.cooldownController.readyAt(echo.id), expectedEcho);
+
     if (active) {
       assert.equal(context.profession.core.arcaneEchoUntil, 0);
       completeArcaneEcho(context, cast, weapon);
@@ -234,6 +238,7 @@ test('Arcane Echo transfers original Ride the Lightning recharge and schedules i
         return {
           onCastCommit(context, cast) {
             native.onCastCommit?.(context, cast);
+
             if (cast.skill.id === weapon.id)
               completions.push({
                 at: context.time,
@@ -278,11 +283,14 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
       emitProcedural: (event) => events.push(event)
     };
     bindTriggerPoints(context, elementalistProfession, { specialization: 'Weaver' });
+
     if (armed) weaverHooks.tasks['elementalist.weaver.arm-fervent-stance'](context);
+
     context.time = at;
     weaverHooks.onCastCommit(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });
     const grants = events.filter((event) => event.type === 'buff' && event.source === 'Fervent Stance');
     assert.equal(grants.length, active ? 1 : 0);
+
     if (active) assert.equal(grants[0].kind, 'might');
   }
 });
@@ -355,7 +363,9 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
     const skill = elementalistCatalog.skillsById.get(Number(id));
     for (const expiry of [undefined, null, NaN, Infinity, -Infinity, -1, 0, 0.1, 1]) {
       const core = createElementalistCoreState();
+
       if (expiry !== undefined) core.conjurePickups[weapon] = expiry;
+
       const events = [];
       const context = {
         helpers: elementalistCatalog,
@@ -376,6 +386,7 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
       pickUpConjure(context, cast, skill);
       assert.equal(core.conjureEquipped, expected ? weapon : null);
       assert.equal(events.filter((event) => event.type === 'sigil_swap').length, expected ? 1 : 0);
+
       if (expected) {
         assert.equal(Object.hasOwn(core.conjurePickups, weapon), false);
         assert.equal(elementalistCoreAvailability(context, skill).ready, false);
@@ -425,6 +436,7 @@ test('Weaver autoattack roots require the primary attunement, even when the off 
       result.events.some((event) => event.type === 'action' && event.skillName === skill),
       expected
     );
+
     if (expected) assert.deepEqual(result.warnings, []);
     else assert.match(result.warnings[0], /matching Weaver hand/);
   }

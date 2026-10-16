@@ -34,6 +34,7 @@ function run({ duration = 5, combatStartTime = 3, output, secondGrantAt, end = 6
       initialize(runtime) {
         native.initialize?.(runtime);
         grant(runtime);
+
         if (secondGrantAt != null) runtime.schedule('test.grant', secondGrantAt);
       },
       tasks: { ...native.tasks, 'test.grant': grant }

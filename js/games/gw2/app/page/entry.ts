@@ -27,6 +27,7 @@ const GITHUB_MARK_SVG =
  */
 function mountCommunityActions(root: Document): void {
   const host = root.querySelector('#app > header');
+
   if (!host || host.querySelector('.community-actions')) {
     return;
   }
@@ -57,6 +58,7 @@ function mountCommunityActions(root: Document): void {
 function mountStickyHeader(root: Document): void {
   const header = root.querySelector<HTMLElement>('#app > header');
   const appRoot = header?.parentElement;
+
   if (!header || !appRoot) return;
 
   const updateHeaderHeight = () => {
@@ -71,12 +73,15 @@ function mountStickyHeader(root: Document): void {
 
   updateHeaderHeight();
   updateHeaderSurface();
+
   if (header.dataset.stickyHeaderMounted === 'true') return;
+
   header.dataset.stickyHeaderMounted = 'true';
 
   root.defaultView?.addEventListener('scroll', updateHeaderSurface, { passive: true });
   root.defaultView?.addEventListener(EMBED_VISIBLE_TOP_EVENT, updateHeaderSurface);
   const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
+
   if (ResizeObserverConstructor) {
     new ResizeObserverConstructor(updateHeaderHeight).observe(header);
   } else {
@@ -87,7 +92,9 @@ function mountStickyHeader(root: Document): void {
 /** Renders every profession in three compact columns so the landing page stays scannable. */
 function renderProfessionCards(root: Document): void {
   const grid = root.querySelector('[data-profession-grid]');
+
   if (!grid) return;
+
   grid.classList.add('profession-showcase-grid');
   grid.replaceChildren();
   for (const professions of professionGroups) {
@@ -134,6 +141,7 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
     gallery.className = 'specialization-showcase-grid';
     const artwork = entry.specializationArtwork;
     const specialization = artwork?.length ? artwork[Math.floor(Math.random() * artwork.length)] : undefined;
+
     if (specialization) {
       const card = root.createElement('a');
       card.className = 'specialization-showcase-card';
@@ -182,10 +190,13 @@ async function renderLoaderArtwork(root: Document): Promise<void> {
   const artwork = getProfessionEntry(root.body.dataset.profession ?? '')?.specializationArtwork?.filter(
     ({ conceptArt }) => conceptArt
   );
+
   if (!image) return;
 
   const fallback = image.src;
+
   if (artwork?.length) image.src = artwork[Math.floor(Math.random() * artwork.length)].conceptArt!;
+
   try {
     await image.decode();
   } catch {
@@ -214,6 +225,7 @@ function bindProfessionSelector(root: Document = document): void {
   }
 
   const benchmarkHost = root.querySelector<HTMLElement>('.benchmark-page #benchmarks-view');
+
   if (benchmarkHost) {
     void import('#gw2/app/page/benchmark-dashboard.js')
       .then(({ mountBenchmarks }) => mountBenchmarks(benchmarkHost))

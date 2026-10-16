@@ -601,6 +601,7 @@ function artilleryEffects(
   );
   const strike = requireEffect(profile, 'strike', sharp ? 'Strike' : rounds >= 2 ? 'Two rounds' : 'One round');
   const effects: SkillEffect[] = [];
+
   if (strike)
     effects.push({
       type: 'strike',
@@ -613,7 +614,9 @@ function artilleryEffects(
         ? { comboFinishers: [{ ownerId: 'warrior', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }] }
         : {})
     });
+
   const bleeding = sharp ? requireEffect(profile, 'condition', rounds >= 2 ? 'Two rounds' : 'One round') : undefined;
+
   if (bleeding)
     effects.push({
       type: 'condition',
@@ -621,8 +624,10 @@ function artilleryEffects(
       stacks: effectNumber(profile, bleeding, 'stacks'),
       duration: effectNumber(profile, bleeding, 'duration')
     });
+
   if (requireEffect(profile, 'control', 'Control'))
     effects.push({ type: 'control', controlKind: sharp && rounds >= 2 ? 'stun' : 'daze' });
+
   return effects;
 }
 
@@ -634,15 +639,22 @@ function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
     (window) => window.expiresAt > runtime.time
   );
   const active = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
+
   if (active?.supercharged) return;
+
   const supercharged = Boolean(active);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.overchargedCartridges);
   const kind = supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges';
   const buff = requireEffect(profile, 'buff', kind);
+
   if (!buff) return;
+
   const duration = effectNumber(profile, buff, 'duration');
+
   if (duration <= 0) return;
+
   if (active) active.expiresAt = runtime.time;
+
   const burning = requireEffect(profile, 'condition', supercharged ? 'Supercharged Burning' : 'Overcharged Burning');
   const expiresAt = gw2EffectExpiresAt(runtime.time, duration);
   state.overchargedCartridgeWindows.push({
@@ -674,15 +686,19 @@ function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
 /** Only resolved positive player explosions emit the selected cartridge condition; derived conditions cannot recurse. */
 export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
+
   const state = bladeswornState.from(runtime);
   const window = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
+
   if (!window || window.burningDuration <= 0) return;
+
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.overchargedCartridges);
   const burning = requireEffect(
     profile,
     'condition',
     window.supercharged ? 'Supercharged Burning' : 'Overcharged Burning'
   );
+
   if (burning)
     runtime.effects.emit({
       kind: 'packet',
@@ -707,6 +723,7 @@ export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEv
 function tacticalReload(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   for (const id of runtime.cooldownController.ammoSkillIds()) {
     const skill = runtime.helpers.skillsById.get(id);
+
     if (skill?.specialization === 'Bladesworn') runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
   }
 
@@ -738,6 +755,7 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
   },
   'warrior.cartridges-schedule'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     runtime.scheduleForCast(
       CARTRIDGE_ACTIVATE,
@@ -747,18 +765,25 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
   },
   'warrior.flow-snapshot'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
+
     // Sample configured or executed self Fury before the cast emits its own application.
     if (runtime.combat.activeBoonStacks('fury', runtime.time, 1) > 0) furyBeforeCast.add(cast);
   },
   'warrior.flow-stabilize'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
+
     if (furyBeforeCast.has(cast)) runtime.resourceController.grant('flow', 15);
+
     // The conditional instant grant is independent of the removable Positive Flow component.
     const effect = requireEffect(cast.skill, 'buff', 'Positive Flow');
+
     if (effect) {
       const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(cast.skill, effect, 'duration'));
+
       if (expiresAt > runtime.time)
         bladeswornState.from(runtime).flowStabilizerWindows.push({
           startedAt: runtime.time,
@@ -786,6 +811,7 @@ function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   }
 
   if (latest.expiresAt <= context.time) return 0;
+
   const profile = requireBalanceProfileFromContext(context, PROFILE.overchargedCartridges);
   const effect = requireEffect(profile, 'buff', latest.kind);
   return effect ? effectNumber(profile, effect, 'damageIncreasePerStack') : 0;

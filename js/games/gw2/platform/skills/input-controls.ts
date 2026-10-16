@@ -26,7 +26,9 @@ const actionIds = new Set<string>(INPUT_CONTROL_IDS);
 
 export function inputControlForSkillSlot(slot: unknown): InputControlId | '' {
   const match = /^(Weapon_([1-5])|Profession_([1-7]))$/.exec(String(slot || ''));
+
   if (!match) return '';
+
   const action = match[2] ? `weapon-${match[2]}` : `profession-${match[3]}`;
   return actionIds.has(action) ? (action as InputControlId) : '';
 }

@@ -194,7 +194,9 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   // Derive all packet tuning from the captured activation tier before expanding the delayed field.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot, context);
+
   if (tier === 'base') return;
+
   const enhancedCapacityTier = tier === 'enhanced';
   const primeLightBeamHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.primeLightBeamHeatTier);
   const packets = Math.max(0, Math.trunc(balanceProfileNumber(primeLightBeamHeatTierProfile, 'packetCount')));
@@ -208,6 +210,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   // Each field pulse emits a paired explosion and burning application at the same timestamp.
   for (let pulse = 0; pulse < packets; pulse += 1) {
     const at = event.at + pulse * interval;
+
     if (strike) {
       context.effects.emit({
         kind: 'packet',
@@ -270,6 +273,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
+
     if (strike) {
       context.effects.emit({
         kind: 'packet',
@@ -388,6 +392,7 @@ export function prepareHolosmithSlotEvent(
   }
 
   if (event.type !== 'damage' || event.actorType !== 'player') return event;
+
   const id = event.skillId ?? event.sourceId;
   const profile =
     id === ID.BLADE_BURST

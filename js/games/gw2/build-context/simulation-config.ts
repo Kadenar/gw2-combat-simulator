@@ -66,6 +66,7 @@ export function createGw2SimulationConfig({
   const targetSkillActivationsPerSecond = Math.max(0, Number(assumptions.targetSkillActivationsPerSecond) || 0);
   const alliedPlayerCount = boundedInteger(assumptions.alliedPlayerCount || 0, 0, 0, 4);
   const targetConditions = { ...(assumptions.targetConditions || {}) };
+
   if (disabled?.type === 'Target' && disabled.name === 'Vulnerability') {
     delete targetConditions.Vulnerability;
   }

@@ -14,7 +14,9 @@ export function mockGeneratorFiles(context, { emptyIdentities = true } = {}) {
   const readFile = fs.readFile;
   const virtualSource = (target) => {
     if (published.has(target)) return published.get(target);
+
     if (!emptyIdentities || path.basename(target) !== 'ids.ts') return undefined;
+
     const profession = path.basename(path.dirname(path.dirname(target))).toUpperCase();
     return `// Fixture ${fixture}\nexport const ${profession}_SKILL_IDS = {}; export const ${profession}_TRAIT_IDS = {};`;
   };
@@ -61,9 +63,12 @@ export async function importGeneratorSource(target, files = []) {
           }
         : nextResolve(specifier, options);
       const url = new URL(resolved.url);
+
       if (url.protocol === 'file:' && /\/dist\//.test(url.pathname))
         throw new Error(`Compiled fixture dependency: ${url}`);
+
       if (url.pathname.endsWith('.ts')) url.searchParams.set('fixture', current);
+
       return { ...resolved, url: url.href };
     },
     load(url, options, nextLoad) {

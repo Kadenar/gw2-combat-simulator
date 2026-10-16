@@ -21,6 +21,7 @@ export function emitEarthenBlast(
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const earthenBlastProfile = requireBalanceProfileFromContext(context, TRAIT.EARTHEN_BLAST);
   const earthenBlastStrike = requireEffect(earthenBlastProfile, 'strike', 'Earthen Blast');
+
   if (earthenBlastStrike) {
     emitTraitProfile(context, TRAIT.EARTHEN_BLAST, TRAIT.EARTHEN_BLAST, undefined, {
       at: at,

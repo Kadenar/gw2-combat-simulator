@@ -130,7 +130,9 @@ export const rangerConsumingBiteModifier: Gw2ModifierRule = {
   },
   factor: (context, _target, parameters) => {
     const coefficient = Number(context.event?.coefficient || 0);
+
     if (!(coefficient > 0)) return 1;
+
     const conditions = Math.min(parameters.maximumConditions, targetConditionCount(context));
     return (coefficient + conditions * parameters.coefficientPerCondition) / coefficient;
   },
@@ -147,7 +149,9 @@ export function ibogaAutonomousRecharge(context: RangerRuntime, skill: Skill, qu
           ? PROFILE.cripplingAnguishQuickness
           : PROFILE.cripplingAnguishAutonomous
         : undefined;
+
   if (!profileId) return undefined;
+
   const cooldown = balanceNumberFromContext(context, profileId, 'cooldown');
   return profileId === PROFILE.cripplingAnguishQuickness ? cooldown : cooldown * packAlphaPetRecharge(context);
 }

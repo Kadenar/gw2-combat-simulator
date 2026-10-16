@@ -91,6 +91,7 @@ test('Soulbeast damage attributes and occurrences share merge preparation withou
     assert.equal(measured.status, 'measured');
     assert.equal(measured.measurement.strikeBreakdown.power, strip.attributes.Power.final);
     powers.push(strip.attributes.Power.final);
+
     if (!merged) {
       const [beastResult] = evaluateSkillDamage({ ...request, occurrences: [beast] }, app.profession).occurrences;
       assert.equal(beastResult.status, 'measured');
@@ -352,6 +353,7 @@ for (const [professionId, buildPath] of [
     );
     for (const group of plan.groups) {
       if (group.kind !== 'weapon' && !declared.has(group.id)) continue;
+
       assert.ok(
         group.rowIds.some((rowId) => measured.has(rowId)),
         `${professionId} ${group.title} has no measured damage`

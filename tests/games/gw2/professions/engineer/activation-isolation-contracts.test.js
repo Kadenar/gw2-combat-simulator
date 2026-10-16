@@ -55,6 +55,7 @@ test('Core accepted conditions isolate Firearms rewards and retain non-summon el
         for (const id of traits)
           assert.equal(rewards(result, id).length, active ? (id === TRAIT.HEMATIC_FOCUS ? 1 : 3) : 0);
         assert.equal(runtime.procs.deadline('hematicFocus'), active ? 9 : 0);
+
         if (active)
           assert.equal(
             rewards(result, TRAIT.SANGUINE_ARRAY).reduce((total, event) => total + event.stacks, 0),
@@ -205,6 +206,7 @@ test('Barrier Engine admits one selected loop at implicit or deferred explicit c
         const barriers = rewards(result, TRAIT.MECH_CORE_BARRIER_ENGINE);
         assert.equal(mechanistState.from(runtime).barrierEngineStarted, active);
         assert.equal(barriers.length > 0, active);
+
         if (active) {
           assert.equal(barriers[0].at, start + 3, 'startup owns the first grant relative to combat admission');
           assert.equal(
@@ -372,6 +374,7 @@ test('Scrapper threshold rewards and Stability renewal obey selection and isolat
         rewards(result, TRAIT.MASS_MOMENTUM).some((event) => event.kind === 'might'),
         active
       );
+
       if (active) {
         const stability = rewards(result, TRAIT.APPLIED_FORCE)[0];
         const might = rewards(result, TRAIT.MASS_MOMENTUM)[0];

@@ -272,6 +272,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
         catalog,
         onCastCommit(runtime, cast) {
           profession.onCastCommit?.(runtime, cast);
+
           if (missing && cast.skill.id === W.CHANT_OF_FREEDOM) skillsById.delete(W.CHANT_OF_FREEDOM);
         }
       },

@@ -12,7 +12,9 @@ const cursorCleanupByRoot = new WeakMap<HTMLElement, () => void>();
 
 export function normalizeRotationInsertionIndex(value: unknown, rotationLength: number): number | null {
   const length = Math.max(0, Math.floor(Number(rotationLength) || 0));
+
   if (value === null || value === undefined || value === '') return null;
+
   const index = Number(value);
   return Number.isInteger(index) && index >= 0 && index <= length ? index : null;
 }
@@ -45,6 +47,7 @@ export function mountRotationInsertionCursor({
   cursorCleanupByRoot.get(root)?.();
 
   const existingStatus = root.previousElementSibling;
+
   if (existingStatus?.classList.contains('rotation-insertion-status')) {
     existingStatus.remove();
   }
@@ -60,9 +63,13 @@ export function mountRotationInsertionCursor({
       event.preventDefault();
       event.stopPropagation();
       const index = Number(gap.dataset.insertionIndex);
+
       if (!Number.isInteger(index)) return;
+
       const displayActive = activeIndex ?? rotationLength;
+
       if (index === displayActive) return;
+
       if (index === rotationLength) onClear();
       else onSelect(index);
     };
@@ -70,26 +77,37 @@ export function mountRotationInsertionCursor({
 
   const handleEscape = (event: KeyboardEvent): void => {
     if (event.key !== 'Escape' || activeIndex === null) return;
+
     onClear();
   };
 
   const handleArrow = (event: KeyboardEvent): void => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+
     if (shouldIgnoreHotkey(event)) return;
+
     if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+
     const focused = document.activeElement;
+
     if (focused && focused !== document.body && !scope.contains(focused)) return;
+
     const displayIndex = activeIndex ?? rotationLength;
+
     if (event.key === 'ArrowLeft') {
       if (displayIndex <= 0) return;
+
       event.preventDefault();
       const newIndex = displayIndex - 1;
+
       if (newIndex >= rotationLength) onClear();
       else onSelect(newIndex);
     } else {
       if (displayIndex >= rotationLength) return;
+
       event.preventDefault();
       const newIndex = displayIndex + 1;
+
       if (newIndex >= rotationLength) onClear();
       else onSelect(newIndex);
     }

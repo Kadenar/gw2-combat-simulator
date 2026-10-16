@@ -46,7 +46,9 @@ export function createGameWorkerEndpoint<TDriver, TMessage extends GameWorkerReq
     try {
       const { gameId, contentId } = data.request;
       const driver = await loadDriver({ gameId, contentId });
+
       if (!driver) throw new Error(`No worker driver for ${gameId}/${contentId}.`);
+
       post(await calculate(driver, data, post));
     } catch (error) {
       post({ error: error instanceof Error ? error.message : String(error) });
@@ -99,6 +101,7 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
     this.workers.add(worker);
     worker.addEventListener('message', (event: MessageEvent<TMessage>) => {
       if (!this.workers.has(worker) || !this.isActive(requestId) || event.data.requestId !== requestId) return;
+
       if (event.data.error !== undefined) {
         this.fail(requestId, event.data.error);
         return;
@@ -114,6 +117,7 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
       'error',
       (event) => {
         if (!this.workers.has(worker) || !this.isActive(requestId)) return;
+
         // Browsers can omit crash details (for example, module load failures); keep the failure actionable.
         this.fail(
           requestId,
@@ -132,6 +136,7 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
 
   finish(worker: Worker): void {
     if (!this.workers.delete(worker)) return;
+
     worker.terminate();
   }
 
@@ -142,6 +147,7 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
 
   private fail(requestId: number, error: unknown): void {
     if (!this.isActive(requestId)) return;
+
     this.failed = true;
     this.terminateAll();
     this.onError(error);

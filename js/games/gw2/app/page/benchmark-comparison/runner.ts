@@ -39,10 +39,14 @@ export class ComparisonRunner {
     }
 
     if (count === this.alliedPlayerCount(row)) return;
+
     if (this.running) throw new Error('Cancel the current run before changing allies.');
+
     const key = comparisonKey(row);
+
     if (count === null) this.alliedPlayerCounts.delete(key);
     else this.alliedPlayerCounts.set(key, count);
+
     this.entries.delete(key);
     this.changed();
   }
@@ -52,7 +56,9 @@ export class ComparisonRunner {
     const queue = [...new Map(rows.map((row) => [comparisonKey(row), row])).values()].filter(
       (row) => force || this.entries.get(comparisonKey(row))?.status !== 'complete'
     );
+
     if (!queue.length) return;
+
     const controller = new AbortController();
     this.controller = controller;
     for (const row of queue) this.entries.set(comparisonKey(row), { row, status: 'queued' });
@@ -65,11 +71,14 @@ export class ComparisonRunner {
         this.changed();
         try {
           const result = await this.execute(row, controller.signal, this.alliedPlayerCount(row));
+
           if (controller.signal.aborted) return;
+
           entry.result = result;
           entry.status = 'complete';
         } catch (error) {
           if (controller.signal.aborted) return;
+
           entry.status = 'error';
           entry.error = error instanceof Error ? error.message : String(error);
         }
@@ -79,7 +88,9 @@ export class ComparisonRunner {
     };
 
     await Promise.all([consume(), consume()]);
+
     if (this.controller !== controller) return;
+
     this.controller = null;
     this.changed();
   }
@@ -87,6 +98,7 @@ export class ComparisonRunner {
   /** Completed curves survive cancellation; unfinished jobs are removed so a subsequent run can retry them. */
   cancel(): void {
     if (!this.controller) return;
+
     this.controller.abort();
     this.controller = null;
     for (const [key, entry] of this.entries) {

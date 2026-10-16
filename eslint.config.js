@@ -77,6 +77,9 @@ export default [
         'error',
         // Separate completed blocks, import groups, and documented exports for readability.
         { blankLine: 'always', prev: 'block-like', next: '*' },
+        // Separate conditional guards from surrounding statements, including unbraced guards.
+        { blankLine: 'always', prev: '*', next: 'if' },
+        { blankLine: 'always', prev: 'if', next: '*' },
         { blankLine: 'always', prev: 'import', next: '*' },
         { blankLine: 'any', prev: 'import', next: 'import' },
         { blankLine: 'always', prev: '*', next: 'export' }
@@ -124,6 +127,9 @@ export default [
         'error',
         // Separate completed blocks, import groups, and documented exports for readability.
         { blankLine: 'always', prev: 'block-like', next: '*' },
+        // Separate conditional guards from surrounding statements, including unbraced guards.
+        { blankLine: 'always', prev: '*', next: 'if' },
+        { blankLine: 'always', prev: 'if', next: '*' },
         { blankLine: 'always', prev: 'import', next: '*' },
         { blankLine: 'any', prev: 'import', next: 'import' },
         { blankLine: 'always', prev: '*', next: 'export' }

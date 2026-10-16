@@ -41,7 +41,9 @@ export function buildMesmerPacket(
 /** Catalog skills and effect sources retain explicit identities; names only label their packets. */
 function skillForCondition(context: MesmerRuntime, skillName: string, extra: MesmerEventExtra): Skill {
   const id = extra.skillId ?? extra.sourceId;
+
   if (id == null) throw new TypeError('Mesmer condition packets require a skillId or sourceId.');
+
   return context.helpers.skillsById.get(id) ?? { id, name: skillName };
 }
 
@@ -56,8 +58,10 @@ export function buildMesmerConditions(
   extra: MesmerEventExtra = {}
 ): readonly SimulationEventBase[] {
   const skill = skillForCondition(context, skillName, extra);
+
   // A mechanic may filter every application from a derived timeline before asking for materialization.
   if (condition.ticks?.length === 0) return [];
+
   const baseOwnership = ownership(extra.actorType, extra.summonKind ?? condition.summonKind);
   const fields = supplementalFields(extra, ['actorType', 'skillId', 'skillName', 'source', 'sourceId', 'summonKind']);
   // The shared materializer owns authored payload expansion; Mesmer keeps canonical labels and companion delivery.
@@ -75,6 +79,7 @@ export function buildMesmerConditions(
     }
   }).flatMap(({ event }) => {
     if (!(Number(event.duration) > 0)) return [];
+
     const conditionName = canonicalTargetConditionName(event.condition);
     return [
       {
@@ -98,6 +103,7 @@ export function buildMesmerStrikes(
 ): readonly SimulationEventBase[] {
   // Empty derived timelines suppress the selected variant, while authored catalog effects remain nonempty.
   if (group.ticks?.length === 0) return [];
+
   const source = group.source || extra.source || 'Player';
   const baseOwnership = ownership(group.actorType ?? extra.actorType, group.summonKind ?? extra.summonKind);
   const explicit = group.weapon || '';

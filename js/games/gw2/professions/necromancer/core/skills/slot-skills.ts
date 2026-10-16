@@ -588,8 +588,10 @@ export function applyNecromancerSignetPassive(
   const state = runtime.profession.core;
   const id = policy.skillId;
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
+
   if ((runtime.cooldownController.readyAt(id) ?? 0) > runtime.time && !signetsOfSufferingPassive(runtime, inShroud))
     return;
+
   if (policy.passive === 'undeath')
     grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, policy.profileId, 'lifeForceGain'));
   else {
@@ -602,6 +604,7 @@ export function emitVampirismPassive(runtime: NecromancerRuntime): void {
   const id = ID.SIGNET_OF_VAMPIRISM;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.signetOfVampirismPassive);
   const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
+
   if (strike)
     runtime.effects.emit({
       kind: 'packet',

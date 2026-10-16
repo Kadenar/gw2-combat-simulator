@@ -78,6 +78,7 @@ function jsonHtml(value: unknown): string {
 /** Accepts only browser-safe HTTP sources before rendering an external patch-note link. */
 function officialSourceUrl(): string | null {
   if (!editorState.draft.sourceUrl) return null;
+
   try {
     const url = new URL(editorState.draft.sourceUrl);
     return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
@@ -121,6 +122,7 @@ function modifierValueRows(rule: NativePatchAuthoringModifierRule): string {
   const rows: string[] = [];
   for (const field of ['amount', 'factor'] as const) {
     const value = rule[field];
+
     if (value.kind === 'static' && value.value != null) {
       rows.push(
         numberInput({
@@ -184,6 +186,7 @@ function modifierSection(module: NativePatchAuthoringModule): string {
   const query = editorState.search.trim().toLocaleLowerCase();
   const rules = module.modifierRules.filter((rule) => {
     if (editorState.changedOnly && !hasModifierEdit(rule.id)) return false;
+
     return !query || patchSearchText(rule.id, rule.label, rule.targets, rule.operation).includes(query);
   });
   return `<section class="patch-work-section" aria-labelledby="modifier-heading">
@@ -293,6 +296,7 @@ function effectNumericRows(
       : [];
   });
   rows.push(resourceGrantRows(skillId, effectResourceGrants(effect), topPatch?.resourceGrants, effectIndex));
+
   if (typeof effect.audience?.maximumRecipients === 'number') {
     rows.push(
       numberInput({
@@ -459,6 +463,7 @@ function skillSection(module: NativePatchAuthoringModule): string {
   const skills = [...module.skills]
     .filter((skill) => {
       const variants = variantsFor(skill);
+
       if (
         editorState.changedOnly &&
         !hasSkillEdit(skill.id.toString()) &&
@@ -478,6 +483,7 @@ function skillSection(module: NativePatchAuthoringModule): string {
     .filter((entry) => !entry.profile.parentId || !skillIds.has(String(entry.profile.parentId)))
     .filter((entry) => {
       if (editorState.changedOnly && !hasBalanceProfileEdit(String(entry.id))) return false;
+
       return !query || patchSearchText(entry.id, entry.name).includes(query);
     })
     .sort((left, right) => left.name.localeCompare(right.name));
@@ -541,6 +547,7 @@ function renderSelectedSkill(): void {
   }
 
   const editor = app.querySelector<HTMLElement>('.patch-skill-editor');
+
   if (editor) {
     editor.innerHTML = selectedVariant
       ? skillVariantDetail(selectedVariant, selected)
@@ -574,6 +581,7 @@ function balanceProfileEffectRows(
         ]
       : [];
   });
+
   if (tier === 'advanced' && typeof effect.audience?.maximumRecipients === 'number') {
     rows.push(
       numberInput({
@@ -609,6 +617,7 @@ function balanceProfileEffectRows(
           ]
         : [];
     });
+
     if (tickRows.length) {
       rows.push(`<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join('')}</div>`);
     }
@@ -659,7 +668,9 @@ function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null):
   const effectEditors = effects.flatMap((effect, effectIndex) => {
     const primaryRows = balanceProfileEffectRows(id, effectIndex, effect, edit, 'primary');
     const advancedRows = balanceProfileEffectRows(id, effectIndex, effect, edit, 'advanced');
+
     if (!primaryRows && !advancedRows) return [];
+
     const detail = effectDetail(effect);
     return [
       `<article class="patch-effect">
@@ -720,6 +731,7 @@ function balanceProfileSection(module: NativePatchAuthoringModule, profileKind: 
   const profiles = [...authorableProfiles]
     .filter((entry) => {
       if (editorState.changedOnly && !hasBalanceProfileEdit(String(entry.id))) return false;
+
       return !query || patchSearchText(entry.id, entry.name, entry.profile.profileKind).includes(query);
     })
     .sort((left, right) => left.name.localeCompare(right.name));
@@ -795,6 +807,7 @@ function overviewSection(profession: NativePatchAuthoringMetadata): string {
 /** Rebuilds the current authoring screen from loaded metadata and the sparse draft. */
 export function renderPatchAuthoring(): void {
   const { payload } = editorState;
+
   if (!payload) {
     app.innerHTML = `<div class="patch-loading">${escapeHtml(editorState.status)}</div>`;
     return;
@@ -894,8 +907,11 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
   app = root;
   app.addEventListener('click', (event) => {
     if (editorState.pending) return;
+
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
+
     if (!button) return;
+
     if (button.dataset.selectProfession) {
       selectProfession(button.dataset.selectProfession);
     } else if (button.dataset.selectModule) {
@@ -950,7 +966,9 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
 
   app.addEventListener('change', (event) => {
     if (editorState.pending) return;
+
     const target = event.target;
+
     if (target instanceof HTMLSelectElement && target.hasAttribute('data-new-effect-type')) return;
 
     try {
@@ -980,6 +998,7 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
         editorState.search = target.value;
       } else if (target instanceof HTMLTextAreaElement && target.dataset.addedEffect != null) {
         const parsed = JSON.parse(target.value) as SkillEffect;
+
         if (!parsed || typeof parsed !== 'object' || !parsed.type) {
           throw new TypeError('An added effect must be a JSON object with a type.');
         }

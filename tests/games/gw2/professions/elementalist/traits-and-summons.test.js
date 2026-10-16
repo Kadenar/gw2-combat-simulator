@@ -99,6 +99,7 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
       const stacks = result.resolvedEvents.filter(
         (event) => event.type === 'buff' && event.kind === 'persisting flames'
       );
+
       if (selected && element === 'Fire') {
         assert.deepEqual(
           stacks.map((event) => event.at),

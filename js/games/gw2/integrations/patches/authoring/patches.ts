@@ -44,6 +44,7 @@ export function validatePatchOverview(
   label = 'Patch preview overview'
 ): void {
   if (entries == null) return;
+
   if (!Array.isArray(entries)) {
     throw new TypeError(`${label} must be an array.`);
   }
@@ -181,17 +182,23 @@ function patchResourceGrants(
   label: string
 ): void {
   if (edits === undefined) return;
+
   if (!edits || typeof edits !== 'object' || Array.isArray(edits))
     throw new TypeError(`${label} resource edits must be an object.`);
+
   validateActionIds(actions, label);
   for (const [id, fields] of Object.entries(edits)) {
     const action = actions.find((candidate) => candidate.id === id);
+
     if (!action) throw new TypeError(`${label} has no resource grant ${id}.`);
+
     if (!fields || typeof fields !== 'object' || Array.isArray(fields) || !Object.keys(fields).length)
       throw new TypeError(`${label} resource grant ${id} requires numeric edits.`);
+
     const values = resourceGrantNumericFields(action);
     for (const [field, edit] of Object.entries(fields)) {
       if (!Object.hasOwn(values, field)) throw new TypeError(`${label} resource grant ${id} does not expose ${field}.`);
+
       const parts = field.split('.');
       const key = parts.pop()!;
       let target = (typeof action.amount === 'object' && 'parameters' in action.amount
@@ -241,6 +248,7 @@ function patchEffects(owner: Skill | BalanceProfile, edit: SkillPatchEdit, label
   for (const selector of edit.removeEffects || []) {
     for (const { index, effect } of selectedEffects(effects, selector, `${label} removal`)) {
       removedIndexes.add(index);
+
       if (effect.name !== undefined) removedKeys.add(skillEffectKey(effect.type, effect.name));
     }
   }
@@ -264,6 +272,7 @@ function patchSkillNumericField(skill: Record<string, unknown>, field: string, e
   let owner = skill;
   for (const segment of segments) {
     const value = owner[segment];
+
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       throw new TypeError(`Skill ${skillName} does not expose ${field}.`);
     }
@@ -295,11 +304,13 @@ function numericValue(value: unknown, label: string): number {
 function applyNumEdit(current: number, edit: NumEdit, label = 'Patched value'): number {
   const value = numericValue(current, `${label} live value`);
   let result: number;
+
   if (typeof edit === 'number') {
     result = edit;
   } else if ('from' in edit) {
     const expected = numericValue(edit.from, `${label} from`);
     const tolerance = Math.max(1, Math.abs(expected), Math.abs(value)) * 1e-9;
+
     if (Math.abs(value - expected) > tolerance) {
       throw new TypeError(`${label} expected live value ${expected}, received ${value}.`);
     }
@@ -348,7 +359,9 @@ function patchModifierRule(rule: Gw2ModifierRule, edit: ModifierRulePatchEdit): 
   } & Gw2ModifierRule;
   for (const field of ['amount', 'factor'] as const) {
     if (!Object.hasOwn(edit, field)) continue;
+
     const current = rule[field];
+
     if (typeof current === 'function') {
       throw new TypeError(`Modifier rule ${rule.id}.${field} is resolver-backed; patch a named parameter instead.`);
     }
@@ -402,7 +415,9 @@ export function applyModifierRulePatch(
   const rulesById = new Map<string, Gw2ModifierRule>();
   for (const rule of rules) {
     const id = String(rule?.id || '').trim();
+
     if (!id) throw new TypeError('Modifier rule patch target has no stable id.');
+
     if (rulesById.has(id)) {
       throw new TypeError(`Modifier rule patch target ${id} is duplicated.`);
     }
@@ -411,11 +426,15 @@ export function applyModifierRulePatch(
   }
 
   const edits = Object.entries(patch || {});
+
   if (!edits.length) return rules;
+
   const replacements = new Map<Gw2ModifierRule, Readonly<Gw2ModifierRule>>();
   for (const [id, edit] of edits) {
     const rule = rulesById.get(id);
+
     if (!rule) throw new TypeError(`Patch references unknown modifier rule ${id}.`);
+
     replacements.set(rule, patchModifierRule(rule, edit));
   }
 
@@ -431,10 +450,14 @@ function effectTicks(effect: SkillEffect): readonly (StrikeTick | ConditionTick)
 /** Checks whether an effect satisfies every identity field supplied by a selector. */
 function effectMatches(effect: SkillEffect, patch: EffectSelector): boolean {
   if (patch.type != null && effect.type !== patch.type) return false;
+
   if (patch.name != null && effect.name !== patch.name) return false;
+
   if (patch.boon != null && effect.boon !== patch.boon) return false;
+
   if (patch.condition != null) {
     if (effect.condition === patch.condition) return true;
+
     return Boolean(effectTicks(effect)?.some((tick) => 'condition' in tick && tick.condition === patch.condition));
   }
 
@@ -453,6 +476,7 @@ function selectedEffects(
     }
 
     const effect = effects[patch.effectIndex];
+
     if (!effect || !effectMatches(effect, patch)) {
       throw new TypeError(`${label} effect ${patch.effectIndex} did not match.`);
     }
@@ -461,7 +485,9 @@ function selectedEffects(
   }
 
   const matches = effects.flatMap((effect, index) => (effectMatches(effect, patch) ? [{ index, effect }] : []));
+
   if (!matches.length) throw new TypeError(`${label} did not match an effect.`);
+
   if (matches.length > 1 && patch.all !== true) {
     throw new TypeError(`${label} matched ${matches.length} effects; set all: true or use effectIndex.`);
   }
@@ -483,7 +509,9 @@ function patchNumericFields(
 ): void {
   for (const field of EFFECT_NUMERIC_FIELDS) {
     const edit = patch[field];
+
     if (edit == null) continue;
+
     // Reject ineffective edits even when a structural coefficient remains in the executable declaration.
     if (!effectNumericFieldIsPatchable(field, target, parent)) {
       throw new TypeError(
@@ -507,14 +535,17 @@ function patchNumericFields(
 function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): SkillEffect {
   if (patch.resourceGrants !== undefined) {
     if (patch.tickIndex != null) throw new TypeError(`${label} resource grants belong to an effect, not a tick.`);
+
     patchResourceGrants(effectResourceGrants(effect), patch.resourceGrants, label);
   }
 
   const mutable = effect as unknown as Record<string, unknown>;
   const sourceTicks = effectTicks(effect);
   const maximumRecipients = patch.audience?.maximumRecipients;
+
   if (maximumRecipients != null) {
     if (patch.tickIndex != null) throw new TypeError(`${label}.audience cannot target a tick.`);
+
     if (effect.audience?.maximumRecipients == null) {
       throw new TypeError(`${label} does not expose audience.maximumRecipients.`);
     }
@@ -550,7 +581,9 @@ function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): Sk
     patch.tickIndex === 'all'
       ? sourceTicks.flatMap((tick, index) => (tickMatches(tick, patch) ? [index] : []))
       : [patch.tickIndex];
+
   if (!indexes.length) throw new TypeError(`${label} did not match a tick.`);
+
   const ticks = [...sourceTicks] as Array<StrikeTick | ConditionTick>;
   for (const index of indexes) {
     if (!Number.isInteger(index) || index < 0 || !ticks[index]) {
@@ -573,6 +606,7 @@ function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): Sk
 /** Expands coefficient, condition, and boon shorthands into the common effect-patch grammar. */
 function shorthandEffects(edit: SkillPatchEdit): EffectPatch[] {
   const effects = [...(edit.effects || [])];
+
   if (edit.coefficient != null) {
     effects.push({
       type: 'strike',
@@ -603,9 +637,12 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
   const castGrants = cloneCatalogData(castResourceGrants(source));
   patchResourceGrants(castGrants, edit.resourceGrants, source.name);
   const castChanges = resourceGrantChanges(castResourceGrants(source), castGrants);
+
   if (castChanges) normalized.resourceGrants = castChanges;
   else delete normalized.resourceGrants;
+
   if (edit.cooldown != null) normalized.fields = { ...edit.fields, cooldown: edit.cooldown };
+
   delete normalized.cooldown;
   delete normalized.coefficient;
   delete normalized.conditions;
@@ -655,6 +692,7 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
   }
 
   if (effects.length) normalized.effects = effects;
+
   if (edit.removeEffects) {
     normalized.removeEffects = edit.removeEffects.flatMap((selector) =>
       selectedEffects(patchedEffects, selector, source.name).map(({ index }) => ({ effectIndex: index }))
@@ -670,9 +708,11 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   const clone = cloneCatalogData(skill);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as Record<string, unknown>;
+
   // Placement changes drive equipment eligibility, utility selection, and weapon-based trait rules together.
   if (edit.placement != null) {
     const placement = edit.placement;
+
     if (
       typeof placement !== 'object' ||
       Object.keys(placement).some((field) => !['type', 'weapon', 'slot'].includes(field)) ||
@@ -685,6 +725,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
       )
     )
       throw new TypeError(`${ownerLabel} has invalid skill placement.`);
+
     Object.assign(mutable, placement);
   }
 
@@ -707,9 +748,12 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
 /** Patches only fields exposed by the canonical profile; obsolete spellings fail ordinary numeric validation. */
 function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
+
   if (edit.assumption !== undefined && (typeof edit.assumption !== 'string' || !edit.assumption.trim()))
     throw new TypeError(`${ownerLabel} assumption must be a nonempty string.`);
+
   if (edit.placement != null) throw new TypeError(`${ownerLabel} cannot change skill placement.`);
+
   const clone = cloneCatalogData(profile);
   patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as Record<string, unknown>;
@@ -753,12 +797,16 @@ export function applySkillPatch(
   options: ApplySkillPatchOptions = {}
 ): Readonly<CanonicalCatalog> {
   const edits = Object.entries(patch?.skills || {});
+
   if (!edits.length) return catalog;
+
   const replacements = new Map<Skill, Skill>();
   for (const [key, edit] of edits) {
     const skill = findSkill(catalog, key);
+
     if (!skill) {
       if (options.unknownSkills === 'ignore') continue;
+
       throw new TypeError(`${catalogPatchLabel(catalog)} Patch references unknown skill ${key}.`);
     }
 
@@ -770,6 +818,7 @@ export function applySkillPatch(
   }
 
   if (!replacements.size) return catalog;
+
   const replacementFor = (skill: Skill): Skill => replacements.get(skill) || skill;
   const skills = Object.freeze(catalog.skills.map(replacementFor));
   const skillsById = new Map([...catalog.skillsById].map(([id, skill]) => [id, replacementFor(skill)]));
@@ -793,6 +842,7 @@ export function applyBalanceProfilePatch(
 ): Readonly<CanonicalCatalog> {
   // Callbacks must identify the latest overlay even for profiles with no balance edits; never mutate the base.
   const balanceDataContext = catalog.balanceDataContext;
+
   if (
     balanceDataContext &&
     catalog.balanceProfiles.some((profile) => profile.balanceDataContext !== balanceDataContext)
@@ -813,7 +863,9 @@ export function applyBalanceProfilePatch(
   }
 
   const edits = Object.entries(patch?.balanceProfiles || {});
+
   if (!edits.length) return catalog;
+
   const replacements = new Map<BalanceProfile, BalanceProfile>();
   for (const [key, edit] of edits) {
     const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
@@ -821,8 +873,10 @@ export function applyBalanceProfilePatch(
       catalog.balanceProfilesById.get(key) ||
       (numericId == null ? undefined : catalog.balanceProfilesById.get(numericId)) ||
       catalog.balanceProfilesByName.get(key);
+
     if (!profile) {
       if (options.unknownProfiles === 'ignore') continue;
+
       throw new TypeError(`${catalogPatchLabel(catalog)} Patch references unknown balance profile ${key}.`);
     }
 
@@ -834,6 +888,7 @@ export function applyBalanceProfilePatch(
   }
 
   if (!replacements.size) return catalog;
+
   const replacementFor = (profile: BalanceProfile): BalanceProfile => replacements.get(profile) || profile;
   const balanceProfiles = Object.freeze(catalog.balanceProfiles.map(replacementFor));
   return Object.freeze({

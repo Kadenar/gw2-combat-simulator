@@ -35,6 +35,7 @@ function untamedStateSnapshot(context: RangerUiContext, maximumStacks: number): 
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const ambushRemaining = (state.ambushReadyUntil || 0) - at;
+
   if (ambushRemaining > 0) {
     items.push({
       id: 'untamed-ambush-window',
@@ -51,7 +52,9 @@ function untamedStateSnapshot(context: RangerUiContext, maximumStacks: number): 
   ] as const) {
     const remaining = (pool?.expiresAt || 0) - at;
     const stacks = boundedInteger(activeRefreshedStacks(pool, at, 'exclusive'), 0, 0, maximumStacks);
+
     if (stacks <= 0) continue;
+
     items.push({
       id,
       label: `Ferocious Symbiosis (${beneficiary})`,
@@ -70,6 +73,7 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
     /** Ordinary weapon rows use the selected start state; ambush rows still perform their required transition. */
     previewControls(context) {
       const preview = createPreviewControls(context);
+
       // Expose held combat bonuses to isolated damage calculations.
       if (preview.has('Ferocious Symbiosis'))
         preview.trait('Ferocious Symbiosis', {
@@ -79,6 +83,7 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
           max: preview.maximumStacks('Ferocious Symbiosis'),
           description: 'Player damage stacks earned by pet attacks'
         });
+
       preview.add({
         key: 'unleashed',
         label: 'Start unleashed',
@@ -97,19 +102,26 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
     /** Declare the damage context for one assumed occurrence. */
     skillDamageState(_context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageState | null {
       const skill = input as RangerSkill;
+
       if (skill.unleashedAmbushSkill) return { config: { initialUntamedState: 'Pet' } };
+
       if (skill.unleashedPetSkill || skill.id === ID.UNLEASH_RANGER) return { config: { initialUntamedState: 'Pet' } };
+
       if (skill.id === ID.UNLEASH_PET) return { config: { initialUntamedState: 'Ranger' } };
+
       // Ordinary pet command skills belong to the ranger-unleashed bar, unlike the unleashed pet replacements.
       if (skill.petSkill) return { config: { initialUntamedState: 'Ranger' } };
+
       return null;
     },
 
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = rangerUiState(context);
+
       if (skill.id === ID.UNLEASH_RANGER || skill.id === ID.UNLEASH_PET)
         return { tileActive: (skill.id === ID.UNLEASH_PET) === Boolean(state.rangerUnleashed) };
+
       if (skill.unleashedAmbushSkill)
         return { tileActive: Boolean(state.rangerUnleashed) && (context.time || 0) < (state.ambushReadyUntil || 0) };
     },

@@ -9,6 +9,7 @@ import type { RevenantResolverContext } from '#gw2/professions/revenant/types.js
 /** Explicit life-steal packets bypass ordinary strike modifiers; labels never decide their Core bonus. */
 export function revenantLifeSiphonBonus(context: RevenantResolverContext, event: Gw2ResolverEvent): number | null {
   if (!isFlatLifeStealPacket(event)) return null;
+
   return hasTrait(context.traits, TRAIT.FEROCIOUS_AGGRESSION) &&
     boonActive({ config: context.config, runtime: context, time: event.at, event }, 'fury')
     ? balanceNumberFromContext(context, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease')

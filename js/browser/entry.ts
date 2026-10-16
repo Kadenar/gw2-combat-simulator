@@ -37,6 +37,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function failStartup(error: unknown): void {
     if (settled) return;
+
     stopWatching();
     console.error('Simulator startup failed:', error);
 
@@ -52,6 +53,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     const overlay = document.getElementById('loading-overlay');
+
     if (!overlay) return;
 
     const content = document.createElement('div');

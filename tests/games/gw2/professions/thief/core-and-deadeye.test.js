@@ -118,6 +118,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
                 stealthStartedAt: 0,
                 stealthUntil: stealthed ? 6 : 0
               });
+
               if (ownsCharges) Object.assign(elite.state, { bonusStealthAttack: { charges: 2, expiresAt } });
             }
           }
@@ -125,6 +126,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
         const available = stealthed || (ownsCharges && expiresAt > 5);
         assert.equal(result.warnings.length === 0, available, `${specialization} ${stealthed} ${expiresAt}`);
         const { core, specialization: elite } = observedRuntime(result).profession;
+
         if (available) {
           assert.equal(core.stealthUntil, 5);
           assert.equal(core.revealedUntil, 8);
@@ -136,6 +138,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
           elite.state.bonusStealthAttack?.charges,
           ownsCharges ? (!stealthed && available ? 1 : 2) : undefined
         );
+
         if (ownsCharges) {
           const projected = result.planningState.profession.bonusStealthAttack;
           assert.deepEqual(projected, elite.state.bonusStealthAttack);
@@ -265,6 +268,7 @@ test('Deadeye live runtime and palette enforce the same flip expiry boundary', (
     const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, expiresAt) } };
     const result = deadeyeCastAvailability(core.availableFlips, swap, 5);
     assert.equal(result.ready, expiresAt > 5);
+
     if (!result.ready) {
       assert.equal(result.code, 'thief.shadow-flare');
       assert.equal(result.retryAt, null);
@@ -290,6 +294,7 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
         } else {
           assert.ok(Number(effect.coefficient) >= 0, skill.name);
           assert.ok(Number.isInteger(effect.hits) && effect.hits > 0, skill.name);
+
           if (effect.hits > 1) assert.ok(Number.isFinite(effect.atMs), skill.name);
         }
       } else if (effect.type === 'condition') {
@@ -1217,6 +1222,7 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
               'damage.resolving'(runtime, event, details) {
                 if (event.name === 'Bound')
                   windowAtBound.push(runtime.combat.activeBuffStacks('bounding-dodger', runtime.time, 1));
+
                 return native.reactions['damage.resolving'](runtime, event, details);
               }
             }
@@ -1858,7 +1864,9 @@ test('initiative uses shared warning codes and cost-gate priority', () => {
         extend: (native) => ({
           availability(runtime, skill, command) {
             const result = native.availability(runtime, skill, command);
+
             if (!result.ready && skill.id === ID.SNIPERS_COVER) codes.push(result.code);
+
             return result;
           }
         })

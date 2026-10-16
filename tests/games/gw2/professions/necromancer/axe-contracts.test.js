@@ -94,6 +94,7 @@ test('Unholy Feast gates its delayed burst below half health and clips it to the
     assert.equal(cripple.at, feast.at);
     assert.equal(cripple.duration, 5);
     assert.equal(Boolean(burst), expectedBurst);
+
     if (burst) {
       assert.equal(burst.coefficient, 1.5);
       assert.ok(burst.at > result.steps[0].end / 1000);

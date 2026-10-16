@@ -45,6 +45,7 @@ export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGen
       const times = new Set([0, end]);
       for (const application of applications) {
         if (application.at <= end) times.add(application.at);
+
         if (application.expiresAt <= end) times.add(application.expiresAt);
       }
 
@@ -56,11 +57,14 @@ export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGen
       let source: SimulationEvent | undefined;
       for (const at of [...times].sort((a, b) => a - b)) {
         if (!duration) live = live.filter((application) => application.expiresAt > at);
+
         while (next < applications.length && applications[next]!.at <= at) {
           const application = applications[next++]!;
+
           if (duration) {
             remaining = advanceDurationStack(remaining, application, previousTime, maximum);
             previousTime = application.at;
+
             if (application.event) source = application.event;
           } else if (application.expiresAt > at) live.push(application);
         }
@@ -123,6 +127,7 @@ export function buildBoonGeneration(
   });
   for (const event of ordered) {
     if (event.at >= end) break;
+
     const amounts = new Map<string, number[]>();
     for (const [index, boons] of recipients.entries()) {
       const credit = (kind: string, amount: number): void => {
@@ -134,6 +139,7 @@ export function buildBoonGeneration(
 
       if (event.type === 'buff') {
         const audience = event.resolvedAudience;
+
         // Recipient-specific procs belong to the named ally, even when earlier party slots are available.
         if (
           !isStandardBoon(event.kind) ||
@@ -145,6 +151,7 @@ export function buildBoonGeneration(
               : index <= audience.alliedPlayerCount)
         )
           continue;
+
         const kind = String(event.kind).toLowerCase();
         credit(kind, Math.max(0, event.duration || 0) * Math.max(1, event.stacks || 1));
         // Each projection is local to this report; the original event and its recipients remain untouched.
@@ -162,8 +169,10 @@ export function buildBoonGeneration(
       }
 
       if (index > 0 && event.extensionAudience !== 'all') continue;
+
       for (const [kind, applications] of boons) {
         if ((event.kind && event.kind !== kind) || event.excludedKind === kind) continue;
+
         const stacks = isDurationStackingBoon(kind)
           ? Number(
               remainingDurationStackSeconds(applications, event.at, {

@@ -13,7 +13,9 @@ export function willbenderBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'willbender-courage', maximumStacks: 1 }
   ];
   const profile = balanceProfileFromContext(context, TRAIT.LETHAL_TEMPO);
+
   if (profile) policies.push({ kind: 'lethal-tempo', maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
+
   return policies;
 }
 

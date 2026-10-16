@@ -7,5 +7,6 @@ import { revenantCastCompleted } from '#gw2/professions/revenant/core/mechanics/
 /** Pre-transition elite actions and the common observer share one completion claim per accepted activation. */
 export function completeRevenantCast(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (!claimActivation(runtime.profession.core.activationClaims, 'revenant.cast-traits', cast.id)) return;
+
   runtime.fireTrigger(revenantCastCompleted, { cast });
 }

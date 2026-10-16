@@ -56,9 +56,11 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   }
 
   const event = candidate as Record<string, unknown>;
+
   // Trait-added condition damage must provide a finite, nonnegative rate formula.
   if (event.conditionDamageFormula !== undefined) {
     const formula = event.conditionDamageFormula as Record<string, unknown> | null;
+
     if (
       event.type !== 'condition' ||
       !formula ||
@@ -74,6 +76,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
 
   // Procedural emissions use the same profile registry as authored strikes.
   if (event.weaponStrengthProfileId !== undefined) weaponStrengthProfile(event.weaponStrengthProfileId);
+
   if (typeof event.type !== 'string' || !event.type) {
     throw new Error('Event type is required.');
   }
@@ -146,6 +149,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     const hasDamageValue = [event.coefficient, event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(
       isFiniteNumber
     );
+
     if (!hasDamageValue) {
       throw new Error('Damage events require a finite coefficient or flat strike value.');
     }

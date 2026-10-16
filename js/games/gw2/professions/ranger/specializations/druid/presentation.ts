@@ -59,6 +59,7 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
     ],
     timelineWeaponLineTransition: (context: RangerUiContext) => {
       const skill = context.skill;
+
       if (skill?.id === ID.CELESTIAL_AVATAR) {
         return 'Celestial Avatar';
       }

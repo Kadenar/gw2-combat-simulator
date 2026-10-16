@@ -72,7 +72,9 @@ test('cast labels receive live profession data and the selected skill in combat 
       const context = [...contexts][0];
       assert.equal(allContexts.has(context), false);
       allContexts.add(context);
+
       if (output !== 'damage') assert.deepEqual(result.warnings, []);
+
       if (output === 'detailed')
         assert.deepEqual(
           result.steps.map((step) => step.detail),
@@ -187,7 +189,9 @@ test('ammunition capacity uses per-run state and selected balance profiles at th
         output === 'damage'
           ? executeDamageOccurrence(family, selectedConfig, occurrence)
           : combat(family, { config: selectedConfig, output });
+
       if (output !== 'damage') assert.deepEqual(result.warnings, []);
+
       assert.deepEqual(states, new Set([10, 9]));
       assert.equal(owner.cooldownController.readAmmo(skillId).maximum, patchId === 'ammo-preview' ? 3 : 2);
       assert.equal(contexts.size, 1);
@@ -222,7 +226,9 @@ test('effect lifetime selection receives only selected-catalog queries', () => {
         contexts.add(context);
         assert.deepEqual(Object.keys(context), ['skillFor']);
         assert.equal(context.skillFor(skillId).id, skillId);
+
         if (event.type === 'damage') return { id: 'fixture-impact', generation: 0 };
+
         return undefined;
       }
     }

@@ -35,7 +35,9 @@ export class RandomDistributionRunner {
   /** Stops work owned by the outgoing tab before another result becomes active. */
   cancel(): void {
     this.requestId += 1;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
     this.batch.terminateAll();
   }
@@ -43,10 +45,13 @@ export class RandomDistributionRunner {
   schedule(run = false): void {
     const app = this.app;
     const requestId = ++this.requestId;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
     const failDistribution = (error: unknown): void => {
       if (requestId !== this.requestId || !app.results) return;
+
       app.results.randomDistributionStale = false;
       app.results.randomDistributionError =
         error instanceof Error ? error.message : String(error || 'Randomized DPS calculation failed.');
@@ -57,6 +62,7 @@ export class RandomDistributionRunner {
     this.batch.begin(requestId, failDistribution);
 
     const results = app.results;
+
     if (!results || !app.build.rotation.length) {
       if (results) {
         results.randomDistributionRequested = false;
@@ -67,6 +73,7 @@ export class RandomDistributionRunner {
     }
 
     const request = app.adapter.randomDistributionRequest(app);
+
     if (!request) {
       results.randomDistributionRequested = false;
       results.randomDistributionStale = false;
@@ -82,10 +89,12 @@ export class RandomDistributionRunner {
       total: request.trials,
       percent: 0
     };
+
     if (!run) return;
 
     const applyProgress = (progress: RandomDistributionProgress): void => {
       if (requestId !== this.requestId || !app.results) return;
+
       const total = Math.max(1, Number(progress?.total || request.trials));
       const completed = boundedNumber(progress?.completed || 0, 0, 0, total);
       const percent = boundedNumber(progress?.percent ?? (completed / total) * 100, (completed / total) * 100, 0, 100);
@@ -98,11 +107,16 @@ export class RandomDistributionRunner {
       // Progress updates only touch the indicator. Remounting the full
       // result view would repeatedly rebuild tables and charts.
       const indicator = document.querySelector('#rotation-results [data-role="rng-progress"]');
+
       if (!indicator) return;
+
       indicator.setAttribute('aria-valuenow', String(Math.round(percent)));
       const bar = indicator.querySelector<HTMLElement>('[data-role="rng-progress-bar"]');
+
       if (bar) bar.style.width = `${percent}%`;
+
       const label = indicator.querySelector('[data-role="rng-progress-label"]');
+
       if (label) {
         label.textContent = `${Math.round(
           completed
@@ -112,6 +126,7 @@ export class RandomDistributionRunner {
 
     const applyDistribution = (distribution: RandomDistributionSummary): void => {
       if (requestId !== this.requestId || !app.results) return;
+
       app.results.randomDistribution = distribution;
       app.results.randomDistributionStale = false;
       app.results.randomDistributionProgress = {
@@ -125,6 +140,7 @@ export class RandomDistributionRunner {
 
     this.timer = setTimeout(() => {
       this.timer = null;
+
       if (requestId !== this.requestId) return;
 
       if (typeof Worker === 'function') {
@@ -139,6 +155,7 @@ export class RandomDistributionRunner {
           conditionTicks
         });
         const batches = partitionRandomDistributionTrials(request.trials, workerCount);
+
         if (!batches.length) {
           applyDistribution(summarizeRandomDistributionOutcomes([]));
           return;
@@ -151,6 +168,7 @@ export class RandomDistributionRunner {
 
         batches.forEach((batch, batchIndex) => {
           if (!this.batch.isActive(requestId)) return;
+
           this.batch.spawn(
             // Keep Worker construction beside its static URL so Vite emits an executable worker chunk.
             () => new Worker(new URL('./worker.js', import.meta.url), { type: 'module' }),
@@ -174,6 +192,7 @@ export class RandomDistributionRunner {
               this.batch.finish(worker);
               completedOutcomes[batchIndex] = data.outcomes;
               completedWorkers += 1;
+
               if (completedWorkers === batches.length) {
                 applyDistribution(summarizeRandomDistributionOutcomes(completedOutcomes.flat()));
               }

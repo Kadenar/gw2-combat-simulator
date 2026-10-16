@@ -82,7 +82,9 @@ export const lightOnYourFeet = defineTrait({
       operation: 'multiply',
       factor: (context) => {
         const { skillId, base, intrinsic } = shortbowConditionDuration(context);
+
         if (!(base > 0)) return 1;
+
         const extension = balanceNumberFromContext(
           context,
           TRAIT.LIGHT_ON_YOUR_FEET,
@@ -93,6 +95,7 @@ export const lightOnYourFeet = defineTrait({
       },
       when: (context) => {
         if (!qualifiesForFlankingBonuses(context)) return false;
+
         const { skillId } = shortbowConditionDuration(context);
         return (
           (skillId === ID.CROSSFIRE && context.condition === 'Bleeding') ||
@@ -172,6 +175,7 @@ export const quickDraw = defineTrait({
       // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
       if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1')
         consumeCharge(runtime.profession.core.quickDraw, runtime.time);
+
       return work;
     }
   }
@@ -390,7 +394,9 @@ const rangerCoreCriticalReactions = Object.freeze({
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
     const profile = requireBalanceProfileFromContext(context, TRAIT.SHARPENED_EDGES);
     const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+
     if (!bleeding) return;
+
     // Poisonous Cloud's Ranger-owned critical hits grant Ranger bleeds even though their source is ranger-pet.
     const petOwned = event.actorType === 'summon' && isPetStrike(event);
     // Each threshold proc uses the canonical condition payload and the triggering pet's independent ownership.
@@ -418,7 +424,9 @@ const rangerCoreCriticalReactions = Object.freeze({
 function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET);
   const effect = requireEffect(profile, 'buff', 'light-on-your-feet');
+
   if (!effect) return;
+
   const kind = String(effect.kind);
   const baseDuration = effectNumber(profile, effect, 'duration');
   // Reapplications stack duration in game, so preserve the live remainder
@@ -448,9 +456,11 @@ function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void
 /** Own the selected reward at the committed weapon-swap boundary. */
 function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+
   if (inCombat) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TAIL_WIND);
     const effect = requireEffect(profile, 'boon', 'swiftness');
+
     // The cooldown gates only swiftness, so a removed boon leaves it ready.
     if (effect && context.procs.claim(TRAIT.TAIL_WIND, 'ranger.core.tailWind', at)) {
       emitTraitProfile(context, TRAIT.TAIL_WIND, TRAIT.TAIL_WIND, undefined, {
@@ -474,11 +484,13 @@ function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): v
 function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
   const state = professionCoreState(context);
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+
   if (inCombat && context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
     const effect = requireEffect(profile, 'boon', 'quickness');
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
     state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'duration'));
+
     if (effect)
       emitTraitProfile(context, TRAIT.QUICK_DRAW, TRAIT.QUICK_DRAW, undefined, {
         at: at,
@@ -499,9 +511,11 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
 /** Own the selected reward at the committed weapon-swap boundary. */
 function furiousGripSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
+
   if (inCombat) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS_GRIP);
     const effect = requireEffect(profile, 'boon', 'fury');
+
     // The cooldown gates only fury, so a removed boon leaves it ready.
     if (effect && context.procs.claim(TRAIT.FURIOUS_GRIP, 'ranger.core.furiousGrip', at)) {
       emitTraitProfile(context, TRAIT.FURIOUS_GRIP, TRAIT.FURIOUS_GRIP, undefined, {
@@ -525,11 +539,15 @@ function furiousGripSwap(context: RangerRuntime, skill: RangerSkill, at: number)
 function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const skill = skillForEvent(context.helpers, event);
+
   if (skill?.categories?.includes('Trap') && event.activationId) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE);
     const cripple = requireEffect(profile, 'condition', 'Crippled');
+
     if (!cripple) return;
+
     if (!claimActivation(state.player.activationClaims, 'ranger.trappers-expertise', event.activationId)) return;
+
     emitTraitProfile(context, TRAIT.TRAPPERS_EXPERTISE, TRAIT.TRAPPERS_EXPERTISE, undefined, {
       at: event.at,
       fullEnd: event.at,
@@ -551,10 +569,12 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
 /** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
 function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const skill = skillForEvent(context.helpers, event);
+
   // Crossfire gains duration through the base-duration hook, never an additional bleed stack.
   if (skill?.id === ID.CONCUSSION_SHOT) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET);
     const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+
     if (vulnerability)
       emitTraitProfile(context, TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.LIGHT_ON_YOUR_FEET, undefined, {
         at: event.at,

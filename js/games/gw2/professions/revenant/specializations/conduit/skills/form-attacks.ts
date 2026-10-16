@@ -16,10 +16,15 @@ export const dervishCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
 /** Active Assassin form emits an independent dagger proc for a completed skill or upkeep pulse. */
 export function lesserDaggers(runtime: RevenantRuntime, source: Skill): void {
   if (!revenantConduitFormIsActive(conduitState.from(runtime), 'Assassin', runtime.time)) return;
+
   const skill = runtime.helpers.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
+
   if (!skill) throw new Error('Missing Lesser Enchanted Daggers skill declaration.');
+
   const hit = requireEffect(skill, 'strike', 'Lesser Enchanted Daggers');
+
   if (!hit) return;
+
   // Form procs retain player modifiers without recursively triggering player on-hit attacks.
   runtime.effects.emit({
     kind: 'profile',
@@ -51,10 +56,14 @@ export function dervishAttack(
 ): void {
   const skillId = elite ? ID.FORM_OF_THE_DERVISH_ATTACK_ELITE : ID.FORM_OF_THE_DERVISH_ATTACK;
   const attack = runtime.helpers.skillsById.get(skillId);
+
   if (!attack) throw new Error('Missing Form of the Dervish attack skill ' + skillId + '.');
+
   const name = elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)';
   const hit = requireEffect(attack, 'strike', name);
+
   if (!hit) return;
+
   // A removed scythe leaves no attack; surviving hits keep their authored sequence.
   runtime.effects.emit({
     kind: 'profile',
@@ -78,7 +87,9 @@ export function dervishAttack(
 export function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
   const { skillId, startsAt } = data as { skillId: SkillId; startsAt: number };
   const skill = runtime.helpers.skillsById.get(skillId);
+
   if (!activeRevenantUpkeep(runtime, skillId, startsAt) || !skill) return;
+
   lesserDaggers(runtime, skill);
   runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
 }

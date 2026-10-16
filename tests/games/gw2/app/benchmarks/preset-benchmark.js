@@ -56,7 +56,9 @@ export async function assertManifestRegressions(
       assert.ok(Number.isInteger(savedBuild.schemaVersion) && savedBuild.schemaVersion > 0, label);
       const rotation = preset.rotation ? (savedRotation?.rotation ?? savedRotation) : (savedBuild.rotation ?? []);
       assert.ok(Array.isArray(rotation), label);
+
       if (preset.rotation) assert.ok(rotation.length > 0, label);
+
       const build = adapter.toApplicationBuild({
         ...savedBuild,
         rotation
@@ -65,14 +67,17 @@ export async function assertManifestRegressions(
       const config = adapter
         .createBuildContext({ build, patchId: 'current', transitionDelays: normalizeTransitionDelays() })
         .simulationConfig();
+
       // Build-only presets still exercise loading and configuration without inventing a benchmark rotation.
       if (!preset.rotation) continue;
+
       // A migrated family's test supplies its live entry while sharing the unchanged loading and DPS gates.
       const result = simulate(adapter, build.rotation, config);
       const dpsError = relativeError(result.dps, preset.benchmarkDps);
 
       // Every maintained preset must replay without hidden or exempted warnings.
       if (result.warnings.length) unexpectedWarnings.push({ label, warnings: result.warnings });
+
       if (!Number.isFinite(result.dps) || dpsError > 0.01) {
         mismatches.push({
           label,

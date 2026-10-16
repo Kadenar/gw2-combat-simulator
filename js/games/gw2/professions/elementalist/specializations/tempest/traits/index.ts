@@ -337,6 +337,7 @@ function applyTempestuousAria(context: ElementalistResolverContext, { cause: eve
   // to the maximum window measured from this aura; with none live, start a fresh application.
   const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);
   const expiresAt = current ? Math.min(event.at + maximum, current.expiresAt + extension) : event.at + extension;
+
   if (current) {
     refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (previousExpiry) =>
       previousExpiry === current.expiresAt ? expiresAt : previousExpiry
@@ -399,6 +400,7 @@ function applyTempestAuraBoons(
     transform: (packet) => ({ ...packet, name: requireBalanceProfileFromContext(context, traitId).name }),
     receipt: true
   });
+
   if (emitted.length)
     context.effects.emit({
       kind: 'announcement',
@@ -458,6 +460,7 @@ function applyLatentStamina(
       const latentStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.LATENT_STAMINA);
       const vigor = requireEffect(latentStaminaProfile, 'boon', 'Vigor');
       const sourceId = event.skillId ?? event.sourceId;
+
       if (vigor) {
         emitTraitProfile(context, TRAIT.LATENT_STAMINA, TRAIT.LATENT_STAMINA, undefined, {
           at: event.at,
@@ -481,6 +484,7 @@ function applyLatentStamina(
 /** Schedule alacrity from accepted overload hits before packet emission, retaining shortened-channel behavior. */
 function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!skill.overload) return;
+
   const hits = (skill.effects ?? [])
     .flatMap((effect) =>
       materializeSkillEffectApplications({
@@ -543,6 +547,7 @@ function applyUnstableConduit(context: ElementalistRuntime, cast: RuntimeCast<El
             : 'Magnetic Aura';
     const unstableConduitProfile = requireBalanceProfileFromContext(context, TRAIT.UNSTABLE_CONDUIT);
     const unstableConduitAttunement = requireEffect(unstableConduitProfile, 'buff', attunement);
+
     if (unstableConduitAttunement) {
       applyElementalistAura(context, {
         at: cast.effectiveEnd,

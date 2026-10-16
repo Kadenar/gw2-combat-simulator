@@ -52,10 +52,13 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
     (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
   )
     return;
+
   const state = ritualistState.from(runtime);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
   const buff = requireEffect(profile, 'buff', 'necromancer-painful-bond');
+
   if (!buff) return;
+
   const expiresAt = gw2EffectExpiresAt(bondExpiresAt(runtime), Number(event.duration));
   runtime.effects.emit({
     kind: 'packet',
@@ -73,15 +76,20 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   runtime.cancelOwner({ id: BOND, generation: state.painfulBondGeneration });
   state.painfulBondGeneration++;
   const identity = { id: BOND, generation: state.painfulBondGeneration };
+
   if (!(interval > 0)) return;
+
   const firstApplication = !Number.isFinite(state.painfulBondPulseAnchorAt);
+
   if (firstApplication)
     state.painfulBondPulseAnchorAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'initialDelay'));
+
   // At an existing cadence boundary its prior pulse has already settled before this new ordinary application.
   const index = firstApplication
     ? 0
     : Math.max(0, Math.floor(canonicalTime(runtime.time - state.painfulBondPulseAnchorAt) / interval) + 1);
   const at = canonicalTime(state.painfulBondPulseAnchorAt + index * interval);
+
   if (requireEffect(profile, 'strike', 'Strike') && at < bondExpiresAt(runtime))
     runtime.schedule(BOND, at, event, identity);
 }
@@ -93,10 +101,14 @@ function grantWeaponSpell(
   spell: 'nightmare' | 'splinter' | 'resilient'
 ): void {
   const effect = cast.skill.effects?.find((effect) => effect.type === 'buff');
+
   if (!effect) return;
+
   const state = ritualistState.from(runtime);
   const previous = state.weaponSpells[spell];
+
   if (previous) runtime.cancelOwner(owner(spell, previous.generation));
+
   const generation = ++state.weaponSpellGeneration;
   const expiresAt = canonicalTime(runtime.time + Number(effect.duration ?? 0));
   const allyStacks = wieldersBoonCharges(runtime, effect);
@@ -107,10 +119,12 @@ function grantWeaponSpell(
   });
   const recipients: Record<string, ChargeGrant> = { player: grantCharges(Number(effect.stacks ?? 0), expiresAt) };
   for (const key of audience.companionIds) recipients[key] = grantCharges(allyStacks, expiresAt);
+
   // Defensive grants retain allied effect windows independently of the party's offensive strike cadence.
   if (spell === 'resilient')
     for (let index = 1; index <= audience.alliedPlayerCount; index++)
       recipients[`ally:${audience.alliedPlayerIndex ?? index}`] = grantCharges(allyStacks, expiresAt);
+
   state.weaponSpells[spell] = {
     generation,
     skillId: cast.skill.id,
@@ -135,6 +149,7 @@ function grantWeaponSpell(
     }
   });
   runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
+
   if (spell !== 'resilient') grantAlliedWeaponSpell(runtime, spell, audience.alliedPlayerCount, allyStacks, expiresAt);
 }
 
@@ -200,15 +215,19 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
     [EXPIRE](runtime, data) {
       const { spell, generation } = data as { spell: string; generation: number };
       const state = ritualistState.from(runtime);
+
       if (state.weaponSpells[spell]?.generation === generation) delete state.weaponSpells[spell];
     },
     [BOND](runtime, data) {
       const state = ritualistState.from(runtime);
+
       if (runtime.time >= bondExpiresAt(runtime) || runtime.deathTime != null) return;
+
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
       const strike = requireEffect(profile, 'strike', 'Strike');
       emitPainfulBond(runtime, data as Gw2ResolverEvent);
       const at = canonicalTime(runtime.time + balanceProfileNumber(profile, 'pulseInterval'));
+
       if (strike && at > runtime.time && at < bondExpiresAt(runtime))
         runtime.schedule(BOND, at, data, { id: BOND, generation: state.painfulBondGeneration });
     }
@@ -219,6 +238,7 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
 export function emitPainfulBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
   const strike = requireEffect(profile, 'strike', 'Strike');
+
   if (strike)
     runtime.effects.emit({
       kind: 'packet',

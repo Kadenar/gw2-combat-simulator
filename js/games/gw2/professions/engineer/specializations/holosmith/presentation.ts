@@ -52,10 +52,15 @@ function holosmithEventLogRow(
   const isHolosmith =
     engineerUiSpecialization(context) === 'Holosmith' ||
     buildSpecializations.some((specialization) => String(specialization.name || specialization) === 'Holosmith');
+
   if (!isHolosmith) return undefined;
+
   if (HOLOSMITH_PACKET_EVENTS.has(event.type)) return null;
+
   if (event.type !== 'engineer.heat') return undefined;
+
   if (!HEAT_STATE_REASONS.has(String(event.reason || ''))) return null;
+
   return {
     type: event.type,
     description: `${event.reason || 'State'} - ` + `Heat ${Number(event.heat || 0).toFixed(1)}`,
@@ -112,7 +117,9 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     // Photon Forge changes weapon presentation only while the Holosmith slice is active.
     timelineWeaponLineTransition: (context: EngineerUiContext) => {
       if (context.skill?.id === ID.ENGAGE_PHOTON_FORGE) return 'Photon Forge';
+
       if (context.skill && HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(context.skill.id))) return null;
+
       return undefined;
     },
     paletteGroups: (context: EngineerUiContext) => {
@@ -142,8 +149,10 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
           skillIds: catalog.skills
             .filter((skill) => {
               if (!skill.forgeSkill) return false;
+
               // Include only the base or Storm autoattack variant selected by the active trait.
               if (skill.slot !== 'Weapon_1') return true;
+
               return skill.name.endsWith('—Storm') === storm;
             })
             // Display Forge weapons in slot order regardless of canonical catalog ordering.

@@ -74,8 +74,10 @@ function minionAttackFromEffect(profile: BalanceProfile, effect: SkillEffect): M
 /** Compiles one summon balance profile into the attack model used by its lifetime owner. */
 export function minionDefinitionForSkill(context: unknown, skillId: SkillId): MinionDefinition | undefined {
   const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
+
   // Only minion skills compile a summon; every mapped skill must have its profile.
   if (profileId == null) return undefined;
+
   const profile = requireBalanceProfileFromContext(context, profileId);
   // Attack lists are iterated, so removing any packet leaves the surviving ones in their declared roles.
   const strikes = (profile.effects || []).filter((effect) => effect.type === 'strike');
@@ -120,6 +122,7 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
 export function minionDefinitionFor(context: unknown, key: string): MinionDefinition | undefined {
   for (const skillId of Object.keys(NECROMANCER_MINION_PROFILE_BY_SKILL_ID)) {
     const definition = minionDefinitionForSkill(context, Number(skillId));
+
     if (definition?.key === key) return definition;
   }
 

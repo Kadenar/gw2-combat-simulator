@@ -24,6 +24,7 @@ export function reactToGaleshotMissile(context: RangerRuntime, event: Gw2Resolve
     event.projectile !== true
   )
     return;
+
   applyMistral(context, event);
   context.fireTrigger(missileResolved, { event });
 }
@@ -34,8 +35,10 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
   const state = galeshotState.from(context);
   // An armed Mistral includes missiles landing at expiry; zero never arms it.
   let enhanced = state.mistralUntil > 0 && at <= state.mistralUntil;
+
   if ((event.skillId === ID.PATH_OF_SCARS || event.skillId === ID.PATH_OF_SCARS_MAX_RANGE) && event.activationId) {
     if (event.hitIndex === 1 && enhanced) state.mistralPathOfScars[event.activationId] = true;
+
     if (event.hitIndex === event.totalHits) {
       enhanced ||= state.mistralPathOfScars[event.activationId];
       delete state.mistralPathOfScars[event.activationId];
@@ -43,12 +46,14 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
   }
 
   if (!enhanced) return;
+
   const profile = requireBalanceProfileFromContext(context, PROFILE.mistral);
   const strike = requireEffect(profile, 'strike', 'Strike');
   const chilled = requireEffect(profile, 'condition', 'Chilled');
   // Each missile-triggered Mistral is its own effect activation while its
   // strike and condition packets remain grouped under one identity.
   const activationId = strike || chilled ? 'mistral:' + event.eventOrder : undefined;
+
   if (strike)
     buildRangerStrikes(
       buildRangerPacket(
@@ -70,6 +75,7 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
         'damage'
       )
     ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
+
   if (chilled)
     context.effects.emit({
       kind: 'packet',
@@ -97,6 +103,7 @@ export function galeshotCastAvailability(
   skill: RangerSkill
 ): AvailabilityResult {
   const state = galeshotState.from(context);
+
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');
   }
@@ -116,6 +123,7 @@ export function galeshotCastAvailability(
   // Availability and the palette share the selected pool's cap, including isolated catalog overrides.
   const maximumWindForce = state.windForce.maximum;
   const windForce = context.resourceController.value('windForce');
+
   if (skill.id === ID.HAWKEYE && windForce < maximumWindForce) {
     return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
   }
@@ -125,6 +133,7 @@ export function galeshotCastAvailability(
   }
 
   const replacement = perilousSkiesAvailability(context, skill);
+
   if (replacement) return replacement;
 
   if (state.cycloneBowActive && skill.type === 'Weapon' && !skill.cycloneBowSkill) {

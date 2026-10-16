@@ -17,13 +17,18 @@ export function mountHealthInteractions(host: HTMLElement): { refresh: () => voi
       mark.classList.toggle('is-health-active', active.has(key));
       mark.classList.toggle('is-health-muted', active.size > 0 && !active.has(key));
       mark.classList.toggle('is-health-pinned', pins.has(key));
+
       if (mark.hasAttribute('data-health-point')) mark.setAttribute('aria-pressed', String(pins.has(key)));
+
       mark.querySelector('[data-health-toggle]')?.setAttribute('aria-pressed', String(pins.has(key)));
     }
 
     const count = host.querySelector('[data-health-visible-count]');
+
     if (count) count.textContent = String(pinnedOnly ? pins.size : host.querySelectorAll('[data-health-row]').length);
+
     const empty = host.querySelector<HTMLElement>('[data-health-pinned-empty]');
+
     if (empty) empty.hidden = !pinnedOnly || pins.size > 0;
   }
 
@@ -32,7 +37,9 @@ export function mountHealthInteractions(host: HTMLElement): { refresh: () => voi
     const layout = host.querySelector<HTMLElement>('.health-chart-layout');
     const plot = host.querySelector<HTMLElement>('.health-plot');
     const lane = host.querySelector<HTMLElement>('.health-pin-labels');
+
     if (!layout || !plot || !lane || lane.hidden || !plot.clientHeight) return;
+
     const plotRect = plot.getBoundingClientRect();
     const laneRect = lane.getBoundingClientRect();
     const points = [...host.querySelectorAll<HTMLElement>('[data-health-point]')];
@@ -88,14 +95,20 @@ export function mountHealthInteractions(host: HTMLElement): { refresh: () => voi
     hovered = undefined;
     focused = undefined;
     const toggle = host.querySelector<HTMLInputElement>('[data-health-pinned-only]');
+
     if (toggle) toggle.checked = pinnedOnly;
+
     const status = host.querySelector<HTMLElement>('[data-health-pin-status]');
+
     if (status) status.textContent = pins.size ? `${pins.size} ${pins.size === 1 ? 'build' : 'builds'} pinned.` : '';
+
     const layout = host.querySelector<HTMLElement>('.health-chart-layout');
     const lane = host.querySelector<HTMLElement>('.health-pin-labels');
+
     if (observedLayout !== layout) {
       observer.disconnect();
       observedLayout = layout;
+
       if (layout) observer.observe(layout);
     }
 
@@ -139,7 +152,9 @@ export function mountHealthInteractions(host: HTMLElement): { refresh: () => voi
   // Keep the comparison population linked when narrowing to pinned builds, including after a table sort.
   host.addEventListener('change', (event) => {
     const target = event.target;
+
     if (!(target instanceof HTMLInputElement) || !target.matches('[data-health-pinned-only]')) return;
+
     pinnedOnly = target.checked;
     hovered = focused = undefined;
     highlight();
@@ -158,6 +173,7 @@ export function mountHealthInteractions(host: HTMLElement): { refresh: () => voi
   });
   host.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+
     hovered = focused = undefined;
     highlight();
   });
@@ -167,12 +183,16 @@ export function mountHealthInteractions(host: HTMLElement): { refresh: () => voi
     // Table rows and chart marks toggle the same pin, while rows without measurements cannot be pinned.
     const point = target.closest<HTMLElement>('[data-health-point], .health-line, [data-health-row]');
     const key = remove?.dataset.unpinHealth ?? point?.dataset.healthSeries;
+
     if (!key) return;
+
     if (
       ![...host.querySelectorAll<HTMLElement>('[data-health-point]')].some((mark) => mark.dataset.healthSeries === key)
     )
       return;
+
     const status = host.querySelector<HTMLElement>('[data-health-pin-status]')!;
+
     if (pins.has(key)) pins.delete(key);
     else if (pins.size < 5) pins.add(key);
     else {
@@ -181,6 +201,7 @@ export function mountHealthInteractions(host: HTMLElement): { refresh: () => voi
     }
 
     refresh();
+
     // Removing a pin must not refocus its point, which would immediately restore transient highlighting.
     if (!remove) {
       hovered = key;

@@ -48,13 +48,16 @@ function insertAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void
 export function resolveElementalistAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   insertAura(context, event);
   context.observations.record(event);
+
   if (context.combatStartTime != null && event.at < context.combatStartTime) return;
+
   context.combat.react('aura.applied', event);
 }
 
 /** Combo auras arrive already observed and published by the resolver, with their materialized duration. */
 export function acceptElementalistAuraReaction(context: ElementalistRuntime, event: Gw2ResolverEvent): boolean {
   if (event.type === 'aura') insertAura(context, event);
+
   return context.combatStartTime == null || event.at >= context.combatStartTime;
 }
 

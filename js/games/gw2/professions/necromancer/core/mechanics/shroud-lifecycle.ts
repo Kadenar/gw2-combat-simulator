@@ -17,6 +17,7 @@ export function registerNecromancerShroudLifecycle(
   lifecycle: NecromancerShroudLifecycle
 ): void {
   let registrations = shroudLifecycles.get(owner);
+
   if (!registrations) {
     registrations = new Map();
     shroudLifecycles.set(owner, registrations);

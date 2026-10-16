@@ -489,6 +489,7 @@ test('resource grants, capacity limits and recovery use the one live pool at rea
     },
     availability(runtime, skill) {
       if (skill.id !== 991007) return { ready: true };
+
       const readyAt = runtime.resourceController.readyAt('energy', 5);
       return readyAt === runtime.time
         ? { ready: true }
@@ -652,6 +653,7 @@ test('missed and precombat impacts retain self combos while their hostile outcom
         const result = run([wait(2000), ...(precombat ? [{ type: 'combat-start' }] : [])], { output }, profession);
         assert.equal(result.totalDamage, 0);
         assert.equal(owner.combat.boonApplications('might').length > 0, finisherType === 'Blast');
+
         if (output === 'detailed')
           assert.equal(
             result.resolvedEvents.some((event) => event.type === 'condition' || event.type === 'damage'),
@@ -767,7 +769,9 @@ test('Peitha preserves expiry-boundary damage without extending buff lifetimes o
       ]
     );
     totals.push(result.totalDamage);
+
     if (output !== 'detailed') continue;
+
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.priority === 10);
     assert.equal(
       result.resolvedEvents.find((event) => event.type === 'damage' && event.priority === -10).damage,

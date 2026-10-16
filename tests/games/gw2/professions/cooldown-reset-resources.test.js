@@ -19,6 +19,7 @@ test('Warrior cooldown reset refills adrenaline while preserving Bladesworn pool
     assert.deepEqual(result.warnings, []);
     const state = result.planningState.profession;
     assert.equal(state.adrenaline.value, state.adrenaline.maximum);
+
     if (specialization === 'Bladesworn') {
       assert.equal(state.flow.value, 3.5);
       assert.equal(state.dragonCharges.value, 0);

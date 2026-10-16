@@ -41,6 +41,7 @@ test('Mimic stays unarmed during its cast and reduces the following utility rech
           onCastCommit(runtime, cast) {
             native.onCastCommit?.(runtime, cast);
             states.push(['complete', cast.skill.id, runtime.profession.core.mimic.charges]);
+
             if (cast.skill.id === ID.SIGNET_OF_ILLUSIONS)
               utilityRecharge = runtime.cooldownController.rechargeFor(cast.skill.id);
           }

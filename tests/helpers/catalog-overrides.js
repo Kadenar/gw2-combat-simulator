@@ -24,9 +24,12 @@ export function withSkill(catalog, id, change) {
     skill.id === id ? (replacement ? [replacement] : []) : [skill]
   );
   const skillsById = new Map(catalog.skillsById);
+
   if (replacement) skillsById.set(id, replacement);
   else skillsById.delete(id);
+
   const skillsByName = new Map(catalog.skillsByName ?? []);
+
   if (current && skillsByName.get(current.name) === current) {
     if (replacement) skillsByName.set(current.name, replacement);
     else skillsByName.delete(current.name);

@@ -36,7 +36,9 @@ function displayedRevenantEnergy(value: unknown): number {
 function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
   // Timeline icon projection resolves canonical skill IDs through the active catalog.
   if (!entry || typeof entry !== 'object' || !('type' in entry)) return '';
+
   if (entry.type !== 'cast' || !('skillId' in entry)) return String(entry.type || '');
+
   const skillId = entry.skillId;
   const catalog = context.catalog;
   const skillsById = catalog?.skillsById;
@@ -47,9 +49,13 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
 // when projected runtime state is incomplete.
 function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   const skill = context.skill;
+
   if (skill?.id !== SKILL.SWAP_LEGENDS) return '';
+
   const selected = context.build?.selectedLegends || [];
+
   if (selected.length !== 2) return '';
+
   const startingIndex = Math.max(0, selected.indexOf(context.build?.startingLegend || ''));
   const priorSwaps = (context.rotation || [])
     .slice(0, Math.max(0, context.index || 0))
@@ -67,6 +73,7 @@ function revenantCoreStateSnapshot(
   const items: RotationStateSnapshotItem[] = [];
   const upkeeps = state.activeUpkeeps || [];
   const drain = upkeeps.reduce((total, upkeep) => total + Math.max(0, upkeep.upkeepCost || 0), 0);
+
   if (drain > 0) {
     items.push({
       id: 'revenant-upkeep-drain',
@@ -77,6 +84,7 @@ function revenantCoreStateSnapshot(
   }
 
   const abyssExpiries = (state.crushingAbyss || []).map(Number).filter((expiry) => expiry > at);
+
   if (abyssExpiries.length) {
     // Match runtime acquisition's cap from the selected spear skill.
     const maximum = Math.max(
@@ -113,6 +121,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     const upkeeps = context.catalog.skills.filter(
       (skill) => skill.upkeepCost != null && legends.includes(String(skill.legendId))
     );
+
     if (upkeeps.length)
       preview.add({
         key: 'upkeep',
@@ -128,6 +137,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
         },
         description: 'Activate before weapon measurements; the runtime spends and drains Energy'
       });
+
     // Spear's native pool scales Raze and is consumed normally on an eligible swap.
     if ([...context.weapons, ...context.build.alternateWeapons].includes('Spear'))
       preview.add({
@@ -140,6 +150,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
         max: Number(context.catalog.skillsById.get(SKILL.ABYSSAL_RAZE)!.maximumStacks),
         description: 'Starting stacks; Raze and weapon swaps use the runtime pool'
       });
+
     preview.trait("Assassin's Presence", {
       key: 'assassinsPresence',
       kind: 'queryTrait',

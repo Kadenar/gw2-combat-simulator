@@ -17,6 +17,7 @@ function refreshDepletion(runtime: NecromancerRuntime): void {
   runtime.cancelOwner({ id: DEPLETION, generation: state.lifeForceWakeGeneration });
   state.lifeForceWakeGeneration++;
   const at = gw2CooldownReadyAt(resourceDepletionAt(state.lifeForce));
+
   if (Number.isFinite(at))
     runtime.schedule(DEPLETION, at, null, { id: DEPLETION, generation: state.lifeForceWakeGeneration }, -300);
 }
@@ -43,6 +44,7 @@ export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
   depletion: { refresh: refreshDepletion, stop: refreshDepletion },
   nextChange(runtime, cost) {
     if (cost > runtime.profession.core.lifeForce.maximum) return Infinity;
+
     // An overlapping request can await the already accepted cast lane; intervening hits decide the actual gain.
     const completion = runtime.castController.currentLaneEnd();
     return Math.min(nextNecromancerPassiveGain(runtime, cost), completion > runtime.time ? completion : Infinity);

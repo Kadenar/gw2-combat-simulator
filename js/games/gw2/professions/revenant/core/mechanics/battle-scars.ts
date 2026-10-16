@@ -13,12 +13,16 @@ import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/r
 export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
   const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
+
   // Scars are spent only to deliver the siphon, so a removed strike leaves them in place.
   if (!strike) return;
+
   const core = runtime.profession.core;
   const { expiries, consumed } = consumeNewestStacks(core.battleScars, 1, runtime.time);
   core.battleScars = expiries;
+
   if (!consumed) return;
+
   emitBattleScar(runtime, event);
 }
 
@@ -26,7 +30,9 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
 export function emitBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
   const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
+
   if (!strike) return;
+
   runtime.effects.emit({
     kind: 'packet',
     cause: event,

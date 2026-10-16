@@ -228,7 +228,9 @@ export const fieryWrath = defineTrait({
 /** Ready Justice activations claim symbol recharge at the permanent Alacrity rate. */
 function placeFuriousFocusSymbol(runtime: GuardianRuntime, { cast }: JusticeActivation): void {
   const profile = runtime.helpers.skillsById.get(ID.LESSER_SYMBOL_OF_BLADES)!;
+
   if (!requireEffect(profile, 'strike', 'Strike')) return;
+
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
   // The symbol reserves shared player recharge before its effects can trigger another activation.
   emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause, {
@@ -270,7 +272,9 @@ function placeZealotsResolutionSymbol(runtime: GuardianRuntime, { cause: event, 
       : health > 0
         ? (runtime.combat.targetHealthLoss() - damage) / health
         : 0;
+
   if (!(lostFraction > balanceNumberFromContext(runtime, TRAIT.ZEALOTS_RESOLUTION, 'threshold'))) return;
+
   // The profile owns this symbol's Alacrity-aware recharge; removed symbols do not consume it.
   emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event);
 }

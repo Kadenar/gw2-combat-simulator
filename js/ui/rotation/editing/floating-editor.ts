@@ -16,6 +16,7 @@ export function positionFloatingEditor(editor: HTMLElement, anchor: HTMLElement)
   const editorRect = editor.getBoundingClientRect();
   let left = anchorRect.right + GAP;
   const opensLeft = left + editorRect.width > window.innerWidth - VIEWPORT_PADDING;
+
   if (opensLeft) left = anchorRect.left - editorRect.width - GAP;
 
   left = clamp(window.innerWidth - editorRect.width - VIEWPORT_PADDING, VIEWPORT_PADDING, left);
@@ -56,6 +57,7 @@ export function mountFloatingEditor(editor: HTMLElement, anchor: HTMLElement): F
     'toggle',
     (event) => {
       if ((event as ToggleEvent).newState !== 'closed') return;
+
       lifecycle.abort();
       editor.remove();
     },

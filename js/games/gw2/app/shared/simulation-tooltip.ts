@@ -73,7 +73,9 @@ function resolveFacts(
 ): readonly TooltipFact[] {
   return facts.map((fact) => {
     if ('profile' in fact) return profileFact(context, fact.profile, fact.field, fact.name, fact.format);
+
     if ('modifier' in fact) return modifierFact(context, fact.modifier, fact.field, fact.name, fact.format);
+
     return profileFact(context, id, ...fact);
   });
 }
@@ -119,7 +121,9 @@ const effectListFormat = new Intl.ListFormat('en', { style: 'long', type: 'conju
 /** Numeric source errors stay visible instead of silently replacing a missing bonus with zero or an API fact. */
 export function tooltipNumber(source: object | undefined, field: string): number {
   const value = (source as Readonly<Record<string, unknown>> | undefined)?.[field];
+
   if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`Invalid tooltip number: ${field}`);
+
   return value;
 }
 
@@ -136,13 +140,17 @@ export const tooltipFactorChange = (factor: number): string => tooltipPercent(fa
 /** Required IDs are checked at the presentation boundary without executing any combat callbacks. */
 export function tooltipProfile(context: ProfessionBalanceContext, id: SkillId): BalanceProfile {
   const profile = context.catalog.balanceProfilesById.get(id);
+
   if (!profile) throw new Error(`Missing tooltip profile: ${id}`);
+
   return profile;
 }
 
 function tooltipRule(context: ProfessionBalanceContext, id: string) {
   const rule = context.modifierRulesById.get(id);
+
   if (!rule) throw new Error(`Missing tooltip modifier: ${id}`);
+
   return rule;
 }
 
@@ -169,7 +177,9 @@ export function traitSkillTooltip(
     const trait = traitTooltip(description, facts)(context, entity);
     const skills = skillIds.map((id) => {
       const skill = context.catalog.skillsById.get(id);
+
       if (!skill) throw new Error(`Missing invoked tooltip skill: ${id}`);
+
       return skill;
     });
     return {
@@ -210,7 +220,9 @@ export function profileTooltip(
 export function skillTooltip(description: string, facts: TooltipFacts<Skill> = []): DescribeSimulationTooltip {
   return (context, entity) => {
     const skill = context.catalog.skillsById.get(entity.id);
+
     if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
     const effects = simulationEffectFacts(skill.effects);
     const custom = typeof facts === 'function' ? facts(context, skill) : resolveFacts(context, skill.id, facts);
     return { ...effects, description, facts: [...effects.facts, ...custom] };
@@ -253,9 +265,12 @@ function tooltipEffectName(value: string): string {
 function effectContext(effect: SkillEffect, factName: string): string {
   const audience = effect.audience;
   const parts: string[] = [];
+
   if (effect.type === 'condition' && effect.target === 'self') parts.push('on yourself');
+
   if (audience?.recipients === 'party') {
     parts.push(audience.maximumRecipients == null ? 'party' : `up to ${audience.maximumRecipients} party members`);
+
     if (audience.affectsSelf === false) parts.push('excluding yourself');
   } else if (audience?.recipients === 'summons')
     parts.push(
@@ -263,7 +278,9 @@ function effectContext(effect: SkillEffect, factName: string): string {
     );
   else if (audience?.recipients === 'self')
     parts.push(effect.actorType === 'summon' ? 'on the companion' : 'on yourself');
+
   if (effect.actorType === 'summon') parts.push('companion effect');
+
   // Packet names distinguish variants, but repeating the displayed effect name adds no information.
   // Generic component keys address patches; only meaningful variant names belong in displayed facts.
   if (
@@ -272,7 +289,9 @@ function effectContext(effect: SkillEffect, factName: string): string {
     tooltipEffectName(effect.name).toLowerCase() !== factName.toLowerCase()
   )
     parts.push(effectNames.get(effect.name.toLowerCase()) ?? effect.name);
+
   if (typeof effect.packetLabel === 'string') parts.push(effect.packetLabel);
+
   return parts.join(' · ');
 }
 
@@ -325,8 +344,10 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
       ]
         .filter(Boolean)
         .join(' · ');
+
       if (detail) add(effect, 'Strike damage', detail);
       else incomplete = true;
+
       for (const modifier of effect.coefficientModifiers || []) {
         if (modifier.kind !== 'target-health-below') {
           incomplete = true;
@@ -349,10 +370,12 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
         const stacks = condition.stacks ?? 1;
         const duration = condition.duration;
         add(effect, condition.condition, duration == null ? '' : `${tooltipDecimal(duration)}s`, stacks);
+
         if (duration == null) incomplete = true;
       }
     } else if (effect.type === 'boon' || effect.type === 'buff') {
       const name = effect.boon || effect.kind || effect.name;
+
       if (!name) {
         incomplete = true;
         continue;
@@ -410,9 +433,11 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
 function ordinarySkillDescription(skill: Skill): string {
   if (skill.initialStateOnly)
     return 'Restore this combat state for the duration recorded at the start of the imported encounter.';
+
   const effects = skill.effects || [];
   const sentences: string[] = [];
   const strikes = effects.filter((effect) => effect.type === 'strike');
+
   if (strikes.length) {
     const hits = strikes.reduce(
       (sum, effect) => sum + (effect.ticks?.length ?? effect.hits ?? 1) * (effect.applications ?? 1),
@@ -436,16 +461,21 @@ function ordinarySkillDescription(skill: Skill): string {
           )
       )
     ];
+
     if (names.length) sentences.push(`${self ? 'Apply to yourself' : 'Inflict'} ${effectListFormat.format(names)}.`);
   }
 
   if (effects.some((effect) => effect.type === 'boon'))
     sentences.push('Grant the listed boons to their indicated recipients.');
+
   if (effects.some((effect) => effect.type === 'buff')) sentences.push('Apply the listed combat effects.');
+
   if (effects.some((effect) => effect.type === 'control'))
     sentences.push('Apply control to your target, triggering eligible control effects.');
+
   if (effects.some((effect) => effect.type === 'custom' && effect.eventType === 'resource'))
     sentences.push('Gain the listed resources.');
+
   return sentences.join(' ') || 'This action has no direct damage or status effects described by the simulator.';
 }
 
@@ -459,6 +489,7 @@ export function describeSimulationSkill(
   const describe = presentation.skills?.[skill.id];
   // Custom descriptions own their packets; only format generic effects when no override handles the skill.
   let model: SimulationTooltip;
+
   if (describe) model = describe(context, skill, undefined, build);
   else {
     const effects = simulationEffectFacts(skill.effects);
@@ -471,12 +502,15 @@ export function describeSimulationSkill(
 
   const facts: TooltipFact[] = [];
   const recharge = gw2BaseRecharge(skill);
+
   if (recharge > 0)
     facts.push({
       name: Number(skill.ammo) > 0 ? 'Base ammunition recharge' : 'Base recharge',
       detail: `${tooltipDecimal(recharge)}s`
     });
+
   if (Number(skill.ammo) > 0) facts.push({ name: 'Ammunition', detail: tooltipDecimal(tooltipNumber(skill, 'ammo')) });
+
   const comboFields = [
     ...(skill.comboFields || []),
     ...(skill.effects || []).flatMap((effect) => effect.comboFields || [])
@@ -489,6 +523,7 @@ export function describeSimulationSkill(
       )
     )
       continue;
+
     facts.push({
       name: 'Combo field',
       detail: `${String(field.fieldType)}${typeof field.duration === 'number' ? ` · ${tooltipDecimal(field.duration)}s` : ''}`
@@ -536,7 +571,9 @@ export function describeSimulationTrait(
   specialization = 'Core'
 ): SimulationTooltip {
   const describe = presentation.traits[trait.id];
+
   if (!describe) throw new Error(`Missing trait tooltip: ${trait.id} (${trait.name})`);
+
   const model = describe(context, trait, specialization);
   return { ...model, facts: model.facts.map((fact) => ({ ...fact, icon: fact.icon || tooltipFactIcon(fact.name) })) };
 }

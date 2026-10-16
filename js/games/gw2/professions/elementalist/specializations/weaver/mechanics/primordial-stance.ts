@@ -24,6 +24,7 @@ export function schedulePrimordialStance(
   const tickTimes = new Set<number>();
   for (const effect of skill.effects || []) {
     if (effect.type !== 'condition') continue;
+
     const timing = scaleCastBoundTiming(cast, skill, effect);
     const applications = materializeSkillEffectApplications({
       skill,
@@ -60,6 +61,7 @@ function emitPrimordialStancePulse(
     : [core.primaryAttunement];
   const primordialStanceProfile = requireBalanceProfileFromContext(context, PROFILE.primordialStance);
   const strike = requireEffect(primordialStanceProfile, 'strike', 'Primordial Stance');
+
   if (strike)
     context.effects.emit(
       elementalistStrikeRequest(
@@ -80,9 +82,12 @@ function emitPrimordialStancePulse(
         emissionCast
       )
     );
+
   for (const attunement of attunements) {
     const effect = requireEffect(primordialStanceProfile, 'condition', attunement);
+
     if (!effect) continue;
+
     context.effects.emit(
       elementalistConditionRequest(
         {

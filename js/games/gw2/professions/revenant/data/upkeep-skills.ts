@@ -15,14 +15,18 @@ export function revenantFacetParents(
   const parents = new Map<SkillId, RevenantSkill>();
   for (const facet of skillsById.values()) {
     if (!facet.facet) continue;
+
     const consumes =
       facet.upkeepConsumeByLegendId != null ? Object.values(facet.upkeepConsumeByLegendId) : [facet.flipSkillId];
     for (const consumeId of consumes) {
       if (consumeId == null || !skillsById.get(consumeId)?.consume)
         throw new Error(`Facet ${facet.id} references a missing or invalid consume ${consumeId}.`);
+
       const previous = parents.get(consumeId);
+
       if (previous && previous.id !== facet.id)
         throw new Error(`Consume ${consumeId} has ambiguous facet parents ${previous.id} and ${facet.id}.`);
+
       parents.set(consumeId, facet);
     }
   }
@@ -44,5 +48,6 @@ export function isRevenantUpkeepRelease(
   skillFor: (id: SkillId) => Skill | null | undefined
 ): boolean {
   if (!skill || skill.consume || skill.flipParentId == null) return false;
+
   return isRevenantUpkeep(skillFor(Number(skill.flipParentId)));
 }

@@ -38,6 +38,7 @@ export function updatePicker(picker: HTMLElement): void {
   enhanceDetailedSelect(select, select.id);
   for (const option of select.options) {
     if (option.dataset.choice === undefined) continue;
+
     option.disabled = values.includes(option.dataset.choice);
   }
 
@@ -45,8 +46,10 @@ export function updatePicker(picker: HTMLElement): void {
   // Explain the cap in the disabled control and restore its invitation when a chip is removed.
   const trigger = picker.querySelector<HTMLButtonElement>('.gear-select-trigger')!;
   trigger.disabled = select.disabled;
+
   if (!trigger.classList.contains('gear-icon-trigger'))
     trigger.textContent = select.disabled ? 'Selection limit reached' : 'Add a choice…';
+
   // Keep the visible popover consistent with the underlying equipment values.
   for (const choice of picker.querySelectorAll<HTMLButtonElement>('.gear-select-option')) {
     const option = [...select.options].find((option) => option.value === choice.dataset.value);
@@ -61,10 +64,13 @@ export function updatePicker(picker: HTMLElement): void {
 export function bindCandidatePickers(root: HTMLElement): void {
   root.addEventListener('change', (event) => {
     const select = event.target as HTMLSelectElement;
+
     if (select.matches('[data-add-choice]')) {
       const option = select.selectedOptions[0];
       const picker = select.closest<HTMLElement>('[data-picker]')!;
+
       if (option?.dataset.choice === undefined || option.disabled || select.disabled) return;
+
       picker
         .querySelector('.optimizer-choices')!
         .insertAdjacentHTML('beforeend', candidateChip(picker.dataset.picker!, option.dataset.choice));
@@ -75,7 +81,9 @@ export function bindCandidatePickers(root: HTMLElement): void {
   });
   root.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest('[data-remove-choice]');
+
     if (!button) return;
+
     const picker = button.closest<HTMLElement>('[data-picker]')!;
     const select = picker.querySelector<HTMLSelectElement>('select')!;
     button.closest('.optimizer-choice')!.remove();
@@ -133,7 +141,9 @@ export function enhanceDetailedSelect(
 
   const display = select.parentElement;
   const trigger = display?.querySelector('.gear-select-trigger');
+
   if (!(display instanceof HTMLElement) || !(trigger instanceof HTMLButtonElement)) return;
+
   if (display.querySelector('.gear-select-menu')) return;
 
   const menu = document.createElement('div');
@@ -170,6 +180,7 @@ export function enhanceDetailedSelect(
 
   const addOption = (optionElement: HTMLOptionElement, parent: HTMLElement): void => {
     if (select.matches('[data-add-choice]') && optionElement.value === '') return;
+
     const { name, details } = splitOptionLabel(optionElement.textContent);
     const choice = document.createElement('button');
     choice.type = 'button';
@@ -184,6 +195,7 @@ export function enhanceDetailedSelect(
     primary.className = 'gear-option-name';
     primary.textContent = name;
     choice.append(primary);
+
     if (details) {
       const supporting = document.createElement('span');
       supporting.className = 'gear-option-detail';
@@ -194,8 +206,10 @@ export function enhanceDetailedSelect(
     choice.addEventListener('click', () => {
       menu.hidePopover();
       select.value = optionElement.value;
+
       if (!trigger.classList.contains('gear-icon-trigger'))
         trigger.textContent = select.matches('[data-add-choice]') ? 'Add a choice…' : name;
+
       menu.querySelectorAll('[role="option"]').forEach((item) => {
         item.setAttribute('aria-selected', String(item === choice));
       });
@@ -256,9 +270,12 @@ export function enhanceDetailedSelect(
 
   select.addEventListener('change', () => {
     if (select.matches('[data-add-choice]')) return;
+
     const name = splitOptionLabel(select.selectedOptions[0]?.textContent || select.value).name;
     const caption = display.closest('.gear-icon-row')?.querySelector('.gear-equipped-name');
+
     if (caption) caption.textContent = name;
+
     describe(trigger, select.selectedOptions[0]);
   });
   display.append(menu);

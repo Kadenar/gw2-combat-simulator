@@ -10,6 +10,7 @@ import { clamp } from '#kernel/core/numeric.js';
  */
 export function targetHealthBandDps(result, targetHealth, startingHealthPercent = 100) {
   const boundaries = new Map();
+
   if (Number.isFinite(targetHealth) && targetHealth > 0) {
     boundaries.set(clamp(startingHealthPercent, 0, 100), { elapsed: 0, damage: 0 });
     for (const point of targetHealthBreakpointSnapshots(result, targetHealth, undefined, startingHealthPercent)) {

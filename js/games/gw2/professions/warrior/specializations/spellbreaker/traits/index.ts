@@ -179,6 +179,7 @@ function reactToSpellbreakerDamage(context: WarriorRuntime, event: Gw2ResolverEv
   }
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
+
   if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event)) {
     context.effects.emit({
       kind: 'announcement',
@@ -201,8 +202,10 @@ function gainAttackersInsight(
 ): void {
   const attackersInsightProfile = requireBalanceProfileFromContext(context, TRAIT.ATTACKERS_INSIGHT);
   const effect = requireEffect(attackersInsightProfile, 'buff', 'attackers-insight');
+
   // Removed packets do not open their associated state or schedule follow-ups.
   if (!effect) return;
+
   // Keep the newest grants; a disabled cap or expired grant cannot add live stacks.
   state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
     at,
@@ -222,14 +225,18 @@ function attackerInsightApplications(context: WarriorRuntime, event: Gw2Resolver
 function triggerMagebaneTether(context: WarriorRuntime, state: SpellbreakerState, event: Gw2ResolverEvent): boolean {
   const at = context.time;
   const skill = context.helpers.skillsById.get(ID.MAGEBANE_TETHER)!;
+
   // The invoked skill owns recharge while the tether still waits for its next GW2 action tick.
   if (
     at < gw2CooldownReadyAt(context.cooldownController.readyAt(skill.id) ?? 0) ||
     context.cooldownController.isOnCooldown(skill.id, at)
   )
     return false;
+
   const effect = requireEffect(skill, 'buff', 'magebane-tether');
+
   if (!effect) return false;
+
   context.cooldownController.startRecharge(skill, at);
   state.magebaneTetherUntil = canonicalTime(at + effectNumber(skill, effect, 'duration'));
   invokeTraitSkill(context, TRAIT.MAGEBANE_TETHER, skill.id, event);

@@ -112,6 +112,7 @@ function sharedDamageControls(): PreviewControl[] {
 /** Shared controls first, then the profession's damage-scoped controls; a profession key never duplicates a shared one. */
 export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
   const shared = sharedDamageControls();
+
   // Reuse the selected relic's opening stack state and cap without changing saved simulation assumptions.
   if (app.build.relic === 'Thorns')
     shared.push({
@@ -123,6 +124,7 @@ export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
       max: THORNS_MAX_STACKS,
       description: 'Starting stacks; subsequent gains follow the relic’s normal rules'
     });
+
   const keys = new Set(shared.map((control) => control.key));
   // Retain profession boons such as Resolution; only shared keys are already represented.
   // Damage rows cover every equipped set, independently of the Attribute Preview selector.
@@ -131,6 +133,7 @@ export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
     .flatMap((set) => app.profession.ui.previewControls(attributePreviewContext(app, set)))
     .filter((control) => {
       if (!previewControlScopes(control).includes('damage') || keys.has(control.key)) return false;
+
       keys.add(control.key);
       return true;
     });
@@ -209,6 +212,7 @@ function weaponRows(app: ProfessionAppState): { set: number; weapon: string; ski
     for (const skill of weaponSkills(buildStart(app), set)) {
       const weapon = String(skill.weapon || skill.skillWeapon || 'Weapon');
       let group = groups.find((entry) => entry.set === set && entry.weapon === weapon);
+
       if (!group) {
         group = { set, weapon, skills: [] };
         groups.push(group);
@@ -224,6 +228,7 @@ function weaponRows(app: ProfessionAppState): { set: number; weapon: string; ski
 /** Every slot skill the specialization can use; professions with fixed loadouts list their selected skills. */
 function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamageRowStatus }[] {
   const specialization = app.adapter.eliteSpecialization(app.build);
+
   if (app.adapter.slotLoadout) {
     // Follow-up rows must use the same selected relationships as the palette and runtime.
     const context = { build: app.build, specialization, professionState: undefined, catalog: app.activeCatalog };
@@ -249,7 +254,9 @@ function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamag
   const rows = new Map(choices.map((row) => [row.skill.id, row]));
   for (const row of rows.values()) {
     if (row.skill.flipSkillId == null) continue;
+
     const child = app.skillById.get(Number(row.skill.flipSkillId));
+
     if (child && !rows.has(child.id)) rows.set(child.id, { skill: child, status: row.status });
   }
 
@@ -285,7 +292,9 @@ function mechanicGroups(
       title: group.title,
       skills: group.skillIds.flatMap((id) => {
         const skill = app.skillById.get(id);
+
         if (!skill || seen.has(skill.id) || (skill.type === 'Action' && !group.includeActionSkills)) return [];
+
         seen.add(skill.id);
         return [skill];
       })
@@ -302,12 +311,19 @@ function chainStep(skill: Skill): number | null {
 function slotBadge(skill: Skill): string {
   const slot = String(skill.slot ?? '');
   const weaponSlot = /^Weapon_(\d)$/.exec(slot);
+
   if (weaponSlot) return weaponSlot[1];
+
   const professionSlot = /^Profession_(\d)$/.exec(slot);
+
   if (professionSlot) return `F${professionSlot[1]}`;
+
   if (skill.type === 'Heal') return 'H';
+
   if (skill.type === 'Elite') return 'E';
+
   if (skill.type === 'Utility') return 'U';
+
   return String(skill.name).charAt(0);
 }
 
@@ -316,12 +332,14 @@ function slotBadge(skill: Skill): string {
 function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
   const positions = (app.activeCatalog ?? app.profession.catalog).autoattackChainPositions;
   const position = positions.get(Number(skill.id));
+
   if (position)
     return [...positions.entries()]
       .filter(([, candidate]) => candidate.root === position.root && candidate.index < position.index)
       .sort(([, left], [, right]) => left.index - right.index)
       .map(([id]) => app.skillById.get(id)!)
       .filter(Boolean);
+
   const chain: Skill[] = [];
   let current: Skill | undefined = skill;
   for (let depth = 0; current && depth < 8 && chainStep(current) !== 1; depth += 1) {
@@ -330,12 +348,17 @@ function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
       current.flipParentId != null
         ? app.skillById.get(Number(current.flipParentId))
         : app.skills.find((candidate) => candidate.flipSkillId === currentId || candidate.nextChainId === currentId);
+
     if (!parent || chain.includes(parent)) break;
+
     // A loop without recorded steps has no knowable start; measure the skill as if it began the chain.
     if (parent.id === skill.id) return [];
+
     const parentStep = chainStep(parent);
     const currentStep = chainStep(current);
+
     if (parentStep != null && currentStep != null && parentStep >= currentStep) break;
+
     chain.unshift(parent);
     current = parent;
   }
@@ -345,13 +368,17 @@ function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
 
 function chainContext(app: ProfessionAppState, skill: Skill): string {
   const before = chainPredecessors(app, skill);
+
   if (!before.length && skill.flipSkillId == null && skill.nextChainId == null) return '';
+
   const seen = new Set<SkillId>([...before.map((entry) => entry.id), skill.id]);
   let length = before.length + 1;
   let next = skill.nextChainId ?? skill.flipSkillId;
   for (let depth = 0; next != null && depth < 8; depth += 1) {
     const following = app.skillById.get(Number(next));
+
     if (!following || seen.has(following.id) || chainStep(following) === 1) break;
+
     seen.add(following.id);
     length += 1;
     next = following.nextChainId ?? following.flipSkillId;
@@ -478,6 +505,7 @@ export function createSkillDamagePlan(
   const actionIds = actions
     .filter((skill) => ![...rows.values()].some((row) => row.skillId === skill.id))
     .map((skill) => addRow(actionGroup, skill, 'equipped', { context: skill.name }));
+
   if (actionIds.length) groups.push({ ...actionGroup, rowIds: actionIds });
 
   occurrences.push(...damageOccurrences(app.profession.runtimeFor(config), config));

@@ -22,6 +22,7 @@ export function armElementalLightningJolt(
   coefficient: number
 ): void {
   const elemental = context.profession.core.summonedElemental;
+
   if ((elemental.element === 'Fire' || elemental.element === 'Earth') && elemental.activeUntil > cast.effectiveEnd) {
     tempestState.from(context).pendingLightningJolt = {
       summonGeneration: elemental.summonGeneration,
@@ -35,7 +36,9 @@ export function armElementalLightningJolt(
 function consumeElementalLightningJolt(context: ElementalistRuntime, strike: ElementalStrikeBoundary): void {
   const state = tempestState.from(context);
   const charge = state.pendingLightningJolt;
+
   if (!charge || charge.summonGeneration !== strike.summonGeneration) return;
+
   state.pendingLightningJolt = null;
   context.effects.emit(
     elementalistStrikeRequest(context, {
@@ -71,6 +74,7 @@ export function registerTempestLightningJolt(context: ElementalistRuntime): void
     beforeStrike: consumeElementalLightningJolt,
     retire(runtime, summonGeneration) {
       const state = tempestState.from(runtime);
+
       if (state.pendingLightningJolt?.summonGeneration === summonGeneration) state.pendingLightningJolt = null;
     }
   });

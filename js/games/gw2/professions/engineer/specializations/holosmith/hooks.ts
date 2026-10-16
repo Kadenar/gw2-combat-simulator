@@ -26,8 +26,10 @@ export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> 
       state.photonForgeActive = Boolean(skill?.forgeSkill);
       const charges = Number(inputs.lensCharges ?? 0);
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOLAR_FOCUSING_LENS);
+
       if (!Number.isInteger(charges) || charges > balanceProfileNumber(profile, 'maximumStacks'))
         throw new DamageCalculationError('missing-input', 'Choose a valid Solar Focusing Lens charge count.');
+
       state.solarFocusingLens = grantCharges(charges, balanceProfileNumber(profile, 'durationMultiplier'));
     }
   },

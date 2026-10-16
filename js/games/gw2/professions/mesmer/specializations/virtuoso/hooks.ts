@@ -30,7 +30,9 @@ export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   tasks: {
     'mesmer.blade-spend'(runtime, data) {
       const details = runtime.profession.core.castDetails.get(String(data));
+
       if (!details || details.shatterSpendCommitted) return;
+
       details.shatterSpent = createMesmerActions(runtime).commitReservedResources(
         runtime.time,
         details.shatterSpent ?? 0,

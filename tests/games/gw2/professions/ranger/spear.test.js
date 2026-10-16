@@ -32,6 +32,7 @@ test('spear stealth choice is consumed on activation even when the attack is can
       (event) => event.type === 'damage' && event.skillId === ID.WOLFS_ONSLAUGHT
     );
     assert.ok(contacts.every((event) => event.at * 1000 <= attempt.end));
+
     if (interrupt > 1) assert.ok(contacts.length > 0, 'cancellation must retain earlier contacts');
   }
 });

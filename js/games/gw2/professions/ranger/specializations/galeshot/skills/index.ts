@@ -343,8 +343,11 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
 /** Schedule at acceptance because authored tasks are registered too late for precommit Wind Force. */
 export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const skill = cast.skill;
+
   if (!(Number(skill.windForceGain) > 0)) return;
+
   const at = canonicalTime(cast.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000);
+
   if (!castWasInterrupted(cast) || at <= cast.effectiveEnd)
     runtime.schedule('ranger.wind-force', at, Number(skill.windForceGain));
 }
@@ -360,7 +363,9 @@ export function activateMistral(runtime: RangerRuntime): void {
 export function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: boolean): void {
   const state = galeshotState.from(runtime);
   state.cycloneBowActive = active;
+
   if (!active) runtime.resourceController.replace('windForce', 0);
+
   resetAutoattackChains(runtime);
   runtime.effects.emit({
     kind: 'packet',

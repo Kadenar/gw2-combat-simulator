@@ -200,7 +200,9 @@ function empowerPulse(runtime: WarriorRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const might = requireEffect(profile, 'boon', 'might');
+
   if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) return;
+
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
     emitTraitProfile(

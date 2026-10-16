@@ -35,7 +35,9 @@ export const gw2BuildEditor: BuildEditor<ProfessionAppState> = Object.freeze({
   bindControls(app: ProfessionAppState) {
     // Keep build import beside Traits for every profession without a separate toolbar.
     const title = document.querySelector<HTMLElement>('.build-template-import-host');
+
     if (!title) throw new Error('Build import host is missing.');
+
     if (title.querySelector('.build-template-import')) return;
 
     const button = document.createElement('button');

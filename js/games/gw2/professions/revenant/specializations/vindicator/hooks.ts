@@ -33,9 +33,12 @@ function land(runtime: RevenantRuntime, data: unknown): void {
   const { skillId, activationId, origin } = data as { skillId: SkillId; activationId: string; origin: number };
   const profile = selectedDodge(runtime);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
+
   if (!profile || !effect) return;
+
   // An armed charge includes landing exactly at expiry; zero is the unarmed sentinel.
   const reaversCurse = consumeReaversCurse(runtime);
+
   if (effect.type === 'strike' && strikeEffectCoefficient(effect) > 0) {
     const forerunnerActive = forerunnerOfDeathActive(runtime);
     runtime.effects.emit({
@@ -110,6 +113,7 @@ export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> 
   },
   onCastCommit(runtime, cast) {
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime);
+
     if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked, { at: runtime.time });
   },
   onCastCancel(runtime, cast) {
@@ -124,6 +128,8 @@ function consumeReaversCurse(runtime: RevenantRuntime): boolean {
   const state = vindicatorState.from(runtime);
   const reaversCurse =
     hasTrait(runtime, TRAIT.REAVERS_CURSE) && state.reaversCurseUntil > 0 && state.reaversCurseUntil >= runtime.time;
+
   if (reaversCurse) state.reaversCurseUntil = 0;
+
   return reaversCurse;
 }

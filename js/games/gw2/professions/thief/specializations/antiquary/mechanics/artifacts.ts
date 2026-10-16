@@ -34,11 +34,13 @@ export function allArtifactChoices(): ThiefArtifactSlot[] {
 export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
   const state = antiquaryState.from(runtime);
   state.artifactSlots = allArtifactChoices();
+
   // Offer Scuffle's random bomb outcome as a choice, just like the normal randomized artifact pool.
   if (source === 'scuffle')
     state.artifactSlots.push(
       ...THIEF_ARTIFACT_IDS.SCUFFLE_ONLY.map((skillId) => ({ kind: 'unstable' as const, skillId }))
     );
+
   state.artifactUsesRemaining =
     balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks') +
     prolificPlundererUses(runtime, source) +
@@ -71,13 +73,17 @@ export function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
 /** Gross initiative spending feeds Prodigious Pincher; each live Chak Shield charge refunds one paid weapon use. */
 export function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const cost = cast.skill.initiativeCost || 0;
+
   if (!(cost > 0)) return;
+
   const state = antiquaryState.from(runtime);
   // Keep gross spending before Chak refunds; reward eligibility is checked separately against the live progress.
   state.initiativeSpentSincePilfer = addCounterProgress(state.initiativeSpentSincePilfer, cost);
+
   // Only paid weapon inputs consume a refund, so free skills and profession actions preserve the finite grant.
   if (cast.skill.type === 'Weapon' && consumeChargeBatch(state.chakInitiativeRefunds, runtime.time))
     runtime.resourceController.grant('initiative', cost);
+
   // Spending accrues before combat too, but it cannot trigger a pilfer until combat has begun.
   if (prodigiousPincherReady(runtime)) pilferArtifacts(runtime, 'initiative');
 }
@@ -93,6 +99,7 @@ export function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<Thi
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
 export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(runtime);
+
   if (
     skill.artifactKind &&
     (state.artifactUsesRemaining <= 0 || !state.artifactSlots.some((slot) => slot.skillId === skill.id))
@@ -106,10 +113,13 @@ export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, 
         : 'this artifact is not in an available artifact slot.',
       (state.nextSkrittScufflePilferAt || 0) > runtime.time ? state.nextSkrittScufflePilferAt : null
     );
+
   if (skill.backfire)
     return denySkillCast(skill, 'thief.backfire-variant', 'backfire variants are resolved by their Double Edge skill.');
+
   if (skill.id === ID.RESHUFFLE && (state.artifactUsesRemaining <= 0 || state.artifactSlots.length === 0))
     return denySkillCast(skill, 'thief.artifact', 'pilfer artifacts first.');
+
   return { ready: true };
 }
 

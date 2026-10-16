@@ -37,6 +37,7 @@ function luminaryEventLogRow(
     ![GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE, GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE].some((id) => id === event.skillId)
   )
     return undefined;
+
   const entered = event.skillId === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   return {
     type: event.type,
@@ -80,6 +81,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   const state = professionState(context);
   // Expose Light Aura while it can still be consumed by Luminary skills.
   const lightAuraRemaining = (state.lightAuraUntil || 0) - at;
+
   if (lightAuraRemaining > 0) {
     items.push({
       id: 'luminary-light-aura',
@@ -90,6 +92,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   }
 
   const effulgentRemaining = (state.effulgentActiveUntil || 0) - at;
+
   if (effulgentRemaining > 0) {
     // Display the selected cap, including patches that allow more than the baseline stack count.
     const maximum = balanceNumberFromContext(context.balanceContext, PROFILE.effulgentStance, 'maximumStacks');
@@ -104,6 +107,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
 
   // Mirror the hammer-only gate while reading trait tuning from the selected balance profile.
   const radiant = planningBuffAt(context.planningState, 'guardian-radiant-armaments');
+
   if (radiant && radiant.event?.metadata?.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
@@ -114,6 +118,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   }
 
   const piercing = planningBuffAt(context.planningState, 'guardian-piercing-stance');
+
   if (piercing) {
     items.push({
       id: 'luminary-piercing-stance',
@@ -124,6 +129,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   }
 
   const daring = planningBuffAt(context.planningState, 'guardian-daring-advance');
+
   if (daring) {
     items.push({
       id: 'luminary-daring-advance',

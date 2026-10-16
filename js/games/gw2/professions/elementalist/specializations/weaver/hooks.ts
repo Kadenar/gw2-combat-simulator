@@ -85,8 +85,10 @@ function initialize(context: ElementalistRuntime): void {
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
 function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   const hammerAvailability = weaverHammerAvailability(context, skill);
+
   // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
   if (hammerAvailability && !hammerAvailability.ready) return hammerAvailability as AvailabilityResult;
+
   // Only the preserved next autoattack link may bypass hand checks after a swap.
   const core = professionCoreState(context);
   const chainPosition = context.helpers.autoattackChainPositions.get(Number(skill.id));
@@ -96,12 +98,14 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
     core.autoattackCarryover?.root === chainPosition.root &&
     core.autoattackCarryover.attunement === skill.attunement &&
     core.autoattackChains[chainPosition.root] === Number(skill.id);
+
   if (skill.type === 'Weapon' && skill.attunement && !carriedLink) {
     const state = weaverState.from(context);
     const attunement = String(skill.attunement);
     const secondary = state.secondaryAttunement || core.primaryAttunement;
     const unravelActive = state.unravelUntil > context.time;
     const available = weaverWeaponAttunementAvailable(skill, core.primaryAttunement, secondary, unravelActive);
+
     if (!available) {
       return denyCast(
         unravelActive ? 'elementalist.unravel-attunement' : 'elementalist.weaver-attunement',
@@ -115,6 +119,7 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
   // Tailored Victory is the Weave Self flipover and only exists while Perfect
   // Weave is up.
   if (skill.id !== ID.TAILORED_VICTORY) return { ready: true };
+
   const state = weaverState.from(context);
   return state.perfectWeaveUntil > context.time
     ? { ready: true }
@@ -140,6 +145,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   const sourceId = event.skillId ?? event.sourceId;
   const source = event.skillName || event.source || 'Attunement';
   const unravelActive = state.unravelUntil > at;
+
   // While Unravel is active both hands follow the swap, so the recorded event
   // has to advertise the same element for the off hand.
   if (unravelActive) {
@@ -149,8 +155,10 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
   context.fireTrigger(weaverHandsChanged, { event });
   applyWeaveSelfAttunement(context, at, target, source, sourceId);
+
   // Pre-combat setup swaps must not generate trait procs.
   if (canonicalTime(at) < (context.combatStartTime || 0)) return;
+
   context.fireTrigger(weaverAttunementCompleted, { event });
   // A normal Weaver swap moves both hands and so counts as two attunement
   // changes; under Unravel the hands move together and it counts as one.
@@ -164,6 +172,7 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast<
     at = context.time,
     skill = cast.skill;
   const target = targetAttunement(skill);
+
   if (target) {
     const previous = core.primaryAttunement;
     state.secondaryAttunement = state.unravelUntil > at ? target : previous;
@@ -186,18 +195,22 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<Elementali
   const state = weaverState.from(context);
   const at = cast.effectiveEnd;
   const dualAttunements = weaverDualAttunements(skill);
+
   // An attunement cast pushes the old main-hand element into the off hand
   // (under Unravel both hands land on the target instead) and puts all four
   // attunements on one shared dual recharge, with trait reductions and recharge
   // speed applied in order by the shared attunement-duration calculation.
   if (targetAttunement(skill)) return;
+
   context.fireTrigger(weaverCastCompleted, { cast, dualAttunements });
+
   // Swift Revenge pays out per element of the dual skill that was just cast.
   // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
   if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
     const ferventStanceProfile = requireBalanceProfileFromContext(context, PROFILE.ferventStance);
     const might = requireEffect(ferventStanceProfile, 'boon', 'Might');
+
     if (might) {
       context.effects.emit(
         elementalistBuffRequest(
@@ -236,6 +249,7 @@ export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
   // Dual orbs share their cast lifetime so Grand Finale retires both hands' pending contacts.
   effectOwner(context, event) {
     const skill = context.skillFor(event.skillId ?? event.sourceId);
+
     if (
       skill &&
       skillWeapon(skill) === 'Hammer' &&
@@ -243,11 +257,13 @@ export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
       (event.type === 'damage' || event.type === 'condition')
     )
       return { id: String(event.activationId), generation: 0 };
+
     return undefined;
   },
   sideEffectHandlers: {
     'elementalist.weaver.unravel'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Unravel requires a cast trigger.');
+
       // Run after this cast's completion traits, before another priority -100 completion can observe its hands.
       runtime.scheduleForCast('elementalist.weaver.unravel', runtime.time, context.cast, {}, undefined, -101);
     },
@@ -255,16 +271,20 @@ export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
     // The spear dual declarations refresh only the primary element live at commitment.
     'elementalist.weaver.refresh-primary-attunement'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Attunement refresh requires a cast trigger.');
+
       const core = professionCoreState(runtime);
+
       if (core.primaryAttunement !== weaverState.from(runtime).secondaryAttunement)
         setElementalistAttunementReadyAt(runtime, core.primaryAttunement, context.cast.effectiveEnd);
     },
     'elementalist.weaver.start-weave-self'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Weave Self requires a cast trigger.');
+
       startWeaveSelfCast(runtime, context.cast, context.skill);
     },
     'elementalist.weaver.start-primordial-stance'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Primordial Stance requires a cast trigger.');
+
       schedulePrimordialStance(runtime, context.cast, context.skill);
     }
   },
@@ -308,6 +328,7 @@ export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
         }
 
         const profiledBoon = requireEffect(unravelProfile, 'boon', previousPrimary);
+
         if (profiledBoon) {
           const boonKind = String(profiledBoon.boon).toLowerCase();
           context.effects.emit(

@@ -42,7 +42,9 @@ test('the shared timeline keeps tied shroud attacks between entry and exit for e
             { start: 1000 + offset, end: 1000 + offset, skill: transition },
             { start: 1000, end: 1400, skill: attack }
           ];
+
           if (reverse) actions.reverse();
+
           // The unrelated instant input retains its slot even when the two shroud inputs exchange places.
           actions.splice(1, 0, { start: 1000, end: 1000, skill: fixtureSkill });
           const rotation = buildReplayTimeline(
@@ -61,6 +63,7 @@ test('the shared timeline keeps tied shroud attacks between entry and exit for e
             ids.indexOf(transition.id) < ids.indexOf(attack.id),
             offset < 0 || (offset === 0 && transition === entry)
           );
+
           if (offset === 0) assert.equal(ids[1], fixtureSkill.id);
         }
       }
@@ -77,7 +80,9 @@ test('the shared timeline orders simultaneous instant stunbreaks before blocked 
         { start: 0, end: 400, skill: fixtureSkill },
         { start: offset, end: offset, skill: stunbreak }
       ];
+
       if (reverse) actions.reverse();
+
       const rotation = buildReplayTimeline(
         actions.map((action, eventIndex) => ({
           ...action,
@@ -112,6 +117,7 @@ test('both importers place tied weapon casts on the correct side of an attunemen
           { id: 5495, skills: [{ castTime: 1000 + swapOffset, duration: 0 }] },
           { id: skillId, skills: [{ castTime: 1000, duration: 760 }] }
         ];
+
         if (reverse) {
           starts.reverse();
           rotation.reverse();
@@ -140,7 +146,9 @@ test('both importers place tied weapon casts on the correct side of an attunemen
           const swapIndex = imported.rotation.findIndex((command) => command.skillId === 5495);
           const outgoingTie = skillId === 5508 && swapOffset === 0;
           assert.equal(castIndex < swapIndex, outgoingTie);
+
           if (outgoingTie) assert.equal(imported.rotation[swapIndex].concurrentOffsetMs, 0);
+
           const result = runElementalist(
             imported.rotation,
             defaultSimulationConfig({

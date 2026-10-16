@@ -69,6 +69,7 @@ function activate(runtime: GuardianRuntime, data: unknown): void {
   const state = willbenderState.from(runtime);
   const cause = guardianCastCause(runtime, cast);
   state[`${virtue}Until`] = window ? gw2EffectExpiresAt(runtime.time, effectNumber(profile, window, 'duration')) : 0;
+
   if (window)
     runtime.effects.emit({
       kind: 'packet',
@@ -80,6 +81,7 @@ function activate(runtime: GuardianRuntime, data: unknown): void {
         audience: { recipients: 'self' }
       }
     });
+
   runtime.fireTrigger(willbenderVirtueOpened, { cause, virtue });
 }
 
@@ -88,9 +90,13 @@ function flames(runtime: GuardianRuntime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.flames);
   const strike = requireEffect(profile, 'strike', 'Strike');
+
   if (!strike) return;
+
   if (!strike.ticks?.length) throw new Error('Willbender Flames requires an explicit strike timeline.');
+
   const state = willbenderState.from(runtime);
+
   if (state.flameVirtue !== virtue) {
     runtime.cancelOwner(flameOwner(state.flameGeneration));
     state.flameGeneration++;
@@ -128,20 +134,27 @@ function hit(runtime: GuardianRuntime, event: Gw2ResolverEvent, details: NativeR
     (event.actorType !== 'player' && event.sourceId !== `sigil.${SIGIL_IDS.AIR}`)
   )
     return;
+
   const state = willbenderState.from(runtime);
   for (const virtue of ['justice', 'resolve', 'courage'] as const) {
     const until = state[`${virtue}Until`];
+
     if (!(until > 0) || runtime.time > until) continue;
+
     const threshold = permeatingWrathThreshold(runtime, virtue, PROFILE.virtueWindows);
     // Each open virtue owns its cycle; reset it before traits and virtue rewards react to completion.
     const progress = advanceCounter(state.virtueHitCounts[virtue], 1, threshold, 'reset');
     state.virtueHitCounts[virtue] = progress.value;
+
     if (!progress.reached) continue;
+
     state.triggeredVirtueEffects++;
     runtime.fireTrigger(willbenderVirtueTriggered, { cause: event, virtue });
+
     if (virtue === 'justice') {
       const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.justice);
       const burn = requireEffect(profile, 'condition', 'Burning (active)');
+
       if (burn) {
         runtime.profession.core.justiceActiveBurns++;
         runtime.effects.emit({
@@ -172,6 +185,7 @@ function hit(runtime: GuardianRuntime, event: Gw2ResolverEvent, details: NativeR
       for (const name of ['aegis', 'stability']) {
         const profile = requireBalanceProfileFromContext(runtime, PROFILE.courageTrigger);
         const effect = requireEffect(profile, 'boon', name);
+
         if (effect) {
           runtime.effects.emit({
             kind: 'profile',
@@ -212,17 +226,24 @@ export const willbenderHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> 
   },
   onCastStart(runtime, cast) {
     if (cast.cancelled) return;
+
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
+
     if (!virtue) return;
+
     refreshGuardianVirtues(runtime);
+
     if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
   },
   onCastCommit(runtime, cast) {
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
+
     if (virtue) {
       refreshGuardianVirtues(runtime);
+
       if (readyVirtues.has(cast)) {
         runtime.fireTrigger(virtueActivated, { cast, virtue });
+
         if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
       }
     }

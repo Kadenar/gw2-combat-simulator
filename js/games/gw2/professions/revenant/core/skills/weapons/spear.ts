@@ -294,8 +294,10 @@ function abyssalRazePackets(
   const conditions = skill.effects?.filter((effect) => effect.type === 'condition') ?? [];
   const baseTorment = conditions.find((effect) => !effect.metadata?.trigger);
   const crushingTorment = conditions.find((effect) => effect.metadata?.trigger === 'crushing-abyss');
+
   if (strike?.type !== 'strike' || !baseTorment || !crushingTorment)
     throw new Error('Abyssal Raze is missing its declarative effects.');
+
   const base = strikeEffectCoefficient(strike);
   const common = {
     at: runtime.time,
@@ -327,6 +329,7 @@ function abyssalRazePackets(
       duration: baseTick?.duration || 0
     })
   });
+
   if (stacks > 0) {
     const crushingTick = conditionEffectTicks(crushingTorment)[0];
     runtime.effects.emit({
@@ -345,7 +348,9 @@ function abyssalRazePackets(
 /** A committed Abyssal Raze resolves at its authored impact, reading the stacks that exist at that instant. */
 function startRevenantAbyssalRaze(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
+
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
+
   runtime.schedule(REVENANT_ABYSSAL_RAZE, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), {
     activationId: cast.id
   });
@@ -354,16 +359,22 @@ function startRevenantAbyssalRaze(runtime: RevenantRuntime, cast: RuntimeCast<Re
 /** Impact packets use the current stack count; the impact then grants one more Crushing Abyss stack. */
 function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): void {
   const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
+
   if (!skill) return;
+
   const { activationId } = data as { activationId: string };
   abyssalRazePackets(runtime, skill, activeStackCount(activeCrushingAbyss(runtime), runtime.time), activationId);
   const effect = skill.effects?.find((candidate) => candidate.type === 'buff' && candidate.kind === 'crushing-abyss');
+
   if (effect?.type !== 'buff') throw new Error('Abyssal Raze is missing Crushing Abyss.');
+
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
   const duration = Math.max(0, effect.duration || 0);
   const grant = addTimedStacks(activeCrushingAbyss(runtime), 1, runtime.time, duration, maximum);
+
   // At the cap the grant lands nothing, and the buff must not be published either.
   if (grant.added === 0) return;
+
   runtime.profession.core.crushingAbyss = grant.expiries;
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
   const effectName = effect.name || 'Crushing Abyss';
@@ -418,9 +429,13 @@ function sameWeaponSets(runtime: RevenantRuntime): boolean {
 /** A committed swap to a genuinely different set spends maximum Crushing Abyss on an empowered Raze. */
 function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
+
   if (!skill) return;
+
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
+
   if (activeCrushingAbyss(runtime).length < maximum || sameWeaponSets(runtime)) return;
+
   runtime.profession.core.crushingAbyss = [];
   abyssalRazePackets(runtime, skill, maximum, cast.id, 'Swap Weapons');
 }
@@ -430,10 +445,14 @@ function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2Resolver
   const source = runtime.helpers.skillsById.get(Number(event.skillId));
   const seconds = Number(source?.rechargeReduction || 0);
   const raze = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
+
   if (!source || !seconds || !raze || !(Number(raze.ammoRecharge) > 0)) return;
+
   // Spear reductions are authored in base seconds; the shared controller converts them to tracked recharge time.
   const reducedBy = runtime.cooldownController.reduceSkillRecharge(raze, seconds, runtime.time);
+
   if (reducedBy <= 0) return;
+
   const cooldownReduction = Number(reducedBy.toFixed(3));
   runtime.effects.emit({
     kind: 'announcement',
@@ -464,6 +483,7 @@ export const spearLifecycle = {
     // Initial Crushing Abyss feeds the same expiring pool read by Raze and consumed by weapon swap.
     for (const buff of runtime.config.initialBuffs ?? []) {
       if (buff.kind !== 'crushing-abyss') continue;
+
       const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE)!;
       runtime.profession.core.crushingAbyss = grantTimedStacks([], {
         at: runtime.time,

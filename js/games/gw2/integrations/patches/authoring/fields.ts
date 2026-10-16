@@ -297,12 +297,14 @@ export type BalanceProfileAuthoringTier = 'primary' | 'advanced';
 /** Separates common patch-note values from specialist calibration controls in the profile editor. */
 export function balanceProfileNumericFieldTier(field: string): BalanceProfileAuthoringTier | null {
   if (!PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS.includes(field)) return null;
+
   return ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS.includes(field) ? 'advanced' : 'primary';
 }
 
 /** Treats one-hit declarations as structural while keeping changed hit counts visible as primary balance values. */
 export function balanceProfileEffectNumericFieldTier(field: string, value: number): BalanceProfileAuthoringTier | null {
   if (!BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS.has(field)) return null;
+
   return ADVANCED_BALANCE_PROFILE_EFFECT_NUMERIC_FIELDS.has(field) || (field === 'hits' && value === 1)
     ? 'advanced'
     : 'primary';
@@ -326,7 +328,9 @@ function valueAtPath(root: unknown, path: string): unknown {
     }
 
     const record = value as Readonly<Record<string, unknown>>;
+
     if (!Object.hasOwn(record, segment)) return undefined;
+
     value = record[segment];
   }
 
@@ -348,8 +352,11 @@ export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfi
 /** Runtime predicates and activation declarations stay in the executable catalog, never in editor JSON. */
 function withoutRuntimeOnlyAuthoringFields(value: unknown, parent?: Readonly<Record<string, unknown>>): unknown {
   if (Array.isArray(value)) return value.map((entry) => withoutRuntimeOnlyAuthoringFields(entry, parent));
+
   if (typeof value === 'function') return undefined;
+
   if (!value || typeof value !== 'object') return structuredClone(value);
+
   return Object.fromEntries(
     Object.entries(value as Readonly<Record<string, unknown>>).flatMap(([field, nested]) =>
       // Cast grant amounts remain editable, while executable cast handlers and predicates stay private.
@@ -418,6 +425,7 @@ function balanceProfileEffectAuthoringReference(
   return Object.fromEntries(
     Object.entries(record).flatMap(([field, value]) => {
       if (field === 'when') return [];
+
       if (field === 'ticks' && Array.isArray(value)) {
         return [
           [
@@ -430,6 +438,7 @@ function balanceProfileEffectAuthoringReference(
       }
 
       if (typeof value === 'number' && !effectNumericFieldIsPatchable(field, record, parent)) return [];
+
       return [[field, withoutRuntimeOnlyAuthoringFields(value)]];
     })
   );

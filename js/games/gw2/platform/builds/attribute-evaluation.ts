@@ -84,9 +84,11 @@ export function resolveAttributeContributions(
   // Gather ordinary declarations in one pass; conversion ordering remains the effect resolver's responsibility.
   for (const entry of contributions) {
     if (entry.attributeEffects) effects.push(...entry.attributeEffects);
+
     criticalChance += entry.traitCriticalChance ?? 0;
     for (const name in entry.traitDurations) {
       if (!Object.hasOwn(entry.traitDurations, name)) continue;
+
       const amount = entry.traitDurations[name];
       durations[name] = (durations[name] ?? 0) + amount;
     }
@@ -115,6 +117,7 @@ export function applyAttributeContributions(
   let conditionDurations: Record<string, number> | undefined;
   for (const name in resolved.durations) {
     const amount = resolved.durations[name];
+
     if (name === 'Condition Duration') result.conditionDurationBonus = (result.conditionDurationBonus ?? 0) + amount;
     else if (name === 'Boon Duration') result.boonDurationBonus = (result.boonDurationBonus ?? 0) + amount;
     else if (['Quickness Duration', 'Might Duration', 'Fury Duration'].includes(name)) {
@@ -130,12 +133,16 @@ export function applyAttributeContributions(
   }
 
   if (boonDurations) result.boonDurationBonuses = boonDurations;
+
   if (conditionDurations) result.conditionDurationBonuses = conditionDurations;
 
   if (resolved.criticalChance)
     result.professionCriticalChanceBonus = (initial.professionCriticalChanceBonus ?? 0) + resolved.criticalChance;
+
   const uncapped = contributions.reduce((sum, entry) => sum + (entry.uncappedBoonDuration ?? 0), 0);
+
   if (uncapped) result.uncappedBoonDurationBonus = (initial.uncappedBoonDurationBonus ?? 0) + uncapped;
+
   // Scaling consumes accumulated attributes; actor projections follow scaling regardless of declaration order.
   for (const entry of contributions)
     if (entry.transforms)
@@ -167,7 +174,9 @@ export function applyMightAttributes(
   contributions: readonly Gw2AttributeContributions[]
 ): Gw2Stats {
   const might = Math.max(0, Math.min(25, stacks));
+
   if (!might) return initial;
+
   let power = 0;
   let conditionDamage = 0;
   for (const entry of contributions) {
@@ -189,6 +198,7 @@ export function applyFinalConditionAttributes(
   contributions: readonly Gw2AttributeContributions[]
 ): Gw2Stats {
   if (!isGw2PlayerModifierOwnedEvent(context.event)) return initial;
+
   let result = initial;
   for (const entry of contributions) {
     if (entry.finalCondition && entry.finalCondition.condition === context.event?.condition)

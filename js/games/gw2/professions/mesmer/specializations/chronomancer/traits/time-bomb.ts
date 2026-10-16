@@ -20,17 +20,21 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** Arms Time Bomb only after a completed Time Sink and keeps its delayed explosion attributed to that cast. */
 export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
+
   if (skill.id !== ID.TIME_SINK) return;
 
   const state = chronomancerState.from(context);
   const at = cast.fullEnd;
+
   if (!hasTrait(context, TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
 
   // Read the selected trait directly so patch edits and removals govern the explosion and its timer together.
   const profile = requireBalanceProfileFromContext(context, TRAIT.TIME_BOMB);
   const timeBomb = requireEffect(profile, 'strike', 'Strike');
+
   // The removed explosion cannot arm a timer or emit a synthetic hit.
   if (!timeBomb) return;
+
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
   // This is the delayed explosion timer; rearming is allowed exactly when it detonates.
   state.timeBombUntil = canonicalTime(at + duration);

@@ -9,8 +9,11 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
 ): (input: WorkInput<TWork>) => TWork {
   return (input) => {
     if (!handlers.has(input.type)) throw new TypeError(`No internal work handler registered for ${input.type}.`);
+
     const at = canonicalTime(input.at);
+
     if (!Number.isFinite(input.priority)) throw new RangeError('Internal work priority must be finite.');
+
     if (input.activationId != null && (typeof input.activationId !== 'string' || !input.activationId)) {
       throw new TypeError('Internal work activation id must be a nonempty string.');
     }

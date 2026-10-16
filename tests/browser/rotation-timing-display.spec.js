@@ -195,6 +195,7 @@ test('rotation toolbar adapts display preferences and keeps load accessible', as
     const size = await toolbar.getByRole('combobox', { name: 'Timeline size', exact: true }).boundingBox();
     const display = await toolbar.getByRole('combobox', { name: 'Display', exact: true }).boundingBox();
     const sectionWidth = await page.locator('.rotation-section').evaluate((section) => section.clientWidth);
+
     if (sectionWidth <= 1050) {
       expect(display.y).toBeGreaterThanOrEqual(size.y + size.height);
     } else {

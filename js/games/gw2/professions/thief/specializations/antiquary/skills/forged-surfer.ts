@@ -16,13 +16,16 @@ const FORGED_SURFER_OWNER = Object.freeze({ id: FORGED_SURFER, generation: 0 });
 /** The dash starts a resettable bomb cadence; the live buff deadline determines its additional explosions. */
 export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
   const { skillId, occurrence } = data as { skillId: SkillId; occurrence: number };
+
   if (occurrence > 0 && runtime.time > antiquaryState.from(runtime).forgedSurferBombDropUntil) return;
+
   const profile = forgedSurferProfile(runtime);
   // Dash and bomb identities survive deletion of either strike or condition.
   const packet = occurrence === 0 ? 'Dash' : 'Bomb';
   const strike = requireEffect(profile, 'strike', packet);
   const burning = requireEffect(profile, 'condition', packet);
   const name = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash — Bomb';
+
   if (strike)
     buildThiefStrikes(null, {
       at: runtime.time,
@@ -33,6 +36,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
       coefficient: effectNumber(profile, strike, 'coefficient'),
       hits: effectNumber(profile, strike, 'hits')
     }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
+
   if (burning)
     runtime.effects.emit({
       kind: 'packet',
@@ -46,10 +50,13 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
         duration: effectNumber(profile, burning, 'duration')
       })
     });
+
   const interval = balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'pulseInterval');
   const nextAt = canonicalTime(runtime.time + interval);
+
   // A duration-driven sequence must advance its clock even when authoring a patched profile.
   if (nextAt <= runtime.time) throw new RangeError('Forged Surfer bomb interval must advance time.');
+
   if (nextAt <= canonicalTime(antiquaryState.from(runtime).forgedSurferBombDropUntil))
     runtime.schedule(FORGED_SURFER, nextAt, { skillId, occurrence: occurrence + 1 }, FORGED_SURFER_OWNER);
 }

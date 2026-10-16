@@ -14,6 +14,7 @@ import type { ProfessionModifier } from '#gw2/build-context/types.js';
 function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
   const candidates: ProfessionModifier[] = [];
   const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
+
   if (Number(assumptions.might) > 0) {
     candidates.push({
       id: 'Boon:Might',
@@ -52,6 +53,7 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
 
   for (const name of new Set((app.build.weaponSigils || []).flat())) {
     if (!name) continue;
+
     candidates.push({
       id: `Sigil:${name}`,
       type: 'Sigil',
@@ -131,8 +133,11 @@ export function createModifierContributionRequest(
   );
   for (const skillId of passiveIds) {
     if (!selected.has(skillId)) continue;
+
     const skill = runtime.catalog.skillsById.get(skillId);
+
     if (!skill) continue;
+
     candidates.push({
       id: `Skill:${skillId}`,
       type: 'Skill',

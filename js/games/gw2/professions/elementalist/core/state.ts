@@ -156,9 +156,12 @@ export function setElementalistAttunementReadyAt(
   readyAt: number
 ): void {
   const skill = context.helpers.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
+
   if (!skill) throw new Error('Missing attunement skill.');
+
   // Keeping an existing deadline must also keep the work already earned under earlier recharge rates.
   if (context.cooldownController.readyAt(skill.id) === readyAt) return;
+
   if (readyAt > context.time)
     context.cooldownController.startRecharge(
       skill,

@@ -24,6 +24,7 @@ test('profession and equipment producers cannot bypass the shared emission servi
         if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
           const method = node.expression.name.text;
           const receiver = node.expression.expression;
+
           if (
             ['emitDerived', 'emitProcedural', 'applyCondition', 'recordProc'].includes(method) ||
             (method === 'enqueue' && ts.isPropertyAccessExpression(receiver) && receiver.name.text === 'queue') ||

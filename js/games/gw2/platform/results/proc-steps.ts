@@ -19,8 +19,10 @@ export function recordProcStep(
     expiresAt = null,
     effectState
   } = announcement;
+
   // Proc rows are presentation only; combat effects have already been applied by the caller.
   if (!context.reporting) return;
+
   // Only explicit mechanic-owned state creates a track; timed buff packets are observed from accepted storage.
   if (type === 'relic' && effectState != null && (context.deathTime == null || at <= context.deathTime))
     context.effectRecorder?.capture(
@@ -32,11 +34,14 @@ export function recordProcStep(
       ],
       'relic:' + name
     );
+
   const start = Math.round(at * 1000);
   // Detail distinguishes genuinely sequential procs (e.g. per-blade stack counts)
   // landing at the same instant from the same skill; without it they'd collapse to one row.
   const key = `${type}|${name}|${start}|${sourceSkill}|${detail}`;
+
   if (context.procKeys.has(key)) return;
+
   context.procKeys.add(key);
   const reducedBy = Number(cooldownReduction);
   const expiry = Math.round(gw2EffectExpiresAt(at, Number(expiresAt) - at) * 1000);

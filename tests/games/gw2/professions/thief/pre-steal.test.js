@@ -154,6 +154,7 @@ test('pre-steal persists as a bounded starting resource and is specialization sc
     // Composition must expose exactly the active module's control, without Core duplicating an elite's contribution.
     assert.equal(controls.length, supported ? 1 : 0);
     const [control] = controls;
+
     if (control) {
       assert.equal(control.buildKey, 'initialPreSteal');
       assert.equal(control.maximum, 1);

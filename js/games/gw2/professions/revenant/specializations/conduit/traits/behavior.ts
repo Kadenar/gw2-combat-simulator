@@ -48,6 +48,7 @@ export function bolsteredBondsBonuses(
   multiplier = 1
 ): Record<string, number> {
   if (!multiplier) return {};
+
   const bonuses: Record<string, number> = {};
   const add = (attribute: string, amount: number): void => {
     bonuses[attribute] = (bonuses[attribute] || 0) + amount * multiplier;
@@ -95,6 +96,7 @@ export function enhancedLegendRecharge(
   work: number
 ): number {
   if (work === 0 || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
+
   return enhancedEmbodimentRecharge(runtime, skill, Math.max(0, skill.cooldown ?? work));
 }
 

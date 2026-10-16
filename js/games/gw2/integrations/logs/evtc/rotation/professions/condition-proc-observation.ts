@@ -68,6 +68,7 @@ export function primaryStrikeTargetForSources(log: ParsedEvtc, sourceAddresses: 
   const damageByTarget = new Map<bigint, number>();
   for (const event of log.events) {
     if (!sourceAddresses.has(event.source) || !isOutgoingStrike(event, event.source)) continue;
+
     damageByTarget.set(event.target, (damageByTarget.get(event.target) || 0) + event.value);
   }
 
@@ -108,6 +109,7 @@ export function expectedConditionDurationsMs(
   attributes: readonly Gw2Stats[]
 ): readonly number[] {
   if (!(baseDurationSeconds > 0)) return [];
+
   const setCount = attributes.length;
   return [
     ...new Set(
@@ -162,7 +164,9 @@ export function analyzeCriticalBleedingProcObservation(
   attributes: readonly Gw2Stats[]
 ): CriticalBleedingProcObservation | null {
   if (!hasSelectedTrait(config, traitId)) return null;
+
   const profile = traitBalanceProfile(catalog, traitId, traitName);
+
   if (!profile) return null;
 
   // An available supported profile must supply its proc chance, including a valid zero.
@@ -175,14 +179,18 @@ export function analyzeCriticalBleedingProcObservation(
   const matchedDurationsMs = [
     ...new Set(expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config, attributes))
   ].sort((left, right) => left - right);
+
   if (!(expectedProcChance > 0) || !matchedDurationsMs.length) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
+
   if (targetAddress == null) return null;
+
   const criticalHits = log.events.filter(
     (event) =>
       event.target === targetAddress && isOutgoingStrike(event, playerAddress) && event.result === EVTC_CRITICAL_RESULT
   ).length;
+
   if (!criticalHits) return null;
 
   const matchedApplications = matchingConditionApplications(
@@ -211,8 +219,10 @@ export function countPairedApplications(first: readonly ParsedEvtcEvent[], secon
   for (const event of left) {
     while (rightIndex < right.length && right[rightIndex].time < event.time - EVTC_DURATION_TOLERANCE_MS)
       rightIndex += 1;
+
     if (rightIndex >= right.length || Math.abs(right[rightIndex].time - event.time) > EVTC_DURATION_TOLERANCE_MS)
       continue;
+
     matches += 1;
     rightIndex += 1;
   }

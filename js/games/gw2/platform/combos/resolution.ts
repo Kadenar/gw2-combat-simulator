@@ -89,6 +89,7 @@ function warningLabel(event: ComboFinisherEvent): string {
 
 function warnOnce(state: Gw2ComboRuntimeState, key: string, message: string, warn: (message: string) => void): void {
   if (state.warningKeys.has(key)) return;
+
   state.warningKeys.add(key);
   warn(message);
 }
@@ -101,10 +102,12 @@ function boundField(
   const at = event.fieldSelectionAt ?? event.at;
   const label = warningLabel(event);
   const time = at.toFixed(3);
+
   if (event.fieldBinding.kind === 'none') {
     // warnOnUnbound=false suppresses the warning for finishers that are
     // intentionally unbound (e.g. a Whirl that self-manages its field choice).
     if (event.warnOnUnbound === false) return null;
+
     warnOnce(
       state,
       `none|${label}`,
@@ -116,7 +119,9 @@ function boundField(
 
   if (event.fieldBinding.kind === 'field-id') {
     const field = state.fields.get(event.fieldBinding.fieldId);
+
     if (field && isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)) return field;
+
     warnOnce(
       state,
       `inactive-id|${event.fieldBinding.fieldId}|${label}`,
@@ -135,7 +140,9 @@ function boundField(
         isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)
     )
     .sort((left, right) => left.at - right.at);
+
   if (candidates[0]) return candidates[0];
+
   warnOnce(
     state,
     `inactive-type|${binding.fieldType}|${label}`,
@@ -159,9 +166,12 @@ export function resolveComboAttempt(
   // Guard against the same attempt being processed twice if the finisher event
   // appears more than once in the event queue.
   if (state.handledAttemptIds.has(event.attemptId)) return [];
+
   state.handledAttemptIds.add(event.attemptId);
   const field = boundField(state, event, warn);
+
   if (!field) return [];
+
   // Attempts retain queue IDs for deduplication; RNG follows the caster and activation so bookkeeping cannot reroll them.
   // Multiple projectiles from the same activation consume successive draws, including simultaneous packets.
   const stream = JSON.stringify([
@@ -172,6 +182,7 @@ export function resolveComboAttempt(
     event.activationId,
     event.finisherType
   ]);
+
   if (!roll(event.chance, `gw2.combo:${stream}`)) return [];
 
   const definition = comboDefinition(field.fieldType, event.finisherType);

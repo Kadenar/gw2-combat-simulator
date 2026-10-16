@@ -79,7 +79,9 @@ test('an explicitly admitted Swift Scholar refund completes in isolation after t
       extend: (native) => ({
         onCastStart(runtime, cast) {
           native.onCastStart?.(runtime, cast);
+
           if (!cast.skill.tome) return;
+
           const current = state(runtime);
           current.swiftScholarTome = cast.skill.tome;
           current.swiftScholarCount = 2;
@@ -259,6 +261,7 @@ test('Restorative Virtues isolates new reductions and always completes admitted 
           onCastStart(runtime, cast) {
             native.onCastStart?.(runtime, cast);
             assert.equal(state(runtime).weaponCastRecharge[cast.id].skillId, ID.CHAINS_OF_LIGHT);
+
             if (admitted) state(runtime).pendingWeaponCooldownReduction[cast.id] = 0.28;
           }
         })
@@ -380,6 +383,7 @@ test('Core Resolution cadence starts only through enabled triggers and admitted 
           initialize(runtime) {
             const event = cause(0, { type: 'buff', kind: 'resolution', duration: 2, stacks: 1 });
             runtime.effects.emit({ kind: 'packet', event });
+
             if (admitted) runtime.schedule('guardian.righteous-might', 1, { generation: 0, event });
           }
         }

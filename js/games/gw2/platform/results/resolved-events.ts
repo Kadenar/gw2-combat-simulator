@@ -5,6 +5,7 @@ import { cloneData } from '#kernel/core/clone.js';
 export function projectResolvedEvents(events: readonly Gw2ResolverEvent[], end: number): Gw2ResolverEvent[] {
   return cloneData(events).map((event) => {
     if (typeof event.naturalExpiresAt !== 'number') return event;
+
     const expiresAt = Math.min(
       end,
       event.naturalExpiresAt,

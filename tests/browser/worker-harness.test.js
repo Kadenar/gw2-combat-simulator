@@ -20,6 +20,7 @@ test('game worker endpoints route by game and content and serialize errors', asy
       if (contentId === 'missing') return null;
 
       if (contentId === 'load-failure') throw new Error('Adapter import failed.');
+
       return {};
     },
     calculate(_adapter, { request }, postUpdate) {

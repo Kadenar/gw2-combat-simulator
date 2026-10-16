@@ -13,6 +13,7 @@ export function scheduleMesmerTrackedHits(
   playerHitTimes: readonly number[]
 ): void {
   if (!skill.trackedHitDamage) return;
+
   const tracking = skill.trackedHitDamage;
   const duration = tracking.duration || 0;
   let recentHits = [...(professionCoreState(state).trackedSkillHits[skill.id] || [])];

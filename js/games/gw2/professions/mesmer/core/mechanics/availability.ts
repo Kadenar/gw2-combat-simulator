@@ -11,10 +11,13 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 export function mesmerAvailability(context: MechanicQueriesOf<MesmerRuntime>, skill: MesmerSkill): AvailabilityResult {
   const state = context;
   const at = canonicalTime(context.time);
+
   if (skill.flipParentId) {
     const flip = professionCoreState(state).availableFlips[skill.id];
+
     if (!skillFlipVisible(flip, at)) {
       const parent = context.helpers.skillsById.get(skill.flipParentId);
+
       if (parent && context.castController.hasInFlight(parent.id)) {
         return {
           ready: false,

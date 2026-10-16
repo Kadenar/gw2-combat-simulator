@@ -21,6 +21,7 @@ export function canonicalEvent<T extends QueuedEvent>(event: T): T {
     at = canonicalTime(event.at);
   } catch (error) {
     if (!(error instanceof RangeError)) throw error;
+
     // Attribute invalid clock inputs to their producer without changing the clock's validation rules.
     throw new RangeError(
       `${error.message} Event ${String(event.type ?? 'event')} from ${String(event.sourceId ?? event.name ?? 'unknown source')}.`,
@@ -87,6 +88,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     this.phaseFor = options.phaseFor;
     this.prepare = options.prepare;
     this.safetyLimit = options.safetyLimit ?? DEFAULT_EXECUTION_ITERATION_LIMIT;
+
     if (!Number.isSafeInteger(this.safetyLimit) || this.safetyLimit < 1) {
       throw new RangeError('Event safety limit must be a positive safe integer.');
     }
@@ -114,9 +116,13 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     const event = canonicalEvent(input);
     const at = event.at;
     const phase = this.phaseFor?.(event, this.current) ?? 0;
+
     if (!Number.isFinite(phase)) throw new RangeError('Event phase must be finite.');
+
     const priority = Number(event.priority ?? 0);
+
     if (!Number.isFinite(priority)) throw new RangeError('Event priority must be finite.');
+
     if (this.current && (at < this.current.at || (at === this.current.at && phase < this.current.phase))) {
       throw new RangeError(
         `Cannot enqueue past time or phase at ${at}s from ${String(event.sourceId ?? event.type ?? 'event')}.`
@@ -142,7 +148,9 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     let index = this.heap.length - 1;
     while (index > 0) {
       const parent = Math.floor((index - 1) / 2);
+
       if (compareHeapEntries(this.heap[index], this.heap[parent]) >= 0) break;
+
       [this.heap[index], this.heap[parent]] = [this.heap[parent], this.heap[index]];
       index = parent;
     }
@@ -154,7 +162,9 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   peek(): T | undefined {
     this.discardCancelledHead();
     const first = this.heap[0];
+
     if (!first) return undefined;
+
     // Keys are captured in the heap; reject edits instead of silently dispatching a corrupted packet.
     if (
       first.event.at !== first.time / 1_000_000 ||
@@ -182,6 +192,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   advanceFrontier(at: number, phase = 0, source = 'command'): void {
     at = canonicalTime(at);
     this.peek();
+
     if (this.heap[0] && this.heap[0].time <= timeKey(at)) {
       throw new RangeError(`Cannot advance past pending work at ${at}s from ${source}.`);
     }
@@ -191,6 +202,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
 
   private moveFrontier(at: number, phase: number, source: string): void {
     if (!Number.isFinite(phase)) throw new RangeError('Event phase must be finite.');
+
     if (this.current && (at < this.current.at || (at === this.current.at && phase < this.current.phase))) {
       throw new RangeError(`Cannot advance to past time or phase at ${at}s from ${source}.`);
     }
@@ -198,6 +210,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     this.sameTimeCount = this.current?.at === at ? this.sameTimeCount + 1 : 1;
     this.current = { at, phase };
     this.currentCausalOrder = null;
+
     if (this.sameTimeCount > this.safetyLimit) {
       throw new Error(`Same-time event safety limit (${this.safetyLimit}) exceeded at ${at}s from ${source}.`);
     }
@@ -205,6 +218,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
 
   dequeue(): T | undefined {
     if (!this.peek()) return undefined;
+
     const first = this.removeHead()!;
     this.moveFrontier(first.time / 1_000_000, first.phase, String(first.event.sourceId ?? first.event.type ?? 'event'));
     this.currentCausalOrder = first.causalOrder;
@@ -218,6 +232,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   private removeHead(): HeapEntry<T> | undefined {
     const first = this.heap[0];
     const last = this.heap.pop();
+
     if (this.heap.length > 0 && last) {
       this.heap[0] = last;
       this.siftDown(0);
@@ -232,6 +247,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       const left = index * 2 + 1;
       const right = left + 1;
       let smallest = index;
+
       if (left < this.heap.length && compareHeapEntries(this.heap[left], this.heap[smallest]) < 0) {
         smallest = left;
       }
@@ -241,6 +257,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       }
 
       if (smallest === index) return;
+
       [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
       index = smallest;
     }

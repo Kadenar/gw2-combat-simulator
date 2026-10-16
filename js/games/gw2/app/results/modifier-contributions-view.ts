@@ -28,6 +28,7 @@ export function modifierContributionsHtml(model: ModifierContributionsModel): st
   const contributions = model.contributions || [];
   const contributionsStale = model.contributionsStale === true;
   const contributionsError = String(model.contributionsError || '');
+
   // Keep the section identifiable while pending; only assistive technology receives the loading announcement.
   if (contributionsStale) {
     return `<div class="res-contributions">

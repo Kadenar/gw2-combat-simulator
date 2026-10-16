@@ -63,7 +63,9 @@ for (const [specialization, trait, profile, type, name] of [
         removed ? [] : [1, 3.001]
       );
       assert.equal(observedRuntime(result).procs.deadline(profile), removed ? 0 : 3.001 + 2);
+
       if (trait === TRAIT.BRUTAL_MOMENTUM) assert.ok(packets.every((event) => event.skillId === profile));
+
       assert.deepEqual(result.warnings, []);
     }
   });

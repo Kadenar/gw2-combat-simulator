@@ -29,6 +29,7 @@ async function fetchWikiPetMetadata(pet) {
   });
 
   if (!response.ok) throw new Error(`${response.status} ${pet.name}`);
+
   const result = await response.json();
   const source = String(result.parse?.wikitext || '');
 
@@ -68,10 +69,12 @@ export async function fetchRangerPetSkills(pets) {
     const fetched = fetchedSkillById.get(id);
 
     if (!authored && !fetched) missing.push(id);
+
     return authored ?? { ...fetched, ...SIMULATED_SKILL_OVERRIDES.get(id) };
   });
 
   if (missing.length) throw new Error(`Missing Ranger pet skill records: ${missing.join(', ')}`);
+
   return skills.filter((skill) => isTerrestrialSkill(skill));
 }
 
@@ -86,7 +89,9 @@ export async function generateRangerPetData({ pets, skills, keyById, wikiMetadat
   const landSkillIds = new Set(skills.map((skill) => skill.id));
   const keyFor = (id) => {
     const key = keyById.get(id);
+
     if (!key) throw new Error(`Ranger pet data references missing skill ID ${id}`);
+
     return key;
   };
 

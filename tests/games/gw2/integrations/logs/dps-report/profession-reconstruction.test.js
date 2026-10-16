@@ -211,6 +211,7 @@ test('Reaper import removes cancelled exit autoattacks while retaining independe
       retained
     );
     assert.ok(result.sourceActions.some((action) => action.rawSkillId === 29442));
+
     if (!retained) assert.ok(result.rotation.some((command) => command.type === 'wait' && command.durationMs === 200));
   }
 });

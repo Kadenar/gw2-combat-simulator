@@ -42,6 +42,7 @@ export function permanentComboFieldAssumption(
   at: number
 ): ComboFieldEvent | undefined {
   const fieldType = config.professionAssumptions?.[PERMANENT_COMBO_FIELD_ASSUMPTION_KEYS.FIELD_TYPE];
+
   if (typeof fieldType !== 'string' || fieldType === NONE) return;
 
   // Finishers only bind to fields sharing their owner id, so the assumption must own its

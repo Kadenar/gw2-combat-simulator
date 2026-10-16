@@ -27,11 +27,15 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   prepareDamageState(runtime, _skill, inputs) {
     // Artifact use can buff ordinary attacks independently of Combat High.
     antiquaryState.from(runtime).antiquaryDamageUntil = inputs.artifactMomentum ? Infinity : 0;
+
     if (!hasTrait(runtime, TRAIT.COMBAT_HIGH)) return;
+
     const stacks = Number(inputs.combatHigh ?? 0);
     const maximum = balanceNumberFromContext(runtime, TRAIT.COMBAT_HIGH, 'maximumStacks');
+
     if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
       throw new RangeError('Combat High exceeds the selected build maximum.');
+
     antiquaryState.from(runtime).combatHighExpirations = Array(stacks).fill(Infinity);
   },
   // A pre-steal supplies Swipe's inventory before setup while leaving cooldowns and temporary buffs untouched.
@@ -44,6 +48,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Only accepted utility casts spend the oldest live Holo-Dancer entry, even when a newer one expires sooner.
   reserveRecharge(runtime, skill, work) {
     if (skill.type !== 'Utility') return work;
+
     const state = antiquaryState.from(runtime);
     const { expiries, consumed } = consumeOldestStacks(state.holoUtilityCooldownReductionExpirations, 1, runtime.time);
     state.holoUtilityCooldownReductionExpirations = expiries;

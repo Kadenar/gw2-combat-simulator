@@ -127,6 +127,7 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
       [1.44, 0, false]
     ]);
     assert.equal(events[0].duration, 1.01);
+
     if (output === 'detailed') {
       assert.deepEqual(
         result.resolvedEvents

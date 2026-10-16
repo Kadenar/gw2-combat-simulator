@@ -88,6 +88,7 @@ test('combo boons and their relic grants settle before critical sampling in both
     );
     assert.equal(simulateGw2(options).totalDamage, result.totalDamage);
     assert.equal(simulateGw2({ ...options, output: 'score' }).totalDamage, result.totalDamage);
+
     if (mode === 'stochastic')
       assert.deepEqual(
         hits.map((event) => event.didCrit),
@@ -258,7 +259,9 @@ test('combo boons use profession duration modifiers at the combo time with finis
       // Distinct live bonuses make a wrong timestamp or player-forced actor observable.
       modifyAttributes(context, stats) {
         const bonus = context.time < 2 ? 0 : context.actorType === 'summon' ? 150 : 300;
+
         if (context.actorType === 'summon') assert.equal(context.event.summonOwner, 'fixture-pet');
+
         return { ...stats, concentration: Number(stats.concentration || 0) + bonus };
       }
     },
@@ -357,11 +360,13 @@ test('own-field exclusion survives rebinding and still allows fields from earlie
         ownerId: 'combo-fixture',
         ownerActorType: 'player'
       };
+
       if (earlierField)
         context.effects.emit({
           kind: 'packet',
           event: { ...field, fieldId: 'field:earlier', activationId: 'cast:earlier' }
         });
+
       context.effects.emit({
         kind: 'packet',
         event: {
@@ -727,11 +732,13 @@ test('combo rolls use source-local packet identities instead of global event num
       runtime.effects.emit({ kind: 'packet', event: { ...boundaryField, fieldType: 'Ice' } });
       for (let index = 0; index < 24; index++) {
         const at = 0.25 + Math.floor(index / 2) * 0.04;
+
         if (noisy)
           runtime.effects.emit({
             kind: 'packet',
             event: { ...boundaryOwner, type: 'buff', at, kind: 'protection', duration: 1, stacks: 1 }
           });
+
         runtime.effects.emit({
           kind: 'packet',
           event: {

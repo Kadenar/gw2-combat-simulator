@@ -41,7 +41,9 @@ export const RITUALIST_SPIRIT_SKILL_IDS = Object.freeze([...SPIRIT_ATTACKS.keys(
 /** Resolve only the named attacks the spirit can execute from the selected balance profile. */
 export function spiritAttackEffects(context: unknown, skillId: SkillId) {
   const attacks = SPIRIT_ATTACKS.get(skillId);
+
   if (!attacks) return undefined;
+
   const profile = requireBalanceProfileFromContext(context, RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(skillId)]);
   const strike = (name: string | undefined) => (name ? requireEffect(profile, 'strike', name) : undefined);
   return {

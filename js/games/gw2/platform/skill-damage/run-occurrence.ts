@@ -50,14 +50,17 @@ export function executeDamageOccurrence(
   const native = source.runtimeFor(config, { traitTriggers: false });
   const effect = occurrence.effect;
   const skill = effect.kind === 'skill' ? native.catalog.skillsById.get(effect.id) : undefined;
+
   if (effect.kind === 'skill' && !skill)
     throw new DamageCalculationError('unsupported', 'The selected content has no implementation of this skill.');
+
   const profile = effect.kind === 'profile' ? native.catalog.balanceProfilesById.get(effect.id) : undefined;
   const declared =
     effect.kind === 'profession' ? native.damageEffects?.find((entry) => entry.id === effect.id) : undefined;
   const relic = effect.kind === 'relic' ? RELIC_RULES[effect.id] : undefined;
   const sigil =
     effect.kind === 'sigil' ? (SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>)[effect.id] : undefined;
+
   if (
     (effect.kind === 'profile' && !profile) ||
     (effect.kind === 'profession' && !declared) ||
@@ -68,6 +71,7 @@ export function executeDamageOccurrence(
 
   const belongs = (event: SimulationEventBase): boolean => {
     if (event.actorType === 'summon' || event.summonOwner != null) return false;
+
     if (effect.kind === 'skill')
       return (
         !['Trait', 'Relic', 'Sigil', 'Rune', 'Food'].includes(event.source) &&
@@ -78,12 +82,17 @@ export function executeDamageOccurrence(
           event.sourceId === effect.id ||
           event.activationId?.startsWith('cast:') === true)
       );
+
     if (effect.kind === 'profile')
       return event.source === 'Trait' && (event.sourceId === effect.ownerId || event.sourceId === effect.id);
+
     if (effect.kind === 'relic')
       return event.source === 'Relic' && (event.sourceId === effect.id || event.sourceId === `relic.${effect.id}`);
+
     if (effect.kind === 'sigil') return event.sourceId === `sigil.${effect.id}`;
+
     if (effect.kind === 'food') return event.source === 'Food';
+
     return declared?.sourceIds.includes(event.sourceId) === true;
   };
 
@@ -105,7 +114,9 @@ export function executeDamageOccurrence(
     else if (relic?.damagePayload && effect.kind === 'relic') {
       // A precast occurrence mutates its own state, so its payload's bonuses remain owned by that relic.
       const owner = [runtime.relic, ...(runtime.precastRelics ?? [])].find((entry) => entry.id === effect.id);
+
       if (!owner) throw new DamageCalculationError('missing-input', 'Select the relic in the build or precast relics.');
+
       relic.damagePayload(
         runtime,
         owner.state,
@@ -148,11 +159,13 @@ export function executeDamageOccurrence(
       inputs
     })
   });
+
   if (!result.complete)
     throw new DamageCalculationError(
       'unsupported',
       'The effect exceeds the finite calculation window; choose a pulse or finite duration.'
     );
+
   const { events, castSeconds } = result;
   return {
     events,

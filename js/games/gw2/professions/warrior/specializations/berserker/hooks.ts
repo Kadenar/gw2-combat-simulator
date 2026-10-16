@@ -38,6 +38,7 @@ const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
 function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = berserkerState.from(runtime);
   const skill = cast.skill;
+
   if (skill.id === ID.BERSERK) {
     runtime.fireTrigger(berserkEntered, { cast });
     return;
@@ -45,6 +46,7 @@ function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill
 
   // An unbounded preview window is already held open and must not schedule a finite extension.
   if (!state.berserkActive || !Number.isFinite(state.berserkUntil)) return;
+
   const extension =
     (berserkExtensions.get(cast) ?? 0) +
     smashBrawlerBerserkExtension(runtime, cast) +
@@ -71,8 +73,10 @@ export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 
   availability(runtime, skill) {
     const state = berserkerState.from(runtime);
+
     if (skill.primalBurst && !state.berserkActive)
       return { ready: false, retryAt: null, code: 'warrior.berserk', reason: 'Primal bursts require berserk mode.' };
+
     if (skill.id === ID.BERSERK && state.berserkActive)
       return {
         ready: false,
@@ -80,6 +84,7 @@ export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
         code: 'warrior.berserk-active',
         reason: 'Already in berserk mode.'
       };
+
     return { ready: true };
   },
   // Queue the profile's Burning on full completion; mode extension remains with its state owner.
@@ -98,7 +103,9 @@ export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   tasks: {
     [BERSERK_EXPIRE](runtime, deadline) {
       const state = berserkerState.from(runtime);
+
       if (state.berserkUntil !== deadline) return;
+
       state.berserkActive = false;
       state.berserkUntil = 0;
       runtime.resourceController.refresh('adrenaline');

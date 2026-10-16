@@ -31,6 +31,7 @@ test('gear artwork follows the active specialization', async ({ page }) => {
 async function chooseEquipment(page, selector, value) {
   const display = page.locator('.gear-select-display').filter({ has: page.locator(selector) });
   const editor = display.locator('xpath=ancestor::*[contains(@class,"weapon-editor")]');
+
   if ((await editor.count()) && !(await editor.isVisible())) {
     await page
       .locator(`[popovertarget="${await editor.getAttribute('id')}"]`)
@@ -42,6 +43,7 @@ async function chooseEquipment(page, selector, value) {
   // Match the saved value exactly so empty weapon slots and similarly named choices remain selectable.
   await display.locator(`[role="option"][data-value="${value}"]`).click();
   await expect(page.locator(selector)).toHaveValue(value);
+
   if ((await editor.count()) && (await editor.isVisible())) {
     await page.keyboard.press('Escape');
     await expect(editor).toBeHidden();
@@ -327,6 +329,7 @@ for (const profession of ['elementalist', 'engineer']) {
       const app = window.professionApp;
       app.build.rotation = [];
       app.build.startingWeaponSet = 1;
+
       if (app.adapter.id === 'engineer') {
         app.build.selectedSkillIds.Utility1 = 5805;
         app.build.selectedSkillIds.Utility2 = 5812;
@@ -346,6 +349,7 @@ for (const profession of ['elementalist', 'engineer']) {
     expect(await page.evaluate(() => window.professionApp.attributeData.attributes['Condition Damage'].sigils)).toBe(
       250
     );
+
     if (profession === 'engineer')
       await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`).first()).toBeVisible();
     else {
@@ -361,6 +365,7 @@ for (const profession of ['elementalist', 'engineer']) {
     await expect(page.locator('#sel-mh2')).toHaveValue(alternate);
     await expect(page.locator('#sel-stat2-1')).toHaveValue('Celestial');
     await expect(page.locator('#sel-sig2-1')).toHaveValue('Corruption');
+
     // Kit rows must survive hiding either equipment set and still allow entering and using the kit.
     if (profession === 'engineer') {
       await expect(page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]')).toBeVisible();
@@ -368,6 +373,7 @@ for (const profession of ['elementalist', 'engineer']) {
     }
 
     await page.locator('.weapon-set-btn[data-set="2"]').click();
+
     if (profession === 'engineer') {
       await expect(page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]')).toBeVisible();
       await expect(page.locator('#rotation-palette .pal-skill[data-skill="Bomb"]')).toBeVisible();
@@ -382,6 +388,7 @@ for (const profession of ['elementalist', 'engineer']) {
     await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
     expect(await page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
     expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+
     if (profession === 'engineer') {
       await page.locator('.utility-palette-group .pal-skill[data-skill="Grenade Kit"]').click();
       await expect

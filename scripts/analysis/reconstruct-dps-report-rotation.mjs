@@ -27,7 +27,9 @@ import {
 import { parseGameOption } from '../lib/game-data.mjs';
 
 const { gameId, args } = parseGameOption(process.argv.slice(2));
+
 if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" does not support dps.report logs.`);
+
 const input = args[0];
 
 if (!input) {
@@ -87,9 +89,12 @@ const profession = await loadProfession(selected.professionId);
 const phaseIndex = requestedPhase == null ? 0 : Number(requestedPhase);
 // Resolve saved specialization choices into selected trait IDs, matching the application importer's active build.
 let professionConfig;
+
 if (buildPath) {
   const adapter = await loadBuildContext(selected.professionId);
+
   if (!adapter) throw new TypeError(`No build context for ${selected.professionId}.`);
+
   professionConfig = adapter
     .createBuildContext({ build: adapter.toApplicationBuild(build), patchId: 'current' })
     .simulationConfig();

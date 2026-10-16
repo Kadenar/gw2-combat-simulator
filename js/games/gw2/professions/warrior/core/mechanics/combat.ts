@@ -79,8 +79,11 @@ export const dragonSlashCompleted = defineTriggerPoint<{
 /** Misses never enter this surviving-hit boundary; activation identity prevents later packets claiming again. */
 export function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolean {
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+
   if (!skill?.burst || event.activationId == null) return false;
+
   if (!claimActivation(runtime.profession.core.activationClaims, 'warrior.burst-hit', event.activationId)) return false;
+
   runtime.fireTrigger(burstFirstHit, { event, skill });
   return true;
 }

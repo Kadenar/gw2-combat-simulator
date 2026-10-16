@@ -18,6 +18,7 @@ function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): Simulation
     !isInternalCooldownReady(event.at, state.readyAt ?? 0)
   )
     return null;
+
   state.readyAt = event.at + 1;
   return {
     type: 'buff',
@@ -41,7 +42,9 @@ export const mistburn = defineRelic({
   createState: () => ({ readyAt: 0 }),
   boon(ctx, state, event) {
     const grant = mistburnGrant(state, event);
+
     if (grant) ctx.effects.emit({ kind: 'packet', event: grant });
+
     if (event.type !== 'buff' || event.sourceId !== `relic.${RELIC_IDS.MISTBURN}`) {
       return;
     }

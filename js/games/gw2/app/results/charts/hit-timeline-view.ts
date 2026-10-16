@@ -100,6 +100,7 @@ export function drawHitTimeline(
   { height = 92, color, label = '', emptyText = '', timeOffsetMs = 0, groupHits = true }: HitTimelineOptions = {}
 ): HitTimelineLayout | null {
   if (!canvas?.getContext) return null;
+
   const cssWidth = Math.max(
     1,
     Math.floor(
@@ -115,7 +116,9 @@ export function drawHitTimeline(
   canvas.style.width = '100%';
   canvas.style.height = `${height}px`;
   const context = canvas.getContext('2d');
+
   if (!context) return null;
+
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.clearRect(0, 0, cssWidth, height);
 
@@ -182,9 +185,12 @@ export function drawHitTimeline(
   context.textBaseline = 'top';
   for (const hit of markers) {
     const value = Number(hit.v || 0);
+
     if (!(value > 0)) continue;
+
     const x = pad.left + (Number(hit.t || 0) / durationMs) * plotWidth;
     const markerHeight = minMarker + (plotHeight - minMarker) * (value / maxValue);
+
     // Condition bars summarize window damage; the detail view groups ticks by time and condition.
     if (conditionOverview && hit.damageType === 'condition') {
       const [start, end] = conditionWindow([hit], timeOffsetMs, durationMs);
@@ -208,6 +214,7 @@ export function drawHitTimeline(
   for (const group of groups) {
     // Dense tick timestamps belong in the detail table; keep its chart axis readable.
     if (!groupHits && group[0]!.damageType === 'condition') continue;
+
     const [start, end] =
       conditionOverview && group[0]!.damageType === 'condition'
         ? conditionWindow(group, timeOffsetMs, durationMs)
@@ -218,6 +225,7 @@ export function drawHitTimeline(
     const labelX = clamp(x - labelWidth / 2, 0, cssWidth - labelWidth);
     // Crowded labels remain available through focus/hover and the expanded hit list.
     const lane = labelEnds.findIndex((end) => labelX >= end + 4);
+
     if (lane >= 0) {
       context.fillText(timestamp, labelX, baseY + 4 + lane * 13);
       labelEnds[lane] = labelX + labelWidth;
@@ -241,6 +249,7 @@ export function mountHitTimeline(
   options: HitTimelineMountOptions
 ): void {
   if (!container) return;
+
   for (const previous of [container, ...container.querySelectorAll<HTMLElement>('[data-role="hit-lane"]')]) {
     ACTIVE_HIT_TIMELINE_MOUNTS.get(previous)?.resizeObserver?.disconnect();
     ACTIVE_HIT_TIMELINE_MOUNTS.delete(previous);
@@ -248,6 +257,7 @@ export function mountHitTimeline(
 
   const strikes = hits.filter((hit) => hit.damageType !== 'condition');
   const conditions = hits.filter((hit) => hit.damageType === 'condition');
+
   if (!strikes.length || !conditions.length) {
     return mountHitTimelineLane(container, hits, {
       ...options,
@@ -281,6 +291,7 @@ function mountHitTimelineLane(
   }: HitTimelineMountOptions
 ): void {
   if (!container) return;
+
   ACTIVE_HIT_TIMELINE_MOUNTS.get(container)?.resizeObserver?.disconnect();
   const mountToken = {};
   const activeMount: ActiveHitTimelineMount = { token: mountToken };
@@ -307,7 +318,9 @@ function mountHitTimelineLane(
 
   const drawDetail = (): void => {
     const group = selectedGroup == null ? (tickView ? allTicks : null) : layout?.groups[selectedGroup];
+
     if (!group?.length || !detail) return;
+
     const start = group[0]!.t;
     const duration = Math.max(1, group.at(-1)!.t - start);
     drawHitTimeline(
@@ -325,8 +338,11 @@ function mountHitTimelineLane(
 
   const selectGroup = (index: number | null, focus = true): void => {
     if (!detail || !controls) return;
+
     selectedGroup = index;
+
     if (tooltip) tooltip.style.display = 'none';
+
     for (const button of controls.querySelectorAll('button')) {
       button.setAttribute('aria-expanded', String(Number(button.dataset.group) === index));
     }
@@ -334,6 +350,7 @@ function mountHitTimelineLane(
     // No selected window means the full fight in the condition inspector; skill timelines still collapse.
     const group = index == null ? (tickView ? allTicks : null) : layout?.groups[index];
     detail.hidden = !group;
+
     if (!group?.length) {
       detail.hidden = true;
       detail.innerHTML = '';
@@ -342,6 +359,7 @@ function mountHitTimelineLane(
 
     // Sum simultaneous ticks of the same condition across applications for one readable detail entry.
     detailHits = group;
+
     if (isCondition) {
       const ticks = new Map<string, SkillHit>();
       for (const hit of group) {
@@ -396,7 +414,9 @@ function mountHitTimelineLane(
     };
 
     const closeButton = detail.querySelector<HTMLButtonElement>('[data-role="close-hit-detail"]');
+
     if (closeButton) closeButton.onclick = close;
+
     detail.onkeydown = (event) => {
       if (event.key === 'Escape' && selectedGroup != null) {
         event.preventDefault();
@@ -406,11 +426,13 @@ function mountHitTimelineLane(
     };
 
     drawDetail();
+
     if (focus) closeButton?.focus({ preventScroll: true });
   };
 
   const redraw = (): void => {
     if (ACTIVE_HIT_TIMELINE_MOUNTS.get(container)?.token !== mountToken) return;
+
     layout = drawHitTimeline(canvas, hits, resolvedDuration, {
       height,
       color,
@@ -418,7 +440,9 @@ function mountHitTimelineLane(
       emptyText,
       timeOffsetMs
     });
+
     if (!layout || !controls) return;
+
     // A single condition payout still needs a drill-down when it carries application attribution.
     if (!controls.children.length) {
       controls.innerHTML = layout.groups
@@ -452,6 +476,7 @@ function mountHitTimelineLane(
 
       const showTooltip = (): void => {
         if (!tooltip || !layout) return;
+
         tooltip.innerHTML = `<div><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b></div>
           ${group.length > 1 ? `<div>First ${noun}: ${hitTime(first.t + timeOffsetMs)}</div><div>Last ${noun}: ${hitTime(last.t + timeOffsetMs)}</div>` : ''}
           <div>Total damage: ${Math.round(group.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()}</div>
@@ -476,8 +501,10 @@ function mountHitTimelineLane(
       };
 
       button.onblur = hideTooltip;
+
       if (group.length > 1 || group.some((hit) => hit.contributions?.length))
         button.onclick = () => selectGroup(selectedGroup === index ? null : index);
+
       button.onkeydown = (event) => {
         if (event.key === 'Escape') {
           if (selectedGroup != null) {
@@ -495,6 +522,7 @@ function mountHitTimelineLane(
   };
 
   redraw();
+
   if (tickView) {
     tickView.onchange = () => selectGroup(selectedGroup, false);
     // Open the complete ledger without moving focus from the dialog's initial control.
@@ -503,9 +531,11 @@ function mountHitTimelineLane(
 
   const wrap = canvas?.parentElement;
   const ResizeObserverConstructor = container.ownerDocument?.defaultView?.ResizeObserver || globalThis.ResizeObserver;
+
   if (ResizeObserverConstructor && wrap) {
     activeMount.resizeObserver = new ResizeObserverConstructor(() => {
       const visibleWidth = Math.floor(wrap.clientWidth);
+
       if (visibleWidth > 0 && visibleWidth !== layout?.cssWidth) redraw();
     });
     activeMount.resizeObserver.observe(wrap);

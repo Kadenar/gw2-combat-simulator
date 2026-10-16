@@ -18,6 +18,7 @@ export function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void 
   const container = app.templateContainer;
   const newBuild = container?.dataset.newBuild === 'true';
   container?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
+
   if (newBuild) {
     delete container.dataset.newBuild;
     addBuildTab(app, entry.build, entry.name, app.patchId, entry.build);
@@ -28,11 +29,14 @@ export function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void 
 
   const previousBuild = structuredClone(app.build);
   const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+
   if (tab) tab.templateUndoResetBuild = tab.templateBuild;
+
   // Library entries were converted when loaded or saved; copy so edits cannot change the snapshot.
   app.build = structuredClone(entry.build);
   app.currentTemplate = null;
   app.changed(true, true, { deferRotationRender: true });
+
   if (tab) {
     tab.templateBuild = structuredClone(app.build);
     tab.name = entry.name;
@@ -45,14 +49,19 @@ export function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void 
 
 function actionLabel(action: TemplateLoadAction): string {
   if (action === 'build') return 'build';
+
   if (action === 'rotation') return 'rotation';
+
   return 'template';
 }
 
 function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction): string {
   const name = preset.section ? `${preset.section} ${preset.label}` : preset.label;
+
   if (action === 'build') return `Loaded the ${name} build only.`;
+
   if (action === 'rotation') return `Loaded the ${name} rotation only.`;
+
   return `Loaded the ${name} template.`;
 }
 
@@ -60,9 +69,12 @@ function showTemplateUndo(app: ProfessionAppState, message: string, previousBuil
   app.templateUndoBuild = previousBuild;
   app.templateUndoMessage = message;
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
+
   if (!toast) return;
+
   toast.hidden = false;
   const messageElement = toast.querySelector('.template-toast-message');
+
   if (messageElement) messageElement.textContent = message;
 }
 
@@ -75,7 +87,9 @@ export async function loadTemplateAction(
 ): Promise<void> {
   const container = app.templateContainer;
   const loading = container?.querySelector<HTMLElement>('.template-load-status');
+
   if (loading && !loading.hidden) return;
+
   const previousBuild = structuredClone(app.build);
   const validateDestination = captureBuildDestination(app);
   const patchId = app.patchId;
@@ -84,6 +98,7 @@ export async function loadTemplateAction(
   for (const control of buttons) control.disabled = true;
   // The manifest label already names the weapons and variant, so progress and the loaded build share one name.
   const name = [preset.section, preset.label].filter(Boolean).join(' · ');
+
   if (loading) {
     loading.textContent = `Loading ${name}…`;
     loading.hidden = false;
@@ -93,7 +108,9 @@ export async function loadTemplateAction(
   // Keep the old rotation out of view through both asset loading and the template's first simulation.
   const rotationLoading = { revision: app.buildRevision, fetching: true };
   app.templateRotationLoading = rotationLoading;
+
   if (container) renderTimeline(app);
+
   try {
     if (action === 'rotation') {
       if (!preset.rotation) {
@@ -102,6 +119,7 @@ export async function loadTemplateAction(
 
       const rotationData = await fetchJsonAsset(preset.rotation);
       const rotationItems = getRotationItems(rotationData);
+
       if (!Array.isArray(rotationItems)) {
         throw new Error('Rotation array missing.');
       }
@@ -119,6 +137,7 @@ export async function loadTemplateAction(
       app.changed(true, true, { deferRotationRender: true });
     } else {
       const { buildData, rotationItems } = await loadPresetBundle(preset);
+
       if (preset.rotation && !Array.isArray(rotationItems)) {
         throw new Error('Rotation array missing.');
       }
@@ -127,6 +146,7 @@ export async function loadTemplateAction(
       // rejects another profession's build, migrates it, and resolves the rotation against its own specializations.
       const template = buildData && typeof buildData === 'object' && !Array.isArray(buildData) ? buildData : {};
       const replacement = replaceBuild({ ...template, rotation: rotationItems ?? [] }, app.adapter);
+
       if (action === 'new-tab') {
         addBuildTab(app, replacement, name, patchId);
       } else {
@@ -145,11 +165,14 @@ export async function loadTemplateAction(
     rotationLoading.revision = app.buildRevision;
     rotationLoading.fetching = false;
     app.templateRotationLoading = rotationLoading;
+
     if (container) renderTimeline(app);
 
     // Keep the previous reset target with this tab's undo state, including rotation-only loads.
     const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+
     if (tab && action !== 'new-tab') tab.templateUndoResetBuild = tab.templateBuild;
+
     // Remember successful build loads for this tab's reset; rotation-only loads keep its existing baseline.
     if (tab && action !== 'rotation') {
       tab.templateBuild = structuredClone(app.build);
@@ -157,11 +180,13 @@ export async function loadTemplateAction(
     }
 
     if (action !== 'new-tab') showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
+
     saveBuildWorkspace(app);
     renderBuildTabs(app);
   } catch (error) {
     if (app.templateRotationLoading === rotationLoading) {
       delete app.templateRotationLoading;
+
       if (container) renderTimeline(app);
     }
 
@@ -169,6 +194,7 @@ export async function loadTemplateAction(
     alert(`Failed to load ${actionLabel(action)}: ${message}`);
   } finally {
     for (const control of buttons) control.disabled = false;
+
     if (loading) loading.hidden = true;
   }
 }
@@ -176,8 +202,10 @@ export async function loadTemplateAction(
 /** Restores the active tab's previous build and reset baseline after a library replacement. */
 export function undoTemplateLoad(app: ProfessionAppState): void {
   if (!app.templateUndoBuild) return;
+
   // Restore the reset target before changed() persists the undone build.
   const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+
   if (tab) {
     tab.templateBuild = tab.templateUndoResetBuild;
     delete tab.templateUndoResetBuild;
@@ -188,5 +216,6 @@ export function undoTemplateLoad(app: ProfessionAppState): void {
   app.currentTemplate = null;
   app.changed(true, true, { deferRotationRender: true });
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
+
   if (toast) toast.hidden = true;
 }

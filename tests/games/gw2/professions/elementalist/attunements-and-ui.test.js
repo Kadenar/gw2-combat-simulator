@@ -37,6 +37,7 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
     prepare(2, { coefficient: 0 });
     prepare(2, { type: 'condition' });
     prepare(4, { cancelled: true });
+
     if (!selected) {
       assert.deepEqual(core.freshAirCandidates, []);
       assert.equal(projectedFreshAirReadyAt(runtime, 10), null);

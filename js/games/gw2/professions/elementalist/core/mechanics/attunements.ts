@@ -48,6 +48,7 @@ export function elementalistAttunementRechargeDuration(
   flatReduction = 0
 ): number {
   if (!context.combatActive) return 0;
+
   const adjusted = Math.max(0, elementalEnchantmentRecharge(context, seconds) - flatReduction);
   return adjusted / context.cooldownController.rate(skill);
 }
@@ -79,6 +80,7 @@ export function onAttunementComplete(
   state.pendingAutoattackCarryover = state.autoattackCarryover ? null : inFlightAutoattackCarryover(context, previous);
   // Specializations may supply their own transition and recharge policy while Core keeps shared entry effects here.
   const dualAttunement = transition.rechargeDuration != null;
+
   if (dualAttunement) {
     state.primaryAttunement = target;
     const recharge = transition.rechargeDuration;
@@ -100,6 +102,7 @@ export function onAttunementComplete(
     );
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       if (attunement === target || attunement === previous) continue;
+
       const existingReadyAt = attunementReadyAtBefore[attunement];
       const defaultReadyAt =
         at +
@@ -141,8 +144,10 @@ export function onAttunementComplete(
       skillName: skill.name
     }
   });
+
   // Pre-combat swaps still move state and timers but grant no trait effects.
   if (!combatStarted(context, at)) return;
+
   // The selected compiled listener claims its elite cooldown; isolated swaps only change native state.
   const claimTrait = (attunement: ElementalistAttunement, profileId: Skill['id']): boolean =>
     transition.shouldTriggerAttunementTrait?.({ attunement, profileId }) !== false;
@@ -177,9 +182,11 @@ export function completeElementalistAttunement(
   cast: RuntimeCast<ElementalistSkill>
 ): void {
   const transition = transitions.get(runtime);
+
   if (transition) transition(runtime, cast);
   else {
     const target = targetAttunement(cast.skill);
+
     if (target) onAttunementComplete(runtime, cast, cast.skill, target);
   }
 }

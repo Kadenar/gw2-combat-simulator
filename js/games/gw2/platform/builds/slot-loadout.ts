@@ -144,6 +144,7 @@ function normalizeOptions(options: { entries?: readonly SlotLoadoutEntryInput[] 
       specialization: String(entry.specialization || '')
     })
   );
+
   if (entries.length < 2 || entries.some((entry) => !entry.id)) {
     throw new TypeError('A fixed slot loadout requires at least two stable entries.');
   }
@@ -198,6 +199,7 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
     .map(stableId)
     .filter((entryId) => byId.has(entryId))
     .slice(0, selectionCount);
+
   if (defaultIds.length !== selectionCount) {
     throw new TypeError('Fixed slot loadout defaults must fill every selection.');
   }
@@ -235,6 +237,7 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
     const rawSelected = (build as BuildRecord | undefined)?.[selectionKey];
     const selected = Array.isArray(rawSelected) ? rawSelected.map(stableId) : [];
     const legalIds = new Set(legalEntries(context).map((entry) => entry.id));
+
     if (
       selected.length !== selectionCount ||
       new Set(selected).size !== selectionCount ||
@@ -292,6 +295,7 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
         disabled: selected.includes(option.value) && option.value !== selected[index]
       }))
     }));
+
     if (includeStartingSelector) {
       selectors.push({
         key: startingKey,
@@ -331,10 +335,12 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   function updateBuild(build: TBuild, selectorKey: string, value: unknown, context: SlotLoadoutContext = {}): TBuild {
     const mutableBuild = build as BuildRecord;
     const selected = normalizedSelection(build, context);
+
     if (selectorKey.startsWith(`${selectionKey}:`)) {
       const index = Number(selectorKey.split(':').at(-1));
       const next = stableId(value);
       const legalIds = new Set(legalEntries(context).map((entry) => entry.id));
+
       if (
         Number.isInteger(index) &&
         index >= 0 &&
@@ -344,6 +350,7 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
       ) {
         selected[index] = next;
         mutableBuild[selectionKey] = selected;
+
         if (!selected.includes(stableId(mutableBuild[startingKey]))) {
           mutableBuild[startingKey] = selected[0];
         }
@@ -372,10 +379,13 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   function unavailableReason(skill: { readonly id: SkillId }, context: SlotLoadoutContext = {}): string {
     // Synthetic palette actions do not belong to the numeric slot-skill packages.
     if (typeof skill.id !== 'number') return '';
+
     const skillId = skill.id;
     const current = view(context);
     const active = new Set(current.activeBar?.skillIds || []);
+
     if (active.has(skillId)) return '';
+
     const owner = current.inactiveBars.find((bar) => bar.skillIds.includes(skillId));
     return owner ? `Swap to ${owner.label} to use this skill` : '';
   }

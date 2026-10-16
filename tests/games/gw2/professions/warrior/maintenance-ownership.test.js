@@ -35,7 +35,9 @@ test('selected resource policies isolate authored rewards, hit gains, and caps b
     assert.equal(pool(), bladesworn ? 7 : 10);
     grantWarriorResource(context, maximum * 2);
     assert.equal(pool(), maximum);
+
     if (bladesworn) assert.equal(context.profession.core.adrenaline.value, 0);
+
     for (const invalid of [-1, Infinity, NaN]) assert.throws(() => grantWarriorResource(context, invalid), RangeError);
   }
 });
@@ -62,6 +64,7 @@ test('the composed runtime installs only the selected elite policies and observa
     for (const [owner, kinds] of Object.entries(eliteKinds)) {
       for (const kind of kinds) {
         assert.equal(policies.includes(kind), owner === specialization, `${specialization}: ${kind}`);
+
         if (owner !== specialization) assert.ok(!observations.includes(kind), `${specialization}: ${kind}`);
       }
     }

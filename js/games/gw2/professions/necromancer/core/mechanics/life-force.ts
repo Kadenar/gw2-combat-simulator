@@ -12,5 +12,6 @@ export function necromancerLifeForceAmount(runtime: MechanicQueriesOf<Necromance
 /** Grants accepted outcomes directly to the current pool, applying percentage capacity and Gluttony once. */
 export function grantNecromancerLifeForce(runtime: NecromancerRuntime, percent: number): void {
   if (!(percent > 0)) return;
+
   runtime.resourceController.grant('lifeForce', necromancerLifeForceAmount(runtime.queries, percent));
 }

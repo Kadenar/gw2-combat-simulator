@@ -27,6 +27,7 @@ export async function committedIdentities(target) {
 function requireIdentityMap(value, name) {
   if (value == null || typeof value !== 'object' || Array.isArray(value))
     throw new TypeError(`${name}: required committed identity map is missing or invalid`);
+
   return value;
 }
 
@@ -38,12 +39,17 @@ export function stableEntries(entries, committed, fixed = [], authoredKeys = {})
   const records = new Map();
   for (const [name, value] of entries) {
     const id = Number(value);
+
     if (fixedIds.has(id)) continue;
+
     const key = authoredKeys[id] ?? keyById.get(id);
     const base = constantName(name);
+
     if (!key && !base) continue;
+
     const record = { id, name: String(name ?? ''), base, key };
     const previous = records.get(id);
+
     // Prefer a usable display name, then lexical order, when independent sources disagree on the same ID.
     if (
       !previous ||
@@ -57,6 +63,7 @@ export function stableEntries(entries, committed, fixed = [], authoredKeys = {})
   const groups = new Map();
   for (const record of records.values()) {
     if (record.key) continue;
+
     const group = groups.get(record.base) ?? [];
     group.push(record);
     groups.set(record.base, group);
@@ -85,8 +92,11 @@ function identityProblems(name, entries, committed) {
   const keys = new Map();
   for (const { key, id } of entries) {
     if (!/^[A-Z_][A-Z0-9_]*$/.test(key)) errors.push(`invalid key ${key}`);
+
     if (keys.has(key)) errors.push(`duplicate key ${key}`);
+
     if (!Number.isSafeInteger(id)) errors.push(`invalid ID ${key}: ${id}`);
+
     keys.set(key, id);
   }
 
@@ -103,13 +113,16 @@ export function declarations(maps) {
   const problems = maps
     .map(({ name, entries, committed }) => identityProblems(name, entries, committed))
     .filter(Boolean);
+
   // A missing binding means no generator input supplies that ID any more; say how to resolve it either way.
   if (problems.some((problem) => problem.includes('missing committed key')))
     problems.push(
       'Missing keys: author the identity in the generator (fixed or supplemental records) to keep it, ' +
         'or delete its committed declaration together with its consumers to remove it.'
     );
+
   if (problems.length) throw new Error(problems.join('\n'));
+
   return maps.map(({ name, entries }) =>
     [
       `export const ${name} = Object.freeze({`,

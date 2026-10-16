@@ -11,7 +11,9 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const flip = professionCoreState(context).availableFlips[ID.ABSTRACTION];
   const field = context.combat.fieldFor(ID.INSPIRING_IMAGERY, flip?.availableAt);
+
   if (!field) return;
+
   context.combat.expireField(field.fieldId, cast.start);
   context.effects.emit({
     kind: 'packet',
@@ -40,6 +42,7 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
 /** Only the matching live image can resolve its natural boon explosion. */
 export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   if (!expireSkillFlip(context.profession.core.availableFlips, ID.ABSTRACTION, context.time, cast.id)) return;
+
   for (const effect of cast.skill.effects ?? [])
     if (effect.type === 'boon') {
       const packet = buildMesmerPacket({

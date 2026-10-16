@@ -139,6 +139,7 @@ export const sunspot = defineTrait({
       when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Fire',
       run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
         if (!input.claimTrait('Fire', TRAIT.SUNSPOT)) return;
+
         triggerSunspot(runtime, input.at, input.skill.id, applyElementalistAura, input.emissionCast);
       }
     })
@@ -230,6 +231,7 @@ export const pyromancersPuissance = defineTrait({
         input.previous === 'Fire' && input.target !== 'Fire',
       run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) => {
         if (!input.claimTrait('Fire', TRAIT.PYROMANCERS_PUISSANCE)) return;
+
         triggerFlameExpulsion(runtime, input.at, input.skill.id, input.emissionCast);
       }
     }),
@@ -302,7 +304,9 @@ export const persistingFlames = defineTrait({
 function applyPyromancersPuissance(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
   const skill = cast.skill;
   const at = cast.effectiveEnd;
+
   if (professionCoreState(context).primaryAttunement !== 'Fire' || !combatStarted(context, at)) return;
+
   emitTraitProfile(context, TRAIT.PYROMANCERS_PUISSANCE, TRAIT.PYROMANCERS_PUISSANCE, undefined, {
     at: at,
     fullEnd: at,
@@ -328,6 +332,7 @@ function applyConjurerAura(context: ElementalistRuntime, { cast }: ElementalistC
   {
     const conjurerProfile = requireBalanceProfileFromContext(context, TRAIT.CONJURER);
     const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
+
     if (conjurerBuff) {
       applyElementalistAura(context, {
         at,
@@ -355,6 +360,7 @@ export function pyromancersTrainingRecharge(
 function applyBurningPrecision(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const burningPrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.BURNING_PRECISION);
   const burning = requireEffect(burningPrecisionProfile, 'condition', 'Burning Precision');
+
   if (burning) {
     emitTraitProfile(context, TRAIT.BURNING_PRECISION, TRAIT.BURNING_PRECISION, undefined, {
       at: event.at,
@@ -408,6 +414,7 @@ function triggerSunspot(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at)) return;
+
   emitSunspot(context, at, sourceId, applyAura, emissionCast);
 }
 
@@ -419,6 +426,7 @@ function triggerFlameExpulsion(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at)) return;
+
   emitFlameExpulsion(context, at, sourceId, emissionCast);
 }
 

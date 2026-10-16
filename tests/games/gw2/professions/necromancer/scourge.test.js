@@ -154,7 +154,9 @@ test('selected shade costs use vitality and Soul Battery in shared admission and
             allowed.planningState.profession.lifeForce.value - ((initialResource * maximum) / 100 - lifeForceCost)
           ) < 1e-8
         );
+
         if (cost === 0) continue;
+
         const denied = run([cast(ID.DESERT_SHROUD)], { ...config, initialResource: cost - 0.01 }, { profession });
         assert.equal(denied.steps[0].invalid, true);
         assert.equal(denied.warnings.length, 1);

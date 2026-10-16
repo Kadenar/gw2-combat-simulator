@@ -143,6 +143,7 @@ export const spitefulFortitude = defineTrait({
       run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
         if (!runtime.combat.targetHealthBelow(balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'threshold')))
           return;
+
         input.percent += balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'lifeForceGain');
       }
     })
@@ -325,10 +326,13 @@ function applyReapersMight(
   shroudSkillOne: boolean
 ): void {
   if (!firstHit || !shroudSkillOne) return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.REAPERS_MIGHT);
   const effect = requireEffect(profile, 'boon', 'might');
+
   // The proc record reports only a delivered boon.
   if (!effect) return;
+
   emitTraitProfile(context, TRAIT.REAPERS_MIGHT, TRAIT.REAPERS_MIGHT, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -351,12 +355,16 @@ function applyReapersMight(
 
 function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.SIPHONED_POWER);
+
   if (!context.combat.targetHealthBelow(balanceProfileNumber(profile, 'threshold'))) return;
+
   const effect = requireEffect(profile, 'boon', 'might');
+
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // might, so a removed boon leaves it ready.
   if (!effect || !context.procs.claimCooldown('siphonedPower', event.at, balanceProfileNumber(profile, 'cooldown')))
     return;
+
   emitTraitProfile(context, TRAIT.SIPHONED_POWER, TRAIT.SIPHONED_POWER, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -380,11 +388,15 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
 function applyChillOfDeath(context: NecromancerRuntime, event: NecromancerResolverEvent): void {
   // Eligibility belongs to the trait; the selected skill owns recharge and independently removable components.
   if (!context.combat.targetHealthBelow(balanceNumberFromContext(context, TRAIT.CHILL_OF_DEATH, 'threshold'))) return;
+
   const skill = context.helpers.skillsById.get(ID.LESSER_SPINAL_SHIVERS)!;
   const strike = requireEffect(skill, 'strike', 'Lesser Spinal Shivers - No Boons');
   const chilled = requireEffect(skill, 'condition', 'Chilled');
+
   if ((!strike && !chilled) || context.cooldownController.isOnCooldown(skill.id, context.time)) return;
+
   context.cooldownController.startRecharge(skill, context.time);
+
   if (strike)
     invokeTraitSkill(context, TRAIT.CHILL_OF_DEATH, skill.id, event, {
       effect: { type: 'strike', name: 'Lesser Spinal Shivers - No Boons' },
@@ -404,6 +416,7 @@ function queueChillOfDeathCondition(context: NecromancerResolverContext, event: 
 /** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
 function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.actorType !== 'effect' || event.skillId !== ID.LESSER_SPINAL_SHIVERS) return;
+
   queueChillOfDeathCondition(context, event);
 }
 
@@ -431,9 +444,12 @@ function enterSpitefulSpirit(runtime: NecromancerRuntime, cast: RuntimeCast<Necr
 
 function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition !== 'Chilled') return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.BITTER_CHILL);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+
   if (!vulnerability) return;
+
   emitTraitProfile(context, TRAIT.BITTER_CHILL, TRAIT.BITTER_CHILL, undefined, {
     at: event.at,
     fullEnd: event.at,

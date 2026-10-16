@@ -36,7 +36,9 @@ export class ModifierContributionRunner {
   /** Stops work owned by the outgoing tab before another result becomes active. */
   cancel(): void {
     this.requestId += 1;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
     this.batch.terminateAll();
     this.isRunning = false;
@@ -44,6 +46,7 @@ export class ModifierContributionRunner {
 
   schedule(): void {
     const app = this.app;
+
     // Only missing or stale comparisons for the current baseline consume workers while Analysis is visible.
     if (
       this.isRunning ||
@@ -56,12 +59,16 @@ export class ModifierContributionRunner {
       (Array.isArray(app.results.contributions) && !app.results.modifierContributionsStale)
     )
       return;
+
     this.isRunning = true;
     const requestId = ++this.requestId;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
     const failContributions = (error: unknown): void => {
       if (requestId !== this.requestId || !app.results) return;
+
       this.isRunning = false;
       // Failed comparisons must not make carried values from the prior build look current.
       app.results.contributions = undefined;
@@ -88,6 +95,7 @@ export class ModifierContributionRunner {
 
     const applyContributions = (contributions: ModifierContribution[]): void => {
       if (requestId !== this.requestId || !app.results) return;
+
       this.isRunning = false;
       app.results.contributions = contributions;
       app.results.modifierContributionsStale = false;
@@ -97,7 +105,9 @@ export class ModifierContributionRunner {
 
     const calculateContributions = (): void => {
       this.timer = null;
+
       if (requestId !== this.requestId) return;
+
       // Let chart enrichment and RNG sampling finish before starting contribution comparisons.
       if (
         app.simulationStatus === 'queued' ||
@@ -114,6 +124,7 @@ export class ModifierContributionRunner {
           globalThis.navigator?.hardwareConcurrency
         );
         const batches = partitionModifierComparisons(request.comparisons, workerCount);
+
         if (!batches.length) {
           applyContributions([]);
           return;
@@ -122,6 +133,7 @@ export class ModifierContributionRunner {
         const completed: ModifierContribution[][] = [];
         for (const comparisons of batches) {
           if (!this.batch.isActive(requestId)) break;
+
           this.batch.spawn(
             // Keep Worker construction beside its static URL so Vite emits an executable worker chunk.
             () => new Worker(new URL('./worker.js', import.meta.url), { type: 'module' }),
@@ -133,6 +145,7 @@ export class ModifierContributionRunner {
             (data, worker) => {
               this.batch.finish(worker);
               completed.push(data.contributions || []);
+
               if (completed.length === batches.length) {
                 applyContributions(mergeModifierContributions(completed));
               }

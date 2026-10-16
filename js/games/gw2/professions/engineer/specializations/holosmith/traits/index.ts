@@ -77,12 +77,17 @@ const enhancedCapacityStorageUnit = defineTrait({
     tasks: {
       'engineer.enhanced-capacity-might'(context) {
         const state = holosmithState.from(context);
+
         if (state.enhancedCapacityMightAt !== context.time) return;
+
         state.enhancedCapacityMightAt = Infinity;
+
         if (state.heat.value <= balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold'))
           return;
+
         emitEnhancedCapacityMight(context, context.time);
         const interval = balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'pulseInterval');
+
         if (interval > 0) {
           state.enhancedCapacityMightAt = context.time + interval;
           context.schedule(
@@ -219,6 +224,7 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
   });
 
   if (state.heat.value <= 0 || preservesPhotonicHeat(context)) return;
+
   triggerVentExhaust(context, skill, at);
 }
 
@@ -238,11 +244,13 @@ function crossEnhancedCapacityThreshold(
   { at, previousHeat }: HeatGain
 ): void {
   const state = holosmithState.from(context);
+
   if (
     previousHeat > balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold') ||
     state.heat.value <= balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold')
   )
     return;
+
   emitEnhancedCapacityMight(context, at);
   const next = at + balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'pulseInterval');
   state.enhancedCapacityMightAt = next;
@@ -252,6 +260,7 @@ function crossEnhancedCapacityThreshold(
 /** Seed the Might task before passive cooling begins in preheated simulations. */
 function seedEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>): void {
   const state = holosmithState.from(context);
+
   if (state.heat.value > balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold')) {
     state.enhancedCapacityMightAt = context.time;
     context.schedule('engineer.enhanced-capacity-might', context.time, undefined, undefined, -200);
@@ -331,10 +340,13 @@ function consumeSolarFocusingLens(
     !hasTrait(context.traits, TRAIT.SOLAR_FOCUSING_LENS)
   )
     return;
+
   const state = holosmithState.from(context);
   const solarFocusingLensProfile = requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS);
   const condition = requireEffect(solarFocusingLensProfile, 'condition', 'Burning');
+
   if (!condition) return;
+
   // Lens cannot activate before its grant; zero-ICD consumption does not enforce readyAt.
   if (event.at < (state.solarFocusingLens.readyAt ?? 0) || !consumeCharge(state.solarFocusingLens, event.at, 0, true))
     return;

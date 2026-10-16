@@ -41,7 +41,9 @@ function checkboxControl(root: Document, options: CheckboxControlOptions): HTMLL
 export function mountRotationDisplayControls(app: ProfessionAppState): void {
   const root = document;
   const container = root.getElementById('perma-boons');
+
   if (!container) return;
+
   root.documentElement.setAttribute('data-show-transition-delays', String(rotationTransitionDelayVisibility(root)));
 
   container.querySelector('#rotation-display-controls')?.remove();

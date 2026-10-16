@@ -51,10 +51,15 @@ export function prepareGw2BuffCompanionCandidates(
   companionIds: readonly unknown[]
 ): SimulationEventBase {
   const candidates = [...new Set(companionIds.map(String).filter(Boolean))];
+
   if (event.type === 'combo_finisher') return { ...event, companionCandidates: candidates };
+
   if (event.type !== 'buff' || event.resolvedAudience || !event.audience) return event;
+
   const audience = normalizeEffectAudience(event.audience)!;
+
   if (audience.recipients === 'self' || audience.eligibleCompanionIds) return event;
+
   return {
     ...event,
     audience: {
@@ -111,7 +116,9 @@ export function gw2BoonApplicationRecipients(
   event: Gw2BoonRecipientEvent = {}
 ): ResolvedEffectAudience {
   if (event.resolvedAudience) return event.resolvedAudience;
+
   const audience = normalizeEffectAudience(event.audience ?? { recipients: 'self' })!;
+
   if (event.actorType !== 'summon') return gw2AlliedEffectRecipients(config, audience);
 
   // A summon-cast effect always includes that summon, while the controlled

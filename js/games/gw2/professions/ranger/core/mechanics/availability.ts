@@ -24,6 +24,7 @@ export function rangerCoreCastAvailability(
   skill: RangerSkill
 ): AvailabilityResult {
   const state = professionCoreState(context);
+
   if (skill.id === ID.PET_SWAP && !state.pet) {
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
@@ -38,18 +39,23 @@ export function rangerCoreCastAvailability(
         'ranger.hammer-unleash-state',
         'use the Hammer variant for the current unleashed state.'
       );
+
     return denySkillCast(skill, 'ranger.hammer-variant-not-selected', 'select this Hammer variant first.');
   }
 
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
+
   // Spear choices can come from any stealth source; do not misidentify the base attack as their prerequisite.
   if (isSpearStealthAttack || spearStealthFlipId != null) {
     const available = rangerSpearStealthAvailable(state, context.time);
+
     if (isSpearStealthAttack && !available)
       return denySkillCast(skill, 'ranger.flip-inactive', "use Panther's Prowl or gain stealth first.");
+
     if (!isSpearStealthAttack && available)
       return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active stealth attack.');
+
     return { ready: true };
   }
 
@@ -57,16 +63,19 @@ export function rangerCoreCastAvailability(
   const flipBlock = isRangerHammerVariant(skill.id)
     ? null
     : weaponFlipBlock(state.availableFlips, context.helpers.skillsById, skill, context.time);
+
   if (flipBlock?.kind === 'closed')
     return denySkillCast(
       skill,
       'ranger.flip-inactive',
       `use ${flipBlock.parent.name || 'its opening weapon skill'} first.`
     );
+
   if (flipBlock?.kind === 'open')
     return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
 
   if (!skill.petSkill) return { ready: true };
+
   if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core')) {
     return denySkillCast(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
   }

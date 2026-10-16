@@ -14,7 +14,9 @@ export function runOrdinaryOptimizer(request, adapter) {
   for (let ordinal = 0n; ordinal < space.rawCount; ordinal++) {
     const equipment = ordinaryEquipmentAt(space, ordinal);
     const config = evaluator.prepare(equipment, true);
+
     if (!config) continue;
+
     retainOptimizerCandidate(
       winners,
       {

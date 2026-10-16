@@ -37,9 +37,11 @@ export const lastTyrant = defineRelic({
 
     // Test the previous buildup before adding: reaching five arms a later application instead of exploding now.
     const progress = advanceCounter(state.stacks || 0, 0, LAST_TYRANT_STACKS_NEEDED, 'reset');
+
     if (!progress.reached) {
       // Fury's 250ms marker expires on the next 40ms tick; an application at expiry can grant a stack.
       if (application.at < (state.stackReadyAt || 0)) return;
+
       state.stacks = advanceCounter(progress.value, 1, LAST_TYRANT_STACKS_NEEDED, 'retain').value;
       state.stackReadyAt = gw2EffectExpiresAt(application.at, LAST_TYRANT_STACK_INTERNAL_COOLDOWN);
       ctx.effects.emit({

@@ -5,6 +5,7 @@ import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 /** Reads explicit ownership; absent query events remain unknown and display labels never determine actors. */
 export function gw2EventActorType(event: Partial<SimulationEventBase> | null | undefined): SimulationActorType {
   const explicit = event?.actorType || '';
+
   if (ACTOR_TYPES.has(explicit)) {
     return explicit as SimulationActorType;
   }
@@ -37,6 +38,7 @@ export function isGw2IllusionEvent(event: Partial<SimulationEventBase> | null | 
  */
 export function gw2EventOwnerActorType(event: Partial<SimulationEventBase> | null | undefined): SimulationActorType {
   const explicit = event?.ownerActorType || '';
+
   if (ACTOR_TYPES.has(explicit)) {
     return explicit as SimulationActorType;
   }

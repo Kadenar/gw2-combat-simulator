@@ -95,7 +95,9 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         on: 'castCommit',
         when: (_runtime, cast) => {
           const bullets = cast.skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Unload');
+
           if (bullets?.type !== 'strike') return false;
+
           const offset = Number(bullets.ticks?.at(-1)?.atMs);
           const scale =
             bullets.timingScale === 'cast'

@@ -61,6 +61,7 @@ export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     },
     'mesmer.troubadour.schedule-crescendo'(runtime, context) {
       if (context.kind !== 'cast' || context.cast.cancelled) return;
+
       runtime.scheduleForCast(
         'mesmer.crescendo',
         context.cast.start + Number(context.skill.damageAtMs || 0) / 1000,
@@ -70,6 +71,7 @@ export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     // Capture the event-order-sensitive gate while the accepted action is still the latest history entry.
     'mesmer.troubadour.prepare-tale'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       const required = context.skill.tale?.instrument;
       const action = runtime.facts
         .read()
@@ -85,6 +87,7 @@ export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     },
     'mesmer.troubadour.resolve-tale'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       resolveTroubadourTale({
         context: runtime,
         skill: context.skill,

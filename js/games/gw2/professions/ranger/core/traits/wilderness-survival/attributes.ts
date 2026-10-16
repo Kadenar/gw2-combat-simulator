@@ -22,7 +22,9 @@ export function wildernessPetAttributes(
   ] as const;
   return declarations.flatMap(([id, attributes, field]) => {
     if (!hasTrait(context, id)) return [];
+
     if (field === 'weaponAttributeBonus' && !['spider', 'devourer'].includes(family)) return [];
+
     const amount = balanceNumberFromContext(context, id, field);
     return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
   });

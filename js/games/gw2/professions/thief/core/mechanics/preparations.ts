@@ -35,21 +35,29 @@ export function thiefTrapAvailability(
   const trap = THIEF_PREPARATIONS.find(
     (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
   );
+
   if (!trap) return null;
+
   const window = runtime.profession.core.availableFlips[trap.triggerId];
+
   if (skill.id === trap.prepareId && skillFlipVisible(window, runtime.time))
     return denySkillCast(skill, `thief.${trap.reason}-prepared`, `activate ${trap.name} before preparing it again.`);
+
   if (skill.id === trap.triggerId && !skillFlipVisible(window, runtime.time))
     return denySkillCast(skill, `thief.${trap.reason}`, `prepare ${trap.name} first.`);
+
   if (skill.id === trap.triggerId && window.availableAt > runtime.time)
     return denySkillCast(skill, `thief.${trap.reason}-arming`, 'the preparation is still arming.', window.availableAt);
+
   return null;
 }
 
 /** A committed placement exposes its trigger immediately; the trigger arms after a recharge-scaled delay. */
 export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.prepareId === cast.skill.id);
+
   if (!trap) return;
+
   const skill = cast.skill;
   const delay = Number(skill.durationMultiplier ?? 3) / runtime.cooldownController.rate(cast.skill);
   armSkillFlip(runtime.profession.core.availableFlips, trap.triggerId, runtime.time + delay, Infinity, runtime.time);
@@ -58,10 +66,15 @@ export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>
 /** Triggering consumes the trap and mirrors its short rearm onto an already-recharged placement skill. */
 export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.triggerId === cast.skill.id);
+
   if (!trap) return;
+
   consumeSkillFlip(runtime.profession.core.availableFlips, trap.triggerId);
   const triggerReadyAt = runtime.cooldownController.readyAt(trap.triggerId);
+
   if (triggerReadyAt == null || triggerReadyAt <= (runtime.cooldownController.readyAt(trap.prepareId) || 0)) return;
+
   const placement = runtime.helpers.skillsById.get(trap.prepareId);
+
   if (placement) runtime.cooldownController.startRecharge(placement, cast.rechargeStart, cast.rechargeWork);
 }

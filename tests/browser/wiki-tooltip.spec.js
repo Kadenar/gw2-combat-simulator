@@ -68,6 +68,7 @@ for (const placement of ['right', 'left', 'vertical']) {
     const slot = page.locator('#skill-bar [data-key="Utility2"]');
     await slot.locator('.sbar-icon').click();
     const menu = slot.locator('.sbar-dropdown.open');
+
     if (placement === 'left') {
       // Exercise the same live menu against the right viewport edge.
       await menu.evaluate((element) => {
@@ -86,6 +87,7 @@ for (const placement of ['right', 'left', 'vertical']) {
     await expect(panel).toBeVisible();
     const menuBounds = await menu.boundingBox();
     const bounds = await panel.boundingBox();
+
     if (placement === 'right') expect(bounds.x).toBeGreaterThan(menuBounds.x + menuBounds.width);
     else if (placement === 'left') expect(bounds.x + bounds.width).toBeLessThan(menuBounds.x);
     else {
@@ -171,7 +173,9 @@ test('Revenant energy appears beside recharge without duplicating base effects',
     wrapper.innerHTML = [20, 0, undefined]
       .map((cost) => {
         const facts = model.facts.filter((fact) => fact.name !== 'Base energy cost');
+
         if (cost !== undefined) facts.push({ name: 'Base energy cost', detail: String(cost) });
+
         return `<button ${skillTooltipAttributes(skill, { ...model, facts })}>Inspect energy ${cost}</button>`;
       })
       .join('');

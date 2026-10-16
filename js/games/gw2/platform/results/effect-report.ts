@@ -53,6 +53,7 @@ interface RecordedEffect {
 /** Index identity components separately so repeated observations never rebuild and hash long composite IDs. */
 function effectGroup<T>(groups: Map<string, Map<string, T>>, key: string): Map<string, T> {
   let group = groups.get(key);
+
   if (!group) {
     group = new Map();
     groups.set(key, group);
@@ -72,7 +73,9 @@ export class EffectRecorder implements EffectReportObserver {
   /** Snapshot each source once per recorder; mutable action lifecycle and damage details are not chart label inputs. */
   private copySource(source: SimulationEvent | undefined): EffectSource | undefined {
     if (!source) return undefined;
+
     let copy = this.sources.get(source);
+
     if (!copy) {
       copy = Object.freeze({
         type: source.type,
@@ -104,6 +107,7 @@ export class EffectRecorder implements EffectReportObserver {
   capture(at: number, states: readonly EffectState[], owner = 'runtime'): void {
     const capture = ++this.captureNumber;
     let owned = this.owners.get(owner);
+
     if (!owned) {
       owned = new Set();
       this.owners.set(owner, owned);
@@ -112,13 +116,17 @@ export class EffectRecorder implements EffectReportObserver {
     for (const state of states) {
       const kinds = effectGroup(effectGroup(effectGroup(this.origins, state.origin), state.recipient), state.category);
       const previous = kinds.get(state.kind);
+
       if (previous && previous.owner !== owner)
         throw new TypeError(`Effect track already belongs to ${previous.owner}: ${state.kind}`);
+
       if (previous?.capture === capture)
         throw new TypeError(
           `Duplicate effect state owner: ${state.origin}:${state.recipient}:${state.category}:${state.kind}`
         );
+
       if (previous) previous.capture = capture;
+
       if (
         previous &&
         previous.state.countLimit === state.countLimit &&
@@ -137,6 +145,7 @@ export class EffectRecorder implements EffectReportObserver {
         )
       )
         continue;
+
       if (previous) {
         this.advance(previous, at);
         previous.state = this.snapshotEffectState(state);
@@ -153,6 +162,7 @@ export class EffectRecorder implements EffectReportObserver {
     // Complete snapshots clear only their own tracks; incremental callers never scan unrelated owners.
     for (const track of owned) {
       if (track.capture === capture || !track.state.windows.length) continue;
+
       this.advance(track, at);
       track.state = { ...track.state, windows: [] };
     }
@@ -160,6 +170,7 @@ export class EffectRecorder implements EffectReportObserver {
 
   private advance(track: RecordedEffect, end: number): void {
     if (end < track.at) throw new RangeError('Effect observations must follow execution time.');
+
     const boundaries = [
       track.at,
       ...new Set(
@@ -172,11 +183,16 @@ export class EffectRecorder implements EffectReportObserver {
     for (let index = 1; index < boundaries.length; index++) {
       const start = boundaries[index - 1]!;
       const finish = boundaries[index]!;
+
       if (finish <= start) continue;
+
       const value = effectStateValue(track.state, start);
+
       if (!value.count) continue;
+
       const segment = { start, end: finish, ...value, countLimit: track.state.countLimit, source: value.source };
       const previous = track.segments.at(-1);
+
       if (
         previous &&
         previous.end === start &&
@@ -217,12 +233,16 @@ export class EffectRecorder implements EffectReportObserver {
 /** Reports expose accepted counts and deadlines; queries never enforce a chart-specific cap. */
 export function effectStateAt(report: EffectReport, track: EffectTrack, at: number) {
   at = canonicalTime(at);
+
   if (at < report.start || at > report.end) return null;
+
   if (at === report.end) return { ...track.terminal };
+
   let low = 0,
     high = track.segments.length;
   while (low < high) {
     const middle = (low + high) >>> 1;
+
     if (track.segments[middle]!.end <= at) low = middle + 1;
     else high = middle;
   }
@@ -240,8 +260,11 @@ export function effectSummary(track: EffectTrack, start: number, end: number) {
     maximum = 0;
   for (const segment of track.segments) {
     const elapsed = Math.max(0, Math.min(end, segment.end) - Math.max(start, segment.start));
+
     if (segment.count > 0) active += elapsed;
+
     counts += elapsed * segment.count;
+
     if (segment.countLimit != null && segment.count >= segment.countLimit) maximum += elapsed;
   }
 

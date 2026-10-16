@@ -97,6 +97,7 @@ const EFFECT_FIELDS = new Set([
 /** Names identify procedural packets independently of their position after patch deletion. */
 export function skillEffectKey(type: SkillEffect['type'], name: string): string {
   if (typeof name !== 'string' || !name.trim()) throw new TypeError('Effect keys require a non-empty name.');
+
   return JSON.stringify([type, name]);
 }
 
@@ -150,6 +151,7 @@ function validateEffectNumbers(candidate: UnvalidatedFields, label: string): voi
 /** Only construction boundaries may introduce effect lists; readers share their immutable declarations. */
 export function requireCanonicalSkillEffects(owner: Skill | BalanceProfile): readonly SkillEffect[] {
   const effects = owner.effects;
+
   if (!effects || !canonicalEffectLists.has(effects)) {
     const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
     throw new TypeError(
@@ -163,12 +165,15 @@ export function requireCanonicalSkillEffects(owner: Skill | BalanceProfile): rea
 /** Validate complete surviving lists at both catalog assembly and patch boundaries. */
 export function normalizeSkillEffects(effects: readonly SkillEffect[], label: string): readonly SkillEffect[] {
   if (!Array.isArray(effects)) throw new TypeError(`${label} effects must be an array.`);
+
   if (effects.length > MAX_EFFECT_EXPANSION)
     throw new RangeError(`${label} exceeds the effect expansion limit (${MAX_EFFECT_EXPANSION}).`);
+
   // Bound the complete list before normalizing tick arrays; many individually valid effects must not multiply the cap.
   let packetCount = 0;
   for (const effect of effects) {
     if (!effect || !EFFECT_TYPES.has(effect.type)) continue;
+
     packetCount += effectApplicationCount(effect, `${label} effect=${effect.type}/${effect.name ?? '<unnamed>'}`);
     requireEffectExpansionCount(packetCount, label);
   }
@@ -178,9 +183,12 @@ export function normalizeSkillEffects(effects: readonly SkillEffect[], label: st
     effects.map((effect) => {
       const effectLabel = `${label} effect=${effect?.type}/${effect?.name ?? '<unnamed>'}`;
       const normalized = normalizeEffect(effect, effectLabel);
+
       if (effect?.name !== undefined) {
         const key = skillEffectKey(effect.type, effect.name);
+
         if (keys.has(key)) throw new TypeError(`Invalid balance data: ${effectLabel} duplicate effect key`);
+
         keys.add(key);
       }
 
@@ -206,6 +214,7 @@ function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
       validateEffectNumbers(tick, `tick=${index}`);
       const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
       const coefficient = requireBalanceNumber(tick?.coefficient, `tick=${index} field=coefficient`);
+
       if (!(atMs >= 0) || !Number.isFinite(atMs)) {
         throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
       }
@@ -247,6 +256,7 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
       const condition = tick?.condition;
       const stacks = requireBalanceNumber(tick?.stacks, `tick=${index} field=stacks`);
       const duration = requireBalanceNumber(tick?.duration, `tick=${index} field=duration`);
+
       if (!(atMs >= 0) || !Number.isFinite(atMs)) {
         throw new TypeError(`Condition application ${index + 1} requires a valid atMs.`);
       }
@@ -297,12 +307,14 @@ export function normalizeEffect(effect: unknown, label = 'Skill effect'): SkillE
 function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   const candidate =
     effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as UnvalidatedFields) : null;
+
   if (!candidate || typeof candidate.type !== 'string' || !EFFECT_TYPES.has(candidate.type)) {
     throw new TypeError(`Invalid skill effect type: ${candidate?.type}`);
   }
 
   // Profiles and procedural effects also enter here, so their combo ownership cannot bypass catalog checks.
   validateComboOwnership(candidate, label);
+
   if (Array.isArray(candidate.ticks)) {
     // Bound explicit timelines before visiting or copying their entries.
     requireEffectExpansionCount(candidate.ticks.length, `${label} ticks`);
@@ -315,6 +327,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   const normalizedEffect = candidate as unknown as SkillEffect;
   validateEffectNumbers(candidate, label);
+
   // Validate explicit profiles before authored effects enter the runtime.
   if (candidate.weaponStrengthProfileId !== undefined) weaponStrengthProfile(candidate.weaponStrengthProfileId);
 
@@ -350,6 +363,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   }
 
   const unknownFields = Object.keys(candidate).filter((field) => !EFFECT_FIELDS.has(field));
+
   if (unknownFields.length) {
     throw new TypeError(
       `Skill effect has unsupported field${unknownFields.length === 1 ? '' : 's'}: ` + unknownFields.join(', ')
@@ -377,6 +391,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   const interruptCommitMs =
     normalizedEffect.interruptCommitMs == null ? null : Number(normalizedEffect.interruptCommitMs);
+
   if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
     throw new TypeError('Effect interruptCommitMs must be a non-negative finite number.');
   }
@@ -386,6 +401,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   }
 
   const metadata = normalizeEffectMetadata(normalizedEffect.metadata);
+
   // Autonomous summon packets may declare an animation separately from their fixed idle interval.
   if (
     normalizedEffect.castTimeMs != null &&
@@ -399,6 +415,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   }
 
   const audience = normalizeEffectAudience(normalizedEffect.audience);
+
   if (audience && normalizedEffect.type !== 'boon' && normalizedEffect.type !== 'buff') {
     throw new TypeError('Skill effect audience is only valid on boon and buff effects.');
   }
@@ -432,6 +449,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // `applications` drives repeated non-strike pulses (e.g. multi-application boons).
   // Mutually exclusive with tick timelines because ticks already encode per-packet timing.
   let applications = null;
+
   if (normalizedEffect.applications != null) {
     if (
       normalizedEffect.type !== 'condition' &&
@@ -458,6 +476,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // `coefficientModifiers` scale strike damage based on target health thresholds
   // (e.g. execute-style bonuses). Only the "target-health-below" kind is supported.
   let coefficientModifiers = null;
+
   if (normalizedEffect.coefficientModifiers != null) {
     if (normalizedEffect.type !== 'strike' || !Array.isArray(normalizedEffect.coefficientModifiers)) {
       throw new TypeError('Coefficient modifiers are only valid on strike effects.');
@@ -467,6 +486,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
       normalizedEffect.coefficientModifiers.map((modifier, index) => {
         requireBalanceNumber(modifier?.threshold, `modifier=${index} field=threshold`);
         requireBalanceNumber(modifier?.multiplier, `modifier=${index} field=multiplier`);
+
         if (
           !modifier ||
           modifier.kind !== 'target-health-below' ||
@@ -512,6 +532,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     if (hasAtMs) {
       const atMs = Number(normalizedEffect.atMs);
       const castEndOffset = normalizedEffect.timingAnchor !== 'castStart';
+
       if (!Number.isFinite(atMs) || (atMs < 0 && !castEndOffset)) {
         throw new TypeError('Effect atMs must be finite and may only be negative when anchored to castEnd.');
       }
@@ -519,6 +540,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
     if (hasInterval) {
       const intervalMs = Number(normalizedEffect.intervalMs);
+
       if (!(intervalMs >= 0) || !Number.isFinite(intervalMs)) {
         throw new TypeError('Effect intervalMs must be a non-negative finite number.');
       }
@@ -595,8 +617,10 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
     requireBalanceNumber(normalizedEffect.duration, 'field=duration');
+
     if (normalizedEffect.maximumDuration != null) {
       requireBalanceNumber(normalizedEffect.maximumDuration, 'field=maximumDuration');
+
       if (normalizedEffect.maximumDuration < 0) throw new TypeError('Status maximumDuration must be nonnegative.');
     }
 
@@ -616,6 +640,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // Effect bonuses belong only to strikes and remain immutable when a cast derives its packets.
   if (normalizedEffect.modifiers != null && normalizedEffect.type !== 'strike')
     throw new TypeError(`${label} modifiers require a strike effect.`);
+
   const modifiers =
     normalizedEffect.modifiers == null ? undefined : normalizeSkillDamageModifiers(normalizedEffect.modifiers, label);
   // Spread normalized numeric fields on top so runtime consumers always get typed values.

@@ -44,6 +44,7 @@ for (const { id } of professionOptions) {
         for (const skill of candidates) {
           const verdict = profession.availability(runtime.mechanics, skill, { type: 'cast', skillId: skill.id });
           assert.equal(typeof verdict.ready, 'boolean');
+
           if (!verdict.ready) {
             assert.equal(typeof verdict.code, 'string');
             assert.equal(typeof verdict.reason, 'string');
@@ -55,6 +56,7 @@ for (const { id } of professionOptions) {
       };
 
       sweep();
+
       // Follow-up queries cover visible-but-arming, ready, and exact-expiry boundaries without executing the queue.
       if (runtime.profession.core.availableFlips) {
         for (const skill of candidates) runtime.profession.core.availableFlips[skill.id] = armSkillFlip({}, 0, 1, 2);
@@ -118,6 +120,7 @@ test('Fresh Air planning capture leaves elapsed strike candidates and runtime st
           runtime.profession.core.freshAirCandidates.some((at) => at <= runtime.time)
         )
           observedElapsedCandidates = true;
+
         const before = snapshot(owner);
         const verdict = profession.availability(runtime, skill, command);
         assert.deepEqual(snapshot(owner), before, skill.name);

@@ -22,6 +22,7 @@ export function createComparisonExecutor(baseUrl: string): {
   const loadBuild = (row: Benchmark): Promise<unknown> => {
     const url = new URL(row.build, baseUrl).href;
     let pending = builds.get(url);
+
     if (!pending) {
       pending = fetchJsonAsset(url).catch((error: unknown) => {
         builds.delete(url);
@@ -52,11 +53,13 @@ export function createComparisonExecutor(baseUrl: string): {
       let settled = false;
       const finish = (result?: ComparisonResult, error?: unknown): void => {
         if (settled) return;
+
         settled = true;
         signal.removeEventListener('abort', abort);
         worker.removeEventListener('message', message);
         worker.removeEventListener('error', failed);
         worker.removeEventListener('messageerror', unreadable);
+
         if (result) {
           const keys = preparedKeys.get(worker) ?? new Set<string>();
           keys.add(key);
@@ -74,6 +77,7 @@ export function createComparisonExecutor(baseUrl: string): {
         data
       }: MessageEvent<{ requestId: number; result?: ComparisonResult; error?: string }>): void => {
         if (data.requestId !== requestId) return;
+
         finish(data.result, new Error(data.error ?? 'Simulation returned no result.'));
       };
 
@@ -86,6 +90,7 @@ export function createComparisonExecutor(baseUrl: string): {
       void loadBuild(row)
         .then((buildData) => {
           if (settled) return;
+
           // Absolute asset addresses support bundled workers and subdirectory hosting.
           worker.postMessage({
             requestId,

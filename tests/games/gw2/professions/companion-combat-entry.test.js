@@ -65,6 +65,7 @@ function run(
       onCombatStart(runtime) {
         beforeStart = structuredClone(runtime.profession);
         native.onCombatStart?.(runtime);
+
         if (repeatedStart) native.onCombatStart?.(runtime);
       },
       tasks: {
@@ -101,7 +102,9 @@ for (const entry of cases) {
     ]) {
       const { decisions, result } = run(entry, options);
       assert.ok(decisions.length > 0);
+
       if (options.marker) assert.ok(decisions.every(({ at }) => at >= result.combatStartTime));
+
       assert.ok(result.totalDamage > 0);
     }
   });
@@ -152,6 +155,7 @@ for (const [name, command] of [
     const { decisions, beforeStart } = run(entry, { commands: [command] });
     assert.ok(decisions.length > 0);
     assert.ok(decisions.every(({ at }) => at >= 6));
+
     if (name === 'pet') {
       assert.equal(beforeStart.core.pet.autoStarted, false);
       assert.equal(beforeStart.core.pet.autoAction, null);

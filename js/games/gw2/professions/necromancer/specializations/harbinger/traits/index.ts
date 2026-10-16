@@ -412,6 +412,7 @@ export const necromancerHarbingerTraits = [
 function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): void {
   // Entry and finisher share profile expansion while preserving party ownership and the invoking skill.
   if (!hasTrait(runtime, TRAIT.DEATHLY_HASTE)) return;
+
   emitTraitProfile(runtime, TRAIT.DEATHLY_HASTE, TRAIT.DEATHLY_HASTE, undefined, {
     skillId: skill.id,
     skillName: skill.name,
@@ -431,6 +432,7 @@ function applyCascadingCorruption(
   consumed: number
 ): void {
   const state = harbingerState.from(runtime);
+
   if (
     consumed &&
     !runtime.combatStartPending &&
@@ -440,14 +442,17 @@ function applyCascadingCorruption(
     const meltdown = requireEffect(corruption, 'buff', 'meltdown');
     const strike = requireEffect(corruption, 'strike', 'Strike');
     const torment = requireEffect(corruption, 'condition', 'Torment');
+
     if (meltdown || strike || torment) {
       const threshold = balanceProfileNumber(corruption, 'minimumStacks');
       // Reaching the stack cap grants one Meltdown and resets buildup before any reward reacts.
       const progress = advanceCounter(state.cascadingCorruptionStacks, consumed, threshold, 'reset');
       state.cascadingCorruptionStacks = progress.value;
+
       if (progress.reached) {
         if (meltdown)
           state.meltdownUntil = canonicalTime(runtime.time + effectNumber(corruption, meltdown, 'duration'));
+
         const proc = runtime.effects.emit({
           receipt: true,
           kind: 'announcement',
@@ -519,12 +524,15 @@ function grantImplacableFoe(runtime: NecromancerRuntime, skill: Skill): void {
 function applyDoomApproachesStrike(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // Trait procs must not trigger from synthetic "effect" damage (e.g. Cascading Corruption Meltdown hits).
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
+
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
   // Doom Approaches Vulnerability applies only on the first hit of Tainted Bolts, not each chain projectile.
   const firstHit = Number(event.hitIndex || 1) === 1;
+
   if (firstHit && skill?.id === ID.TAINTED_BOLTS) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.DOOM_APPROACHES);
     const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+
     if (vulnerability) {
       /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
         context,
@@ -556,11 +564,14 @@ function applyDoomApproachesStrike(context: NecromancerResolverContext, event: N
 /** Septic Corruption observes its shroud-slot packet after Doom Approaches. */
 function applySepticCorruptionStrike(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
+
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
+
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (skill?.shroudSlot === 2) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.SEPTIC_CORRUPTION);
     const condition = requireEffect(profile, 'condition', 'Poisoned');
+
     if (condition) {
       /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
         context,

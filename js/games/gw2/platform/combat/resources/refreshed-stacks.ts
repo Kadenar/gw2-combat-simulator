@@ -11,6 +11,7 @@ export function activeRefreshedStacks(
   expiry: 'inclusive' | 'exclusive'
 ): number {
   if (!state) return 0;
+
   return (expiry === 'inclusive' ? at <= state.expiresAt : at < state.expiresAt) ? state.stacks : 0;
 }
 

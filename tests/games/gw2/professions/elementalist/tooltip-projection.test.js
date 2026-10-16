@@ -101,6 +101,7 @@ test('skill-owned Evoker utility profiles project edits and removals into toolti
       assert.equal(context.catalog.balanceProfilesById.get(profileId).parentId, skillId);
       for (const [otherProfile] of cases) {
         if (otherProfile === profileId) continue;
+
         assert.deepEqual(
           context.catalog.balanceProfilesById.get(otherProfile).effects,
           profession.balanceContextFor('current').catalog.balanceProfilesById.get(otherProfile).effects
@@ -109,13 +110,16 @@ test('skill-owned Evoker utility profiles project edits and removals into toolti
 
       const facts = skillTooltip(context, skillId).facts.filter((fact) => fact.name.toLowerCase() === factName);
       assert.equal(facts.length, removed ? 0 : 1);
+
       if (!removed) assert.match(facts[0].detail, /^9s/);
+
       const result = simulate(profession, 'tooltip-projection', skillId, {
         evokerElement: element,
         startAttunement: element,
         initialEvokerEmpowered: skillId === ID.LIGHTNING_BLITZ ? 3 : 0,
         selectedSkillIds: [skillId]
       });
+
       if (skillId === ID.HARES_AGILITY || skillId === ID.LIGHTNING_BLITZ) {
         assert.equal(
           result.events.some(
@@ -128,6 +132,7 @@ test('skill-owned Evoker utility profiles project edits and removals into toolti
           (event) => event.type === 'buff' && event.skillId === skillId && event.kind === factName
         );
         assert.equal(grants.length, removed ? 0 : 1);
+
         if (!removed) assert.equal(grants[0].duration, 9);
       }
     }
@@ -165,7 +170,9 @@ test('Familiar blessing previews preserve the runtime element choice after remov
       const quickness = model.facts.find(({ name }) => name === 'Quickness');
       const hasQuickness = reordered || patchId === 'current';
       assert.equal(Boolean(quickness), hasQuickness);
+
       if (quickness) assert.match(quickness.detail, /Fire \/ Air familiar/);
+
       for (const [element, skillId, boon] of [
         ['Fire', ID.IGNITE, 'quickness'],
         ['Air', ID.ZAP, 'quickness'],
@@ -180,6 +187,7 @@ test('Familiar blessing previews preserve the runtime element choice after remov
           (event) => event.type === 'buff' && event.sourceId === TRAIT.FAMILIARS_BLESSING
         );
         assert.equal(grants.length, boon === 'quickness' && !hasQuickness ? 0 : 1);
+
         if (grants.length) {
           assert.equal(grants[0].kind, boon);
           const expectedDuration =
@@ -264,6 +272,7 @@ test('Ignite removal preserves tier identity and suppresses Burning in both cons
         facts.some(({ name }) => name === 'Burning')
       )
     );
+
     if (nativeRemoved) {
       const result = simulate(profession, 'tooltip-projection', ID.IGNITE);
       assert.equal(
@@ -337,7 +346,9 @@ test('Elemental Procession tooltip and combat use the same selected familiar pay
     );
     const burning = facts.find(({ name }) => name === 'Burning');
     assert.ok(burning);
+
     if (patched) assert.equal(burning.stacks, 3);
+
     const result = simulate(profession, patchId, ID.ELEMENTAL_PROCESSION, {
       selectedSkillIds: [ID.ELEMENTAL_PROCESSION]
     });

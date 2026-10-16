@@ -37,17 +37,22 @@ export async function createPreviewGenerator(root) {
       for (const entry of professionRegistry) {
         // Dev requests load only the requested profession and a manifest-listed build.
         if (requestedPath && !requestedPath.startsWith(`data/gw2/benchmark-previews/${entry.id}/`)) continue;
+
         const manifest = JSON.parse(
           await readFile(path.join(root, 'data/gw2/builds', entry.id, 'manifest.json'), 'utf8')
         );
         const rows = readBenchmarks(entry, manifest).filter(
           (row) => !requestedPath || benchmarkPreviewPath(row.build) === requestedPath
         );
+
         if (!rows.length) continue;
+
         const adapter = await entry.loadBuildContext();
         for (const row of rows) {
           const fileName = benchmarkPreviewPath(row.build);
+
           if (assets.has(fileName)) continue;
+
           const candidate = JSON.parse(await readFile(path.join(root, row.build), 'utf8'));
           const preview = createBenchmarkPreview(adapter, candidate, row.build);
           validateBenchmarkPreview(preview, row.build);
@@ -93,9 +98,11 @@ export function benchmarkPreviews() {
         while (!closed) {
           const requestedGeneration = generation;
           let result = assets.get(pathname);
+
           if (!result) {
             result = pending.then(async () => {
               generator ??= await createPreviewGenerator(root);
+
               if (loadedGeneration !== requestedGeneration) {
                 generator.invalidate();
                 loadedGeneration = requestedGeneration;
@@ -109,10 +116,13 @@ export function benchmarkPreviews() {
 
           try {
             const source = await result;
+
             if (requestedGeneration === generation) return source;
           } catch (error) {
             if (requestedGeneration !== generation) continue;
+
             if (assets.get(pathname) === result) assets.delete(pathname);
+
             throw error;
           }
         }
@@ -120,7 +130,9 @@ export function benchmarkPreviews() {
 
       const onChange = (_event, file) => {
         const relative = path.relative(root, file).replaceAll('\\', '/');
+
         if (!/^(data\/gw2\/builds\/|js\/(games\/gw2|kernel|ui|browser)\/)/.test(relative)) return;
+
         // Invalidate immediately, but do no generation until another preview request arrives.
         generation += 1;
         assets.clear();
@@ -135,9 +147,12 @@ export function benchmarkPreviews() {
       server.watcher.on('all', onChange);
       server.middlewares.use(async (request, response, next) => {
         const pathname = new URL(request.url ?? '/', 'http://local').pathname.slice(1);
+
         if (!pathname.startsWith('data/gw2/benchmark-previews/')) return next();
+
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
         response.setHeader('Cache-Control', 'no-store');
+
         if (!/^data\/gw2\/benchmark-previews\/[a-z]+\/[a-zA-Z0-9_-]+\.json$/.test(pathname)) {
           response.statusCode = 404;
           return response.end(JSON.stringify({ error: 'Benchmark preview unavailable' }));

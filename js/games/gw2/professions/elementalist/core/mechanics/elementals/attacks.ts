@@ -27,11 +27,13 @@ export const STOMP_ID = EARTH_ELEMENTAL_EVTC_PROFILE.stomp.skillId;
 /** Converts selected skill IDs into the one elemental profile the controller should run. */
 export function selectedElementalFromSkills(selected: ReadonlySet<SkillId>): ElementalKind | null {
   if (selected.has(ID.GLYPH_OF_ELEMENTALS_EARTH)) return 'Earth';
+
   return selected.has(ID.GLYPH_OF_ELEMENTALS) ? 'Fire' : null;
 }
 
 export function elementalForGlyphId(skillId: number | string): ElementalKind | null {
   if (skillId === ID.GLYPH_OF_ELEMENTALS_EARTH) return 'Earth';
+
   return skillId === ID.GLYPH_OF_ELEMENTALS ? 'Fire' : null;
 }
 

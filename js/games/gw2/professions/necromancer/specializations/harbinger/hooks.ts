@@ -52,6 +52,7 @@ function refreshBlight(runtime: NecromancerRuntime): void {
   runtime.cancelOwner({ id: BLIGHT, generation: state.blightGeneration });
   state.blightGeneration++;
   const at = Math.min(state.nextBlightAt ?? Infinity, ...state.blightExpiries, state.meltdownUntil || Infinity);
+
   if (Number.isFinite(at)) runtime.schedule(BLIGHT, at, null, { id: BLIGHT, generation: state.blightGeneration }, -20);
 }
 
@@ -148,6 +149,7 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
     registerNecromancerShroudLifecycle(runtime, 'harbinger.shroud', {
       onEnter(skill) {
         if (skill.shroudEntry !== 'harbinger') return;
+
         harbingerState.from(runtime).nextBlightAt = Math.floor(runtime.time) + 1;
         runtime.fireTrigger(harbingerShroudEntered, { skill, at: runtime.time });
         refreshBlight(runtime);
@@ -163,6 +165,7 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
   sideEffectHandlers: {
     'harbinger.elixir-launch'(runtime, context) {
       if (context.kind !== 'cast' || context.cast.cancelled) return;
+
       const cast = context.cast;
       const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
       const impactAt = strike
@@ -173,13 +176,17 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
     },
     'harbinger.movement-launch'(runtime, context, action) {
       if (context.kind !== 'cast') return;
+
       const cast = context.cast;
+
       if (action.type !== 'harbinger.movement-launch' || action.amount == null)
         throw new TypeError('Movement launch requires progress.');
+
       const progress = sideEffectAmount(runtime, action.amount);
       const at = canonicalTime(
         cast.start + quantizeGw2ActionTimingMs((cast.fullEnd - cast.start) * progress * 1000) / 1000
       );
+
       // A committed movement cast keeps its delayed payload and Blight spend after interruption.
       if (!cast.cancelled || at <= cast.effectiveEnd) runtime.scheduleForCast(MOVEMENT, at, cast);
     }
@@ -189,7 +196,9 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
     [BLIGHT](runtime) {
       const state = harbingerState.from(runtime);
       purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime));
+
       if (state.meltdownUntil && state.meltdownUntil <= runtime.time) state.meltdownUntil = 0;
+
       if (runtime.profession.core.activeShroud === 'harbinger' && Number(state.nextBlightAt) <= runtime.time) {
         addBlight(
           state,

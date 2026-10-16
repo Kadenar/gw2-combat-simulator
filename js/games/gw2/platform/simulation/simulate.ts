@@ -18,8 +18,10 @@ export function simulateGw2(
 ): Gw2SimulationResult | Gw2SimulationScore {
   const started = options.onPhase ? performance.now() : 0;
   let config = options.config ?? {};
+
   if (config.procRateOverrides !== undefined)
     config = { ...config, procRateOverrides: normalizeProcRateOverrides(config.procRateOverrides) };
+
   const profession = options.profession.runtimeFor(config);
   options.onPhase?.('preparation', performance.now() - started);
   return runGw2Runtime({ ...options, profession, config, observation: options.observationPolicy });

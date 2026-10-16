@@ -37,12 +37,14 @@ function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
   state.mantraWakeGenerations[definition.rootId] = generation;
   const normal = runtime.helpers.skillsById.get(definition.normalId)!;
   let next = Infinity;
+
   if (
     runtime.cooldownController.hasCooldown(definition.rootId) ||
     state.mantraRechargeReadyAt[definition.rootId] > runtime.time ||
     !runtime.cooldownController.hasAmmo(normal.id)
   ) {
     const readyAt = gw2CooldownReadyAt(runtime.cooldownController.readyAt(definition.rootId) ?? 0);
+
     if (readyAt <= runtime.time) arm(runtime, definition);
     else {
       // Shared readiness can provision an ammo pool while probing; root recharge still owns its eligibility.
@@ -57,7 +59,9 @@ function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
     const flips = runtime.profession.core.availableFlips;
     const current = ammo.charges > 1 ? definition.normalId : definition.finalId;
     consumeSkillFlip(flips, current === definition.normalId ? definition.finalId : definition.normalId);
+
     if (!skillFlipReady(flips[current], runtime.time)) armSkillFlip(flips, current, runtime.time);
+
     next = gw2CooldownReadyAt(ammo.nextRechargeAt ?? Infinity);
   }
 
@@ -70,6 +74,7 @@ export function initializeFirebrandMantras(runtime: GuardianRuntime): void {
   const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   for (const definition of MANTRAS) {
     if (runtime.config.selectedSkillIds !== undefined && !selected.has(definition.rootId)) continue;
+
     arm(runtime, definition);
     sync(runtime, definition);
   }
@@ -89,6 +94,7 @@ export function firebrandMantraWake(runtime: GuardianRuntime, rootId: unknown): 
   }
 
   const definition = MANTRAS.find((entry) => entry.rootId === rootId);
+
   if (definition) {
     runtime.cooldownController.refresh(runtime.time);
     sync(runtime, definition);
@@ -100,19 +106,27 @@ export function firebrandMantraAvailability(runtime: MechanicQueriesOf<GuardianR
   const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
     [rootId, normalId, finalId].includes(Number(skill.id))
   );
+
   if (!definition) return CAST_READY;
+
   const flips = runtime.profession.core.availableFlips;
+
   if (skill.id === definition.rootId)
     return skillFlipReady(flips[definition.normalId], runtime.time) ||
       skillFlipReady(flips[definition.finalId], runtime.time)
       ? denyCast('guardian.mantra-prepared', `${skill.name} is already prepared.`)
       : CAST_READY;
+
   const preparedAt = gw2CooldownReadyAt(runtime.cooldownController.readyAt(definition.rootId) ?? 0);
+
   if (preparedAt > runtime.time)
     return retryCast(preparedAt, 'guardian.mantra-charge', `${skill.name} is waiting for preparation.`);
+
   const chargeAt = gw2CooldownReadyAt(runtime.cooldownController.readyAt(definition.normalId) ?? 0);
+
   if (skill.id === definition.finalId && chargeAt > runtime.time)
     return retryCast(chargeAt, 'guardian.mantra-charge', `${skill.name} is waiting for its charge cooldown.`);
+
   return skillFlipReady(flips[skill.id], runtime.time)
     ? CAST_READY
     : denyCast('guardian.mantra-charge', `${skill.name} is not the currently prepared charge.`);

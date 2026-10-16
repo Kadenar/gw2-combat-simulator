@@ -11,6 +11,7 @@ test('slot selection distinguishes omission, empty loadouts, and explicitly sele
   for (const selectedSkillIds of [undefined, [], [1], [2]]) {
     const context = { config: { selectedSkillIds }, catalog };
     const verdict = selectedSlotSkillAvailability(context, next);
+
     if (selectedSkillIds === undefined || selectedSkillIds[0] === 1) {
       assert.equal(verdict, null);
     } else {

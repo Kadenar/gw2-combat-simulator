@@ -20,16 +20,20 @@ export function holosmithCastAvailability(
   skill: HolosmithSkill
 ): AvailabilityResult {
   if (context.config.specialization !== 'Holosmith') return { ready: true };
+
   // Holosmith replaces the shared Weaponmaster sword IDs with heat-aware variants.
   if (NON_HOLOSMITH_SWORD_SKILL_IDS.has(Number(skill.id))) {
     return denyEngineerCast(skill, 'engineer.holosmith-sword-replaced', 'Holosmith replaces this sword skill.');
   }
 
   const state = holosmithState.from(context);
+
   // The explicit Forge exit owns its cooldown and state changes; swapping cannot bypass it during preparation.
   if (skill.inputCategory === 'weapon-swap' && state.photonForgeActive)
     return denyEngineerCast(skill, 'engineer.forge-active', 'Deactivate Photon Forge before swapping weapon sets.');
+
   const storm = crystalStormAvailability(context, skill);
+
   if (!storm.ready) return storm;
 
   if (skill.forgeSkill) {
@@ -82,6 +86,7 @@ function crystalStormAvailability(context: EngineerRuntime<HolosmithSkill>, skil
   if (skill.forgeSkill && skill.slot === 'Weapon_1') {
     const stormSelected = hasTrait(context.traits, TRAIT.CRYSTAL_CONFIGURATION_STORM);
     const stormSkill = HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS.has(Number(skill.id));
+
     if (stormSelected !== stormSkill) {
       return denyEngineerCast(
         skill,

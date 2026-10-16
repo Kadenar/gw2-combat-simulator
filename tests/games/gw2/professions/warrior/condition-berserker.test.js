@@ -32,6 +32,7 @@ test('Warrior leaps retain fire fields that expire during travel', () => {
     assert.deepEqual(result.warnings, []);
     assert.ok(aura);
     assert.ok(aura.at > field.expiresAt);
+
     if (leap === 'Sundering Leap') {
       assert.ok(result.procSteps.some((proc) => proc.skill === 'King of Fires' && proc.sourceSkill === leap));
     }

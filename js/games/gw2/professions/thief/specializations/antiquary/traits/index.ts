@@ -144,6 +144,7 @@ const meticulousCustodian = defineTrait({
   hooks: {
     modifyEffects(runtime, cast, effects) {
       if (cast.skill.id !== ID.SUMMON_KRYPTIS_TURRET || !hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) return effects;
+
       // Enhance the base Torment duration before expertise and its cap; this is not a duration-stat bonus.
       const multiplier = balanceNumberFromContext(
         runtime,
@@ -332,6 +333,7 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
 /** Applies enterprising aristocrat at the original artifact boundary. */
 function applyEnterprisingAristocrat(runtime: ThiefRuntime): void {
   const initiativeGain = balanceNumberFromContext(runtime, TRAIT.ENTERPRISING_ARISTOCRAT, 'resourceGain');
+
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
@@ -377,6 +379,7 @@ function applyPossessiveHoarder(runtime: ThiefRuntime, { cast, slot }: ArtifactA
 /** Repeat Ransacker follows the artifact identity grant. */
 function applyRepeatRansacker(runtime: ThiefRuntime): void {
   const swipe = runtime.helpers.skillsById.get(ID.SKRITT_SWIPE);
+
   if (swipe)
     runtime.cooldownController.reduceSkillRecharge(
       swipe,
@@ -388,7 +391,9 @@ function applyRepeatRansacker(runtime: ThiefRuntime): void {
 /** Scoundrel's Luck refreshes to its cap only when its internal cooldown is ready, so charges never bank. */
 function grantScoundrelsLuck(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime);
+
   if (!runtime.procs.claim(TRAIT.SCOUNDRELS_LUCK, 'thief.antiquary.scoundrelsLuck', runtime.time)) return;
+
   state.scoundrelsLuck = balanceNumberFromContext(runtime, TRAIT.SCOUNDRELS_LUCK, 'maximumStacks');
 }
 
@@ -396,6 +401,7 @@ function grantScoundrelsLuck(runtime: ThiefRuntime): void {
 function applyMeticulousChakShield(runtime: ThiefRuntime, { cast }: ArtifactActivation): void {
   // Only this committed artifact receives the strike component, under its own skill identity.
   if (cast.skill.id !== ID.CHAK_SHIELD) return;
+
   emitTraitProfile(runtime, TRAIT.METICULOUS_CUSTODIAN, TRAIT.METICULOUS_CUSTODIAN, undefined, {
     at: runtime.time,
     activationId: cast.id,
@@ -420,10 +426,13 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event
     event.coefficient == null // condition-only packets have no coefficient; burning fires on the strike hit
   )
     return;
+
   const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);
   const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning');
+
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
+
   emitTraitProfile(context, PROFILE.sunCrystalMeticulous, PROFILE.sunCrystalMeticulous, undefined, {
     at: event.at,
     fullEnd: event.at,

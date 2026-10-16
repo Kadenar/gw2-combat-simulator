@@ -209,6 +209,7 @@ test('pet and legend menus use the shared word search', async ({ page }) => {
     const option = menu.locator('.fixed-loadout-option:not(:disabled):not(.selected)').first();
     const value = await option.getAttribute('data-loadout-value');
     await menu.getByRole('searchbox').fill((await option.textContent()).trim());
+
     if (index === 1) {
       await page.keyboard.press('ArrowDown');
       await expect(option).toBeFocused();
@@ -217,6 +218,7 @@ test('pet and legend menus use the shared word search', async ({ page }) => {
     await page.keyboard.press('Enter');
     expect(await page.evaluate((slot) => window.professionApp.build.selectedLegends[slot], index)).toBe(value);
     await expect(trigger).toBeFocused();
+
     if (index === 0) {
       await page.keyboard.press('Tab');
       await expect(page.locator('#wiki-tooltip').getByRole('link')).toBeFocused();
@@ -238,7 +240,9 @@ for (const [profession, key, specialization, index] of [
       ({ profession, specialization }) => {
         const app = window.professionApp;
         app.build.specializations[2] = { name: specialization, traits: '1-1-1' };
+
         if (profession === 'ranger') app.build.weapons = ['Hammer', ''];
+
         app.changed();
       },
       { profession, specialization }

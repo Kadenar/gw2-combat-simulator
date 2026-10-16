@@ -12,6 +12,7 @@ import { clamp } from '#kernel/core/numeric.js';
 
 function positiveInteger(value: unknown, fallback: number, label: string): number {
   const normalized = Number(value ?? fallback);
+
   if (!Number.isInteger(normalized) || normalized <= 0) {
     throw new TypeError(`${label} must be a positive integer.`);
   }
@@ -28,16 +29,19 @@ function normalizeFieldDescriptors(value: unknown): readonly OwnedComboDescripto
     value.map((raw, index) => {
       const descriptor = requireComboDescriptorOwner(raw, `comboFields entry ${index + 1}`);
       const duration = Number(descriptor.duration);
+
       if (!(duration > 0) || !Number.isFinite(duration)) {
         throw new TypeError(`comboFields entry ${index + 1} requires a positive duration.`);
       }
 
       const startMs = Number(descriptor.startMs ?? 0);
+
       if (!(startMs >= 0) || !Number.isFinite(startMs)) {
         throw new TypeError(`comboFields entry ${index + 1} requires a non-negative startMs.`);
       }
 
       const startAnchor = descriptor.startAnchor ?? 'castStart';
+
       if (!['castStart', 'castEnd', 'event'].includes(String(startAnchor))) {
         throw new TypeError(`comboFields entry ${index + 1} has an invalid startAnchor.`);
       }
@@ -62,11 +66,13 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
     value.map((raw, index) => {
       const descriptor = requireComboDescriptorOwner(raw, `comboFinishers entry ${index + 1}`);
       const chance = Number(descriptor.chance ?? 1);
+
       if (!Number.isFinite(chance)) {
         throw new TypeError(`comboFinishers entry ${index + 1} requires a finite chance.`);
       }
 
       const effectDelay = Number(descriptor.effectDelay ?? 0);
+
       if (descriptor.excludeOwnField != null && typeof descriptor.excludeOwnField !== 'boolean') {
         throw new TypeError(`comboFinishers entry ${index + 1} excludeOwnField must be a boolean.`);
       }

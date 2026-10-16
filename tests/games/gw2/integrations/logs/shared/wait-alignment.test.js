@@ -108,6 +108,7 @@ test('player gaps do not join an inferred companion cast with a different boon s
     const starts = [];
     while (cursor.command) {
       const command = cursor.command;
+
       if (command.type === 'wait') {
         now = cursor.requestAt(now) + command.durationMs / 1000;
         cursor.acceptWait(now);
@@ -117,7 +118,9 @@ test('player gaps do not join an inferred companion cast with a different boon s
       const skill = command.skillId === companion.id ? companion : player;
       now = cursor.requestAt(now, skill);
       const end = now + (skill === companion ? companionDuration : 0.4);
+
       if (skill === player) starts.push(now);
+
       cursor.acceptCast(skill, command, now, end, end);
     }
 
@@ -165,6 +168,7 @@ test('player gaps beside an overlappable companion command stay editable waits',
     const starts = [];
     while (cursor.command) {
       const command = cursor.command;
+
       if (command.type === 'wait') {
         now = cursor.requestAt(now) + command.durationMs / 1000;
         cursor.acceptWait(now);
@@ -174,7 +178,9 @@ test('player gaps beside an overlappable companion command stay editable waits',
       const skill = command.skillId === companion.id ? companion : player;
       now = cursor.requestAt(now, skill);
       const end = now + (skill === companion ? companionDuration : 0.4);
+
       if (skill === player) starts.push(now);
+
       cursor.acceptCast(skill, command, now, end, end);
     }
 

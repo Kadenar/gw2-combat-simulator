@@ -162,6 +162,7 @@ test('Quickfire grants selected charges to self or the eligible ally', async () 
       cause: { skillName: 'Quickness source', resolvedAudience: { alliedPlayerCount } }
     });
     assert.equal(announcements[0].announcement.detail, '+3 Ashes of the Just');
+
     if (alliedPlayerCount) {
       assert.equal(recipients[0][0].charges, 3);
       assert.equal(recipients[0][0].expiresAt, 6);

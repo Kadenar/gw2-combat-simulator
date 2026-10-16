@@ -24,7 +24,9 @@ export function selectedDodge(runtime: MechanicQueriesOf<RevenantRuntime>): Reve
 export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, origin: number): void {
   const profile = selectedDodge(runtime);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
+
   if (!profile || !effect) return;
+
   const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
   runtime.schedule(VINDICATOR_LANDING_TASK, canonicalTime(origin + Math.max(0, offset || 0) / 1000), {
     origin,

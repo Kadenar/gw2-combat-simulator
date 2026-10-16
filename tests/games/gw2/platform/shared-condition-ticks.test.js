@@ -43,6 +43,7 @@ test('samples and strikes see cooldown resets, checkpoint restoration, and swaps
           modifyAttributes(context, attributes) {
             const cooldown = context.timeline.skillOnCooldownAt(1, context.time);
             const weaponSet = context.timeline.activeWeaponSetAt(context.time);
+
             if ([1, 2].includes(context.time)) {
               seen.push([context.time, context.event.type, cooldown, weaponSet]);
             }
@@ -140,6 +141,7 @@ test('condition attribute samples share a packet batch and refresh with each obs
         query: {
           statsAt: (at, event) => {
             if (at > 0) samples.push({ at, source: event.sourceId, weight: event.stacks });
+
             return { power: 1000, conditionDamage: at * 100 + (event.sourceId === 'pet' ? 500 : 0) };
           }
         }
@@ -201,7 +203,9 @@ for (const name of CANONICAL_TARGET_CONDITIONS) {
         { output }
       );
       assert.equal(bundled.conditionDamage, explicit.conditionDamage);
+
       if (isDamagingCondition(name)) assert.ok(bundled.conditionDamage > 0);
+
       const limit = conditionStackLimit(name) ?? Infinity;
       assert.deepEqual(observed, [
         [1, Math.min(1, limit), 1],
@@ -441,6 +445,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
     // Transient conditions affect intervening strikes, but have expired before Bleeding samples at 1s.
     assert.deepEqual([...bleeding], [[1000, 1]]);
     assert.ok(result.conditionDamage > 0);
+
     if (output === 'detailed') {
       for (const name of statuses) {
         const application = applications(result).find((event) => event.condition === name);
@@ -507,6 +512,7 @@ test('condition buffering shares Vulnerability once per pass and refreshes it on
       },
       conditionMultiplier: (_name, at, _application, _runtime, sample) => {
         if (samples.has(at)) assert.equal(samples.get(at), sample);
+
         samples.set(at, sample);
         return 1 + sample.vulnerabilityStacks / 100;
       }
@@ -608,6 +614,7 @@ test('same-owner conditions sum across skills before one half-even rounding in b
       { output }
     );
     assert.equal(result.conditionDamage, 59);
+
     if (output === 'detailed') {
       assert.deepEqual(
         applications(result).map(({ damage }) => damage),
@@ -632,6 +639,7 @@ test('same-owner conditions sum across skills before one half-even rounding in b
     );
     assert.equal(tiny.conditionDamage, 3);
     assert.equal(resolve([condition(0, { stacks: 2 })], { output }).conditionDamage, 59);
+
     if (output === 'detailed')
       assert.deepEqual(
         applications(tiny).map(({ damage }) => damage),
@@ -649,6 +657,7 @@ test('different expiry remainders join one half-even rounding at payout', () => 
     const result = resolve(events, { ...options, end: 1 });
     // 0.35 + 0.4 rounds to 1; rounding either expired application separately would produce zero.
     assert.equal(result.conditionDamage, 1);
+
     if (output === 'detailed')
       assert.deepEqual(
         applications(result).map(({ damage }) => damage),
@@ -679,6 +688,7 @@ test('buffered decimal rates preserve half-even rounding across shared applicati
         );
         assert.equal(result.conditionDamage, damage);
         assert.equal(result.deathTime, deathTime);
+
         if (output === 'detailed') {
           assert.equal(
             applications(result).reduce((sum, application) => sum + application.damage, 0),
@@ -948,6 +958,7 @@ test('same-time strikes query health after payout with strict below-threshold eq
         query: {
           statsAt: (_at, event, ctx) => {
             if (event.type === 'damage') health.push(remainingTargetHealthFraction(ctx.config, ctx));
+
             return { power: 1000, conditionDamage: 125 };
           }
         }
@@ -1053,6 +1064,7 @@ test('a delayed burn preserves full lifetime damage including fractional interva
       query: { statsAt: () => ({ conditionDamage: 0 }), conditionMultiplier: () => 100 / 131 }
     });
     assert.equal(result.conditionDamage, 200);
+
     if (output === 'detailed') {
       const [burn] = applications(result);
       assert.equal(burn.naturalExpiresAt, 2.96);
@@ -1071,6 +1083,7 @@ test('summons share player packet rounding while retaining source-specific damag
         { output }
       );
       assert.equal(result.conditionDamage, 59);
+
       if (output === 'detailed')
         assert.deepEqual(
           applications(result).map(({ damage }) => damage),
@@ -1155,6 +1168,7 @@ test('all owners sample a whole-second boundary before any condition packet chan
       query: {
         conditionMultiplier: (_condition, at, _application, ctx) => {
           if (at === 1) sampledTotals.push(ctx.totals.condition);
+
           return ctx.totals.condition === 0 ? 1 : 2;
         }
       },

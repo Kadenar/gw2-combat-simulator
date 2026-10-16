@@ -80,7 +80,9 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const remaining = (state.berserkUntil || 0) - warriorSnapshotAt(context);
+
     if (!state.berserkActive || remaining <= 0) return [];
+
     const items: RotationStateSnapshotItem[] = [
       {
         id: 'berserk',

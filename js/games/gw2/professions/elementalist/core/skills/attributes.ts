@@ -14,6 +14,7 @@ export const elementalistSkillAttributes: Gw2AttributeContributionCalculator = (
         ? PROFILE.lightningHammer
         : null;
   const effects = [];
+
   if (profileId) {
     const profile = requireBalanceProfileFromContext(context, profileId);
     effects.push(

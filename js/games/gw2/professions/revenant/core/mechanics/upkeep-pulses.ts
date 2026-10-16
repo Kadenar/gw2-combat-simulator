@@ -27,6 +27,7 @@ export function scheduleRevenantUpkeepPulses(runtime: RevenantRuntime, cast: Run
       : VENGEFUL_HAMMERS_IDS.has(skill.id)
         ? runtime.time + Math.max(0, skill.pulseInterval ?? 1)
         : null;
+
   if (first != null)
     runtime.schedule(
       REVENANT_UPKEEP_PULSE,
@@ -41,12 +42,15 @@ export function revenantUpkeepPulse(runtime: RevenantRuntime, data: unknown): vo
   const { skillId, startsAt } = data as UpkeepPulse;
   const active = activeRevenantUpkeep(runtime, skillId, startsAt);
   const skill = runtime.helpers.skillsById.get(skillId);
+
   if (!active || !skill) return;
+
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
     embracePulse(runtime, skill, runtime.time, active.empoweredNextPulse);
     active.empoweredNextPulse = false;
   } else if (VENGEFUL_HAMMERS_IDS.has(skill.id)) hammerPulse(runtime, skill, runtime.time);
   else return;
+
   runtime.schedule(
     REVENANT_UPKEEP_PULSE,
     canonicalTime(runtime.time + Math.max(0, skill.pulseInterval ?? 1)),

@@ -192,7 +192,9 @@ export const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, Gu
   'guardian.place-ignition'(runtime) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
     const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
+
     if (!field) return;
+
     runtime.profession.core.symbolIgnitionStartsAt = runtime.time;
     runtime.profession.core.symbolIgnitionUntil = canonicalTime(
       runtime.time + effectNumber(profile, field, 'duration')
@@ -205,7 +207,9 @@ export const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, Gu
 export function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const symbolOfIgnitionProfile = requireBalanceProfileFromContext(context, PROFILE.symbolOfIgnition);
   const burning = requireEffect(symbolOfIgnitionProfile, 'condition', 'Burning');
+
   if (!burning) return;
+
   const burningBolt =
     event.type === 'condition' &&
     event.condition === 'Burning' &&
@@ -213,6 +217,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
     event.fieldType === 'Fire' &&
     event.finisherType === 'Whirl';
   const torchPulse = event.type === 'condition' && event.condition === 'Burning' && event.skillId === ID.ZEALOTS_FLAME;
+
   if (
     !isGw2PlayerActorEvent(event) ||
     !((event.type === 'damage' && (event.coefficient || 0) > 0) || burningBolt || torchPulse) ||
@@ -223,6 +228,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
 
   // Ignition reads the live Core window through the shared state accessor.
   const state = professionCoreState(context);
+
   if (
     (state.symbolIgnitionUntil || 0) <= (state.symbolIgnitionStartsAt || 0) ||
     event.at < (state.symbolIgnitionStartsAt || 0) ||
@@ -233,8 +239,10 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
 
   const projectile = event.projectile === true || burningBolt;
   const cooldownKey = projectile ? 'guardian.core.symbolProjectileIgnition' : 'guardian.core.symbolIgnition';
+
   // Match gw2combat's end-of-tick cooldown removal: the deadline itself is still blocked.
   if (!context.procs.claim(PROFILE.symbolOfIgnition, cooldownKey, event.at)) return;
+
   context.effects.emit({
     kind: 'packet',
     event: buildResolverCondition({

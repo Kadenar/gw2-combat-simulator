@@ -174,6 +174,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   t.after(() => {
     if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
     else delete globalThis.document;
+
     if (storageDescriptor) Object.defineProperty(globalThis, 'localStorage', storageDescriptor);
     else delete globalThis.localStorage;
   });
@@ -559,7 +560,9 @@ test('baseline runner recovers after Worker construction fails', (t) => {
   class RecoveringWorker {
     constructor() {
       attempts += 1;
+
       if (attempts === 1) throw new DOMException('Worker blocked.', 'SecurityError');
+
       this.listeners = new Map();
       this.messages = [];
       workers.push(this);

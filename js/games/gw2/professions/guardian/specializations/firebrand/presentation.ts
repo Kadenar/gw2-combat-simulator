@@ -40,6 +40,7 @@ function firebrandEventLogRow(
     ].some((id) => id === event.skillId)
   )
     return undefined;
+
   return {
     type: event.type,
     description: event.skillId === GUARDIAN_SKILL_IDS.STOW_TOME ? 'TOME STOWED' : 'TOME EQUIPPED ' + event.skillName,
@@ -66,6 +67,7 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const pages = state.tomePages;
+
   if (pages && pages.interval > 0 && Number.isFinite(pages.nextAt) && pages.nextAt > at) {
     const remaining = formatSecondsRemaining(pages.nextAt - at);
     const full = pages.value >= pages.maximum;
@@ -119,6 +121,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
     eventLogRow: firebrandEventLogRow,
     timelineWeaponLineTransition: (context: GuardianUiContext) => {
       const skill = context.skill;
+
       if (/^Tome of (Justice|Resolve|Courage)$/.test(skill?.name || '')) {
         // Returning undefined means "no transition" (already in this tome);
         // returning the skill name triggers the timeline lane switch.

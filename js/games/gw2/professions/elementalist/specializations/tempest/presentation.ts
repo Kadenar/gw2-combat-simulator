@@ -13,6 +13,7 @@ import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '#gw2/professions/elementalist/d
 function tempestStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const items: RotationStateSnapshotItem[] = [];
   const transcendent = planningBuffAt(context.planningState, 'transcendent-tempest');
+
   if (transcendent) {
     items.push({
       id: 'transcendent-tempest',
@@ -23,7 +24,9 @@ function tempestStateSnapshot(context: ElementalistUiContext): RotationStateSnap
 
   // Read the refreshed engine deadline instead of replaying trait announcements.
   const aria = planningBuffAt(context.planningState, 'tempestuous aria');
+
   if (aria) items.push({ id: 'tempestuous-aria', label: 'Tempestuous Aria', value: aria.remaining.toFixed(1) + 's' });
+
   return items;
 }
 

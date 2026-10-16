@@ -45,6 +45,7 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
           },
           initialize(runtime) {
             if (scenario === 'cooldown') runtime.cooldownController.setReadyAt(ID.LESSER_CHAOS_STORM, 100);
+
             // Hide only the announcement's event-log row; gameplay packets still use the real service.
             if (suppress) {
               const effects = runtime.effects;
@@ -77,7 +78,9 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
       suppressed.events.some((event) => event.type === 'proc' && event.sourceId === TRAIT.METHOD_OF_MADNESS),
       false
     );
+
     if (waves.length) assert.equal(Math.round(waves[0].at * 1000), suppressed.steps[0].end);
+
     assert.equal(suppressed.totalDamage, normal.totalDamage);
     assert.equal(run(true, 'score').totalDamage, normal.totalDamage);
   }

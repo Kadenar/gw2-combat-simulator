@@ -194,6 +194,7 @@ const chillingVictory = defineTrait({
         runtime.combat.targetHasCondition('Chilled', runtime.time),
       run(runtime) {
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.CHILLING_VICTORY);
+
         if (
           runtime.procs.claimCooldown(
             'necromancer.reaper.chillingVictory',
@@ -357,6 +358,7 @@ function completeChillingNova(context: NecromancerResolverContext, event: Necrom
   if (event.actorType === 'effect' && event.sourceId === TRAIT.CHILLING_NOVA) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA);
     const chill = requireEffect(profile, 'condition', 'Chilled');
+
     if (chill) queueChillingNovaChill(context, event);
   }
 }
@@ -365,6 +367,7 @@ function completeChillingNova(context: NecromancerResolverContext, event: Necrom
 function applyDeathlyChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.DEATHLY_CHILL);
   const effect = requireEffect(profile, 'condition', 'Bleeding');
+
   if (effect) {
     // Trait payloads and their timeline annotation share the same emission boundary.
     emitTraitProfile(context, TRAIT.DEATHLY_CHILL, TRAIT.DEATHLY_CHILL, undefined, {
@@ -393,7 +396,9 @@ function applyDeathlyChill(context: NecromancerResolverContext, event: Necromanc
 function applyShiversOfDread(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.SHIVERS_OF_DREAD);
   const chill = requireEffect(profile, 'condition', 'Chilled');
+
   if (!chill) return;
+
   emitTraitProfile(context, TRAIT.SHIVERS_OF_DREAD, TRAIT.SHIVERS_OF_DREAD, undefined, {
     at: event.at,
     fullEnd: event.at,

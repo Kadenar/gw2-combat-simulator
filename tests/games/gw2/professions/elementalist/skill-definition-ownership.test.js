@@ -69,6 +69,7 @@ test('aura consumption and Arcane Echo arming belong to successful skill commitm
       assert.deepEqual(result.warnings, [], `${skill.name}: ${mode}`);
       const core = observedRuntime(result).profession.core;
       const committed = mode === 'full' || mode === 'committed';
+
       if (aura)
         assert.deepEqual(
           core.activeAuras.map((entry) => entry.type),
@@ -112,6 +113,7 @@ test('Frigid Flurry declares independent projectile attempts only on surviving p
     assert.deepEqual(result.warnings, []);
     const strikes = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skill.id);
     const attempts = result.events.filter((event) => event.type === 'combo_finisher' && event.skillId === skill.id);
+
     if (mode === 'removed' || mode === 'cancelled') assert.equal(attempts.length, 0);
     else {
       assert.equal(attempts.length, strikes.length);
@@ -145,11 +147,13 @@ test('ordinary spear snapshots retire at completion while prepared delayed strik
       );
       assert.deepEqual(result.warnings, []);
       const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
+
       if (!cancelled && skillId === ID.BLAZING_BARRAGE) {
         assert.ok(strikes.length > 0);
         assert.ok(strikes.every((event) => event.at > 1 && event.coefficient === 2.6 * 1.2 && event.forceCrit));
         assert.equal(result.events.filter((event) => event.type === 'control' && event.skillId === skillId).length, 1);
       } else assert.deepEqual(strikes, []);
+
       assert.deepEqual(observedRuntime(result).profession.core.spearFollowups, {});
     }
   }
@@ -256,11 +260,13 @@ test('Fulgor replaces only its extra stream on commitment and retains targeting 
       (event) => event.type === 'damage' && event.skillId === ID.FULGOR && event.actorType === 'effect'
     );
     const priorTail = extra.filter((event) => event.activationId === first.activationId && event.at > second.endsAt);
+
     if (mode === 'removed') assert.deepEqual(extra, []);
     else {
       assert.ok(extra.length > 0);
       assert.equal(priorTail.length > 0, mode === 'cancelled');
       assert.ok(extra.every((event) => event.canCrit === false && event.ownerActorType === 'player'));
+
       if (mode === 'full') {
         const replaced = extra.filter((event) => event.activationId === second.activationId);
         assert.ok(replaced.length > 0);
@@ -437,6 +443,7 @@ test('all Primordial Stance declarations own their dynamic pulse stream without 
       const packets = result.events.filter(
         (event) => event.skillId === id && ['damage', 'condition'].includes(event.type)
       );
+
       if (removed) assert.deepEqual(packets, []);
       else {
         const hits = packets.filter((event) => event.type === 'damage');
@@ -489,6 +496,7 @@ test('Elemental Procession replays only surviving familiar payloads without fami
     const replay = result.events.filter(
       (event) => ['damage', 'condition', 'control'].includes(event.type) && event.triggeredBy === 'Elemental Procession'
     );
+
     if (mode === 'removed' || mode === 'cancelled') assert.deepEqual(replay, []);
     else {
       assert.equal(
@@ -552,6 +560,7 @@ test('Core pistol declarations use completion-time bullets and preserve the load
           core.pistolBullets[skill.attunement],
           mode === 'full' ? id === ID.AERIAL_AGILITY || !loaded : loaded
         );
+
         if (id === ID.DAZING_DISCHARGE) assert.equal(core.dazingDischargeUntil > 0, loaded && mode === 'full');
       }
   }
@@ -592,6 +601,7 @@ test('every Weaver pistol declaration consumes matching bullets or loads the liv
         const bullets = observedRuntime(result).profession.core.pistolBullets;
         assert.equal(bullets[first], removed && loaded.includes(first));
         assert.equal(bullets[second], removed ? loaded.includes(second) : loaded.length === 0);
+
         if (skill.id === ID.FLOWING_FINESSE)
           assert.equal(
             result.resolvedEvents.some((event) => event.type === 'buff' && event.kind === 'superspeed'),
@@ -657,6 +667,7 @@ test('etching declarations open their window and release only their own state af
       );
       assert.deepEqual(result.warnings, []);
       const progress = observedRuntime(result).profession.core.etchings[chain.etching];
+
       if (mode === 'full') {
         assert.equal(progress.stage, 'full');
         assert.equal(progress.otherCasts, 3);
@@ -809,7 +820,9 @@ test('sphere declarations spend once and derive live windows from their fields b
       );
       assert.equal(spent.length, mode === 'removed' ? 0 : 1);
       assert.equal(state.sphereActiveUntil > 0, mode === 'full');
+
       if (mode !== 'removed') assert.equal(spent[0].value, 30 + spent[0].change);
+
       assert.equal(
         state.catalystEnergy.value,
         30 +
@@ -817,8 +830,10 @@ test('sphere declarations spend once and derive live windows from their fields b
             .filter((event) => event.type === 'resource' && event.kind === 'catalyst-energy')
             .reduce((total, event) => total + event.change, 0)
       );
+
       // Without a field, accepted strikes can immediately earn energy again.
       if (mode === 'field-removed') assert.ok(state.catalystEnergy.value > spent[0].value);
+
       assert.ok(
         result.resolvedEvents.some(
           (event) => event.type === 'buff' && event.kind === 'quickness' && event.audience?.recipients === 'party'
@@ -911,14 +926,18 @@ test('meditation declarations own their live-element bonuses and refill before A
         assert.deepEqual(result.warnings, []);
         const state = observedRuntime(result).profession.specialization.state;
         const buffs = result.resolvedEvents.filter((event) => event.type === 'buff');
+
         if (id === ID.REJUVENATE)
           assert.equal(state.familiarCharges.value, removed ? 2 : state.familiarCharges.maximum);
+
         if (id === ID.HARES_AGILITY) assert.equal(state.electricEnchantmentGrants.length > 0, !removed);
+
         if (id === ID.TOADS_FORTITUDE)
           assert.equal(
             buffs.some((event) => event.kind === 'resistance'),
             !removed && element === 'Earth'
           );
+
         if (id === ID.FOXS_FURY) {
           // Both grants target the party; removing the intrinsic reward leaves the trait's grant intact.
           const partyMight = buffs.filter((event) => event.kind === 'might' && event.audience?.recipients === 'party');
@@ -930,6 +949,7 @@ test('meditation declarations own their live-element bonuses and refill before A
         const traitBoon = { [ID.FOXS_FURY]: 'might', [ID.HARES_AGILITY]: 'fury', [ID.TOADS_FORTITUDE]: 'stability' }[
           id
         ];
+
         if (traitBoon)
           assert.ok(
             buffs.some(

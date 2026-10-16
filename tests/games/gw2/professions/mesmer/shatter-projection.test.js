@@ -125,6 +125,7 @@ test('Bladesong Confusion tooltips follow selected packet cadence rather than bl
     assert.equal(fact.stacks, stacks);
     assert.equal(confusion.length, applications);
     assert.ok(confusion.every((event) => event.stacks === stacks));
+
     if (patchId === 'shatter-projection') {
       assert.deepEqual(
         events.filter(({ type }) => type === 'damage').map(({ coefficient }) => coefficient),

@@ -41,6 +41,7 @@ export function availableSlotSkills(app: ProfessionAppState, type: string): Skil
 
     // Collapse authored attunement variants while retaining distinct skills with identical labels.
     const loadoutId = skill.paletteTileId ?? skill.id;
+
     if (!byLoadoutId.has(loadoutId)) byLoadoutId.set(loadoutId, skill);
   }
 
@@ -60,13 +61,17 @@ export function swapSelectedSkillsForPatch(
 ): void {
   for (const [slot, id] of Object.entries(app.build.selectedSkillIds)) {
     if (id == null) continue;
+
     const previous = app.activeCatalog.skillsById.get(id);
     const next = nextCatalog.skillsById.get(id);
+
     if (!previous || !next || previous.type === next.type) continue;
+
     const replacements = nextCatalog.skills.filter(
       (candidate) =>
         samePlacement(candidate, previous) && samePlacement(app.activeCatalog.skillsById.get(candidate.id), next)
     );
+
     // Only an unambiguous reciprocal swap identifies the intended replacement.
     if (replacements.length === 1) app.build.selectedSkillIds[slot] = replacements[0]!.id;
   }
@@ -74,6 +79,7 @@ export function swapSelectedSkillsForPatch(
 
 export function normalizeSelectedSkills(app: ProfessionAppState): void {
   const spec = app.adapter.eliteSpecialization(app.build);
+
   if (app.adapter.slotLoadout) {
     Object.assign(
       app.build,
@@ -97,6 +103,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
   const selected = new Set<SkillId | null>();
   for (const [slot, type] of Object.entries(slotTypes)) {
     if (app.build.selectedSkillIds[slot] === null) continue;
+
     const current = app.skillById.get(app.build.selectedSkillIds[slot]!);
     const allowed =
       current &&
@@ -108,6 +115,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
         build: app.build,
         specialization: spec
       });
+
     if (!allowed) {
       app.build.selectedSkillIds[slot] =
         app.skills.find(

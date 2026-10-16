@@ -46,9 +46,12 @@ import type {
 // zero-length values grant nothing.
 function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!skill.aura) return;
+
   const [element, rawDuration] = String(skill.aura).split('|');
   const duration = Number(rawDuration || 0);
+
   if (!element || !(duration > 0)) return;
+
   applyElementalistAura(context, {
     at: cast.effectiveEnd,
     aura: `${element} Aura`,
@@ -85,6 +88,7 @@ export function elementalistOnCastCommit(
 ): void {
   // Core commits exactly one registered attunement transition for the active specialization.
   const target = targetAttunement(skill);
+
   if (target) {
     completeElementalistAttunement(context, cast);
     // Elementalist spear etchings count attunement swaps among the three
@@ -95,8 +99,10 @@ export function elementalistOnCastCommit(
 
   completeElementalistSpearProgression(context, skill);
   shareAttunementVariantRecharge(context, skill);
+
   // The runtime has already paid the committed dodge's declared endurance cost.
   if (Number(skill.id) === SHARED_SKILL_IDS.DODGE) context.fireTrigger(elementalistDodgeCompleted, { cast });
+
   completeArcaneEcho(context, cast, skill);
   // Cross-skill traits observe the state settled by the skill declarations and shared observers.
   context.fireTrigger(elementalistCastCompleted, { cast });
@@ -110,22 +116,27 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
   ...pistolSideEffectHandlers,
   'elementalist.capture-conjure-pickup'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Conjure pickup requires a cast trigger.');
+
     captureConjurePickup(context, trigger.cast);
   },
   'elementalist.equip-conjure'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Conjures require a cast trigger.');
+
     equipConjure(context, trigger.cast, trigger.skill);
   },
   'elementalist.drop-conjure'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dropping a conjure requires a cast trigger.');
+
     dropConjure(context, trigger.cast, trigger.skill);
   },
   'elementalist.pick-up-conjure'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Conjure pickup requires a cast trigger.');
+
     pickUpConjure(context, trigger.cast, trigger.skill);
   },
   'elementalist.create-hammer-orbs'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Hammer orbs require a cast trigger.');
+
     createHammerOrbs(
       context,
       trigger.cast,
@@ -139,18 +150,22 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.consume-hammer-orbs'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Grand Finale requires a cast trigger.');
+
     consumeHammerOrbs(context, trigger.cast);
   },
   'elementalist.open-etching'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Etchings require a cast trigger.');
+
     openElementalistEtching(context, trigger.skill);
   },
   'elementalist.consume-etching'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Etchings require a cast trigger.');
+
     consumeElementalistEtching(context, trigger.skill);
   },
   'elementalist.transmute-aura'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Aura transmutation requires a cast trigger.');
+
     const aura = AURA_TRANSMUTE_SKILLS[Number(trigger.skill.id)];
     const state = professionCoreState(context);
     state.activeAuras = state.activeAuras.filter(
@@ -159,18 +174,22 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.arm-arcane-echo'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Arcane Echo requires a cast trigger.');
+
     armArcaneEcho(context, trigger.cast);
   },
   'elementalist.summon-elemental'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Elemental summoning requires a cast trigger.');
+
     completeElementalistGlyphCast(context, trigger.cast, trigger.skill);
   },
   'elementalist.command-elemental'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Elemental commands require a cast trigger.');
+
     completeElementalistElementalCommand(context, trigger.cast, trigger.skill);
   },
   'elementalist.replace-fulgor'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Fulgor requires a cast trigger.');
+
     replaceFulgor(context, trigger.cast);
   }
 };

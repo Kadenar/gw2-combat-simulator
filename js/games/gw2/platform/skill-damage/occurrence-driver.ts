@@ -57,12 +57,17 @@ export function createDamageExecution<T extends object>(
       cursor: new RotationCursor([]),
       advance({ runtime, acceptCast }) {
         if (started) return Infinity;
+
         started = true;
+
         if (options.skillId != null) {
           const skill = profession.catalog.skillsById.get(options.skillId);
+
           if (!skill) throw new TypeError(`Unknown damage skill ${options.skillId}.`);
+
           acceptCast(skill, { type: 'cast', skillId: skill.id, ...options.cast });
         } else options.emit?.(runtime);
+
         return 'handled';
       }
     }

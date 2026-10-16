@@ -266,6 +266,7 @@ function grantBrawlersTenacity(runtime: ThiefRuntime, { context }: PhysicalSkill
 /** Applies Endurance Thief at its established mechanical boundary. */
 function grantEnduranceThief(runtime: ThiefRuntime): void {
   const enduranceGain = balanceNumberFromContext(runtime, TRAIT.ENDURANCE_THIEF, 'resourceGain');
+
   if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
 }
 
@@ -273,8 +274,10 @@ function grantEnduranceThief(runtime: ThiefRuntime): void {
 function refundStaffMaster(runtime: ThiefRuntime, { cast }: DaredevilCast): void {
   const skill = cast.skill;
   const cost = skill.initiativeCost || 0;
+
   if (cost > 0 && skill.weapon === 'Staff') {
     const enduranceGain = cost * balanceNumberFromContext(runtime, TRAIT.STAFF_MASTER, 'resourceGain');
+
     if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
   }
 }
@@ -285,8 +288,10 @@ function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): vo
   const skill = cast.skill;
 
   const weakening = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);
+
   // A removed Weakness cannot arm a pending grant.
   if (!requireEffect(weakening, 'condition', 'Weakness')) return;
+
   const duration = balanceProfileNumber(weakening, 'durationMultiplier');
   state.weakeningStrikeReady = true;
   state.weakeningStrikeExpiresAt = runtime.time + duration;
@@ -306,6 +311,7 @@ function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): vo
 /** The armed grant is consumed by the next landed player strike, never by a cast or condition tick. */
 function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrike): void {
   const state = daredevilState.from(runtime);
+
   if (
     !state.weakeningStrikeReady ||
     state.weakeningStrikeExpiresAt <= event.at ||
@@ -314,11 +320,14 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
     event.skillId === SHARED_SKILL_IDS.DODGE
   )
     return;
+
   state.weakeningStrikeReady = false;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
+
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!weakness) return;
+
   emitTraitProfile(runtime, TRAIT.WEAKENING_STRIKES, TRAIT.WEAKENING_STRIKES, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -344,7 +353,9 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
 function openDodgeWindow(runtime: ThiefRuntime): void {
   const state = daredevilState.from(runtime);
   const profile = selectedDodgeProfile(runtime);
+
   if (!profile) return;
+
   if (state.selectedDodge === 'Bounding Dodger')
     replaceThiefBuff(
       runtime,
@@ -354,6 +365,7 @@ function openDodgeWindow(runtime: ThiefRuntime): void {
       'Bounding Dodger',
       'Trait'
     );
+
   if (state.selectedDodge === 'Lotus Training')
     replaceThiefBuff(
       runtime,

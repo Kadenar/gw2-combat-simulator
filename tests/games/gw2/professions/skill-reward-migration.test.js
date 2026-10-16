@@ -77,6 +77,7 @@ test('Cannon variants retain accepted outcomes, live profile timing, and cancell
       {
         initialize(runtime) {
           if (recharging) runtime.cooldownController.setReadyAt(THIEF.STONE_SUMMIT_CANNON, 15);
+
           runtime.profession.specialization.state.scoundrelsLuck = luck;
         },
         catalog: (catalog) =>
@@ -173,6 +174,7 @@ test('Mind the Gap applies its authored Clarity duration and respects effect rem
     assert.equal(result.planningState.profession.clarityRemaining, removed || cancelled ? 0 : 1000);
     const proc = result.events.find((event) => event.type === 'proc' && event.name === 'Clarity');
     assert.equal(Boolean(proc), !removed && !cancelled);
+
     if (proc) assert.equal(proc.detail, 'Spear skills 3-5 empowered for 2s');
   }
 });
@@ -271,6 +273,7 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
           targets = runtime.helpers.skills.filter((skill) => skill.type === 'Weapon' && skill.cooldown > 0);
           for (const skill of targets) {
             runtime.cooldownController.startRecharge(skill, 0, 50);
+
             if (skill.ammo > 0) {
               runtime.cooldownController.ensureAmmo(skill);
               runtime.cooldownController.readAmmo(skill.id).charges = 0;
@@ -331,6 +334,7 @@ test('Ether Clone uses a live condition profile at the clone cap and grants noth
       (event) => event.type === 'condition' && event.skillId === MESMER.ETHER_CLONE
     );
     assert.equal(conditions.length, removed || offTarget ? 0 : 1);
+
     if (conditions.length) {
       assert.equal(conditions[0].duration, 2);
       assert.equal(conditions[0].stacks, 2);

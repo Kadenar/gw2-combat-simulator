@@ -257,7 +257,9 @@ export const traitDefinitions = [
 /** Applies the trait at the mechanic's existing execution boundary. */
 function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasActive: boolean): void {
   const core = runtime.profession.core;
+
   if (!wasActive) return;
+
   const state = heraldState.from(runtime);
   const expiresAt = canonicalTime(
     runtime.time + balanceNumberFromContext(runtime, HERALD_DRACONIC_ECHO_PROFILE_ID, 'duration')
@@ -265,13 +267,16 @@ function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasA
   // Retention preserves the pulse phase, but never keeps an Energy-draining upkeep alive.
   state.lingeringFacets[facet.id] = { startsAt: runtime.time, expiresAt, legendId: core.activeLegendId };
   const nextAt = state.facetPulseReadyAt[facet.id];
+
   if (facet.upkeepPulse && nextAt >= runtime.time && nextAt < expiresAt) scheduleFacetPulse(runtime, facet.id, nextAt);
+
   runtime.schedule(ECHO_EXPIRY, expiresAt, { skillId: facet.id, expiresAt });
 }
 
 function echoExpiry(runtime: RevenantRuntime, data: unknown): void {
   const { skillId, expiresAt } = data as { skillId: SkillId; expiresAt: number };
   const state = heraldState.from(runtime);
+
   if (state.lingeringFacets[skillId]?.expiresAt === expiresAt) delete state.lingeringFacets[skillId];
 }
 
@@ -294,8 +299,10 @@ function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
 function grantCompassion(runtime: RevenantRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID);
   const effect = requireEffect(profile, 'boon', 'quickness');
+
   // The cooldown gates only quickness, so a removed boon leaves the pulse ready.
   if (!effect) return;
+
   emitTraitProfile(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID, HERALD_ELEVATED_COMPASSION_PROFILE_ID, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
@@ -324,13 +331,16 @@ function scheduleCompassion(runtime: RevenantRuntime, at: number): void {
 /** Upkeep-changing casts start the one Elevated Compassion cadence; falling below threshold ends it lazily. */
 function syncCompassion(runtime: RevenantRuntime): void {
   const state = heraldState.from(runtime);
+
   if (!elevatedCompassionActive(runtime)) {
     state.elevatedCompassionPulseAt = null;
     return;
   }
 
   if (state.elevatedCompassionPulseAt != null && state.elevatedCompassionPulseAt >= runtime.time) return;
+
   const readyAt = Math.max(runtime.time, runtime.procs.deadline('revenant.herald.elevatedCompassion') || 0);
+
   if (readyAt <= runtime.time) {
     grantCompassion(runtime);
     scheduleCompassion(runtime, runtime.procs.deadline('revenant.herald.elevatedCompassion'));
@@ -339,7 +349,9 @@ function syncCompassion(runtime: RevenantRuntime): void {
 
 function compassionPulse(runtime: RevenantRuntime): void {
   const state = heraldState.from(runtime);
+
   if (state.elevatedCompassionPulseAt !== runtime.time) return;
+
   if (!elevatedCompassionActive(runtime)) {
     state.elevatedCompassionPulseAt = null;
     return;

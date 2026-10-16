@@ -12,6 +12,7 @@ const SHATTERING_ICE_PACKET = 'elementalist.catalyst.shattering-ice';
 /** Accepted Shattering Ice applications rearm its first proc and tick-aligned window. */
 export function applyShatteringIce(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();
+
   if (kind === 'shattering ice' && event.resolvedAudience?.includesSelf) {
     const state = catalystState.from(context);
     state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, event.duration || 0));
@@ -29,6 +30,7 @@ export function applyShatteringIce(context: MechanicCombatContext, event: Gw2Res
  */
 export function applyCatalystResolvedDamage(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const state = catalystState.from(context);
+
   if (
     (event.actorType !== 'player' && event.actorType !== 'effect') ||
     event.metadata?.packetKind === SHATTERING_ICE_PACKET ||
@@ -42,6 +44,7 @@ export function applyCatalystResolvedDamage(context: MechanicCombatContext, even
   const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
   const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
   const chilled = requireEffect(shatteringIceProfile, 'condition', 'Chilled');
+
   if (strike) {
     context.effects.emit({
       kind: 'packet',

@@ -19,7 +19,9 @@ export function analyzeNecromancerBarbedPrecisionObservation(
   config: Gw2Config
 ): CriticalBleedingProcObservation | null {
   if (!hasSelectedTrait(config, TRAIT.BARBED_PRECISION)) return null;
+
   const attributes = [...observationAttributeSets(config, catalog, necromancerProfession.attributeContributions)];
+
   // Sand Sage adds expertise only while a shade is active; retain both states for log duration inference.
   if (hasSelectedTrait(config, TRAIT.SAND_SAGE)) {
     const bonus = balanceNumberFromContext({ catalog }, TRAIT.SAND_SAGE, 'attributeBonus');

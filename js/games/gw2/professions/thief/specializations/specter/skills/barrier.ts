@@ -27,8 +27,10 @@ export function grantBarrier(
     balanceProfileNumber(profile, 'maximumTargets'),
     gw2AlliedPlayerAssumptions(runtime.config).count + Number(affectsSelf)
   );
+
   // Barrier removal also suppresses the barrier-triggered Dark Sentry reaction.
   if (!barrier || recipients <= 0) return;
+
   runtime.effects.emit({
     kind: 'packet',
     event: buildThiefBuff(null, {

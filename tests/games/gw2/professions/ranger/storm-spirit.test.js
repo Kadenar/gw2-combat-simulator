@@ -94,6 +94,7 @@ test('Call Lightning tuning controls Storm Spirit and its trait repeat in detail
                 ...native.reactions,
                 'damage.resolved'(runtime, event, details) {
                   native.reactions['damage.resolved']?.(runtime, event, details);
+
                   if (event.skillId === ID.CALL_LIGHTNING) coefficients.push(event.coefficient);
                 }
               }

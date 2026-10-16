@@ -247,6 +247,7 @@ test('Lesser Sic Em copies player boons once after the qualifying beast hit', ()
       });
       assert.deepEqual(result.warnings, []);
       const copies = result.events.filter((event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE);
+
       if (selectedTraitIds.length === 1) {
         assert.equal(copies.length, 0);
         continue;

@@ -126,6 +126,7 @@ test('Mesmer entry and legend reselection reject missing or invalid selected cos
         for (const fault of ['missing', 'invalid']) {
           const catalog = (base) => {
             const balanceProfilesById = new Map(base.balanceProfilesById);
+
             if (fault === 'missing') balanceProfilesById.delete(profileId);
             else
               balanceProfilesById.set(profileId, {
@@ -133,6 +134,7 @@ test('Mesmer entry and legend reselection reject missing or invalid selected cos
                 balanceDataContext,
                 energyCost: NaN
               });
+
             return { ...base, balanceDataContext, balanceProfilesById };
           };
 

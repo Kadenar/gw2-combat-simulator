@@ -139,13 +139,16 @@ test('one live state spends an actual hit gain before its estimated retry, with 
       assert.equal(Object.isFrozen(runtime), true);
       assert.equal('effects' in runtime, false);
       assert.equal('spend' in runtime.resourceController, false);
+
       if (skill.id !== 990002 || runtime.profession.energy.value >= 1) return { ready: true };
+
       attempts.push(runtime.time);
       return { ready: false, retryAt: 10, reason: 'Waiting for a hit', code: 'resource' };
     },
     onCastStart(runtime, activation) {
       contexts.add(runtime);
       fixture().onCastStart(runtime, activation);
+
       if (activation.skill.id === 990002) {
         runtime.profession.energy.value--;
         anchorResourceClock(runtime.profession.energy);
@@ -239,6 +242,7 @@ test('companion steps report executed animations instead of queued reservations'
       },
       onCastStart(runtime, activation) {
         if (activation.skill.id !== 990005) return;
+
         const action = {
           type: 'action',
           source: 'companion',
@@ -634,6 +638,7 @@ test('authored waits still block explicit instant overlaps, whose effects preced
     profession: fixture({
       availability(runtime, skill) {
         if (skill.id === 990002) assert.equal(runtime.combat.boonApplications('might').length, 1);
+
         return { ready: true };
       }
     })
@@ -655,6 +660,7 @@ test('derived effects inherit their cause and settle before an independent same-
       reactions: {
         'damage.resolved': (runtime, event) => {
           observed.push([event.sourceId, runtime.profession.energy.value]);
+
           if (event.sourceId === 'first')
             runtime.effects.emit({
               kind: 'packet',

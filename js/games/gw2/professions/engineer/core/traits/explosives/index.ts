@@ -288,9 +288,12 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
   // Only positive strike packets create explosion proc opportunities.
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+
   if (!explosion) return;
+
   const steelPackedPowderProfile = requireBalanceProfileFromContext(context, TRAIT.STEEL_PACKED_POWDER);
   const steelPackedPowderVulnerability = requireEffect(steelPackedPowderProfile, 'condition', 'Vulnerability');
+
   if (steelPackedPowderVulnerability) {
     emitTraitProfile(context, TRAIT.STEEL_PACKED_POWDER, TRAIT.STEEL_PACKED_POWDER, undefined, {
       at: event.at,
@@ -316,11 +319,13 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
   // Only positive strike packets create explosion proc opportunities.
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+
   // Eligible explosions consume the interval even when the Fury packet is removed.
   if (!explosion || !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)) return;
 
   const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
   const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
+
   if (shortFuseFury) {
     emitTraitProfile(context, TRAIT.SHORT_FUSE, TRAIT.SHORT_FUSE, undefined, {
       at: event.at,
@@ -351,9 +356,12 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
   // Only positive strike packets create explosion proc opportunities.
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+
   if (!explosion) return;
+
   const explosiveTemperProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_TEMPER);
   const explosiveTemperBuff = requireEffect(explosiveTemperProfile, 'buff', 'explosive-temper');
+
   if (explosiveTemperBuff) {
     emitTraitProfile(context, TRAIT.EXPLOSIVE_TEMPER, TRAIT.EXPLOSIVE_TEMPER, undefined, {
       at: event.at,
@@ -383,6 +391,7 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
 function applyGrandEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Only the accepted trait strike grants the surviving profiled windows.
   if (!(Number(event.coefficient) > 0) || event.skillId !== ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL) return;
+
   const emitted = emitTraitProfile(context, TRAIT.GRAND_ENTRANCE, TRAIT.GRAND_ENTRANCE, undefined, {
     at: event.at,
     durationContext: event,
@@ -395,6 +404,7 @@ function applyGrandEntrance(context: EngineerResolverContext, event: EngineerRes
     }),
     transform: (packet) => ({ ...packet, name: packet.skillName })
   });
+
   if (emitted.length)
     context.effects.emit({
       kind: 'announcement',
@@ -409,13 +419,17 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
   // Only positive strike packets create explosion proc opportunities.
   const explosion =
     Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+
   // Generated rocket explosions also roll Shrapnel; effect ownership must not discard their opportunity.
   if (!explosion) return;
+
   const chance = procChanceFromContext(context, TRAIT.SHRAPNEL);
+
   if (!context.random.roll(chance, 'engineer.shrapnel')) return;
 
   const shrapnelProfile = requireBalanceProfileFromContext(context, TRAIT.SHRAPNEL);
   const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', 'Bleeding');
+
   if (shrapnelBleeding) {
     emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
       at: event.at,
@@ -437,6 +451,7 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
   }
 
   const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', 'Crippled');
+
   if (shrapnelCrippled) {
     // Resolve Crippled as a target condition so duration bonuses and condition queries include it.
     emitTraitProfile(context, TRAIT.SHRAPNEL, TRAIT.SHRAPNEL, undefined, {
@@ -488,8 +503,10 @@ function resetExplosiveEntrance(context: EngineerResolverContext): void {
  */
 function fireExplosiveEntrance(context: EngineerRuntime, event: EngineerResolverEvent): void {
   const skill = context.helpers.skillsById.get(ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL)!;
+
   if (!skill.effects?.length || !isInternalCooldownReady(event.at, context.cooldownController.readyAt(skill.id)))
     return;
+
   // Dodge rearming never resets the skill's recharge.
   context.cooldownController.startRecharge(skill, event.at);
   professionCoreState(context).explosiveEntranceFired = true;
@@ -502,7 +519,9 @@ function isAimAssistedProjectile(
   event: EngineerResolverEvent
 ): boolean {
   if (event.actorType !== 'player') return false;
+
   if (event.projectile === true) return true;
+
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
   return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'projectile'));
 }

@@ -49,7 +49,9 @@ export function createIllusionRewardController({
     cause: MesmerResourceCause = {}
   ): void => {
     const amount = Math.max(0, count || 0);
+
     if (!amount || resourceDefinition.maximum <= 0) return;
+
     let gained = 0;
     const created: Array<{ id: number; weapon: string }> = [];
     const createdClones: MesmerClone[] = [];
@@ -58,6 +60,7 @@ export function createIllusionRewardController({
       for (let index = 0; index < amount; index += 1) {
         if (professionCoreState(state).clones.length >= resourceDefinition.maximum) {
           const replaced = professionCoreState(state).clones.shift();
+
           if (replaced) destroyClone(replaced);
         }
 
@@ -81,6 +84,7 @@ export function createIllusionRewardController({
     }
 
     if (gained <= 0) return;
+
     {
       const packet = buildMesmerPacket({
         type: 'resource',
@@ -110,6 +114,7 @@ export function createIllusionRewardController({
     }
 
     const resourceTraitId = Number(cause.traitId);
+
     if (Number.isFinite(resourceTraitId) && hasTrait(state, resourceTraitId)) {
       state.effects.emit({
         kind: 'announcement',

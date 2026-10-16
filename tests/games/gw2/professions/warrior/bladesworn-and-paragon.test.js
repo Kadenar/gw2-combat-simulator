@@ -344,7 +344,9 @@ test('Dragon Trigger spends Flow at fixed 240 ms intervals', () => {
     assert.equal(release.flowSpent, (expectedSeconds / 0.24 - 1) * DRAGON_TRIGGER_TICK_FLOW);
     const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
     const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
+
     if (expectedSeconds === 2.4) assert.ok(Math.abs(ticks.at(-1).flowAfter - 40) < 1e-9);
+
     assert.deepEqual(
       ticks.map((tick) => canonicalTime(tick.at - entry.at)),
       Array.from({ length: expectedSeconds / 0.24 }, (_, index) => ((index + 1) * 240) / 1000)

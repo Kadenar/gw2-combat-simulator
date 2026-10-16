@@ -70,8 +70,10 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
           time: context.time
         });
         assert.equal(Boolean(projected.availableFlips[ID.COUNTERSPELL]), visible);
+
         // Eligibility closes at the deadline even though priority-50 cleanup has not run yet.
         if (at === 0.5) assert.ok(context.profession.core.availableFlips[ID.COUNTERSPELL]);
+
         checked.push(at);
       },
       'test.after-expiry'(context) {

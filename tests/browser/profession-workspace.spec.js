@@ -78,6 +78,7 @@ test('profession selectors stay compact beside skills and wrap on phones', async
     await page.setViewportSize({ width: 1800, height: 1100 });
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+
     if (profession === 'engineer' || profession === 'elementalist') {
       const picker = page.locator('.spec-picker').last();
       await picker.locator('summary').click();
@@ -144,6 +145,7 @@ test('workspace regions stay within the viewport across professions', async ({ p
     await expect(page.locator('.infusion-row')).toHaveCount(2);
     for (const width of [1130, 1024, 390]) {
       await page.setViewportSize({ width, height: 1000 });
+
       if (width === 1130) {
         const traits = await page.locator('.workspace-build-choices').boundingBox();
         const equipment = await page.locator('.gear-main').boundingBox();

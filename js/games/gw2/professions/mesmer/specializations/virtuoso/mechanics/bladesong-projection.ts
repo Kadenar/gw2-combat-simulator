@@ -31,6 +31,7 @@ export function bladesongConfusion(
   condition: ConditionEffect | undefined
 ): ConditionEffect | undefined {
   if (!condition) return undefined;
+
   return {
     type: 'condition',
     ticks: (shatter.strikes[spent]?.ticks?.map((tick) => tick.atMs) ?? shatter.conditionAtMs?.[spent] ?? []).map(

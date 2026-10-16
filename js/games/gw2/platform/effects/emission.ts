@@ -93,6 +93,7 @@ function immutableReceipt(event: SimulationEvent): SimulationEvent {
   const seen = new WeakSet();
   function freeze(value: unknown): void {
     if (value == null || typeof value !== 'object' || seen.has(value)) return;
+
     seen.add(value);
     for (const child of Object.values(value)) freeze(child);
     Object.freeze(value);
@@ -147,6 +148,7 @@ export function createEffectEmissionService(host: {
     // Every ingress validates delivery policy before it can reserve or submit combat work.
     if (request.priority != null && !Number.isFinite(request.priority))
       throw new RangeError('Effect priority must be finite.');
+
     if (
       request.owner &&
       (typeof request.owner.id !== 'string' ||
@@ -155,7 +157,9 @@ export function createEffectEmissionService(host: {
         request.owner.generation < 0)
     )
       throw new TypeError('Effect lifetime requires an owner id and a nonnegative safe integer generation.');
+
     const delivery = deliverySnapshot(request);
+
     if (request.kind === 'announcement') {
       host.expansionBudget.reserve(1, `announcement=${request.announcement.name}`);
       const event = host.announce({
@@ -176,8 +180,10 @@ export function createEffectEmissionService(host: {
 
     const effects = request.effects ?? request.profile.effects ?? [];
     const label = `${request.profile.name} (${request.profile.id})`;
+
     if (effects.length > MAX_EFFECT_EXPANSION)
       throw new RangeError(`${label} exceeds the effect expansion limit (${MAX_EFFECT_EXPANSION}).`);
+
     // Reserve the whole profile before attribution, reaction registration, transforms, allocation, or submission.
     let count = 0;
     for (const effect of effects) {
@@ -201,8 +207,10 @@ export function createEffectEmissionService(host: {
         skillWeaponFallback: request.skillWeaponFallback
       })) {
         const packet = request.transform ? request.transform(event, effect) : event;
+
         if (packet) {
           const submitted = host.submit(cloneData(packet), delivery);
+
           if (events) events.push(immutableReceipt(submitted));
         }
       }

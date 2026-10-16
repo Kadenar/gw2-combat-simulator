@@ -479,6 +479,7 @@ export const combustiveShotFields: NonNullable<
   RuntimeProfession<WarriorRuntimeState, WarriorSkill>['modifyComboFields']
 > = (runtime, cast, fields) => {
   if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
+
   const tier = warriorBurstTier(runtime, warriorBurstRules(runtime).spend(runtime, cast.skill));
   const duration = tier * balanceNumberFromContext(runtime, PROFILE.combustiveShot, 'durationPerTier');
   return fields?.flatMap((field) =>

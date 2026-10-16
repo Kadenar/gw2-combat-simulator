@@ -79,6 +79,7 @@ export function createProfessionActionController({
   // Spending clones cancels their pending attacks; numeric resources spend the current shared balance.
   const consumeResources = (at: number, { activationId }: MesmerResourceSpendDetails = {}): number => {
     const spent = currentResource();
+
     if (kind === 'clones') {
       for (const clone of professionCoreState(state).clones) {
         destroyClone(clone);
@@ -96,6 +97,7 @@ export function createProfessionActionController({
   // (e.g. a Virtuoso skill whose coefficient scales with blades but costs all blades on hit, not on cast).
   const reserveResources = (): number => {
     const spent = currentResource();
+
     if (kind === 'clones') {
       throw new Error('Clone resources cannot be reserved.');
     }
@@ -112,7 +114,9 @@ export function createProfessionActionController({
   ): number => {
     const reservedCount = boundedNumber(reserved, 0, 0, resourceDefinition.maximum);
     const additionalSpent = Math.min(currentResource(), resourceDefinition.maximum - reservedCount);
+
     if (kind === 'clones') throw new Error('Clone resources cannot be committed from a reservation.');
+
     state.resourceController.spend(kind, additionalSpent);
     return addResourceSpendEvent(at, reservedCount + additionalSpent, {
       activationId
@@ -121,6 +125,7 @@ export function createProfessionActionController({
 
   const restoreReservedResources = (spent: number): void => {
     if (kind === 'clones') return;
+
     // Refunds restore the capped balance without earning traits or reporting a committed spend.
     state.resourceController.grant(kind, Math.max(0, spent || 0));
   };
@@ -137,11 +142,13 @@ export function createProfessionActionController({
     delivery: EffectDelivery = {}
   ): MesmerShatterResolution | null => {
     const shatter = shatterFor(skill.id);
+
     if (!shatter) {
       throw new Error(`Missing Mesmer shatter data for ${skill.name}.`);
     }
 
     const minimumResource = shatter.minimumResource || 0;
+
     if (resourcesSpent == null && currentResource() < minimumResource) {
       // Preserve milliseconds so skipped actions can be located in the event log.
       warn(`${skill.name} skipped at ${at.toFixed(3)}s: no ${resourceDefinition.plural}.`);
@@ -149,6 +156,7 @@ export function createProfessionActionController({
     }
 
     const resolver = shatterResolvers[shatter.resolver];
+
     if (!resolver) {
       throw new Error(`Missing Mesmer shatter resolver ${shatter.resolver} for ${skill.name}.`);
     }

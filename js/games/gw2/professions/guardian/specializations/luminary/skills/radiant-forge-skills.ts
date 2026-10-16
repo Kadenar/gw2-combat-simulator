@@ -376,7 +376,9 @@ export function glaringBurstDuration(
 /** Labels inspect the current Luminary variant before accepted effects advance its cadence. */
 export function glaringBurstDetail(context: CastDetailContext<GuardianRuntimeState>): string | undefined {
   const specialization = context.readProfessionState().specialization;
+
   if (specialization.kind !== 'Luminary') throw new TypeError('Glaring Burst requires Luminary state.');
+
   const state = specialization.state;
   const label =
     state.radiantWeapon === 'blade'
@@ -392,6 +394,7 @@ function burstEffects(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (cast.cancelled) return [];
+
   const state = luminaryState.from(runtime);
   const weapon = state.radiantWeapon;
   const slow = state.glaringBurstSwordSlow;
@@ -400,7 +403,9 @@ function burstEffects(
     weapon === 'blade'
       ? runtimeMs * ((slow ? 440 : 360) / (slow ? 680 : 440))
       : projectCastRelativeEffectTimingMs(cast.skill, runtimeMs, 480);
+
   if (weapon === 'blade') state.glaringBurstSwordSlow = !slow;
+
   const vulnerability = requireEffect(
     requireBalanceProfileFromContext(runtime, PROFILE.glaringBurstVulnerability),
     'condition',
@@ -423,8 +428,11 @@ export const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, Guar
   },
   'guardian.empower-blade'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const state = luminaryState.from(runtime);
+
     if (!state.radiantCourageSwordArmed) return;
+
     state.radiantCourageSwordArmed = false;
     // Capture the consumed entitlement now, but apply its condition only if the blade reaches impact.
     runtime.scheduleForCast(BLADE_IMMOBILIZE, luminaryImpactAt(context.cast), context.cast);
@@ -439,8 +447,11 @@ export const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, Guar
   },
   'guardian.empower-staff'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const state = luminaryState.from(runtime);
+
     if (!state.radiantResolveArmed) return;
+
     state.radiantResolveArmed = false;
     runtime.scheduleForCast(BOON, luminaryImpactAt(context.cast), context.cast, {
       kind: 'regeneration',
@@ -483,6 +494,8 @@ export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [
 /** Linked self effects use the packet materializer's scaling and anchor so they resolve with the selected impact. */
 export function luminaryImpactAt(cast: RuntimeCast<GuardianSkill>): number {
   const effect = cast.skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
+
   if (effect?.type !== 'strike') return cast.effectiveEnd;
+
   return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
 }

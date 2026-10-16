@@ -389,6 +389,7 @@ test('Distracting Throw does not apply its new damage window to its granting str
           ...native.reactions,
           'damage.resolved'(runtime, event, details) {
             native.reactions['damage.resolved']?.(runtime, event, details);
+
             if ([ID.DISTRACTING_THROW, ID.BARBED_SPEAR].includes(event.skillId))
               windows.push(runtime.combat.activeBuffStacks('distracting-throw', runtime.time, 1) > 0);
           }

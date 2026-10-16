@@ -32,6 +32,8 @@ export function projectDragonhunterPlanningState(input: Gw2PlanningStateInput) {
     DRAGONHUNTER_PUBLIC_STATE_PROJECTION.keys,
     DRAGONHUNTER_PUBLIC_STATE_PROJECTION.defaults
   );
+
   if (state.tetherUntil <= input.time) state.tetherUntil = 0;
+
   return state;
 }

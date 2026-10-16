@@ -40,6 +40,7 @@ export function evaluateSkillDamage(
   cache?: SkillDamageCache
 ): SkillDamageEvaluation {
   let contentId = contentIds.get(profession);
+
   if (contentId == null) {
     contentId = ++nextContentId;
     contentIds.set(profession, contentId);
@@ -50,10 +51,13 @@ export function evaluateSkillDamage(
     occurrences: request.occurrences.map((occurrence) => {
       const key = `${configKey}|${JSON.stringify(occurrence)}`;
       let result = cache?.get(key);
+
       if (!result) result = evaluateOccurrence(request, profession, occurrence);
+
       if (cache) {
         cache.delete(key);
         cache.set(key, result);
+
         if (cache.size > 256) cache.delete(cache.keys().next().value!);
       }
 
@@ -144,7 +148,9 @@ function measureEvents(
 function strikeBreakdown(strikes: readonly StrikeHit[]): SkillDamageStrikeBreakdown | null {
   const calculated = strikes.filter((hit) => hit.damageCalculation);
   const first = calculated[0];
+
   if (!first?.damageCalculation) return null;
+
   const calculation = first.damageCalculation;
   let baseDamage = 0;
   let nonCriticalDamage = 0;
@@ -191,6 +197,7 @@ function conditionRows(applications: readonly ConditionApplication[]): SkillDama
   for (const application of applications) {
     // Only conditions with a damage formula belong in a damage table; control conditions deal nothing.
     if (!Object.hasOwn(CONDITION_FORMULAS, application.condition) && !(application.damage > 0)) continue;
+
     const calculation = application.conditionCalculation;
     const facts = {
       condition: application.condition,

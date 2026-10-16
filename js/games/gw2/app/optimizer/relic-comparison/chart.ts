@@ -80,9 +80,11 @@ function valueAt(
   pick: (point: RelicComparisonPoint) => number
 ): number {
   if (!points.length) return 0;
+
   for (let index = 1; index < points.length; index += 1) {
     const previous = points[index - 1];
     const current = points[index];
+
     if (tMs <= current.tMs) {
       const span = current.tMs - previous.tMs;
       const fraction = span > 0 ? (tMs - previous.tMs) / span : 0;
@@ -104,6 +106,7 @@ function crossoverMarkup(
   scale: Scale
 ): string {
   if (model.crossoverMs == null) return '';
+
   const x = scale.xFor(model.crossoverMs);
   const y = scale.yFor(valueAt(plotPoints, model.crossoverMs, (point) => point.opponentDps));
   const labelAnchor = model.crossoverMs > model.durationMs * 0.7 ? 'end' : 'start';
@@ -207,6 +210,7 @@ export function bindRelicComparisonChartHover(
 ): void {
   const svg = container?.querySelector<SVGSVGElement>('[data-role="relic-comparison-chart"]');
   const tooltip = container?.querySelector<HTMLElement>('[data-role="relic-comparison-tooltip"]');
+
   if (!svg || !tooltip || model.points.length < 2) return;
 
   const plotPoints = comparisonPlotPoints(model);
@@ -225,6 +229,7 @@ export function bindRelicComparisonChartHover(
     const pointerY = event.clientY - rect.top;
     const chartX = (pointerX / Math.max(1, rect.width)) * WIDTH;
     const chartY = (pointerY / Math.max(1, rect.height)) * HEIGHT;
+
     if (chartX < PAD.left || chartX > PAD.left + PLOT_WIDTH || chartY < PAD.top || chartY > PAD.top + PLOT_HEIGHT) {
       tooltip.style.display = 'none';
       return;

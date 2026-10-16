@@ -14,8 +14,10 @@ test.beforeEach(async ({ page }) => {
 async function mountCharts(page) {
   await page.evaluate(async () => {
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
+
     if (!document.querySelector('#charts'))
       document.body.innerHTML = '<main style="max-width:1000px;margin:auto"><div id="charts"></div></main>';
+
     const cumulativeDamage = Array.from({ length: 81 }, (_, index) => ({ t: index * 250, v: index * index * 100 }));
     mountTimeSeriesCharts(
       document.querySelector('#charts'),
@@ -118,6 +120,7 @@ async function waitForVisibleChart(page, kind) {
         const observer = new IntersectionObserver(
           (entries) => {
             if (!entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.2)) return;
+
             observer.disconnect();
             resolve();
           },

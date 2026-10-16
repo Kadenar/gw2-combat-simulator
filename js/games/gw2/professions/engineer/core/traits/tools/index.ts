@@ -237,6 +237,7 @@ export const takedownRound = defineTrait({
 /** Applies Streamlined Kits on kit entry and adds Grenade Kit's mine strike when appropriate. */
 function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (skill.kitTransition !== 'equip' || !context.procs.claim(TRAIT.STREAMLINED_KITS, 'streamlinedKits', at)) return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.STREAMLINED_KITS);
   emitTraitProfile(context, profile.id, profile.id, undefined, {
     effects: (effect) => effect.type === 'boon' || (skill.id === ID.GRENADE_KIT && effect.type === 'strike'),
@@ -272,6 +273,7 @@ function chargeKineticBattery(context: EngineerRuntime, { skill, at }: ToolbeltA
   // Start the next battery cycle before emitting its reward so reactions see the reset charge count.
   const progress = advanceCounter(state.kineticCharges, 1, maximumCharges, 'reset');
   state.kineticCharges = progress.value;
+
   if (progress.reached) {
     emitTraitProfile(context, profile.id, profile.id, undefined, {
       at,

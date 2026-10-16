@@ -11,6 +11,7 @@ export const MESMER_RELEASE = 'revenant.release-mesmer-conditions';
 export function scheduleMesmerReleaseConditions(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   for (const effect of cast.skill.effects ?? []) {
     if (effect.type !== 'condition') continue;
+
     for (const { event } of materializeSkillEffectApplications({
       skill: cast.skill,
       effect,
@@ -42,6 +43,7 @@ export function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
     durationReductionPerAffinity: number;
   };
   const affinity = effectiveConduitAffinity(runtime);
+
   if (event.target === 'self') {
     const duration = Number(event.duration) * Math.max(0, 1 - affinity * durationReductionPerAffinity);
     runtime.profession.core.selfConditions.push({

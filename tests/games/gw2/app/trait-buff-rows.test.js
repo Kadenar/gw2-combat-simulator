@@ -117,6 +117,7 @@ test('consolidation preserves proc details, other effects, and zero-recipient gr
       ...(!extra.detail ? [{ ...buff, eventOrder: 4, kind: 'might' }] : [])
     ];
     const rows = present(events);
+
     if (extra.detail) {
       // A consolidated row retains non-buff benefits instead of discarding their explanation.
       assert.match(rows.find((row) => row.id === 'event:2').description, /no recipients 12s.*Arms another effect/);

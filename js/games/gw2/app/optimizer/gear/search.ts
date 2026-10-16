@@ -143,8 +143,11 @@ function choices(value: string[] | undefined, current: string, names: readonly s
   }
 
   const selected = [...new Set(value?.length ? value : [current])].sort();
+
   if (selected.length > cap) throw new RangeError(`Select at most ${cap} choices.`);
+
   if (selected.some((name) => !names.includes(name))) throw new TypeError(`Unknown current equipment: ${current}.`);
+
   return selected;
 }
 
@@ -159,7 +162,9 @@ export function optimizerWeaponSets(build: Gw2CanonicalBuild, adapter: Optimizer
   const hasPreparationSwap = preparation.some(
     (command) => command.type === 'cast' && command.skillId === SHARED_SKILL_IDS.SWAP_WEAPONS
   );
+
   if (!canSwap && !hasPreparationSwap) return [build.startingWeaponSet === 2 ? 1 : 0];
+
   return build.alternateWeapons[0] ? [0, 1] : [0];
 }
 
@@ -169,6 +174,7 @@ export function optimizerSlots(build: Gw2CanonicalBuild, adapter: OptimizerConte
   for (const set of optimizerWeaponSets(build, adapter)) {
     const weapons = set === 0 ? build.weapons : build.alternateWeapons;
     slots.push(set === 0 ? 'Weapon1' : 'AlternateWeapon1');
+
     if (adapter.weaponData[weapons[0]]?.wielding !== '2h') slots.push(set === 0 ? 'Weapon2' : 'AlternateWeapon2');
   }
 
@@ -178,6 +184,7 @@ export function optimizerSlots(build: Gw2CanonicalBuild, adapter: OptimizerConte
 export function createOptimizerSpace(request: GearOptimizerRequest, adapter: OptimizerContext): OptimizerSpace {
   if (request.search !== undefined && !['exact', 'fast'].includes(request.search))
     throw new TypeError('Invalid optimizer search mode.');
+
   if (
     request.gameId !== 'gw2' ||
     request.contentId !== adapter.id ||
@@ -189,16 +196,23 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
 
   if (!Number.isInteger(request.limit) || request.limit < 1 || request.limit > 20)
     throw new RangeError('Invalid result limit.');
+
   if (request.patchId !== 'current' && request.patchId !== adapter.profession.preview?.id)
     throw new TypeError('Unknown patch.');
+
   const policy = request.observationPolicy;
   const boundary = policy?.kind === 'tail' ? policy.durationMs : policy?.kind === 'absolute' ? policy.endTimeMs : 0;
+
   if (!policy || !['rotation', 'tail', 'absolute'].includes(policy.kind) || !Number.isFinite(boundary) || boundary < 0)
     throw new TypeError('Invalid observation policy.');
+
   const validation = adapter.profession.validateBuild(request.build);
+
   if (!validation.valid) throw new TypeError(validation.errors.join('\n'));
+
   const build = request.build;
   const selections = request.selections;
+
   if (
     !selections ||
     typeof selections !== 'object' ||
@@ -226,6 +240,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
   // Omitted requirements are unrestricted; reject malformed bounds before starting workers.
   for (const key of Object.keys(OPTIMIZER_REQUIREMENTS) as (keyof typeof OPTIMIZER_REQUIREMENTS)[]) {
     const value = selections[key];
+
     if (
       value !== undefined &&
       (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || (key.endsWith('Duration') && value > 100))
@@ -251,13 +266,16 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
   const upgradeKeys = ['rune', 'relic', 'food', 'utility'] as const;
   const sigilKeys = [0, 1].flatMap((set) => [0, 1].map((slot) => `sigil${set + 1}-${slot + 1}`));
   const locks = selections.locks || [];
+
   if (
     !Array.isArray(locks) ||
     locks.some((key) => ![...slots, ...upgradeKeys, ...sigilKeys, 'infusions'].includes(key))
   )
     throw new TypeError('Unknown equipment lock.');
+
   // Restrict slot choices at the source so every search and refinement honors forced prefixes.
   const forcedSlots = selections.forcedSlots === undefined ? {} : selections.forcedSlots;
+
   if (
     !forcedSlots ||
     typeof forcedSlots !== 'object' ||
@@ -267,16 +285,21 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
     )
   )
     throw new TypeError('Invalid forced slot selection.');
+
   const dimensions: OptimizerDimension[] = [];
+
   // Validate even locked or unused selectors so misspellings do not disappear from the request.
   if (selections.prefixes !== undefined) choices(selections.prefixes, build.gear.Helm, PREFIXES, 3);
+
   for (const slot of slots) {
     const current = slot.startsWith('Alternate')
       ? build.alternateWeaponPrefixes[Number(slot.at(-1)) - 1]
       : build.gear[slot];
     const forced = forcedSlots[slot];
+
     if (forced !== undefined && locks.includes(slot) && forced !== current)
       throw new TypeError(`Forced prefix conflicts with the equipment lock for ${slot}.`);
+
     dimensions.push({
       key: slot,
       choices: choices(
@@ -307,36 +330,47 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
       selections.sigils.some((set) => !Array.isArray(set) || set.length > 2))
   )
     throw new TypeError('Invalid sigil lists.');
+
   for (const set of [0, 1]) {
     const lists = [0, 1].map((slot) => {
       const selected = choices(selections.sigils?.[set]?.[slot], build.weaponSigils[set][slot], SIGIL_NAMES);
       return locks.includes(`sigil${set + 1}-${slot + 1}`) ? [build.weaponSigils[set][slot]] : selected;
     });
+
     if (!optimizerWeaponSets(build, adapter).includes(set)) {
       if (selections.sigils?.[set]?.some((list) => list.length))
         throw new TypeError(`Weapon set ${set + 1} is not available for this build.`);
+
       continue;
     }
 
     const pairs = lists[0].flatMap((first) =>
       lists[1].filter((second) => canEquipWeaponSigil([[first]], 0, 1, second)).map((second) => [first, second])
     );
+
     if (!pairs.length) throw new TypeError('Sigil lists contain no legal pair.');
+
     dimensions.push({ key: `sigils${set + 1}`, choices: pairs });
   }
 
   const currentCount = build.infusions.reduce((sum, infusion) => sum + infusion.count, 0);
   const count = selections.infusionCount ?? currentCount;
+
   if (!Number.isInteger(count) || count < 0 || count > 18)
     throw new RangeError('Infusion count must be an integer from 0 to 18.');
+
   const stats = selections.infusionStats || [];
+
   if (!Array.isArray(stats) || stats.some((stat) => !INFUSION_STATS.includes(stat)) || new Set(stats).size > 2)
     throw new TypeError('Select up to two known infusion stats.');
+
   const selectedStats = [...new Set(stats)].sort();
   let splits: Gw2CanonicalBuild['infusions'][];
+
   if (locks.includes('infusions') || !selectedStats.length) {
     if (!locks.includes('infusions') && count !== currentCount)
       throw new TypeError('Select infusion stats to change the total count.');
+
     splits = [build.infusions];
   } else if (count === 0) splits = [[]];
   else if (selectedStats.length === 1) splits = [[{ stat: selectedStats[0], count }]];
@@ -347,6 +381,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
         { stat: selectedStats[1], count: count - first }
       ].filter((infusion) => infusion.count > 0)
     );
+
   dimensions.push({ key: 'infusions', choices: splits });
   return {
     request,
@@ -388,6 +423,7 @@ export function assignOptimizerChoice(
 /** Mixed-radix ordinals give the ordinary oracle an independent, exhaustive Cartesian traversal. */
 export function ordinaryEquipmentAt(space: OptimizerSpace, ordinal: bigint): OptimizerEquipment {
   if (ordinal < 0n || ordinal >= space.rawCount) throw new RangeError('Candidate ordinal outside search.');
+
   const equipment = optimizerEquipment(space.request.build);
   for (const dimension of space.dimensions) {
     const radix = BigInt(dimension.choices.length);
@@ -411,6 +447,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
       )
     ) {
       if (enforceRequirements) return null;
+
       throw new TypeError('Duplicate sigils within a set or multiple stacking sigils across the build.');
     }
 
@@ -422,6 +459,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
     });
     // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
     const limits = request.selections;
+
     if (
       enforceRequirements &&
       Object.keys(OPTIMIZER_REQUIREMENTS).some(
@@ -433,6 +471,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
         const toughness = attributes.Toughness.final;
         const boonDuration = attributes['Boon Duration']?.final || 0;
         const quicknessDuration = boonDuration + (attributes['Quickness Duration']?.final || 0);
+
         if (
           (limits.minToughness !== undefined && toughness < limits.minToughness) ||
           (limits.maxToughness !== undefined && toughness > limits.maxToughness) ||
@@ -460,7 +499,9 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
     });
   const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
     const config = prepare(equipment, true);
+
     if (!config) return null;
+
     return simulateGw2({
       profession: adapter.profession,
       rotation: request.build.rotation,
@@ -477,6 +518,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
 export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2SimulationResult, 'steps'>>): OptimizerScore {
   // Reject skipped rotation commands in the detailed baseline before workers publish scores or search candidates.
   const invalid = result.steps?.filter((step) => step.invalid) || [];
+
   if (invalid.length) {
     const reasons = [...new Set(invalid.map((step) => step.invalidReason || `${step.skill} is unavailable.`))];
     throw new TypeError(`Fix invalid rotation skills before running the optimizer: ${reasons.join(' ')}`);
@@ -496,6 +538,7 @@ export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2Simulati
     lastHitTime,
     warnings
   } = result;
+
   if (
     [
       dps,
@@ -512,6 +555,7 @@ export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2Simulati
     ].some((value) => value !== null && !Number.isFinite(value))
   )
     throw new TypeError('Optimizer simulation produced a non-finite score.');
+
   return {
     dps,
     totalDamage,
@@ -538,8 +582,10 @@ export function retainOptimizerCandidate(
   limit = 20
 ): void {
   const previous = winners.find((winner) => winner.key === candidate.key);
+
   if (previous) {
     previous.represented = (BigInt(previous.represented) + BigInt(candidate.represented)).toString();
+
     // Completion order must not choose a different representative for an equal combat vector.
     if (JSON.stringify(candidate.equipment) < JSON.stringify(previous.equipment)) {
       Object.assign(previous, { equipment: candidate.equipment });
@@ -550,6 +596,7 @@ export function retainOptimizerCandidate(
 
   winners.push(candidate);
   winners.sort(compareOptimizerCandidates);
+
   if (winners.length > limit) winners.pop();
 }
 
@@ -589,6 +636,7 @@ export function applyOptimizerCandidate(
   candidate: OptimizerCandidate
 ): void {
   if (!isOptimizerRequestCurrent(app, request)) throw new Error('This optimizer result is stale. Run a new search.');
+
   Object.assign(app.build, structuredClone(candidate.equipment));
   app.changed();
   optimizerApplications.set(app, { request, revision: app.buildRevision, candidate });

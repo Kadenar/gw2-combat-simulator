@@ -37,7 +37,9 @@ test('Scourge F5 finders distinguish the shared buff by applied duration and rej
       for (const delta of [-10, -9, 0, 9, 10]) {
         const actions = shrouds([apply(modern, 40052, duration + delta)]);
         assert.equal(actions.length, Math.abs(delta) < 10 ? 1 : 0, `${skillId}: duration offset ${delta}`);
+
         if (!actions.length) continue;
+
         const [cast] = actions;
         assert.equal(cast.rawSkillId, skillId);
         assert.equal(cast.evidence, 'buff-transition');

@@ -52,8 +52,10 @@ function assertUiDefinition(ui: UnvalidatedFields): void {
 /** Validate narrow presentation exceptions without inventing a runtime verdict. */
 function normalizePaletteOverride(value: unknown, professionId: string): PaletteOverride | undefined {
   if (value === undefined) return undefined;
+
   if (!value || typeof value !== 'object')
     throw new TypeError(`${professionId} paletteOverride must return an object.`);
+
   const result = value as UnvalidatedFields;
   for (const key of ['available', 'tileActive', 'editorAccess']) {
     if (result[key] != null && typeof result[key] !== 'boolean')

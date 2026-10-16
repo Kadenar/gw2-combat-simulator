@@ -98,6 +98,7 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
       );
       assert.equal(state.tomePages.nextAt, spent.endsAt + state.tomePages.interval);
       assert.equal(state.virtueReadyAt.justice > focus.endsAt, interrupted);
+
       if (!interrupted) {
         for (const readyAt of Object.values(state.virtueReadyAt)) assert.equal(readyAt, focus.endsAt);
       }

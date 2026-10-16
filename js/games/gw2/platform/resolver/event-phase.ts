@@ -8,7 +8,9 @@ export function gw2ResolverPhase(
   current: Readonly<{ at: number; phase: number }> | null
 ): number {
   if (event.type === 'condition_buffer') return GW2_RESOLVER_PHASE.Sample;
+
   if (event.type === 'condition_tick') return GW2_RESOLVER_PHASE.Settle;
+
   if (event.type !== 'damage' && current?.at === event.at && current.phase === GW2_RESOLVER_PHASE.Settle) {
     return GW2_RESOLVER_PHASE.Settle;
   }

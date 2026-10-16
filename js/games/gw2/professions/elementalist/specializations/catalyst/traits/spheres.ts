@@ -22,6 +22,7 @@ export function applySphereSpecialistDurations(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (!hasTrait(context, TRAIT.SPHERE_SPECIALIST)) return effects;
+
   const multiplier = sphereSpecialistDuration(context);
   return effects.map((effect) =>
     effect.type === 'boon' || effect.type === 'buff' ? { ...effect, duration: effect.duration * multiplier } : effect

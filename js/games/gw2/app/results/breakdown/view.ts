@@ -23,6 +23,7 @@ export interface DamageBreakdownOptions {
 
 function skillCellHtml(row: ResultRow, column: ResultColumn, options: DamageBreakdownOptions): string {
   const value = row[column.key];
+
   if (column.key === 'name') {
     const icon = options.resolveSkillIcon?.(row) || options.placeholderIcon || '';
     // Keep breakdown skill labels passive so hovering does not open a tooltip over the results.
@@ -60,6 +61,7 @@ function skillRowsHtml(
   expandedOwners: ReadonlySet<string>
 ): string {
   const hasGroups = rows.some((row) => typeof row.group === 'string' && row.group.trim());
+
   if (!hasGroups) {
     return rows.map((row) => skillRowHtml(row, columns, options)).join('');
   }
@@ -100,6 +102,7 @@ function skillRowsHtml(
           const formatted = column.format ? String(column.format(total)) : number(total);
           const label = column.label || column.key;
           const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
+
           if (column.key === 'condition' && ownerConditions.some((row) => row.ownerKey === ownerKey)) {
             // A native button makes the subtotal operable with mouse, Enter, and Space without selecting a skill.
             return `<span class="res-skill-group-total${classAttr}"><button type="button" class="res-owner-condition-toggle" data-owner-conditions-toggle="${escapeHtml(ownerKey)}" aria-expanded="${expandedOwners.has(ownerKey)}" aria-label="${escapeHtml(`${group} condition damage breakdown: ${formatted}`)}"><span aria-hidden="true">${expandedOwners.has(ownerKey) ? '&#9662;' : '&#9656;'}</span> ${escapeHtml(formatted)}</button></span>`;
@@ -115,6 +118,7 @@ function skillRowsHtml(
     .map((group) => {
       const groupRows = grouped.get(group) || [];
       const heading = headingHtml(group, groupRows);
+
       if (group !== 'Entities' || !groupRows.some((row) => row.entityName)) {
         return (
           heading +
@@ -150,7 +154,9 @@ function skillRowsHtml(
 /** Disclose each condition's contribution without widening the main damage table. */
 function ownerConditionsHtml(ownerKey: string, conditions: readonly OwnerConditionDamage[], expanded: boolean): string {
   const rows = conditions.filter((row) => row.ownerKey === ownerKey);
+
   if (!rows.length) return '';
+
   const ownerName = rows[0]!.ownerName;
   return `<div class="res-owner-conditions" data-owner-conditions-panel="${escapeHtml(ownerKey)}" role="region" aria-label="${escapeHtml(`${ownerName} condition damage breakdown`)}"${expanded ? '' : ' hidden'}>
     <div class="res-owner-conditions-title">${escapeHtml(ownerName)} condition damage</div>
@@ -182,6 +188,7 @@ export function mountDamageBreakdown(
   options: DamageBreakdownOptions = {}
 ): void {
   if (!container) return;
+
   const { skillRows, conditionGroups, conditionTotalShare } = prepareDamageBreakdown(model);
   const { skillColumns, conditions, chartSeries } = model;
   const ownerConditions = model.ownerConditions || [];
@@ -269,6 +276,7 @@ export function mountDamageBreakdown(
   const renderSortedRows = (): void => {
     const sorted = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
     const rowsElement = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
+
     if (rowsElement) {
       rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options, ownerConditions, expandedOwners);
       // Re-rendering discards row handlers; rebind selection and reapply it.
@@ -277,6 +285,7 @@ export function mountDamageBreakdown(
     }
 
     const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
+
     if (header) {
       header.innerHTML = skillHeaderHtml(skillColumns, sortState);
       // Replacing header markup discards its handlers, so bind the new cells.
@@ -301,11 +310,15 @@ export function mountDamageBreakdown(
       button.onclick = () => {
         const name = button.dataset.ownerConditionsToggle!;
         const expanded = !expandedOwners.has(name);
+
         if (expanded) expandedOwners.add(name);
         else expandedOwners.delete(name);
+
         button.setAttribute('aria-expanded', String(expanded));
         const arrow = button.querySelector('span');
+
         if (arrow) arrow.textContent = expanded ? '\u25be' : '\u25b8';
+
         for (const panel of container.querySelectorAll<HTMLElement>('[data-owner-conditions-panel]')) {
           if (panel.dataset.ownerConditionsPanel === name) panel.hidden = !expanded;
         }

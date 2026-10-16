@@ -23,6 +23,7 @@ for (const failure of ['missing', 'network']) {
     await expect(library.locator('.template-filter-empty')).toBeVisible();
     await library.getByRole('tab', { name: 'My Builds' }).click();
     await expect(library.getByRole('button', { name: 'Personal build', exact: true })).toBeVisible();
+
     if (failure === 'network') {
       expect(consoleErrors.some((message) => message.includes('Failed to load build templates for mesmer:'))).toBe(
         true
@@ -201,7 +202,9 @@ test('template dialog follows the visible viewport inside a tall cross-origin if
       .poll(async () => {
         const host = await page.locator('iframe').boundingBox();
         const modal = await dialog.boundingBox();
+
         if (!host || !modal) return false;
+
         const viewport = page.viewportSize();
         const top = Math.max(0, host.y);
         const bottom = Math.min(viewport.height, host.y + host.height);

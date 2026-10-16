@@ -103,7 +103,9 @@ test('The Pledge adds separate trait-owned Burning stacks to each supported torc
         (event) => event.type === 'condition' && event.sourceId === TRAIT.THE_PLEDGE
       );
       assert.equal(bonus.length, 2 * selectedTraitIds.length, name);
+
       if (!bonus.length) continue;
+
       const base = result.events.find(
         (event) =>
           event.type === 'condition' &&
@@ -335,6 +337,7 @@ test('Dazzling preserves ownership and live profile edits for eligible control',
               ...native.reactions,
               'condition.applied'(runtime, event, details) {
                 native.reactions['condition.applied']?.(runtime, event, details);
+
                 if (event.sourceId === TRAIT.DAZZLING) observed.push(event);
               }
             }
@@ -345,6 +348,7 @@ test('Dazzling preserves ownership and live profile edits for eligible control',
           observed.reduce((sum, event) => sum + event.stacks, 0),
           !removed && !offTarget && actorType !== 'effect' ? 7 : 0
         );
+
         if (observed.length) {
           const [event] = observed;
           assert.equal(event.actorType, 'effect');
@@ -411,6 +415,7 @@ test('Bountiful Blades uses live packets with the base projectile impact delay',
       assert.equal(packets.length, removed ? 1 : 2);
       assert.equal(packets[0].coefficient, 0.75);
       assert.equal(packets[0].at, offTarget ? 0.6 : 0.85);
+
       if (!removed) {
         assert.equal(packets[1].coefficient, 0.125);
         assert.equal(packets[1].at, offTarget ? 1.3 : 1.55);

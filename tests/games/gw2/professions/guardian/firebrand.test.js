@@ -534,6 +534,7 @@ test('torch pulses and fire-whirl bolts ignite through the condition application
     );
     assert.ok(ignitions.length > 0);
     assert.ok(ignitions.every((ignition) => pulses.some((pulse) => pulse.at === ignition.at)));
+
     if (whirling) {
       // Whirl strikes use the other lane, so a bolt may ignite at the same instant as a strike.
       assert.ok(

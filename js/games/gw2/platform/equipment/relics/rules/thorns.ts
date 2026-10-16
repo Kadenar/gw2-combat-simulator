@@ -56,7 +56,9 @@ function reportThornsBuff(ctx: Gw2RelicContext, buff: RefreshedStacks, at: numbe
 export const thorns = defineRelic({
   passiveTimeline(ctx, _state, rotationEndTime) {
     const initial = thornsBuffAt(0, ctx.config.initialThornsStacks);
+
     if (initial.stacks > 0) reportThornsBuff(ctx, initial, 0, 'Initial state');
+
     // Continue refreshing after reaching the cap; otherwise finite reporting windows would expire during the assumption.
     for (let at = THORNS_FIRST_STACK_AT; timeKey(at) <= timeKey(rotationEndTime); at += THORNS_STACK_INTERVAL) {
       reportThornsBuff(ctx, thornsBuffAt(at, ctx.config.initialThornsStacks), at, 'Incoming enemy hit');

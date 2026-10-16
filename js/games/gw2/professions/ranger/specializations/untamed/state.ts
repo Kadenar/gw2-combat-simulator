@@ -49,6 +49,8 @@ export function projectUntamedPlanningState(input: Gw2PlanningStateInput) {
     UNTAMED_PUBLIC_STATE_PROJECTION.keys,
     UNTAMED_PUBLIC_STATE_PROJECTION.defaults
   );
+
   if (state.ambushReadyUntil <= input.time) state.ambushReadyUntil = 0;
+
   return state;
 }

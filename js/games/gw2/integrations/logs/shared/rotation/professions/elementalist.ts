@@ -50,10 +50,15 @@ function canonicalize(action: RecordedLogAction, identity: ElementalistSkillIden
 
 function swappedElement(action: RecordedLogAction): Element | null {
   if (!action.isSwap) return null;
+
   const dual = action.rawName.match(DUAL_ATTUNEMENT_NAME);
+
   if (dual) return elementName(dual[1]);
+
   const woven = action.rawName.match(/^(Fire|Water|Air|Earth) (?:Fire|Water|Air|Earth) Attunement$/i);
+
   if (woven) return elementName(woven[1]);
+
   const core = action.rawName.match(/^(Fire|Water|Air|Earth) Attunement$/i);
   return core ? elementName(core[1]) : null;
 }
@@ -70,12 +75,18 @@ function configuredStartingElement(context: LogActionNormalizationContext): Elem
 function inferStartingElement(context: LogActionNormalizationContext, actions: readonly RecordedLogAction[]): Element {
   for (const action of actions) {
     if (swappedElement(action)) break;
+
     const glyphElement = mappedGlyphElement(action.rawName);
+
     if (glyphElement) return glyphElement;
+
     const suffixElement = elementName(action.rawName.match(/\((Fire|Water|Air|Earth)\)$/)?.[1]);
+
     if (suffixElement) return suffixElement;
+
     const attunement = String(recordedActionSkill(action, context)?.attunement || '');
     const skillElement = attunement.includes('+') ? null : elementName(attunement);
+
     if (skillElement) return skillElement;
   }
 
@@ -94,7 +105,9 @@ function unravelTransitionSignals(actions: readonly RecordedLogAction[]): Set<Re
     let match: RecordedLogAction | null = null;
     for (const dual of duals) {
       const gap = Math.abs(dual.start - unravel.start);
+
       if (claimed.has(dual) || gap > UNRAVEL_TRANSITION_WINDOW_MS) continue;
+
       if (!match || gap < Math.abs(match.start - unravel.start)) match = dual;
     }
 
@@ -124,6 +137,7 @@ function normalizeRecordedActions(context: LogActionNormalizationContext): Recor
 
     const glyph = GLYPH_OF_STORMS.get(action.rawName);
     const element = swappedElement(action);
+
     if (glyph) {
       normalizedAction = canonicalize(normalizedAction, glyph);
     } else if (element) {
@@ -134,6 +148,7 @@ function normalizeRecordedActions(context: LogActionNormalizationContext): Recor
       currentElement = element;
     } else if (ATTUNEMENT_SUFFIX_SKILLS.has(action.rawName)) {
       const skill = namedSkill(context, `${action.rawName} (${currentElement})`);
+
       if (skill) normalizedAction = canonicalize(normalizedAction, skill);
     }
 

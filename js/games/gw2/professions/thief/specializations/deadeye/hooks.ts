@@ -51,17 +51,25 @@ function marked(runtime: ThiefRuntime): boolean {
 function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?: Gw2HitResolutionContext): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
     return;
+
   if (event.offTarget === true || !marked(runtime)) return;
+
   // A returned axe belongs to the recall activation; it must never consume malice as a new stealth attack.
   const skill = runtime.helpers.skillsById.get(
     Number(event.metadata?.recallSkillId ?? event.skillId ?? event.sourceId)
   );
+
   if (!skill) return;
+
   const initiativeAttack = skill.type === 'Weapon' && (skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
+
   if (!skill.malicious && !initiativeAttack) return;
+
   const state = deadeyeState.from(runtime);
+
   if (skill.malicious) {
     if (!claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-spend', event.activationId)) return;
+
     refundMaliciousTacticalStrike(runtime, event);
     runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;
@@ -77,7 +85,9 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   const firstCritical =
     criticals > 0 &&
     claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-critical', event.activationId);
+
   if (!firstHit && !firstCritical) return;
+
   const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
   runtime.resourceController.grant(
     'malice',
@@ -92,6 +102,7 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Pre-steal grants the selected stolen-skill pool without marking a target, gaining malice, or firing steal traits.
   initialize(runtime) {
     if ((runtime.config as ThiefConfig).initialPreSteal !== 1) return;
+
     storeThiefStolenSkillChoices(runtime, stolenSkillGrant(runtime));
   },
   // Malice has no passive recovery; only accepted mark and hit transactions earn its cycle rewards.
@@ -108,8 +119,10 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   prepareDamageState(runtime, _skill, inputs) {
     const state = deadeyeState.from(runtime);
     const malice = Number(inputs.malice ?? 0);
+
     if (!Number.isInteger(malice) || malice < 0 || malice > state.malice.maximum)
       throw new RangeError('Malice exceeds the selected build maximum.');
+
     runtime.resourceController.replace('malice', malice);
     state.markedTargetId = 'target';
     state.markExpiresAt = Infinity;
@@ -121,6 +134,7 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     deadeyeCastAvailability(runtime.profession.core.availableFlips, skill, runtime.time),
   onCastStart(runtime, cast) {
     const skill = cast.skill;
+
     if (!skill.malicious && !STOLEN_SKILLS.has(skill.id)) return;
 
     const malice = runtime.resourceController.value('malice');
@@ -132,7 +146,9 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
 
     if (skill.malicious) {
       let snapshots = maliceSnapshots.get(runtime);
+
       if (!snapshots) maliceSnapshots.set(runtime, (snapshots = new Map()));
+
       snapshots.set(cast.id, malice);
     }
   },

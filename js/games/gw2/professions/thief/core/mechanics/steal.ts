@@ -19,6 +19,7 @@ export function storedStolenSkillChoices(
   state: ReadonlyMechanicState<Pick<ThiefCoreState, 'storedStolenSkillIds' | 'storedStolenSkillCount'>>
 ): readonly SkillId[] {
   if ((state.storedStolenSkillCount || 0) <= 0) return [];
+
   return state.storedStolenSkillIds;
 }
 

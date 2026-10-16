@@ -20,9 +20,12 @@ export function skillBarDisplaySkill(
   selected: Skill | null | undefined
 ): Skill | null | undefined {
   if (!selected) return selected;
+
   const professionState = app.results?.planningState?.profession as RotationProfessionState | undefined;
   const availableFlips = professionState?.availableFlips;
+
   if (!availableFlips || typeof availableFlips !== 'object') return selected;
+
   const flips = availableFlips;
   const visited = new Set<number>();
   let current = selected;
@@ -30,7 +33,9 @@ export function skillBarDisplaySkill(
   while (current.flipSkillId != null && !visited.has(Number(current.id))) {
     visited.add(Number(current.id));
     const flip = app.skillById.get(Number(current.flipSkillId));
+
     if (!flip || flip.flipParentId !== current.id) break;
+
     if (
       skillFlipVisible(
         flips[flip.id],
@@ -38,6 +43,7 @@ export function skillBarDisplaySkill(
       )
     )
       display = flip;
+
     current = flip;
   }
 
@@ -101,7 +107,9 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
             icon: selectedEntry.icon
           }
         : selectedSkill;
+
       if (!display || !options.length) return '';
+
       return `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
@@ -148,6 +156,7 @@ export function renderSkills(app: ProfessionAppState): void {
 
   // Name unsupported selections from the same profession markers that control notice visibility.
   const petWarningDetail = document.querySelector('.ranger-pet-warning-detail');
+
   if (petWarningDetail) {
     const petNames = [
       ...new Set(
@@ -202,20 +211,28 @@ export function renderSkills(app: ProfessionAppState): void {
   // Apply standard slot choices through the existing build update path.
   skillBar.querySelectorAll('.skill-bar-slot[data-key]').forEach((slot) => {
     if (!(slot instanceof HTMLElement)) return;
+
     slot.querySelectorAll('.dd-item').forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
+
       item.addEventListener('click', () => {
         const key = slot.dataset.key;
         const value = item.dataset.skillId;
+
         if (!key || !value) return;
+
         // JSON preserves string and numeric catalog IDs across DOM serialization.
         const id = JSON.parse(value);
+
         if (!app.skillById.has(id)) return;
+
         // Swap an already-equipped skill into this slot without duplicating it or losing the previous pick.
         const conflict = Object.keys(app.build.selectedSkillIds).find(
           (other) => other !== key && app.build.selectedSkillIds[other] === id
         );
+
         if (conflict) app.build.selectedSkillIds[conflict] = app.build.selectedSkillIds[key];
+
         app.build.selectedSkillIds[key] = id;
         app.changed();
         skillBar.querySelector<HTMLElement>(`[data-key="${key}"] .sbar-icon`)?.focus();
@@ -226,8 +243,10 @@ export function renderSkills(app: ProfessionAppState): void {
   // Profession selectors share search controls while retaining their own build contracts.
   skillBar.querySelectorAll('.skill-bar-inspection-slot[data-selection-key]').forEach((slot) => {
     if (!(slot instanceof HTMLElement)) return;
+
     slot.querySelectorAll('.dd-item').forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
+
       item.addEventListener('click', (event) => {
         event.stopPropagation();
         // Array fallback selectors are emitted only for these authored skill-ID fields.
@@ -236,6 +255,7 @@ export function renderSkills(app: ProfessionAppState): void {
         const rawSkillId = item.dataset.skillId;
         const skillId = Number(rawSkillId);
         const value = item.dataset.selectionValue;
+
         if (
           !key ||
           !Number.isInteger(index) ||
@@ -281,7 +301,9 @@ export function renderSkills(app: ProfessionAppState): void {
 /** Renders editable loadout selectors; fixed skills and their children belong in the rotation palette. */
 function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const loadout = app.adapter.slotLoadout;
+
   if (!loadout) return;
+
   const context = {
     build: app.build,
     specialization: spec,
@@ -292,6 +314,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const skillBar = requiredElement('skill-bar');
   // Name the panel after the editable loadout selectors.
   const title = skillBar.parentElement?.querySelector('.selectable-skills-title');
+
   if (title) title.textContent = view.label;
 
   // Legend portraits open the existing choices; names remain available to tooltips and assistive technology.
@@ -360,9 +383,12 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   // Apply changes from native loadout selects.
   skillBar.querySelectorAll('select[data-loadout-key]').forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
+
     select.addEventListener('change', () => {
       const key = select.dataset.loadoutKey;
+
       if (!key) return;
+
       loadout.updateBuild(app.build, key, select.value, context);
       app.changed();
       // The build update replaces the select, so continue from the same loadout control.
@@ -373,11 +399,14 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   // Apply changes from icon-based loadout options.
   skillBar.querySelectorAll('button[data-loadout-key]').forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
+
     button.addEventListener('click', (event) => {
       event.stopPropagation();
       const key = button.dataset.loadoutKey;
       const value = button.dataset.loadoutValue;
+
       if (!key || value === undefined) return;
+
       loadout.updateBuild(app.build, key, value, context);
       app.changed();
       // Use the loadout key rather than retaining a detached trigger or relying on display order.

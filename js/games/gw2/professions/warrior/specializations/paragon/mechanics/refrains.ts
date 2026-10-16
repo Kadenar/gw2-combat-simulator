@@ -13,6 +13,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
   runtime.cancelOwner({ id: REFRAIN, generation: state.refrainGeneration });
   state.refrainGeneration++;
   const interval = balanceNumberFromContext(runtime, PROFILE.resources, 'pulseInterval');
+
   if (interval > 0)
     runtime.schedule(
       REFRAIN,

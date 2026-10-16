@@ -80,8 +80,11 @@ export interface EnduranceController {
 export function validateResourcePolicies(resources: ResourcePolicies = {}, endurance?: EndurancePolicy): void {
   for (const key of Object.keys(resources) as ResourceKey[]) {
     if (!RESOURCE_KEYS.includes(key)) throw new TypeError(`Unknown resource policy: ${key}.`);
+
     const policy = resources[key];
+
     if (policy == null) continue;
+
     if (
       !['continuous', 'discrete'].includes(policy.kind) ||
       ['state', 'maximum', 'initial', 'recovery'].some(

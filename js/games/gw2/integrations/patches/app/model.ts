@@ -39,8 +39,11 @@ const ELEMENTALIST_ATTUNEMENT_ORDER = new Map(
 /** Normalizes a skill's attunement into the small set of authoring navigation buckets. */
 function skillAttunementGroup(entry: NativePatchAuthoringSkill): string | null {
   const attunement = String(entry.skill.attunement || '');
+
   if (!attunement) return null;
+
   if (attunement.includes('+')) return 'Dual';
+
   return ELEMENTALIST_ATTUNEMENT_ORDER.has(attunement) ? attunement : 'Other';
 }
 
@@ -74,6 +77,7 @@ function groupSkillsByAttunement(
 /** Assigns a skill to a stable weapon, slot, profession, or triggered-action group. */
 function skillGroupIdentity(entry: NativePatchAuthoringSkill): SkillGroupIdentity {
   const type = String(entry.skill.type || 'Skill');
+
   if (type === 'Weapon') {
     const weapon = String(entry.skill.weapon || '').trim();
     return weapon
@@ -145,9 +149,13 @@ export function createPatchPreviewDraft(): PatchPreview {
 /** Resolves every supported numeric edit form to the value shown in the editor. */
 export function numericEditValue(liveValue: number, edit?: NumEdit): number {
   if (edit == null) return liveValue;
+
   if (typeof edit === 'number') return edit;
+
   if ('from' in edit) return edit.to;
+
   if ('multiply' in edit) return liveValue * edit.multiply;
+
   return liveValue + edit.add;
 }
 
@@ -229,10 +237,15 @@ const SECOND_FIELDS = new Set([
 /** Produces author-facing labels and units without changing stable runtime field names. */
 export function authoringNumericFieldLabel(field: string, profile = false): string {
   if (profile && field === 'durationMultiplier') return 'duration value (profile-specific)';
+
   const label = FIELD_LABELS[field] || field.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLocaleLowerCase();
+
   if (field.endsWith('Ms')) return `${label.replace(/ ms$/i, '')} (ms)`;
+
   if (SECOND_FIELDS.has(field)) return `${label} (s)`;
+
   if (field === 'procChance' || field === 'criticalChance') return `${label} (0-1)`;
+
   return label;
 }
 
@@ -249,7 +262,9 @@ function formatNumber(value: number): string {
 /** Describes one numeric edit in human-readable patch-note language. */
 function describeNumEdit(field: string, edit: NumEdit): string {
   const label = fieldLabel(field);
+
   if (typeof edit === 'number') return `${label} set to ${formatNumber(edit)}`;
+
   if ('from' in edit) {
     return `${label} ${formatNumber(edit.from)} → ${formatNumber(edit.to)}`;
   }
@@ -288,6 +303,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   };
 
   describeGrants(edit.resourceGrants, '');
+
   // Explain slot reworks in generated notes so saving the preview preserves their meaning.
   if (edit.placement) {
     changes.add(
@@ -328,12 +344,14 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
     describeGrants(effect.resourceGrants, `${effectTarget(effect)} `);
     for (const field of PATCHABLE_EFFECT_NUMERIC_FIELDS) {
       const numericEdit = effect[field];
+
       if (numericEdit != null) {
         changes.add(`${effectTarget(effect)} ${describeNumEdit(field, numericEdit)}`);
       }
     }
 
     const maximumRecipients = effect.audience?.maximumRecipients;
+
     if (maximumRecipients != null) {
       changes.add(`${effectTarget(effect)} ${describeNumEdit('maximumRecipients', maximumRecipients)}`);
     }
@@ -398,6 +416,7 @@ function modifierPatchSummary(edit: ModifierRulePatchEdit): string {
   const changes: string[] = [];
   for (const field of ['amount', 'factor'] as const) {
     const numericEdit = edit[field];
+
     if (numericEdit != null) {
       changes.push(describeNumEdit(field, numericEdit));
     }
@@ -451,6 +470,7 @@ export function generatePatchOverview(
       ...generatedBalanceProfileOverview(balanceProfiles, professionMetadata),
       ...generatedModifierOverview(modifierRules, professionMetadata)
     ];
+
     if (overview.length) patch.overview = overview;
     else delete patch.overview;
   }
@@ -479,7 +499,9 @@ function compactValue(value: unknown): unknown {
 /** Compacts a preview before saving while preserving its required identity fields. */
 export function compactPatchPreview(preview: PatchPreview): PatchPreview {
   const compacted = compactValue(structuredClone(preview)) as Record<string, unknown> | undefined;
+
   if (!compacted) return createPatchPreviewDraft();
+
   compacted.id = preview.id;
   compacted.label = preview.label;
   return compacted as unknown as PatchPreview;

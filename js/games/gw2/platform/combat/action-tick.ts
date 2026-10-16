@@ -8,6 +8,7 @@ export const GW2_ACTION_TICK_MS = 40;
 /** Rounds a positive duration up to the fixed GW2 action tick without admitting an earlier boundary. */
 export function quantizeGw2ActionDurationUp(value: number): number {
   if (!(value > 0)) return 0;
+
   // Integer clock units preserve exact boundaries without admitting an earlier action tick.
   const intervalKey = timeKey(GW2_ACTION_TICK_MS / 1000);
   return (Math.ceil(timeKey(value / 1000) / intervalKey) * intervalKey) / 1000;
@@ -21,5 +22,6 @@ export function quantizeGw2ActionTimingMs(value: number): number {
 /** Cooldowns become usable on the next absolute action tick, including negative precast timestamps. */
 export function gw2CooldownReadyAt(at: number): number {
   if (!Number.isFinite(at)) return at;
+
   return canonicalTime((Math.ceil(timeKey(at) / (GW2_ACTION_TICK_MS * 1000)) * GW2_ACTION_TICK_MS) / 1000);
 }

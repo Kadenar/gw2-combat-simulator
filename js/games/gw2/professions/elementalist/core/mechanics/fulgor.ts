@@ -27,7 +27,9 @@ function scheduleNextPulse(context: ElementalistRuntime, sequence: FulgorSequenc
 export function replaceFulgor(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const profile = requireBalanceProfileFromContext(context, PROFILE.fulgor);
   const pulse = requireEffect(profile, 'strike', 'Fulgor');
+
   if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
+
   context.cancelOwner(FULGOR_OWNER);
   const packets: ElementalistSimulationEvent[] = pulse.ticks.map((tick) => ({
     type: 'damage',

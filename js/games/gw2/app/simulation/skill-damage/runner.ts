@@ -41,8 +41,11 @@ export class SkillDamageRunner {
   schedule(plan: SkillDamagePlan): void {
     // An identical queued or running request will publish the same answer.
     if ((this.pending ?? this.inFlight)?.signature === plan.signature) return;
+
     this.pending = { requestId: ++this.requestId, signature: plan.signature, request: plan.request };
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = setTimeout(() => {
       this.timer = null;
       this.startPending();
@@ -52,9 +55,12 @@ export class SkillDamageRunner {
   /** Abandons queued and running work, keeping an idle worker warm for the next preview. */
   cancel(): void {
     this.requestId += 1;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
     this.pending = null;
+
     if (this.inFlight) {
       this.worker?.terminate();
       this.worker = null;
@@ -65,6 +71,7 @@ export class SkillDamageRunner {
 
   private startPending(): void {
     if (this.inFlight || !this.pending) return;
+
     const job = this.pending;
     this.pending = null;
     this.inFlight = job;
@@ -74,7 +81,9 @@ export class SkillDamageRunner {
       worker.postMessage({ requestId: job.requestId, request: job.request });
     } catch (error) {
       worker?.terminate();
+
       if (this.worker === worker) this.worker = null;
+
       this.finish(job, { requestId: job.requestId, error });
     }
   }
@@ -84,15 +93,20 @@ export class SkillDamageRunner {
     const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
     worker.addEventListener('message', (event: MessageEvent<SkillDamageWorkerMessage>) => {
       if (this.worker !== worker) return;
+
       const job = this.inFlight;
+
       if (!job || event.data.requestId !== job.requestId) return;
+
       this.finish(job, event.data);
     });
     worker.addEventListener('error', (event) => {
       if (this.worker !== worker) return;
+
       const job = this.inFlight;
       worker.terminate();
       this.worker = null;
+
       if (job) this.finish(job, { requestId: job.requestId, error: event.error ?? event.message });
     });
     this.worker = worker;
@@ -101,7 +115,9 @@ export class SkillDamageRunner {
 
   private finish(job: SkillDamageJob, message: SkillDamageWorkerMessage): void {
     if (this.inFlight?.requestId !== job.requestId) return;
+
     this.inFlight = null;
+
     if (job.requestId === this.requestId) {
       const error =
         message.evaluation || message.error == null

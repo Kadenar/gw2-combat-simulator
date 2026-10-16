@@ -71,7 +71,9 @@ function interpolateCrossing(previous: RelicComparisonPoint, current: RelicCompa
   const previousDelta = previous.targetDps - previous.opponentDps;
   const currentDelta = current.targetDps - current.opponentDps;
   const span = previousDelta - currentDelta;
+
   if (!(Math.abs(span) > 0)) return current.tMs;
+
   const fraction = clamp(previousDelta / span, 0, 1);
   return previous.tMs + (current.tMs - previous.tMs) * fraction;
 }
@@ -94,8 +96,10 @@ export function buildRelicComparisonModel({
   for (const tMs of times) {
     const opponent = chartValueAt(opponentDps, tMs);
     const target = chartValueAt(targetDps, tMs);
+
     // Leading zeroes are not a meaningful tie before either relic deals damage.
     if (!(opponent > 0) || !(target > 0)) continue;
+
     points.push({
       tMs,
       opponentDps: opponent,
@@ -114,6 +118,7 @@ export function buildRelicComparisonModel({
 
   let crossoverMs: number | null = null;
   let targetAlwaysAhead = false;
+
   if (lastOpponentAheadIndex === -1) {
     targetAlwaysAhead = points.length > evalStart;
   } else if (lastOpponentAheadIndex < points.length - 1) {

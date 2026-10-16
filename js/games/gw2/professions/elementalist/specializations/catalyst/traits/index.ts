@@ -139,7 +139,9 @@ const elementalEmpowerment = defineTrait({
     onTriggerPoint(catalystCombatStarted, {
       run(runtime: ElementalistRuntime) {
         const state = catalystState.from(runtime);
+
         if (state.elementalEmpowermentRefreshStarted) return;
+
         state.elementalEmpowermentRefreshStarted = true;
         renewBaseEmpowerment(runtime);
       }
@@ -252,6 +254,7 @@ function applySphereStartTraits(
   const durationMultiplier = sphereSpecialistDuration(context);
   const spectacularSphereProfile = requireBalanceProfileFromContext(context, TRAIT.SPECTACULAR_SPHERE);
   const quickness = requireEffect(spectacularSphereProfile, 'boon', 'Quickness');
+
   if (quickness) {
     emitTraitProfile(context, TRAIT.SPECTACULAR_SPHERE, TRAIT.SPECTACULAR_SPHERE, undefined, {
       at: cast.start,
@@ -273,6 +276,7 @@ function applySphereStartTraits(
   }
 
   const profiledBoon = requireEffect(spectacularSphereProfile, 'boon', String(skill.attunement));
+
   if (profiledBoon) {
     emitTraitProfile(context, TRAIT.SPECTACULAR_SPHERE, TRAIT.SPECTACULAR_SPHERE, undefined, {
       at: cast.start,
@@ -304,6 +308,7 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
     context.resourceController.grant('catalystEnergy', energyGain);
     const after = context.resourceController.value('catalystEnergy');
     const fury = requireEffect(energizedElementsProfile, 'boon', 'Fury');
+
     if (fury) {
       emitTraitProfile(context, TRAIT.ENERGIZED_ELEMENTS, TRAIT.ENERGIZED_ELEMENTS, undefined, {
         at: event.at,
@@ -360,6 +365,7 @@ function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEve
     maximumStacks,
     'exclusive'
   );
+
   if (activeStacks < maximumStacks) {
     context.effects.emit({
       kind: 'packet',
@@ -400,6 +406,7 @@ function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEve
 function applyEpitomeAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   // Only accepted combat auras grant the profiled stack; expiry and stack tracking remain with the buff owner.
   if (context.combatStartTime != null && event.at < context.combatStartTime) return;
+
   emitTraitProfile(context, TRAIT.ELEMENTAL_EPITOME, TRAIT.ELEMENTAL_EPITOME, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -422,6 +429,7 @@ function applyEpitomeAura(context: ElementalistRuntime, event: Gw2ResolverEvent)
 function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   const attunement = core.primaryAttunement;
+
   if (
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalEpitome:${attunement}`,
@@ -430,6 +438,7 @@ function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
     )
   ) {
     const aura = elementalEpitomeAura(context, attunement);
+
     if (aura) {
       applyElementalistAura(context, {
         at: event.at,
@@ -455,6 +464,7 @@ function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
 function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   const attunement = core.primaryAttunement;
+
   if (
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalSynergy:${attunement}`,
@@ -494,7 +504,9 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
 function elementalEpitomeAura(context: unknown, attunement: ElementalistAttunement) {
   const elementalEpitomeProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME);
   const effect = requireEffect(elementalEpitomeProfile, 'buff', attunement);
+
   if (!effect) return undefined;
+
   return { aura: String(effect.kind), duration: effect.duration };
 }
 
@@ -507,6 +519,7 @@ function elementalEpitomeAura(context: unknown, attunement: ElementalistAttuneme
  */
 function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const immobilize = event.condition === 'Immobilized';
+
   if (
     event.actorType !== 'player' ||
     (event.type !== 'control' && !immobilize) ||
@@ -517,6 +530,7 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
 
   // The trait claims its interval independently of its optional buff packets.
   if (!context.procs.claim(TRAIT.VICIOUS_EMPOWERMENT, 'elementalist.catalyst.viciousEmpowerment', event.at)) return;
+
   // The claim gates the whole reward, including independently removable Might and empowerment.
   emitTraitProfile(context, TRAIT.VICIOUS_EMPOWERMENT, TRAIT.VICIOUS_EMPOWERMENT, undefined, {
     at: event.at,
@@ -544,6 +558,7 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
 /** Accepted self buffs add to the same refreshed pool, including isolated preview inputs. */
 export function applyEmpoweringAurasBuff(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   if (event.kind !== 'empowering auras' || !event.resolvedAudience?.includesSelf) return;
+
   const state = catalystState.from(context);
   const { maximumStacks } = empoweringAurasParameters(context);
   state.empoweringAuras = grantRefreshedStacks(

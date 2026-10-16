@@ -62,6 +62,7 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   sideEffectHandlers: {
     'warrior.typed-skill'(_context, action) {
       const cost: number | undefined = action.skill.adrenalineCost;
+
       if (action.kind === 'cast') {
         const slash: boolean | undefined = action.cast.skill.dragonSlash;
         void slash;

@@ -167,6 +167,7 @@ const RESOLVER_STAGES = new Set<string>([
 export function assertTraitTrigger(rule: unknown, owner: string): void {
   if (!rule || typeof rule !== 'object' || Array.isArray(rule))
     throw new TypeError(`${owner} trigger must be an object.`);
+
   const trigger = rule as LooseTrigger;
   for (const key of Object.keys(rule))
     if (
@@ -187,18 +188,26 @@ export function assertTraitTrigger(rule: unknown, owner: string): void {
     )
       throw new TypeError(`${owner} trigger has an unsupported field ${key}.`);
   const point = isTriggerPoint(trigger.on);
+
   if (point && !(rule as { readonly [pointListener]?: boolean })[pointListener])
     throw new TypeError(`${owner} point listeners must use onTriggerPoint.`);
+
   if (!point && !(typeof trigger.on === 'string' && (CAST_STAGES.has(trigger.on) || RESOLVER_STAGES.has(trigger.on))))
     throw new TypeError(`${owner} trigger has an unsupported stage ${trigger.on}.`);
+
   const reactions = [trigger.emit != null, trigger.invoke != null, trigger.run != null].filter(Boolean).length;
+
   if (reactions !== 1) throw new TypeError(`${owner} trigger must declare exactly one of emit, invoke, or run.`);
+
   if (trigger.run != null && typeof trigger.run !== 'function')
     throw new TypeError(`${owner} trigger run must be a function.`);
+
   if (trigger.when != null && typeof trigger.when !== 'function')
     throw new TypeError(`${owner} trigger when must be a function.`);
+
   for (const key of ['emit', 'invoke'] as const) {
     const id = trigger[key];
+
     if (
       id != null &&
       (!['string', 'number'].includes(typeof id) ||
@@ -210,20 +219,28 @@ export function assertTraitTrigger(rule: unknown, owner: string): void {
 
   if (trigger.effects != null && typeof trigger.effects !== 'function')
     throw new TypeError(`${owner} trigger effects must be a function.`);
+
   if (trigger.announce != null && typeof trigger.announce !== 'boolean')
     throw new TypeError(`${owner} trigger announce must be boolean.`);
+
   if (trigger.order != null && !Number.isFinite(trigger.order))
     throw new TypeError(`${owner} trigger order must be finite.`);
+
   if (trigger.emit == null && (trigger.effects != null || trigger.attribution != null))
     throw new TypeError(`${owner} trigger effects and attribution apply only to emit.`);
+
   if (trigger.invoke == null && trigger.announce != null)
     throw new TypeError(`${owner} trigger announce applies only to invoke.`);
+
   if (trigger.requiresSelection != null && typeof trigger.requiresSelection !== 'boolean')
     throw new TypeError(`${owner} trigger requiresSelection must be boolean.`);
+
   if (trigger.cooldown != null && !['profile', 'skill'].includes(trigger.cooldown))
     throw new TypeError(`${owner} trigger cooldown must be profile or skill.`);
+
   if (trigger.cooldown === 'skill' && trigger.invoke == null)
     throw new TypeError(`${owner} trigger cooldown skill requires invoke.`);
+
   if (point && trigger.order != null)
     throw new TypeError(`${owner} trigger on ${trigger.on.id} cannot set order; the point owns it.`);
 }
@@ -249,11 +266,15 @@ function selected(runtime: object, rule: LooseTrigger): boolean {
 /** Admit after selection and eligibility; a skill cooldown reserves the shared recharge before any packet exists. */
 function admitCooldown(runtime: MechanicContext, rule: LooseTrigger): boolean {
   if (rule.cooldown === 'profile') return runtime.procs.claim(rule.emit ?? rule.trait);
+
   if (rule.cooldown === 'skill') {
     const skill = runtime.helpers.skillsById.get(rule.invoke!);
+
     if (!skill) throw new TypeError(`Trait ${rule.trait} invokes unknown skill ${rule.invoke}.`);
+
     // A removed payload leaves the shared recharge untouched, exactly as a direct cast would.
     if (!skill.effects?.length || runtime.cooldownController.isOnCooldown(skill.id, runtime.time)) return false;
+
     runtime.cooldownController.startRecharge(skill, runtime.time);
   }
 
@@ -292,6 +313,7 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
   { traitTriggers = true }: ProfessionRuntimeOptions = {}
 ): RuntimeHooks<T, TSkill> {
   const compiled = { ...hooks };
+
   if (hooks.rechargeRules?.length) {
     const recharge = compileRechargeRules(hooks.rechargeRules);
     compiled.rechargeWork = (runtime, skill, work) => {
@@ -313,6 +335,7 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
       compiled[key] = (runtime, cast) => {
         // The runtime dispatches commit hooks only for successful casts, including shortened animations.
         const context = runtime as unknown as MechanicContext;
+
         if (
           selected(runtime, rule) &&
           (rule.when?.(runtime.queries as never, cast as never) ?? true) &&
@@ -340,6 +363,7 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
         ...compiled.reactions,
         [stage]: (runtime: MechanicContext<T, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
           const context = runtime as unknown as MechanicContext;
+
           // Hit predicates consume the resolved outcome, never a prediction from the packet.
           if (
             selected(runtime, rule) &&
@@ -375,6 +399,7 @@ export function compileTriggerPoints<T extends object, TSkill extends Skill = Sk
   const byPoint = new Map<string, { point: TriggerPoint; rules: LooseTrigger[] }>();
   for (const rule of triggers as readonly LooseTrigger[]) {
     if (!isTriggerPoint(rule.on)) continue;
+
     const entry = byPoint.get(rule.on.id) ?? { point: rule.on, rules: [] };
     entry.rules.push(rule);
     byPoint.set(rule.on.id, entry);
@@ -387,12 +412,17 @@ export function compileTriggerPoints<T extends object, TSkill extends Skill = Sk
       .sort((a, b) => position(a) - position(b))
       .map((rule): TriggerListener<T, TSkill> => (runtime, input) => {
         const context = runtime as unknown as MechanicContext;
+
         if (!selected(runtime, rule) || !(rule.when?.(runtime.queries as never, input as never) ?? true)) return;
+
         // A malformed declarative boundary must fail before consuming a proc claim or skill recharge.
         const cause = rule.run ? undefined : (input as { readonly cause?: Gw2ResolverEvent }).cause;
+
         if (!rule.run && (!cause || typeof cause !== 'object' || !Number.isFinite(cause.at)))
           throw new TypeError(`Trigger point ${id} must carry a cause with a finite time for trait ${rule.trait}.`);
+
         if (!admitCooldown(context, rule)) return;
+
         if (rule.run) {
           rule.run(runtime as never, input as never);
           return;
@@ -421,13 +451,19 @@ export function validateTriggerPoints(triggers: readonly { readonly trait: Skill
   const points = new Map<string, { point: TriggerPoint; traits: Set<string> }>();
   for (const rule of triggers) {
     if (!isTriggerPoint(rule.on)) continue;
+
     const point = rule.on;
     const entry = points.get(point.id) ?? { point, traits: new Set<string>() };
+
     if (entry.point !== point) throw new TypeError(`Trigger point ${point.id} is declared more than once.`);
+
     const trait = String(rule.trait);
+
     if (!point.order.some((listed) => String(listed) === trait))
       throw new TypeError(`Trait ${trait} listens to ${point.id} but is missing from its order.`);
+
     if (entry.traits.has(trait)) throw new TypeError(`Trait ${trait} listens to ${point.id} more than once.`);
+
     entry.traits.add(trait);
     points.set(point.id, entry);
   }

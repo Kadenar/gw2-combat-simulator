@@ -17,9 +17,12 @@ export function transitionThiefScepterChain(
   result: AutoattackChainTransitionResult
 ): void {
   const change = result.transitions.find((entry) => entry.chainRootId === ID.SHADOW_BOLT);
+
   if (!result.committed || !change || change.decision === 'preserve') return;
+
   const core = runtime.profession.core;
   core.scepterChainExpiresAt = change.decision === 'advance' ? canonicalTime(cast.effectiveEnd + 3) : null;
+
   if (core.scepterChainExpiresAt != null)
     runtime.schedule(THIEF_SCEPTER_CHAIN_EXPIRY, core.scepterChainExpiresAt, { at: core.scepterChainExpiresAt });
 }
@@ -27,7 +30,9 @@ export function transitionThiefScepterChain(
 /** Restores Shadow Bolt when the continuation window closes, including while other skills are casting. */
 export function expireThiefScepterChain(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
+
   if ((data as { at: number }).at !== core.scepterChainExpiresAt) return;
+
   core.scepterChainExpiresAt = null;
   resetAutoattackChains(runtime, [ID.SHADOW_BOLT]);
 }

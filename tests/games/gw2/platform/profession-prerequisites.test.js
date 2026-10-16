@@ -414,6 +414,7 @@ test('permanent Vulnerability at the cap skips history while uncapped queries ob
     assert.equal(query.vulnerabilityStacksAt(3, runtime), Math.min(25, configured));
     stack.removedAt = 1;
     assert.equal(query.targetConditionStacks('vulnerability', 1, runtime), Math.min(25, configured));
+
     if (configured >= 25) assert.equal(reads, 0);
     else assert.ok(reads > 0);
   }

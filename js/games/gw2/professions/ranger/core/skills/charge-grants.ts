@@ -50,6 +50,8 @@ export function deliverChargedHit(
   delivery: RangerProfileDelivery
 ): void {
   const profile = requireBalanceProfileFromContext(context, profileId);
+
   if (!profile.effects?.length || !spend()) return;
+
   emitRangerProfile(context, event.at, profile, delivery);
 }

@@ -62,7 +62,9 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
 /** Party Might samples live conditions and companion eligibility at the accepted impact. */
 function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   const stacks = 2 * Math.min(7, runtime.combat.targetConditionCount(runtime.time));
+
   if (!stacks) return;
+
   const boon = {
     type: 'buff' as const,
     at: runtime.time,

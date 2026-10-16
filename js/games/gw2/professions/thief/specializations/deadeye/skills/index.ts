@@ -678,9 +678,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         when: () => true,
         transform: (_runtime, cast, effects) => {
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+
           // Without consumed malice the outgoing axe has no poison application; recall uses the base packet.
           if (malice === 0)
             return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== 'Poisoned');
+
           const scaled = (duration: unknown) => Number(duration || 0) * malice;
           return mapPoisonDurations(effects, scaled);
         }
@@ -768,9 +770,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           const final = effects.find(
             (effect) => effect.type === 'strike' && effect.name === 'Malicious Ashen Assault — Final Strike'
           );
+
           if (malice <= 0 || final?.type !== 'strike') return scaled;
+
           const torment = requireEffect(profile, 'condition', 'Torment');
+
           if (!torment) return scaled;
+
           return [
             ...scaled,
             ...impactEffects(
@@ -915,6 +921,7 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
 export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
   if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE) {
     const enduranceGain = Number(event.deadeyeMaliceSnapshot || 0) * 10;
+
     if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
   }
 }

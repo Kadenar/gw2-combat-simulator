@@ -36,11 +36,16 @@ import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const { skillId } = data as { skillId: SkillId };
   const state = heraldState.from(runtime);
+
   if (state.facetPulseReadyAt[skillId] !== runtime.time) return;
+
   if (!heraldFacetPassiveActive(runtime.profession.core, state, skillId, runtime.time)) return;
+
   const skill: RevenantSkill | undefined = runtime.helpers.skillsById.get(skillId);
   const pulse = skill?.upkeepPulse;
+
   if (!skill || !pulse) return;
+
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -59,6 +64,7 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
     }
   });
   const next = canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3));
+
   if (heraldFacetPassiveActive(runtime.profession.core, state, skillId, next))
     scheduleFacetPulse(runtime, skillId, next);
   else state.facetPulseReadyAt[skillId] = next;
@@ -67,12 +73,16 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
 /** An activated facet arms its consume and starts its own boon cadence at completion. */
 function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void {
   if (!skill.facet || !activeRevenantUpkeep(runtime, skill.id)) return;
+
   const core = runtime.profession.core;
   const state = heraldState.from(runtime);
   delete state.lingeringFacets[skill.id];
   const consumeId = revenantUpkeepConsumeId(skill, core.activeLegendId);
+
   if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
+
   if (!skill.upkeepPulse) return;
+
   scheduleFacetPulse(runtime, skill.id, canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3)));
 }
 
@@ -89,6 +99,7 @@ function startConsume(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
   const wasActive = Boolean(facet && removeRevenantUpkeep(runtime, facet.id));
   runtime.resourceController.refresh('energy');
   consumeSkillFlip(runtime.profession.core.availableFlips, cast.skill.id);
+
   if (facet) consumedFacets.set(cast, { facet, wasActive });
 }
 
@@ -96,10 +107,14 @@ function startConsume(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
 function completeConsume(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const consumed = consumedFacets.get(cast);
   consumedFacets.delete(cast);
+
   if (!consumed) return;
+
   const { facet, wasActive } = consumed;
+
   // Parent ownership makes Facet of Nature's cooldown shared by every legend-specific True Nature.
   if (cast.rechargeWork > 0) runtime.cooldownController.startRecharge(facet, runtime.time, cast.rechargeWork);
+
   runtime.fireTrigger(facetConsumed, { facet, wasActive, at: runtime.time });
 }
 
@@ -111,9 +126,13 @@ function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSk
   );
   const authored =
     proc?.type === 'custom' ? (proc.event as { name?: string; duration?: number; audience?: EffectAudience }) : null;
+
   if (!authored) return;
+
   const extension = Math.max(0, authored.duration || 0) + coreValueExtension(runtime);
+
   if (extension <= 0) return;
+
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -137,15 +156,20 @@ function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSk
 /** Landed player strikes under Assassin Nature (active or retained) siphon once per cooldown; siphons never recurse. */
 function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+
   const core = runtime.profession.core;
   const state = heraldState.from(runtime);
   const active = activeRevenantUpkeep(runtime, ID.FACET_OF_NATURE);
   const legend = active ? core.activeLegendId : state.lingeringFacets[ID.FACET_OF_NATURE]?.legendId;
+
   if (legend !== LEGEND.ASSASSIN || !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, runtime.time)) return;
+
   const profile = requireBalanceProfileFromContext(runtime, HERALD_NATURE_ASSASSIN_PROFILE_ID);
   const strike = requireEffect(profile, 'strike', 'Life Siphon');
+
   // The cooldown gates only the siphon, so a removed strike leaves it ready.
   if (!strike) return;
+
   if (
     !runtime.procs.claimCooldown(
       'revenant.herald.natureSiphon',
@@ -154,6 +178,7 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
     )
   )
     return;
+
   runtime.effects.emit({
     kind: 'packet',
     cause: event,
@@ -188,10 +213,13 @@ export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
   availability(runtime, skill) {
     const core = runtime.profession.core;
+
     if (skill.consume && !skillFlipReady(core.availableFlips[skill.id], runtime.time))
       return denySkillCast(skill, 'revenant.facet-inactive', 'activate the matching facet first.');
+
     if (skill.facet && activeRevenantUpkeep(runtime, skill.id))
       return denySkillCast(skill, 'revenant.facet-active', 'the facet is already active; consume it instead.');
+
     return { ready: true };
   },
   // Facet actions finish before the observer evaluates the resulting aggregate upkeep.
@@ -204,6 +232,7 @@ export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   sideEffectHandlers: {
     'revenant.start-facet'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Keep Core rewards ahead of elite completion state and packets.
       completeRevenantCast(runtime, context.cast);
       startFacet(runtime, context.skill);
@@ -213,6 +242,7 @@ export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     },
     'revenant.complete-consume'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Keep Core rewards ahead of elite completion state and packets.
       completeRevenantCast(runtime, context.cast);
       completeConsume(runtime, context.cast);

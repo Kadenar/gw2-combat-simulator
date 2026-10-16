@@ -48,12 +48,14 @@ const METADATA_FIELDS = new Set(Object.keys(METADATA_VALUE_KINDS));
 /** Validates and freezes the one recipient-selection shape accepted by authored and procedural effects. */
 export function normalizeEffectAudience(value: unknown): EffectAudience | undefined {
   if (value == null) return undefined;
+
   if (typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Effect audience must be an object.');
   }
 
   const audience = value as UnvalidatedFields;
   const unknownFields = Object.keys(audience).filter((field) => !AUDIENCE_FIELDS.has(field));
+
   if (unknownFields.length) {
     throw new TypeError(
       `Effect audience has unsupported field${unknownFields.length === 1 ? '' : 's'}: ${unknownFields.join(', ')}`
@@ -70,6 +72,7 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
 
   // Named recipients must identify an actual party slot; other scopes cannot select allied players.
   const alliedPlayerIndex = audience.alliedPlayerIndex;
+
   if (
     alliedPlayerIndex != null &&
     (audience.recipients !== 'party' ||
@@ -82,6 +85,7 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
   }
 
   const maximumRecipients = audience.maximumRecipients;
+
   if (
     maximumRecipients != null &&
     (typeof maximumRecipients !== 'number' || !Number.isInteger(maximumRecipients) || !(maximumRecipients > 0))
@@ -111,12 +115,14 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
 /** Validates and freezes the closed annotation vocabulary without flattening it into its owner. */
 export function normalizeEffectMetadata(value: unknown): EffectMetadata | undefined {
   if (value == null) return undefined;
+
   if (typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Effect metadata must be an object.');
   }
 
   const metadata = value as UnvalidatedFields;
   const unknownFields = Object.keys(metadata).filter((field) => !METADATA_FIELDS.has(field));
+
   if (unknownFields.length) {
     throw new TypeError(
       `Effect metadata has unsupported field${unknownFields.length === 1 ? '' : 's'}: ${unknownFields.join(', ')}`
@@ -125,6 +131,7 @@ export function normalizeEffectMetadata(value: unknown): EffectMetadata | undefi
 
   for (const [field, fieldValue] of Object.entries(metadata)) {
     const kind = METADATA_VALUE_KINDS[field as keyof EffectMetadata];
+
     if (kind === 'string' && (typeof fieldValue !== 'string' || !fieldValue)) {
       throw new TypeError(`Effect metadata ${field} must be a non-empty string.`);
     }

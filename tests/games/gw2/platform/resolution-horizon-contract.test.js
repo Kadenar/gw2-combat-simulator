@@ -118,6 +118,7 @@ function contractProfession() {
     hooks: {
       onCastStart(context, { skill, start }) {
         if (skill.id !== 990005) return;
+
         context.effects.emit({
           kind: 'packet',
           event: {
@@ -133,6 +134,7 @@ function contractProfession() {
       },
       onCastCommit(context, { skill, effectiveEnd }) {
         if (skill.id !== 990006) return;
+
         context.profession.actorActiveUntil = effectiveEnd + 4;
         context.schedule('fixture.persistent-actor', effectiveEnd + 1);
       },

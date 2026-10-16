@@ -30,7 +30,9 @@ function restoreLegacyDevastatorCast(
   }
 
   const castTimeMs = referenceCastTimeMs(recordedActionSkill(action, context));
+
   if (castTimeMs <= 0 || Number(action.expectedDurationMs) < castTimeMs - 80) return action;
+
   return { ...action, end: action.start + castTimeMs, status: 'completed', expectedDurationMs: castTimeMs };
 }
 
@@ -47,7 +49,9 @@ function kitStow(
   const skill = context.catalog?.skills.find(
     (candidate) => (candidate as EngineerSkill).kitTransition === 'stow' && candidate.kitId === kit
   );
+
   if (!skill || typeof skill.id !== 'number') return null;
+
   return {
     ...action,
     rawSkillId: Number(skill.id),
@@ -71,7 +75,9 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
     .map((action) => restoreLegacyDevastatorCast(context, action))
     .map((action) => {
       const equippedKit = equippedKitId(recordedActionSkill(action, context));
+
       if (!equippedKit) return action;
+
       // EI derives both rows from one kit transition; snap their millisecond jitter so an outgoing weapon cast wins the tie.
       const signal = kitSwapSignals.find(
         (candidate) => candidate.start >= action.start && candidate.start - action.start <= KIT_SWAP_SIGNAL_WINDOW_MS
@@ -95,6 +101,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
   for (const [index, action] of sorted.entries()) {
     // EI reports do not always label known trait procs, so reject their fixed IDs before reconstructing player inputs.
     if (TRIGGERED_PROC_SKILL_IDS.has(action.rawSkillId)) continue;
+
     const skill = recordedActionSkill(action, context);
 
     // Forge replaces the kit itself, even when the log omits its paired bundle-change signal.
@@ -104,6 +111,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
     }
 
     const equippedKit = equippedKitId(skill);
+
     if (equippedKit) {
       result.push(action);
       activeKit = equippedKit;
@@ -126,7 +134,9 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
 
       if (activeKit) {
         const stow = kitStow(context, activeKit, action);
+
         if (stow) result.push(stow);
+
         activeKit = null;
         lastKitEquip = null;
         continue;
@@ -139,6 +149,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
           const nextSkill = recordedActionSkill(candidate, context);
           return candidate.isSwap || nextSkill?.type === 'Weapon' || equippedKitId(nextSkill) != null;
         });
+
         if (nextBarAction?.isSwap && normalized(nextBarAction.rawName) === 'weapon swap') {
           const kit = selectedKits[0];
           result.push({
@@ -159,6 +170,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
     const isMineDetonation =
       actionName === 'detonate' ||
       (action.rawSkillId < 0 && normalized(action.rawName).startsWith('detonate (throw mine'));
+
     if (isMineDetonation) {
       result.push(action.rawSkillId < 0 ? { ...action, canonicalSkillId: 6162, canonicalName: 'Detonate' } : action);
       continue;

@@ -35,7 +35,9 @@ async function begin(name, label, landing = false) {
   await page.goto(`${baseURL}/${landing ? '' : 'mesmer.html'}`, { waitUntil: 'networkidle' });
   // Reserve the caption banner's height below the page so sections at the very bottom can scroll clear of it.
   await page.addStyleTag({ content: 'body { padding-bottom: 100px !important; }' });
+
   if (!landing) await ready();
+
   console.log(`Recording ${label}`);
 }
 
@@ -74,18 +76,23 @@ async function show(text, locator, duration = 2600) {
   caption = text;
   // The simulator header stays pinned to the top, so page content must land below it; header and dialog targets sit above it.
   let headerBottom = 0;
+
   if (locator)
     headerBottom = await locator.evaluate((el) => {
       const header = document.querySelector('#app > header');
       const covered =
         header && !header.contains(el) && !el.closest('dialog') ? header.getBoundingClientRect().height : 0;
       const tall = el.getBoundingClientRect().height > 650;
+
       // Top-aligned tall sections reserve the header height; centered targets already clear it.
       if (tall) el.style.scrollMarginTop = `${covered + 8}px`;
+
       el.scrollIntoView({ block: tall ? 'start' : 'center', behavior: 'instant' });
       return covered;
     });
+
   await page.waitForTimeout(350);
+
   if (locator) {
     const box = await locator.boundingBox();
     assert.ok(

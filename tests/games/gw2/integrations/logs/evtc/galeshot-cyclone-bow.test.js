@@ -112,8 +112,11 @@ test('EVTC import preserves usable Cyclone Bow entry and exit without dismissal 
   let inBow = false;
   for (const command of imported.rotation) {
     if (command.skillId === ID.SUMMON_CYCLONE_BOW) inBow = true;
+
     if (command.skillId === ID.BLUSTER) assert.equal(inBow, true);
+
     if (command.skillId === ID.DISMISS_CYCLONE_BOW) inBow = false;
+
     assert.notEqual(command.skillId, -3, 'Bundle changes must not spend equipped-weapon swaps.');
   }
 

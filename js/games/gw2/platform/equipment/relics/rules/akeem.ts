@@ -13,6 +13,7 @@ export const akeem = defineRelic({
   createState: () => ({ readyAt: 0 }),
   control(ctx, state, event, { activeConditionStackCount }) {
     if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+
     if (
       activeConditionStackCount(ctx, 'Confusion', event.at) < REQUIRED_CONDITIONS &&
       activeConditionStackCount(ctx, 'Torment', event.at) < REQUIRED_CONDITIONS

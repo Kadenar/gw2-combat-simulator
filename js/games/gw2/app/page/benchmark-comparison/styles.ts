@@ -21,6 +21,7 @@ export function assignComparisonSlots(keys: Iterable<string>, slots: Map<string,
   const occupied = new Set(slots.values());
   for (const key of selected) {
     if (slots.has(key)) continue;
+
     let slot = 0;
     while (occupied.has(slot)) slot++;
     slots.set(key, slot);

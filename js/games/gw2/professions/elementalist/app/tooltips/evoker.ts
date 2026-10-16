@@ -97,7 +97,9 @@ export const evokerTooltips = {
     ),
     [ID.IGNITE]: (balanceContext, entity) => {
       const familiar = balanceContext.catalog.skillsById.get(entity.id);
+
       if (!familiar) throw new Error(`Missing familiar tooltip skill: ${entity.id}`);
+
       // Each alternative projects the surviving native packets, exactly as an accepted consecutive-use tier does.
       const tiers = IGNITE_TIERS.map((label, tier) => ({
         label,

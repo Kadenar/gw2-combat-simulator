@@ -54,8 +54,10 @@ for (const name of ['Geomancy', 'Hydromancy', 'Doom']) {
     const { runtime, config, captured } = liveFixture(name);
     const profession = defineTestProfession({ id: 'sigil-payload-fixture', name: 'Sigil payload fixture' });
     applyRuntimeSigils(runtime, 'swap', { type: 'weapon_set', at: 0, weaponSet: 1 });
+
     if (name === 'Doom')
       applyRuntimeSigilStrike(runtime, { type: 'damage', at: 0, actorType: 'player', coefficient: 1 });
+
     const live = resolveTestGw2Events({ profession, config, events: captured.events, endTime: 10 });
     const {
       occurrences: [isolated]

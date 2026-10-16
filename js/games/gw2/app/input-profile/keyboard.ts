@@ -66,7 +66,9 @@ function capShape(key: DrawnKey): string {
   const y = top(key);
   const w = key.width * UNIT - GAP;
   const h = (key.height ?? 1) * UNIT - GAP;
+
   if (!key.radii) return `<rect class="input-kb-cap" x="${x}" y="${y}" width="${w}" height="${h}" rx="5"></rect>`;
+
   const [tl, tr, br, bl] = key.radii;
   return `<path class="input-kb-cap" d="M${x + tl},${y}H${x + w - tr}A${tr},${tr} 0 0 1 ${x + w},${y + tr}V${y + h - br}A${br},${br} 0 0 1 ${x + w - br},${y + h}H${x + bl}A${bl},${bl} 0 0 1 ${x},${y + h - bl}V${y + tl}A${tl},${tl} 0 0 1 ${x + tl},${y}Z"></path>`;
 }

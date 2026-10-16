@@ -41,7 +41,9 @@ export function inputKeyReach(key: string): InputReach {
     )
   )
     return 'near';
+
   if (/^(Key[TGB]|Digit5|F[1-4])$/.test(key)) return 'stretch';
+
   return 'far';
 }
 
@@ -60,7 +62,9 @@ export function analyzeInputTrace(trace: InputTrace, profile: InputProfile): Inp
     const usesModifier = !!parsed && (parsed.modifiers.length > 0 || inputKeyModifier(parsed.key) != null);
     const action: AnalyzedInputAction = { input, binding: parsed ? binding : null, reach, usesModifier };
     reachCounts[reach ?? 'unknown']++;
+
     if (usesModifier) modifierActions++;
+
     if (!parsed) {
       const reason = input.control ? 'Binding is unresolved or unbound.' : input.unresolvedReason;
       const key = `${input.control}:${reason}`;
@@ -71,6 +75,7 @@ export function analyzeInputTrace(trace: InputTrace, profile: InputProfile): Inp
 
     // Only adjacent accepted inputs form a pair; an unmapped input must not create a fictitious jump across it.
     const previous = actions.at(-1);
+
     if (parsed && previous?.binding && previous.input.control) {
       const from = parseInputBinding(previous.binding)!;
       const first = INPUT_KEY_POSITIONS.get(from.key),
@@ -95,6 +100,7 @@ export function analyzeInputTrace(trace: InputTrace, profile: InputProfile): Inp
   const selected: InputWindow[] = [];
   for (const window of windows) {
     if (selected.every((other) => window.end <= other.start || window.start >= other.end)) selected.push(window);
+
     if (selected.length === 3) break;
   }
 

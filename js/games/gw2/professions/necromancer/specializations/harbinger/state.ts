@@ -99,6 +99,7 @@ export function addBlight(state: HarbingerState, stacks: number, at: number, max
   const count = boundedInteger(stacks, 0, 0, maximum);
   for (let index = 0; index < count; index += 1) {
     const expiresAt = canonicalTime(at + BLIGHT_DURATION_SECONDS);
+
     if (expiries.length < maximum) expiries.push(expiresAt);
     else expiries[expiries.indexOf(Math.min(...expiries))] = expiresAt;
   }

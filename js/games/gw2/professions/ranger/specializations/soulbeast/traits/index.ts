@@ -251,7 +251,9 @@ function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2Resolve
   const profile = requireBalanceProfileFromContext(context, TRAIT.LIVE_FAST);
   const fury = requireEffect(profile, 'boon', 'fury');
   const quickness = requireEffect(profile, 'boon', 'quickness');
+
   if (fury) context.effects.emit(rangerProfileEffectRequest(event, profile, fury, TRAIT.LIVE_FAST, 'Live Fast'));
+
   if (quickness)
     context.effects.emit(rangerProfileEffectRequest(event, profile, quickness, TRAIT.LIVE_FAST, 'Live Fast'));
 }
@@ -260,7 +262,9 @@ function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2Resolve
 function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.UNSTOPPABLE_UNION);
   const effect = requireEffect(profile, 'boon', 'protection');
+
   if (!effect) return;
+
   emitTraitProfile(context, TRAIT.UNSTOPPABLE_UNION, TRAIT.UNSTOPPABLE_UNION, undefined, {
     at: context.time,
     fullEnd: context.time,

@@ -14,12 +14,16 @@ export function prepareElementalistHitboxEvent(
   const preparedEvent = event;
   const professionAssumptions = context.config.professionAssumptions || {};
   const hitboxSize = String(professionAssumptions.hitboxSize || context.config.hitboxSize || 'small');
+
   if (hitboxSize !== 'small') return preparedEvent;
+
   const hitIndex = preparedEvent.metadata?.hitboxIndex || 0;
   const smallHitboxCap = preparedEvent.metadata?.smallHitboxCap || 0;
   const excluded =
     preparedEvent.metadata?.largeHitboxOnly === true || (smallHitboxCap > 0 && hitIndex > smallHitboxCap);
+
   if (!excluded) return preparedEvent;
+
   // Identify each rejected payload so simultaneous strike and condition markers remain distinguishable.
   const effect =
     preparedEvent.type === 'damage'

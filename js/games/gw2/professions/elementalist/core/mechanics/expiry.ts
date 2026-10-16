@@ -24,5 +24,6 @@ export function expireElementalistState(runtime: ElementalistRuntime): void {
 
   for (const [weapon, expiresAt] of Object.entries(state.conjurePickups))
     if (expiresAt <= at) delete state.conjurePickups[weapon];
+
   if (state.dazingDischargeUntil <= at) state.dazingDischargeUntil = 0;
 }

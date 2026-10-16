@@ -55,6 +55,8 @@ export function resolveSharpAsTheWindSkillId(
 ): SkillId {
   const parentId = SHARP_AS_THE_WIND_PARENTS.get(Number(skillId)) ?? Number(skillId);
   const variantId = SHARP_AS_THE_WIND_VARIANTS.get(parentId);
+
   if (!variantId) return skillId;
+
   return context.hasTrait(TRAIT.SHARP_AS_THE_WIND) ? variantId : parentId;
 }

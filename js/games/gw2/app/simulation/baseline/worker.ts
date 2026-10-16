@@ -20,6 +20,7 @@ createGameWorkerEndpoint<Gw2ProfessionSource, BaselineSimulationWorkerMessage | 
   calculate(profession, message) {
     // Loading the driver is enough for warmup; never simulate or publish a placeholder rotation.
     if (message.warmup) return {};
+
     const { request } = message;
     return { output: calculateBaselineSimulation(request, profession) };
   }

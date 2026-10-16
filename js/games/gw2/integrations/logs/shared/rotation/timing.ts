@@ -10,8 +10,11 @@ import {
 /** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
 function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
   if (skill?.interruptMode === 'per-packet') return false;
+
   const elapsedMs = quantizeGw2ActionTimingMs(durationMs);
+
   if (elapsedMs >= referenceCastTimeMs(skill)) return false;
+
   const cutoffs = [skill?.interruptCommitMs, ...(skill?.effects || []).map((effect) => effect.interruptCommitMs)];
   return !cutoffs.some((cutoff) => cutoff != null && Number.isFinite(cutoff) && elapsedMs >= cutoff);
 }
@@ -30,6 +33,7 @@ export function strikePacketOffsets(
 ): number[] {
   const origin = effect.timingAnchor === 'castEnd' ? runtimeDurationMs : 0;
   const castScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, runtimeDurationMs) : 1;
+
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return effect.ticks.map((tick) => origin + Number(tick.atMs) * castScale);
   }

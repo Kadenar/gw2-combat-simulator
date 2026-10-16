@@ -62,6 +62,7 @@ function relicHarness(name) {
       procs.push({ kind: a.type, procName: a.name, at: a.at, sourceSkill: a.sourceSkill, detail: a.detail }),
     submit: (event, delivery) => {
       if (delivery.settlement !== 'reaction') return queued.push(event);
+
       conditions.push(event);
       // Relic-applied conditions re-enter the condition stage like the resolver does.
       relic.rules.condition?.(ctx, relic.state, event, helpers);

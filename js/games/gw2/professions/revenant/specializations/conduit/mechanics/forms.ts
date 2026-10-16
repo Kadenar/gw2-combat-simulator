@@ -13,6 +13,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** Clear expired or removed windows; otherwise select the current legend's form and validate its costs. */
 function updateConduitForm(runtime: RevenantRuntime): void {
   const state = conduitState.from(runtime);
+
   if (state.cosmicWisdomUntil <= runtime.time) {
     state.cosmicWisdomUntil = 0;
     state.conduitForm = '';
@@ -20,13 +21,16 @@ function updateConduitForm(runtime: RevenantRuntime): void {
   }
 
   state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || '';
+
   if (revenantConduitFormIsActive(state, 'Mesmer', runtime.time)) validateConduitMesmerEnergyCosts(runtime.helpers);
 }
 
 /** Form expiry clears the form and restores native Energy costs, unless an extension moved the deadline. */
 export function formExpiry(runtime: RevenantRuntime, data: unknown): void {
   const state = conduitState.from(runtime);
+
   if (state.cosmicWisdomUntil !== (data as { until: number }).until) return;
+
   state.cosmicWisdomUntil = 0;
   state.conduitForm = '';
 }

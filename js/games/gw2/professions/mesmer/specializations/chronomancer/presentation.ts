@@ -29,6 +29,7 @@ function chronomancerEventLogRow(
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
   if (event.type !== 'mesmer.phantasm-resummoned') return undefined;
+
   return {
     type: event.type,
     description: `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
@@ -44,6 +45,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   const result = context.result;
   const items: RotationStateSnapshotItem[] = [];
   const continuumRemaining = (state.continuumRemaining || 0) / 1000;
+
   if (state.continuumActive && continuumRemaining > 0) {
     items.push({
       id: 'chronomancer-continuum-split',
@@ -54,6 +56,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   }
 
   const dangerTime = planningBuffAt(context.planningState, 'danger-time');
+
   if (dangerTime) {
     items.push({
       id: 'chronomancer-danger-time',
@@ -67,8 +70,11 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   const combatStart = result?.events.find((event) => event.type === 'combat_start')?.at || 0;
   for (const event of (result?.events || []) as readonly MesmerResolverEvent[]) {
     if (event.type !== 'mesmer.phantasm-summoned' || event.at > at) continue;
+
     const pending = (event.conversionTimes || []).filter((conversionAt) => conversionAt > at);
+
     if (!pending.length) continue;
+
     items.push({
       id: `chronomancer-phantasm:${event.activationId ?? event.eventOrder}`,
       label: `${event.name} → clone`,

@@ -78,6 +78,7 @@ test('Willbender resets independent open virtues before rewards while expired vi
     effects: captureEffectEmissions({
       submit(event) {
         if (event.kind === 'lethal-tempo') observations.push({ ...state.virtueHitCounts });
+
         return event;
       }
     }).effects

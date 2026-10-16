@@ -58,6 +58,7 @@ test('Radiant Courage immobilize requires an empowered blade impact and consumes
       { kind: 'tail', durationMs: 2000 }
     );
     assert.equal(immobilizes(result).length, expected);
+
     if (expected) {
       const impact = result.resolvedEvents.find(
         (event) => event.type === 'damage' && event.skillName === 'Gleaming Blade'
@@ -122,6 +123,7 @@ test('Paralyzing Venom belongs to one pet, expires, and is consumed by its next 
       }
     );
     assert.equal(immobilizes(result).length, expected);
+
     if (expected) {
       const application = immobilizes(result)[0];
       assert.equal(application.at, firstHitAt);

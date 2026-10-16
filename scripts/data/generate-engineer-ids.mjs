@@ -6,6 +6,7 @@ const NON_HOLOSMITH_SWORD_IDS = new Set([69565, 69906, 70514, 70771, 71121]);
 // Preserve the authored non-Holosmith naming policy independently of API display names.
 function skillName(skill) {
   if (NON_HOLOSMITH_SWORD_IDS.has(Number(skill.id))) return `${skill.name} Non Holosmith`;
+
   return skill.name;
 }
 

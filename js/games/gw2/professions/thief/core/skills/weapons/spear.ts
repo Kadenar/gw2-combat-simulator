@@ -319,7 +319,9 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
                     ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
                   }
                 : { ...effect, coefficient: (effect.coefficient || 0) * factor };
+
             if (effect.type !== 'condition') return effect;
+
             if (effect.ticks?.length)
               return {
                 ...effect,
@@ -327,6 +329,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
                   boosted(tick.condition) ? { ...tick, stacks: tick.stacks + extraStacks } : tick
                 )
               };
+
             return boosted(effect.condition) ? { ...effect, stacks: (effect.stacks ?? 1) + extraStacks } : effect;
           });
         }

@@ -36,9 +36,12 @@ test('Crushing Abyss resolves before Brutality observes the committed weapon swa
         runtime.effects = {
           emit(request) {
             const event = request.kind === 'packet' ? request.event : request.attribution;
+
             if (event?.type === 'damage' && event.sourceId === ID.ABYSSAL_RAZE) razeEmitted = true;
+
             if (event?.sourceId === TRAIT.BRUTALITY)
               observations.push({ remaining: runtime.profession.core.crushingAbyss.length, razeEmitted });
+
             return effects.emit(request);
           }
         };
@@ -197,6 +200,7 @@ test('Heroic Command refreshes only live Fervor at commitment, including when Mi
     assert.ok(fervor[0].expiresAt > 2);
     const might = result.events.find((event) => event.type === 'buff' && event.kind === 'might');
     assert.equal(Boolean(might), !removed);
+
     if (might) assert.equal(might.stacks, 2);
   }
 });
@@ -218,7 +222,9 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
         runtime.effects = {
           emit(request) {
             const event = request.kind === 'packet' ? request.event : request.attribution;
+
             if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
+
             return effects.emit(request);
           }
         };
@@ -248,8 +254,10 @@ test('Herald consume publishes Core rewards before establishing Echo retention',
         runtime.effects = {
           emit(request) {
             const event = request.kind === 'packet' ? request.event : request.attribution;
+
             if (event?.sourceId === TRAIT.NOTORIETY && event.skillId === ID.TRUE_NATURE_DRAGON)
               retainedDuringReward.push(Boolean(heraldState.from(runtime).lingeringFacets[ID.FACET_OF_NATURE]));
+
             return effects.emit(request);
           }
         };

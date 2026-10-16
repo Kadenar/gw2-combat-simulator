@@ -13,9 +13,13 @@ export function renderSkillInspector(
 ): void {
   const { chartSeries, skillRows } = model;
   const rowsRoot = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
+
   if (!rowsRoot) return;
+
   rowsRoot.querySelector('[data-role="skill-timeline"]')?.remove();
+
   if (!selectedSkillKey || !chartSeries) return;
+
   const hits = chartSeries.skillDamage?.[selectedSkillKey] || [];
   // List only activations of the selected effect so its count and sources exclude downstream procs.
   const selectedRow = skillRows.find((row) => row.key === selectedSkillKey);
@@ -24,7 +28,9 @@ export function renderSkillInspector(
   const procs = (model.procSteps || [])
     .filter((proc) => selectedRow?.group === 'Player' && proc.skill === selectedRow.sourceSkill)
     .sort((left, right) => left.start - right.start);
+
   if (!hits.length && !procs.length) return;
+
   let target: HTMLElement | null = null;
   for (const rowElement of rowsRoot.querySelectorAll<HTMLElement>('.res-row-selectable')) {
     if (rowElement.dataset.skillKey === selectedSkillKey) {
@@ -34,11 +40,14 @@ export function renderSkillInspector(
   }
 
   const doc = container.ownerDocument;
+
   if (!target || !doc || typeof target.after !== 'function') return;
+
   const timeline = doc.createElement('div');
   timeline.className = 'res-skill-timeline';
   timeline.setAttribute('data-role', 'skill-timeline');
   target.after(timeline);
+
   if (procs.length) {
     // Group activations by their trigger so each skill can disclose its own chronological proc times.
     const timesBySource = new Map<string, number[]>();
@@ -100,6 +109,7 @@ export function bindConditionInspectors(container: HTMLElement, chartSeries: Cha
     }
 
     if (!selectedCondition || !chartSeries) return;
+
     const dialog = container.ownerDocument.createElement('dialog');
     dialog.className = 'condition-inspector';
     dialog.dataset.role = 'condition-inspector';

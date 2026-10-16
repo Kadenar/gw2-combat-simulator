@@ -55,6 +55,7 @@ const nomadsEndurance = defineTrait<MesmerSkill>({
       amount: (context, target) => {
         // Illusion strikes do not inherit personal strike bonuses, while their conditions remain owner-resolved.
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
+
         return target === MODIFIER_TARGET.STRIKE_DAMAGE
           ? balanceNumberFromContext(context, TRAIT.NOMADS_ENDURANCE, 'damageIncrease')
           : balanceNumberFromContext(context, TRAIT.NOMADS_ENDURANCE, 'conditionDamageIncrease');
@@ -154,6 +155,7 @@ const phantomPain = defineTrait<MesmerSkill>({
         // Phantom Pain joins other additive outgoing-damage bonuses; phantasm
         // conditions use owner modifiers, but phantasm strikes use summon ownership.
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
+
         return (
           timedStacks(
             context,
@@ -241,7 +243,9 @@ function renewingOasisCloak(
   { at, source, delivery }: TriggerPointInput<typeof mirageCloakGranted>
 ): void {
   const profile = requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS);
+
   if (!requireEffect(profile, 'boon', 'regeneration')) return;
+
   const proc = state.effects.emit({
     receipt: true,
     ...delivery,
@@ -278,6 +282,7 @@ function reduceDuneCloakShatters(
   for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
     const shatter = state.helpers.skillsById.get(id);
     const readyAt = shatter ? state.cooldownController.readyAt(shatter.id) : null;
+
     if (shatter && readyAt != null) {
       state.cooldownController.reduceSkillRecharge(
         shatter,
@@ -319,6 +324,7 @@ function riddleAmbush(
   const riddleOfSand = mirageState.from(state).riddleOfSandReady
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')
     : undefined;
+
   if (riddleOfSand) {
     buildMesmerConditions(state, ambush.name, impactAt, riddleOfSand, 'Player', `${ambush.name} — Riddle of Sand`, {
       skillId: ambush.id
@@ -354,7 +360,9 @@ function mantleAmbush(
   { ambush, impactAt, delivery }: TriggerPointInput<typeof mirageAmbushAccepted>
 ): void {
   const profile = requireBalanceProfileFromContext(state, TRAIT.MIRAGE_MANTLE);
+
   if (!requireEffect(profile, 'boon', 'alacrity')) return;
+
   const proc = state.effects.emit({
     receipt: true,
     ...delivery,
@@ -388,7 +396,9 @@ function infiniteHorizonAmbush(
 ): void {
   const { at, weapon, delivery, clones } = input;
   const count = clones.length;
+
   if (!count) return;
+
   state.effects.emit({
     ...delivery,
     kind: 'announcement',
@@ -414,6 +424,7 @@ function infiniteHorizonGain(state: MesmerRuntime, { gain }: TriggerPointInput<t
     (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
   // Preserve the inclusive clone-gain deadline, but never treat the zero sentinel as an active cloak.
   const cloneAmbushUntil = mirageState.from(state).cloneAmbushUntil;
+
   if (triggersCloneAmbush && cloneAmbushUntil > 0 && at <= cloneAmbushUntil) {
     createMirageMechanics(state).executeCloneAmbushes(at, createdClones);
   }
@@ -433,6 +444,7 @@ function selfDeceptionCommitted(
   { cast, at, currentResource, weapon }: TriggerPointInput<typeof mirageCastCommitted>
 ): void {
   const skill = cast.skill;
+
   if (skill.categories?.includes('Deception') && currentResource > 0) {
     createMesmerIllusionRewards(state).queueResources(
       at,
@@ -454,6 +466,7 @@ function primeRiddleAfterShatter(
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
   if (state.config.specialization !== 'Mirage') return;
+
   const { skill, at, delivery } = resolution;
 
   if (requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')) {
@@ -474,9 +487,12 @@ function grantNomadsEndurance(
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
   if (state.config.specialization !== 'Mirage') return;
+
   const { skill, at, delivery } = resolution;
   const profile = requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE);
+
   if (!requireEffect(profile, 'boon', 'vigor')) return;
+
   const proc = state.effects.emit({
     receipt: true,
     ...delivery,
@@ -509,6 +525,7 @@ function grantPhantomPain(
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
   if (state.config.specialization !== 'Mirage') return;
+
   const { skill, at, spent, delivery } = resolution;
 
   {
@@ -558,6 +575,7 @@ function createDesertDistortionMirrors(
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
   if (state.config.specialization !== 'Mirage') return;
+
   const { skill, at, spent, delivery } = resolution;
   const { grantAmbushWindow, createMirrors } = createMirageMechanics(state);
 
@@ -583,6 +601,7 @@ function createDesertDistortionMirrors(
 /** Preserve dune cloak at its accepted mechanic boundary. */
 function grantDuneCloak(state: MesmerRuntime, { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>): void {
   if (state.config.specialization !== 'Mirage') return;
+
   const { at, spent, delivery } = resolution;
   const { grantMirageCloak } = createMirageMechanics(state);
 

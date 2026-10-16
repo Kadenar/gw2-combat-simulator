@@ -75,6 +75,7 @@ export function activeCartridgeWindow(
 ) {
   for (let index = windows.length - 1; index >= 0; index--) {
     const window = windows[index];
+
     if (window.startedAt <= at && window.expiresAt > at) return window;
   }
 

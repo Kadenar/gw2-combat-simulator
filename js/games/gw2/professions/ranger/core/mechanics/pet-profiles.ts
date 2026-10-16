@@ -95,7 +95,9 @@ export function rangerPetBaseAttributes(petName: string): RangerPetAttributes {
 /** Measured skills take their recovery from the timing table; recharge stays catalog-owned. */
 function measured(petName: string, id: SkillId): PetAutoSkill {
   const timing = rangerPetSkillTiming(petName, id);
+
   if (!timing) throw new Error(`Missing pet skill timing: ${petName} / ${id}`);
+
   return { id, recovery: timing.recoveryMs / 1000 };
 }
 

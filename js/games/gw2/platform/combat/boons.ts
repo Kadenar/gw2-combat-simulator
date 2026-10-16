@@ -101,6 +101,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
   }
 
   let stacks = 0;
+
   if (start < applications.length) {
     // Canonicalize the query instant once and reuse ordered start times in the visibility check.
     const at = canonicalTime(time);
@@ -114,10 +115,13 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
     for (let index = expiredThrough; index < applications.length; index += 1) {
       const application = applications[index];
       const startsAt = ordered ? canonicalTime(application.at) : application.at;
+
       if (ordered && startsAt > at) break;
+
       // Expiry hides a grant from every recipient, so the shared prefix grows before audience filtering.
       if (reusable && expiredThrough === index) {
         const expiresAt = expiryOf(application);
+
         if (expiresAt !== Infinity && at >= canonicalTime(expiresAt)) {
           expiredThrough += 1;
           continue;
@@ -125,7 +129,9 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
       }
 
       if (!includes(application)) continue;
+
       const expiresAt = expiryOf(application);
+
       if (
         (startsAt === -Infinity || (ordered ? startsAt : canonicalTime(startsAt)) <= at) &&
         (expiresAt === Infinity || at < canonicalTime(expiresAt))
@@ -152,11 +158,13 @@ export function normalizeBoonDuration<
   // Per-grant limits apply after scaling to generic statuses as well as standard boons.
   if (event.type === 'buff' && event.duration != null && event.maximumDuration != null)
     event = { ...event, duration: Math.min(Number(event.duration), Number(event.maximumDuration)) };
+
   if (
     event.duration == null ||
     !(event.type === 'boon_extension' || (event.type === 'buff' && isStandardBoon(event.kind)))
   )
     return event;
+
   const duration = roundEffectDuration(Number(event.duration));
   return duration === event.duration ? event : { ...event, duration };
 }
@@ -167,7 +175,9 @@ export function recordBuffApplication(
   event: SimulationEvent
 ): Gw2TimedBuffApplication[] {
   event = normalizeBoonDuration(event);
+
   if (!event.resolvedAudience) throw new TypeError('Prepared buff events require resolvedAudience.');
+
   const kind = (event.kind || '').toLowerCase();
   const applications = applicationsByKind.get(kind) || [];
   const at = canonicalTime(event.at);
@@ -203,7 +213,9 @@ export function durationStackingBoonCapSeconds(kind: unknown): number {
 /** Supplies shared labels and caps for standard boons so result views do not redeclare GW2 rules. */
 export function standardBoonPresentation(kind: unknown): StandardBoonPresentation | null {
   const normalized = String(kind || '').toLowerCase();
+
   if (!STANDARD_BOON_SET.has(normalized)) return null;
+
   return { ...STANDARD_BOON_DEFINITIONS[normalized] };
 }
 
@@ -219,7 +231,9 @@ export function advanceDurationStack<T extends DurationStackApplication>(
 ): number {
   const appliedAt = canonicalTime(Number(application.at));
   remaining = normalizeDurationPool(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
+
   if (application.extension && remaining <= 0) return remaining;
+
   const applicationDuration = duration
     ? duration(application)
     : application.duration == null
@@ -251,8 +265,11 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
   let previousTime = time;
   for (const application of matching) {
     if (ordered && !includes(application)) continue;
+
     const appliedAt = canonicalTime(Number(application.at));
+
     if (appliedAt > time) break;
+
     remaining = advanceDurationStack(remaining, application, previousTime, maximum, duration);
     previousTime = appliedAt;
   }
@@ -267,9 +284,13 @@ export function buffMatchesAudience(
   companionId?: string | null
 ): boolean {
   const resolvedAudience = application.resolvedAudience;
+
   if (!resolvedAudience) return false;
+
   if (audience === 'all') return resolvedAudience.includesSelf;
+
   if (!resolvedAudience.includesSummons) return false;
+
   const companionIds = resolvedAudience.companionIds;
   return (
     companionIds.length === 0 ||
@@ -313,14 +334,18 @@ export function prepareBoonWindows(
   let remaining = 0;
   const appendUntil = (end: number): void => {
     if (end <= start) return;
+
     const expiresAt = Math.min(end, start + remaining);
+
     if (expiresAt > start) windows.push({ start, end: expiresAt, active: true });
+
     if (end > expiresAt) windows.push({ start: expiresAt, end, active: false });
   };
 
   for (const application of applications) {
     // Each companion has its own duration pool; unrelated recipients cannot extend its window.
     if (!buffMatchesAudience(application, audience, companionId)) continue;
+
     const at = application.at;
     appendUntil(at);
     remaining = advanceDurationStack(remaining, application, start, maximum);
@@ -334,10 +359,12 @@ export function prepareBoonWindows(
 /** Seek directly to the requested time, then clip prepared windows without replaying boon applications. */
 export function* boonIntervalsFromWindows(windows: readonly BoonWindow[], start: number, end: number) {
   if (end <= start) return;
+
   let low = 0;
   let high = windows.length;
   while (low < high) {
     const middle = (low + high) >>> 1;
+
     if (windows[middle].end <= start) low = middle + 1;
     else high = middle;
   }
@@ -360,9 +387,11 @@ export function* boonIntervals(
 ) {
   // Empty or reversed resource windows cannot accrue a boon, so avoid preparing their history.
   if (end <= start) return;
+
   // Permanent boon assumptions keep the rate constant, so resource updates need no event-history replay.
   if (permanent) {
     if (end > start) yield { start, end, active: true };
+
     return;
   }
 
@@ -373,10 +402,14 @@ export function* boonIntervals(
 export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>, event: SimulationEvent): void {
   event = normalizeBoonDuration(canonicalEvent(event));
   const duration = event.duration || 0;
+
   if (!(duration > 0)) return;
+
   for (const [kind, applications] of boons) {
     if (!isStandardBoon(kind) || (event.kind && event.kind !== kind) || event.excludedKind === kind) continue;
+
     const all = event.extensionAudience === 'all';
+
     if (isDurationStackingBoon(kind)) {
       const previous = applications.filter((application) => application.at <= event.at);
       const wildcardSummons = previous.some(
@@ -422,6 +455,7 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
             (!all && !application.resolvedAudience.includesSelf)
           )
             return [application];
+
           const others = {
             ...application.resolvedAudience,
             includesSelf: false,
@@ -468,6 +502,7 @@ export function timedBuffApplicationsAt(
         .sort((left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0));
   for (const event of relevant) {
     if (resolved && !includes(event)) continue;
+
     if (event.type === 'buff')
       recordBuffApplication(applicationsByKind, { ...event, duration: event.duration ?? fallbackDuration });
     else applyBoonExtension(applicationsByKind, event);

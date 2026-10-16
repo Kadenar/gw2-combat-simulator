@@ -20,6 +20,7 @@ for (const prefixes of [
     space = groupOptimizerSpace(ordinary, adapter);
   } catch (error) {
     if (!(error instanceof RangeError) || !error.message.includes('preparation memory limit')) throw error;
+
     console.log(JSON.stringify({ prefixes, preparationStopped: error.message }));
     continue;
   }

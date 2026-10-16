@@ -58,8 +58,10 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
     key: K
   ): RuntimeProfession<State, TSkill>[K] => {
     const entries = hooks.flatMap((hook) => Object.entries(hook[key] ?? {}));
+
     if (new Set(entries.map(([name]) => name)).size !== entries.length)
       throw new TypeError(`Duplicate hook ${key} owner.`);
+
     return Object.fromEntries(entries) as RuntimeProfession<State, TSkill>[K];
   };
 
@@ -92,8 +94,10 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
 
       for (const hook of hooks) {
         const result = hook.availability?.(context, skill, command);
+
         if (result && !result.ready) {
           if (result.retryAt == null) return result;
+
           retryAt = Math.max(retryAt, result.retryAt);
           blocked = { ...result, retryAt };
         }
@@ -115,6 +119,7 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       // The most specific module can resolve controls that replace Core bars.
       for (const hook of [...hooks].reverse()) {
         const resolved = hook.resolveInputControl?.(context, skill, command);
+
         if (resolved !== undefined) return resolved;
       }
 
@@ -147,8 +152,10 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       let owner: WorkOwner | undefined;
       for (const hook of hooks) {
         const candidate = hook.effectOwner?.(context, event);
+
         if (candidate && owner && (candidate.id !== owner.id || candidate.generation !== owner.generation))
           throw new TypeError('Conflicting effect lifetime owners.');
+
         owner = candidate ?? owner;
       }
 
@@ -157,7 +164,9 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
     prepareEvent(context, event) {
       for (const prepare of prepareEvents) {
         const prepared = prepare(context, event);
+
         if (prepared === null) return null;
+
         event = prepared;
       }
 
@@ -194,6 +203,7 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
             let updates: Record<string, unknown> | undefined;
             for (const handler of handlers) {
               const result = handler(context, updates ? { ...event, ...updates } : event, details);
+
               if (result) updates = { ...updates, ...result };
             }
 
@@ -211,6 +221,7 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       // The first module owning this skill supplies its accepted companion incarnation.
       for (const hook of hooks) {
         const candidate = hook.rechargeCompanionId?.(context, skill);
+
         if (candidate != null) return candidate;
       }
 

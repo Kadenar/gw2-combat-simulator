@@ -20,7 +20,9 @@ function roundEven(value: number): number {
 
 function skillName(names: ReadonlyMap<number, string>, id: number): string {
   if (id === STANDARD_DODGE_ANIMATION_ID) return 'Dodge';
+
   if (id === WEAPON_STOW_ANIMATION_ID) return 'Weapon Stow';
+
   return names.get(id)?.trim() || 'Unknown ' + id;
 }
 
@@ -37,9 +39,12 @@ function animatedCast(
   const at = start?.time ?? stop!.time - stop!.value;
   const dodge = event.skillId === STANDARD_DODGE_ANIMATION_ID;
   let expected = start ? (start.buffDamage > 0 ? start.buffDamage : start.value) : stop!.value;
+
   if (!stop && dodge) expected = 750;
+
   let duration = stop?.value ?? Math.min(expected, logEnd - at);
   let scaled = stop?.buffDamage ?? 0;
+
   if (start && stop && Math.abs(duration - (stop.time - start.time)) > SERVER_DELAY_MS) {
     duration = stop.time - start.time;
     scaled = 0;
@@ -54,8 +59,10 @@ function animatedCast(
   let acceleration = !modern && start?.activation === EVTC_ACTIVATION.QUICKNESS ? 1 : 0;
   let status: RecordedAction['status'] = 'unknown';
   let savedDuration = 0;
+
   if (stop) {
     if (scaled > 0) acceleration = clamp(ratio > 1 ? (ratio - 1) / 0.5 : -(1 - ratio) / 0.6, -1, 1);
+
     // Resurrect remains unknown in EI regardless of the activation byte.
     if (event.skillId !== 1066) {
       if (stop.activation === EVTC_ACTIVATION.CANCEL_CANCEL) {
@@ -95,20 +102,27 @@ function pairAnimations(
   const actions: RecordedAction[] = [];
   for (const [index, event] of log.events.entries()) {
     if (event.source !== address) continue;
+
     const isStart = modern
       ? event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
       : event.stateChange === 0 && [1, 2].includes(event.activation);
     const isStop = modern
       ? event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP
       : event.stateChange === 0 && [3, 4, 5, 6].includes(event.activation);
+
     if (!isStart && !isStop) continue;
+
     const start = pending.get(event.skillId);
+
     if (isStart) {
       if (start) actions.push(animatedCast(start.event, null, start.index, names, window.end, modern));
+
       pending.set(event.skillId, { event, index });
     } else {
       const action = animatedCast(start?.event ?? null, event, start?.index ?? index, names, window.end, modern);
+
       if (start || action.start < window.start) actions.push(action);
+
       pending.delete(event.skillId);
     }
   }
@@ -119,6 +133,7 @@ function pairAnimations(
   const candidates = actions.sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
   const sorted = candidates.filter((action, index) => {
     if (!player || action.end - action.start > 1) return true;
+
     const nextSameSkill = candidates.slice(index + 1).find((candidate) => candidate.rawSkillId === action.rawSkillId);
     // Retain a zero-length cancellation glitch when a later same-skill strike proves that the input fired.
     return (

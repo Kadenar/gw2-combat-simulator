@@ -93,6 +93,7 @@ test('ZIP inflation cancels before forged size metadata can exhaust the expansio
         {
           async pull(controller) {
             const { done, value } = await reader.read();
+
             if (done) {
               controller.close();
               return;

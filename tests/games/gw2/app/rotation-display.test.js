@@ -186,6 +186,7 @@ test('keyed timeline reconciliation retains unchanged rows and replaces changed 
       const existingIndex = this.children.indexOf(node);
 
       if (existingIndex >= 0) this.children.splice(existingIndex, 1);
+
       const index = before == null ? this.children.length : this.children.indexOf(before);
       this.children.splice(index, 0, node);
     },
@@ -244,6 +245,7 @@ test('timeline reconciliation preserves its scroll position while replacing rows
       const existingIndex = this.children.indexOf(node);
 
       if (existingIndex >= 0) this.children.splice(existingIndex, 1);
+
       const index = before == null ? this.children.length : this.children.indexOf(before);
       this.children.splice(index, 0, node);
       this.scrollTop = 999;
@@ -489,7 +491,9 @@ test('timeline keeps tome and kit transitions on their equipped set and follows 
       id
     );
     assert.equal(results.planningState.activeWeaponSet, expected.at(-1), id);
+
     if (expected.length === 1) assert.doesNotMatch(rows[0].html, /Weapon set 2:/);
+
     // Before execution, do not predict that a possibly rejected swap changes the set.
     assert.deepEqual(
       timelineRowsView(app, build, null, false, new Set(), false).rows.map((row) => Number(row.key.split(':')[0])),

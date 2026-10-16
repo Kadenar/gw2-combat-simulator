@@ -3,6 +3,7 @@ import type { BalanceProfile, CanonicalCatalog, SkillId } from '#gw2/platform/sk
 /** Validate saved/API rates as fractions; absent entries inherit current balance data, including patch previews. */
 export function normalizeProcRateOverrides(value: unknown): Record<string, number> {
   if (value === undefined) return {};
+
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('procRateOverrides must be an object.');
   }

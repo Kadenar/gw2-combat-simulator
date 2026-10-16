@@ -113,6 +113,7 @@ export function createGw2ResolverRuntimeState({
     ): void {
       // Damage totals and reaction state are maintained separately from these display rows.
       if (!reporting) return;
+
       const sourceSkill = source?.skillName || source?.name || name;
       const parentSkill = source?.parentSkillName || '';
       const skillId = source?.skillId ?? null;
@@ -144,6 +145,7 @@ export function createGw2ResolverRuntimeState({
         critHits: 0,
         critEligibleHits: 0
       };
+
       if (current.skillId == null && source?.skillId != null) {
         current.skillId = source.skillId;
       }
@@ -167,6 +169,7 @@ export function createGw2ResolverRuntimeState({
       current.damage += damage;
       current[type] += damage;
       current.hits += hits;
+
       // Both modes report the seeded critical outcomes used by proc reactions.
       if (type === 'strikeDamage' && critical) {
         const eligible = hits || 0;

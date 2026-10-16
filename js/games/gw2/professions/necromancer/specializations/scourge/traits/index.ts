@@ -295,8 +295,10 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.DEMONIC_LORE);
   const effect = requireEffect(profile, 'condition', 'Burning');
+
   // The cooldown gates only Burning, so a removed packet leaves it ready.
   if (!effect) return;
+
   // Advance the ICD before applying the condition so re-entrant Torment events
   // within the same tick cannot double-proc
   if (
@@ -334,7 +336,9 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
 /** Burning rewards follow Demonic Lore at the same accepted condition boundary. */
 function applyNourishingAshes(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (event.condition !== 'Burning') return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOURISHING_ASHES);
+
   // A qualifying Burning application claims before its life-force reward.
   if (
     !runtime.procs.claimCooldown(
@@ -344,12 +348,14 @@ function applyNourishingAshes(runtime: NecromancerRuntime, event: Gw2ResolverEve
     )
   )
     return;
+
   grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
 }
 
 function applySadisticSearing(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   // Preserve accepted cast targeting and impact delay while the profile expands the burning.
   if (cast.skill.id !== ID.NEFARIOUS_FAVOR) return;
+
   emitTraitProfile(runtime, TRAIT.SADISTIC_SEARING, TRAIT.SADISTIC_SEARING, undefined, {
     at: canonicalTime(runtime.time + (cast.command.impactDelayMs ?? 0) / 1000),
     effect: { type: 'condition', name: 'Burning' },

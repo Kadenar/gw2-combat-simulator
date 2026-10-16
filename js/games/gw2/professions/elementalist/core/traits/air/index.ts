@@ -347,7 +347,9 @@ export const boltToTheHeart = defineTrait({
 /** Grants Inscription's current-attunement boon after a completed Glyph cast. */
 function applyInscriptionPostCast(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
   const skill = cast.skill;
+
   if (skill.skillFamily !== 'Glyph') return;
+
   const state = professionCoreState(context);
   emitTraitProfile(context, TRAIT.INSCRIPTION, TRAIT.INSCRIPTION, undefined, {
     at: cast.effectiveEnd,
@@ -366,6 +368,7 @@ function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent)
   const sourceId = event.skillId ?? event.sourceId;
   const lightningRodProfile = requireBalanceProfileFromContext(context, TRAIT.LIGHTNING_ROD);
   const lightningRodStrike = requireEffect(lightningRodProfile, 'strike', 'Lightning Rod');
+
   if (lightningRodStrike) {
     emitTraitProfile(context, TRAIT.LIGHTNING_ROD, TRAIT.LIGHTNING_ROD, event, {
       at: event.at,
@@ -396,6 +399,7 @@ function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent)
       transform: (event) => ({ ...event, name: 'Lightning Rod' + ' \u2014 ' + event.condition }),
       receipt: true
     }).length > 0;
+
   if (lightningRodStrike || conditionEmitted)
     context.effects.emit(
       elementalistAnnouncement({
@@ -441,6 +445,7 @@ export function aeromancersTrainingRecharge(
 function applyRagingStorm(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
   const fury = requireEffect(ragingStormProfile, 'boon', 'Fury');
+
   if (fury) {
     emitTraitProfile(context, TRAIT.RAGING_STORM, TRAIT.RAGING_STORM, undefined, {
       at: event.at,
@@ -473,8 +478,10 @@ function applyFreshAirCritical(
     !critical.didCrit
   )
     return;
+
   if ((context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
     setElementalistAttunementReadyAt(context, 'Air', event.at);
+
   context.effects.emit({
     kind: 'packet',
     cause: event,
@@ -531,6 +538,7 @@ function triggerElectricDischarge(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at)) return;
+
   emitElectricDischarge(context, at, sourceId, emissionCast);
 }
 
@@ -543,8 +551,10 @@ function applyFreshAirAttunementEntry(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (previous === 'Air') return;
+
   const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
   const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
+
   if (freshAir) {
     emitTraitProfile(context, TRAIT.FRESH_AIR, TRAIT.FRESH_AIR, undefined, {
       at: at,
@@ -574,6 +584,7 @@ function applyOneWithAir(
 ): void {
   const oneWithAirProfile = requireBalanceProfileFromContext(context, TRAIT.ONE_WITH_AIR);
   const superspeed = requireEffect(oneWithAirProfile, 'buff', 'Superspeed');
+
   if (superspeed) {
     emitTraitProfile(context, TRAIT.ONE_WITH_AIR, TRAIT.ONE_WITH_AIR, undefined, {
       at: at,
@@ -620,6 +631,7 @@ function applyFreshAirSyntheticEntry(
 ): void {
   const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
   const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
+
   if (freshAir) {
     emitTraitProfile(context, TRAIT.FRESH_AIR, TRAIT.FRESH_AIR, undefined, {
       at: at,

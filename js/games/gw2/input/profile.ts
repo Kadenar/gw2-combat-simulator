@@ -30,12 +30,18 @@ export function validateInputProfile(value: unknown): InputProfile {
   };
 
   if (!value || typeof value !== 'object' || Array.isArray(value)) return fail('expected a setup object.');
+
   const p = value as InputProfile;
+
   if (p.version !== INPUT_PROFILE_VERSION) return fail('unsupported version.');
+
   if (!p.bindings || typeof p.bindings !== 'object' || Array.isArray(p.bindings)) return fail('expected bindings.');
+
   for (const [id, binding] of Object.entries(p.bindings)) {
     const control = INPUT_CONTROLS.find((control) => control.id === id);
+
     if (!control) return fail(`unknown control "${id}".`);
+
     if (typeof binding !== 'string' || (binding !== '' && !parseInputBinding(binding)))
       return fail(`${control.label} (${id}) has an unsupported binding ${JSON.stringify(binding)}.`);
   }

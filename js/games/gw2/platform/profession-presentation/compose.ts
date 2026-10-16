@@ -60,6 +60,7 @@ interface ProfessionFamilyUiDefinition {
 /** Select direct, config, then build input; trim the selected name and default blank or absent input to Core. */
 export function uiSpecialization(context: unknown): string {
   if (!context || typeof context !== 'object') return 'Core';
+
   const candidate = context as UiSelectionCandidate;
   const config = candidate.config;
   const build = candidate.build;
@@ -68,11 +69,14 @@ export function uiSpecialization(context: unknown): string {
 
 function explicitUiSpecialization(context: unknown): string | null {
   if (!context || typeof context !== 'object') return null;
+
   const candidate = context as UiSelectionCandidate;
   const config = candidate.config;
   const build = candidate.build;
   const value = candidate.specialization ?? config?.specialization ?? build?.specialization;
+
   if (value == null || !String(value).trim()) return null;
+
   return String(value).trim();
 }
 
@@ -99,10 +103,13 @@ function deduplicateUiEntries(values: readonly unknown[], callbackName: string):
   // Validate identity without filtering: every entry survives unless a duplicate is rejected.
   for (const [index, value] of values.entries()) {
     if (!value || typeof value !== 'object') continue;
+
     const candidate = value as { readonly id?: unknown; readonly key?: unknown };
     const identity = candidate[field];
     const key = identity == null ? '' : String(identity);
+
     if (!key) continue;
+
     if (keys.has(key)) {
       throw new TypeError(`ui.${callbackName} returned duplicate ${field} ${key} at index ${index}.`);
     }
@@ -126,6 +133,7 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
         })
         .map(({ value }) => value)
     : [...values];
+
   if (callbackName !== 'paletteGroups') {
     return deduplicateUiEntries(orderedValues, callbackName);
   }
@@ -134,6 +142,7 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
   const anchorIndexes = groups.flatMap((value, index) =>
     value && typeof value === 'object' && (value as ProfessionPaletteGroup).resourceAnchor ? [index] : []
   );
+
   if (anchorIndexes.length > 1) {
     const firstIndex = anchorIndexes[0];
     const lastIndex = anchorIndexes.at(-1) as number;
@@ -171,6 +180,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   const active = (context: unknown): { readonly context: unknown; readonly slices: UiSlice[] } => {
     const requested = uiSpecialization(context);
     const specialization = definition.specializations[requested];
+
     if (specialization && eliteNames.has(requested)) {
       return {
         context,
@@ -196,6 +206,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
 
     const skillSpecialization = (skill?.specialization || '').trim();
     const specialization = definition.specializations[skillSpecialization];
+
     if (specialization && eliteNames.has(skillSpecialization)) {
       return {
         context,
@@ -418,6 +429,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
 
   for (const name of ['slotLoadout'] as const) {
     const owners = [family, ...allSlices].filter((slice) => slice[name] != null);
+
     if (owners.length > 1) {
       throw new TypeError(`ui.${name} has multiple application owners.`);
     }
@@ -459,8 +471,11 @@ function firstUiMatch(
 ): unknown {
   for (const slice of slices) {
     const callback = slice[name];
+
     if (typeof callback !== 'function') continue;
+
     const result = (callback as UiCallback)(...args);
+
     if (isMatch(result)) return result;
   }
 

@@ -47,6 +47,7 @@ for (const page of pages) {
 
   if (!['index.html', 'benchmarks.html', 'patch-preview.html'].includes(page)) {
     const professionId = path.basename(page, '.html');
+
     if (
       !source.includes(`data-profession="${professionId}"`) ||
       !source.includes('id="rotation-warnings"') ||

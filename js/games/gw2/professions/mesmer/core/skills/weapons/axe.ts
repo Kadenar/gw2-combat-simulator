@@ -240,6 +240,7 @@ export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<Me
     const clones = professionCoreState(state).clones.filter(
       (clone) => canonicalTime(clone.createdAt) <= canonicalTime(castStart)
     );
+
     if (clones.length) {
       buildMesmerConditions(
         state,

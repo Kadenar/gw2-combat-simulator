@@ -34,14 +34,17 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
     ['willbender-crashing-courage', 'Crashing Courage', state.courageUntil || 0]
   ] as const) {
     const remaining = expiresAt - at;
+
     // The final instant still accepts virtue hits, but an unarmed zero deadline is never active.
     if (expiresAt <= 0 || remaining < 0) continue;
+
     items.push({ id, label, value: formatSecondsRemaining(remaining), title: `${label} active window` });
   }
 
   const lethalRemaining = (state.lethalTempo?.expiresAt || 0) - at;
   const maximum = balanceNumberFromContext(context.balanceContext, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks');
   const lethalStacks = boundedInteger(activeRefreshedStacks(state.lethalTempo, at, 'inclusive'), 0, 0, maximum);
+
   // Lethal Tempo remains available for damage and refreshes on its final tick.
   if ((state.lethalTempo?.expiresAt || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
     items.push({

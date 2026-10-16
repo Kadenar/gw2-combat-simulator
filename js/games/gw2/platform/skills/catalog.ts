@@ -57,6 +57,7 @@ function normalizeAutoattackChains(
 
   const additional = options.additional ?? [];
   const excluded = options.excludeSkillIds ?? [];
+
   if (!Array.isArray(additional) || !Array.isArray(excluded)) {
     throw new TypeError('Autoattack-chain additions and exclusions must be arrays.');
   }
@@ -174,6 +175,7 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     }
 
     profileIds.add(profile.id);
+
     if (!String(profile.name || '')) {
       throw new TypeError(`Balance profile ${String(profile.id)} has no name.`);
     }
@@ -186,6 +188,7 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     if (profile.procRate) {
       const { id, traitId, field, opportunity } = profile.procRate;
       const chance = profile[field];
+
       if (
         !/^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/.test(id) ||
         procRateIds.has(id) ||

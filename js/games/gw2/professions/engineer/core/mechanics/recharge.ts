@@ -13,6 +13,7 @@ export function reduceEngineerRecharge(
   let reducedBy = 0;
   for (const skill of runtime.helpers.skillsById.values())
     if (predicate(skill)) reducedBy += runtime.cooldownController.reduceSkillRecharge(skill, seconds, runtime.time);
+
   if (reducedBy > 0)
     runtime.effects.emit({
       kind: 'announcement',

@@ -83,6 +83,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       },
       'mesmer.grant-clarity'(runtime, context) {
         if (context.kind !== 'cast') return;
+
         const skill = context.skill;
         const delivery = mesmerCastDelivery(context.cast, skill);
         // Emit only the Clarity reward while attributing it to the accepted skill's identity.
@@ -108,6 +109,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'mesmer.signet-reset': applyMesmerSignetReset,
       'mesmer.tracked-hit'(runtime, context) {
         if (context.kind !== 'effect') return;
+
         scheduleMesmerTrackedHits(runtime, context.skill, [context.trigger.event.at]);
       }
     },
@@ -153,6 +155,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'mesmer.core.relock-signet-ether'(runtime, data) {
         const cast = (data as { cast: RuntimeCast<MesmerSkill> }).cast;
         const readyAt = runtime.time + cast.rechargeWork / runtime.cooldownController.rate(cast.skill);
+
         if (readyAt > (runtime.cooldownController.readyAt(cast.skill.id) ?? 0))
           runtime.cooldownController.startRecharge(cast.skill, runtime.time, cast.rechargeWork);
       }

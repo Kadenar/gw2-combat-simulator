@@ -16,6 +16,7 @@ test('cost admission never treats a future resource deadline as already affordab
         resourceController: { readyAt: () => readyAt }
       };
       const availability = skillCostAvailability(runtime, skill);
+
       if (readyAt === 1) assert.equal(availability, null);
       else {
         assert.equal(availability.ready, false);
@@ -37,11 +38,13 @@ test('endurance admission and payment wait for the full dodge cost', () => {
     runtime.time = time;
     const skill = { name: 'Dodge', resourceCost: 50, cost: { resource: 'endurance' } };
     const availability = skillCostAvailability(runtime, skill);
+
     if (time < 10) {
       assert.equal(availability.retryAt, 10);
       assert.throws(() => runtime.endurance.spend(50), /Insufficient endurance/);
       runtime.time = availability.retryAt;
     } else assert.equal(availability, null);
+
     assert.equal(skillCostAvailability(runtime, skill), null);
     runtime.endurance.spend(50);
     assert.equal(pool.value, 0);
@@ -68,11 +71,13 @@ test('continuous resource admission and payment agree just before recovery readi
     runtime.time = time;
     const skill = { name: 'Energy probe', resourceCost: 1, cost: { resource: 'energy' } };
     const availability = skillCostAvailability(runtime, skill);
+
     if (time < 1) {
       assert.equal(availability.retryAt, 1);
       assert.throws(() => runtime.resourceController.spend('energy', 1), /Insufficient energy/);
       runtime.time = availability.retryAt;
     } else assert.equal(availability, null);
+
     assert.equal(skillCostAvailability(runtime, skill), null);
     runtime.resourceController.spend('energy', 1);
     assert.equal(pool.value, 0);

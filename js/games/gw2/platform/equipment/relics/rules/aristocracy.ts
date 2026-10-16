@@ -53,6 +53,7 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
   }
 
   if (event.at >= state.expiresAt) state.stacks = 0;
+
   state.stacks = Math.min(ARISTOCRACY_MAX_STACKS, state.stacks + 1);
   state.expiresAt = gw2EffectExpiresAt(event.at, ARISTOCRACY_DURATION);
   state.readyAt = event.at + ARISTOCRACY_INTERNAL_COOLDOWN;
@@ -70,8 +71,10 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
 function aristocracyActivationAt(state: AristocracyState, at: number): AristocracyActivation | null {
   for (let index = state.activations.length - 1; index >= 0; index -= 1) {
     const activation = state.activations[index];
+
     // A triggering application cannot benefit from its own same-time stack.
     if (activation.at >= at) continue;
+
     return isTimeInWindow(at, activation.at, activation.expiresAt) ? activation : null;
   }
 
@@ -82,8 +85,10 @@ export const aristocracy = defineRelic({
   createState: createAristocracyState,
   condition(ctx, state, event) {
     if (ctx.combatStartTime != null && canonicalTime(event.at) < canonicalTime(ctx.combatStartTime)) return;
+
     // Accepted applications own the stack claim and report; isolated previews seed their own activation window.
     const activation = applyAristocracyTrigger(state as AristocracyState, event);
+
     if (activation)
       ctx.effects.emit({
         kind: 'announcement',

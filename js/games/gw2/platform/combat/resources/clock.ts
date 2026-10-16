@@ -47,9 +47,13 @@ export function advanceDiscreteResource(
 ) {
   if (!(interval > 0) || !Number.isFinite(interval))
     throw new TypeError('Resource intervals must be finite and positive.');
+
   if (nextAt === Infinity) return { value: cappedResource(value, maximum), nextAt };
+
   const period = timeKey(interval);
+
   if (period <= 0) throw new RangeError('Resource intervals must span at least one clock unit.');
+
   const tick = GW2_ACTION_TICK_MS * 1000;
   const through = Math.floor(timeKey(target) / tick) * tick;
   const next = timeKey(nextAt);
@@ -76,9 +80,12 @@ export function createDiscreteResourceClock(value = 0): DiscreteResourceClock {
 export function resourceAt(state: ResourceClock, at: number): number {
   if (at < state.updatedAt || !Number.isFinite(at))
     throw new RangeError('Resource time must be finite and nondecreasing.');
+
   if ('nextAt' in state) {
     const discrete = state as DiscreteResourceClock;
+
     if (!(discrete.interval > 0)) return state.value;
+
     const ticks = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.interval, at).value;
     return Math.min(state.maximum, state.value + ticks * discrete.amount);
   }
@@ -89,8 +96,10 @@ export function resourceAt(state: ResourceClock, at: number): number {
 /** Settle the old segment before a mutation, keeping discrete phase even when grants overflow. */
 export function advanceResource(state: ResourceClock, at: number): void {
   const value = resourceAt(state, at);
+
   if ('nextAt' in state) {
     const discrete = state as DiscreteResourceClock;
+
     if (discrete.interval > 0)
       discrete.nextAt = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.interval, at).nextAt;
   }
@@ -102,19 +111,25 @@ export function advanceResource(state: ResourceClock, at: number): void {
 /** Pure pool affordability shared by command execution and live resource policies. */
 export function resourceRecoveryReadyAt(state: ResourceClock, cost: number, at: number): number | null {
   if (!Number.isFinite(cost) || cost < 0) throw new RangeError('Resource cost must be finite and non-negative.');
+
   const value = resourceAt(state, at);
   const anchor = resourceAnchor(state);
+
   // Recovery-funded thresholds remain tick aligned even when another event observes sufficient fractional value first.
   if (resourceAtLeast(value, cost)) {
     if (state.rate > 0 && !resourceAtLeast(anchor.value, cost))
       return Math.max(at, gw2CooldownReadyAt(anchor.updatedAt + (cost - anchor.value) / state.rate));
+
     return at;
   }
 
   if (cost > state.maximum) return null;
+
   let readyAt = Infinity;
+
   if ('nextAt' in state) {
     const discrete = state as DiscreteResourceClock;
+
     if (discrete.interval > 0 && discrete.amount > 0 && Number.isFinite(discrete.nextAt)) {
       const next = advanceDiscreteResource(0, Infinity, discrete.nextAt, discrete.interval, at).nextAt;
       readyAt = gw2CooldownReadyAt(next + (Math.ceil((cost - value) / discrete.amount) - 1) * discrete.interval);
@@ -124,6 +139,7 @@ export function resourceRecoveryReadyAt(state: ResourceClock, cost: number, at: 
   }
 
   if (!Number.isFinite(readyAt)) return null;
+
   // A rounded recovery forecast must remain future while the current balance is still below the cost.
   return readyAt <= at ? gw2CooldownReadyAt(at + GW2_ACTION_TICK_MS / 1000) : readyAt;
 }

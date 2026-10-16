@@ -311,8 +311,10 @@ export function hiddenKillerLinger(runtime: ThiefRuntime): number {
 function completeThiefStealthAttack(runtime: ThiefRuntime, { cast }: StealthAttackCompletion): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_SHADE);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!vulnerability) return;
+
   emitTraitProfile(runtime, TRAIT.SUNDERING_SHADE, TRAIT.SUNDERING_SHADE, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
@@ -333,7 +335,9 @@ function completeThiefStealthAttack(runtime: ThiefRuntime, { cast }: StealthAtta
 function criticalBoonDefinition(context: unknown, traitId: SkillId) {
   const selectedProfile = requireBalanceProfileFromContext(context, traitId);
   const effect = requireEffect(selectedProfile, 'boon', 'Fury');
+
   if (!effect) return null;
+
   return {
     boon: String(effect.boon),
     duration: effectNumber(selectedProfile, effect, 'duration'),
@@ -373,7 +377,9 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
   handler: (context, event, _details, application) => {
     // One invocation shares authored effects; each queued boon still samples live duration scaling.
     const definition = criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES);
+
     if (!definition) return;
+
     const { boon, duration, stacks } = definition;
     for (let proc = 0; proc < application.quantity; proc += 1) {
       context.effects.emit({
@@ -410,6 +416,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
     }) <= 0
   )
     return;
+
   const extension: ThiefResolverEvent = {
     type: 'boon_extension',
     at: event.at,
@@ -462,7 +469,9 @@ const noQuarterCriticalReaction = Object.freeze({
   handler: (context, event, _details, application) => {
     // Reuse authored duration within this batch while extending the live pool for each proc.
     const definition = criticalBoonDefinition(context, TRAIT.NO_QUARTER);
+
     if (!definition) return;
+
     const { duration } = definition;
     for (let proc = 0; proc < application.quantity; proc += 1) {
       extendActiveFury(context, event, duration);

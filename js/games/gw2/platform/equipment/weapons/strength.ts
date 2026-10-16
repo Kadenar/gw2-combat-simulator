@@ -53,7 +53,9 @@ function defineProfile(rawId: unknown, rawMin: unknown, rawMax: unknown): Readon
   const id = String(rawId || '');
   const min = Number(rawMin);
   const max = Number(rawMax);
+
   if (!id) throw new TypeError('Weapon-strength profiles require an ID.');
+
   if (!Number.isFinite(min) || !Number.isFinite(max) || min > max) {
     throw new TypeError(`Weapon-strength profile ${id} has invalid bounds.`);
   }
@@ -97,7 +99,9 @@ const NAME_TO_PROFILE_ID: Readonly<Record<string, string>> = Object.freeze({
 export function weaponStrengthProfile(id: unknown): Readonly<Gw2WeaponStrengthProfile> {
   const key = String(id || '');
   const profile = WEAPON_STRENGTH_PROFILES[key];
+
   if (!profile) throw new RangeError(`Unknown weapon-strength profile: ${key}.`);
+
   return profile;
 }
 
@@ -118,6 +122,7 @@ export function weaponStrengthMidpoint(profile: Gw2WeaponStrengthProfile): numbe
 /** Maps a unit-interval sample onto a weapon-strength profile. */
 export function sampleWeaponStrength(profile: Gw2WeaponStrengthProfile, unitIntervalValue: number): number {
   const sample = unitIntervalValue;
+
   if (!(sample >= 0 && sample < 1)) {
     throw new RangeError('Weapon-strength samples must be in [0, 1).');
   }

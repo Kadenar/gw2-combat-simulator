@@ -16,6 +16,7 @@ export function guardianBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'guardian-inspiring-virtue', maximumStacks: 1 }
   ];
   const profile = balanceProfileFromContext(context, TRAIT.SYMBOLIC_AVENGER);
+
   if (profile)
     policies.push({ kind: 'symbolic-avenger', maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
 

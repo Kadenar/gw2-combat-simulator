@@ -55,12 +55,14 @@ for (const profession of professions.length
       observationPolicy: request.observationPolicy,
       onPhase(phase, duration) {
         phases[phase] += duration;
+
         if (phase === 'execution') executions++;
       }
     });
     const simulated = performance.now();
     structuredClone({ equipment, score: optimizerScore(result) });
     const serialized = performance.now();
+
     if (run >= 0)
       timings.push({
         ...phases,
@@ -82,6 +84,7 @@ for (const profession of professions.length
       observationPolicy: request.observationPolicy,
       output: 'score'
     });
+
     if (run >= 0) scoreTimings.push(performance.now() - start);
   }
 

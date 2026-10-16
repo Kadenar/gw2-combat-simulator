@@ -19,7 +19,9 @@ import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/rang
 
 export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {
   const state = professionCoreState(context);
+
   if (!state.pet) throw new Error('An active pet is required for companion identity.');
+
   return state.pet.id;
 }
 
@@ -49,12 +51,14 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
   for (const key of Object.keys(attributes) as (keyof typeof attributes)[])
     attributes[key] += bonuses[ATTRIBUTE_NAMES[key]] ?? 0;
   const runtime = 'cooldownController' in context ? context : null;
+
   if (runtime)
     attributes.ferocity += signetOfTheWildBonus(
       context,
       petHasSelectedSkill(runtime, ID.SIGNET_OF_THE_WILD),
       (runtime.cooldownController.readyAt(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
     );
+
   return attributes;
 }
 

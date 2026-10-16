@@ -51,7 +51,9 @@ export function createContinuumController({
   const restoreContinuum = (at: number, reason: string) => {
     const chronomancer = chronomancerState.from(state);
     const continuum = chronomancer.continuum;
+
     if (!continuum) return;
+
     const splitReady = continuum.splitReady;
     const openAt = continuum.openAt;
     cooldownController.restoreCheckpoint(
@@ -64,6 +66,7 @@ export function createContinuumController({
     cooldownController.refresh(at);
     for (const id of cooldownController.ammoSkillIds()) {
       const ammoSkill = state.helpers.skillsById.get(id);
+
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
 

@@ -53,6 +53,7 @@ interface BalanceProfileLookupContext {
 /** Select the authoritative source before looking up IDs; a miss must never search another patch. */
 function catalogFromContext(context: unknown): BalanceProfileCatalogLike | undefined {
   if (!context || typeof context !== 'object') return undefined;
+
   const source = context as BalanceProfileLookupContext;
   return source.catalog ?? source.helpers ?? source.profession?.catalog ?? source.runtime?.profession?.catalog;
 }
@@ -67,6 +68,7 @@ function balanceDataLabel(context: unknown, owner: string, profile?: BalanceProf
 /** Resolves patched balance data across scheduler, resolver, profession, and application context shapes. */
 export function balanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile | undefined {
   if (typeof context === 'function') return (context as BalanceProfileLookup)(id);
+
   if (!context || typeof context !== 'object') return undefined;
 
   const source = context as BalanceProfileLookupContext;
@@ -77,18 +79,22 @@ export function balanceProfileFromContext(context: unknown, id: SkillId): Balanc
 /** Required profiles fail in the selected source; optional discovery continues to use balanceProfileFromContext. */
 export function requireBalanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile {
   const profile = balanceProfileFromContext(context, id);
+
   if (!profile)
     throw new Error(
       `Invalid balance data: ${balanceDataLabel(context, `profile=${id}`)} missing required profile/catalog`
     );
+
   return profile;
 }
 
 /** Resolve a required skill from the selected catalog without falling through to another patch on a miss. */
 export function requireSkillFromContext(context: unknown, id: SkillId): Skill {
   const skill = catalogFromContext(context)?.skillsById?.get(id);
+
   if (!skill)
     throw new Error(`Invalid balance data: ${balanceDataLabel(context, `skill=${id}`)} missing required skill/catalog`);
+
   return skill;
 }
 
@@ -109,9 +115,13 @@ export function requireEffect<TType extends SkillEffect['type']>(
   name: string
 ): SkillEffectByType<TType> | undefined {
   const effect = requireCanonicalSkillEffects(owner).find((effect) => effect.type === type && effect.name === name);
+
   if (effect) return effect as SkillEffectByType<TType>;
+
   const key = skillEffectKey(type, name);
+
   if (owner.removedEffectKeys?.includes(key)) return undefined;
+
   throw new Error(`Invalid balance data: ${effectOwnerLabel(owner)} effect=${type}/${name} unknown effect key`);
 }
 
@@ -119,7 +129,9 @@ export function requireEffect<TType extends SkillEffect['type']>(
 export function effectNumber(owner: Skill | BalanceProfile, effect: SkillEffect, field: string): number {
   // Valid hot-path reads need no diagnostic strings; retain the full owner context when validation fails.
   const value = effect[field];
+
   if (typeof value === 'number' && Number.isFinite(value)) return value;
+
   return requireBalanceNumber(
     value,
     `${effectOwnerLabel(owner)} effect=${effect.type}/${effect.name ?? '<unnamed>'} field=${field}`
@@ -129,7 +141,9 @@ export function effectNumber(owner: Skill | BalanceProfile, effect: SkillEffect,
 /** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
 export function balanceProfileNumber(profile: BalanceProfile, field: string): number {
   const value = profile[field];
+
   if (typeof value === 'number' && Number.isFinite(value)) return value;
+
   return requireBalanceNumber(value, ownerDataLabel(profile, `profile=${profile.id} field=${field}`));
 }
 
@@ -146,12 +160,16 @@ export function procChanceFromContext(
   const profile = requireBalanceProfileFromContext(context, id);
   const declaration = profile.procRate;
   const label = balanceDataLabel(context, `profile=${id} field=procRate`, profile);
+
   if (!declaration?.id || !declaration.field) throw new Error(`Invalid balance data: ${label} missing declaration`);
+
   // Overrides tune a valid declaration; they must not conceal missing or invalid baseline data.
   const baseline = balanceProfileNumber(profile, declaration.field);
   const override = context.config?.procRateOverrides?.[declaration.id];
   const chance = override === undefined ? baseline : requireBalanceNumber(override, label);
+
   if (baseline < 0 || baseline > 1 || chance < 0 || chance > 1)
     throw new Error(`Invalid balance data: ${label} expected=number in [0, 1]`);
+
   return chance;
 }

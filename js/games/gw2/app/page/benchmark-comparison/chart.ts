@@ -48,8 +48,10 @@ export function mountComparisonChart(
 
   function draw(): void {
     if (frame !== null) window.cancelAnimationFrame(frame);
+
     frame = null;
     const { width, height } = canvas.getBoundingClientRect();
+
     if (!width || !height) {
       reveals.clear();
       return;
@@ -64,6 +66,7 @@ export function mountComparisonChart(
     }
 
     const ratio = canvas.ownerDocument.defaultView?.devicePixelRatio ?? 1;
+
     if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
@@ -85,7 +88,9 @@ export function mountComparisonChart(
     const yAt = (value: number): number => height - padding.bottom - (value / maximum) * plotHeight;
     const revealEnd = (result: ComparisonResult): number => {
       const started = reveals.get(result);
+
       if (started === undefined) return Infinity;
+
       const progress = Math.min(1, Math.max(0, (now - started) / revealDurationMs));
       return start + (Math.min(end, result.durationMs) - start) * (1 - (1 - progress) ** 3);
     };
@@ -101,6 +106,7 @@ export function mountComparisonChart(
     const partialEnd = Math.min(end, lastEnd);
     const partial = durations.length > 1 && sharedEnd < lastEnd && partialEnd > partialStart;
     partialLabel.hidden = !partial;
+
     if (partial) {
       partialLabel.style.right = `${width - xAt(partialEnd) + 6}px`;
       context.fillStyle = '#d3b69010';
@@ -143,6 +149,7 @@ export function mountComparisonChart(
     for (const line of current.lines) {
       context.save();
       const through = revealEnd(line.result);
+
       if (Number.isFinite(through)) {
         // Reveal left to right without changing damage values, line patterns, or the chart's scale.
         context.beginPath();
@@ -161,6 +168,7 @@ export function mountComparisonChart(
       });
       context.stroke();
       const last = line.points.at(-1);
+
       if (last) {
         context.fillStyle = line.color;
         context.beginPath();
@@ -193,8 +201,11 @@ export function mountComparisonChart(
       context.setLineDash([]);
       for (const line of current.lines) {
         if (current.cursor >= revealEnd(line.result)) continue;
+
         const value = comparisonDpsAt(line.result, current.cursor, current.mode);
+
         if (value === null) continue;
+
         context.fillStyle = line.color;
         context.strokeStyle = '#171717';
         context.lineWidth = 2;
@@ -206,6 +217,7 @@ export function mountComparisonChart(
     }
 
     context.restore();
+
     if (current.lines.length && current.cursor >= start && current.cursor <= end) {
       const x = Math.max(padding.left, Math.min(width - 90, xAt(current.cursor) - 35));
       context.fillStyle = '#d3b690';
@@ -216,6 +228,7 @@ export function mountComparisonChart(
     }
 
     rangeChanged(start, end, range !== null);
+
     if (reveals.size) {
       frame = window.requestAnimationFrame(() => {
         frame = null;
@@ -232,7 +245,9 @@ export function mountComparisonChart(
   function release(): void {
     const pointer = drag;
     drag = null;
+
     if (pointer && canvas.hasPointerCapture(pointer.id)) canvas.releasePointerCapture(pointer.id);
+
     draw();
   }
 
@@ -242,6 +257,7 @@ export function mountComparisonChart(
     'pointerdown',
     (event) => {
       if (event.button !== 0 || !event.isPrimary) return;
+
       // A pointer click can retain :focus-visible after tabbing; hide that ring until keyboard input resumes.
       canvas.dataset.pointerFocus = '';
       canvas.focus({ preventScroll: true });
@@ -255,6 +271,7 @@ export function mountComparisonChart(
     (event) => {
       if (drag) {
         if (event.pointerId !== drag.id) return;
+
         drag.end = timeAt(event);
         drag.moved ||= Math.abs(event.clientX - drag.x) > 6;
         draw();
@@ -266,9 +283,11 @@ export function mountComparisonChart(
     'pointerup',
     (event) => {
       if (!drag || drag.id !== event.pointerId) return;
+
       if (drag.moved && Math.abs(drag.end - drag.start) >= 1)
         range = [Math.min(drag.start, drag.end), Math.max(drag.start, drag.end)];
       else inspect(timeAt(event), true);
+
       release();
     },
     options
@@ -288,6 +307,7 @@ export function mountComparisonChart(
     'keydown',
     (event) => {
       delete canvas.dataset.pointerFocus;
+
       if (event.key === 'Escape') {
         // Dismiss mouse-pinned inspection completely; retain normal focus rings for keyboard navigation.
         event.preventDefault();
@@ -321,6 +341,7 @@ export function mountComparisonChart(
     reset,
     dispose: () => {
       if (frame !== null) window.cancelAnimationFrame(frame);
+
       reveals.clear();
       events.abort();
       observer.disconnect();

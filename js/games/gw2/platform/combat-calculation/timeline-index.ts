@@ -82,12 +82,16 @@ export function createGw2TimelineIndex({
   const summonAlacrityWindows = (companionId: string): readonly BoonWindow[] => {
     refreshIndex();
     const cached = alacrityWindows.get(companionId);
+
     if (cached) return cached;
+
     const retiredAt = retiredCompanions.get(companionId) ?? Infinity;
     const windows = prepareBoonWindows(events, 'alacrity', 'summon', companionId, resolved)
       .filter((window) => window.start < retiredAt)
       .map((window) => ({ ...window, end: Math.min(window.end, retiredAt) }));
+
     if (Number.isFinite(retiredAt)) windows.push({ start: retiredAt, end: Infinity, active: false });
+
     alacrityWindows.set(companionId, windows);
     return windows;
   };
@@ -98,6 +102,7 @@ export function createGw2TimelineIndex({
       () => {
         // Summon recharges require an explicit owner; an aggregate audience is never a recharge owner.
         if (!companionId) throw new TypeError(`Summon recharge for skill ${skill.id} requires a companion identity.`);
+
         return summonAlacrityWindows(companionId);
       },
       skill,
@@ -121,6 +126,7 @@ export function createGw2TimelineIndex({
     event = normalizeBoonDuration(event);
     const kind = (event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
+
     if (!bucket) {
       // Keep only recipient-based views consumed by player and companion queries.
       bucket = { all: [], summon: [], maximumDuration: 0 };
@@ -128,6 +134,7 @@ export function createGw2TimelineIndex({
     }
 
     bucket.maximumDuration = Math.max(bucket.maximumDuration, Number(event.duration) || 0);
+
     if (buffMatchesAudience(event, 'all')) {
       insertOrdered(bucket.all, event);
     }
@@ -140,10 +147,13 @@ export function createGw2TimelineIndex({
   const refreshIndex = (): void => {
     // Index append-only histories incrementally; truncation discards the previous cache.
     if (events.length < indexedLength) resetIndex();
+
     if (events.length === indexedLength) return;
+
     clearQueryCache();
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
+
       if (event.type === 'marker' && event.action === 'companion-retired' && event.summonOwner) {
         const companionId = String(event.summonOwner);
         retiredCompanions.set(companionId, event.at);
@@ -157,6 +167,7 @@ export function createGw2TimelineIndex({
 
       if (event.type === 'buff') {
         if (event.kind === 'alacrity') alacrityWindows.clear();
+
         indexBuff(event);
       }
 
@@ -169,6 +180,7 @@ export function createGw2TimelineIndex({
   const refreshQueryCache = (time: number): void => {
     // Refresh before reuse so same-time appends and backwards queries never see stale history.
     refreshIndex();
+
     if (cachedTime !== time) {
       clearQueryCache();
       cachedTime = time;
@@ -184,8 +196,10 @@ export function createGw2TimelineIndex({
     companionId?: string | null
   ): number => {
     time = canonicalTime(time);
+
     // Retirement facts end recipient visibility without rewriting earlier shared boon applications.
     if (audience !== 'all' && companionId && time >= (retiredCompanions.get(companionId) ?? Infinity)) return 0;
+
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
       const applications = timedBuffApplicationsAt(events, kind.toLowerCase(), time, duration, resolved);
@@ -194,6 +208,7 @@ export function createGw2TimelineIndex({
 
     const bucket = indexedBuffs.get((kind || '').toLowerCase());
     const applications = audience === 'summon' ? bucket?.summon : bucket?.all;
+
     if (isDurationStackingBoon(kind)) {
       return buffApplicationStacks(applications || [], kind, time, maximum, {
         audience,
@@ -210,6 +225,7 @@ export function createGw2TimelineIndex({
     let high = history.length;
     while (low < high) {
       const middle = (low + high) >>> 1;
+
       if (gw2EffectExpiresAt(history[middle].at, maximumDuration) <= time) low = middle + 1;
       else high = middle;
     }
@@ -234,6 +250,7 @@ export function createGw2TimelineIndex({
     time = canonicalTime(time);
     refreshQueryCache(time);
     const cached = buffCache.get(kind);
+
     if (
       cached &&
       cached.duration === duration &&
@@ -262,6 +279,7 @@ export function createGw2TimelineIndex({
     let activeSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
     for (const event of weaponSets) {
       if (canonicalTime(event.at) > time) break;
+
       // Same-timestamp swaps are visible to effects emitted after the swap.
       activeSet = Number(event.weaponSet);
     }
@@ -272,6 +290,7 @@ export function createGw2TimelineIndex({
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
     // The owner supplies current cooldown state or an explicit preview policy; events cannot reconstruct it.
     if (!skillOnCooldown) throw new Error('Cooldown queries require a readiness provider.');
+
     return skillOnCooldown(skillId, canonicalTime(time));
   };
 

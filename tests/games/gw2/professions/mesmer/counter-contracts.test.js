@@ -27,6 +27,7 @@ test('Bloodsong resets every fifth application before rewarding, including at fu
     profession: { specialization: { kind: 'Virtuoso', state } },
     schedule(task, at, reward) {
       observations.push([task, at, reward.count, reward.reason, state.bloodsongProgress]);
+
       if (!nested) {
         nested = true;
         react(runtime, { condition: 'Bleeding', stacks: 1 });

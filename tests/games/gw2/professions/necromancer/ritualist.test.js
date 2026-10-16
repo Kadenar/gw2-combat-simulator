@@ -55,6 +55,7 @@ function run(
 ) {
   const native = necromancerProfession.runtimeFor(config);
   let catalog = applyBalanceProfilePatch(native.catalog, { balanceProfiles });
+
   // Timing is not a user patch field; this fixture also exercises the runtime's valid zero-delay profile contract.
   if (bondInitialDelay != null) {
     const profiles = catalog.balanceProfiles.map((profile) =>

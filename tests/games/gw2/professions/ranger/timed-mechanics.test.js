@@ -57,6 +57,7 @@ test('Avatar depletion schedules an earlier exit than the duration limit', () =>
       extend: (native) => ({
         onCastCommit(runtime, cast) {
           native.onCastCommit(runtime, cast);
+
           if (cast.skill.id === ID.CELESTIAL_AVATAR) runtime.resourceController.spend('astralForce', 80);
         }
       })

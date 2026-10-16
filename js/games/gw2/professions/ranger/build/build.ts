@@ -21,6 +21,7 @@ const RANGER_PROFESSION_ID = 'ranger';
 
 function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number], untamed: boolean): boolean {
   if (command.type !== 'cast') return true;
+
   const numericId = Number(command.skillId);
   const skill = Number.isFinite(numericId)
     ? rangerCatalog.skillsById.get(numericId)
@@ -124,6 +125,7 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
   },
   validateExtra(build) {
     const errors: string[] = [];
+
     if (!isRangerPetName(build.selectedPet)) {
       errors.push('selectedPet must name an available Ranger pet.');
     }
@@ -135,6 +137,7 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
     const selectedHammerSkillIds = Array.isArray(build.selectedHammerSkillIds)
       ? build.selectedHammerSkillIds.map(Number)
       : [];
+
     if (
       selectedHammerSkillIds.length !== RANGER_HAMMER_VARIANT_PAIRS.length ||
       RANGER_HAMMER_VARIANT_PAIRS.some((pair, index) => !pair.includes(selectedHammerSkillIds[index]))

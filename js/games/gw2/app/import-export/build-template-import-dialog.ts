@@ -87,7 +87,9 @@ const BUILD_TEMPLATE_IMPORT_STYLES = `
 
 function required<T extends Element>(dialog: HTMLDialogElement, selector: string): T {
   const element = dialog.querySelector<T>(selector);
+
   if (!element) throw new Error('Build template dialog failed to initialize.');
+
   return element;
 }
 
@@ -163,6 +165,7 @@ function previewItem(document: Document, label: string, detail: string, icon?: s
   const item = document.createElement('div');
   item.className = 'build-template-preview-item';
   const visual = icon ? document.createElement('img') : document.createElement('span');
+
   if (icon && visual instanceof HTMLImageElement) {
     visual.src = icon;
     visual.alt = '';
@@ -248,6 +251,7 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
     elements.preview.hidden = true;
     elements.error.hidden = false;
     required<HTMLElement>(elements.dialog, '[data-build-template-error-message]').textContent = errorMessage(error);
+
     if (error instanceof BuildTemplateProfessionMismatchError) {
       elements.switchProfession.hidden = false;
       elements.switchProfession.href = error.actualProfession.route;
@@ -284,6 +288,7 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
   elements.previewButton.addEventListener('click', previewCode);
   elements.applyButton.addEventListener('click', () => {
     if (!activePreview) return;
+
     const selectedWeapons = activePreview.weaponOptions[Number(elements.weaponSelect.value)] ?? activePreview.weapons;
     applyBuildTemplatePreview(app, activePreview, selectedWeapons);
     elements.dialog.close();

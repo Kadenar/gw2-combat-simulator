@@ -22,12 +22,14 @@ export const amalgamStruck = defineTriggerPoint<AmalgamStrike>('engineer.amalgam
 /** Applies damage-triggered trait rewards, then the Rapacious Strain reaction. */
 function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
+
   const state = context.procs;
   context.fireTrigger(amalgamStruck, { cause: event });
 
   const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
   // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
   const cooldown = balanceProfileNumber(rapaciousStrainProfile, 'internalCooldown');
+
   if (
     event.actorType !== 'summon' &&
     event.sourceId !== 'engineer.rapacious-strain' &&
@@ -37,6 +39,7 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
   ) {
     state.setDeadline('rapacious', event.at + cooldown);
     const strike = requireEffect(rapaciousStrainProfile, 'strike', 'Rapacious Strain');
+
     // Keep Rapacious effect-owned for proc gating while inheriting the player's outgoing modifiers.
     if (strike) {
       context.effects.emit({

@@ -145,6 +145,7 @@ test('Mesmer Release keeps impact-time conditions independent of its ordinary st
     const self = observedRuntime(result).profession.core.selfConditions;
     assert.equal(torment.length, mode === 'cancelled' ? 0 : 1);
     assert.equal(self.length, mode === 'cancelled' ? 0 : 1);
+
     if (mode !== 'cancelled') {
       assert.ok(Math.abs(torment[0].duration - 3 * 1.2) < 1e-9);
       assert.ok(Math.abs(self[0].expiresAt - self[0].at - 8 * 0.7) < 1e-9);

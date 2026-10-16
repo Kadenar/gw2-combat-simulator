@@ -263,6 +263,7 @@ test('Shadow Shroud depletion executes at the live boundary', () => {
       extend: (native) => ({
         prepareEvent(runtime, event) {
           if (event.sourceId === DEPLETED) observed.push(runtime.time);
+
           return native.prepareEvent?.(runtime, event) ?? event;
         }
       })

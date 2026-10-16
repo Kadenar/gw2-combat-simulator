@@ -248,7 +248,9 @@ function grantHuntersDetermination(runtime: GuardianRuntime, { cast }: Dragonhun
 function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
   const dulledSensesProfile = requireBalanceProfileFromContext(runtime, TRAIT.DULLED_SENSES);
   const crippled = requireEffect(dulledSensesProfile, 'condition', 'Crippled');
+
   if (!crippled) return;
+
   emitTraitProfile(runtime, TRAIT.DULLED_SENSES, TRAIT.DULLED_SENSES, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -271,8 +273,10 @@ function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: Dragonhun
 function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
   const heavyLightProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEAVY_LIGHT);
   const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
+
   // Removing Stability leaves Heavy Light's interval unclaimed.
   if (!stability || !runtime.procs.claim(TRAIT.HEAVY_LIGHT, 'guardian.dragonhunter.heavyLight', event.at)) return;
+
   emitTraitProfile(runtime, TRAIT.HEAVY_LIGHT, TRAIT.HEAVY_LIGHT, undefined, {
     at: event.at,
     fullEnd: event.at,

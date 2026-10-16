@@ -25,6 +25,8 @@ export function rangerPetCommandBar(
 ): SkillId[] {
   const skillIds = petSkillIds.filter((id) => rangerPetSkillCommandable(skillsById.get(id), specialization));
   const beastIndex = skillIds.findIndex((id) => !skillsById.get(id)?.petAutonomousSkill);
+
   if (beastIndex > 1) skillIds.splice(1, 0, ...skillIds.splice(beastIndex, 1));
+
   return skillIds;
 }

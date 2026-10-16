@@ -277,16 +277,19 @@ test('condition damage uses half-even rounding before accumulation and target de
         output
       });
       assert.equal(result.conditionDamage, damage * 2);
+
       if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks[0].damage, damage);
     }
 
     const partialTie = resolveBleedThrough(6, { duration: 5.04, conditionDamage: 675, output });
     assert.equal(partialTie.conditionDamage, 5 * 62 + 2); // 62.5 per second, then a 2.5 partial tick: both round down.
+
     if (output === 'detailed') assert.equal(partialTie.resolvedEvents[0].damageTicks.at(-1).damage, 2);
 
     const result = resolveBleedThrough(6, { duration: 3 * 1.6719, conditionDamage: 6100, targetHealth: 1946, output });
     assert.equal(result.conditionDamage, 1946);
     assert.equal(result.deathTime, 6);
+
     if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks.at(-1).damage, 6);
   }
 });

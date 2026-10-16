@@ -14,6 +14,7 @@ type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown'>;
 
 function finiteRecharge(value: number | null | undefined): number | null {
   if (value == null) return null;
+
   const recharge = value;
   return Number.isFinite(recharge) ? recharge : null;
 }
@@ -21,7 +22,9 @@ function finiteRecharge(value: number | null | undefined): number | null {
 /** Selects the authored count recharge or ordinary cooldown before modifiers and progress are applied. */
 export function gw2BaseRecharge(skill: Gw2RechargeSkill): number {
   const ammoRecharge = finiteRecharge(skill.ammoRecharge);
+
   if (Number(skill.ammo) > 0 && ammoRecharge != null && ammoRecharge > 0) return ammoRecharge;
+
   return finiteRecharge(skill.cooldown) ?? 0;
 }
 
@@ -35,10 +38,13 @@ export function gw2RechargeRate(
 ): number {
   // Skills such as Weapon Swap declare their Alacrity immunity instead of being recognized by display name.
   if (skill.rechargeIgnoresAlacrity) return 1;
+
   if (skill.rechargeBuffAudience === 'summon') return summonAlacrity ? GW2_ALACRITY_RECHARGE_RATE : 1;
+
   // Professions declare their player rate; summon rates and immunity remain shared rules.
   if (!Number.isFinite(playerAlacrityRechargeRate) || playerAlacrityRechargeRate <= 0)
     throw new RangeError('Player Alacrity recharge rate must be finite and positive.');
+
   return playerAlacrityRechargeRate;
 }
 
@@ -51,6 +57,7 @@ export function* gw2RechargeIntervals(
   end: number
 ): Iterable<RateInterval> {
   if (end <= start) return;
+
   if (skill.rechargeBuffAudience !== 'summon' || skill.rechargeIgnoresAlacrity) {
     yield { start, end, rate: gw2RechargeRate(skill, playerAlacrityRechargeRate) };
     return;
@@ -68,10 +75,14 @@ export function* gw2RechargeIntervals(
 /** Preserve earned recharge work when a received boon starts or expires. */
 export function projectRecharge(progress: RechargeProgress, intervals: Iterable<RateInterval>): number {
   let work = Math.max(0, progress.work);
+
   if (!work) return progress.startedAt;
+
   for (const interval of intervals) {
     const elapsed = work / interval.rate;
+
     if (elapsed <= interval.end - interval.start) return interval.start + elapsed;
+
     work -= (interval.end - interval.start) * interval.rate;
   }
 

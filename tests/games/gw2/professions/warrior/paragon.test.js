@@ -107,6 +107,7 @@ test('a final partial pulse stops before a same-time refill and command echo', (
       ...native,
       onCastCommit(runtime, cast) {
         native.onCastCommit?.(runtime, cast);
+
         if (cast.skill.id === ID.CHANT_OF_RECUPERATION) {
           runtime.resourceController.replace('adrenaline', 0);
           runtime.schedule('test.refill', runtime.time + 3, null, undefined, -100);

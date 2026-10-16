@@ -36,6 +36,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
 >['sideEffectHandlers'] = {
   'engineer.lightning-rod'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Lightning Rod requires a cast trigger.');
+
     const { cast } = context;
     const state = runtime.profession.core;
     const at = runtime.time;
@@ -50,6 +51,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
   },
   'engineer.conduit-surge'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Conduit Surge requires a cast trigger.');
+
     const { cast } = context;
     buildEngineerPackets(
       'engineer.conduit-surge',
@@ -59,6 +61,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
   },
   'engineer.electric-artillery'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Electric Artillery requires a cast trigger.');
+
     const { cast } = context;
     const state = runtime.profession.core;
     const at = runtime.time;
@@ -79,6 +82,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
   },
   'engineer.roiling-skies'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Roiling Skies requires a cast trigger.');
+
     const { cast } = context;
     const focused = runtime.combat.activeBuffStacks('engineer-focused', runtime.time, 1) > 0;
     buildEngineerPackets(
@@ -117,6 +121,7 @@ export const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, Enginee
   'engineer.devastation'(runtime, data) {
     // Focused is sampled at the authored task deadline, after any intervening target-state changes.
     if (runtime.combat.activeBuffStacks('engineer-focused', runtime.time, 1) === 0) return;
+
     const { cast } = data as SkillTaskData<EngineerSkill>;
     const followup = runtime.helpers.skillsById.get(ID.FOCUSED_DEVASTATION)!;
     runtime.effects.emit({
@@ -166,6 +171,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
   const condition = requireEffect(idProfile, 'condition', 'Vulnerability');
   const strike = requireEffect(idProfile, 'strike', profile.name);
+
   if (strike)
     context.effects.emit({
       kind: 'packet',
@@ -175,6 +181,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
         coefficient: Number(strike.coefficient)
       })
     });
+
   if (condition)
     context.effects.emit({
       kind: 'packet',
@@ -193,6 +200,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
   const profile = requireBalanceProfileFromContext(context, PROFILE.conduitSurge);
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
   const burning = requireEffect(idProfile, 'condition', 'Burning');
+
   // Independent accepted target windows preserve a longer Focused grant without a duplicate deadline.
   if (
     !event.offTarget &&
@@ -217,7 +225,9 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         audience: { recipients: 'self' }
       }
     });
+
   const strike = requireEffect(idProfile, 'strike', profile.name);
+
   if (strike)
     context.effects.emit({
       kind: 'packet',
@@ -233,6 +243,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         }
       })
     });
+
   if (burning)
     context.effects.emit({
       kind: 'packet',
@@ -266,6 +277,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
   // charges accumulate from Lightning Rod hits (max 12); Math.trunc discards partial charges
   const charges = boundedInteger(event.charges || 0, 0, 0, balanceProfileNumber(idProfile, 'maximumStacks'));
   const strike = requireEffect(idProfile, 'strike', profile.name);
+
   if (strike)
     context.effects.emit({
       kind: 'packet',
@@ -276,6 +288,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
         explosion: true
       })
     });
+
   if (immobilize)
     context.effects.emit({
       kind: 'packet',
@@ -287,10 +300,12 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
       }),
       settlement: 'reaction'
     });
+
   // The tooltip specifies charges required per stack: one when Focused, otherwise two.
   if (vulnerability) {
     const vulnerabilityStacks =
       Math.floor(charges / balanceProfileNumber(idProfile, 'chargesPerVulnerability')) * Number(vulnerability.stacks);
+
     if (vulnerabilityStacks > 0) {
       context.effects.emit({
         kind: 'packet',
@@ -334,6 +349,7 @@ export function engineerSpearAvailability(
 ): AvailabilityResult {
   const state = professionCoreState(context);
   const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
+
   if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.time)) {
     // The stored window carries readiness even while its palette tile is hidden.
     const retryAt = artillery?.availableAt || 0;

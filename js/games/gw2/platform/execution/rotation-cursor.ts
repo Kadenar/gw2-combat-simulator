@@ -27,7 +27,9 @@ export class RotationCursor {
   /** Interpret only the current command's extra hold; mechanics never receive the cursor or the authored command. */
   pendingChargeRelease(): ChargeReleaseIntent | undefined {
     const command = this.command;
+
     if (command?.type !== 'cast' || !(Number(command.releaseDelayMs) > 0)) return undefined;
+
     return Object.freeze({ skillId: command.skillId, charges: command.releaseAtCharges });
   }
 
@@ -39,19 +41,25 @@ export class RotationCursor {
   /** Compute an authored request once, then let actual readiness delay it without backdating an overlap. */
   requestAt(now: number, skill?: Skill): number {
     if (now < this.waitUntil) return this.waitUntil;
+
     if (this.requestedAt != null) return Math.max(now, this.requestedAt, this.waitUntil);
+
     const command = this.command;
     let at = Math.max(now, this.waitUntil);
+
     if (command?.type === 'cast' && skill) {
       const independent = skill.independentCast === true;
       const instant = Number(skill.castTimeMs) === 0;
+
       if (command.concurrentOffsetMs != null) {
         at = this.previousCastStart + command.concurrentOffsetMs / 1000;
+
         if (instant || independent) at = Math.max(at, now);
       } else if (independent) {
         if (!skill.independentCastCanOverlap) at = Math.max(at, this.independentReadyAt);
       } else if (instant) at = Math.max(at, this.instantReadyAt);
       else at = Math.max(at, this.serialReadyAt, this.blockingEnd, skill.stunbreak ? 0 : this.selfStunUntil);
+
       if (independent && !skill.independentCastCanOverlap) at = Math.max(at, this.independentReadyAt);
     } else if (command?.type === 'combat-start' && command.concurrentOffsetMs != null && this.hasPreviousCast) {
       at = Math.max(at, this.previousCastStart + command.concurrentOffsetMs / 1000);
@@ -60,6 +68,7 @@ export class RotationCursor {
       // an overlappable companion command still animating beside the player.
       at = Math.max(at, this.serialReadyAt, this.reservedEnd);
     } else at = Math.max(at, this.endTime());
+
     this.requestedAt = canonicalTime(at);
     return this.requestedAt;
   }
@@ -69,6 +78,7 @@ export class RotationCursor {
     if (skill.independentCast && skill.independentCastCanOverlap)
       this.overlappingEnd = Math.max(this.overlappingEnd, laneEnd);
     else this.reservedEnd = Math.max(this.reservedEnd, laneEnd);
+
     if (skill.independentCast) {
       if (!skill.independentCastCanOverlap) this.independentReadyAt = Math.max(this.independentReadyAt, laneEnd);
     } else {
@@ -76,7 +86,9 @@ export class RotationCursor {
       this.hasPreviousCast = true;
       this.instantReadyAt = Math.max(this.instantReadyAt, effectiveEnd);
       this.blockingEnd = Math.max(this.blockingEnd, laneEnd);
+
       if (command.concurrentOffsetMs == null) this.serialReadyAt = laneEnd;
+
       if (skill.stunbreak) this.selfStunUntil = start;
     }
 

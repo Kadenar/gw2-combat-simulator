@@ -113,6 +113,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
   function activate(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent) {
     const at = event.at;
     recordTimedBuffProc(ctx, event, { relicId, kind, duration: 6, name });
+
     if (director) {
       ctx.effects.emit({
         kind: 'packet',
@@ -141,15 +142,19 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
     activate,
     completed(ctx, state, event) {
       if (event.skillType !== skillType || event.cancelled || !isGw2PlayerActorEvent(event)) return;
+
       // The runtime supplies completion time and whether the marker has executed; pending casts cannot activate buffs.
       const precombat = event.precombat === true;
+
       if (
         precombat
           ? !ctx.config.precastRelics?.some((name) => relicIdForName(name) === relicId)
           : ctx.relic?.id !== relicId
       )
         return;
+
       if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+
       state.readyAt = event.at + (director ? 15 : 30);
       ctx.effects.emit({
         kind: 'packet',

@@ -96,6 +96,7 @@ for (const [profile, type, name, skill, weapon] of [
     );
     assert.ok(result.planningState.profession.adrenaline.value < 30);
     assert.ok(result.events.some((e) => e.type === 'action' && e.skillId === skill));
+
     if (type === 'strike')
       assert.equal(
         result.events.some((e) => e.kind === 'berserkers-power'),
@@ -118,6 +119,7 @@ for (const [type, name, absent, present] of [
       false
     );
     assert.ok(result.events.some((e) => e.skillId === ID.COMBUSTIVE_SHOT && e.type === present));
+
     if (type === 'strike')
       assert.equal(
         result.events.some((e) => e.kind === 'berserkers-power'),

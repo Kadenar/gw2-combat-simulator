@@ -81,6 +81,7 @@ type ResolvedAction = ResolvedLogAction<RecordedAction>;
 function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof findRotationSkill>): number | null {
   // Independent pet animations only cancel on an explicit interruption, not a shorter completed animation.
   if (skill?.independentCast && action.status !== 'interrupted') return null;
+
   if (action.replayCastEnd != null && action.replayInterruptMs == null) {
     return null;
   }
@@ -90,7 +91,9 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
     return null;
 
   const sourceObservedMs = Math.max(0, action.replayInterruptMs ?? action.end - action.start);
+
   if (sourceObservedMs === 0 && (action.status === 'instant' || action.status === 'unknown')) return null;
+
   const runtimeMs = action.replayDurationMs ?? referenceCastTimeMs(skill);
   // Snap every observed cancellation to the replay's 40 ms action grid, including per-packet channels.
   const observedMs = thiefShadowBoltInterruptMs(action) ?? quantizeGw2ActionTimingMs(sourceObservedMs);
@@ -107,6 +110,7 @@ function applyObservedInterruptTiming(
   return actions.map((action) => {
     const skill = recordedActionSkill(action, { catalog, profile });
     const interruptMs = observedInterruptMs(action, skill);
+
     // Apply Shadow Bolt's raw-duration guard before tolerant packet matching can promote a short attempt to completion.
     if (interruptMs != null && thiefShadowBoltInterruptMs(action) != null) {
       return { ...action, replayInterruptMs: interruptMs, replayCastEnd: undefined };
@@ -119,6 +123,7 @@ function applyObservedInterruptTiming(
       action.end === action.start &&
       packets.allObserved &&
       packets.allObservedTimingExplicit;
+
     if (runtimeDuration > 0 && (packets.observedCommittedDelayedPacket || falseZeroDurationCancellation)) {
       // Proven packets override a false stop marker so replay retains the complete cast and its damage.
       return {
@@ -263,6 +268,7 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
   );
   const unfinished = actions.filter((action) => action.status === 'unknown');
   const warnings: string[] = [LOG_OPENER_WARNING];
+
   if (inferred.length) {
     warnings.push(
       `${inferred.length} instant cast${inferred.length === 1 ? ' was' : 's were'} inferred using explicit Elite Insights rules.`
@@ -370,6 +376,7 @@ function reconstructWithProfile(
 
   // Direct effect timestamps anchor instant inputs, including ammo flips; later idle time cannot move those inputs.
   resolved.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
+
   if (!resolved.length) {
     throw new EvtcError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable EVTC actions.');
   }
@@ -431,6 +438,7 @@ export function reconstructEvtcRotation(
   const selected = selectPlayerAgent(options.playerEvidence ?? detectEvtcRotationPlayers(log), options.playerAddress);
   const { player } = selected;
   const profile = evtcRotationProfile(player.professionId, player.specializationId);
+
   if (!profile) {
     throw new EvtcError(
       'UNSUPPORTED_PROFESSION',

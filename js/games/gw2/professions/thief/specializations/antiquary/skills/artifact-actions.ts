@@ -69,6 +69,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.pay-coins'(runtime, context) {
       if (context.kind === 'cast') {
         const initiativeGain = coinInitiative.get(context.cast) ?? 0;
+
         if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
       }
     },
@@ -89,8 +90,10 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
       const { windows, duration } = artifactWindow(runtime);
+
       if (!requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistburnProc), 'condition', 'Burning'))
         return;
+
       state.mistburn = grantCharges(balanceProfileNumber(windows, 'playerStacks'), at + duration);
     },
     'thief.kryptis'(runtime) {

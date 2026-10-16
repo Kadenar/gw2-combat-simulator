@@ -45,6 +45,7 @@ function troubadourEventLogRow(
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
   if (event.type !== 'mesmer.instrument') return undefined;
+
   return {
     type: 'trigger',
     description:
@@ -114,7 +115,9 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
         paletteSkillId: SHARED_SKILL_IDS.DODGE
       }
     ];
+
     if (!activeInstruments.length) return resources;
+
     // Notes remain attached above the instrument row; these unlabeled playing
     // chips are anchored immediately below it to keep the F-key row central.
     return [

@@ -119,8 +119,10 @@ export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   const skills = view.skills || [];
   const controls = view.controls || [];
   const statusIcon = view.statusIcon;
+
   // Empty groups occupy no layout space.
   if (!skills.length && !controls.length && !statusIcon) return '';
+
   const statusIconHtml = statusIcon
     ? `<div class="pal-status-icon" title="${esc(statusIcon.title || statusIcon.label)}"
         aria-label="${esc(statusIcon.label)}">
@@ -162,6 +164,7 @@ function addGroup(
   retryAt: (skill: Skill) => number | null = () => null
 ): string {
   if (!skills.length && !controls.length && !statusIcon) return '';
+
   return paletteGroupHtml({
     id,
     label,
@@ -228,6 +231,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
   // anchors must not duplicate it.
   const stackWithResources = (groupHtml: string, anchored: boolean | undefined): string => {
     if (!anchored || !resourceGroupsHtml) return groupHtml;
+
     resourceAnchorRendered = true;
     return `<div class="profession-resource-stack"
             data-role="profession-resource-stack">
@@ -268,7 +272,9 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
     const attachedResourcesHtml = group.resourceIds?.length
       ? activeResourceGroup(app, { includeIds: group.resourceIds })
       : '';
+
     if (!groupHtml || !attachedResourcesHtml) return groupHtml;
+
     const resourcesFirst = group.resourcePlacement === 'above';
     return `<div class="profession-palette-resource-group resource-${esc(group.resourcePlacement)}">
               ${resourcesFirst ? attachedResourcesHtml : groupHtml}
@@ -284,6 +290,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
       }
 
       if (renderedStackIds.has(group.stackId)) return '';
+
       renderedStackIds.add(group.stackId);
       const stackedGroups = standardProfessionGroups.filter((candidate) => candidate.stackId === group.stackId);
       const stackHtml = `<div class="profession-palette-stack"
@@ -375,7 +382,9 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
       .filter((row) => row.skills.length);
     return weaponRows.flatMap((row, index) => {
       const rowWeaponSwapActions = row.active && !weaponSwapEmbedded ? weaponSwapActions : [];
+
       if (rowWeaponSwapActions.length) weaponSwapEmbedded = true;
+
       const renderedRow = addGroup(
         app,
         row.label,
@@ -491,7 +500,9 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
 /** Replaces the rotation palette markup and binds activation and drag behavior. */
 export function renderPalette(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-palette');
+
   if (!element) return;
+
   const paletteContext = createPaletteContext(app);
   element.innerHTML = paletteHtml(app, paletteContext);
   updatePaletteFreshness(app);

@@ -51,7 +51,9 @@ export function importDropZoneHtml(prefix: string, title: string, extensions: st
  */
 export function requiredDialogPart<T extends Element>(dialog: HTMLDialogElement, selector: string): T {
   const element = dialog.querySelector<T>(selector);
+
   if (!element) throw new Error(`Import dialog failed to initialize: ${selector} missing.`);
+
   return element;
 }
 
@@ -62,6 +64,7 @@ export function renderImportNotices(list: HTMLElement, notices: readonly string[
     ...notices.map((notice) => {
       const item = document.createElement('li');
       const separator = notice.indexOf(':');
+
       if (separator > 0 && separator < 40) {
         const label = document.createElement('strong');
         label.textContent = notice.slice(0, separator);
@@ -86,6 +89,7 @@ export function bindImportFileSources(
   browseButton.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0];
+
     if (file) onFile(file);
   });
   for (const eventName of ['dragenter', 'dragover']) {
@@ -98,12 +102,14 @@ export function bindImportFileSources(
   dropZone.addEventListener('dragleave', (event) => {
     // Moving between the zone's own children also fires dragleave; only leaving the zone clears the highlight.
     if (event.relatedTarget instanceof Node && dropZone.contains(event.relatedTarget)) return;
+
     dropZone.classList.remove('is-dragging');
   });
   dropZone.addEventListener('drop', (event) => {
     event.preventDefault();
     dropZone.classList.remove('is-dragging');
     const file = event.dataTransfer?.files[0];
+
     if (file) onFile(file);
   });
 }
@@ -149,13 +155,16 @@ export function createImportPreviewController<Preview>(
   return {
     async load(read, loadingMessage, failureMessage) {
       if (loading) return;
+
       const current = ++generation;
       const validate = captureBuildDestination(app);
       view.begin(loadingMessage);
       setLoading(true);
       try {
         const preview = await read();
+
         if (current !== generation) return;
+
         // An asynchronous read cannot target a different tab or build selected while it was loading.
         validate();
         validateLoaded = validate;
@@ -164,6 +173,7 @@ export function createImportPreviewController<Preview>(
         if (current === generation) view.fail(failureMessage, error);
       } finally {
         view.settled();
+
         if (current === generation) setLoading(false);
       }
     },

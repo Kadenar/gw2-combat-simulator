@@ -61,11 +61,13 @@ function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
 export function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   // Build assumptions reach combat through the canonical runtime field; absent uptime grants no retaliation.
   if (!context.config.professionAssumptions?.inDamagingField) return;
+
   const morphsProfile = requireBalanceProfileFromContext(context, PROFILE.morphs);
   const hits = balanceProfileNumber(morphsProfile, 'maximumStacks');
   const interval = balanceProfileNumber(morphsProfile, 'pulseInterval');
   for (let index = 0; index < hits; index += 1) {
     const morphsAmalgamMorphsStrike = requireEffect(morphsProfile, 'strike', 'Amalgam Morphs');
+
     if (morphsAmalgamMorphsStrike) {
       buildEngineerPackets('damage', {
         at: at + index * interval,
@@ -106,6 +108,7 @@ export function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): v
   // Silver Lining moves strains to Morph; otherwise Evolve grants every selected protocol's strain itself.
   if (!hasTrait(context.traits, TRAIT.SILVER_LINING))
     for (const morphKind of selected) applyAmalgamStrain(context, morphKind, at);
+
   context.fireTrigger(amalgamEvolved, { at });
 }
 

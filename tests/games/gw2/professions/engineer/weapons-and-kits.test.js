@@ -119,6 +119,7 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
           effects: {
             emit(request) {
               if (request.settlement === 'reaction') conditions.push(request.event);
+
               return request.event;
             }
           }
@@ -127,6 +128,7 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
       );
       const vulnerability = conditions.find((event) => event.condition === 'Vulnerability');
       assert.equal(vulnerability?.stacks ?? 0, expectedStacks);
+
       if (expectedStacks) {
         assert.equal(vulnerability.sourceId, ID.ELECTRIC_ARTILLERY);
         assert.equal(vulnerability.duration, 8);

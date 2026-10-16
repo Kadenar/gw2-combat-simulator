@@ -168,10 +168,12 @@ test('spear illumination expires before accepting a cast at its deadline', () =>
         {
           initialize: (runtime) => {
             const core = runtime.profession.core;
+
             if (source === 'armed') {
               core.spearIlluminatedArmed = true;
               core.spearIlluminatedUntil = 5.04;
             } else core.spearLuminanceUntil = 5.04;
+
             runtime.schedule(
               GUARDIAN_SPEAR_EXPIRY,
               5.04,

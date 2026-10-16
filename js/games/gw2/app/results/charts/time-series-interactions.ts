@@ -36,6 +36,7 @@ export function bindTimeSeriesInteractions(
 
     for (const panel of panels()) {
       const tooltip = container.querySelector<HTMLElement>(`[data-role="${panel.kind}-tooltip"]`);
+
       if (tooltip) tooltip.style.display = 'none';
     }
   };
@@ -50,7 +51,9 @@ export function bindTimeSeriesInteractions(
       const crosshair = wrap?.querySelector<HTMLElement>('.chart-crosshair');
       const selection = wrap?.querySelector<HTMLElement>('.chart-selection');
       const tooltip = wrap?.querySelector<HTMLElement>('.chart-tooltip');
+
       if (!layout || !canvas || !crosshair || !selection || !tooltip) continue;
+
       const scale = canvas.getBoundingClientRect().width / layout.cssWidth;
       const xAt = (value: number): number =>
         (layout.pad.left + ((value - start) / (end - start)) * layout.plotWidth) * scale;
@@ -61,6 +64,7 @@ export function bindTimeSeriesInteractions(
       crosshair.style.height = `${layout.plotHeight}px`;
       crosshair.dataset.time = String(offset + time);
       selection.hidden = !drag;
+
       if (drag) {
         selection.style.left = `${xAt(Math.min(drag.start, time))}px`;
         selection.style.width = `${Math.abs(x - xAt(drag.start))}px`;
@@ -84,20 +88,27 @@ export function bindTimeSeriesInteractions(
   const cancel = (): void => {
     const previous = drag;
     drag = null;
+
     if (previous?.canvas.hasPointerCapture(previous.pointerId))
       previous.canvas.releasePointerCapture(previous.pointerId);
+
     hide();
   };
 
   for (const panel of panels()) {
     const canvas = container.querySelector<HTMLCanvasElement>(`[data-role="${panel.kind}-canvas"]`);
+
     if (!canvas) continue;
+
     const pointerTime = (event: PointerEvent, outside = false): number | null => {
       const layout = panels().find((entry) => entry.kind === panel.kind)?.layout;
+
       if (!layout || layout.plotWidth <= 0) return null;
+
       const rect = canvas.getBoundingClientRect();
       const x = ((event.clientX - rect.left) / rect.width) * layout.cssWidth;
       const y = ((event.clientY - rect.top) / rect.height) * layout.height;
+
       if (
         !outside &&
         (x < layout.pad.left ||
@@ -106,13 +117,16 @@ export function bindTimeSeriesInteractions(
           y > layout.pad.top + layout.plotHeight)
       )
         return null;
+
       const { start, end } = range();
       return start + clamp((x - layout.pad.left) / layout.plotWidth, 0, 1) * (end - start);
     };
 
     canvas.onpointermove = (event) => {
       if (drag && drag.pointerId !== event.pointerId) return;
+
       const time = pointerTime(event, Boolean(drag));
+
       if (time === null) hide();
       else show(time);
     };
@@ -123,8 +137,11 @@ export function bindTimeSeriesInteractions(
 
     canvas.onpointerdown = (event) => {
       if (event.button !== 0 || !event.isPrimary || drag) return;
+
       const time = pointerTime(event);
+
       if (time === null) return;
+
       // Blur the previously focused panel before establishing this drag's shared state.
       canvas.focus({ preventScroll: true });
       drag = { pointerId: event.pointerId, start: time, x: event.clientX, canvas };
@@ -134,9 +151,11 @@ export function bindTimeSeriesInteractions(
 
     canvas.onpointerup = (event) => {
       if (!drag || drag.pointerId !== event.pointerId) return;
+
       const previous = drag;
       const time = pointerTime(event, true);
       cancel();
+
       if (time !== null && Math.abs(event.clientX - previous.x) >= 6 && Math.abs(time - previous.start) >= 1) {
         zoom(Math.min(time, previous.start), Math.max(time, previous.start));
       }
@@ -160,6 +179,7 @@ export function bindTimeSeriesInteractions(
       }
 
       const { start, end } = range();
+
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         event.preventDefault();
         show(
@@ -174,6 +194,7 @@ export function bindTimeSeriesInteractions(
         const center = cursor ?? (start + end) / 2;
         const width = (end - start) / 2;
         const left = clamp(center - width / 2, start, end - width);
+
         if (width >= 1) zoom(left, left + width);
       }
     };

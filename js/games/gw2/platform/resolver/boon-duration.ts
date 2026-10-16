@@ -14,6 +14,7 @@ export function gw2ResolverBoonDuration(
   // Shared emissions supply the application time so weapon swaps and
   // profession attribute changes affect the new application deterministically.
   if (fixedDuration || !isStandardBoon(boon)) return baseDuration;
+
   const weaponSet = context.activeWeaponSet === 2 ? 2 : 1;
   const stats = context.query.statsAt(
     event.at,

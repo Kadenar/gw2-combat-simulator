@@ -54,6 +54,7 @@ export function criticalProcHandler<
     // Reject ineligible actors and profession predicates before
     // reading cooldowns or consuming a secondary random stream.
     if (!actorTypes.has(event.actorType)) return;
+
     if (options.when?.(context, event, details) === false) return;
 
     // Resolve patched proc and ICD values at the hit timestamp so balance

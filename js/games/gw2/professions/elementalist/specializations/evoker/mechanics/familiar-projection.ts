@@ -19,6 +19,7 @@ export function projectIgniteEffects(
 ): readonly SkillEffect[] {
   return effects.flatMap<SkillEffect>((effect) => {
     if (effect.type !== 'condition') return [effect];
+
     if (effect.ticks) {
       const ticks = effect.ticks.flatMap((tick) =>
         tick.condition !== 'Burning' ? [tick] : burning ? [{ ...tick, duration: Number(burning.duration) }] : []
@@ -38,7 +39,9 @@ export function projectIgniteEffects(
 export function elementalProcessionEffects(skillsById: ReadonlyMap<SkillId, Skill>) {
   return [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT].map((id) => {
     const familiar = skillsById.get(id);
+
     if (!familiar) throw new Error(`Missing Elemental Procession familiar: ${id}`);
+
     return {
       familiar,
       effects: (familiar.effects ?? []).filter((effect) => ['strike', 'condition', 'control'].includes(effect.type))

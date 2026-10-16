@@ -53,6 +53,7 @@ export function createGw2ResolverReactionRegistry({
     GW2_RESOLVER_STAGES.flatMap((stage) => {
       const hooks = [...(contributions[stage] || [])];
       const profession = professionReactions[stage];
+
       if (profession) {
         hooks.push({
           id: `profession.${stage}`,

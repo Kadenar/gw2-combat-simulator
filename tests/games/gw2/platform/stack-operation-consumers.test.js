@@ -119,6 +119,7 @@ test('Insight keeps newest grants in its single live state', () => {
     const profile = structuredClone(native.catalog.balanceProfilesById.get(WARRIOR_TRAIT_IDS.ATTACKERS_INSIGHT));
     profile.maximumStacks = maximumStacks;
     profile.effects.find((effect) => effect.type === 'buff' && effect.name === 'attackers-insight').duration = duration;
+
     // Invalid status durations fail before the runtime is exposed; valid replacements remain canonical.
     if (expected === null) {
       assert.throws(() => withProfile(native.catalog, profile.id, profile), /positive duration/);

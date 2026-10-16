@@ -80,7 +80,9 @@ test('embedded loader follows the visible host viewport until startup completes'
         .poll(async () => {
           const host = await page.locator('iframe').boundingBox();
           const content = await workspace.boundingBox();
+
           if (!host || !content) return false;
+
           const top = Math.max(0, host.y);
           const bottom = Math.min(page.viewportSize().height, host.y + host.height);
           return (
@@ -235,6 +237,7 @@ for (const trigger of ['timeout', 'pageshow', 'visibilitychange']) {
       expect(attempts).toBe(1);
       await page.evaluate((event) => {
         Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+
         if (event === 'pageshow') window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
         else document.dispatchEvent(new Event('visibilitychange'));
       }, trigger);

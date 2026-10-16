@@ -27,6 +27,7 @@ test('toolbelt notifications preserve commit, independent-command, and precast-m
   for (const path of ['ordinary', 'independent', 'precast-mine']) {
     const { runtime, events } = fixture([TRAIT.OPTIMIZED_ACTIVATION, TRAIT.STATIC_DISCHARGE, TRAIT.KINETIC_BATTERY]);
     const cast = { id: 1, skill: { ...ordinary, independentCast: path === 'independent' } };
+
     if (path === 'precast-mine') {
       runtime.profession.core.pendingMineFieldActivationIds.push(cast.id);
       assert.equal(runtime.profession.core.kineticCharges, 0);

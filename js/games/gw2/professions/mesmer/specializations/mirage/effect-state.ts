@@ -9,7 +9,9 @@ export function mirageBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'mirage-cloak', maximumStacks: 1 }
   ];
   const phantomPain = balanceProfileFromContext(context, TRAIT.PHANTOM_PAIN);
+
   if (phantomPain)
     policies.push({ kind: 'phantom-pain', maximumStacks: balanceProfileNumber(phantomPain, 'maximumStacks') });
+
   return policies;
 }

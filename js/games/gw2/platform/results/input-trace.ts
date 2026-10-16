@@ -33,6 +33,7 @@ export interface InputTrace {
 /** Both reports exclude reconstructed state and automatic attacks using the same canonical classification. */
 export function activationInputKind(catalog: CanonicalCatalog, skill: Skill, command: CastCommand) {
   if (command.initialStateDurationMs != null || skill.initialStateOnly) return 'excluded';
+
   return isAutoattackSkill(catalog, skill) ? 'autoattack' : 'manual';
 }
 
@@ -41,9 +42,12 @@ export function controlOnSkillBar(catalog: CanonicalCatalog, skill: Skill, bar: 
   const ancestors = new Set<SkillId>();
   const visit = (id: SkillId | null | undefined): void => {
     if (id == null || ancestors.has(id)) return;
+
     ancestors.add(id);
     const candidate = catalog.skillsById.get(id);
+
     if (!candidate) return;
+
     visit(candidate.flipParentId);
     visit(candidate.parentId);
     visit(candidate.loadoutSkillId);
@@ -53,7 +57,9 @@ export function controlOnSkillBar(catalog: CanonicalCatalog, skill: Skill, bar: 
   visit(skill.id);
   for (const [control, id] of Object.entries(bar.slots)) {
     if (ancestors.has(id)) return control as InputControlId;
+
     const parent = catalog.skillsById.get(id);
+
     if (parent?.flipSkillId === skill.id || (parent?.loadoutSkillId != null && ancestors.has(parent.loadoutSkillId)))
       return control as InputControlId;
   }
@@ -70,11 +76,17 @@ export function resolveInputControl(
 ): InputControl {
   if (command.skillId === SHARED_SKILL_IDS.SWAP_WEAPONS || skill.inputCategory === 'weapon-swap')
     return { control: 'weapon-swap' };
+
   if (skill.inputControl) return { control: skill.inputControl };
+
   const slot = inputControlForSkillSlot(skill.slot);
+
   if (slot) return { control: slot };
+
   const control = bars.length === 1 ? controlOnSkillBar(catalog, skill, bars[0]) : null;
+
   if (control) return { control };
+
   return { control: null, unresolvedReason: 'No control resolved on the active skill bar.' };
 }
 
@@ -88,6 +100,7 @@ export function projectInputTrace(actions: readonly InputAction[], start: number
     actions: actions
       .filter((action) => {
         if (action.at < start || action.at > end || seen.has(action.activationId)) return false;
+
         seen.add(action.activationId);
         return true;
       })

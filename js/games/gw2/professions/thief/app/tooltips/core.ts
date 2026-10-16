@@ -149,6 +149,7 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
           ? 'Requires a follow-up attack; completes the spear chain and restores lead attacks.'
           : "Apply this spear skill's supported effects.";
   const facts = [...simulationEffectFacts(selected.effects).facts];
+
   if (entity.id === ID.FALLING_SPIDER) {
     description += ' Following Entangling Asp empowers its strike and adds bleeding and poison stacks.';
     facts.push(

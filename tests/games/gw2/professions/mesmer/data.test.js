@@ -572,6 +572,7 @@ test('Mesmer module overrides select weapon replacements for loading, editing, a
       skillByName: mesmerCatalog.skillsByName
     };
     assert.equal(createRotationItem(app, name).skillId, expectedId, `${specialization} editor ${name}`);
+
     if (runtime.catalog.skillsById.get(expectedId).type === 'Weapon') {
       assert.deepEqual(
         weaponSkills(app)

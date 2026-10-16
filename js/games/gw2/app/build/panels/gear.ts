@@ -130,9 +130,12 @@ export function renderGear(app: ProfessionAppState): void {
     `<div class="trinket-grid">${['Back', 'Accessory1', 'Accessory2', 'Amulet', 'Ring1', 'Ring2'].map(gearPrefixRow).join('')}</div>`;
   document.querySelectorAll('.gear-prefix').forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
+
     select.addEventListener('change', () => {
       const slot = select.dataset.slot;
+
       if (!slot) return;
+
       app.build.gear[slot] = select.value;
       // Keep the live selects in place so native type-ahead followed by
       // Tab advances to the next slot instead of restarting at Helm.
@@ -140,10 +143,13 @@ export function renderGear(app: ProfessionAppState): void {
     });
   });
   const setAllSelect = document.getElementById('sel-set-all');
+
   if (setAllSelect instanceof HTMLSelectElement) {
     setAllSelect.addEventListener('change', () => {
       const value = setAllSelect.value;
+
       if (!value) return;
+
       for (const slot of GEAR_SLOTS) {
         b.gear[slot] = value;
       }
@@ -226,10 +232,13 @@ export function renderGear(app: ProfessionAppState): void {
     ${weaponSetRows(2, b.alternateWeapons, b.alternateWeaponPrefixes, b.weaponSigils[1], true)}`;
   document.querySelectorAll('.weapon-prefix').forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
+
     select.addEventListener('change', () => {
       const setNumber = Number(select.dataset.set);
       const slot = Number(select.dataset.slot);
+
       if (![1, 2].includes(setNumber) || ![0, 1].includes(slot)) return;
+
       if (setNumber === 1) {
         b.gear[`Weapon${slot + 1}`] = select.value;
       } else {
@@ -237,9 +246,13 @@ export function renderGear(app: ProfessionAppState): void {
       }
 
       const caption = select.closest('.weapon-row')?.querySelector('.gear-equipped-name');
+
       if (caption) caption.textContent = select.value;
+
       const trigger = select.closest('.weapon-row')?.querySelector<HTMLElement>('.weapon-icon-trigger');
+
       if (trigger) setEquipmentTooltip(trigger, weaponTooltip(setNumber, slot, select.value));
+
       app.changed(true, false);
     });
   });
@@ -247,6 +260,7 @@ export function renderGear(app: ProfessionAppState): void {
     const mainHand = requiredSelect(`sel-mh${setNumber}`);
     mainHand.addEventListener('change', () => {
       weapons[0] = mainHand.value;
+
       if (!mainHand.value) {
         weapons[1] = '';
         b.startingWeaponSet = 1;
@@ -354,9 +368,12 @@ export function renderGear(app: ProfessionAppState): void {
   });
   document.querySelectorAll('.inf-count').forEach((input) => {
     if (!(input instanceof HTMLInputElement)) return;
+
     input.addEventListener('change', () => {
       const index = Number(input.dataset.index);
+
       if (!Number.isInteger(index) || !b.infusions[index]) return;
+
       const other = b.infusions.reduce((sum, infusion, i) => (i === index ? sum : sum + infusion.count), 0);
       b.infusions[index].count = clamp(18 - other, 0, Math.trunc(Number(input.value) || 0));
       app.changed();
@@ -364,9 +381,12 @@ export function renderGear(app: ProfessionAppState): void {
   });
   document.querySelectorAll('.inf-stat').forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
+
     select.addEventListener('change', () => {
       const infusion = b.infusions[Number(select.dataset.index)];
+
       if (!infusion) return;
+
       infusion.stat = select.value;
       app.changed();
     });
@@ -375,6 +395,7 @@ export function renderGear(app: ProfessionAppState): void {
     .querySelectorAll('.gear-panel select.gear-select, .gear-select-display > select')
     .forEach((select, index) => {
       if (!(select instanceof HTMLSelectElement)) return;
+
       // Prefix choices preview the actual slot and refresh in place when native selection changes.
       const slot = select.dataset.slot;
       const describe =
@@ -396,6 +417,7 @@ export function renderGear(app: ProfessionAppState): void {
     const menu = document.getElementById(trigger.getAttribute('popovertarget')!)!;
     trigger.addEventListener('click', (event) => {
       event.preventDefault();
+
       if (menu.matches(':popover-open')) menu.hidePopover();
       else {
         trigger.focus();
@@ -406,6 +428,7 @@ export function renderGear(app: ProfessionAppState): void {
       }
     });
     menu.addEventListener('toggle', () => trigger.setAttribute('aria-expanded', String(menu.matches(':popover-open'))));
+
     if (menu.id === openWeaponEditor) trigger.click();
   });
 }

@@ -31,6 +31,7 @@ function traitSet(value: unknown): ReadonlySet<string | number> | null {
 function setIncludesTrait(traits: ReadonlySet<string | number>, traitId: SkillId): boolean {
   // Runtime sets already use canonical IDs; convert representations only when that direct lookup misses.
   if (traits.has(traitId)) return true;
+
   const key = String(traitId);
   const numeric = Number(key);
   return traits.has(key) || (Number.isFinite(numeric) && traits.has(numeric));
@@ -42,13 +43,16 @@ function setIncludesTrait(traits: ReadonlySet<string | number>, traitId: SkillId
  */
 export function hasTrait(value: unknown, traitId: SkillId): boolean {
   const directTraits = traitSet(value);
+
   if (directTraits) return setIncludesTrait(directTraits, traitId);
 
   const context = lookupContext(value);
+
   if (!context) return false;
 
   if (context.traits != null) {
     const traits = traitSet(context.traits);
+
     if (!traits) return false;
 
     return setIncludesTrait(traits, traitId);

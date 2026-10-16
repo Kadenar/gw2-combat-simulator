@@ -27,17 +27,20 @@ function resolveModifierIcon(row: ResultIconRow): string {
   const id = String(row.id || '');
   const label = String(row.name || '');
   const effectIcon = MODIFIER_EFFECT_ICONS[label];
+
   if (effectIcon) return effectIcon;
 
   // Utility contribution rows reuse the selected consumable's equipment icon.
   if (id.startsWith('Utility:')) return EQUIPMENT_ICONS[id.slice('Utility:'.length)] || '';
 
   const sigilName = id.startsWith('Sigil:') ? id.slice('Sigil:'.length) : label.match(/^Sigil of (.+)$/)?.[1];
+
   if (sigilName && SIGIL_DATA[sigilName]?.icon) {
     return String(SIGIL_DATA[sigilName]?.icon);
   }
 
   const foodName = id.startsWith('Food:') ? id.slice('Food:'.length) : label.match(/^Food: (.+)$/)?.[1];
+
   if (foodName && FOOD_DATA[foodName]?.icon) {
     return String(FOOD_DATA[foodName].icon);
   }
@@ -51,12 +54,14 @@ function resolveModifierIcon(row: ResultIconRow): string {
 
 export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): string {
   if (row.icon) return String(row.icon);
+
   // Modifier-contribution rows for traits carry a "Trait:<name>" id. Prefer the
   // trait's own icon; otherwise a matching cooldown-reduction proc below wins
   // and paints the generic refresh-arrow icon instead (e.g. Symbiotic Synergy,
   // Mercurial Tendencies).
   if (String(row.id).startsWith('Trait:')) {
     const traitIcon = (app.attributeData?.activeTraits || []).find((candidate) => candidate.name === row.name)?.icon;
+
     if (traitIcon) return String(traitIcon);
   }
 
@@ -73,6 +78,7 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
   );
   const matchingProc = (app.results?.procSteps || []).find((proc) => procNames.has(proc.skill));
   const procIcon = matchingProc && resolveProcIcon(app, matchingProc);
+
   // Trait damage inherits its triggering skill ID, so use the matching proc's
   // trait icon before that ID can incorrectly select the trigger's icon.
   if (matchingProc?.type === 'trait_proc' && procIcon) return procIcon;
@@ -85,33 +91,43 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
       candidate.id === row.sourceId &&
       (candidate.name === row.sourceSkill || candidate.name === breakdownName)
   );
+
   if (sourceTrait?.icon) return String(sourceTrait.icon);
 
   for (const id of [row.skillId, row.sourceId]) {
     if (id == null) continue;
+
     const skill = app.skillById?.get(id) || app.skills.find((candidate) => String(candidate.id) === String(id));
+
     if (skill?.icon) return String(skill.icon);
   }
 
   const actionIcon = ACTION_ICONS[row.name] || ACTION_ICONS[breakdownName];
+
   if (actionIcon) return actionIcon;
+
   const cloneAttackName = breakdownName.startsWith('Clone: ') ? breakdownName.slice('Clone: '.length) : '';
+
   if (procIcon) return procIcon;
 
   const modifierIcon = resolveModifierIcon(row);
+
   if (modifierIcon) return modifierIcon;
 
   const traits = app.attributeData?.activeTraits || [];
   const trait = traits.find(
     (candidate) => candidate.name === row.name || candidate.name === breakdownName || row.name.includes(candidate.name)
   );
+
   if (trait?.icon) return String(trait.icon);
 
   const relicIcon = resolveRelicIcon(row.name) || resolveRelicIcon(row.sourceSkill) || resolveRelicIcon(row.sourceId);
+
   if (relicIcon) return relicIcon;
 
   for (const name of [row.name, row.sourceSkill, row.parentSkill, breakdownName, cloneAttackName]) {
     const icon = name ? app.skillByName.get(name)?.icon : '';
+
     if (icon) return icon;
   }
 
@@ -120,6 +136,7 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
     const autoattack = app.skills.find(
       (skill) => skill.type === 'Weapon' && skill.weapon === weapon && String(skill.slot).endsWith('1')
     );
+
     if (autoattack?.icon) return autoattack.icon;
   }
 

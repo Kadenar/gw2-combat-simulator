@@ -69,6 +69,7 @@ test('Invigorated Bulwark reduces mace recharge by twenty percent without extend
         Math.abs(recharge(traited) - recharge(baseline) * (skill === 'Symbol of Blades' ? 1 : 0.8)) < 1e-9,
         skill
       );
+
       if (skill === 'Symbol of Blades') {
         const durations = (result) =>
           result.resolvedEvents.filter((event) => event.type === 'buff').map((event) => event.duration);

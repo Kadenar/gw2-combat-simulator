@@ -47,8 +47,11 @@ export function elementalistCoreAvailability(
 ): AvailabilityResult {
   // Glyph summons and elemental command skills answer through their own gate first.
   const elementalAvailability = elementalistElementalAvailability(context, skill);
+
   if (elementalAvailability) return elementalAvailability;
+
   const state = professionCoreState(context);
+
   // Pistol's finisher needs one stored bullet of every element.
   if (
     Number(skill.id) === ID.ELEMENTAL_EXPLOSION &&
@@ -60,8 +63,10 @@ export function elementalistCoreAvailability(
   // Attunement swaps: permanently denied while already attuned, otherwise retried
   // when the target attunement recharges (Fresh Air may pull Air in earlier).
   const target = targetAttunement(skill);
+
   if (target) {
     const { secondaryAttunement } = elementalistAttunementPolicy(context);
+
     if (target === state.primaryAttunement && (!secondaryAttunement || target === secondaryAttunement)) {
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
@@ -85,6 +90,7 @@ export function elementalistCoreAvailability(
   }
 
   const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+
   if (pickupWeapon) {
     const weapon = pickupWeapon;
     // Missing or invalid ground copies must not become available at time zero.
@@ -107,6 +113,7 @@ export function elementalistCoreAvailability(
 
   // Transmute skills consume a matching aura that must currently be active.
   const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
+
   if (aura && !activeAura(state, aura, context.time)) {
     return unavailable(skill, 'elementalist.aura-transmute', `requires an active ${aura}.`);
   }
@@ -129,9 +136,11 @@ export function elementalistCoreAvailability(
   // Spear etchings unlock their lesser and full payoffs by chain stage, which only
   // other casts can advance, so these denials are never retried on a timer.
   const chain = etchingChain(skill.id);
+
   if (chain && Number(skill.id) !== chain.etchingId) {
     const progress = state.etchings[chain.etching];
     const requiredStage = Number(skill.id) === chain.lesserId ? 'lesser' : 'full';
+
     if (progress?.stage !== requiredStage) {
       return unavailable(
         skill,
@@ -147,11 +156,13 @@ export function elementalistCoreAvailability(
   // denial while that element's orb is still floating and unconsumed.
   const skillId = Number(skill.id);
   const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
+
   if (hammerElements) {
     // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
     const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
       ? canonicalTime(state.hammerOrbLastCastAt + balanceNumberFromContext(context, PROFILE.hammerOrbs, 'initialDelay'))
       : state.hammerOrbLastCastAt;
+
     if (retryAt > context.time) {
       return unavailable(
         skill,
@@ -180,6 +191,7 @@ export function elementalistCoreAvailability(
     const compatible = activeHammerOrbElements(state, context.time).some((element) =>
       hammerOrbMatchesAttunement(state, element)
     );
+
     if (!compatible) {
       return unavailable(
         skill,
@@ -193,6 +205,7 @@ export function elementalistCoreAvailability(
   // exclude each other; otherwise the weapon skill is gated on its attunement.
   if (skill.type === 'Weapon') {
     const weapon = skillWeapon(skill);
+
     if (CONJURED_WEAPONS.has(weapon)) {
       if (state.conjureEquipped !== weapon) {
         return unavailable(skill, 'elementalist.conjure-required', `requires the ${weapon} bundle.`);
@@ -221,8 +234,11 @@ export function elementalistCoreAvailability(
 /** Pending damage supplies a wake, never a predicted resource or critical result. */
 export function projectedFreshAirReadyAt(context: MechanicQueriesOf<ElementalistRuntime>, upTo: number): number | null {
   if (!hasTrait(context, TRAIT.FRESH_AIR)) return null;
+
   const core = context.profession.core;
+
   if (core.primaryAttunement === 'Air') return null;
+
   // Readiness queries ignore elapsed wakes without pruning the live scheduler's candidates.
   const times = core.freshAirCandidates.filter((at) => at > context.time && at <= upTo);
   return times.length ? Math.min(...times) : null;

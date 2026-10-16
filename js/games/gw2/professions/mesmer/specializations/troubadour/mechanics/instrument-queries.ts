@@ -18,11 +18,13 @@ function instrumentChecksEnabled(context: Gw2ModifierContext): boolean {
 
 export function activeInstrumentCount(context: Gw2ModifierContext): number {
   if (!instrumentChecksEnabled(context)) return 0;
+
   return activeTroubadourInstrumentsAt(instrumentEvents(context), context.time, context.event).size;
 }
 
 export function hasLute(context: Gw2ModifierContext): boolean {
   if (!instrumentChecksEnabled(context)) return false;
+
   return activeTroubadourInstrumentsAt(instrumentEvents(context), context.time, context.event).has('Lute');
 }
 

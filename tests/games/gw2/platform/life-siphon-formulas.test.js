@@ -70,6 +70,7 @@ for (const [name, run, rotation, config, base, coefficient] of [
 
       const rows = skillBreakdownRows(result);
       assert.ok(rows.some((row) => row.name === label));
+
       if (name === 'Vampiric Slash') assert.ok(rows.some((row) => row.name === name));
     }
   });

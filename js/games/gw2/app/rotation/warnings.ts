@@ -24,7 +24,9 @@ export function rotationWarningItems(result: Gw2SimulationResult | null | undefi
     );
     // Runtime diagnostics carry absolute simulation time; display it on the same combat-relative clock as the rotation.
     const embeddedTime = message.match(/(?:^|\s)at\s+(-?\d+(?:\.\d+)?)s(?=[:;.,\s]|$)/i);
+
     if (!embeddedTime) return { message, time: '' };
+
     const matchIndex = embeddedTime.index ?? 0;
     const cleanedMessage = `${message.slice(
       0,
@@ -70,6 +72,7 @@ function revealWarningSource(element: HTMLElement): void {
   }
 
   if (!element.hasAttribute('tabindex')) element.tabIndex = -1;
+
   element.classList.add('rotation-warning-source');
   element.focus({ preventScroll: true });
   element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
@@ -107,6 +110,7 @@ function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarning
             label: 'Show equipped skills',
             activate: () => {
               const palette = document.getElementById('rotation-palette');
+
               if (palette) revealWarningSource(palette);
             }
           }
@@ -118,7 +122,9 @@ function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarning
 /** Displays skill calibration and simulation warnings while preserving the panel's open state. */
 export function renderWarnings(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-warnings');
+
   if (!element) return;
+
   const details = element.querySelector<HTMLDetailsElement>('.rotation-warnings-wrap');
   const wasOpen = details?.open ?? false;
   const result = currentTimelineResults(app);
@@ -127,7 +133,9 @@ export function renderWarnings(app: ProfessionAppState): void {
     ...(app.build.rotation.length && result
       ? rotationWarningItems(result).map((warning): RotationWarning => {
           const index = warning.rotationIndex;
+
           if (index == null || index >= app.build.rotation.length) return warning;
+
           return {
             ...warning,
             action: {
@@ -135,9 +143,11 @@ export function renderWarnings(app: ProfessionAppState): void {
               activate: () => {
                 // Results may become stale between rendering the warning and activating it.
                 if (currentTimelineResults(app) !== result) return;
+
                 const source = document.querySelector<HTMLElement>(
                   `#rotation-timeline .rot-skill[data-idx="${index}"]`
                 );
+
                 if (source) revealWarningSource(source);
               }
             }

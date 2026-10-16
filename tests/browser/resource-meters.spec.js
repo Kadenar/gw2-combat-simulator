@@ -12,11 +12,13 @@ test('pip, bar, and composite resources render through the shared meter UI', asy
   ]) {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+
     if (specialization) {
       const picker = page.locator('.spec-picker').last();
       await picker.locator('summary').click();
       // A default build may already select the requested specialization, disabling its option.
       const option = picker.getByRole('button', { name: specialization, exact: true });
+
       if ((await option.getAttribute('aria-pressed')) === 'true') await picker.locator('summary').click();
       else await option.click();
     }

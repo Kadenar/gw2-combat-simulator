@@ -14,6 +14,7 @@ function daredevilStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ['daredevil-lotus-training', 'Lotus Training', 'lotus-training']
   ] as const) {
     const remaining = planningBuffAt(context.planningState, kind)?.remaining ?? 0;
+
     if (remaining > 0) {
       items.push({
         id,

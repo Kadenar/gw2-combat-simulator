@@ -580,6 +580,7 @@ test('Dazzling keeps accepted-control actor gates and effect removal through reg
       assert.deepEqual(result.warnings, []);
       const effect = result.events.find((event) => event.type === 'condition' && event.sourceId === MESMER.DAZZLING);
       assert.equal(Boolean(effect), patchId === 'current' && selected && actorType !== 'environment');
+
       if (effect) assert.equal(effect.ownerActorType, 'player');
     }
   }

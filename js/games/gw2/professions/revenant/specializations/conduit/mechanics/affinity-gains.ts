@@ -15,7 +15,9 @@ export const UPKEEP_AFFINITY = 'revenant.conduit-upkeep-affinity';
 export function costAffinity(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
   const cost = revenantEnergyCost(runtime, skill);
+
   if (!(cost > 0)) return;
+
   // Legend skills whose affinity is deferred to hit time are excluded to avoid double-granting.
   if (skill.legendId && !skill.affinityOnHit) gainAffinity(runtime, cost >= 25 ? 2 : 1);
   else runtime.fireTrigger(energyCostAccepted, { cast });
@@ -24,7 +26,9 @@ export function costAffinity(runtime: RevenantRuntime, cast: RuntimeCast<Revenan
 /** Upkeep cadences grant affinity and Impossible Odds' Assassin daggers while their activation remains. */
 export function upkeepAffinity(runtime: RevenantRuntime, data: unknown): void {
   const { skillId, startsAt } = data as { skillId: SkillId; startsAt: number };
+
   if (!activeRevenantUpkeep(runtime, skillId, startsAt) || !runtime.helpers.skillsById.has(skillId)) return;
+
   gainAffinity(runtime, 1);
   runtime.schedule(UPKEEP_AFFINITY, canonicalTime(runtime.time + 3), data, undefined, -200);
 }

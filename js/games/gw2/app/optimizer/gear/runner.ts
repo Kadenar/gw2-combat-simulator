@@ -88,7 +88,9 @@ export class GearOptimizerRunner {
   cancel(): void {
     ++this.requestId;
     this.batch.terminateAll();
+
     if (['preparing', 'running', 'verifying'].includes(this.state.status)) this.state.status = 'canceled';
+
     this.publish(true);
   }
 
@@ -101,7 +103,9 @@ export class GearOptimizerRunner {
 
   private publish(force = false): void {
     const now = performance.now();
+
     if (!force && now - this.lastPublished < 150) return;
+
     this.lastPublished = now;
     this.state.elapsedMs = now - this.state.started;
     this.onUpdate();
@@ -111,6 +115,7 @@ export class GearOptimizerRunner {
     // Validate before replacing an active job; workers are bounded independently of the candidate search space.
     if (!Number.isInteger(workerCount) || workerCount < 1 || workerCount > MAX_OPTIMIZER_WORKERS)
       throw new RangeError(`Choose between 1 and ${MAX_OPTIMIZER_WORKERS} workers.`);
+
     this.cancel();
     const requestId = ++this.requestId;
     this.request = request;
@@ -142,7 +147,9 @@ export class GearOptimizerRunner {
     this.batch.begin(requestId, fail);
     const dispatch = (worker: Worker): void => {
       if (!this.batch.isActive(requestId)) return;
+
       if (next >= this.state.count) return;
+
       const end = next + chunkSize < this.state.count ? next + chunkSize : this.state.count;
       const id = ++chunkId;
       pending.set(worker, { id, size: end - next, completed: 0n, represented: 0n, simulations: 0n });
@@ -159,6 +166,7 @@ export class GearOptimizerRunner {
     // Verify every retained display result in small batches, sharing the existing pool and cancellation path.
     const verify = (worker: Worker): void => {
       if (verificationNext >= verification.length) return;
+
       const candidates = verification.slice(verificationNext, verificationNext + 20);
       verificationNext += candidates.length;
       verifying.add(worker);
@@ -174,6 +182,7 @@ export class GearOptimizerRunner {
         this.state.completed !== this.state.count
       )
         return;
+
       if (request.search === 'fast' && roundCount > 0n) {
         const workers = [...ready];
         ready.clear();
@@ -183,6 +192,7 @@ export class GearOptimizerRunner {
       } else {
         if (request.search !== 'fast' && this.state.represented !== this.state.rawCount)
           throw new Error('Optimizer coverage does not match the legal search space.');
+
         this.state.status = 'verifying';
         verification = [
           ...new Map(
@@ -192,6 +202,7 @@ export class GearOptimizerRunner {
             ])
           ).values()
         ];
+
         // An empty feasible set has no finalists to verify and must still complete normally.
         if (!verification.length) {
           this.state.status = 'complete';
@@ -213,7 +224,9 @@ export class GearOptimizerRunner {
 
       if (message.kind === 'ready') {
         if (ready.has(worker)) throw new Error('Duplicate optimizer readiness.');
+
         ready.add(worker);
+
         if (!roundStarted) {
           roundStarted = true;
           roundCount = BigInt(message.count!);
@@ -237,10 +250,13 @@ export class GearOptimizerRunner {
         finishRound();
       } else if (message.kind === 'chunk' || message.kind === 'progress') {
         const chunk = pending.get(worker);
+
         if (!chunk || chunk.id !== message.chunkId) throw new Error('Unexpected optimizer chunk completion.');
+
         const completed = BigInt(message.completed!);
         const represented = BigInt(message.represented!);
         const simulations = BigInt(message.simulations!);
+
         // Cumulative range updates include rejected candidates; only add new work, including at final completion.
         if (
           completed < chunk.completed ||
@@ -251,10 +267,12 @@ export class GearOptimizerRunner {
           simulations - chunk.simulations > completed - chunk.completed
         )
           throw new Error('Invalid optimizer progress counts.');
+
         this.state.completed += completed - chunk.completed;
         this.state.represented += represented - chunk.represented;
         this.state.simulations += simulations - chunk.simulations;
         Object.assign(chunk, { completed, represented, simulations });
+
         if (message.kind === 'progress') {
           this.publish();
           return;
@@ -287,8 +305,11 @@ export class GearOptimizerRunner {
       } else if (message.kind === 'verified') {
         if (this.state.status !== 'verifying' || !verifying.delete(worker))
           throw new Error('Unexpected optimizer verification.');
+
         verify(worker);
+
         if (verifying.size) return;
+
         this.state.status = 'complete';
         this.batch.terminateAll();
         this.publish(true);

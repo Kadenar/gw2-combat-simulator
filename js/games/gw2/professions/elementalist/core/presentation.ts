@@ -117,6 +117,7 @@ function pistolBulletPaletteGroup(
   context: ElementalistUiContext
 ): ProfessionPaletteGroup | null {
   if (!elementalistPistolEquipped(context)) return null;
+
   const state = elementalistUiState(context);
   const configured = configuredPistolBullets(context);
   const live = pistolBulletRecord(state.pistolBullets);
@@ -168,16 +169,21 @@ function paletteWeaponSkills(
     const chain = ETCHING_CHAINS.find((candidate) =>
       [candidate.etchingId, candidate.lesserId, candidate.fullId].some((id) => id === skill.id)
     );
+
     if (!chain) return true;
+
     const progress = state.etchings?.[chain.etching];
     const displayedId = !progress ? chain.etchingId : progress.stage === 'full' ? chain.fullId : chain.lesserId;
     return skill.id === displayedId;
   });
+
   if (!elementalistPistolEquipped(context)) return projectedSkills;
+
   const explosion =
     projectedSkills.find((skill) => skill.id === ID.ELEMENTAL_EXPLOSION) ||
     catalog.skillsById.get(ID.ELEMENTAL_EXPLOSION);
   const ordinarySkills = projectedSkills.filter((skill) => skill.id !== ID.ELEMENTAL_EXPLOSION);
+
   if (!explosion || !ELEMENTALIST_ATTUNEMENTS.every((element) => displayedPistolBullets(context)[element])) {
     return ordinarySkills;
   }
@@ -190,7 +196,9 @@ function paletteWeaponSkills(
       skill.weapon === 'Pistol' &&
       skill.slot === 'Weapon_1' &&
       String(skill.attunement || '') === primaryAttunement;
+
     if (!replacesActiveAutoattack) return skill;
+
     replaced = true;
     return { ...explosion, attunement: skill.attunement };
   });
@@ -199,13 +207,17 @@ function paletteWeaponSkills(
 // Handles clicks on the bullet toggles by flipping the build's starting stock.
 function updatePaletteControl(context: ElementalistUiContext, controlId: string): boolean {
   if (!controlId.startsWith(PISTOL_BULLET_CONTROL_PREFIX)) return false;
+
   const element = controlId.slice(PISTOL_BULLET_CONTROL_PREFIX.length) as ElementalistAttunement;
+
   if (!ELEMENTALIST_ATTUNEMENTS.includes(element)) {
     return false;
   }
 
   const build = context.build;
+
   if (!build) return false;
+
   const configured = configuredPistolBullets(context);
   // Complete sparse preview input before storing an edit so the build keeps all four canonical flags.
   build.pistolBullets = {
@@ -248,7 +260,9 @@ function elementalistPaletteGroups(
       .filter(([id]) => selectedSkillIds.has(Number(id)))
       .map(([, weapon]) => weapon)
   );
+
   if (conjureEquipped) conjures.add(conjureEquipped);
+
   for (const weapon of conjures) {
     groups.push({
       id: `elementalist-conjure-weapon-${weapon.toLowerCase().replaceAll(' ', '-')}`,
@@ -262,7 +276,9 @@ function elementalistPaletteGroups(
   }
 
   const pistolBullets = pistolBulletPaletteGroup(catalog, context);
+
   if (pistolBullets) groups.push(pistolBullets);
+
   return groups;
 }
 
@@ -315,6 +331,7 @@ function eventLogRow(
 
   if (event.type === 'elementalist.attunement') {
     if (event.fromSecondaryAttunement) return undefined;
+
     return {
       type: event.type,
       description: `${String(event.from)} → ${String(event.to)}`,
@@ -353,6 +370,7 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
 
   const skill = context.skill;
   const target = skill ? skill.name.replace(/ Attunement$/, '') : '';
+
   if (skill?.skillFamily !== 'Attunement' || !ELEMENTALIST_ATTUNEMENTS.includes(target as ElementalistAttunement)) {
     return undefined;
   }
@@ -386,7 +404,9 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
 function elementalistAttunementConfig(skill: Skill): Readonly<Record<string, string>> | null {
   const attunement = String((skill as { readonly attunement?: unknown }).attunement ?? '');
   const [primary, secondary = primary] = attunement.split('+');
+
   if (!isElementalistAttunement(primary) || !isElementalistAttunement(secondary)) return null;
+
   return { startAttunement: primary, secondaryAttunement: secondary };
 }
 
@@ -397,6 +417,7 @@ function elementalistSkillDamageOccurrence(
 ): SkillDamageState | null {
   // Direct evaluation supplies damage state without prerequisite actions.
   const config = elementalistAttunementConfig(skill);
+
   if (skill.id === ID.GRAND_FINALE) {
     const orbs = ELEMENTALIST_ATTUNEMENTS.filter((element) => Boolean(context.values[`finaleOrb:${element}`]));
     return {
@@ -420,6 +441,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       preview.damageBuff('Bountiful Power', 'bountifulPower', 'bountiful-power-active');
       preview.condition('Burning', "Pyromancer's Training", 'Fiery Might');
       preview.condition('Bleeding', 'Serrated Stones');
+
       if (context.weapons.includes('Hammer'))
         preview.add({
           key: 'flameWheel',
@@ -430,6 +452,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           scope: ['damage'],
           description: 'Fire orb damage bonus active'
         });
+
       // Grand Finale's orb inputs only apply when this weapon set can use Hammer skills.
       if (context.weapons.includes('Hammer'))
         for (const element of ELEMENTALIST_ATTUNEMENTS)
@@ -442,6 +465,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
             initial: 1,
             description: 'Include this orb in Grand Finale'
           });
+
       // Slot skills use this start element; weapon rows retain the attunement required by their own skill.
       preview.add({
         key: 'damageAttunement',
@@ -453,6 +477,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         initial: (context.build as { startAttunement?: string }).startAttunement ?? 'Fire',
         description: 'Attunement for skills without a fixed elemental requirement'
       });
+
       if (preview.has('Persisting Flames'))
         preview.trait('Persisting Flames', {
           key: 'persistingFlames',
@@ -473,6 +498,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         options: ['None', 'Fire', 'Water', 'Air', 'Earth'],
         description: 'Attunement-dependent traits'
       });
+
       if (context.weapons.includes('Hammer'))
         preview.add({
           key: 'crescentWind',
@@ -482,6 +508,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           field: 'hammer air orb',
           description: '+15% Critical Chance'
         });
+
       const conjures = (
         [
           [ID.CONJURE_FIERY_GREATSWORD, 'Fiery Greatsword'],
@@ -491,6 +518,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       )
         .filter(([skill]) => preview.skills.has(skill))
         .map(([, weapon]) => weapon);
+
       if (conjures.length)
         preview.add({
           key: 'conjure',
@@ -500,6 +528,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           options: ['None', ...conjures],
           description: 'Attributes while wielded'
         });
+
       preview.passives(ID.SIGNET_OF_FIRE);
       return preview.controls;
     },
@@ -513,8 +542,10 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       // The isolated preview permits no attunement; live combat always has an elemental attunement.
       const core = readProfessionCoreState<{ primaryAttunement: string }>(context.professionState);
       core.primaryAttunement = String(context.values.attunement);
+
       if (context.values.conjure && context.values.conjure !== 'None')
         context.queryOptions.skillWeapon = String(context.values.conjure);
+
       context.queryOptions.conditionDurations = context.values.conjure === 'Frost Bow';
     },
 
@@ -525,6 +556,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       const activeCatalog = context.catalog || catalog;
       return skills.map((skill) => {
         if (!skill.attunement) return skill;
+
         // Variant identity comes from the authored loadout group, independent of localized names.
         const loadoutId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(Number(skill.id));
         return (
@@ -543,6 +575,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     paletteOverride: (context, skill) => {
       const state = elementalistUiState(context);
       const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)] || AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
+
       if (aura) {
         const active = Boolean(
           state.activeAuras?.some((entry) => entry.type === aura && entry.expiresAt > (context.time || 0))

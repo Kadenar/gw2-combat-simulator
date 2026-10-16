@@ -234,6 +234,7 @@ test('owner cancellation gates deferred authored reactions', () => {
             }
           });
           runtime.effects.emit({ kind: 'packet', event: structuredClone(event), ...{ owner } });
+
           if (cancel) runtime.cancelOwner(owner);
         }
       }
@@ -319,6 +320,7 @@ test('custom actions share typed contexts and derived packets do not inherit rea
       sideEffectHandlers: {
         'fixture.copy'(runtime, context) {
           contexts.push(context.kind);
+
           if (context.kind === 'effect') {
             runtime.resourceController.grant('energy', 1);
             runtime.effects.emit({
@@ -477,6 +479,7 @@ test('resolved combo reactions retain finisher provenance, acceptance gates, and
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(energy(result), expected);
+
     if (expected) {
       assert.equal(seen[0].energy, 7);
       assert.equal(seen[0].reaction.packet, 1);

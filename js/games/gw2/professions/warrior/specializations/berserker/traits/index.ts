@@ -144,18 +144,23 @@ const kingOfFires = defineTrait({
       on: 'damage.resolved',
       run(runtime, event, details) {
         if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+
         const hit = details.hitContext as Gw2HitResolutionContext;
         const state = berserkerState.from(runtime);
+
         if (
           !hit.critEligible ||
           !hit.critical.didCrit ||
           !runtime.procs.claim(TRAIT.KING_OF_FIRES, 'warrior.berserker.kingOfFires', runtime.time)
         )
           return;
+
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.KING_OF_FIRES);
         // The qualifying critical hit owns the interval even when its optional aura packet is removed.
         const aura = requireEffect(profile, 'buff', 'fire-aura');
+
         if (!aura) return;
+
         const duration = effectNumber(profile, aura, 'duration');
         armAura(runtime, gw2EffectExpiresAt(runtime.time, duration));
         emitTraitProfile(runtime, TRAIT.KING_OF_FIRES, TRAIT.KING_OF_FIRES, event, {
@@ -183,6 +188,7 @@ const kingOfFires = defineTrait({
             icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png'
           }
         });
+
         if (event.activationId != null && state.completedActivations[event.activationId] != null)
           runtime.schedule(
             DETONATE,

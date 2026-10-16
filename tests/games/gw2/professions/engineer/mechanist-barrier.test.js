@@ -28,6 +28,7 @@ test('Barrier Engine starts in combat and grants barrier independently of mech c
   assert.equal(barriers[0].at, result.combatStartTime + 3);
   for (const [index, barrier] of barriers.entries()) {
     if (index) assert.equal(barrier.at - barriers[index - 1].at, 3);
+
     assert.equal(barrier.summonOwner, 'engineer.mech');
     assert.equal(barrier.resolvedAudience.alliedPlayerCount, 4);
     assert.equal(barrier.resolvedAudience.includesSelf, true);

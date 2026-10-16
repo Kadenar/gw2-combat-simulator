@@ -191,12 +191,16 @@ function prepareEngineerHghEvent(
   event: SimulationEventBase
 ): SimulationEventBase {
   if (!hasTrait(context.traits, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
+
   const skill = skillForEvent(context.helpers, event);
+
   if (!isElixirSkill(skill)) return event;
+
   const durationMultiplier = balanceNumberFromContext(context, TRAIT.HGH, 'durationMultiplier');
 
   if (event.type === 'combo_field') {
     const duration = Number(event.expiresAt) - event.at;
+
     if (duration > 0) return { ...event, expiresAt: event.at + duration * durationMultiplier };
   } else if ((event.type === 'buff' || event.type === 'condition') && Number(event.duration) > 0) {
     return { ...event, duration: Number(event.duration) * durationMultiplier };

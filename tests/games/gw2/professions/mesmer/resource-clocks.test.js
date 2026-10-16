@@ -193,6 +193,7 @@ test('resource gain at an interrupted endpoint survives roundoff but a later gai
     context.time = effectiveEnd;
     completeMesmerCast(context, cast, skill);
     assert.equal(context.profession.core.castDetails.has(cast.id), false);
+
     if (effectiveEnd === 0.3) {
       assert.equal(scheduled.length, 1);
       assert.equal(scheduled[0].at, effectiveEnd);

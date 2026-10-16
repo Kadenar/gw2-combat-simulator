@@ -9,7 +9,9 @@ export const coinInitiative = new WeakMap<RuntimeCast<ThiefSkill>, number>();
 /** Spend an already-earned Luck charge without requiring current selection. */
 function consumeScoundrelsLuck(runtime: ThiefRuntime): boolean {
   const state = antiquaryState.from(runtime);
+
   if (!(state.scoundrelsLuck > 0)) return false;
+
   state.scoundrelsLuck -= 1;
   return true;
 }
@@ -17,6 +19,7 @@ function consumeScoundrelsLuck(runtime: ThiefRuntime): boolean {
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): ThiefDoubleEdgeOutcome {
   if ((runtime.cooldownController.readyAt(cast.skill.id) || 0) <= runtime.time) return 'success';
+
   if (consumeScoundrelsLuck(runtime)) return 'success';
 
   return cast.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
@@ -43,6 +46,7 @@ export function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
   const state = antiquaryState.from(runtime);
   const skill = cast.skill;
   const outcome = acceptDoubleEdge(runtime, cast);
+
   if (outcome === 'backfire')
     // The backfire variant stays visible until the running recharge ends.
     state.backfireState[skill.id] = true;

@@ -27,6 +27,7 @@ export const masterOfConsecrationsEffects: NonNullable<Skill['effectVariants']>[
       .filter((effect) => effect.type === 'strike' || effect.type === 'condition')
       .map((effect) => {
         if (!effect.ticks?.length) throw new Error('Master of Consecrations requires explicit packet timelines.');
+
         return {
           ...effect,
           name: effect.type === 'strike' ? cast.skill.name : `${cast.skill.name} \u2014 Burning`,

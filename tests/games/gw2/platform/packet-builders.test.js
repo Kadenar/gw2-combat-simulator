@@ -119,6 +119,7 @@ test('derived conditions preserve immediate visibility and same-time queued orde
 
         assert.equal(event.hitIndex, undefined);
         assert.equal(event.holosmithStrikeFactor, undefined);
+
         if (event.sourceId === 2) {
           assert.equal(event.actorType, 'effect');
           assert.equal(event.ownerActorType, 'player');

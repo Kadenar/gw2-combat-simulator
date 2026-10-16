@@ -63,6 +63,7 @@ for (const reporting of [true, false]) {
     const paidAfterSwap = new Set();
     while (context.queue.length) {
       const event = context.queue.dequeue();
+
       if (event.type === 'test.swap-pets') {
         context.combat.retireCompanion(outgoing, event.at);
         assert.equal(effectStateValue(observeBleeding(), swappedAt).count, 2);

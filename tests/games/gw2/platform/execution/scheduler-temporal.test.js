@@ -40,6 +40,7 @@ test('ammo charges recover sequentially and partial restoration preserves active
     controller.spendAmmo(skill, 1.6);
     const ammo = controller.readAmmo(skill.id);
     assert.equal(ammo.nextRechargeAt, 16.6);
+
     if (reload) {
       assert.equal(controller.restoreAmmo(skill, 1, 5), 1);
       assert.equal(ammo.charges, 1);

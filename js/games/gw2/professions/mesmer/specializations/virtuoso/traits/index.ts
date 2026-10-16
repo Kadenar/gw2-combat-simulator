@@ -125,13 +125,16 @@ export const bloodsong = defineTrait<MesmerSkill>({
       on: 'condition.applied',
       run(runtime, event) {
         if (event.condition !== 'Bleeding') return;
+
         const state = virtuosoState.from(runtime);
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODSONG);
         const threshold = balanceProfileNumber(profile, 'threshold');
         // The resolver dispatches each stack individually; reset before rewarding so the next application starts a new cycle.
         const progress = advanceCounter(state.bloodsongProgress, 1, threshold, threshold > 0 ? 'reset' : 'retain');
         state.bloodsongProgress = progress.value;
+
         if (threshold <= 0 || !progress.reached) return;
+
         createMesmerIllusionRewards(runtime).queueResources(
           runtime.time,
           balanceProfileNumber(profile, 'resourceGain'),
@@ -153,6 +156,7 @@ const phantasmalBlades = defineTrait<MesmerSkill>({
     onTriggerPoint(mesmerPhantasmPreparing, {
       run(runtime, admission: MesmerPhantasmAdmission) {
         const damage = mesmerProfiledTraitDamage(runtime, TRAIT.PHANTASMAL_BLADES);
+
         if (damage.type === 'strike')
           admission.bonusStrike = {
             name: 'Phantasmal Blade',
@@ -272,6 +276,7 @@ const infiniteForge = defineTrait<MesmerSkill>({
           { traitId: TRAIT.INFINITE_FORGE, traitName: 'Infinite Forge' }
         );
         const interval = balanceProfileNumber(profile, 'pulseInterval');
+
         if (interval > 0) runtime.schedule('mesmer.infinite-forge', runtime.time + interval, undefined, undefined, -20);
       }
     }
@@ -359,6 +364,7 @@ function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerSh
 /** Start the passive only after Virtuoso has installed its blade lifecycle; pulses schedule their own successor. */
 function startInfiniteForge(context: MesmerRuntime): void {
   const interval = balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval');
+
   if (interval > 0) context.schedule('mesmer.infinite-forge', interval, undefined, undefined, -20);
 }
 
@@ -373,17 +379,23 @@ function applyBladeCritical(
   proc: string
 ): void {
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+
   if ((!event.metadata?.blade && !skill?.blade) || event.canCrit === false) return;
 
   if (id === TRAIT.DEADLY_BLADES && event.actorType !== 'player') return;
+
   const effect = requireEffect(requireBalanceProfileFromContext(runtime, id), 'condition', condition);
+
   if (!effect) return;
+
   const critical = details.hitContext!.critical;
   const application = advanceCriticalProc(criticalOpportunity(critical.chance, critical.didCrit), {
     id: proc,
     at: runtime.time
   });
+
   if (!application) return;
+
   emitTraitProfile(runtime, id, id, event, {
     at: runtime.time,
     effect: { type: 'condition', name: condition },
@@ -402,6 +414,7 @@ function applyBladeCritical(
         ...(id === TRAIT.DEADLY_BLADES ? { ownerActorType: 'player' as const } : {})
       })
   });
+
   if (id === TRAIT.JAGGED_MIND)
     runtime.effects.emit({
       kind: 'announcement',

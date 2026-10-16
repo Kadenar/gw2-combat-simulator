@@ -23,6 +23,7 @@ export function createRotationDriver<T extends object>(
       selectionContext ??= createSkillSelectionContext(runtime.traits);
       const command = cursor.command;
       let nextCommandAt = Infinity;
+
       if (command) {
         // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
         let skill =
@@ -31,7 +32,9 @@ export function createRotationDriver<T extends object>(
                 profession.modifySkillId?.(selectionContext, command.skillId) ?? command.skillId
               )
             : undefined;
+
         if (skill) skill = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;
+
         // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
         if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
           advanceFrontier('command rejection');
@@ -40,6 +43,7 @@ export function createRotationDriver<T extends object>(
         }
 
         const requested = cursor.requestAt(runtime.time, skill);
+
         if (requested < runtime.time || (command.type === 'cast' && !skill)) {
           advanceFrontier('command rejection');
           reject(skill ? 'Concurrent command cannot backdate the clock.' : 'Unknown skill.');
@@ -51,12 +55,16 @@ export function createRotationDriver<T extends object>(
           command.type === 'cast' ? runtime.inputReadyAt : 0,
           skill && !skill.independentCast && Number(skill.castTimeMs) > 0 && !skill.stunbreak ? cursor.selfStunUntil : 0
         );
+
         // Every cast enters on an absolute action tick, even after an off-grid wait, overlap, or resource wake.
         if (command.type === 'cast') nextCommandAt = gw2CooldownReadyAt(nextCommandAt);
+
         if (nextCommandAt <= runtime.time) {
           advanceFrontier('command');
+
           if (command.type === 'wait') {
             const end = canonicalTime(runtime.time + command.durationMs / 1000);
+
             // Every authored command retains its timeline row, including waits and environment controls.
             if (runtime.reporting)
               runtime.steps.push({
@@ -65,6 +73,7 @@ export function createRotationDriver<T extends object>(
                 start: Math.round(runtime.time * 1000),
                 end: Math.round(end * 1000)
               });
+
             cursor.acceptWait(end);
             return 'handled';
           }
@@ -77,6 +86,7 @@ export function createRotationDriver<T extends object>(
                 start: Math.round(runtime.time * 1000),
                 end: Math.round(runtime.time * 1000)
               });
+
             runtime.combatStartPending = false;
             runtime.combatStartTime = runtime.time;
             runtime.effects.emit({
@@ -101,6 +111,7 @@ export function createRotationDriver<T extends object>(
                 start: Math.round(runtime.time * 1000),
                 end: Math.round(runtime.time * 1000)
               });
+
             resetCooldowns();
             profession.onCooldownReset?.(runtime.mechanics);
             // Publish the accepted reset after its resource and recharge transitions.
@@ -121,7 +132,9 @@ export function createRotationDriver<T extends object>(
           }
 
           if (!skill) throw new Error('Cast has no skill.');
+
           const availability = evaluateReadiness(skill, command);
+
           if (!availability.ready) {
             if (availability.retryAt == null) {
               reject(availability.reason);

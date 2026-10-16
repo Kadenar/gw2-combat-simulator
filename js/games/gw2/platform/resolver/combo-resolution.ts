@@ -37,11 +37,13 @@ export function createGw2ComboResolution({
 
     combo(context, event) {
       if (context.reporting) context.resolved.push(event);
+
       reactions.dispatch('combo.resolved', context, event);
     },
 
     aura(context: Gw2ResolverRuntime, event: Gw2ResolverEvent) {
       if (context.reporting) context.resolved.push(event);
+
       reactions.dispatch('aura.applied', context, event);
     }
   });

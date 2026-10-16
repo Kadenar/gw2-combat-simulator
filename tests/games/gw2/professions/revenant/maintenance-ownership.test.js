@@ -43,6 +43,7 @@ test('only the selected Revenant elite contributes effect policies and observati
     for (const [owner, kinds] of Object.entries(eliteKinds)) {
       for (const kind of kinds) {
         assert.equal(policies.includes(kind), owner === specialization, `${specialization}: ${kind}`);
+
         if (owner === 'Renegade') assert.equal(observations.includes(kind), owner === specialization);
       }
     }

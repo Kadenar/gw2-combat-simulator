@@ -225,6 +225,7 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
                 repeated && statusAtMs?.length
                   ? statusAtMs.map((atMs) => ({ timingAnchor: 'castStart' as const, atMs }))
                   : [impact];
+
               if (effect.type === 'strike' && effect.ticks?.length)
                 return [
                   {
@@ -236,8 +237,10 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
                     timingScale: 'fixed'
                   }
                 ];
+
               if (effect.type === 'condition' && effect.ticks && damageAtMs != null)
                 effect = { ...effect, ticks: effect.ticks.map((tick) => ({ ...tick, atMs: damageAtMs + tick.atMs })) };
+
               return times.map((timing) => ({
                 ...effect,
                 ...timing,

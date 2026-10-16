@@ -48,6 +48,7 @@ test('Guardian composition installs each effect owner once and excludes inactive
     for (const [owner, kinds] of Object.entries(eliteKinds)) {
       for (const kind of kinds) {
         assert.equal(policies.includes(kind), owner === specialization, `${specialization}: ${kind}`);
+
         if (owner !== specialization) assert.ok(!observations.includes(kind), `${specialization}: ${kind}`);
       }
     }

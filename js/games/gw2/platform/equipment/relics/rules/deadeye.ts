@@ -8,8 +8,11 @@ export const deadeye = defineRelic({
   buffPolicies: [{ kind: 'relic-deadeye', name: 'Relic of the Deadeye', maximumStacks: 1 }],
   completed(ctx, _state, event) {
     if (event.cancelled || !isGw2PlayerActorEvent(event)) return;
+
     const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : undefined;
+
     if (!skill?.categories?.includes('Cantrip')) return;
+
     recordTimedBuffProc(ctx, event, {
       relicId: RELIC_IDS.DEADEYE,
       kind: 'relic-deadeye',

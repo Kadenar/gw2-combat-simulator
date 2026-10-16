@@ -60,7 +60,9 @@ export function createStrikePacketMatcher(
 
   return (action) => {
     const cached = cache.get(action);
+
     if (cached) return cached;
+
     const skill = resolveSkill(action);
     const authoredSkill = skillForAction(context, action);
     const runtimeDurationMs = skill ? referenceCastTimeMs(skill) : 0;
@@ -115,6 +117,7 @@ export function createStrikePacketMatcher(
             Math.abs(left.event.time - expectedTime) - Math.abs(right.event.time - expectedTime) ||
             left.eventIndex - right.eventIndex
         )[0];
+
       if (!match) continue;
 
       used.add(match.eventIndex);
@@ -124,6 +127,7 @@ export function createStrikePacketMatcher(
         (action.status === 'interrupted' || action.status === 'reduced') &&
         observedOffset >= Math.max(0, action.end - action.start) &&
         packet.interruptMode !== 'per-packet';
+
       if (observedAfterInterrupt) {
         if (packet.persistsAfterInterrupt && packet.interruptCommitMs != null) {
           observedCommittedDelayedPacket = true;
@@ -154,7 +158,9 @@ export function missingInterruptCommitWarnings(
   for (const action of actions) {
     // Only a cancellation retained in the replay can discard damage; raw reduced markers may replay to completion.
     if (action.replayInterruptMs == null) continue;
+
     if (!validatePackets(action).observedPostInterruptWithoutCommit) continue;
+
     const skill = skillForAction(context, action);
     const name = skill?.name || action.canonicalName || action.rawName;
     missingBySkill.set(name, (missingBySkill.get(name) || 0) + 1);

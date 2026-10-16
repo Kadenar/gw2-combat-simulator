@@ -65,9 +65,13 @@ function amalgamSkillBarGroups(
   const protocolGroups = [2, 3, 4].flatMap((slot): ProfessionSkillBarGroup[] => {
     const options = amalgamProtocolOptions(catalog, slot);
     const selected = selectedMorphIds(context)[slot - 2];
+
     if (options.some((skill) => skill.id === selected)) skillIds[slot - 1] = selected;
+
     const skillId = skillIds[slot - 1];
+
     if (skillId == null || !options.length) return [];
+
     return [
       {
         id: `engineer-amalgam-protocol-${slot}-selection`,
@@ -97,14 +101,18 @@ function updateAmalgamSkillBarSelection(
   selection: EngineerUiSelection
 ): boolean {
   if (selection.key !== 'selectedMorphSkillIds') return false;
+
   if (!context.build) return false;
+
   const next = selectAmalgamMorph(
     catalog,
     context.build.selectedMorphSkillIds ?? [],
     Number(selection.index),
     Number(selection.skillId)
   );
+
   if (!next) return false;
+
   context.build.selectedMorphSkillIds = next;
   return true;
 }
@@ -114,7 +122,9 @@ function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: n
   let remaining = 0;
   for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
     if ((event.at || 0) > at) break;
+
     if (event.type !== 'buff' || event.sourceId !== sourceId) continue;
+
     remaining = Math.max(remaining, gw2EffectExpiresAt(event.at || 0, event.duration || 0) - at);
   }
 
@@ -128,6 +138,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   const items: RotationStateSnapshotItem[] = [];
   // Evolve is state-backed, so its remaining duration comes directly from the specialization snapshot.
   const evolveRemaining = (state.evolvedUntil || 0) - at;
+
   if (evolveRemaining > 0) {
     items.push({
       id: 'amalgam-evolve',
@@ -147,6 +158,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
     ['Berserker', (state.berserkerUntil || 0) - at]
   ];
   const activeStrains = strains.filter(([, remaining]) => remaining > 0);
+
   if (activeStrains.length) {
     items.push({
       id: 'amalgam-active-strains',

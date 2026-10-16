@@ -356,6 +356,7 @@ function applyThermalVision(context: EngineerResolverContext, event: EngineerRes
   const thermalVisionProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_VISION);
   // Independent accepted grants retain the longest window when Burning applications overlap.
   const thermalVisionBuff = requireEffect(thermalVisionProfile, 'buff', 'thermal-vision');
+
   if (thermalVisionBuff) {
     emitTraitProfile(context, TRAIT.THERMAL_VISION, TRAIT.THERMAL_VISION, event, {
       at: event.at,
@@ -390,6 +391,7 @@ function applySanguineArray(context: EngineerResolverContext, event: EngineerRes
 
   const sanguineArrayProfile = requireBalanceProfileFromContext(context, TRAIT.SANGUINE_ARRAY);
   const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', 'might');
+
   if (sanguineArrayMight) {
     emitTraitProfile(context, TRAIT.SANGUINE_ARRAY, TRAIT.SANGUINE_ARRAY, undefined, {
       at: event.at,
@@ -431,6 +433,7 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
 
   const hematicFocusProfile = requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS);
   const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
+
   // Removed Fury cannot consume recharge; reserve it before delivering a surviving packet.
   if (hematicFocusFury && context.procs.claim(TRAIT.HEMATIC_FOCUS, 'hematicFocus', event.at)) {
     emitTraitProfile(context, TRAIT.HEMATIC_FOCUS, TRAIT.HEMATIC_FOCUS, undefined, {
@@ -469,6 +472,7 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
 function grantNoScope(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const noScopeProfile = requireBalanceProfileFromContext(context, TRAIT.NO_SCOPE);
   const noScopeFury = requireEffect(noScopeProfile, 'boon', 'fury');
+
   if (noScopeFury) {
     emitTraitProfile(context, TRAIT.NO_SCOPE, TRAIT.NO_SCOPE, undefined, {
       at: event.at,
@@ -556,7 +560,9 @@ function emitFirearmsCondition(
 ): void {
   const profile = requireBalanceProfileFromContext(context, sourceId);
   const effect = requireEffect(profile, 'condition', condition);
+
   if (!effect) return;
+
   emitTraitProfile(context, sourceId, sourceId, undefined, {
     at: event.at,
     effect: { type: 'condition', name: condition },
@@ -619,7 +625,9 @@ function emitIncendiaryPowder(
 function chemicalRoundsEligible(context: Gw2ModifierContext): boolean {
   const event = engineerEvent(context);
   const application = event?.application || event;
+
   if (application?.source === 'Trait') return false;
+
   const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
   return event?.skillWeapon === 'Pistol' || event?.application?.skillWeapon === 'Pistol' || skill?.weapon === 'Pistol';
 }
@@ -628,11 +636,15 @@ function chemicalRoundsEligible(context: Gw2ModifierContext): boolean {
 function heavyMetalBonus(context: Gw2ModifierContext): number {
   const fraction = targetHealthFraction(context);
   const heavyMetalProfile = requireBalanceProfileFromContext(context, TRAIT.HEAVY_METAL);
+
   if (fraction < balanceProfileNumber(heavyMetalProfile, 'lowerThreshold'))
     return balanceProfileNumber(heavyMetalProfile, 'lowerBonus');
+
   if (fraction < balanceProfileNumber(heavyMetalProfile, 'middleThreshold'))
     return balanceProfileNumber(heavyMetalProfile, 'middleBonus');
+
   if (fraction < balanceProfileNumber(heavyMetalProfile, 'upperThreshold'))
     return balanceProfileNumber(heavyMetalProfile, 'upperBonus');
+
   return 0;
 }

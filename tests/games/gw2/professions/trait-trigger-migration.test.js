@@ -73,6 +73,7 @@ for (const [skillId, kind] of shadestepRewards) {
             rewards.map((event) => event.kind),
             selected && traitTriggers && !removed ? [kind] : []
           );
+
           if (skillId === ID.DAWNS_REPOSE) {
             const barrier = result.events.find((event) => event.skillId === skillId && event.kind === 'barrier');
             assert.ok(barrier, 'Completion grants the intrinsic barrier independently of Shadestep');

@@ -77,7 +77,9 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
     ]) {
       clock.time = time;
       controller.resetAll();
+
       if (time > 0) controller.setReadyAt(skillId, 25);
+
       assert.equal(
         runtime[modifier](
           {

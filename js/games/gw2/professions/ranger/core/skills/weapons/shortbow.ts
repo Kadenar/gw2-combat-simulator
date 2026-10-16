@@ -24,6 +24,7 @@ export function shortbowConditionDuration(context: Gw2ModifierContext) {
       0
   );
   let intrinsic = 0;
+
   if (qualifiesForFlankingBonuses(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') intrinsic = 1;
     else if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') intrinsic = 2;
@@ -224,9 +225,13 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
 export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   expireCharges(state.bloodThirst, event.at);
+
   if (event.sourceId === ID.CRIPPLING_SHOT) return;
+
   const merged = rangerMerged(context.profession);
+
   if (!(Number(event.coefficient) > 0) || !(merged ? isPlayerStrike(event) : isPetStrike(event))) return;
+
   deliverChargedHit(context, event, PROFILE.bloodThirst, () => consumeCharge(state.bloodThirst, event.at), {
     // Player ownership implements the June 2024 change, even when a pet delivers the strike.
     attribution: {

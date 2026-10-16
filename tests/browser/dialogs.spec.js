@@ -29,7 +29,9 @@ test('embedded viewport updates cannot reopen a closed dialog', async ({ page })
     const stop = showDialog(dialog);
     try {
       notify();
+
       if (!dialog.open) throw new Error('The initial viewport notification must open the dialog.');
+
       dialog.close();
       notify();
       return dialog.open;
@@ -53,8 +55,10 @@ test('shared modals dismiss consistently and return focus to their launcher', as
     for (const dismiss of triggerSelector === launchers[0][0] ? ['button', 'escape', 'backdrop'] : ['button']) {
       await trigger.focus();
       await trigger.click();
+
       if (dialogSelector === '.build-rename-dialog')
         await page.locator('#build-switcher-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+
       await expect(dialog).toBeVisible();
       expect(
         await dialog.evaluate((element) => element.matches(':modal') && element.contains(document.activeElement))
@@ -66,6 +70,7 @@ test('shared modals dismiss consistently and return focus to their launcher', as
         );
       });
       await expect(dialog).toBeVisible();
+
       if (dismiss === 'button') await dialog.locator('[data-dialog-close]:visible').first().click();
       else if (dismiss === 'escape') await page.keyboard.press('Escape');
       else {
@@ -99,8 +104,10 @@ test('shared modals stay visible in a scrolled iframe and release viewport track
     await trigger.scrollIntoViewIfNeeded();
     const hostScroll = await page.evaluate(() => scrollY);
     await trigger.click();
+
     if (dialogSelector === '.build-rename-dialog')
       await frame.locator('#build-switcher-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+
     await expect(dialog).toBeVisible();
     expect(await page.evaluate(() => scrollY)).toBe(hostScroll);
     const expectWithinHost = async () => {
@@ -117,7 +124,9 @@ test('shared modals stay visible in a scrolled iframe and release viewport track
     await expectWithinHost();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
+
     if (await dialog.count()) await expect(dialog).not.toHaveAttribute('style', /--embed-viewport/);
+
     await expect(trigger).toBeFocused();
   }
 });

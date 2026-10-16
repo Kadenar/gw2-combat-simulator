@@ -16,8 +16,10 @@ function countCasts(events: readonly Gw2ResolverEvent[]): Map<string, CastCount>
   const output = new Map<string, CastCount>();
   for (const event of events) {
     if (event.type !== 'action') continue;
+
     const name = event.name || event.skillName || String(event.sourceId);
     const row = output.get(name);
+
     if (row) row.count += 1;
     else output.set(name, { name, count: 1 });
   }
@@ -32,6 +34,7 @@ export function buildSimulationScore(
   hasExplicitCombatStart: boolean
 ): Gw2SimulationScore {
   if (ctx.horizon == null) throw new TypeError('Results require a known observation end.');
+
   const totalDamage = playerDamageTotal(ctx);
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
   const explicitCombatStart = ctx.combatStartTime ?? 0;

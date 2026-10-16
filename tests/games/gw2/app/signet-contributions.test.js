@@ -223,6 +223,7 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
       outputs[1].result.events.some((event) => event.kind === buff),
       false
     );
+
     if (name === 'warrior') {
       assert.ok(outputs[0].result.events.some((event) => event.kind === 'signet-mastery'));
       assert.equal(

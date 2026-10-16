@@ -26,6 +26,7 @@ export function elementalistBuffPolicies(context: unknown): BuffStatePolicy[] {
   ];
   for (const [kind, id] of [['persisting flames', TRAIT.PERSISTING_FLAMES]] as const) {
     const profile = balanceProfileFromContext(context, id);
+
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }
 

@@ -69,6 +69,7 @@ test('Flame Wheel is disabled for the shared active-orb window', () => {
       );
       const verdict = state.availability[elementalistCatalog.skillsByName.get(name).id];
       assert.equal(verdict.ready, expiry < 0);
+
       if (!verdict.ready) assert.equal(verdict.code, 'elementalist.hammer-orb-active');
     }
   }

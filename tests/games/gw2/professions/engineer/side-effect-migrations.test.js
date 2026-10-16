@@ -46,6 +46,7 @@ test('Gleam Saber declarations reduce only other sword recharges after commitmen
       assert.equal(runtime.cooldownController.readyAt(ID.POISON_DART_VOLLEY), 48);
       const procs = result.events.filter((event) => event.type === 'proc' && event.sourceId === finisher);
       assert.equal(procs.length, cancelled ? 0 : 1);
+
       if (!cancelled) assert.equal(procs[0].cooldownReduction, 0.8);
     }
   }
@@ -125,6 +126,7 @@ test('grouped Thorns variants own retaliation independently of their Morph trait
       const retaliation = result.events.findIndex((event) => event.name === 'Thorns Retaliation');
       const morph = result.events.findIndex((event) => event.name === 'New Genes');
       assert.ok(core >= 0 && morph > core);
+
       if (declared) assert.ok(retaliation > core && retaliation < morph);
       else assert.equal(retaliation, -1);
     }
@@ -140,6 +142,7 @@ test('Overclock declaration and cannon payload independently own activation and 
       {
         extend(native) {
           if (mode === 'baseline') return {};
+
           const id = mode === 'remove-trigger' ? ID.OVERCLOCK_SIGNET : ID.JADE_BUSTER_CANNON;
           return {
             catalog: withSkill(

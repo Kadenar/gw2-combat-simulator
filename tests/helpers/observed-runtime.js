@@ -41,6 +41,7 @@ export function observeGw2Runtime(options) {
         execution.initialize?.(context);
         // Fixture setup observes the engine owner explicitly; native hooks still receive author capabilities.
         options.engineInitialize?.(context);
+
         if (options.config?.initialEndurance != null && options.profession.endurance) {
           const maximum = options.profession.endurance.maximum(context.mechanics);
           context.endurance.spend(maximum - Math.min(maximum, Math.max(0, options.config.initialEndurance)));
@@ -55,7 +56,9 @@ export function observeGw2Runtime(options) {
 /** Returns the owner captured for this exact run; score and detailed calls never share observations. */
 export function observedRuntime(result) {
   const runtime = observed.get(result);
+
   if (!runtime) throw new Error('No runtime observed for this result.');
+
   return runtime;
 }
 

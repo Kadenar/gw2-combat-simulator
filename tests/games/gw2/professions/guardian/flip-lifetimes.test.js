@@ -31,7 +31,9 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
       const current = { ...runtime, time: at };
       const active = at < window.expiresAt;
       assert.equal(native.availability(current, flip).ready, active);
+
       if (id === ID.ZEALOTS_FLAME) assert.equal(native.availability(current, parent).ready, !active);
+
       const projected = projectObservedState(guardianProfession, { profession: runtime.profession, time: at });
       assert.equal(Object.hasOwn(projected.availableFlips, flip.id), active);
       assert.equal(

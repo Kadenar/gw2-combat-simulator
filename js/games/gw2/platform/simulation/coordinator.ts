@@ -40,12 +40,18 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   function reactionParent(event: PacketIdentity): number | undefined {
     const cause = currentCause;
     const causeOrder = cause?.eventOrder;
+
     if (!cause || causeOrder == null || SHARED_PULSE_TYPES.has(event.type)) return undefined;
+
     // Summons own their scheduled attack loops; only direct reactions (a pet hit's bleed) record a cause.
     if (causeIsScheduled && event.actorType === 'summon') return undefined;
+
     const activationId = typeof event.activationId === 'string' ? event.activationId : undefined;
+
     if (activationId != null && activationId !== cause.activationId && castActions.has(activationId)) return undefined;
+
     if (cause.type === 'action') return activationId === cause.activationId ? undefined : causeOrder;
+
     // Only a shared activation makes a same-skill packet a continuation; unattributed procs remain reactions.
     const continuesCause =
       activationId != null &&
@@ -60,6 +66,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
    */
   function identify<E extends PacketIdentity>(event: E): E {
     if (event.kind === 'internal' || event.eventOrder != null || SHARED_PULSE_TYPES.has(event.type)) return event;
+
     const order = ++eventOrder;
     const parent = event.parentEventOrder ?? reactionParent(event);
     return {
@@ -87,11 +94,15 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   /** Internal packets share queue ordering but cannot become public history or report rows. */
   function enqueueWork(work: RuntimeWork, independent = false): void {
     if (work.at < getRuntime().time) throw new RangeError('Internal work cannot backdate the live clock.');
+
     const previousOrder = queue.currentCausalOrder;
+
     // Shared clocks have neither a scheduling parent nor inherited ordering from their starter or prior tick.
     if (independent) queue.currentCausalOrder = null;
+
     try {
       const queued = queue.enqueue({ ...work, source: 'Runtime', sourceId: work.type, actorType: 'effect' });
+
       // Delayed work acts for whatever scheduled it, so its unattributed effects stay that event's reactions.
       if (!independent && currentCause) workCauses.set(queued, currentCause);
     } finally {
@@ -107,14 +118,18 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     const summonOwners = new Set(executed.flatMap((event) => (event.summonOwner == null ? [] : [event.summonOwner])));
     return queue.pending().flatMap((event) => {
       if (event.actorType === 'summon' || event.summonOwner != null || SHARED_PULSE_TYPES.has(event.type)) return [];
+
       if (event.kind !== 'internal') return [{ at: event.at, cause: event }];
+
       const work = event as unknown as RuntimeWork;
+
       if (
         work.type === 'runtime.flip-expiry' ||
         (work.owner && summonOwners.has(work.owner.id)) ||
         (work.type === 'runtime.task' && backgroundTasks.includes(work.payload.name))
       )
         return [];
+
       const cause = work.type === 'runtime.cast-task' ? castActions.get(work.payload.cast.id) : workCauses.get(event);
       return cause ? [{ at: event.at, cause }] : [];
     });
@@ -140,6 +155,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
       }
 
       const due = queue.peek();
+
       if (due && due.at <= runtime.time) {
         try {
           dispatch(queue.dequeue()!);
@@ -151,10 +167,14 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
       }
 
       const commandBoundary = execution.driver.advance(driverContext);
+
       if (commandBoundary === 'handled') continue;
+
       let nextCommandAt = commandBoundary;
+
       if (!cursor.command && runtime.rotationEndTime == null) {
         nextCommandAt = Math.max(cursor.endTime(), runtime.inputReadyAt);
+
         if (nextCommandAt <= runtime.time) {
           runtime.rotationEndTime = runtime.time;
           // A fixed safety horizon keeps condition scheduling live while an occurrence finishes early below.
@@ -164,6 +184,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
       }
 
       const completionAt = completion && runtime.rotationEndTime != null ? completion() : Infinity;
+
       if (runtime.rotationEndTime != null && runtime.time >= completionAt) {
         runtime.horizon = runtime.time;
         finished = true;
@@ -173,12 +194,15 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
       if (runtime.horizon != null && runtime.time >= runtime.horizon) {
         if (runtime.rotationEndTime == null)
           throw new RangeError('Absolute observation endTimeMs cannot precede rotation end.');
+
         finished = true;
         break;
       }
 
       const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity, completionAt);
+
       if (!Number.isFinite(next) || next <= runtime.time) throw new Error('Live runtime has no advancing boundary.');
+
       // Observe the settled timestamp before the clock and time-dependent resources move forward.
       flushEffects();
       runtime.time = canonicalTime(next);
@@ -188,6 +212,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     }
 
     if (!finished || runtime.rotationEndTime == null) throw new Error('Live runtime exceeded its action safety limit.');
+
     // The final timestamp has no following clock advance to flush its accepted state.
     flushEffects();
   }

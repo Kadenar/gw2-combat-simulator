@@ -14,6 +14,7 @@ function resolveAdapter(adapter: unknown): Gw2AppAdapter {
   }
 
   const candidate = adapter as Partial<Gw2AppAdapter>;
+
   if (!candidate.profession || !candidate.storageKey || typeof candidate.toApplicationBuild !== 'function') {
     throw new TypeError('Application state requires a profession app adapter.');
   }
@@ -46,6 +47,7 @@ export function loadBuild(adapter: Gw2AppAdapter): Gw2CanonicalBuild {
   try {
     const saved = JSON.parse(localStorage.getItem(resolved.storageKey) || 'null');
     const build = resolved.toApplicationBuild(saved || resolved.profession.createBuildDefaults());
+
     // Rewrite only after conversion succeeds; storage failures leave the source recoverable.
     if (saved && Object.hasOwn(saved, 'selectedSkills')) {
       try {
@@ -58,6 +60,7 @@ export function loadBuild(adapter: Gw2AppAdapter): Gw2CanonicalBuild {
     return build;
   } catch (error) {
     if (error instanceof SelectedSkillMigrationError) throw error;
+
     return createDefaultBuild(resolved);
   }
 }

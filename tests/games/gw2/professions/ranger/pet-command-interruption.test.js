@@ -25,6 +25,7 @@ for (const specialization of ['Core', 'Druid', 'Galeshot', 'Soulbeast', 'Untamed
       assert.ok(command);
       assert.equal(command.at, requestedAt / 1000);
       const priorAuto = actions.find((event) => event.skillId === ID.CONSUMING_BITE && event.at < command.at);
+
       if (requestedAt === 320) {
         assert.equal(priorAuto, undefined);
       } else {
@@ -70,7 +71,9 @@ for (const commands of [
     for (const [index, action] of actions.entries()) {
       assert.ok(action);
       assert.ok(!action.interrupted && !action.cancelled);
+
       if (index > 0) assert.ok(action.at >= actions[index - 1].endsAt);
+
       assert.ok(
         result.resolvedEvents.some((event) => event.type === 'damage' && event.activationId === action.activationId)
       );

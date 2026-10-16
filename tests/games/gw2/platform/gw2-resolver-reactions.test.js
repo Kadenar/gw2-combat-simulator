@@ -254,6 +254,7 @@ test('resolver duration queries use accepted relic state and preserve causal ord
     professionReactions: {
       'condition.applied': (context, application) => {
         if (application.condition !== 'Bleeding') return;
+
         durations.push(application.effectiveDuration);
         // Live state must exclude the queued trigger until its handler has run.
         liveBonuses.push(

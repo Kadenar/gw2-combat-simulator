@@ -38,10 +38,13 @@ export function activeTroubadourInstrumentsAt(
   const latest = new Map<string, SimulationEvent>();
   for (const event of events) {
     if (event.type !== 'mesmer.instrument' || event.at > at) continue;
+
     // A same-time performance cannot affect an event that preceded its commitment.
     if (event.at === at && Number(event.eventOrder) > Number(currentEvent?.eventOrder)) continue;
+
     const name = String(event.instrument);
     const previous = latest.get(name);
+
     if (
       !previous ||
       event.at > previous.at ||

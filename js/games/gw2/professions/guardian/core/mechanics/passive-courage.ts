@@ -20,8 +20,11 @@ export function createPassiveCourageTask(policy: PassiveCouragePolicy): (runtime
     const profile = requireBalanceProfileFromContext(runtime, policy.profileId);
     const interval = policy.interval(runtime, profile);
     const effect = requireEffect(profile, 'boon', 'aegis');
+
     if (!(interval > 0) || !effect) return;
+
     if (policy.ready(runtime)) policy.deliver(runtime, profile, effect);
+
     runtime.schedule(policy.taskId, canonicalTime(runtime.time + interval), undefined, undefined, -200);
   };
 }

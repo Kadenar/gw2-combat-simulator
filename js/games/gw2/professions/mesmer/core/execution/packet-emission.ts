@@ -169,8 +169,10 @@ export function createSkillDamageController({
         group.castProgress != null
           ? castStart + (at - castStart) * group.castProgress
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
+
       // Uninterrupted actor work has no cutoff; interrupted player packets end at the canonical deadline.
       if (playerEffectEnd !== Infinity && canonicalTime(hitAt) > canonicalTime(playerEffectEnd)) continue;
+
       schedulePlayerStrike(skill, group, at, castStart, delivery);
     }
 

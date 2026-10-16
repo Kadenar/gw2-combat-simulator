@@ -206,6 +206,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
 /** Both throw distances keep the source's live recharge even when the attempt is interrupted. */
 function synchronizePathOfScarsRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   if (cast.skill.id !== ID.PATH_OF_SCARS && cast.skill.id !== ID.PATH_OF_SCARS_MAX_RANGE) return;
+
   runtime.cooldownController.copy(cast.skill.id, ID.PATH_OF_SCARS);
   runtime.cooldownController.copy(cast.skill.id, ID.PATH_OF_SCARS_MAX_RANGE);
 }

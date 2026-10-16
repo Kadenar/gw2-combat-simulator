@@ -147,12 +147,15 @@ test('spirit replacement changes generation and busy state only at completion', 
       ...native,
       onCastStart(runtime, cast) {
         native.onCastStart(runtime, cast);
+
         if (cast.skill.id !== ID.WANDERLUST) return;
+
         starts.push(observe(runtime));
         runtime.schedule('test.observe', (cast.start + cast.fullEnd) / 2);
       },
       onCastCommit(runtime, cast) {
         native.onCastCommit(runtime, cast);
+
         if (cast.skill.id === ID.WANDERLUST) completed.push(observe(runtime));
       },
       tasks: {
@@ -386,6 +389,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
     });
     assert.equal(result.planningState.profession.activeShroud === 'death', accepted);
     assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), accepted ? 11 : 9);
+
     if (accepted) assert.deepEqual(result.warnings, []);
     else assert.match(result.warnings.join(' '), /requires more life force/);
   }

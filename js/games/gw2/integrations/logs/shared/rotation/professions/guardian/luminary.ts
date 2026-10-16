@@ -15,11 +15,13 @@ export function reconstructLuminaryDpsReportActions(
   return context.recordedActions.filter((action) => {
     if (action.rawSkillId === EFFULGENT_DAMAGE_SIGNAL_ID || normalized(action.rawName) === 'effulgent stance (damage)')
       return false;
+
     // Forge transitions and radiant weapons generate bar-swap rows; their simulator inputs already change the bar.
     if (action.isSwap && normalized(action.rawName) === 'weapon swap')
       return !context.recordedActions.some(
         (other) => FORGE_BAR_CHANGES.has(other.rawSkillId) && Math.abs(other.start - action.start) < 10
       );
+
     return true;
   });
 }

@@ -40,7 +40,9 @@ function passivePulse(runtime: NecromancerRuntime, data: unknown): void {
 /** A readiness boundary names scheduled work, never a predicted amount or a replayed gain. */
 export function nextNecromancerPassiveGain(runtime: NecromancerRuntime, cost: number): number {
   const state = runtime.profession.core;
+
   if (cost > state.lifeForce.maximum) return Infinity;
+
   return Math.min(eternalLifeReadyAt(runtime, cost), state.passiveNextAt.undeath ?? Infinity);
 }
 
@@ -50,10 +52,13 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
   const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   for (const { passive, skillId, profileId } of NECROMANCER_SIGNET_PASSIVES) {
     if (!selected.has(skillId)) continue;
+
     const profile = requireBalanceProfileFromContext(runtime, profileId);
     const interval = balanceProfileNumber(profile, 'pulseInterval');
+
     // A removed resource grant cannot advertise an endless sequence of unaffordable retries.
     if (passive !== 'vampirism' && balanceProfileNumber(profile, 'lifeForceGain') === 0) continue;
+
     if (interval > 0) schedulePassive(runtime, { passive, interval, deadline: interval });
   }
 

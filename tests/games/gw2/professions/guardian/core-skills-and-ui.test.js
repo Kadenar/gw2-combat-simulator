@@ -58,8 +58,10 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
 
     const pull = createObservedProfessionSimulator(guardianProfession, settings)(undefined, [...rotation, 'Pull']);
     assert.equal(Boolean(pull.steps.at(-1).invalid), expired);
+
     if (expired) assert.match(pull.warnings.join(' '), /not currently armed/);
     else assert.deepEqual(pull.warnings, []);
+
     assert.equal(pull.planningState.cooldowns[parent.id].readyAt, result.planningState.cooldowns[parent.id].readyAt);
   }
 });
@@ -180,6 +182,7 @@ test('Guardian mantra flips inherit selection from the root slot skill', () => {
       specialization: 'Firebrand',
       selectedSkillIds
     })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge']);
+
     if (selectedSkillIds.length) {
       assert.deepEqual(result.warnings, []);
       assert.ok(result.resolvedEvents.some((event) => event.name === 'Flame Surge'));

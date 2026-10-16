@@ -308,7 +308,9 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
 function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   for (const [parentId, flip] of Object.entries(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) {
     const parent = Number(parentId);
+
     if (parent === ID.PANTHERS_PROWL || (cast.skill.id !== parent && cast.skill.id !== flip)) continue;
+
     runtime.cooldownController.copy(cast.skill.id, parent);
     runtime.cooldownController.copy(cast.skill.id, flip);
   }

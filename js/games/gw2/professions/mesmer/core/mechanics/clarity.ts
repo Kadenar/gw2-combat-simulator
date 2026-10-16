@@ -12,6 +12,7 @@ export function consumeMesmerClarity(state: MesmerRuntime, castStart: number): b
 /** Track the skill's applied Clarity buff for consumption and publish its existing proc indicator. */
 export function applyMesmerClarity(state: MesmerRuntime, event: Gw2ResolverEvent): void {
   if (event.kind !== 'clarity' || !event.resolvedAudience?.includesSelf) return;
+
   const duration = Number(event.duration);
   // Reapplication replaces the entitlement and its authored deadline rather than stacking charges.
   professionCoreState(state).clarity = grantCharges(1, event.at + duration);

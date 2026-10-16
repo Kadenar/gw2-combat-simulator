@@ -18,11 +18,16 @@ export function ownerConditionBreakdown(result: Gw2ResolverResult): OwnerConditi
   const owners = new Map<string, { name: string; conditions: Map<string, number> }>();
   for (const event of result.resolvedEvents || []) {
     if (event.type !== 'condition' || !event.condition) continue;
+
     const group = breakdownGroup(gw2EventActorType(event));
+
     if (group === 'Environment' || (group === 'Entities' && !event.entityName)) continue;
+
     const ownerKey = group === 'Entities' ? `Entities|${event.entityName}` : 'Player';
     const damage = Number(event.damage || 0);
+
     if (damage <= 0) continue;
+
     const owner = owners.get(ownerKey) || {
       name: group === 'Entities' ? event.entityName! : 'Player',
       conditions: new Map<string, number>()
@@ -120,9 +125,12 @@ function breakdownDisplayName(
 ): string {
   // Player effects can opt into a separate row without losing parent-skill cast attribution.
   if (group !== 'Entities' || !parentSkill) return damageBreakdownName || sourceSkill;
+
   let name = damageBreakdownName || String(entry.name || sourceSkill);
   const parentPrefix = `${parentSkill}${PARENT_SKILL_SEPARATOR}`;
+
   if (name.startsWith(parentPrefix)) name = name.slice(parentPrefix.length);
+
   return name.endsWith(CHRONOPHANTASMA_SUFFIX) ? name.slice(0, -CHRONOPHANTASMA_SUFFIX.length) : name;
 }
 
@@ -204,7 +212,9 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
       parentSkill: entry.parentSkill,
       name: entry.name
     });
+
     if (keyByIdentity.has(identity)) continue;
+
     const { group, name, entityName } = attributeBreakdownEntry(entry);
     keyByIdentity.set(identity, skillBreakdownKey(group, name, entityName));
   }
@@ -219,12 +229,18 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
   const keyByIdentity = skillDamageKeyByIdentity(result);
   for (const event of result.resolvedEvents || []) {
     if (event.type !== 'damage' && event.type !== 'condition') continue;
+
     const key = keyByIdentity.get(skillDamageIdentityKey({ ...event, parentSkill: event.parentSkillName }));
+
     if (!key) continue;
+
     // Producers mark one primary effect per activation, so ticks and multi-effect procs cannot inflate Hits.
     const count = Number(event.metadata?.procCount || 0);
+
     if (count > 0) procCounts.set(key, (procCounts.get(key) || 0) + count);
+
     if (!event.triggeredBy) continue;
+
     const sources = damageByTrigger.get(key) || new Map<string, number>();
     sources.set(event.triggeredBy, (sources.get(event.triggeredBy) || 0) + Number(event.damage || 0));
     damageByTrigger.set(key, sources);
@@ -235,6 +251,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
   const equipmentProcCounts = new Map<string, number>();
   for (const step of result.procSteps || []) {
     if (step.type !== 'relic_proc' && step.type !== 'sigil_proc') continue;
+
     equipmentProcCounts.set(step.skill, (equipmentProcCounts.get(step.skill) || 0) + 1);
   }
 
@@ -247,6 +264,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
   const actionKey = (name: string, entityName: string): string => JSON.stringify([entityName, name]);
   for (const event of result.events || []) {
     if (event.type !== 'action') continue;
+
     // Renamed contributions match accepted actions by ID, then event display name;
     // derive these counts here instead of transporting them on every contribution.
     const entityName = event.actorType === 'summon' ? event.entityName || '' : '';
@@ -288,9 +306,13 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
       critEligibleHits: 0,
       fallbackCasts: 0
     };
+
     if (!current.parentSkill && parentSkill) current.parentSkill = parentSkill;
+
     if (!current.icon && icon) current.icon = icon;
+
     if (current.skillId == null && skillId != null) current.skillId = skillId;
+
     if (current.sourceId == null && sourceId != null) {
       current.sourceId = sourceId;
     }

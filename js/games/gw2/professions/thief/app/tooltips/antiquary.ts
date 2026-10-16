@@ -41,6 +41,7 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         tooltipSeconds
       )
     );
+
   if (entity.id === ID.HOLO_DANCER_DECOY) {
     description +=
       ' Adds a timed charge that reduces the recharge of the next utility cast. Repeated grants queue and consume the oldest charge first.';
@@ -159,6 +160,7 @@ const forgedSurferTooltip: DescribeSimulationTooltip = (balanceContext) => ({
 const doubleEdgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const description =
     "Succeeds when ready. Reusing during recharge takes the configured success or backfire outcome; Scoundrel's Luck guarantees a risky success and consumes its charge. Further risky uses remain available after a backfire.";
+
   if (entity.id === ID.STONE_SUMMIT_CANNON) {
     const success = tooltipProfile(balanceContext, ANTIQUARY.cannonSuccess);
     return {
@@ -176,6 +178,7 @@ const doubleEdgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
       description: `${description} Coin tosses follow a deterministic alternating sequence. Heads restores more initiative than tails; backfire reduces the initiative returned.`,
       facts: []
     };
+
   return {
     description: `${description} Antivenom's healing and self-damage do not vary player health in combat simulation.`,
     facts: simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'success only').facts

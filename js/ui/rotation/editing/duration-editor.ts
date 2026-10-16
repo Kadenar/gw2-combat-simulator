@@ -19,6 +19,7 @@ export type DurationValidation =
 export function validateDurationMs(rawValue: string | number, minimumMs = 1, stepMs?: number): DurationValidation {
   const parsed = Number(rawValue);
   const minimum = Math.max(1, Math.round(Number(minimumMs) || 1));
+
   if (!Number.isFinite(parsed) || parsed < minimum) {
     return {
       valid: false,
@@ -67,6 +68,7 @@ export function openDurationEditor(options: DurationEditorOptions): FloatingEdit
   const error = editor.querySelector<HTMLElement>('.activation-editor-error');
   const cancel = editor.querySelector<HTMLButtonElement>('.activation-editor-cancel');
   const apply = editor.querySelector<HTMLButtonElement>('.activation-editor-apply');
+
   if (!heading || !icon || !name || !label || !input || !error || !cancel || !apply) {
     throw new TypeError('Duration editor markup is incomplete.');
   }
@@ -88,6 +90,7 @@ export function openDurationEditor(options: DurationEditorOptions): FloatingEdit
 
   const applyChanges = (): void => {
     const validation = validateDurationMs(input.value, options.minimumMs, options.stepMs);
+
     if (!validation.valid) {
       error.textContent = validation.error;
       input.focus();

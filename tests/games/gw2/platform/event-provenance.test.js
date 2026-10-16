@@ -52,6 +52,7 @@ test('reactions queued directly or applied immediately receive identity and thei
     reactions: {
       'damage.resolved'(runtime, event) {
         if (event.skillId !== 991001) return;
+
         runtime.effects.emit({ kind: 'packet', event: buff(runtime.time, 'direct-buff') });
         runtime.effects.emit({
           kind: 'packet',

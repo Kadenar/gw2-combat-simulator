@@ -62,6 +62,7 @@ test('Catalyst deployment requires matching attunement and the selected fraction
     assert.equal(runtime.cooldownController.hasCooldown(sphere.id), accepted);
     const spends = result.events.filter((event) => event.kind === 'catalyst-energy' && event.change < 0);
     assert.equal(spends.length, accepted ? 1 : 0);
+
     if (accepted) {
       assert.deepEqual(result.warnings, []);
       assert.equal(spends[0].change, -6.25);

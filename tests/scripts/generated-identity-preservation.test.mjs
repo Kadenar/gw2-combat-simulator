@@ -25,8 +25,10 @@ function mockRangerPetApi(context, { RANGER_PETS, RANGER_PET_SKILLS }) {
       .split(',')
       .map(Number)
       .filter((id) => !API_REJECTED_PET_SKILL_IDS.has(id));
+
     // The endpoint drops rejected IDs from a mixed batch and fails a batch that contains nothing else.
     if (!served.length) return { ok: false, status: 404 };
+
     return {
       ok: true,
       json: async () =>
@@ -71,6 +73,7 @@ test('Warrior refresh preserves committed bindings and API-omitted mechanics ide
   const { writes } = mockGeneratorFiles(context, { emptyIdentities: false });
   context.mock.method(globalThis, 'fetch', async (request) => {
     const url = new URL(request);
+
     if (url.hostname === 'wiki.guildwars2.com') {
       const skill = WARRIOR_SUPPLEMENTAL_SKILLS.find(({ name }) => name === url.searchParams.get('page'));
       assert.ok(skill, url.href);

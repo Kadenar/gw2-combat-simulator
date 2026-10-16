@@ -55,8 +55,10 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = rangerUiState(context);
+
       if (skill.id === ID.SUMMON_CYCLONE_BOW || skill.id === ID.DISMISS_CYCLONE_BOW)
         return { tileActive: (skill.id === ID.DISMISS_CYCLONE_BOW) === Boolean(state.cycloneBowActive) };
+
       if (skill.id === ID.HAWKEYE || skill.id === ID.KEEN_SHOT) {
         const maximum =
           state.windForce?.maximum ??
@@ -93,6 +95,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
     ],
     timelineWeaponLineTransition: (context: RangerUiContext) => {
       const skill = context.skill;
+
       if (skill?.id === ID.SUMMON_CYCLONE_BOW) {
         return 'Cyclone Bow';
       }

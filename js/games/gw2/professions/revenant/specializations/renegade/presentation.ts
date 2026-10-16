@@ -41,6 +41,7 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const fervor = (state.kallasFervor || []).filter((stack) => (stack.at || 0) <= at && (stack.expiresAt || 0) > at);
+
   if (fervor.length) {
     const maximum = fervorMaximum(context);
     const remaining = Math.min(...fervor.map((stack) => stack.expiresAt)) - at;
@@ -53,6 +54,7 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
   }
 
   const bandRemaining = (state.bandTogether?.expiresAt ?? 0) - at;
+
   if (isBandTogetherReady(state, at)) {
     items.push({
       id: 'renegade-band-together',

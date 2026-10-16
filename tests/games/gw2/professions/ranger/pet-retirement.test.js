@@ -49,7 +49,9 @@ for (const output of ['detailed', 'score']) {
       }
     );
     assert.deepEqual(result.warnings, []);
+
     if (output === 'score') return;
+
     const swappedAt = result.events.find((event) => event.type === 'ranger.pet-swapped').at;
     const embraceConditions = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillId === ID.JACARANDAS_EMBRACE

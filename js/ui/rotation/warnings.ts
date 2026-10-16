@@ -20,6 +20,7 @@ export function mountRotationWarnings(
   { open = false }: RotationWarningOptions = {}
 ): void {
   if (!container) return;
+
   if (!warnings.length) {
     container.innerHTML = '';
     return;

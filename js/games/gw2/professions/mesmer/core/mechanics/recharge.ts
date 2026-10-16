@@ -29,6 +29,7 @@ export function mesmerRechargeWork(
   const multiplier = fencersFinesseRecharge(context, skill, masterOfMisdirectionRecharge(context, skill, 1));
 
   const shatter = skill.shatter;
+
   if (shatter?.rechargeReductionPerSource) {
     // Recharge reads canonical shatter metadata and its owning clone pool, without acquiring illusion controllers.
     const clones = context.profession.core.clones.length;
@@ -53,5 +54,6 @@ export function mesmerMaximumAmmo(
 ): number {
   // Inactive mantra flips have no charge pool; only their parent can rearm and refill them.
   if (skill.flipParentId && !context.readProfessionState().core.availableFlips[skill.id]) return 0;
+
   return shatterStormMaximumAmmo(context, skill, maximum);
 }

@@ -53,7 +53,9 @@ export function createGw2ConditionResolution({
 
   function activeStacks(ctx: Gw2ResolverRuntime, name: string, at: number): Gw2ResolverConditionStack[] {
     const state = ctx.conditionState.get(name);
+
     if (!state) return [];
+
     // Expiry is half-open: a stack is active before expiresAt, not at it.
     return state.stacks.filter((stack) => isTimeInWindow(at, stack.appliedAt, stack.expiresAt) && stack.weight > 0);
   }
@@ -71,6 +73,7 @@ export function createGw2ConditionResolution({
   function conditionRate(ctx: Gw2ResolverRuntime, name: string, conditionDamage: number): number {
     // The shared formula owns Torment's target-motion branch; Confusion adds configured activation damage below.
     let rate = conditionTickDamage(name, conditionDamage, { stationary: !ctx.config.target?.moving });
+
     if (name === 'Confusion') {
       const formula = CONDITION_FORMULAS.Confusion;
       rate +=
@@ -96,6 +99,7 @@ export function createGw2ConditionResolution({
   function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
     for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
+
       if (!(stacks > 0)) continue;
 
       ctx.environmentConditions.set(condition, {
@@ -108,6 +112,7 @@ export function createGw2ConditionResolution({
     }
 
     scheduleEnvironment(ctx, 0);
+
     if (ctx.environmentConditions.size) scheduleBuffer(ctx, 0);
   }
 
@@ -115,9 +120,13 @@ export function createGw2ConditionResolution({
     for (const { name: condition, stacks } of ctx.environmentConditions.values()) {
       // Keep one successor per condition even before rotation end is known; rephasing cancels its predecessor.
       const previous = environmentWakes.get(condition);
+
       if (previous) ctx.queue.cancel(previous);
+
       const at = nextPulseAt(ctx, after);
+
       if (ctx.horizon != null && at > ctx.horizon) continue;
+
       environmentWakes.set(
         condition,
         ctx.queue.enqueue({
@@ -138,8 +147,10 @@ export function createGw2ConditionResolution({
   /** Replace provisional wakes once first damage establishes fight time; pre-fight accrual cannot fund later ticks. */
   function startDamageClock(ctx: Gw2ResolverRuntime): void {
     const at = ctx.firstHitTime!;
+
     // An opening condition payout already lies on the provisional phase and must finish its entire batch.
     if (timeKey(at) % 1_000_000 === 0) return;
+
     for (const state of ctx.conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
         for (const application of group.applications) {
@@ -164,6 +175,7 @@ export function createGw2ConditionResolution({
   function damageOwner(application: Gw2ResolvedConditionApplication): string | Gw2ResolvedConditionApplication {
     if (application.actorType === 'summon') {
       if (!application.independentConditionOwner) return 'player';
+
       return application.summonOwner ? `summon:${application.summonOwner}` : application;
     }
 
@@ -172,6 +184,7 @@ export function createGw2ConditionResolution({
       (application.actorType === 'effect' && application.ownerActorType === 'player')
     )
       return 'player';
+
     // Unclassified actors remain isolated until their producer supplies concrete ownership.
     return application;
   }
@@ -193,6 +206,7 @@ export function createGw2ConditionResolution({
   function indexExpiry(application: Gw2ResolvedConditionApplication): void {
     const key = timeKey(application.naturalExpiresAt);
     let bucket = expiryBuckets.get(key);
+
     if (!bucket) {
       bucket = { at: application.naturalExpiresAt, key, applications: [] };
       expiryBuckets.set(key, bucket);
@@ -200,7 +214,9 @@ export function createGw2ConditionResolution({
       let index = expiryHeap.push(bucket) - 1;
       while (index > 0) {
         const parent = (index - 1) >> 1;
+
         if (expiryHeap[parent].key <= key) break;
+
         expiryHeap[index] = expiryHeap[parent];
         index = parent;
       }
@@ -215,13 +231,19 @@ export function createGw2ConditionResolution({
   function discardEarliestExpiry(): void {
     expiryBuckets.delete(expiryHeap[0].key);
     const last = expiryHeap.pop()!;
+
     if (!expiryHeap.length) return;
+
     let index = 0;
     for (;;) {
       let child = index * 2 + 1;
+
       if (child >= expiryHeap.length) break;
+
       if (child + 1 < expiryHeap.length && expiryHeap[child + 1].key < expiryHeap[child].key) child += 1;
+
       if (expiryHeap[child].key >= last.key) break;
+
       expiryHeap[index] = expiryHeap[child];
       index = child;
     }
@@ -233,9 +255,11 @@ export function createGw2ConditionResolution({
   function nextLiveExpiry(after: number): number | undefined {
     while (expiryHeap.length) {
       const bucket = expiryHeap[0];
+
       // Removal is permanent, so an instant whose applications are all removed can never need a sample again.
       if (bucket.at > after && bucket.applications.some((application) => !isRemoved(application, after)))
         return bucket.at;
+
       discardEarliestExpiry();
     }
 
@@ -252,10 +276,14 @@ export function createGw2ConditionResolution({
     }
 
     const at = group.nextPulseAt;
+
     if (group.wakeAt === at) return;
+
     group.wakeAt = at;
     group.wakeToken += 1;
+
     if (ctx.horizon != null && at > ctx.horizon) return;
+
     // Shared pulses have no application causal order. Restore inheritance for other derived events.
     const causalOrder = ctx.queue.currentCausalOrder;
     ctx.queue.currentCausalOrder = null;
@@ -279,6 +307,7 @@ export function createGw2ConditionResolution({
   function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number, newExpiresAt?: number): void {
     let at = nextPulseAt(ctx, after);
     let active = ctx.environmentConditions.size > 0;
+
     if (newExpiresAt !== undefined) {
       // Existing applications already have a queued sample; only the new expiry can bring it forward.
       at = Math.min(at, newExpiresAt);
@@ -286,6 +315,7 @@ export function createGw2ConditionResolution({
     } else {
       // After a sample, the expiry index supplies both continued work and the next expiry without rescanning owners.
       const expiry = nextLiveExpiry(after);
+
       if (expiry !== undefined) {
         active = true;
         at = Math.min(at, expiry);
@@ -298,7 +328,9 @@ export function createGw2ConditionResolution({
       (ctx.horizon != null && at > ctx.horizon)
     )
       return;
+
     if (bufferWake && bufferWake.at > after) ctx.queue.cancel(bufferWake);
+
     ctx.conditionBufferAt = at;
     const causalOrder = ctx.queue.currentCausalOrder;
     ctx.queue.currentCausalOrder = null;
@@ -318,6 +350,7 @@ export function createGw2ConditionResolution({
   /** Sample every owner before any whole-second payout; never retroactively query earlier mutable state. */
   function bufferConditions(ctx: Gw2ResolverRuntime, at: number): void {
     if (ctx.conditionBufferedAt != null && at <= ctx.conditionBufferedAt) return;
+
     ctx.conditionBufferedAt = at;
     const onGrid = (timeKey(at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 === 0;
     // Each pass observes one target state; discard these facts before processing another event or timestamp.
@@ -330,6 +363,7 @@ export function createGw2ConditionResolution({
     /** Settle one application through this pass, buffering its damage for its owner's whole-second payout. */
     const settle = (application: Gw2ResolvedConditionApplication): void => {
       if (isRemoved(application, at)) return;
+
       // An application always carries its owner group's canonical condition name.
       const condition = application.condition;
       // Optional trait damage belongs to the accepted application; ordinary conditions use their shared formula.
@@ -337,14 +371,17 @@ export function createGw2ConditionResolution({
       const dealsDamage = formula != null || Object.hasOwn(CONDITION_FORMULAS, condition);
       const through = Math.min(at, application.naturalExpiresAt);
       const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
+
       // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.
       if (elapsedUs > 0 && !ctx.combatStartPending && (ctx.combatStartTime == null || at >= ctx.combatStartTime)) {
         // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
         if (dealsDamage) {
           const batch = attributeBatches.get(application);
           let conditionDamage = batch ? conditionDamageByBatch?.get(batch) : undefined;
+
           if (conditionDamage === undefined) {
             conditionDamage = ctx.query.statsAt(at, application, ctx).conditionDamage;
+
             if (batch) {
               conditionDamageByBatch ??= new Map();
               conditionDamageByBatch.set(batch, conditionDamage);
@@ -359,6 +396,7 @@ export function createGw2ConditionResolution({
             ? formula.base + formula.scaling * conditionDamage
             : conditionRate(ctx, condition, conditionDamage);
           const multiplier = ctx.query.conditionMultiplier(condition, at, application, ctx, sample, damageContributors);
+
           if (calculation && damageContributors) {
             calculation.conditionDamage = conditionDamage;
             calculation.rate = rate;
@@ -390,6 +428,7 @@ export function createGw2ConditionResolution({
 
     for (const entry of ctx.environmentConditions.values()) {
       if (!onGrid) continue;
+
       // The sample ending at Combat Start contains no in-combat interval and must not fund a boundary payout.
       if (ctx.combatStartPending || (ctx.combatStartTime != null && at <= ctx.combatStartTime)) {
         entry.bufferedRate = 0;
@@ -404,6 +443,7 @@ export function createGw2ConditionResolution({
   function handleConditionBuffer(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
     // An earlier expiry can replace a queued pulse sampler; obsolete entries must not sample twice.
     if (event.at !== ctx.conditionBufferAt) return;
+
     ctx.conditionBufferAt = undefined;
     bufferConditions(ctx, event.at);
     // Natural expiry stops sampling, while the owner wake retains its buffered remainder until payout.
@@ -413,6 +453,7 @@ export function createGw2ConditionResolution({
   function applyCondition(ctx: Gw2ResolverRuntime, event: SimulationEventBase): Gw2ResolvedConditionApplication[] {
     // Synchronous reaction applications bypass enqueue, so normalize before querying or inserting live state.
     event = canonicalEvent(event);
+
     if (ctx.queue.currentTime != null && event.at < ctx.queue.currentTime) {
       throw new RangeError(`Cannot apply a condition in the past at ${event.at}s from ${String(event.sourceId)}.`);
     }
@@ -428,7 +469,9 @@ export function createGw2ConditionResolution({
     const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx, durationTrace);
     const expiresAt = canonicalTime(event.at + duration);
     const stacks = Math.max(0, event.stacks || 0);
+
     if (!Number.isFinite(stacks)) throw new RangeError('Condition stacks must be finite.');
+
     if (!stacks || !duration) return [];
 
     // Reserve every stack before inserting state or firing reactions, preserving a fractional final stack.
@@ -468,7 +511,9 @@ export function createGw2ConditionResolution({
             }
           : {})
       } as Gw2ResolvedConditionApplication;
+
       if (attributeBatch && application.stacks === 1) attributeBatches.set(application, attributeBatch);
+
       if (ctx.reporting) ctx.resolved.push(application);
 
       // Canonical stacks retain applications for live queries and queued-tick cancellation in both output modes.
@@ -486,8 +531,10 @@ export function createGw2ConditionResolution({
       const groups = (state.groups ??= new Map());
       const owner = damageOwner(application);
       let group = groups.get(owner);
+
       if (group) {
         pruneGroup(group, event.at);
+
         if (!group.applications.length) {
           scheduleGroup(ctx, group);
           group = undefined;
@@ -526,7 +573,9 @@ export function createGw2ConditionResolution({
   /** Round the complete owner/condition packet once, then attribute integer shares without changing its total. */
   function handleConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null {
     const group = event.conditionGroup;
+
     if (!group || event.wakeToken !== group.wakeToken || group.wakeAt == null) return null;
+
     group.wakeAt = null;
     bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
@@ -538,8 +587,10 @@ export function createGw2ConditionResolution({
       const rawDamage = application.bufferedRawDamage;
       application.bufferedRawDamage = 0;
       application.bufferedDurationUs = 0;
+
       // Precombat packets are discarded; payout never resamples stats or invents a catch-up hit.
       if (!canDamage || fraction <= 0) continue;
+
       const stackSeconds = application.stacks * fraction;
       contributions.push({ application, fraction, stackSeconds, rawDamage, damage: Math.floor(rawDamage) });
     }
@@ -553,7 +604,9 @@ export function createGw2ConditionResolution({
       const { application, fraction, stackSeconds, damage: share } = contribution;
       application.damage += share;
       application.damagingStackSeconds += stackSeconds;
+
       if (ctx.reporting) application.damageTicks.push({ at: event.at, damage: share, fraction });
+
       ctx.addBreakdown(application.name, share, 'conditionDamage', 0, application);
     }
 
@@ -563,6 +616,7 @@ export function createGw2ConditionResolution({
       entry.damage += damage;
       entry.stackSeconds += contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0);
       ctx.conditions.set(group.condition, entry);
+
       if (damage > 0) ctx.markDamageTime(event.at);
     }
 
@@ -575,13 +629,17 @@ export function createGw2ConditionResolution({
   function handleEnvironmentConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
     // Provisional environment wakes become inert when first damage shifts the clock.
     if ((timeKey(event.at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 !== 0) return;
+
     const condition = ctx.helpers.conditionName(event.condition);
     const stacks = Math.max(0, event.stacks || 0);
     const entry = ctx.environmentConditions.get(condition);
+
     if (!entry || !(stacks > 0)) return;
+
     environmentWakes.delete(condition);
     // Each paid or gated pulse advances only its own successor; other conditions retain stable insertion order.
     const next = nextPulseAt(ctx, event.at);
+
     if (ctx.horizon == null || next <= ctx.horizon) {
       environmentWakes.set(condition, ctx.queue.enqueue({ ...event, at: next }));
     }
@@ -589,11 +647,13 @@ export function createGw2ConditionResolution({
     bufferConditions(ctx, event.at);
     const damage = roundHalfToEven((entry.bufferedRate ?? 0) * stacks);
     entry.bufferedRate = 0;
+
     if (!(damage > 0)) return;
 
     ctx.environmentDamage += damage;
     entry.damage += damage;
     entry.stackSeconds += stacks;
+
     if (ctx.reporting) entry.damageTicks.push({ at: event.at, damage });
   }
 

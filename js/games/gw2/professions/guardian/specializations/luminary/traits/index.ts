@@ -81,7 +81,9 @@ const sovereignOfLight = defineTrait({
     onTriggerPoint(luminaryCastStarted, {
       run(runtime: GuardianRuntime, input: LuminaryCast) {
         const { cast } = input;
+
         if (detonator(cast.skill)) scheduleDetonation(runtime, input);
+
         // Forge entry admits its replacement aura after detonation, through the same isolated producer.
         if (cast.skill.id === ID.ENTER_RADIANT_FORGE)
           runtime.schedule(
@@ -236,7 +238,9 @@ function startRadiantArmaments(runtime: GuardianRuntime, { cast }: LuminaryCast)
   // Armament damage starts with the accepted equip animation, independently of its completion rewards.
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_ARMAMENTS);
   const effect = requireEffect(profile, 'buff', 'radiant-armaments');
+
   if (!effect) return;
+
   // The weapon-specific window retains equip identity while its payload stays profile-owned.
   const cause = guardianCastCause(runtime, cast);
   emitTraitProfile(runtime, TRAIT.RADIANT_ARMAMENTS, TRAIT.RADIANT_ARMAMENTS, cause, {
@@ -273,6 +277,7 @@ const MASTER_AT_ARMS_WEAPONS: Readonly<Record<number, readonly SkillId[]>> = {
 /** The committed virtue resets its matching radiant weapons right after arming them. */
 function rechargeRadiantWeapons(runtime: GuardianRuntime, { context }: RadiantVirtueArming): void {
   const skillIds = MASTER_AT_ARMS_WEAPONS[Number(context.skill.id)];
+
   if (skillIds) applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: [...skillIds] });
 }
 
@@ -357,10 +362,14 @@ function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast):
 /** A surviving strike consumes the aura before queuing its hostile outcome, even on a miss. */
 function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   const state = luminaryState.from(runtime);
+
   if (state.lightAuraUntil <= runtime.time) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOVEREIGN_OF_LIGHT);
   const strike = requireEffect(profile, 'strike', 'Strike');
+
   if (!strike) return;
+
   state.lightAuraUntil = 0;
   emitTraitProfile(runtime, TRAIT.SOVEREIGN_OF_LIGHT, TRAIT.SOVEREIGN_OF_LIGHT, event, {
     at: runtime.time,

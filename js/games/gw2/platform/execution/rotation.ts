@@ -68,7 +68,9 @@ export function validateRotationCommand(
 ): string[] {
   if (!command || typeof command !== 'object' || Array.isArray(command))
     return ['rotation contains an invalid canonical command.'];
+
   const candidate = command as Record<string, unknown>;
+
   if (
     typeof candidate.type !== 'string' ||
     !['cast', 'wait', 'combat-start', 'cooldown-reset'].includes(candidate.type)
@@ -78,8 +80,10 @@ export function validateRotationCommand(
   const errors: string[] = [];
   for (const [field, label] of MILLISECOND_FIELDS) {
     if (candidate[field] == null) continue;
+
     const value = Number(candidate[field]);
     const signed = field === 'concurrentOffsetMs' && candidate.type === 'combat-start';
+
     if (!Number.isFinite(value) || (!signed && value < 0))
       errors.push(`${label} must be ${signed ? 'a finite' : 'a non-negative'} number.`);
   }
@@ -89,12 +93,14 @@ export function validateRotationCommand(
     (!Number.isInteger(Number(candidate.releaseAtCharges)) || Number(candidate.releaseAtCharges) < 1)
   )
     errors.push('releaseAtCharges must be a positive whole number.');
+
   if (
     candidate.doubleEdgeOutcome != null &&
     candidate.doubleEdgeOutcome !== 'success' &&
     candidate.doubleEdgeOutcome !== 'backfire'
   )
     errors.push('Double Edge outcome must be either success or backfire.');
+
   if (candidate.offTarget != null && typeof candidate.offTarget !== 'boolean')
     errors.push('Off-target cast must be a boolean.');
 
@@ -120,11 +126,13 @@ export function validateRotationCommand(
       Number(candidate.durationMs) < 0
     )
       errors.push('wait commands require a non-negative durationMs.');
+
     if (candidate.concurrentOffsetMs != null) errors.push('wait commands cannot contain concurrentOffsetMs.');
   }
 
   if (candidate.type === 'cast') {
     const id = candidate.skillId;
+
     if (id == null || id === '') errors.push('Cast command requires skillId.');
     else if (typeof id !== 'number' && typeof id !== 'string')
       errors.push('Cast command skillId must be a string or number.');
@@ -138,7 +146,9 @@ export function validateRotationCommand(
 /** Decode existing shorthand without dropping fields that the canonical validator must inspect. */
 function decodeRotationCommand(entry: unknown, catalog: CatalogLookup | null): unknown {
   if (typeof entry === 'number') return { type: 'cast', skillId: canonicalGw2SkillId(entry) };
+
   if (typeof entry === 'string') return decodeRotationCommand({ name: entry }, catalog);
+
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry;
 
   const candidate = entry as Record<string, unknown>;
@@ -172,14 +182,19 @@ function decodeRotationCommand(entry: unknown, catalog: CatalogLookup | null): u
 function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null): RotationCommand {
   const decoded = decodeRotationCommand(entry, catalog);
   const errors = validateRotationCommand(decoded, catalog);
+
   if (errors.length) throw new TypeError(errors[0]);
+
   const candidate = decoded as Record<string, unknown>;
+
   if (candidate.type === 'cooldown-reset') return { type: 'cooldown-reset' };
+
   if (candidate.type === 'combat-start')
     return {
       type: 'combat-start',
       ...(candidate.concurrentOffsetMs == null ? {} : { concurrentOffsetMs: Number(candidate.concurrentOffsetMs) })
     };
+
   if (candidate.type === 'wait') return { type: 'wait', durationMs: Number(candidate.durationMs) };
 
   return {
@@ -208,6 +223,7 @@ export function normalizeRotation(
 ): RotationCommand[] {
   if (!Array.isArray(rotation)) {
     if (strict) throw new TypeError('Rotation must be an array.');
+
     return [];
   }
 

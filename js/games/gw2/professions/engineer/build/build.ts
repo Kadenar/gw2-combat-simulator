@@ -88,7 +88,9 @@ function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly numbe
   return rawRotation.flatMap<RotationCommand>((raw) => {
     // Normalize one raw entry at a time so dropping a malformed command cannot shift later name-based casts.
     const [command] = normalizeRotation([raw], engineerCatalog);
+
     if (!command) return [];
+
     const rawCommand = raw && typeof raw === 'object' ? (raw as UnvalidatedFields) : null;
     const legacyName =
       typeof raw === 'string'
@@ -97,7 +99,9 @@ function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly numbe
           ? rawCommand.name
           : null;
     const selected = legacyName == null ? undefined : selectedByName.get(legacyName);
+
     if (command.type !== 'cast') return [command];
+
     const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(command.skillId);
     const selectedId = kind === undefined ? undefined : selectedByKind.get(kind);
     return [{ ...command, skillId: selectedId ?? selected?.id ?? command.skillId }];
@@ -136,6 +140,7 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   validateExtra(build) {
     const errors: string[] = [];
     const morphs = Array.isArray(build.selectedMorphSkillIds) ? build.selectedMorphSkillIds : [];
+
     if (!validAmalgamMorphs(engineerCatalog, morphs)) {
       errors.push('selectedMorphSkillIds must contain one unique legal Amalgam morph for F2, F3, and F4.');
     }

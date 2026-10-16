@@ -15,6 +15,7 @@ export function emitElectricDischarge(
 ): void {
   const electricDischargeProfile = requireBalanceProfileFromContext(context, TRAIT.ELECTRIC_DISCHARGE);
   const electricDischargeStrike = requireEffect(electricDischargeProfile, 'strike', 'Electric Discharge');
+
   if (electricDischargeStrike) {
     // The profile owns strike rules; this independent proc retains its activation identity and the cast's targeting.
     emitTraitProfile(context, TRAIT.ELECTRIC_DISCHARGE, TRAIT.ELECTRIC_DISCHARGE, undefined, {
@@ -42,6 +43,7 @@ export function emitElectricDischarge(
       transform: (event) => ({ ...event, name: 'Electric Discharge' + ' \u2014 ' + event.condition }),
       receipt: true
     }).length > 0;
+
   if (electricDischargeStrike || conditionEmitted)
     context.effects.emit(
       elementalistAnnouncement({

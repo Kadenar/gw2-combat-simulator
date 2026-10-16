@@ -90,6 +90,7 @@ test('Lethal Tempo activation and trigger grants share the buff-history and disp
       const result = runGuardian(trigger ? [wait((at + 0.1) * 1000)] : [wait(at * 1000), ID.FLOWING_RESOLVE], config, {
         initialize: (runtime) => {
           if (!trigger) return;
+
           runtime.profession.specialization.state.resolveUntil = 10;
           runtime.profession.specialization.state.virtueHitCounts.resolve = 4;
           strike(runtime, at);

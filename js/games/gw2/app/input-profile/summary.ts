@@ -67,6 +67,7 @@ export function summarizeInputAnalysis(trace: InputTrace, analysis: InputAnalysi
   const pairs = new Map<string, InputTransitionRow & { gaps: number[] }>();
   for (const action of analysis.actions) {
     if (!action.binding || !action.input.control || !action.reach) continue;
+
     const row = keys.get(action.binding) ?? {
       binding: action.binding,
       controls: [],
@@ -77,14 +78,18 @@ export function summarizeInputAnalysis(trace: InputTrace, analysis: InputAnalysi
       times: [],
       rotationIndices: []
     };
+
     if (!row.controls.includes(action.input.control)) row.controls.push(action.input.control);
+
     row.count++;
     row.share = row.count / totalActions;
     row.times.push(action.input.at - trace.start);
     row.rotationIndices.push(action.input.rotationIndex);
     keys.set(action.binding, row);
     const transition = action.transition;
+
     if (!transition) continue;
+
     // Same-tick commands have no measured separation; keep them out of movement timing ranks.
     if (transition.gap === 0) {
       sameInstantTransitions++;
@@ -106,8 +111,11 @@ export function summarizeInputAnalysis(trace: InputTrace, analysis: InputAnalysi
       rotationIndices: [],
       gaps: []
     };
+
     if (!pair.fromControls.includes(transition.from.control)) pair.fromControls.push(transition.from.control);
+
     if (!pair.toControls.includes(action.input.control)) pair.toControls.push(action.input.control);
+
     pair.count++;
     pair.closestGap = Math.min(pair.closestGap, transition.gap);
     pair.gaps.push(transition.gap);
@@ -182,6 +190,7 @@ function rollingPace(
   duration: number
 ): { at: number; rate: number }[] {
   if (duration <= 0) return [];
+
   const windowSeconds = Math.min(5, duration);
   const steps = Math.min(600, Math.ceil(duration / 0.25));
   const samples: { at: number; rate: number }[] = [];

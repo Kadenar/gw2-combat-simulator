@@ -17,6 +17,7 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
   for (const profile of profession.catalog.balanceProfiles) {
     const ownerId =
       typeof profile.parentId === 'number' || typeof profile.parentId === 'string' ? profile.parentId : profile.id;
+
     if (
       !hasTrait(selected, ownerId) ||
       profile.damagePreviewAttribution ||
@@ -24,6 +25,7 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
       !hasDamage(profile.effects)
     )
       continue;
+
     const trait = profession.catalog.traits.find((entry) => entry.id === ownerId);
     result.push({
       id: `profile:${profile.id}`,
@@ -37,6 +39,7 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
 
   for (const declared of profession.damageEffects ?? []) {
     if (declared.ownerId != null && !hasTrait(selected, declared.ownerId)) continue;
+
     result.push({
       id: `profession:${declared.id}`,
       effect: { kind: 'profession', id: declared.id },
@@ -58,6 +61,7 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
   // Enumeration and runtime creation must agree on which precast relics the build actually supports.
   for (const name of new Set([config.relic, ...normalizePrecastRelics(config.precastRelics)].filter(Boolean))) {
     const relic = (RELIC_DATA as Readonly<Record<string, { id: number; icon: string }>>)[name!];
+
     if (relic && RELIC_RULES[relic.id]?.damagePayload)
       result.push({
         id: `relic:${relic.id}`,
@@ -73,7 +77,9 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
   for (const name of new Set(sigils.flat().filter(Boolean))) {
     const sigil = SIGIL_DATA[name];
     const proc = sigil && SIGIL_PROCS[sigil.id as keyof typeof SIGIL_PROCS];
+
     if (!proc || !['strike', 'condition', 'strike-condition', 'next-hit-condition'].includes(proc.effect)) continue;
+
     result.push({
       id: `sigil:${sigil.id}`,
       effect: { kind: 'sigil', id: sigil.id },
@@ -85,6 +91,7 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
   }
 
   const food = config.food && FOOD_DATA[config.food];
+
   if (food && 'proc' in food && food.proc)
     result.push({
       id: `food:${config.food}`,
@@ -94,5 +101,6 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
       source: 'Food',
       unit: 'occurrence'
     });
+
   return result;
 }

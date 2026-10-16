@@ -24,7 +24,9 @@ export function reconstructVindicatorDpsReportActions(
           candidate.rawSkillId === VINDICATOR_JUMP_SKILL.id &&
           Math.abs(landing.start - candidate.start - VINDICATOR_AIRBORNE_MS) <= 80
       );
+
       if (input) inputs.add(input);
+
       return [landing, input?.start ?? landing.start - VINDICATOR_AIRBORNE_MS] as const;
     })
   );
@@ -32,6 +34,7 @@ export function reconstructVindicatorDpsReportActions(
     .filter((action) => !inputs.has(action))
     .map((action) => {
       const start = jumps.get(action);
+
       if (start != null)
         return {
           ...action,
@@ -41,6 +44,7 @@ export function reconstructVindicatorDpsReportActions(
           canonicalSkillId: Number(VINDICATOR_JUMP_SKILL.id),
           canonicalName: VINDICATOR_JUMP_SKILL.name
         };
+
       // EI can retain an auto during the airborne portion; replay that overlap instead of delaying the landing.
       const airborneAuto =
         normalized(recordedActionSkill(action, context)?.slot) === 'weapon_1' &&

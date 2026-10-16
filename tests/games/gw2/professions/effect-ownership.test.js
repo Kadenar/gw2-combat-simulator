@@ -144,6 +144,7 @@ for (const { name, family, core, elites, observations = {} } of owners) {
       for (const [owner, kinds] of Object.entries(elites)) {
         for (const kind of kinds) {
           assert.equal(policies.includes(kind), specialization === owner, kind);
+
           if (specialization !== owner) assert.ok(!effects.includes(kind), kind);
         }
       }
@@ -202,7 +203,9 @@ for (const [family, familyId, specialization, traitId, kind, field] of [
       const expected = patchId === 'current' ? liveCap : 2;
       const policy = profession.buffPolicies(context).find((entry) => entry.kind === kind);
       assert.equal(policy[field], expected);
+
       if (field === 'maximumDuration') assert.equal(policy.maximumStacks, 1);
+
       if (kind === 'elemental empowerment') {
         const observation = profession.observeEffects(context.queries).find((entry) => entry.kind === kind);
         assert.equal(observation.countLimit, expected);

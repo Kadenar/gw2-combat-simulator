@@ -125,6 +125,7 @@ interface Gw2TimedStackGrantOptions {
  */
 export function grantTimedStacks(expiries: Gw2TimedStackExpiries, options: Gw2TimedStackGrantOptions): number[] {
   const maximum = boundedInteger(options.maximumStacks, 0, 0, Number.MAX_SAFE_INTEGER);
+
   if (maximum === 0) return [];
 
   const granted = options.expiresAt > options.at ? boundedInteger(options.count, 0, 0, Number.MAX_SAFE_INTEGER) : 0;
@@ -132,5 +133,6 @@ export function grantTimedStacks(expiries: Gw2TimedStackExpiries, options: Gw2Ti
   for (let stack = 0; stack < granted; stack += 1) deadlines.push(options.expiresAt);
 
   if (options.retain === 'latest-expiry') return deadlines.sort((a, b) => b - a).slice(0, maximum);
+
   return deadlines.slice(Math.max(0, deadlines.length - maximum));
 }

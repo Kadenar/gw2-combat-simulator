@@ -88,9 +88,12 @@ export function applyTemplateFilter(
   const roleValue = container.querySelector<HTMLElement>('[data-template-role-value]');
   const boonValue = container.querySelector<HTMLElement>('[data-template-boon-value]');
   const specializationValue = container.querySelector<HTMLElement>('[data-template-specialization-value]');
+
   if (roleValue) roleValue.textContent = filter === 'all' ? 'Any' : filter === 'condi' ? 'Condition' : 'Power';
+
   if (boonValue)
     boonValue.textContent = boonFilter === 'all' ? 'Any' : boonFilter[0].toUpperCase() + boonFilter.slice(1);
+
   if (specializationValue) specializationValue.textContent = specialization || 'Any';
 
   let visibleTemplates = 0;
@@ -101,6 +104,7 @@ export function applyTemplateFilter(
     const matchesSearch = !search || preset.dataset.buildSearch?.includes(search);
     const visible = matchesDamageType && matchesBoon && matchesSpecialization && matchesSearch;
     preset.hidden = !visible;
+
     if (visible) visibleTemplates += 1;
   });
 
@@ -109,12 +113,16 @@ export function applyTemplateFilter(
     const count = group.querySelectorAll('.template-preset:not([hidden])').length;
     group.hidden = count === 0;
     const countLabel = group.querySelector<HTMLElement>(':scope > summary .template-subgroup-count');
+
     if (countLabel) countLabel.textContent = String(count);
   });
 
   const resultCount = container.querySelector<HTMLElement>('[data-template-count]');
+
   if (resultCount) resultCount.textContent = `${visibleTemplates} template${visibleTemplates === 1 ? '' : 's'}`;
+
   const emptyMessage = container.querySelector<HTMLElement>('.template-filter-empty');
+
   if (emptyMessage) emptyMessage.hidden = visibleTemplates > 0;
 }
 
@@ -146,7 +154,9 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: readonly BuildTem
           </details>`
         )
         .join('');
+
       if (!templates) return '';
+
       const label = `<span class="presets-group-label">${esc(section.section)}</span>`;
       return `<div class="presets-group">${label}<div class="presets-group-btns template-preset-list">${templates}</div></div>`;
     })
@@ -156,7 +166,9 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: readonly BuildTem
 /** Renders durable user snapshots through the existing build-row controls and current search. */
 export function renderMyBuilds(container: HTMLElement, builds: readonly MyBuild[], search = ''): void {
   const list = container.querySelector<HTMLElement>('.my-build-list');
+
   if (!list) return;
+
   const categories = new Map<string, MyBuild[]>();
   for (const build of builds) {
     const category = build.category || 'Uncategorized';
@@ -190,12 +202,14 @@ export function renderMyBuilds(container: HTMLElement, builds: readonly MyBuild[
   let visible = 0;
   list.querySelectorAll<HTMLElement>('.my-build').forEach((build) => {
     build.hidden = Boolean(search && !build.dataset.buildSearch?.includes(search));
+
     if (!build.hidden) visible += 1;
   });
   list.querySelectorAll<HTMLElement>('.my-build-group').forEach((group) => {
     group.hidden = !group.querySelector('.my-build:not([hidden])');
   });
   const empty = container.querySelector<HTMLElement>('.my-build-empty');
+
   if (empty) {
     empty.innerHTML = builds.length
       ? `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg>
@@ -228,15 +242,18 @@ export function closeTemplateMenus(container: ParentNode | null | undefined): vo
 
 function mountBuildTemplateLayout(container: HTMLElement): void {
   const buildEditor = document.querySelector<HTMLElement>('.build-editor');
+
   if (!buildEditor) return;
 
   const existingMain = buildEditor.closest<HTMLElement>('.profession-main');
+
   if (existingMain?.parentElement) {
     existingMain.parentElement.before(container);
     return;
   }
 
   const appRoot = buildEditor.parentElement;
+
   if (!appRoot) return;
 
   const layout = document.createElement('div');
@@ -257,12 +274,16 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 
 export function updateTemplateSelection(app: ProfessionAppState): void {
   const container = app.templateContainer;
+
   if (!container) return;
+
   // The toast follows the active tab's template undo state, just like its selection highlight.
   const toast = container.querySelector<HTMLElement>('.template-toast');
+
   if (toast) {
     toast.hidden = !app.templateUndoBuild;
     const message = toast.querySelector('.template-toast-message');
+
     if (message) message.textContent = app.templateUndoMessage || 'Loaded template.';
   }
 
@@ -270,6 +291,7 @@ export function updateTemplateSelection(app: ProfessionAppState): void {
   const modified = Boolean(current && current.signature !== buildSignature(app.build));
   container.querySelectorAll('.template-load-btn').forEach((button) => {
     if (!(button instanceof HTMLElement)) return;
+
     const preset = app.templatePresets[Number(button.dataset.templateIndex)];
     const selected = Boolean(current && preset?.build === current.build);
     button.classList.toggle('template-load-btn--current', selected);

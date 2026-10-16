@@ -15,8 +15,11 @@ export type ChartEffectType = 'boon' | 'condition' | 'buff';
 /** Fit the visible series to readable axis bounds, including shared scales for overlaid DPS curves. */
 export function chartAxisMaximum(values: readonly number[], tight = false): number {
   const value = values.reduce((maximum, current) => Math.max(maximum, current), 0);
+
   if (!(value > 0)) return 1;
+
   const magnitude = 10 ** Math.floor(Math.log10(value));
+
   // DPS needs modest headroom rather than the large gaps between standard 1/2/5 axis bounds.
   if (tight) {
     const increment = magnitude / 10;
@@ -88,10 +91,12 @@ function eventDamageTicks(event: Gw2ResolverEvent): Array<{ at: number; damage: 
 
 export function chartValueAt(points: readonly ChartPoint[], time: number): number {
   if (!points.length) return 0;
+
   // Series are step functions: use the latest sample at or before the pointer.
   let value = Number(points[0]!.v || 0);
   for (const point of points) {
     if (Number(point.t || 0) > time) break;
+
     value = Number(point.v || 0);
   }
 
@@ -134,7 +139,9 @@ export function buildTimeSeries(
   const totals = { strike: 0, condition: 0 };
   const dps = times.map((time) => {
     const elapsed = time / 1000;
+
     if (elapsed <= 0) return { t: time, v: 0 };
+
     const absoluteTime = dpsStartMs + time;
     while (hitIndex < damageHits.length && Number(damageHits[hitIndex]!.at || 0) * 1000 <= absoluteTime) {
       const hit = damageHits[hitIndex]!;
@@ -143,9 +150,11 @@ export function buildTimeSeries(
       totals[hit.kind] += amount;
       const points = damageContributions[hit.kind];
       const t = Math.max(0, Number(hit.at || 0) * 1000 - dpsStartMs);
+
       // Collapse simultaneous hits so a phase boundary includes the whole damage packet.
       if (points.at(-1)?.t === t) points[points.length - 1] = { t, v: totals[hit.kind] };
       else points.push({ t, v: totals[hit.kind] });
+
       hitIndex++;
     }
 
@@ -160,12 +169,15 @@ export function buildTimeSeries(
     v: point.v * (point.t / 1000)
   }));
   const skillDamage: Record<string, SkillHit[]> = {};
+
   if (skillKey) {
     // Each strike is one hit at its time; conditions expand to a hit per
     // damaging tick. Times are relative to the DPS window, matching `dps`.
     for (const [eventIndex, event] of damageEvents.entries()) {
       const key = skillKey(event);
+
       if (!key) continue;
+
       const hits = skillDamage[key] || (skillDamage[key] = []);
       const crit = event.didCrit ?? null;
       // Preserve damage kind so periodic ticks cannot bridge otherwise separate strike bursts.
@@ -176,11 +188,13 @@ export function buildTimeSeries(
       const activationId = event.activationId || `event:${eventIndex}`;
       const triggeredBy = event.triggeredBy || undefined;
       const damageTicks = eventDamageTicks(event);
+
       if (damageTicks.length) {
         // Condition ticks are neither critical nor non-critical strikes.
         for (const tick of damageTicks) {
           const value = Number(tick.damage || 0);
           const time = Number(tick.at || 0) * 1000 - dpsStartMs;
+
           if (value > 0 && time >= 0 && time <= durationMs) {
             hits.push({ t: time, v: value, crit: null, activationId, damageType, conditionType, triggeredBy });
           }
@@ -188,6 +202,7 @@ export function buildTimeSeries(
       } else {
         const value = Number(event.damage || 0);
         const time = Number(event.at || 0) * 1000 - dpsStartMs;
+
         if (value > 0 && time >= 0 && time <= durationMs) {
           hits.push({
             t: time,
@@ -212,16 +227,21 @@ export function buildTimeSeries(
   const conditionTicks = new Map<string, Map<number, SkillHit>>();
   for (const event of resolved) {
     if (event.type !== 'condition') continue;
+
     const conditionType = effectName(event.condition, event);
+
     if (!conditionType) continue;
+
     const recordedTicks = eventDamageTicks(event);
     const ticks = recordedTicks.length ? recordedTicks : [{ at: event.at, damage: Number(event.damage || 0) }];
     for (const tick of ticks) {
       const time = Math.round(Number(tick.at) * 1000 - dpsStartMs);
       const damage = Number(tick.damage || 0);
+
       // Keep zero-damage shares in a positive packet: shared rounding can assign an application zero.
       if (time < 0 || time > Math.round(endMs - dpsStartMs) || damage < 0 || !(damage > 0 || Number(tick.fraction) > 0))
         continue;
+
       const payouts = conditionTicks.get(conditionType) || new Map<number, SkillHit>();
       const previous = payouts.get(time);
       payouts.set(time, {
@@ -270,11 +290,15 @@ export function buildPhaseDpsSeries(
   endDamage: number
 ): ChartPoint[] {
   const durationMs = Math.max(0, endMs - startMs);
+
   if (!(durationMs > 0)) return [];
+
   const points: ChartPoint[] = [{ t: 0, v: 0 }];
   for (const point of cumulativeDamage) {
     const timeMs = Number(point.t);
+
     if (!(timeMs > startMs && timeMs < endMs)) continue;
+
     const elapsedMs = timeMs - startMs;
     points.push({
       t: elapsedMs,
@@ -301,7 +325,9 @@ export function buildContributionDamageSeries(
   let baseline = 0;
   while (index < points.length && points[index]!.t <= phaseStartMs) baseline = points[index++]!.v;
   damage = baseline;
+
   if (fullFight) baseline = 0;
+
   return sampleTimes.map(({ t }) => {
     while (index < points.length && points[index]!.t <= phaseStartMs + t) damage = points[index++]!.v;
     return { t, v: t > 0 ? Math.max(0, damage - baseline) : 0 };
@@ -310,7 +336,9 @@ export function buildContributionDamageSeries(
 
 export function buildPhaseEffectSeries(points: readonly ChartPoint[], startMs: number, endMs: number): ChartPoint[] {
   const durationMs = Math.max(0, endMs - startMs);
+
   if (!points.length || !(durationMs > 0)) return [];
+
   return [
     { t: 0, v: chartValueAt(points, startMs) },
     ...points
@@ -346,7 +374,9 @@ function buildEffectSeries(
   // Engine timelines contain accepted state and exact lifetimes; charts only select and sample tracks.
   const report = result.effectReport;
   const boonGeneration = result.boonGeneration;
+
   if (!report || !boonGeneration) throw new TypeError('Effect charts require collected chart data.');
+
   const effects: Record<string, ChartPoint[]> = {};
   const alliedEffects: Record<string, ChartPoint[]> = {};
   const alliedAverageStacks: Record<string, number> = {};
@@ -379,19 +409,23 @@ function buildEffectSeries(
       );
     // A metadata-dependent label can split an already-resolved track into visual variants without replaying mechanics.
     const names = new Set(original.segments.map((segment) => displayName(segment.source)));
+
     if (original.terminal.count) names.add(displayName(original.terminal.source));
+
     for (const display of names) {
       const track = {
         ...original,
         segments: original.segments.filter((segment) => displayName(segment.source) === display),
         terminal: displayName(original.terminal.source) === display ? original.terminal : { count: 0, expiresAt: null }
       };
+
       if (
         track.origin !== 'simulated' ||
         !['self', 'target'].includes(track.recipient) ||
         (!track.segments.length && !track.terminal.count)
       )
         continue;
+
       const name = Object.hasOwn(effects, display) ? `${display} (${track.id})` : display;
       const points = [
         ...new Set([
@@ -403,7 +437,9 @@ function buildEffectSeries(
       ].sort((a, b) => a - b);
       effects[name] = points.map((t) => ({ t, v: valueAt(track, (dpsStartMs + t) / 1000) }));
       effectTypes[name] = track.category;
+
       if (track.measure === 'remaining-duration') effectUnits[name] = 's';
+
       if (track.category !== 'condition') effectSummaries[name] = effectSummary(track, dpsStartMs / 1000, endMs / 1000);
     }
   }
@@ -413,7 +449,9 @@ function buildEffectSeries(
     const tracks = report.tracks.filter((track) => track.kind === kind && track.origin === 'party-projection');
     const name = label(kind);
     effectTypes[name] = 'boon';
+
     if (tracks.some((track) => track.measure === 'remaining-duration')) effectUnits[name] = 's';
+
     const alliedTimes = [
       ...new Set([
         ...times,

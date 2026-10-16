@@ -7,8 +7,10 @@ export function darkBarrageEffects(profile: BalanceProfile, effects: readonly Sk
   const ticks = Array.from({ length: balanceProfileNumber(profile, 'pulseCount') }, (_, index) => ({
     atMs: (index + 1) * balanceProfileNumber(profile, 'pulseInterval') * 1000
   }));
+
   // An empty volley must not become an untimed application when passed to the ordinary effect expander.
   if (!ticks.length) return [];
+
   return effects.flatMap((effect): SkillEffect[] => {
     if (effect.type === 'strike')
       return [
@@ -19,6 +21,7 @@ export function darkBarrageEffects(profile: BalanceProfile, effects: readonly Sk
           ticks: ticks.map((tick) => ({ ...tick, coefficient: effectNumber(profile, effect, 'coefficient') }))
         }
       ];
+
     if (effect.type === 'condition')
       return [
         {
@@ -33,6 +36,7 @@ export function darkBarrageEffects(profile: BalanceProfile, effects: readonly Sk
           }))
         }
       ];
+
     return [];
   });
 }

@@ -13,6 +13,7 @@ export function spendWarriorMagazine(runtime: MechanicContext, cast: RuntimeCast
     startedFull: Boolean(ammo && ammo.charges >= ammo.maximum)
   });
   const extraRounds = Math.max(0, (ammo?.charges ?? 1) - 1);
+
   if (extraRounds)
     runtime.cooldownController.reserveAmmo(cast.skill, extraRounds, {
       startedAt: cast.rechargeStart,

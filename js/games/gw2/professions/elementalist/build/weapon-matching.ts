@@ -15,5 +15,6 @@ export function elementalistWeaponSkillMatchesSet(
     (context.specialization || context.config?.specialization || 'Core') !== 'Weaver'
   )
     return false;
+
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }

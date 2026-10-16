@@ -40,6 +40,7 @@ export function attributeEffectControls(app: AttributePreviewState): PreviewCont
       description: '+25% Critical Chance; selected Fury traits'
     }
   ];
+
   if (app.build.relic === 'Aristocracy')
     controls.push({
       key: 'aristocracy',
@@ -49,6 +50,7 @@ export function attributeEffectControls(app: AttributePreviewState): PreviewCont
       max: 5,
       description: 'stacks; +3% Condition Duration per stack'
     });
+
   // Profession controls are shared with the skill damage panel; only attribute-scoped ones belong here.
   controls.push(
     ...app.profession.ui

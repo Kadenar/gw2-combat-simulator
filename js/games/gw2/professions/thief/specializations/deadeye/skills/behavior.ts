@@ -32,9 +32,12 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
     runtime.time + balanceNumberFromContext(runtime, PROFILE.resources, 'durationMultiplier')
   );
   state.markGeneration += 1;
+
   if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));
   else runtime.resourceController.replace('malice', initialMalice(runtime));
+
   if (!remarking) state.maleficentSevenTriggered = false;
+
   runtime.fireTrigger(maliceGained, { cast });
   completeThiefSteal(runtime, stolenSkillGrant(runtime));
   runtime.fireTrigger(markCompleted, { cast });
@@ -45,8 +48,10 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
 /** Mark expiry resets malice; a stale expiry from an earlier mark is ignored. */
 export function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
   const state = deadeyeState.from(runtime);
+
   if ((data as { generation: number }).generation !== state.markGeneration || runtime.time < state.markExpiresAt)
     return;
+
   state.markedTargetId = null;
   state.markExpiresAt = 0;
   runtime.resourceController.replace('malice', 0);
@@ -57,7 +62,9 @@ export function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
 function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, malice: number) {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.maliciousSneakAttack);
   const torment = requireEffect(profile, 'condition', 'Torment');
+
   if (!torment) return;
+
   const baseDuration = effectNumber(profile, torment, 'duration');
   const maliceDuration = malice * balanceProfileNumber(profile, 'durationMultiplier');
   runtime.effects.emit({
@@ -91,6 +98,7 @@ export const deadeyeSkillSideEffectHandlers: NonNullable<
     const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
     const initiativeGain =
       balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack');
+
     if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
   },
   'thief.sneak-torment'(runtime, context) {

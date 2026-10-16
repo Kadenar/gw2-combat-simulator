@@ -28,12 +28,15 @@ export function appliedEffectStacks(
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   // A retired entity has no live boons or buffs; earlier queries still see its accepted grants.
   const retiredAt = companionId ? context.runtime?.retiredCompanions?.get(companionId) : undefined;
+
   if (retiredAt != null)
     return context.time >= retiredAt
       ? 0
       : (context.timeline?.buffStacksAt(kind, context.time, fallbackDuration, maximum, audience, companionId) ?? 0);
+
   if (!context.runtime)
     return context.timeline?.buffStacksAt(kind, context.time, fallbackDuration, maximum, audience, companionId) ?? 0;
+
   // A live companion reads only its own disposable store, never the global report history.
   const effects =
     recipient.actor === 'companion' ? context.runtime.companions?.get(companionId ?? '') : context.runtime;
@@ -52,6 +55,7 @@ export function liveBoonSnapshot(
 ): { readonly stacks: number; readonly duration: number } {
   // Copying a boon cannot expose ordinary buff windows or malformed assumptions.
   if (!isStandardBoon(kind)) return { stacks: 0, duration: 0 };
+
   const audience = recipient.actor === 'player' ? 'all' : 'summon';
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   const configured = recipient.actor === 'player' ? Number(config.boons?.[kind] || 0) : 0;
@@ -61,7 +65,9 @@ export function liveBoonSnapshot(
     maximum,
     permanent + buffApplicationStacks(applications, kind, at, maximum, { ordered: true, audience, companionId })
   );
+
   if (!stacks) return { stacks: 0, duration: 0 };
+
   const matching = applications.filter((application) => buffMatchesAudience(application, audience, companionId));
   // Configured player boons refresh every ten seconds from rotation start, including negative precast times.
   const phaseMs = ((Math.round(at * 1000) % 10000) + 10000) % 10000;

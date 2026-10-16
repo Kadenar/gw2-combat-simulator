@@ -81,7 +81,9 @@ export const SKILL_COLS: readonly ResultColumn[] = [
     format: (value) => (value == null ? '—' : `${(Number(value) * 100).toFixed(1)}%`),
     title: (_value, row) => {
       const eligible = Number(row.critEligibleHits || 0);
+
       if (eligible <= 0) return '';
+
       const critHits = Number(row.critHits || 0);
       // Both modes count the seeded critical outcomes used by proc reactions.
       return `${critHits} of ${eligible} strike hits critical`;
@@ -115,12 +117,14 @@ export function sortResultRows(
 ): ResultRow[] {
   // Never mutate the model supplied by the simulation/result transformer.
   const sorted = [...rows];
+
   if (!column || !direction) {
     // "Unsorted" means the useful default of highest total damage first.
     return sorted.sort((left, right) => Number(right.total || 0) - Number(left.total || 0));
   }
 
   const definition = columns.find((candidate) => candidate.key === column);
+
   if (definition?.numeric) {
     return sorted.sort((left, right) => {
       const leftValue = left[column] ?? -Infinity;

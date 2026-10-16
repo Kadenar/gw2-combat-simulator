@@ -10,13 +10,16 @@ import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '#gw2/pro
  */
 function matchesThiefVariant(skill: ThiefSkill, context: ThiefWeaponMatcherContext): boolean {
   if (!context.professionState) return true;
+
   const professionState = flattenProfessionState(context.professionState) as unknown as Partial<ThiefState>;
+
   if (
     skill.weapon === 'Rifle' &&
     !skill.stealthAttack &&
     Boolean(skill.kneelSkill) !== Boolean(professionState.kneeling)
   )
     return false;
+
   const spearChainStage = spearChainStageForSkill(skill.id);
   return (
     spearChainStage == null ||
@@ -35,9 +38,12 @@ export function thiefWeaponSkillMatchesSet(
   context: ThiefWeaponMatcherContext = {}
 ): boolean {
   const specialization = context.specialization || context.config?.specialization || 'Core';
+
   if (skill.stealthAttack && Boolean(skill.malicious) !== (specialization === 'Deadeye')) return false;
+
   // Temporary bars without hand requirements must not satisfy equipped weapon slots.
   if (!skill.weapon && skill.requiredMainHand == null && skill.requiredOffHand == null) return false;
+
   // Profession gates select the variant; shared equipment rules select the hands.
   return matchesThiefVariant(skill, context) && defaultWeaponSkillMatchesSet(skill, pair, context);
 }

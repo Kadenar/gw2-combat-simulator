@@ -42,12 +42,15 @@ export function trackEmbeddedViewport(
   let viewportHeight = 0;
   const observer = new IntersectionObserver(([entry]) => {
     if (stopped) return;
+
     const rect = entry.intersectionRect;
+
     if (rect.width > 0 && rect.height > 0) {
       // At a frame edge, pin focus at full height and let the host clip it like a sticky panel.
       // Interior intersections reveal the host height again, including after a browser resize.
       // ponytail: clipped edges retain the last measured height; exact resize tracking there needs host viewport messages.
       if (!preserveHeight || (rect.top > 0 && rect.bottom < view.innerHeight)) viewportHeight = rect.height;
+
       viewportHeight = Math.min(view.innerHeight, Math.max(viewportHeight, rect.height));
       const top = Math.min(rect.top, view.innerHeight - viewportHeight);
       element.style.inset = `${top}px ${view.innerWidth - rect.right}px ${view.innerHeight - top - viewportHeight}px ${rect.left}px`;
@@ -87,12 +90,16 @@ export function embeddedVisibleTop(): number {
  */
 function trackVisibleTop(root: Document): void {
   const view = root.defaultView;
+
   if (!view || typeof IntersectionObserver === 'undefined') return;
+
   const observer = new IntersectionObserver(([entry]) => {
     const rect = entry.intersectionRect;
+
     // A fully hidden frame has an empty rect; keep the last offset so chrome does not snap back to the top.
     if (rect.width > 0 && rect.height > 0) {
       const top = Math.max(0, Math.round(rect.top));
+
       if (top !== visibleTop) {
         visibleTop = top;
         root.documentElement.style.setProperty('--embed-visible-top', `${top}px`);
@@ -132,15 +139,20 @@ function isFramed(): boolean {
  */
 export function navigationRoute(route: string, search = globalThis.location?.search || ''): string {
   const current = new URLSearchParams(search);
+
   if (!current.has(EMBED_PARAM) && current.get('standalone') !== '1') return route;
+
   const hashAt = route.indexOf('#');
   const path = hashAt === -1 ? route : route.slice(0, hashAt);
   const hash = hashAt === -1 ? '' : route.slice(hashAt);
   const queryAt = path.indexOf('?');
   const pathname = queryAt === -1 ? path : path.slice(0, queryAt);
   const params = new URLSearchParams(queryAt === -1 ? '' : path.slice(queryAt + 1));
+
   if (current.has(EMBED_PARAM) && !params.has(EMBED_PARAM)) params.set(EMBED_PARAM, '1');
+
   if (current.get('standalone') === '1') params.set('standalone', '1');
+
   return `${pathname}?${params}${hash}`;
 }
 
@@ -149,8 +161,10 @@ function decorateStaticLinks(root: Document): void {
   const links = root.querySelectorAll<HTMLAnchorElement>('a[href]');
   for (const link of links) {
     const href = link.getAttribute('href');
+
     // Skip absolute/protocol-relative URLs; only decorate in-app pages.
     if (!href || /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/i.test(href) || !/\.html(?:[?#]|$)/.test(href)) continue;
+
     link.setAttribute('href', navigationRoute(href));
   }
 }
@@ -188,8 +202,11 @@ function setupResizeReporter(root: Document): void {
  */
 function initEmbed(root: Document = document): void {
   if (isFramed()) setupResizeReporter(root);
+
   if (isEmbedded()) root.documentElement.classList.add('embed');
+
   if (isEmbedded() && isFramed()) trackVisibleTop(root);
+
   decorateStaticLinks(root);
 }
 

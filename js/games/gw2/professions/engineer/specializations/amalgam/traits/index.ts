@@ -40,6 +40,7 @@ import type {
 export function evolveAttributeFactor(context: EngineerModifierContext): number {
   if (hasTrait(context, TRAIT.DOUBLE_HELIX))
     return balanceNumberFromContext(context, TRAIT.DOUBLE_HELIX, 'coefficientMultiplier');
+
   const skill = requireSkillFromContext(context, ID.EVOLVE_BASE);
   return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`);
 }
@@ -259,7 +260,9 @@ function grantNewGenes(context: EngineerRuntime, { morphKind, at }: AmalgamMorph
   for (const name of ['alacrity', 'might', ...(morphKind ? [morphKind] : [])]) {
     const newGenesProfile = requireBalanceProfileFromContext(context, TRAIT.NEW_GENES);
     const boon = requireEffect(newGenesProfile, 'boon', name);
+
     if (!boon) continue;
+
     emitTraitProfile(context, TRAIT.NEW_GENES, TRAIT.NEW_GENES, undefined, {
       at,
       effect: { type: 'boon', name },
@@ -285,6 +288,7 @@ function resetMorphRecharge(context: EngineerRuntime): void {
 /** Carbolic accepts Amalgam skill hits and the Rapacious effect, while excluding summons. */
 function isAmalgamSkillHit(context: Pick<MechanicQueryContext, 'helpers'>, event: EngineerResolverEvent): boolean {
   if (event.actorType === 'summon') return false;
+
   // Rapacious Strain fires as an "effect" actor after player hits. Allow it
   // through so Carbolic Composition also procs on Rapacious damage.
   if (event.actorType === 'effect') {
@@ -303,6 +307,7 @@ function isAmalgamSkillHit(context: Pick<MechanicQueryContext, 'helpers'>, event
 function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: AmalgamStrike): void {
   const carbolicCompositionProfile = requireBalanceProfileFromContext(context, TRAIT.CARBOLIC_COMPOSITION);
   const poison = requireEffect(carbolicCompositionProfile, 'condition', 'Poisoned');
+
   if (poison) {
     emitTraitProfile(context, TRAIT.CARBOLIC_COMPOSITION, TRAIT.CARBOLIC_COMPOSITION, undefined, {
       at: event.at,
@@ -335,12 +340,16 @@ function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: Amalgam
 /** Accepted non-summon control consumes its internal cooldown only when Evolve recharge actually decreases. */
 function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (event.actorType === 'summon') return;
+
   const at = event.at;
+
   if (!isInternalCooldownReady(at, context.procs.deadline('mercurialTendencies') || 0)) return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.MERCURIAL_TENDENCIES);
   let reducedBy = 0;
   for (const id of [ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]) {
     const skill = context.helpers.skillsById.get(id);
+
     if (skill)
       reducedBy += context.cooldownController.reduceSkillRecharge(
         skill,
@@ -350,6 +359,7 @@ function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerRes
   }
 
   if (!(reducedBy > 0)) return;
+
   context.procs.setDeadline('mercurialTendencies', at + balanceProfileNumber(profile, 'internalCooldown'));
   context.effects.emit({
     kind: 'announcement',

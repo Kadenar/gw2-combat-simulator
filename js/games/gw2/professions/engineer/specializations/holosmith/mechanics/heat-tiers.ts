@@ -69,6 +69,7 @@ export function holosmithProfileStrikeFactor(
   snapshot: HolosmithHeatSnapshot
 ): number {
   const tier = holosmithHeatTier(snapshot, context);
+
   if (tier === 'enhanced') {
     return balanceNumberFromContext(context, profileId, 'enhancedStrikeFactor');
   }
@@ -80,7 +81,9 @@ export function holosmithProfileStrikeFactor(
 export function holosmithEventStrikeFactor(context: unknown, event: unknown, fallback = 1): number {
   const metadata = holosmithEventMetadata(event);
   const capturedFactor = Number(metadata.holosmithStrikeFactor);
+
   if (Number.isFinite(capturedFactor)) return Math.max(0, capturedFactor);
+
   if (metadata.holosmithStrikeProfileId == null) return fallback;
 
   return holosmithProfileStrikeFactor(context, metadata.holosmithStrikeProfileId, snapshotHolosmithHeat(context));

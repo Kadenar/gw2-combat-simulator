@@ -32,6 +32,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const empowerment = planningBuffStacks(context.planningState, 'elemental empowerment');
+
   if (empowerment > 0) {
     const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.ELEMENTAL_EMPOWERMENT, 'maximumStacks');
     items.push({
@@ -43,6 +44,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   }
 
   const empoweringAuras = planningBuffAt(context.planningState, 'empowering auras');
+
   if (empoweringAuras) {
     items.push({
       id: 'catalyst-empowering-auras',
@@ -54,7 +56,9 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
 
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
     const remaining = (state.sphereExpiry?.[element] || 0) - at;
+
     if (remaining <= 0) continue;
+
     items.push({
       id: `catalyst-${element.toLowerCase()}-sphere`,
       label: `${element} Sphere`,
@@ -85,6 +89,7 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
+
     // Expose held combat bonuses to isolated damage calculations.
     if (preview.skills.has(ELEMENTALIST_SKILL_IDS.RELENTLESS_FIRE))
       preview.add({
@@ -96,6 +101,7 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
         scope: ['damage'],
         description: 'Augment damage bonus active'
       });
+
     // These are the same resolved buff kinds that the native aura and empowerment owners consume.
     if (preview.has('Elemental Empowerment'))
       preview.trait('Elemental Empowerment', {
@@ -106,6 +112,7 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
         max: preview.maximumStacks('Elemental Empowerment'),
         description: 'Starting empowerment stacks; later grants follow the runtime'
       });
+
     if (preview.has('Empowering Auras'))
       preview.trait('Empowering Auras', {
         key: 'empoweringAuras',
@@ -123,6 +130,7 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
         max: preview.maximumStacks('Elemental Empowerment'),
         description: 'stacks; includes Empowered Empowerment'
       });
+
     return preview.controls;
   },
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

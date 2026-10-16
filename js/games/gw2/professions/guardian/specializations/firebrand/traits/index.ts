@@ -68,7 +68,9 @@ export const swiftScholar = defineTrait({
       requiresSelection: false,
       run(runtime, cast) {
         if (!cast.skill.tome || cast.cancelled) return;
+
         const state = firebrandState.from(runtime);
+
         if (state.swiftScholarTome !== cast.skill.tome) {
           state.swiftScholarTome = cast.skill.tome;
           state.swiftScholarCount = 0;
@@ -83,6 +85,7 @@ export const swiftScholar = defineTrait({
           'reset'
         );
         state.swiftScholarCount = progress.value;
+
         if (progress.reached) {
           // A later concurrent stow cannot revoke the refund already earned by this accepted page.
           refundByCast.set(cast, balanceProfileNumber(profile, 'resourceGain'));
@@ -94,8 +97,11 @@ export const swiftScholar = defineTrait({
     // Completing an admitted cycle remains available even when new trait producers are disabled.
     onCastCommit(runtime, cast) {
       const skill = cast.skill;
+
       if (!skill.tome) return;
+
       const refund = refundByCast.get(cast) ?? 0;
+
       if (refund > 0) {
         runtime.resourceController.grant('tomePages', refund);
 
@@ -131,7 +137,9 @@ const legendaryLore = defineTrait({
       on: 'castCommit',
       run(runtime, cast) {
         const skill = cast.skill;
+
         if (!skill.tome) return;
+
         const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LEGENDARY_LORE);
         const selectedBoon = requireEffect(
           boonProfile,
@@ -143,6 +151,7 @@ const legendaryLore = defineTrait({
           sourceId: TRAIT.LEGENDARY_LORE,
           name: 'Legendary Lore'
         };
+
         if (selectedBoon) {
           emitTraitProfile(runtime, boonProfile.id, boonProfile.id, boonCause, {
             preserveName: true,
@@ -187,14 +196,18 @@ export const liberatorsVow = defineTrait({
       on: 'castCommit',
       run(runtime, cast) {
         const skill = cast.skill;
+
         if (skill.type !== 'Heal') return;
+
         const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW);
         const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
+
         if (
           !selectedBoon ||
           !runtime.procs.claim(TRAIT.LIBERATORS_VOW, 'guardian.firebrand.liberatorsVow', runtime.time)
         )
           return;
+
         const boonCause = guardianCastCause(runtime, cast);
         emitTraitProfile(runtime, boonProfile.id, boonProfile.id, boonCause, {
           preserveName: true,
@@ -232,6 +245,7 @@ const weightyTerms = defineTrait({
       on: 'castCommit',
       run(runtime, cast) {
         const skill = cast.skill;
+
         if (MANTRAS.some(({ finalId }) => finalId === skill.id)) {
           const gain = balanceNumberFromContext(runtime, TRAIT.WEIGHTY_TERMS, 'resourceGain');
           // The final-charge trigger owns the rewards; the completed cast retains the proc report.
@@ -369,6 +383,7 @@ export const firebrandTraits = [
 /** Tome session changes reset only the counter, never refunds earned by accepted casts. */
 function resetSwiftScholar(runtime: GuardianRuntime, virtue?: string): void {
   const state = firebrandState.from(runtime);
+
   if (virtue === undefined || state.swiftScholarTome !== virtue) {
     state.swiftScholarTome = virtue ?? '';
     state.swiftScholarCount = 0;
@@ -378,11 +393,15 @@ function resetSwiftScholar(runtime: GuardianRuntime, virtue?: string): void {
 /** A new tome session restarts the count; a ready opening grants Quickness after the shared virtue rewards. */
 function openSwiftScholarSession(runtime: GuardianRuntime, { cast, virtue, ready }: TomeOpening): void {
   resetSwiftScholar(runtime, virtue);
+
   if (!ready) return;
+
   const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.SWIFT_SCHOLAR);
   const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
   const boonCause = guardianCastCause(runtime, cast);
+
   if (!selectedBoon) return;
+
   emitTraitProfile(runtime, boonProfile.id, boonProfile.id, boonCause, {
     preserveName: true,
     effects: (effect) => effect === selectedBoon,
@@ -426,12 +445,14 @@ function sharedDelivery(event: Gw2ResolverEvent): boolean {
 function grantStalwartSpeed(runtime: GuardianRuntime, { cause: boonCause }: FirebrandBuffApplication): void {
   const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED);
   const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
+
   // Reserve the interval before delivery, so derived boons cannot reenter the proc.
   if (
     !selectedBoons.length ||
     !runtime.procs.claim(TRAIT.STALWART_SPEED, 'guardian.firebrand.stalwartSpeed', runtime.time)
   )
     return;
+
   emitTraitProfile(runtime, TRAIT.STALWART_SPEED, boonProfile.id, boonCause, {
     preserveName: true,
     effects: (effect) => selectedBoons.some((candidate) => candidate === effect),
@@ -465,9 +486,12 @@ function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: Firebra
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
   const ashes = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const burn = requireEffect(ashes, 'condition', 'Burning');
+
   if (!buff || !burn || !runtime.procs.claim(TRAIT.QUICKFIRE, 'guardian.firebrand.quickfire', runtime.time)) return;
+
   const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(profile, buff, 'duration'));
   const stacks = effectNumber(profile, buff, 'stacks');
+
   if (allies > 0)
     alliedAshes(runtime, event, stacks, expiresAt - runtime.time, {
       maximumAllies: 1,
@@ -498,7 +522,9 @@ function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: Firebra
 function grantStoicDemeanor(runtime: GuardianRuntime, { cause: boonCause }: FirebrandControl): void {
   const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STOIC_DEMEANOR);
   const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
+
   if (!selectedBoons.length) return;
+
   emitTraitProfile(runtime, TRAIT.STOIC_DEMEANOR, boonProfile.id, boonCause, {
     preserveName: true,
     effects: (effect) => selectedBoons.some((candidate) => candidate === effect),

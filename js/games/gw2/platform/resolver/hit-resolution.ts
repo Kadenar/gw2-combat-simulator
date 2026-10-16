@@ -37,9 +37,13 @@ export function createGw2HitResolution({
 
   function coefficientMultiplier(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): number {
     const modifiers = Array.isArray(event.coefficientModifiers) ? event.coefficientModifiers : [];
+
     if (!modifiers.length) return 1;
+
     const healthFraction = currentHealthFraction(ctx);
+
     if (healthFraction == null) return 1;
+
     const selected = modifiers
       .filter((modifier) => modifier?.kind === 'target-health-below' && healthFraction < Number(modifier.threshold))
       .sort((left, right) => Number(left.threshold) - Number(right.threshold))[0];
@@ -85,6 +89,7 @@ export function createGw2HitResolution({
     let outgoingMultiplier = event.flatStrikeMultiplier ?? 1;
     const threshold = event.flatStrikeHealthThreshold || 0;
     const healthFraction = currentHealthFraction(ctx);
+
     if (threshold > 0 && healthFraction != null && healthFraction < threshold) {
       outgoingMultiplier *= event.flatStrikeThresholdMultiplier ?? 1;
     }
@@ -123,6 +128,7 @@ export function createGw2HitResolution({
     const queryMultiplier = ctx.query.strikeMultiplier(event, event.at, ctx, outgoingContributors);
     const equipmentMultiplier =
       event.summonUsesEquipmentModifiers === false ? 1 : equipmentStrikeMultiplier(ctx, event);
+
     if (outgoingContributors && equipmentMultiplier !== 1)
       outgoingContributors.push({
         id: 'equipment.strike',
@@ -130,6 +136,7 @@ export function createGw2HitResolution({
         bucket: 'multiplier',
         value: equipmentMultiplier
       });
+
     const outgoingMultiplier = queryMultiplier * equipmentMultiplier;
     const targetArmor = targetArmorFor(ctx);
 
@@ -215,6 +222,7 @@ export function createGw2HitResolution({
     const damage = hitContext.damage;
     // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
     let damageCalculation: Gw2DamageCalculation | undefined;
+
     if (ctx.damageDiagnostics) {
       const maximum = Number(ctx.config.target?.health);
       const healthFraction = Number.isFinite(maximum) ? currentHealthFraction(ctx) : null;
@@ -236,8 +244,10 @@ export function createGw2HitResolution({
     }
 
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
+
     if (damageType === 'conditionDamage') ctx.totals.condition += damage;
     else ctx.totals.strike += damage;
+
     ctx.addBreakdown(
       event.name || event.skillName || String(event.sourceId),
       damage,
@@ -246,6 +256,7 @@ export function createGw2HitResolution({
       event,
       damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical : null
     );
+
     if (damage > 0) ctx.markDamageTime(event.at);
 
     const resolved = {
@@ -268,6 +279,7 @@ export function createGw2HitResolution({
       criticalDamage: hitContext.critical.damage,
       critEligible: hitContext.critEligible
     } as Gw2ResolverEvent;
+
     // Reactions still receive the resolved hit, but score jobs do not retain a strike history.
     if (ctx.reporting) ctx.resolved.push(resolved);
   }

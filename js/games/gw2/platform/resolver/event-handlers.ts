@@ -51,8 +51,10 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
           recipientCount: audience.recipientCount - audience.companionIds.length + companionIds.length
         };
   Object.assign(event, { resolvedAudience });
+
   // Retain actual applications, including trait-generated boons, for effects charts.
   if (ctx.reporting) ctx.resolved.push(event);
+
   // Record before reactions so their boon queries include this application at its timestamp.
   // Accepted standard boons and ordinary buffs have exclusive stores, shared recipients and causal ordering.
   recordBuffApplication(isStandardBoon(kind) ? ctx.boons : ctx.buffs, event);
@@ -95,13 +97,16 @@ export function createGw2ResolverEventHandlers({
     boon_extension(ctx, event) {
       applyBoonExtension(ctx.boons, event);
       for (const effects of ctx.companions.values()) applyBoonExtension(effects.boons, event);
+
       if (ctx.reporting) ctx.resolved.push(event);
     },
 
     damage(ctx, event) {
       // Apply impact-time adjustments to both scheduled hits and resolver-created procs before calculating damage.
       const updates = reactions.dispatch('damage.resolving', ctx, event);
+
       if (updates) event = { ...event, ...updates };
+
       const hitContext = buildHitResolutionContext(ctx, event);
       // Ordering matters: apply the base hit first, then profession reactions,
       // expected food procs, and finally relic after-hit rules.
@@ -126,6 +131,7 @@ export function createGw2ResolverEventHandlers({
       }
 
       const resolved = handleConditionTick(ctx, event);
+
       // Stale, cancelled, and precombat wakes advance no combat reaction.
       if (resolved) reactions.dispatch('condition-tick.resolved', ctx, event, { resolved });
     },

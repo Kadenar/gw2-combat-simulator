@@ -23,8 +23,11 @@ const { values, positionals: requested } = parseArgs({
   }
 });
 const professions = requested.length ? requested : professionOptions.map(({ id }) => id);
+
 if (!['detailed', 'score'].includes(values.output)) throw new TypeError('Output must be detailed or score.');
+
 const prefixLength = values['prefix-length'] == null ? null : Number(values['prefix-length']);
+
 if (prefixLength != null && (!Number.isSafeInteger(prefixLength) || prefixLength < 0)) {
   throw new TypeError('Prefix length must be a nonnegative safe integer.');
 }
@@ -41,8 +44,11 @@ for (const profession of professions) {
   for (const section of manifest) {
     for (const preset of section.presets) {
       if (!preset.rotation) continue;
+
       const id = `${profession}|${section.section || ''}|${preset.label}`;
+
       if (values.filter && !id.toLowerCase().includes(values.filter.toLowerCase())) continue;
+
       const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
       const build = adapter.toApplicationBuild({ ...savedBuild, rotation: savedRotation.rotation ?? savedRotation });
       const context = adapter.createBuildContext({
@@ -91,7 +97,9 @@ for (let round = -warmups; round < repetitions; round += 1) {
     });
     const elapsedMs = performance.now() - started;
     totalMs += elapsedMs;
+
     if (round < 0) continue;
+
     entry.samples.push({ elapsedMs, ...phases, phaseTimings });
     // Count actual output packets outside the timer; warnings remain visible and attributable to their preset.
     entry.result = {
@@ -125,14 +133,18 @@ for (const entry of cases) {
 
   StableEventQueue.prototype.dequeue = function () {
     const event = methods.dequeue.call(this);
+
     if (event) counts.dequeued++;
+
     return event;
   };
 
   StableEventQueue.prototype.cancelWhere = function (matches) {
     return methods.cancelWhere.call(this, (event) => {
       const cancelled = matches(event);
+
       if (cancelled) counts.cancelled++;
+
       return cancelled;
     });
   };

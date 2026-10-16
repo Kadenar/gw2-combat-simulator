@@ -58,6 +58,7 @@ export function showInputProfileDialog(document: Document): void {
         input.value = formatInputBinding(code);
         sync();
         const choice = input.parentElement?.querySelector<HTMLSelectElement>('[data-binding-choice]');
+
         if (choice) choice.value = code;
       };
 
@@ -74,7 +75,9 @@ export function showInputProfileDialog(document: Document): void {
     dialog.querySelector('[data-import]')!.addEventListener('click', () => file.click());
     file.addEventListener('change', async () => {
       const selected = file.files?.[0];
+
       if (!selected) return;
+
       try {
         const contents = await selected.text();
         const { parseGw2HotkeyBindingsXml } = await import('#gw2/integrations/keybinds/parser.js');

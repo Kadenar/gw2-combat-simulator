@@ -26,9 +26,12 @@ export const equipForge = new WeakMap<RuntimeCast<GuardianSkill>, string | null>
 /** Forge exits start real recharge once, using distinct completed weapon equips and the shared rate controller. */
 export function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>): void {
   const state = luminaryState.from(runtime);
+
   if (!state.radiantForge) return;
+
   const enter = runtime.helpers.skillsById.get(ID.ENTER_RADIANT_FORGE)!;
   const exit = runtime.helpers.skillsById.get(ID.EXIT_RADIANT_FORGE)!;
+
   if (
     runtime.hasExplicitCombatStart &&
     (runtime.combatStartPending ||
@@ -56,6 +59,7 @@ export function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianS
   // Leaving the forge dismisses only its own bar; ordinary weapon follow-ups retain their independent lifetimes.
   for (const id of Object.keys(runtime.profession.core.availableFlips)) {
     const skill = runtime.helpers.skillsById.get(Number(id));
+
     if (skill?.radiantForgeSkill || skill?.id === ID.EXIT_RADIANT_FORGE)
       consumeSkillFlip(runtime.profession.core.availableFlips, id);
   }
@@ -84,7 +88,9 @@ export function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianS
   runtime.cooldownController.clear(cast.skill.id);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.forge);
   const effect = requireEffect(profile, 'buff', 'radiant-forge');
+
   if (!effect) return;
+
   const state = luminaryState.from(runtime);
   state.radiantForge = true;
   state.radiantForgeEndsAt = canonicalTime(runtime.time + effectNumber(profile, effect, 'duration'));

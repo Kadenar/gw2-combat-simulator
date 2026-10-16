@@ -19,6 +19,7 @@ export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {
     ['fencer', TRAIT.FENCERS_FINESSE]
   ] as const) {
     const profile = balanceProfileFromContext(context, id);
+
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }
 

@@ -31,17 +31,21 @@ export const professionPlanningState = (result: ProfessionAppResult | null | und
 
 export function palettePlanningState(app: ProfessionAppState): RotationPlanningState | null {
   const result = app.results;
+
   if (!result) return null;
+
   const rotation = Array.isArray(app.build?.rotation) ? app.build.rotation : [];
   const insertionIndex =
     normalizeRotationInsertionIndex(app.rotationInsertionIndex, rotation.length) ?? rotation.length;
   // Appending still needs rotation-end availability when the displayed result includes a tail.
   const hasTail = (result.planningState?.atSeconds ?? 0) > result.rotationEndTime;
+
   if ((insertionIndex === rotation.length && !hasTail) || typeof app.adapter?.rotationPlanningStateAt !== 'function') {
     return result.planningState;
   }
 
   const cached = paletteStateCache.get(app);
+
   if (cached?.result === result && cached.insertionIndex === insertionIndex) {
     return cached.state;
   }

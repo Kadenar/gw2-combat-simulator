@@ -11,6 +11,7 @@ export function relicIdForName(name: unknown): number | null {
 /** Resolves the relic's fixed weapon-swap reduction so every base recharge loses the same 2.5 seconds. */
 export function relicWeaponSwapRechargeReduction(relicName: string | undefined): number {
   if (!relicName || !Object.hasOwn(RELIC_DATA, relicName)) return 0;
+
   const relic = RELIC_DATA[relicName as keyof typeof RELIC_DATA];
   return 'weaponSwapRechargeReduction' in relic ? relic.weaponSwapRechargeReduction : 0;
 }

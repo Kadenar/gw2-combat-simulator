@@ -13,9 +13,13 @@ const NOURYS_CYCLE_DURATION = NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOU
 
 function nourysCombatStart(context: Gw2RelicRuntimeContext, state: Gw2RelicState): number {
   const runtimeStart = Number(context.combatStartTime);
+
   if (Number.isFinite(runtimeStart)) return runtimeStart;
+
   const stateStart = Number(state.combatStartTime);
+
   if (Number.isFinite(stateStart)) return stateStart;
+
   const timelineStart = explicitCombatStartTime(state.timelineEvents || []);
   return Number.isFinite(timelineStart) ? timelineStart : 0;
 }
@@ -24,7 +28,9 @@ function nourysActiveAt(context: Gw2RelicRuntimeContext, state: Gw2RelicState, a
   // Integer clock keys avoid floating-point modulo drift at each recurring activation.
   const firstActivation = timeKey(nourysCombatStart(context, state) + NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED);
   const elapsed = timeKey(at) - firstActivation;
+
   if (elapsed < 0) return false;
+
   const cycle = Math.floor(elapsed / timeKey(NOURYS_CYCLE_DURATION));
   const activation = (firstActivation + cycle * timeKey(NOURYS_CYCLE_DURATION)) / 1_000_000;
   return timeKey(at) < timeKey(gw2EffectExpiresAt(activation, NOURYS_BUFF_DURATION));
@@ -46,6 +52,7 @@ export const nourys = defineRelic({
           detail: `${stacks}/${NOURYS_STACKS_NEEDED} stacks`
         }
       });
+
       if (stacks >= NOURYS_STACKS_NEEDED) {
         stacks = 0;
         ctx.effects.emit({

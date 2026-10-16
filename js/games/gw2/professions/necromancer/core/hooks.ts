@@ -75,9 +75,13 @@ import type {
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
+
   const skill = skillForEvent(runtime.helpers, event);
+
   if (!skill) return;
+
   if (event.actorType !== 'player') return;
+
   // Combine trait rewards before the shared conversion and pool refresh, ahead of condition transfers.
   const reward = { skill, event, percent: 0 };
   runtime.fireTrigger(necromancerStrikeLifeForce, reward);
@@ -108,6 +112,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     if (skill?.shroud) runtime.profession.core.activeShroud = skill.shroud;
+
     // Held Carapace affects both Power and Condition Damage without generating minion or kill events.
     runtime.profession.core.carapaceExpiries = Array(Number(inputs.carapace ?? 0)).fill(Infinity);
   },
@@ -158,6 +163,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     // Weapon definitions select their window; its deadline stays anchored to the accepted recharge boundary.
     'necromancer.weapon-flip'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       const { cast, skill } = context;
       runtime.armFlip(skill.flipSkillId!, {
         expiresAt: cast.rechargeStart + Math.max(1, skill.flipDuration ?? skill.cooldown ?? 5)
@@ -184,6 +190,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     'necromancer.soul-shards'(runtime, _cast, action) {
       if (action.type !== 'necromancer.soul-shards' || action.amount == null)
         throw new TypeError('Soul shard grants require an amount.');
+
       grantNecromancerSoulShards(runtime, sideEffectAmount(runtime, action.amount));
     }
   },
@@ -214,9 +221,13 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   availability(runtime, skill) {
     const state = runtime.profession.core;
     const traitGate = lingeringCurseAvailability(runtime, skill);
+
     if (traitGate) return traitGate;
+
     const minionGate = necromancerMinionAvailability(runtime, skill);
+
     if (minionGate) return minionGate;
+
     if (
       skill.flipParentId != null &&
       !skill.shroudExit &&
@@ -224,16 +235,21 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
       !skillFlipReady(state.availableFlips[skill.id], runtime.time)
     )
       return denySkillCast(skill, 'necromancer.flip-not-armed', 'not currently armed.');
+
     if (NECROMANCER_LICH_SKILL_IDS.includes(skill.id))
       return state.activeShroud === 'lich'
         ? { ready: true }
         : denySkillCast(skill, 'necromancer.not-in-lich', 'Lich Form is not active.');
+
     if (skill.shroudEntry) {
       if (state.activeShroud)
         return denySkillCast(skill, 'necromancer.in-shroud', `already in ${state.activeShroud} shroud.`);
+
       if ((skill.specialization || 'Core') !== (runtime.config.specialization || 'Core'))
         return denySkillCast(skill, 'necromancer.wrong-specialization', 'requires its matching specialization.');
+
       const minimum = (state.lifeForce.maximum * (skill.minimumShroudLifeForcePercent ?? 10)) / 100;
+
       if (runtime.resourceController.value('lifeForce') < minimum)
         return denySkillCast(
           skill,
@@ -248,6 +264,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
       return denySkillCast(skill, 'necromancer.wrong-shroud', `requires ${skill.shroud} shroud.`);
     else if (!skill.shroud && state.activeShroud && !skill.usableInShroud)
       return denySkillCast(skill, 'necromancer.in-shroud', 'cannot cast in shroud.');
+
     return { ready: true };
   },
   // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.
@@ -304,11 +321,13 @@ export const necromancerCoreHooks = composeRuntimeHooks<NecromancerRuntimeState,
 function lingeringCurseAvailability(runtime: MechanicQueriesOf<NecromancerRuntime>, skill: NecromancerSkill) {
   if (skill.id === DAMAGE_SKILL.DEVOURING_DARKNESS && !hasTrait(runtime, TRAIT.LINGERING_CURSE))
     return denySkillCast(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
+
   if (skill.id === DAMAGE_SKILL.FEAST_OF_CORRUPTION && hasTrait(runtime, TRAIT.LINGERING_CURSE))
     return denySkillCast(
       skill,
       'necromancer.trait-replacement',
       'Devouring Darkness replaces it while Lingering Curse is selected.'
     );
+
   return undefined;
 }

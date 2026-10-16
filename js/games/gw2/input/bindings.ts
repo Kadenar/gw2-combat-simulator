@@ -74,6 +74,7 @@ export function defaultInputBindings(): InputBindings {
 
 export function normalizeInputBindings(value: unknown): InputBindings {
   const defaults = defaultInputBindings();
+
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return defaults;
   }
@@ -81,6 +82,7 @@ export function normalizeInputBindings(value: unknown): InputBindings {
   const input = value as Record<string, unknown>;
   for (const action of INPUT_CONTROLS) {
     const candidate = input[action.id];
+
     if (
       Object.prototype.hasOwnProperty.call(input, action.id) &&
       typeof candidate === 'string' &&
@@ -102,7 +104,9 @@ export function duplicateInputBindings(bindings: InputBindings): string[] {
   const duplicates = new Set<string>();
   for (const code of Object.values(bindings)) {
     if (!code) continue;
+
     if (seen.has(code)) duplicates.add(code);
+
     seen.add(code);
   }
 
@@ -133,6 +137,7 @@ const DISPLAY_CODES: Readonly<Record<string, string>> = Object.freeze({
 
 export function formatInputBinding(code: string): string {
   if (!code) return 'Unbound';
+
   const parts = code.split('+');
   const keyCode = parts.pop() || '';
   const label = /^Digit\d$/.test(keyCode)
@@ -161,13 +166,18 @@ export const INPUT_MODIFIER_CODES = { Ctrl: 'ControlLeft', Alt: 'AltLeft', Shift
 /** One canonical ordering validates both persisted bindings and captured/imported chords. */
 export function parseInputBinding(binding: string): { key: string; modifiers: InputModifier[] } | null {
   if (!binding) return null;
+
   const parts = binding.split('+');
   const key = parts.pop()!;
+
   if (!physicalInput(key)) return null;
+
   let previous = -1;
   for (const part of parts) {
     const index = INPUT_MODIFIERS.indexOf(part as InputModifier);
+
     if (index <= previous) return null;
+
     previous = index;
   }
 

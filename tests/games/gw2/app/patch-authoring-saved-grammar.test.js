@@ -124,6 +124,7 @@ for (const section of ['skills', 'balanceProfiles']) {
           .filter((effect) => effect.type === 'strike')
           .flatMap((effect) => (effect.ticks ? effect.ticks.map((tick) => tick.coefficient) : [effect.coefficient]))
       );
+
       if (stacked) {
         assert.deepEqual(displayed('duration'), [5, 5, 3]);
         assert.deepEqual(displayed('audience.maximumRecipients'), [2]);

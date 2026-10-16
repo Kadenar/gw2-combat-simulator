@@ -23,6 +23,7 @@ import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 function naturalBalanceActive(context: Gw2ModifierContext): boolean {
   // Registration gates selection; only the Druid's own packets receive the active buff bonus.
   if (!isGw2PlayerModifierOwnedEvent(context.event)) return false;
+
   // Scheduler path uses a timeline; resolver path reads from the runtime boon list
   return buffActive(context, 'natural-balance');
 }
@@ -39,6 +40,7 @@ const naturalMender = defineTrait({
     onTriggerPoint(rangerInitialized, {
       run(runtime) {
         const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
+
         if (interval > 0) {
           druidState.from(runtime).naturalMenderAt = gw2CooldownReadyAt(interval);
           runtime.schedule('ranger.natural-mender', druidState.from(runtime).naturalMenderAt, interval, undefined, -1);
@@ -52,10 +54,13 @@ const naturalMender = defineTrait({
         const deadline = Number(data);
         const state = druidState.from(runtime);
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_MENDER);
+
         if (!state.celestialAvatarActive)
           runtime.resourceController.grant('astralForce', balanceProfileNumber(profile, 'resourceGain'));
+
         const interval = balanceProfileNumber(profile, 'pulseInterval');
         state.naturalMenderAt = interval > 0 ? gw2CooldownReadyAt(deadline + interval) : Infinity;
+
         if (interval > 0)
           runtime.schedule('ranger.natural-mender', state.naturalMenderAt, deadline + interval, undefined, -1);
       }
@@ -176,6 +181,7 @@ export const druidTraits = [naturalMender, naturalBalance, graceOfTheLand, eclip
 function applyNaturalBalance(runtime: RangerRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_BALANCE);
   const effect = requireEffect(profile, 'buff', 'natural-balance');
+
   if (effect)
     emitTraitProfile(runtime, TRAIT.NATURAL_BALANCE, TRAIT.NATURAL_BALANCE, undefined, {
       at: runtime.time,

@@ -197,6 +197,7 @@ function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent
     !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
   )
     return;
+
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS);
     emitTraitProfile(runtime, TRAIT.HEIGHTENED_FOCUS, TRAIT.HEIGHTENED_FOCUS, event, {
@@ -233,12 +234,16 @@ function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent
  */
 function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (!cast.skill.burst || !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS)) return;
+
   const readyAt = runtime.procs.deadline(TRAIT.HEIGHTENED_FOCUS);
+
   if (!(readyAt > 0)) return;
+
   // Canonicalize subtraction roundoff without admitting procs outside the cast window.
   const triggeredAt = canonicalTime(
     readyAt - balanceNumberFromContext(runtime, TRAIT.HEIGHTENED_FOCUS, 'internalCooldown')
   );
+
   if (triggeredAt >= canonicalTime(cast.start) && triggeredAt <= canonicalTime(runtime.time))
     runtime.cooldownController.clear(cast.skill.id);
 }
@@ -247,6 +252,7 @@ function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<Wa
 function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEvent, criticals: number): void {
   if (criticals > 0) {
     const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+
     if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) === 'Axe')
       grantWarriorResource(runtime, criticals * balanceNumberFromContext(runtime, TRAIT.AXE_MASTERY, 'resourceGain'));
   }
@@ -265,6 +271,7 @@ function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
     {
       const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
       const selectedEffect = requireEffect(traitProfile, 'boon', 'swiftness');
+
       if (selectedEffect)
         emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {
           at: runtime.time,

@@ -287,10 +287,14 @@ function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
     null,
     { id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration }
   );
+
   if (!runtime.combatStartedAt()) return;
+
   const boon = requireEffect(profile, 'boon', 'fury');
+
   // The pulse cadence is trait-owned and continues; only the removed Fury packet is skipped.
   if (!boon) return;
+
   emitTraitProfile(runtime, TRAIT.ASSASSINS_PRESENCE, profile.id, undefined, {
     preserveName: true,
     effects: (effect) => effect === boon,
@@ -330,11 +334,15 @@ function activeOffhand(context: Gw2ModifierContext): boolean {
 /** React at the ordered strike boundary without changing the shared scar transaction. */
 function exposeDefenses(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   const core = runtime.profession.core;
+
   if (core.exposeDefensesUsed || !runtime.combatStartedAt()) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXPOSE_DEFENSES);
   const condition = requireEffect(profile, 'condition', 'Vulnerability');
+
   // The one-use opener belongs to its packet, so a removed packet leaves it unspent.
   if (!condition) return;
+
   core.exposeDefensesUsed = true;
   const name = String(condition.condition);
   emitTraitProfile(runtime, TRAIT.EXPOSE_DEFENSES, TRAIT.EXPOSE_DEFENSES, event, {
@@ -357,15 +365,21 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
   const core = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.THRILL_OF_COMBAT);
   const buff = requireEffect(profile, 'buff', 'battle-scars');
+
   // The cadence exists only to grant this buff, so a removed buff neither grants nor advances it.
   if (!buff) return;
+
   const interval = canonicalInterval(balanceProfileNumber(profile, 'cooldown'));
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
   const maximum = balanceNumberFromContext(runtime, PROFILE.battleScars, 'maximumStacks');
+
   if (core.nextThrillOfCombatAt == null)
     core.nextThrillOfCombatAt = canonicalTime((core.combatBeganAt ?? runtime.time) + interval);
+
   const next = core.nextThrillOfCombatAt;
+
   if (!Number.isFinite(next) || next > runtime.time) return;
+
   // Count only elapsed canonical intervals, so a later grant never enters the live stack pool.
   const elapsed = Math.floor((timeKey(runtime.time) - timeKey(next)) / timeKey(interval)) + 1;
   let granted = 0;
@@ -383,7 +397,9 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
   }
 
   core.nextThrillOfCombatAt = canonicalTime(next + elapsed * interval);
+
   if (!granted) return;
+
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -406,9 +422,11 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
 /** Runs the trait at its original ordered mechanic boundary. */
 function completeBattleScarred(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const skill = cast.skill;
+
   if (skill.slot === 'Heal') {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BATTLE_SCARRED);
     const buff = requireEffect(profile, 'buff', 'battle-scars');
+
     if (buff)
       grantBattleScars(runtime, {
         stacks: effectNumber(profile, buff, 'stacks'),
@@ -449,10 +467,13 @@ function grantBattleScars(
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
   let duration = authored;
+
   // Grants without their own duration inherit the core buff's; removing that buff leaves them nothing to grant.
   if (duration === undefined) {
     const buff = requireEffect(profile, 'buff', 'battle-scars');
+
     if (!buff) return;
+
     duration = effectNumber(profile, buff, 'duration');
   }
 
@@ -466,7 +487,9 @@ function grantBattleScars(
     balanceProfileNumber(profile, 'maximumStacks')
   );
   core.battleScars = expiries;
+
   if (!added) return;
+
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -490,9 +513,12 @@ function grantBattleScars(
 function completeRevenantBrutality(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.BRUTALITY);
   const boon = requireEffect(profile, 'boon', 'quickness');
+
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!boon) return;
+
   if (!runtime.procs.claimCooldown('brutality', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
+
   emitTraitProfile(runtime, TRAIT.BRUTALITY, profile.id, undefined, {
     preserveName: true,
     effects: (effect) => effect === boon,
@@ -518,9 +544,11 @@ function completeRevenantBrutality(runtime: RevenantRuntime, { cast }: RevenantC
 /** Runs the trait at its original ordered mechanic boundary. */
 function completeNotoriety(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const skill = cast.skill;
+
   if (runtime.combatStartedAt() && isLegendaryStanceSkill(skill)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOTORIETY);
     const boon = requireEffect(profile, 'boon', 'might');
+
     if (boon)
       emitTraitProfile(runtime, TRAIT.NOTORIETY, profile.id, undefined, {
         preserveName: true,
@@ -547,5 +575,6 @@ function completeNotoriety(runtime: RevenantRuntime, { cast }: RevenantCastCompl
 
 function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
   if (['Heal', 'Utility', 'Elite'].includes(String(skill.slot || '')) && skill.legendId) return true;
+
   return skill.type === 'Profession';
 }

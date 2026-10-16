@@ -21,9 +21,13 @@ export interface CompositeActionRule {
 
 export function mergedActionStatus(first: RotationActionStatus, second: RotationActionStatus): RotationActionStatus {
   if (first === 'interrupted' || second === 'interrupted') return 'interrupted';
+
   if (first === 'reduced' || second === 'reduced') return 'reduced';
+
   if (first === 'unknown' || second === 'unknown') return 'unknown';
+
   if (first === 'instant' && second === 'instant') return 'instant';
+
   return 'completed';
 }
 
@@ -38,11 +42,13 @@ export function mergeCompositeActions<Action extends CompositeAction>(
   const result: Action[] = [];
   for (const action of sorted) {
     if (consumed.has(action)) continue;
+
     const rule = rules.find(
       (candidate) =>
         (candidate.startId == null || candidate.startId === action.rawSkillId) &&
         (candidate.startName == null || candidate.startName === action.rawName)
     );
+
     if (!rule) {
       const orphanedFinish = rules.some(
         (candidate) =>
@@ -50,7 +56,9 @@ export function mergeCompositeActions<Action extends CompositeAction>(
           candidate.finishId === action.rawSkillId &&
           (candidate.finishName == null || candidate.finishName === action.rawName)
       );
+
       if (orphanedFinish) continue;
+
       result.push(action);
       continue;
     }
@@ -64,6 +72,7 @@ export function mergeCompositeActions<Action extends CompositeAction>(
         candidate.start >= (rule.finishStartsAfterStartEnd ? action.end : action.start) &&
         Math.abs(candidate.start - action.end) <= rule.maximumGapMs
     );
+
     if (!finish) {
       result.push(action);
       continue;

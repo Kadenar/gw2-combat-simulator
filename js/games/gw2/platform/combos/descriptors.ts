@@ -79,12 +79,14 @@ export function finisherDescriptors(
 ): readonly OwnedFinisherDescriptor[] {
   const skill = skillForEvent(catalog, event);
   let descriptors: unknown = [];
+
   if (event.comboFinishers !== undefined) {
     descriptors = event.comboFinishers;
   } else if (Array.isArray(skill?.comboFinishers) && !hasEffectFinishers(skill.effects)) {
     const sourceMatches = event.sourceId === skill.id;
     const actionWithoutStrikes = event.type === 'action' && !skill.effects?.some((effect) => effect.type === 'strike');
     const damagingPacket = event.type === 'damage' && (event.coefficient || 0) > 0;
+
     if (sourceMatches && (actionWithoutStrikes || damagingPacket)) {
       descriptors = skill.comboFinishers;
     }

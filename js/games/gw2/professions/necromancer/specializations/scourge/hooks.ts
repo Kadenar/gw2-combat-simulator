@@ -47,6 +47,7 @@ function refreshShadeExpiry(runtime: NecromancerRuntime): void {
   const state = scourgeState.from(runtime);
   runtime.cancelOwner({ id: EXPIRE, generation: state.shadeGeneration });
   state.shadeGeneration++;
+
   if (state.shades.length)
     runtime.schedule(EXPIRE, Math.min(...state.shades), null, { id: EXPIRE, generation: state.shadeGeneration }, -20);
 }
@@ -101,6 +102,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     parentSkillName: cast.skill.name
   };
   const strike = requireEffect(profile, 'strike', 'Strike');
+
   if (strike) {
     // Shared emission owns transport; the mechanic selects attribution and delivery.
     const emissionRuntime: NecromancerRuntime = runtime;
@@ -131,6 +133,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
   }
 
   const torment = requireEffect(profile, 'condition', 'Torment');
+
   if (torment) {
     // Shared emission owns transport; the mechanic selects attribution and delivery.
     const emissionRuntime: NecromancerRuntime = runtime;
@@ -161,6 +164,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
 function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const profile = sandSavantShadeProfile(runtime);
   const lifetime = requireEffect(profile, 'buff', 'active-shade');
+
   if (lifetime) {
     const state = scourgeState.from(runtime);
     state.shades = grantTimedStacks(state.shades, {
@@ -212,8 +216,10 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
     },
     'scourge.garish-pillar'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.garishPillar);
       const fear = requireEffect(profile, 'condition', 'Fear');
+
       if (fear) {
         // Shared emission owns transport; the mechanic selects attribution and delivery.
         const emissionRuntime: NecromancerRuntime = runtime;
@@ -265,6 +271,7 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
   onCastCommit(runtime, cast) {
     if (cast.skill.id === ID.DESERT_SHROUD || cast.skill.id === ID.SANDSTORM_SHROUD)
       runtime.fireTrigger(shroudInvoked, { cast, at: runtime.time, activationId: cast.id });
+
     runtime.fireTrigger(scourgeShadeCommitted, { cast, at: runtime.time, activationId: cast.id });
   },
   tasks: {

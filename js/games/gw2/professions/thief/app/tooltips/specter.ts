@@ -68,9 +68,11 @@ const shadowShroudSkillTooltip: DescribeSimulationTooltip = (balanceContext, ent
         : entity.id === ID.MIND_SHOCK
           ? 'aegis'
           : null;
+
   if (boonName) {
     const profile = tooltipProfile(balanceContext, TRAIT.SHADESTEP);
     const boon = requireEffect(profile, 'boon', boonName);
+
     if (boon) facts.push(...simulationEffectFacts([boon], 'party; requires Shadestep and a completed cast').facts);
   }
 

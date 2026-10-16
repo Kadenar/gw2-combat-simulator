@@ -58,6 +58,7 @@ test('Untamed prefers pet F1/F2/F3 animations while Soulbeast retains the player
       casts.map((command) => command.skillId),
       specialization === 'Untamed' ? [63335, 12694, 31451, 12657] : [63335, 31451]
     );
+
     if (specialization === 'Untamed') {
       assert.deepEqual(
         result.sourceActions.map((action) => action.startMs),

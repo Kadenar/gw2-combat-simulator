@@ -7,7 +7,9 @@ const REPORT_ID = /^[A-Za-z0-9]{4}[A-Za-z0-9_-]*$/;
 /** Extracts a safe report ID from a dps.report permalink or a bare ID. */
 export function dpsReportId(input: string): string | null {
   const value = input.trim();
+
   if (REPORT_ID.test(value)) return value;
+
   let url: URL;
   try {
     url = new URL(value);
@@ -16,7 +18,9 @@ export function dpsReportId(input: string): string | null {
   }
 
   const hostname = url.hostname.toLowerCase();
+
   if (hostname !== 'dps.report' && !hostname.endsWith('.dps.report')) return null;
+
   const id = url.pathname.split('/').filter(Boolean)[0] || '';
   return REPORT_ID.test(id) ? id : null;
 }
@@ -24,6 +28,7 @@ export function dpsReportId(input: string): string | null {
 /** Builds the public CORS-enabled Elite Insights JSON endpoint for a report. */
 export function dpsReportJsonUrl(input: string): string {
   const id = dpsReportId(input);
+
   if (!id) {
     throw new DpsReportError('INVALID_URL', 'Enter a valid dps.report link or report ID.');
   }

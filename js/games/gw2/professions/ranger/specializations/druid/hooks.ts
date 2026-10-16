@@ -25,11 +25,14 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** Avatar changes the one resource clock and bar; expiration cannot retire a later entry. */
 function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): void {
   const state = druidState.from(runtime);
+
   if (state.celestialAvatarActive === active) return;
+
   state.celestialAvatarActive = active;
   const duration = balanceNumberFromContext(runtime, PROFILE.resources, 'duration');
   state.celestialAvatarEndsAt = active ? canonicalTime(runtime.time + duration) : 0;
   runtime.resourceController.refresh('astralForce');
+
   if (active) {
     armSkillFlip(
       runtime.profession.core.availableFlips,
@@ -93,8 +96,11 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
                 )
               )
             : Infinity;
+
           if (next === state.avatarDepletionAt) return;
+
           state.avatarDepletionAt = next;
+
           if (Number.isFinite(next)) runtime.schedule('ranger.avatar-exit', next, next);
         },
         stop(runtime) {
@@ -115,15 +121,19 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       !event.independentSummonStrike
     )
       druidState.from(runtime).pendingHitTimes.push(event.at);
+
     return event;
   },
   availability(runtime, skill) {
     const state = druidState.from(runtime);
+
     if ((skill.celestialAvatarSkill || skill.id === ID.RELEASE_CELESTIAL_AVATAR) && !state.celestialAvatarActive)
       return deny(skill, 'ranger.avatar-inactive', 'enter Celestial Avatar first.');
+
     if (skill.id === ID.CELESTIAL_AVATAR) {
       if (state.celestialAvatarActive)
         return deny(skill, 'ranger.avatar-active', 'Celestial Avatar is already active.');
+
       if (state.astralClock.value < state.astralClock.maximum)
         return {
           ready: false,
@@ -135,6 +145,7 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
 
     if (state.celestialAvatarActive && skill.type === 'Weapon' && !skill.celestialAvatarSkill)
       return deny(skill, 'ranger.avatar-weapon-bar', 'Celestial Avatar replaces weapon skills.');
+
     return { ready: true };
   },
   modifyEffects: avatarEffects,
@@ -161,6 +172,7 @@ export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
         event.independentSummonStrike
       )
         return;
+
       runtime.resourceController.grant(
         'astralForce',
         balanceNumberFromContext(runtime, PROFILE.resources, 'resourceGain') * eclipseAstralForceMultiplier(runtime)

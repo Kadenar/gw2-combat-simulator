@@ -22,6 +22,7 @@ test('Surfer refreshes its selected lifetime with a thirteen-second cap', () => 
           return {
             onCastCommit(runtime, cast) {
               native.onCastCommit?.(runtime, cast);
+
               if (cast.skill.id === ID.FORGED_SURFER_DASH)
                 windows.push(runtime.profession.specialization.state.forgedSurferBombDropUntil - runtime.time);
             }

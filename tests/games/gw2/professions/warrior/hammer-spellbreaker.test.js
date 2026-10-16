@@ -58,6 +58,7 @@ test('Magebane Tether ignores Alacrity gained or lost during its recharge', () =
           ...profession.reactions,
           'damage.resolved'(runtime, event, hit) {
             profession.reactions['damage.resolved'](runtime, event, hit);
+
             if (event.skillId === ID.BREACHING_STRIKE)
               windows.push(runtime.profession.specialization.state.magebaneTetherUntil > runtime.time);
           }

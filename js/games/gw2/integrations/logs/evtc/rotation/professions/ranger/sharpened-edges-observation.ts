@@ -52,7 +52,9 @@ function ownedPets(log: ParsedEvtc, playerAddress: bigint): readonly { address: 
   const ownerInstance = log.events.find(
     (event) => event.source === playerAddress && event.sourceInstance > 0
   )?.sourceInstance;
+
   if (!ownerInstance) return [];
+
   const ownedAddresses = new Set(
     log.events
       .filter((event) => event.source !== playerAddress && event.sourceMasterInstance === ownerInstance)
@@ -66,6 +68,7 @@ function ownedPets(log: ParsedEvtc, playerAddress: bigint): readonly { address: 
 
 function petExpertise(catalog: Readonly<CanonicalCatalog>, config: Gw2Config, pet: RangerPetDefinition): number {
   if (!hasSelectedTrait(config, TRAIT.ARACHNOPHOBIA)) return 0;
+
   // Once selected, Arachnophobia's pet bonuses are required balance data.
   const profile = requireBalanceProfileFromContext({ catalog }, TRAIT.ARACHNOPHOBIA);
   const expertise = balanceProfileNumber(profile, 'attributeBonus');
@@ -83,19 +86,25 @@ export function analyzeRangerSharpenedEdgesObservation(
   config: Gw2Config
 ): RangerSharpenedEdgesObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SHARPENED_EDGES)) return null;
+
   const profile = traitBalanceProfile(catalog, TRAIT.SHARPENED_EDGES, 'Sharpened Edges');
+
   if (!profile) return null;
+
   const baseDuration = bleedingDuration(profile);
   const expectedProcChance = balanceProfileNumber(
     profile,
     profile.criticalChance !== undefined ? 'criticalChance' : 'procChance'
   );
+
   if (!(baseDuration > 0) || !(expectedProcChance > 0)) return null;
 
   const owned = ownedPets(log, playerAddress);
   const sources = new Set([playerAddress, ...owned.map(({ address }) => address)]);
   const targetAddress = primaryStrikeTargetForSources(log, sources);
+
   if (targetAddress == null) return null;
+
   const criticalHitsFor = (address: bigint) =>
     log.events.filter(
       (event) =>
@@ -126,7 +135,9 @@ export function analyzeRangerSharpenedEdgesObservation(
     : 0;
   const pets = owned.flatMap(({ address, pet }) => {
     const criticalHits = criticalHitsFor(address);
+
     if (!criticalHits) return [];
+
     const matchedDurationMs = expectedConditionDurationsMs(baseDuration, 'Bleeding', {}, [
       { expertise: petExpertise(catalog, config, pet) }
     ])[0];
@@ -145,7 +156,9 @@ export function analyzeRangerSharpenedEdgesObservation(
   const petCriticalHits = pets.reduce((total, pet) => total + pet.criticalHits, 0);
   const petMatchedApplications = pets.reduce((total, pet) => total + pet.matchedApplications, 0);
   const criticalHits = playerCriticalHits + petCriticalHits;
+
   if (!criticalHits) return null;
+
   const matchedApplications = playerMatchedApplications + petMatchedApplications;
 
   return {

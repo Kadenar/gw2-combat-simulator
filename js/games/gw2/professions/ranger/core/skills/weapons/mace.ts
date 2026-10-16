@@ -150,13 +150,16 @@ export const maceLifecycle = {
   sideEffectHandlers: {
     'ranger.natures-strength'(runtime, context, action) {
       if (context.kind !== 'effect') return;
+
       if (action.type !== 'ranger.natures-strength' || action.amount == null)
         throw new TypeError("Nature's Strength requires a stack grant.");
+
       if (
         runtime.combat.activeBuffStacks(FORCE_OF_NATURE, runtime.time) ||
         runtime.combat.activeBuffStacks(TAPPED_OUT, runtime.time)
       )
         return;
+
       runtime.effects.emit({
         kind: 'packet',
         event: buildResolverBuff({
@@ -186,6 +189,7 @@ export const maceLifecycle = {
         runtime.combat.activeBuffStacks(NATURES_STRENGTH, runtime.time) < 5
       )
         return;
+
       runtime.combat.reviseBuffExpiry(
         NATURES_STRENGTH,
         () => true,

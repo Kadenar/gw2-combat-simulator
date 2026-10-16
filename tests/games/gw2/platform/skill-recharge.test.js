@@ -84,6 +84,7 @@ test('Alacrity gained during a cast leaves reserved recharge unchanged', () => {
             },
             onCastCommit(runtime, cast) {
               if (cast.start !== 0) return;
+
               if (ammo) {
                 assert.equal(runtime.cooldownController.readAmmo(990011).nextRechargeAt, 18);
               } else assert.equal(runtime.cooldownController.readyAt(990011), 18);
@@ -173,6 +174,7 @@ test('Warrior ammo preserves serial charge recovery', () => {
         ...native,
         onCastCommit(runtime, cast) {
           native.onCastCommit?.(runtime, cast);
+
           if (cast.skill.id === skill.id)
             seen.push({
               start: cast.start,
@@ -351,6 +353,7 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
                     audience: { recipients: 'party', eligibleCompanionIds: ['fixture-summon'] }
                   }
                 });
+
                 if (extension)
                   runtime.effects.emit({
                     kind: 'packet',

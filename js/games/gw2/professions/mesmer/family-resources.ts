@@ -48,6 +48,7 @@ export function createMesmerIllusionRewards(context: MesmerRuntime) {
         canonicalTime(candidate.at) > canonicalTime(delivery.cast.effectiveEnd)
       )
         return;
+
       context.schedule('mesmer.resource-gain', Math.max(context.time, candidate.at), candidate);
     }
   });

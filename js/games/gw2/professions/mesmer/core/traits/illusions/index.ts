@@ -57,6 +57,7 @@ export const compoundingPower = defineTrait<MesmerSkill>({
       amount: (context, target) => {
         // Illusion strikes use summon ownership, while their applied conditions inherit the Mesmer's outgoing modifiers.
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
+
         return (
           timedStacks(
             context,
@@ -240,9 +241,12 @@ function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void 
     (event.skillId !== ID.PHANTASMAL_MAGE && event.skillId !== ID.THE_PRESTIGE)
   )
     return;
+
   const thePledgeProfile = requireBalanceProfileFromContext(context, TRAIT.THE_PLEDGE);
   const effect = requireEffect(thePledgeProfile, 'condition', 'Burning');
+
   if (!effect) return;
+
   emitTraitProfile(context, TRAIT.THE_PLEDGE, TRAIT.THE_PLEDGE, event, {
     at: event.at,
     effect: { type: 'condition', name: 'Burning' },
@@ -267,6 +271,7 @@ export function cryOfPainConfusion(
   condition: ConditionEffect | undefined
 ): ConditionEffect | undefined {
   if (!hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
+
   const cryOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
   const effect = requireEffect(cryOfPainProfile, 'condition', 'Confusion');
   return effect ?? condition;
@@ -282,6 +287,7 @@ function triggerCompoundingPower(
   delivery: EffectDelivery = {}
 ): void {
   if (count <= 0) return;
+
   const duration = balanceNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'durationMultiplier');
   // Simultaneous gains retain independent applications under one trait activation.
   {
@@ -298,6 +304,7 @@ function triggerCompoundingPower(
       skillId: TRAIT.COMPOUNDING_POWER,
       skillName: traitProfile.name
     };
+
     if (grants.length) {
       // The announcement receipt parents each granted stack's delivery.
       const proc = context.effects.emit({
@@ -328,11 +335,15 @@ function triggerCompoundingPower(
 /** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
 function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
   if (!resolution.traitHits.length) return;
+
   const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
   const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
+
   if (!effect) return;
+
   for (const hit of resolution.traitHits) {
     if (hit.count <= 0) continue;
+
     buildMesmerConditions(
       context,
       resolution.skill.name,
@@ -411,6 +422,7 @@ export function masterOfFragmentationDuration(context: MesmerRuntime): number {
 /** Requiem appends one matching pulse before emission, preserving an empty or removed strike. */
 export function masterOfFragmentationRequiem(context: MesmerRuntime, packets: readonly StrikeTick[]): StrikeTick[] {
   const ticks = [...packets];
+
   if (ticks.length && hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)) {
     const last = ticks[ticks.length - 1];
     ticks.push({ ...last, atMs: last.atMs + masterOfFragmentationDuration(context) * 1000 });

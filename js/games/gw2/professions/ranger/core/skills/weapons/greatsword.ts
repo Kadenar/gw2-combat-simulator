@@ -153,7 +153,9 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.
 function attackRecipient(event?: SimulationEvent | null): 'pet' | 'player' | undefined {
   if (event?.type !== 'damage' || !(Number(event.coefficient) > 0) || event.actorType === 'effect') return;
+
   if (isPetStrike(event)) return 'pet';
+
   if (isPlayerStrike(event)) return 'player';
 }
 
@@ -167,7 +169,9 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
   // Read live applications so consuming the charge also affects other packets at the same timestamp.
   when: (context) => {
     const recipient = attackRecipient(context.event);
+
     if (!recipient) return false;
+
     const buffs =
       recipient === 'pet'
         ? context.runtime?.companions?.get(String(context.event?.summonOwner))?.buffs
@@ -214,7 +218,9 @@ export function grantMaulAttackOfOpportunity(
 /** Consume after damage calculation, then let Maul grant a fresh, non-stacking charge. */
 export function reactToRangerGreatswordDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const recipient = attackRecipient(event);
+
   if (!recipient) return;
+
   const kind = `attack-of-opportunity-${recipient}`;
   context.combat.reviseBuffExpiry(
     kind,

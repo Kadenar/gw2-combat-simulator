@@ -213,6 +213,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
 export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamMorphKind, at: number): void {
   const state = amalgamState.from(context);
   const profile = requireBalanceProfileFromContext(context, PROFILE.strains);
+
   if (morphKind === 'thorns') {
     const duration = balanceNumberFromContext(context, PROFILE.rapaciousStrain, 'durationMultiplier');
     state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
@@ -221,7 +222,9 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
   // The selected packet owns its effect and duration; state windows follow their associated boon.
   for (const effect of profile.effects || []) {
     if (effect.metadata?.trigger !== morphKind) continue;
+
     if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
+
     if (effect.type === 'control') {
       buildEngineerPackets('control', {
         at,
@@ -236,6 +239,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
     }
 
     if (effect.type !== 'boon' && effect.type !== 'buff') continue;
+
     if (effect.type === 'boon') {
       if (morphKind === 'obliterate') state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
       else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);

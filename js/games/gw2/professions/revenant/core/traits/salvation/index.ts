@@ -75,7 +75,9 @@ export const sereneRejuvenation = defineTrait({
 function completeSereneRejuvenation(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const skill = cast.skill;
   const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
+
   if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
+
   {
     const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.SERENE_REJUVENATION);
     emitTraitProfile(runtime, TRAIT.SERENE_REJUVENATION, invocationProfile.id, undefined, {

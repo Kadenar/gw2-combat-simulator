@@ -240,6 +240,7 @@ test('failed eligibility keeps charges and death stops consumption and reschedul
   f.grant('conditional', {
     trigger: () => {
       if (!eligible) return false;
+
       spent++;
     }
   });

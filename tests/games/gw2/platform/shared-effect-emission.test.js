@@ -21,6 +21,7 @@ test('authored activation fields retain precedence over effect delivery causes',
     professionReactions: {
       'damage.resolved'(runtime, event) {
         if (event.sourceId !== 42) return;
+
         for (const identity of [{}, { activationId: undefined }, { activationId: 'authored-activation' }])
           receipts.push(
             runtime.effects.emit({
@@ -56,6 +57,7 @@ test('announcements preserve combat order and sampled damage in detailed and sco
                 attribution,
                 announcement: { type: 'trait', name: 'Fixture trait', at }
               });
+
           for (const at of [1, 2])
             references.push(runtime.effects.emit({ receipt: true, kind: 'packet', event: { ...strike, at } }));
         }
@@ -148,6 +150,7 @@ test('reaction settlement preserves nested condition visibility', () => {
       },
       'condition.applied'(runtime, event) {
         trace.push(event.condition);
+
         if (event.condition === 'Poisoned')
           runtime.effects.emit({
             kind: 'packet',

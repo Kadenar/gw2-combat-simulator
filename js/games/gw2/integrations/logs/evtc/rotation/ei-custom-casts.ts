@@ -35,7 +35,9 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
       .filter((rule) => rule.profession === profile.professionId)
       .map((rule) => rule.skillId)
   );
+
   if (!candidateSkills.size) return result;
+
   // Only actors carrying a relevant skill can suppress a custom cast; avoid decoding every ambient NPC.
   const candidateActors = new Set(
     log.events.filter((event) => candidateSkills.has(event.skillId)).map((event) => event.source)
@@ -78,8 +80,10 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
       recorded(rule.skillId)
     )
       continue;
+
     if (rule.skillId === 71799 && Number(log.events.find((e) => e.stateChange === 15)?.source ?? 0n) >= 159951)
       continue;
+
     const applies = log.events
       .map((event, eventIndex) => ({ event, eventIndex }))
       .filter(
@@ -88,6 +92,7 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
     const removals = log.events.filter(
       (e) => e.skillId === rule.buffId && e.source === playerAddress && isBuffRemoveAll(log, e)
     );
+
     if (rule.duration != null)
       for (const { event, eventIndex } of applies)
         append(
@@ -111,6 +116,7 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
   const effects = effectEvidence(log);
   for (const rule of EFFECT_RULES) {
     if (rule.profession !== profile.professionId || recorded(rule.skillId)) continue;
+
     const signals = effects.filter((e) => e.guid === rule.guid && e.event.source === playerAddress);
     for (const signal of signals) {
       if (
@@ -118,6 +124,7 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
         signals.some((other) => other.event.time < signal.event.time && signal.event.time - other.event.time < 300)
       )
         continue;
+
       append(
         rule.skillId,
         signal.event.time,

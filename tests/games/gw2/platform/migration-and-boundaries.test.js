@@ -28,6 +28,7 @@ async function relativeStaticModuleGraph(entryFiles) {
     const file = await sourceModulePath(path.resolve(pending.pop()));
 
     if (visited.has(file)) continue;
+
     visited.add(file);
     const source = await readFile(file, 'utf8');
     const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -50,7 +51,9 @@ async function relativeStaticModuleGraph(entryFiles) {
     for (const specifier of specifiers) {
       // Package aliases resolve through dist at runtime; architecture crawling resolves the same path against source.
       const alias = aliasedSourceRoots.find(([prefix]) => specifier.startsWith(prefix));
+
       if (!specifier.startsWith('.') && !alias) continue;
+
       const dependency = alias
         ? path.resolve(alias[1], specifier.slice(alias[0].length))
         : path.resolve(path.dirname(file), specifier);
@@ -66,6 +69,7 @@ async function relativeStaticModuleGraph(entryFiles) {
 
 async function sourceModulePath(file) {
   if (!file.endsWith('.js')) return file;
+
   const typeScript = file.replace(/\.js$/, '.ts');
 
   try {
@@ -225,6 +229,7 @@ test('native registry loaders do not pull another profession module graph', asyn
 
       for (const other of professionRegistry) {
         if (other.id === entry.id) continue;
+
         assert.equal(relative.startsWith(`professions/${other.id}/`), false, `${entry.id} imports ${relative}`);
       }
     }

@@ -14,6 +14,7 @@ export function bindDialog(dialog: HTMLDialogElement, dismiss = (): void => dial
       dismiss();
     } else if (event.target === dialog) {
       const bounds = dialog.getBoundingClientRect();
+
       if (
         event.clientX < bounds.left ||
         event.clientX > bounds.right ||
@@ -28,9 +29,12 @@ export function bindDialog(dialog: HTMLDialogElement, dismiss = (): void => dial
 /** Positions embedded modals before native autofocus; closing or cancelling a pending open stops tracking. */
 export function showDialog(dialog: HTMLDialogElement): () => void {
   const pending = pendingDialogs.get(dialog);
+
   if (pending) return pending;
+
   if (!dialog.ownerDocument.documentElement.classList.contains('embed')) {
     if (!dialog.open) dialog.showModal();
+
     return () => {};
   }
 
@@ -39,7 +43,9 @@ export function showDialog(dialog: HTMLDialogElement): () => void {
     onVisible: () => {
       // Open once per request so viewport updates cannot reopen it before the queued close event runs.
       if (opened) return;
+
       opened = true;
+
       if (!dialog.open) dialog.showModal();
     }
   });

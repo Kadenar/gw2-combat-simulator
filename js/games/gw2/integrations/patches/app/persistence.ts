@@ -12,7 +12,9 @@ export async function loadPatchAuthoring(): Promise<AuthoringPayload> {
     headers: { Accept: 'application/json' }
   });
   const result = (await response.json()) as AuthoringPayload & { error?: string };
+
   if (!response.ok) throw new Error(result.error || 'Authoring API failed.');
+
   return result;
 }
 
@@ -27,6 +29,7 @@ export async function savePatchAuthoring(preview: PatchPreview): Promise<SavedAu
     body: JSON.stringify({ preview })
   });
   const result = (await response.json()) as Partial<SavedAuthoringPayload> & { error?: string };
+
   if (!response.ok || !result.preview) {
     throw new Error(result.error || 'Patch preview save failed.');
   }

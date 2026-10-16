@@ -16,6 +16,7 @@ export const engineerTurretSideEffectHandlers: RuntimeProfession<
   },
   'engineer.deploy-turret'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Turret deployment requires a cast trigger.');
+
     const state = runtime.profession.core;
     const owner = { id: 'engineer.turret', generation: state.healingTurretGeneration };
     state.healingTurretActivationId = context.cast.id;

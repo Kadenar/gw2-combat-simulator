@@ -116,7 +116,9 @@ export function emitTraitProfile(
         ? (effect) => ({ ...baseAttribution, ...attributionFor(effect) })
         : { ...baseAttribution, ...attribution }
   };
+
   if (options.receipt) return runtime.effects.emit({ ...request, receipt: true });
+
   runtime.effects.emit(request);
 }
 
@@ -145,13 +147,17 @@ export function invokeTraitSkill(
   options: TraitSkillOptions = {}
 ): boolean {
   const skill = runtime.helpers.skillsById.get(skillId);
+
   if (!skill) throw new TypeError(`Trait ${trait} invokes unknown skill ${skillId}.`);
+
   // Select from the patched skill; an explicitly removed component must never borrow a sibling payload.
   const selected = options.effect ? requireEffect(skill, options.effect.type, options.effect.name) : undefined;
   const effects = (options.effect ? (selected ? [selected] : []) : (skill.effects ?? [])).filter(
     options.effects ?? (() => true)
   );
+
   if (!effects.length) return false;
+
   runtime.effects.emit({
     kind: 'profile',
     profile: skill,
@@ -188,6 +194,7 @@ export function invokeTraitSkill(
       return options.transform ? options.transform(attributed, effect) : attributed;
     }
   });
+
   if (options.announce)
     runtime.effects.emit({
       kind: 'announcement',
@@ -203,5 +210,6 @@ export function invokeTraitSkill(
         detail: options.detail
       }
     });
+
   return true;
 }

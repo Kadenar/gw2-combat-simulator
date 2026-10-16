@@ -13,6 +13,7 @@ export function bindInputCapture(input: HTMLInputElement, commit: (binding: stri
 
   const save = (binding: string | null): void => {
     if (binding != null) commit(binding);
+
     reset();
   };
 
@@ -22,6 +23,7 @@ export function bindInputCapture(input: HTMLInputElement, commit: (binding: stri
   });
   input.addEventListener('keydown', (event) => {
     pressed.add(event.code);
+
     if (event.isComposing || event.metaKey) {
       reset();
       return;
@@ -35,7 +37,9 @@ export function bindInputCapture(input: HTMLInputElement, commit: (binding: stri
 
     event.preventDefault();
     event.stopPropagation();
+
     if (event.repeat) return;
+
     if (event.code === 'Escape') {
       reset();
       return;
@@ -61,24 +65,31 @@ export function bindInputCapture(input: HTMLInputElement, commit: (binding: stri
   // A modifier commits only if no other key/button participated before its release.
   input.addEventListener('keyup', (event) => {
     pressed.delete(event.code);
+
     if (event.code !== pendingModifier) return;
+
     event.preventDefault();
     event.stopPropagation();
+
     if (!event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) save(event.code);
     else pendingModifier = null;
   });
   input.addEventListener('pointerdown', (event) => {
     pendingModifier = null;
     const key = inputMouseButtonCode(event.button);
+
     if (!key) return;
+
     event.preventDefault();
     event.stopPropagation();
+
     if (!event.metaKey) save(inputBindingForKey(key, event));
   });
   // Middle-click autoscroll and side-button navigation must not escape the capture field.
   for (const type of ['pointerup', 'mouseup', 'auxclick'])
     input.addEventListener(type, (event) => {
       if (!inputMouseButtonCode((event as MouseEvent).button)) return;
+
       event.preventDefault();
       event.stopPropagation();
     });

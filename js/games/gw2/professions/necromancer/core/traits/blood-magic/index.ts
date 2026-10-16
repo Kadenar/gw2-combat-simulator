@@ -204,12 +204,15 @@ export const bansheesWail = defineTrait({
   hooks: {
     modifyEffects(runtime, cast, effects) {
       if (cast.skill.id !== ID.LOCUST_SWARM || !hasTrait(runtime, TRAIT.BANSHEES_WAIL)) return effects;
+
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.BANSHEES_WAIL);
       const multiplier = balanceProfileNumber(profile, 'durationMultiplier');
       const pulseIntervalMs = balanceProfileNumber(profile, 'pulseInterval') * 1000;
       return effects.map((effect) => {
         if (effect.type === 'boon') return { ...effect, duration: effect.duration * multiplier };
+
         if (effect.type !== 'strike' || !effect.ticks?.length) return effect;
+
         const ticks = effect.ticks;
         const last = ticks[ticks.length - 1]!;
         return {
@@ -279,12 +282,15 @@ const VAMPIRIC_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMP
 function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const summonHit = event.actorType === 'summon';
   const minionHit = summonHit && event.summonKind !== 'spirit';
+
   if (event.actorType !== 'player' && !summonHit) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.VAMPIRIC);
   // Player and minion siphons are separately named, so removing one never borrows the other's values.
   const effect = requireEffect(profile, 'strike', minionHit ? 'minion' : 'player');
+
   if (!effect) return;
+
   queueBloodMagicLifeSteal(context, event, {
     name: minionHit ? 'Vampiric — Minion Life Steal' : 'Vampiric',
     traitId: TRAIT.VAMPIRIC,
@@ -299,14 +305,18 @@ function vampiricPresenceActorKey(context: NecromancerResolverContext, event: Ne
   // Spirit attacks are owner-attributed and share the player's proc interval;
   // ordinary minions remain independent capped allied recipients.
   if (event.actorType === 'player' || (event.actorType === 'summon' && event.summonKind === 'spirit')) return 'self';
+
   if (event.actorType !== 'summon') return null;
+
   const recipients = gw2AlliedEffectRecipients(context.config, {
     recipients: 'party',
     maximumRecipients: 5,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
   });
   const owner = event.summonOwner || '';
+
   if (owner && recipients.companionIds.includes(owner)) return owner;
+
   if (!owner && recipients.companionIds.length > 0) {
     return `summon:${String(event.sourceId || event.skillId || event.skillName || 'unknown')}`;
   }
@@ -324,8 +334,10 @@ function vampiricPresenceDamage(
   const state = professionCoreState(context);
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
   const effect = requireEffect(profile, 'strike', inShroud ? 'shroud' : 'base');
+
   // A removed packet produces no siphon; callers decide whether a recipient cooldown can be spent.
   if (!effect) return;
+
   return {
     name: 'Vampiric Presence',
     traitId: TRAIT.VAMPIRIC_PRESENCE,
@@ -345,22 +357,31 @@ function vampiricAuraActive(
   at: number
 ): boolean {
   if (context.combatStartPending) return false;
+
   const firstPulse = (context.combatStartTime ?? 0) + balanceProfileNumber(profile, 'auraPulseInterval') / 2;
   return canonicalTime(at) >= canonicalTime(firstPulse);
 }
 
 function applyVampiricPresence(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const actorKey = vampiricPresenceActorKey(context, event);
+
   // Ineligible effects do no balance lookup; eligible actors resolve their live profile only once.
   if (!actorKey) return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.VAMPIRIC_PRESENCE);
+
   if (!vampiricAuraActive(context, profile, event.at)) return;
+
   const damage = vampiricPresenceDamage(context, profile);
+
   if (!damage) return;
+
   const key = actorKey === 'self' ? 'necromancer.core.vampiricPresence' : `vampiricPresence:${actorKey}`;
+
   // Player and companion hits keep independent cooldowns. In-game logs bracket the ICD at (498, 500] ms
   // with a proc exactly at +0.5 s, so a hit on the deadline is eligible.
   if (canonicalTime(event.at) < canonicalTime(context.procs.deadline(key))) return;
+
   context.procs.setDeadline(key, event.at + balanceProfileNumber(profile, 'cooldown'));
   queueBloodMagicLifeSteal(context, event, damage);
 }
@@ -407,12 +428,14 @@ function consumeTasteForBlood(
   const effect = requireEffect(profile, 'strike', 'Strike');
   // Application time remains owner metadata: future grants cannot pay for an earlier hit.
   const grants = professionCoreState(context).tasteForBloodGrants[recipient] ?? [];
+
   // Stable grant identity keeps each allied callback bound to its own application instead of borrowing a sibling.
   if (
     !effect ||
     !consumeChargeBatch(grants, event.at, (grant) => grant.at <= event.at && (!application || grant === application))
   )
     return false;
+
   // Taste for Blood is a power-only life siphon, so armor and weapon strength
   // must not enter its flat base plus Power damage formula.
   queueBloodMagicLifeSteal(context, event, {
@@ -428,6 +451,7 @@ function consumeTasteForBlood(
 /** Gives each selected player or minion its own expiring stack application. */
 function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.resolvedAudience?.includesSelf) addTasteForBloodApplication(context, event, 'self');
+
   context.alliedStrikes.registerRecipients(
     (allyIndex) => {
       const recipient = alliedTasteForBloodRecipient(allyIndex);
@@ -473,6 +497,7 @@ function applyOverflowingThirstDamage(context: NecromancerResolverContext, event
       : event.actorType === 'summon' && event.summonOwner
         ? companionTasteForBloodRecipient(event.summonOwner)
         : null;
+
   if (recipient) consumeTasteForBlood(context, event, recipient);
 }
 
@@ -487,9 +512,12 @@ const TASTE_FOR_BLOOD_SKILLS = new Set<number>([
 /** Dagger activations deliver party charges before player, minion, and allied hits spend their individual pools. */
 function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (!TASTE_FOR_BLOOD_SKILLS.has(Number(cast.skill.id)) || !hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.OVERFLOWING_THIRST);
   const buff = requireEffect(profile, 'buff', 'taste-for-blood');
+
   if (!buff) return;
+
   emitTraitProfile(runtime, TRAIT.OVERFLOWING_THIRST, TRAIT.OVERFLOWING_THIRST, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
@@ -528,8 +556,11 @@ function startNecromancerAlliedOpportunities(runtime: NecromancerRuntime): void 
     trigger(opportunity) {
       // Allies share the player's aura pulse; strikes before it neither siphon nor spend the recipient ICD.
       if (!vampiricAuraActive(runtime, profile, opportunity.at)) return false;
+
       const damage = vampiricPresenceDamage(runtime, profile);
+
       if (!damage) return false;
+
       queueBloodMagicLifeSteal(
         runtime,
         {

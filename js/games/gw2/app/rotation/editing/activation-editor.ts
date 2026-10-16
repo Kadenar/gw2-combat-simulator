@@ -52,8 +52,10 @@ export function activationDamageCommitMs(
   skill: Pick<Skill, 'effects' | 'interruptCommitMs' | 'interruptMode'> | null | undefined
 ): number | null {
   if (!skill) return null;
+
   // Per-packet channels do not require a commit cutoff; each landed packet is independently valid.
   if (skill.interruptMode === 'per-packet') return 0;
+
   const damageEffects = (skill.effects || []).filter(
     (effect) => effect.type === 'strike' || effect.type === 'condition'
   );
@@ -61,7 +63,9 @@ export function activationDamageCommitMs(
     .map((effect) => effect.interruptCommitMs ?? skill.interruptCommitMs)
     .filter((cutoff): cutoff is number => Number.isFinite(Number(cutoff)) && Number(cutoff) >= 0)
     .map(Number);
+
   if (cutoffs.length) return Math.min(...cutoffs);
+
   const skillCutoff = Number(skill.interruptCommitMs);
   return skill.interruptCommitMs != null && Number.isFinite(skillCutoff) && skillCutoff >= 0 ? skillCutoff : null;
 }
@@ -80,11 +84,13 @@ function activationDamageCommitWarning(
   damageCommitMs: number | null | undefined
 ): string {
   const cutoff = Number(damageCommitMs);
+
   if (damageCommitMs == null || !Number.isFinite(cutoff) || cutoff < 0) {
     return 'No damage commit time is configured. This interrupted skill will contribute no damage; configure interruptCommitMs before using interruption.';
   }
 
   const interrupt = Number(interruptMs);
+
   if (Number.isFinite(interrupt) && interrupt < cutoff) {
     return `This skill will contribute no damage before its ${cutoff} ms damage commit time. Enter at least ${cutoff} ms to use interruption.`;
   }
@@ -98,6 +104,7 @@ export function validateActivationInterruptMs(
   fullCastMs: number | null | undefined = null
 ): DurationValidation {
   const parsed = Number(rawValue);
+
   if (!Number.isFinite(parsed) || parsed < GW2_ACTION_TICK_MS) {
     return {
       valid: false,
@@ -114,6 +121,7 @@ export function validateActivationInterruptMs(
 
   const value = parsed;
   const fullDuration = Math.round(Number(fullCastMs) || 0);
+
   if (value % GW2_ACTION_TICK_MS !== 0) {
     return {
       valid: false,
@@ -138,6 +146,7 @@ export function validateActivationConcurrentOffsetMs(
 ): DurationValidation {
   const parsed = Number(rawValue);
   const normalizedMinimum = minimumMs == null ? null : Math.round(Number(minimumMs) || 0);
+
   if (
     (typeof rawValue === 'string' && rawValue.trim() === '') ||
     !Number.isFinite(parsed) ||
@@ -173,11 +182,13 @@ export function activationCombatStartRelation(
   const totalHits = impactOffsetsMs.length;
   const firstHitMs = impactOffsetsMs[0] ?? 0;
   const missedHits = impactOffsetsMs.filter((offset) => offset < combatStartAfterCastMs).length;
+
   if (missedHits === 0) {
     return { text: `Lands ${firstHitMs - combatStartAfterCastMs} ms after Combat Start`, missedHits };
   }
 
   const earlyMs = combatStartAfterCastMs - firstHitMs;
+
   if (missedHits === totalHits) {
     const missed = totalHits === 1 ? 'its hit' : `all ${totalHits} hits`;
     return { text: `Lands ${earlyMs} ms before Combat Start, so ${missed} will be missed`, missedHits };
@@ -192,6 +203,7 @@ export function activationCombatStartRelation(
 /** Accepts any positive whole-millisecond travel delay; landing time is not bound to the action tick. */
 function validateActivationImpactDelayMs(rawValue: string | number): DurationValidation {
   const parsed = Number(rawValue);
+
   if ((typeof rawValue === 'string' && rawValue.trim() === '') || !Number.isFinite(parsed) || parsed < 1) {
     return { valid: false, error: 'Enter an impact delay of at least 1 ms.' };
   }
@@ -338,7 +350,9 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   normalRadio.checked = !hasConfiguredTiming;
   configuredRadio.checked = hasConfiguredTiming;
   input.value = String(hasConfiguredTiming ? Math.round(currentConfiguredMs) : suggestedMs);
+
   if (!isConcurrentBehavior && fullCastMs > 0) input.max = String(fullCastMs);
+
   fullCast.textContent =
     !isConcurrentBehavior && fullCastMs > 0
       ? options.quicknessCastMs != null
@@ -355,6 +369,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const baseImpactOffsetsMs = options.impactOffsetsMs?.length
     ? options.impactOffsetsMs.map((offset) => Math.round(offset) - savedImpactDelayMs)
     : null;
+
   if (targetingMode && impactDelayInput) {
     targetingMode.value = options.offTarget === true ? 'off-target' : savedImpactDelayMs > 0 ? 'delayed' : 'on-target';
     impactDelayInput.value = String(savedImpactDelayMs > 0 ? savedImpactDelayMs : DEFAULT_IMPACT_DELAY_MS);
@@ -363,6 +378,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const selectedTargeting = (): string => targetingMode?.value ?? 'on-target';
   const previewImpactDelayMs = (): number => {
     if (selectedTargeting() !== 'delayed' || !impactDelayInput) return 0;
+
     const validation = validateActivationImpactDelayMs(impactDelayInput.value);
     return validation.valid ? validation.value : 0;
   };
@@ -371,6 +387,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const updateImpactPreview = (): void => {
     combatRelation.hidden = true;
     combatRelation.classList.remove('is-ignored');
+
     if (baseImpactOffsetsMs == null) {
       targetImpact.textContent = options.targetImpactDetails || '';
     } else if (selectedTargeting() === 'off-target') {
@@ -381,6 +398,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
       targetImpact.textContent = `First hit: ${impactOffsetsMs[0]} ms`;
       // Hits before Combat Start are discarded, so precasts show which side of the marker they land on.
       let combatStartAfterCastMs = options.combatStartAfterCastMs;
+
       if (isConcurrentBehavior && options.previewCombatStartAfterCastMs) {
         const timing = normalRadio.checked
           ? { valid: true as const, value: null }
@@ -401,12 +419,14 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
 
   const updateTargeting = (): void => {
     if (impactDelayRow) impactDelayRow.hidden = selectedTargeting() !== 'delayed';
+
     error.textContent = '';
     updateImpactPreview();
   };
 
   targetingMode?.addEventListener('change', () => {
     updateTargeting();
+
     if (selectedTargeting() === 'delayed') {
       impactDelayInput?.focus();
       impactDelayInput?.select();
@@ -425,6 +445,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     }
 
     const validation = validateActivationImpactDelayMs(impactDelayInput.value);
+
     if (!validation.valid) {
       error.textContent = validation.error;
       impactDelayInput.focus();
@@ -458,6 +479,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   normalRadio.addEventListener('change', updateMode);
   configuredRadio.addEventListener('change', () => {
     updateMode();
+
     if (configuredRadio.checked) {
       input.focus();
       input.select();
@@ -474,7 +496,9 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
 
   const applyChanges = (): void => {
     const targeting = readTargeting();
+
     if (!targeting) return;
+
     if (normalRadio.checked) {
       handle.close();
       options.onApply(null, targeting);
@@ -484,6 +508,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     const validation = isConcurrentBehavior
       ? validateActivationConcurrentOffsetMs(input.value, minimumMs)
       : validateActivationInterruptMs(input.value, fullCastMs);
+
     if (!validation.valid) {
       error.textContent = validation.error;
       input.focus();

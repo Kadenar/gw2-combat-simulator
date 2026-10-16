@@ -204,6 +204,7 @@ test('same-named contributions retain their own parent, actor, display label, an
       entry.actorType === 'summon' ? 'Entities' : entry.actorType === 'environment' ? 'Environment' : 'Player'
     );
     assert.equal(keys.get(skillDamageIdentityKey(entry)), row.key);
+
     if (entry.icon) assert.equal(resultSkillIcon({}, row), entry.icon);
   }
 });

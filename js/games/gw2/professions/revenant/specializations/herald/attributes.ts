@@ -11,7 +11,9 @@ import type { HeraldState } from '#gw2/professions/revenant/specializations/hera
 export const heraldAttributes: Gw2AttributeContributionCalculator = (context) => {
   const core = revenantRuntimeCoreState(context);
   const state = revenantRuntimeSpecializationState(context, 'Herald') as Partial<HeraldState>;
+
   if (!heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, context.time)) return [];
+
   const active = core.activeUpkeeps?.some(
     (upkeep) => upkeep.skillId === ID.FACET_OF_NATURE && upkeep.startsAt <= context.time
   );

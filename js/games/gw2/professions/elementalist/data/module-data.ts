@@ -104,6 +104,7 @@ const ELEMENTALIST_DECLARED_SKILLS: readonly ElementalistSkill[] = Object.freeze
     const declaration = ELEMENTALIST_SKILL_MECHANICS[id];
 
     if (!declaration) return [];
+
     // The owning skill declaration supplies identity fields before catalog validation checks the merged skill.
     const skill = { ...declaration, id } as ElementalistSkill;
     return [skill];

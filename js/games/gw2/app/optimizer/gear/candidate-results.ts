@@ -47,7 +47,9 @@ export function createOptimizerResultGroups(): OptimizerResultGroups {
 /** Equivalent scores can have different display identities; keep their order independent of worker completion. */
 function compareDisplayResults(left: OptimizerCandidate, right: OptimizerCandidate): number {
   const scoreOrder = compareOptimizerCandidates(left, right);
+
   if (scoreOrder) return scoreOrder;
+
   const a = JSON.stringify(left.equipment);
   const b = JSON.stringify(right.equipment);
   return a < b ? -1 : a > b ? 1 : 0;
@@ -75,12 +77,15 @@ export function retainOptimizerGroup(
 ): void {
   const key = groupKey(candidate, filter, sets);
   const index = results.findIndex((result) => groupKey(result, filter, sets) === key);
+
   if (index >= 0) {
     if (compareDisplayResults(candidate, results[index]) >= 0) return;
+
     results.splice(index, 1);
   }
 
   results.push(candidate);
   results.sort(compareDisplayResults);
+
   if (results.length > OPTIMIZER_FILTER_LIMIT) results.pop();
 }

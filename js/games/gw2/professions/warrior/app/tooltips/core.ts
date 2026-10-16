@@ -26,8 +26,10 @@ export const warriorCoreTooltips = {
     // Tooltips are shared across builds, so routed rewards name both destinations while direct grants keep their owner.
     ...(entity.sideEffects ?? []).flatMap(({ do: action }) => {
       if (!('amount' in action) || typeof action.amount !== 'number') return [];
+
       if (action.type === 'warrior.grant-combat-resource')
         return [{ name: 'Adrenaline gained (Flow for Bladesworn)', detail: tooltipDecimal(action.amount) }];
+
       if (action.type === 'resourceGrant' && ['adrenaline', 'flow'].includes(action.resource))
         return [
           {
@@ -35,6 +37,7 @@ export const warriorCoreTooltips = {
             detail: tooltipDecimal(action.amount)
           }
         ];
+
       return [];
     }),
     ...(entity.adrenalineCost == null
@@ -69,7 +72,9 @@ export const warriorCoreTooltips = {
     [ID.FIERCE_BLOW]: skillTooltip('Strike your target. Damage increases against a defiant target.', undefined),
     [ID.MIGHTY_THROW]: (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id);
+
       if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
       const effects = simulationEffectFacts(
         selected.effects
           ?.map((effect) =>
@@ -169,7 +174,9 @@ export const warriorCoreTooltips = {
     }),
     [ID.BLOODTHIRSTER]: (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id);
+
       if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
       return {
         description:
           'Spend adrenaline to strike your target. Replace the base Bleeding application with the tier for the adrenaline spent.',

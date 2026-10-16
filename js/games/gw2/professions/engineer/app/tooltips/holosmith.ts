@@ -59,6 +59,7 @@ function heatPacketTooltip(profileId: SkillId, description: string, field = fals
 
     if (profile.packetInterval != null)
       facts.push(profileFact(balanceContext, profileId, 'packetInterval', 'Pulse interval', tooltipSeconds));
+
     return { description, facts };
   };
 }

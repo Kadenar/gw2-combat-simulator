@@ -32,8 +32,10 @@ function releaseEffects(
     (cast.skill.type === 'Profession' ? (gw2PrimaryWeapon(runtime.config, set) ?? '') : 'Unequipped');
   return effects.flatMap((effect): SkillEffect[] => {
     if (effect.type === 'strike') return [{ ...effect, weapon }];
+
     if (effect.type === 'condition') {
       if (cast.skill.id === ID.RELEASE_POTENTIAL_MESMER) return [];
+
       if (assassin) {
         const multiplier = 1 + affinity * Number(effect.durationPerAffinity || 0);
         const ticks = conditionEffectTicks(effect).map((tick) => ({ ...tick, duration: tick.duration * multiplier }));

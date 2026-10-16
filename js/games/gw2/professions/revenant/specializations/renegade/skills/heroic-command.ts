@@ -19,7 +19,9 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   const state = renegadeState.from(runtime);
   const profile = fervorProfile(runtime);
   const fervor = requireEffect(profile, 'buff', 'kallas-fervor');
+
   if (!fervor) return;
+
   const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
   state.kallasFervorMaximumStacks = maximum;
   state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
@@ -27,10 +29,14 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   for (const application of state.kallasFervor)
     if (application.at <= runtime.time) application.expiresAt = runtime.time + duration;
   const stacks = activeKallasFervorStacks(state, runtime.time, maximum);
+
   if (!stacks) return;
+
   const source = heroicCommandProfile(runtime, cast);
   const might = requireEffect(source, 'boon', 'might');
+
   if (!might) return;
+
   runtime.effects.emit({
     kind: 'profile',
     profile: source,

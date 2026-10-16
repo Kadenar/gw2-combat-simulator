@@ -11,7 +11,9 @@ export function reconstructMesmerDpsReportActions(
 ): readonly RecordedLogAction[] {
   return context.recordedActions.flatMap((action) => {
     if (action.rawSkillId === POWER_SPIKE_ID) return [{ ...action, independentTimeline: true }];
+
     if (context.profile.specializationId !== 'mirage' || action.rawSkillId !== -17) return [action];
+
     // Preserve sources identified from the raw adapter's buff, damage and effect evidence.
     if (action.canonicalSkillId != null && action.canonicalSkillId !== -17) {
       return context.recordedActions.some(

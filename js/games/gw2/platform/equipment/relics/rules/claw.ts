@@ -7,6 +7,7 @@ export const claw = defineRelic({
   buffPolicies: [{ kind: 'relic-claw', name: 'Relic of the Claw', maximumStacks: 1 }],
   control(ctx, _state, event) {
     if (!isGw2PlayerActorEvent(event)) return;
+
     recordTimedBuffProc(ctx, event, {
       relicId: RELIC_IDS.CLAW,
       kind: 'relic-claw',

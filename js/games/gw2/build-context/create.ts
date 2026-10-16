@@ -80,11 +80,13 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
     const balanceContext = profession.balanceContextFor(patchId);
     // Remove attribute-backed effects before conversions while borrowing untouched equipment and rotation data.
     let build: Readonly<TBuild> = inputBuild;
+
     if (disabled?.type === 'Boon') {
       const key = disabled.name.toLowerCase();
       build = { ...build, assumptions: { ...build.assumptions, [key]: key === 'might' ? 0 : false } };
     } else if (disabled?.type === 'Food') build = { ...build, food: '' };
     else if (disabled?.type === 'Utility') build = { ...build, utility: '' };
+
     // Attribute passives use the starting bar; input tracing also needs the other selected bars after swaps.
     const loadout = declarations.resolveSkillLoadout(build, specialization);
     const selectedSkillIds = Object.freeze(
@@ -98,7 +100,9 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
     const cache = new Map<WeaponSet, BuildAttributes>();
     const attributes = (weaponSet: WeaponSet): BuildAttributes => {
       if (weaponSet !== 1 && weaponSet !== 2) throw new RangeError('Weapon set must be 1 or 2.');
+
       let result = cache.get(weaponSet);
+
       if (!result) {
         result = calculateAttributes(
           build,

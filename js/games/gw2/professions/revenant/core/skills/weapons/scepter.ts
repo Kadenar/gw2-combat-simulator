@@ -198,6 +198,7 @@ const REVENANT_BOND_EXPIRY = 'revenant.bond-expiry';
 function releaseRevenantBond(runtime: RevenantRuntime): void {
   const active = runtime.consumeFlip(ID.OTHERWORLDLY_ATTRACTION_ENEMY);
   runtime.consumeFlip(ID.DEACTIVATE_OTHERWORLDLY_BOND);
+
   if (active)
     runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.OTHERWORLDLY_BOND)!, runtime.time);
 }
@@ -233,7 +234,9 @@ function auraSkill(runtime: RevenantRuntime): RevenantSkill {
 function auraPulseTicks(skill: Skill) {
   const pulse = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Pulsing Damage');
   const ticks = (pulse as StrikeEffect | undefined)?.ticks;
+
   if (!pulse || !ticks?.length) throw new Error('Blossoming Aura is missing its pulse ticks.');
+
   return { pulse, ticks };
 }
 
@@ -256,10 +259,14 @@ function startRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast
 function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
   const flips = runtime.profession.core.availableFlips;
   const expiresAt = flips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt || 0;
+
   if (!expiresAt) return;
+
   const skill = auraSkill(runtime);
   const final = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Final Damage');
+
   if (final?.type !== 'strike') throw new Error('Blossoming Aura is missing its final strike.');
+
   // Integer clock arithmetic counts only completed fuse intervals at detonation.
   const stacks = Math.min(
     3,
@@ -308,8 +315,10 @@ function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unknown): v
   const skill = auraSkill(runtime);
   const { pulse, ticks } = auraPulseTicks(skill);
   const flips = runtime.profession.core.availableFlips;
+
   if (index === 0) armSkillFlip(flips, ID.DETONATE_BLOSSOMING_AURA, runtime.time, expiresAt);
   else if (Number(flips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt) !== expiresAt) return;
+
   if (index === ticks.length) {
     detonateAura(runtime, activationId);
     return;
@@ -343,8 +352,10 @@ function detonateRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeC
 export const scepterLifecycle = {
   availability(runtime, skill) {
     const bond = runtime.profession.core.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY];
+
     if (skill.id === ID.OTHERWORLDLY_BOND && bond && runtime.time < (bond.expiresAt ?? Infinity))
       return denySkillCast(skill, 'revenant.bond-active', 'release the active tether first.');
+
     return CAST_READY;
   },
   onCastCommit(runtime, cast) {

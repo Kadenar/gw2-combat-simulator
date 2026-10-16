@@ -43,6 +43,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       at: runtime.time,
       expiresAt: Infinity
     }));
+
     if ('fullEndurance' in inputs) runtime.profession.core.endurance.value = inputs.fullEndurance ? 100 : 0;
   },
   buffPolicies: renegadeBuffPolicies,
@@ -59,11 +60,13 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
 
   modifyEffects(_runtime, cast, effects) {
     if (cast.skill.id === ID.HEROIC_COMMAND) return [];
+
     return bandTogether.get(cast)?.enhanced ? [] : effects;
   },
   sideEffectHandlers: {
     'revenant.heroic-command'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Keep Core rewards ahead of elite completion state and packets.
       completeRevenantCast(runtime, context.cast);
       heroicCommand(runtime, context.cast);
@@ -73,20 +76,25 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     },
     'revenant.arm-razorclaw'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Elite completion follows Core trait publication, including any immediate boon reactions.
       completeRevenantCast(runtime, context.cast);
       const selected = bandTogether.get(context.cast);
+
       if (!selected) return;
+
       razorclawsRage(runtime, context.cast, runtime.helpers.skillsById.get(selected.profileSkillId) ?? context.skill);
     },
     'revenant.complete-band-together'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Keep Core rewards ahead of elite completion state and packets.
       completeRevenantCast(runtime, context.cast);
       completeBandTogether(runtime, context.cast);
     },
     'revenant.soulcleave-allies'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       // Keep Core rewards ahead of elite completion state and packets.
       completeRevenantCast(runtime, context.cast);
       grantSoulcleaveAllies(runtime);
@@ -94,6 +102,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
   },
   onCastCommit(runtime, cast) {
     runtime.fireTrigger(renegadeCastCompleted, { cast });
+
     if (cast.skill.id === ID.SWAP_LEGENDS) runtime.fireTrigger(eliteLegendInvoked, { at: runtime.time });
   },
   // Only Bombardment's first resolved hit emits Vindication's control packet.
@@ -102,9 +111,13 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     'damage.resolving'(runtime, event) {
       // Core already applied its additive bonus; Fervor joins the same additive life-steal sum.
       const core = revenantLifeSiphonBonus(runtime, event);
+
       if (core == null) return;
+
       const stacks = activeKallasFervorStacks(renegadeState.from(runtime), runtime.time);
+
       if (!stacks) return;
+
       const perStack = balanceProfileNumber(fervorProfile(runtime), 'lifeSiphonDamagePerStack');
       return {
         flatStrikeMultiplier: ((event.flatStrikeMultiplier ?? 1) * (1 + core + stacks * perStack)) / (1 + core)
@@ -112,6 +125,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
     },
     'damage.resolved'(runtime, event, details) {
       if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+
       runtime.fireTrigger(renegadeStruck, {
         cause: event,
         hit: (details as { hitContext?: Gw2HitResolutionContext }).hitContext

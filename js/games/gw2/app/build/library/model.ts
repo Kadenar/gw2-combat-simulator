@@ -62,8 +62,10 @@ export function templateTileContent(preset: BuildTemplatePreset): {
 
 export function templateCategory(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): TemplateCategory {
   const description = `${preset.label} ${preset.build}`.toLowerCase();
+
   // Inferno presets use power gear but omit the damage type from their display name.
   if (/\b(?:power|inferno)\b|\/b-power-/.test(description)) return 'power';
+
   if (/\b(?:condi|condition)\b|\/b-condi(?:tion)?-/.test(description)) {
     return 'condi';
   }
@@ -74,8 +76,11 @@ export function templateCategory(preset: Pick<BuildTemplatePreset, 'label' | 'bu
 export function templateBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'>): TemplateBoon {
   // Template names encode support roles, so the selector can filter them without loading every build asset.
   const description = `${preset.label} ${preset.build}`.toLowerCase();
+
   if (/\balacrity\b|[-/]alac-/.test(description)) return 'alacrity';
+
   if (/\bquickness\b|[-/]quick-/.test(description)) return 'quickness';
+
   return 'none';
 }
 

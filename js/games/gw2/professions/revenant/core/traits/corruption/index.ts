@@ -164,6 +164,7 @@ function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantS
   if (event.condition === 'Chilled') {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.ABYSSAL_CHILL);
     const condition = requireEffect(profile, 'condition', 'Torment');
+
     if (condition) {
       const name = String(condition.condition);
       emitTraitProfile(runtime, TRAIT.ABYSSAL_CHILL, TRAIT.ABYSSAL_CHILL, event, {

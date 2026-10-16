@@ -8,6 +8,7 @@ export type AttributedEventLogRow = EventLogRow & { readonly event?: SimulationE
 /** Name actual recipients when resolution is available, otherwise describe the authored audience. */
 function recipients(event: SimulationEvent): string {
   const resolved = event.resolvedAudience;
+
   if (resolved) {
     const labels = [
       ...(resolved.includesSelf ? ['self'] : []),
@@ -20,7 +21,9 @@ function recipients(event: SimulationEvent): string {
   }
 
   const audience = event.audience;
+
   if (!audience || audience.recipients === 'self') return 'self';
+
   return `${audience.recipients}${audience.affectsSelf === false ? ' (excluding self)' : ''}`;
 }
 
@@ -43,7 +46,9 @@ export function consolidateTraitBuffRows(
     }
 
     const event = row.event;
+
     if (event?.type !== 'buff' || event.source !== 'Trait' || event.sourceId == null) continue;
+
     // Missing causal identity permits attribution, but never a guess at which activation to merge.
     const key = JSON.stringify([event.sourceId, event.at, event.parentEventOrder ?? row.id]);
     const group = groups.get(key) ?? [];
@@ -103,7 +108,9 @@ export function consolidateTraitBuffRows(
     });
     for (const row of group) {
       if (row === anchor) continue;
+
       removed.add(row);
+
       if (row.id && anchor.id) redirects.set(row.id, anchor.id);
     }
   }

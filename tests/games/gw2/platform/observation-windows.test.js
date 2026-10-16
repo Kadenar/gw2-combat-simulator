@@ -24,6 +24,7 @@ test('absolute observation uses exact canonical rotation boundaries', () => {
       for (const offsetMs of [-0.2, -0.05, -0.001, -0.0004, 0, 0.001, 0.05]) {
         const policy = { kind: 'absolute', endTimeMs: endMs + offsetMs };
         const run = () => simulateGw2({ ...options, observationPolicy: policy });
+
         if (offsetMs <= -0.001) {
           assert.throws(run, {
             name: 'RangeError',
@@ -138,6 +139,7 @@ test('resolver cutoff includes the canonical instant and excludes the following 
     assert.equal(result.totalDamage, 1);
     assert.equal(result.firstHitTime, 0.6);
     assert.deepEqual(seen, [0.6]);
+
     if (output === 'detailed') assert.equal(result.events[0].at, 0.6);
   }
 

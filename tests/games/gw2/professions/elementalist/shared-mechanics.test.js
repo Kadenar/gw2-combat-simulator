@@ -775,6 +775,7 @@ test('Tempest overloads retain their full etching charge only within the active 
         wait === 0,
         `${attunement} overload after ${wait} ms`
       );
+
       if (wait === 0) assert.deepEqual(result.warnings, []);
       else assert.ok(result.warnings.some((warning) => warning.includes(payoff)));
     }

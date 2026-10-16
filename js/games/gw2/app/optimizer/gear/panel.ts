@@ -91,6 +91,7 @@ function updatePreviewSelection(panel: HTMLElement, candidates: OptimizerCandida
     const key = index < 0 ? 'equipped' : candidates[index]?.key;
     const selected = panel.dataset.selectedKey !== undefined && panel.dataset.selectedKey === key;
     row.classList.toggle('optimizer-selected', selected);
+
     if (selected) row.setAttribute('aria-current', 'true');
     else row.removeAttribute('aria-current');
   });
@@ -99,7 +100,9 @@ function updatePreviewSelection(panel: HTMLElement, candidates: OptimizerCandida
 /** Keep selectors outside the simulation result subtree so baseline rendering cannot discard an active search. */
 export function renderGearOptimizer(app: ProfessionAppState): void {
   const runner = app.gearOptimizerRunner;
+
   if (!runner || typeof document === 'undefined') return;
+
   let panel = document.getElementById('gear-optimizer');
   const displayedResults = (): OptimizerCandidate[] => {
     const filter = (panel?.querySelector<HTMLInputElement>('input[name="optimizer-filter"]:checked')?.value ||
@@ -115,7 +118,9 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
 
   if (!panel) {
     const results = document.getElementById('optimizer-search');
+
     if (!results) return;
+
     // The tab supplies the title; open directly on its controls without a second disclosure heading.
     panel = document.createElement('div');
     panel.id = 'gear-optimizer';
@@ -153,6 +158,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     // Clearing only slot overrides restores the shared prefix choices and invalidates an active search.
     form.addEventListener('click', (event) => {
       if (!(event.target as HTMLElement).closest('[data-clear-forced-slots]')) return;
+
       form.querySelectorAll<HTMLSelectElement>('[data-forced-slot]').forEach((select) => {
         select.value = '';
       });
@@ -167,6 +173,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       try {
         if (app.simulationStatus !== 'idle' || app.resultRevision !== app.buildRevision)
           throw new Error('Wait for the current build simulation to finish.');
+
         const request = captureGearOptimizerRequest(app, readSelections(form), { kind: 'rotation' }, 'fast');
         app.randomDistributionRunner.cancel?.();
         app.modifierContributionRunner.cancel?.();
@@ -182,10 +189,12 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.querySelector('[data-role="optimizer-cancel"]')!.addEventListener('click', () => runner.cancel());
     // Outside clicks close the optimizer filter even when no results view has been mounted.
     const root = panel.ownerDocument;
+
     if (!filterDismissalRoots.has(root)) {
       filterDismissalRoots.add(root);
       root.addEventListener('pointerdown', (event) => {
         const settings = root.querySelector<HTMLDetailsElement>('.optimizer-filter-settings[open]');
+
         if (settings && !settings.contains(event.target as Node)) settings.open = false;
       });
     }
@@ -194,19 +203,24 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.querySelector('.optimizer-filter-settings')!.addEventListener('change', () => renderGearOptimizer(app));
     panel.querySelector<HTMLDetailsElement>('.optimizer-filter-settings')!.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
+
       const settings = event.currentTarget as HTMLDetailsElement;
       settings.open = false;
       settings.querySelector('summary')!.focus();
     });
     const selectResult = (event: MouseEvent | KeyboardEvent): void => {
       const element = event.target as HTMLElement;
+
       if (event instanceof KeyboardEvent) {
         if (element.closest('button') || !['Enter', ' '].includes(event.key)) return;
+
         event.preventDefault();
       }
 
       const row = element.closest<HTMLElement>('[data-preview]');
+
       if (!row || !runner.request) return;
+
       const request = runner.request;
       const index = Number(row.dataset.preview);
       const applied = optimizerAppliedCandidate(app, runner.request);
@@ -219,7 +233,9 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
               represented: '1'
             }
           : displayedResults()[index];
+
       if (!candidate) return;
+
       try {
         panel!.dataset.selectedKey = candidate.key;
         updatePreviewSelection(panel!, displayedResults());
@@ -232,6 +248,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           () => {
             // Apply the gear actually being previewed, even if the visible result filter has changed.
             if (runner.request !== request || !['complete', 'canceled'].includes(runner.state.status)) return;
+
             try {
               applyOptimizerCandidate(app, request, candidate);
               renderGearOptimizer(app);
@@ -335,6 +352,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   // Keep current gear visible before a search and restore it when the build or search changes.
   const preview = panel.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!;
   const previewRequest = `${runner.request?.revision}:${state.started}`;
+
   if (preview.dataset.request !== previewRequest || preview.dataset.revision !== String(app.buildRevision)) {
     preview.dataset.request = previewRequest;
     preview.dataset.revision = String(app.buildRevision);
@@ -373,6 +391,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   panel.querySelector('[data-role="optimizer-warnings"]')!.textContent = [...state.warnings]
     .map(([warning, count]) => `${warning} (${count.toLocaleString()} evaluated candidates)`)
     .join(' • ');
+
   if (equippedScore?.warnings.length) {
     panel.querySelector('[data-role="optimizer-warnings"]')!.textContent +=
       ` Current-build warnings: ${equippedScore.warnings.join(' • ')}`;
@@ -388,6 +407,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     state.winners[0]?.key,
     candidates.map((winner) => [winner.key, winner.equipment, winner.score.dps])
   ]);
+
   if (list.dataset.signature !== signature) {
     list.dataset.signature = signature;
     const baseline = equippedScore?.dps || 0;

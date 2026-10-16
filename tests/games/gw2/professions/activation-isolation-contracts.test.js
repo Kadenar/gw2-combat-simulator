@@ -96,6 +96,7 @@ test('Time Bomb isolates new timers and retains admitted cast-owned explosions',
     assert.equal(state(runtime).timeBombUntil > 0, traitTriggers);
     const explosion = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Time Bomb');
     assert.equal(Boolean(explosion), traitTriggers);
+
     if (explosion) assert.ok(explosion.activationId);
   }
 });
@@ -139,6 +140,7 @@ test('phantasm batches capture selected repeats and bonus blades for their fixed
         );
         // Both co-spawned entities retain the resource conversion captured for their activation.
         assert.equal(summons.conversionTimes.length, 2);
+
         if (specialization === 'Chronomancer')
           assert.equal(
             result.events.some((event) => event.type === 'mesmer.phantasm-resummoned'),
@@ -257,6 +259,7 @@ test('Nature’s Vengeance isolates the half-strength child repeat and keeps spi
       // Repeat entitlement survives pet replacement and remains attached to its summoning activation.
       const activation = result.events.find((event) => event.type === 'action' && event.skillId === id);
       assert.ok(child.every((event) => event.activationId === activation.activationId));
+
       if (id === R.STORM_SPIRIT)
         assert.equal(
           child.some((event) => event.coefficient === 1),

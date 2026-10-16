@@ -73,11 +73,16 @@ const couragePulse = createPassiveCourageTask({
 /** A landed spear attaches after commitment; failed hostile outcomes cannot arm the follow-up or create burning. */
 function attachTether(runtime: GuardianRuntime, data: unknown): void {
   if (runtime.deathTime != null) return;
+
   const event = data as Gw2ResolverEvent;
   const state = dragonhunterState.from(runtime);
+
   if (state.tetherActivationId === event.activationId) return;
+
   const duration = bigGameHunterTetherDuration(runtime, 6);
+
   if (!(duration > 0)) return;
+
   state.tetherActivationId = event.activationId ?? null;
   state.tetherUntil = canonicalTime(runtime.time + duration);
   const window = armSkillFlip(
@@ -94,6 +99,7 @@ function attachTether(runtime: GuardianRuntime, data: unknown): void {
 function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
   const pulse = data as { event: Gw2ResolverEvent; activationId: string | null; deadline: number };
   const state = dragonhunterState.from(runtime);
+
   if (
     runtime.deathTime != null ||
     state.tetherActivationId !== pulse.activationId ||
@@ -101,9 +107,12 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
     runtime.time >= pulse.deadline
   )
     return;
+
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.tether);
   const effect = requireEffect(profile, 'condition', 'Burning');
+
   if (!effect) return;
+
   runtime.effects.emit({
     kind: 'packet',
     cause: pulse.event,
@@ -122,6 +131,7 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
   });
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const next = canonicalTime(runtime.time + interval);
+
   if (interval > 0 && next < pulse.deadline) runtime.schedule(BURN, next, data);
 }
 
@@ -139,11 +149,14 @@ export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
     },
     'guardian.attach-tether'(runtime, context) {
       if (context.kind !== 'effect') return;
+
       const event = context.trigger.event;
       const action = runtime.facts
         .read()
         .find((candidate) => candidate.type === 'action' && candidate.activationId === event.activationId);
+
       if (!action) return;
+
       runtime.schedule(TETHER, Math.max(runtime.time, Number(action.endsAt)), event, undefined, -50);
     }
   },
@@ -152,15 +165,22 @@ export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
   },
   onCastStart(runtime, cast) {
     if (!cast.skill.categories?.includes('Virtue')) return;
+
     const virtue = guardianVirtueForSlot(cast.skill.slot);
+
     if (!virtue) return;
+
     refreshGuardianVirtues(runtime);
+
     if (runtime.profession.core.virtueReadyAt[virtue] > runtime.time) return;
+
     readyVirtues.add(cast);
+
     if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelled) {
       const at = canonicalTime(
         cast.start + projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, 480) / 1000
       );
+
       // Deferred attribution excludes the skill's executable reaction declarations.
       if (at <= cast.effectiveEnd)
         runtime.schedule(FURIOUS, at, { id: cast.id, skill: { id: cast.skill.id, name: cast.skill.name } });
@@ -168,8 +188,10 @@ export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
   },
   onCastCommit(runtime, cast) {
     const virtue = cast.skill.categories?.includes('Virtue') ? guardianVirtueForSlot(cast.skill.slot) : null;
+
     if (virtue) {
       refreshGuardianVirtues(runtime);
+
       if (readyVirtues.has(cast)) runtime.fireTrigger(virtueActivated, { cast, virtue });
     }
 
@@ -179,7 +201,9 @@ export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
     'damage.resolved'(runtime, event, details) {
       refreshGuardianVirtues(runtime);
       const damage = details as NativeResolvedDamageDetails;
+
       if (!(Number(event.coefficient) > 0) || !(Number(damage.hitContext?.damage) > 0)) return;
+
       reactToDragonhunterJusticeHit(runtime, event, damage);
     },
     'control.resolved'(runtime, event) {

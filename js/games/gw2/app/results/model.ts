@@ -27,6 +27,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
   metrics.splice(1, 0, timelineIdleTimeMetric(result));
   // Keep input activity next to duration, using execution time rather than the resolver's DPS clock.
   const apm = result.rotationApm;
+
   if (apm) {
     const share = (value: number, total: number): string =>
       total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '—';
@@ -85,16 +86,20 @@ export function effectName(
 ): string {
   const key = String(kind || '');
   const professionPresentation = effectPresentation(key, presentations);
+
   if (professionPresentation) {
     const name =
       typeof professionPresentation.name === 'function'
         ? professionPresentation.name(event)
         : professionPresentation.name;
+
     if (name) return name;
   }
 
   const standardBoon = standardBoonPresentation(key);
+
   if (standardBoon) return standardBoon.name;
+
   return key
     .split('-')
     .filter(Boolean)
@@ -132,7 +137,9 @@ export function buildChartSeries(
   const skillApplications: Record<string, { t: number; label: string; empowered: boolean }[]> = {};
   for (const application of applications) {
     const t = application.at * 1000 - startMs;
+
     if (t < 0 || t >= series.durationMs) continue;
+
     (skillApplications[application.series] ||= []).push({
       t,
       label: application.label,

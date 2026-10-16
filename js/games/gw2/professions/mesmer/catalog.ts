@@ -36,6 +36,7 @@ export function getMesmerBuildRotationLookup(requestedSpecialization: unknown): 
   const elite = mesmerNativeModules.find((module) => module.id !== 'Core' && module.id === requestedSpecialization);
   const selectedId = elite?.id ?? 'Core';
   const cached = buildRotationLookups.get(selectedId);
+
   if (cached) return cached;
 
   const { fragments } = getNativeCatalogAssembly(mesmerNativeModules, MESMER_NATIVE_CATALOG_OPTIONS);

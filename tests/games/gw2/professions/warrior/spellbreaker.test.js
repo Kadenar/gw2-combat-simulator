@@ -231,6 +231,7 @@ test('No Escape keeps Insight ordering, actor eligibility, and live profile payl
             ...native.reactions,
             'condition.applied'(runtime, event, details) {
               native.reactions['condition.applied']?.(runtime, event, details);
+
               if (event.sourceId === TRAIT.NO_ESCAPE)
                 observed.push([event, runtime.profession.specialization.state.attackerInsightExpiries.length]);
             }
@@ -244,6 +245,7 @@ test('No Escape keeps Insight ordering, actor eligibility, and live profile payl
       observed.length,
       actorType === 'player' && controlKind !== 'knockback' && !offTarget && !removed ? 1 : 0
     );
+
     if (observed.length) {
       const [[event, insight]] = observed;
       assert.equal(insight, 1);

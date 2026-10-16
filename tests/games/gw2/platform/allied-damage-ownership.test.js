@@ -118,6 +118,7 @@ test('Vulture Stance retains personal trait attribution with and without allies'
     const allied = result.events.filter(
       (event) => event.sourceId === RANGER_SKILL_IDS.VULTURE_STANCE && event.metadata?.triggeredByAlly
     );
+
     if (count) assert.ok(allied.some((event) => event.type === 'condition' && event.source === 'ranger'));
     else assert.deepEqual(allied, []);
   }
@@ -244,6 +245,7 @@ test('long allied grants do not reuse their activation order ahead of later cast
               weaponStrength: 1000
             }
           });
+
         if (cast.skill.id === 991601)
           runtime.alliedStrikes.registerRecipients((allyIndex) => ({
             id: `grant:${allyIndex}`,

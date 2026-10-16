@@ -104,7 +104,9 @@ export function runRuntime<T extends object>(
   const supportedResources = new Set<ResourceKey | 'endurance'>(
     RESOURCE_KEYS.filter((key) => profession.resources?.[key] != null)
   );
+
   if (profession.endurance) supportedResources.add('endurance');
+
   for (const owner of [...profession.catalog.skills, ...profession.catalog.balanceProfiles]) {
     const actions = [
       ...((owner as Skill).sideEffects ?? []).map((rule) => rule.do),
@@ -119,6 +121,7 @@ export function runRuntime<T extends object>(
   // Direct and public runtime entry points share catalog validation and detached selection snapshots.
   if ('selectedSkills' in config)
     throw new TypeError('selectedSkills is unsupported in simulation; use selectedSkillIds.');
+
   if (config.selectedSkillIds !== undefined)
     config = {
       ...config,
@@ -127,13 +130,17 @@ export function runRuntime<T extends object>(
         profession.skillSelectionCatalog ?? profession.catalog
       )
     };
+
   const policy = normalizeObservationPolicy(observation);
   const cursor = execution.driver.cursor;
   const markers = cursor.commands.filter((command) => command.type === 'combat-start');
+
   if (markers.length > 1 || (markers.length && combatStartTime != null))
     throw new TypeError('Combat Start must have one owner.');
+
   if (combatStartTime != null && (!Number.isFinite(combatStartTime) || combatStartTime < 0))
     throw new RangeError('Combat Start must be finite and non-negative.');
+
   const explicitCombat = markers.length > 0 || combatStartTime != null;
   let runtime: Gw2Runtime<T>;
   const coordinator = createExecutionCoordinator(() => runtime);
@@ -282,6 +289,7 @@ export function runRuntime<T extends object>(
       }: FlipWindowOptions = {}
     ) {
       const window = armSkillFlip(flipWindows(), skillId, availableAt, expiresAt, visibleAt ?? availableAt, identity);
+
       // The expiry only retires stale state: readiness already closes at the exclusive deadline.
       if (window.expiresAt != null)
         enqueueWork(
@@ -292,6 +300,7 @@ export function runRuntime<T extends object>(
             payload: { skillId, identity: window.identity }
           })
         );
+
       return window;
     },
     consumeFlip(skillId: SkillId) {
@@ -302,6 +311,7 @@ export function runRuntime<T extends object>(
     },
     schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
+
       enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner }));
     },
     scheduleForCast(
@@ -313,9 +323,12 @@ export function runRuntime<T extends object>(
       priority = 0
     ) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
+
       // Only reservation data crosses the clone boundary; callbacks stay on the catalog skill.
       const { skill, ...reservation } = cast;
+
       if (!profession.catalog.skillsById.has(skill.id)) throw new TypeError(`Unknown cast task skill ${skill.id}.`);
+
       enqueueWork(
         makeWork({
           type: 'runtime.cast-task',
@@ -338,6 +351,7 @@ export function runRuntime<T extends object>(
     fireTrigger(point: TriggerPoint, input: object) {
       // Listeners settle before the firing mechanic continues; isolated payload runtimes compile none.
       const listeners = profession.triggerListeners?.get(point.id);
+
       if (listeners) for (const listener of listeners) listener(runtime.mechanics, input);
     }
     // Services bind to this identity immediately below, before any initialization hook can observe it.
@@ -355,12 +369,15 @@ export function runRuntime<T extends object>(
   /** Every profession keeps its follow-up windows under one conventional key on its Core state. */
   function flipWindows(): SkillFlipWindows {
     const flips = readProfessionCoreState<{ availableFlips: SkillFlipWindows }>(runtime.profession).availableFlips;
+
     if (!flips) throw new TypeError(`${profession.id} keeps no follow-up windows on its Core state.`);
+
     return flips;
   }
 
   internal.register('runtime.cast-task', (_context, work) => {
     if (work.type !== 'runtime.cast-task') return;
+
     const { name, cast, skillId, data } = work.payload;
     // A cast's delayed work acts for that cast, so its unattributed effects are the cast's reactions.
     withCause(
@@ -410,7 +427,9 @@ export function runRuntime<T extends object>(
   runtime.resourceController.initialize();
 
   const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
+
   if (targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
+
   if (combatStartTime != null) {
     const marker = assertSimulationEvent({
       type: 'combat_start',
@@ -428,10 +447,13 @@ export function runRuntime<T extends object>(
   conditions.initializeEnvironment(runtime);
   // A configured permanent field is an initial executed fact, available to the first eligible finisher.
   const assumedField = permanentComboFieldAssumption(config, profession.id, runtime.time);
+
   if (assumedField) runtime.effects.emit({ kind: 'packet', event: assumedField });
+
   // Preview-held buffs are executed facts from the start, so traits read them exactly like earned buffs.
   for (const buff of config.initialBuffs ?? []) {
     if (!(buff.stacks > 0) || !(buff.duration > 0)) continue;
+
     runtime.effects.emit({
       kind: 'packet',
       event: assertSimulationEvent({
@@ -473,12 +495,14 @@ export function runRuntime<T extends object>(
   // Every accepted transaction dirties chart state, including custom tasks with no buff packet.
   function captureEffects(): void {
     if (!runtime.effectRecorder || (runtime.deathTime != null && runtime.time > runtime.deathTime)) return;
+
     effectsCapturePending = true;
   }
 
   // Same-timestamp transactions have no visible duration between them; record only their settled state.
   function flushEffects(): void {
     if (!effectsCapturePending) return;
+
     effectsCapturePending = false;
     captureRuntimeEffects(runtime, profession);
   }
@@ -501,7 +525,9 @@ export function runRuntime<T extends object>(
     flushEffects,
     ownsEffect ? damageCompletionTime : undefined
   );
+
   if (runtime.rotationEndTime == null) throw new Error('Execution completed without a rotation boundary.');
+
   const reportingStarted = onPhase ? performance.now() : 0;
   onPhase?.('execution', reportingStarted - started);
   const result = projectRuntimeResult(runtime, profession, execution, {
@@ -521,10 +547,13 @@ export function runRuntime<T extends object>(
       if (ownsEffect!(pending.cause)) deadline = Math.max(deadline, pending.at);
     for (const pending of runtime.alliedStrikeController.pendingEffects()) {
       if (!ownsEffect!(pending.cause)) continue;
+
       const { grant } = pending;
+
       // Preview completion samples an open-ended grant without changing its combat lifetime or charges.
       if (!Number.isFinite(grant.expiresAt) && !Number.isFinite(grant.charges)) {
         if (!recurringPreviewDeadlines.has(grant)) recurringPreviewDeadlines.set(grant, pending.at);
+
         deadline = Math.max(deadline, recurringPreviewDeadlines.get(grant)!);
       } else deadline = Math.max(deadline, pending.at);
     }

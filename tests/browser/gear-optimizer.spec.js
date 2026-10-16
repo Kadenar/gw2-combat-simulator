@@ -24,6 +24,7 @@ test('preview responds to panel width without cropping the artwork', async ({ pa
     expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     const equipment = await preview.locator('.optimizer-preview-equipment').boundingBox();
     const details = await preview.locator('.optimizer-preview-details').boundingBox();
+
     if (width > 650) {
       expect(details.y).toBeCloseTo(equipment.y, 0);
       expect(details.x).toBeGreaterThanOrEqual(equipment.x + equipment.width);

@@ -50,6 +50,7 @@ test('Warrior initialization and resource displays honor selected caps', () => {
         catalog: family.catalogFor(patchId),
         professionState: state
       });
+
       if (specialization === 'Bladesworn') {
         assert.equal(resources[0].maximum, 80);
         assert.equal(resources[0].startMaximum, 80);

@@ -67,10 +67,12 @@ function normalizeGeneratedRevenantActions(
   // and coalescing split animations keeps one simulator command per player input.
   const actionable = actions.filter((action) => {
     if (!upkeepRelease(context, action)) return true;
+
     const imminentSwap = actions.find(
       (candidate) =>
         candidate.canonicalSkillId === -4 && candidate.start >= action.start && candidate.start - action.start <= 500
     );
+
     if (!imminentSwap) return true;
 
     // A release immediately before a legend change only mirrors the upkeep
@@ -91,6 +93,7 @@ function normalizeGeneratedRevenantActions(
   // Replay a completed hit through the full canonical skill; retain explicit cancellations.
   return merged.map((action) => {
     if (action.rawSkillId !== 62713) return action;
+
     const canonical = { ...action, canonicalSkillId: 62895, canonicalName: "Phantom's Onslaught" };
     const skill = recordedActionSkill(canonical, context);
     return skill && (action.status === 'completed' || action.status === 'reduced')

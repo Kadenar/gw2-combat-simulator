@@ -45,8 +45,11 @@ export function normalizedName(value: unknown): string {
 
 function activeSpecializationScore(skill: Skill, profile: RotationProfessionProfile): number {
   const specialization = normalizedName(skill.specialization);
+
   if (!specialization) return 1;
+
   if (specialization === normalizedName(profile.specializationName)) return 2;
+
   // Weaponmaster Training exposes elite-specialization weapons profession-wide.
   return normalizedName(skill.type) === 'weapon' ? 1 : 0;
 }
@@ -65,6 +68,7 @@ function bestCandidate(candidates: readonly Skill[], profile: RotationProfession
 
 function parentSkill(skill: Skill, catalog: RotationCatalog, profile: RotationProfessionProfile): Skill {
   if (skill.parentId == null) return skill;
+
   const parent = bestCandidate(
     catalog.skills.filter((candidate) => String(candidate.id) === String(skill.parentId)),
     profile
@@ -75,6 +79,7 @@ function parentSkill(skill: Skill, catalog: RotationCatalog, profile: RotationPr
 /** Uses the canonical ID index when available while retaining array-only catalog and legacy-ID support. */
 export function catalogSkillById(catalog: RotationCatalog | null, rawSkillId: number): Skill | null {
   if (!catalog) return null;
+
   const skillId = canonicalGw2SkillId(rawSkillId);
   return (
     catalog.skillsById?.get(skillId) ||
@@ -91,13 +96,16 @@ export function findRotationSkill(
   profile: RotationProfessionProfile
 ): Skill | null {
   if (!catalog) return null;
+
   const aliasedName = profile.skillNameAliases[normalizedName(rawName)] || rawName.trim();
   const aliasedSkillId = canonicalGw2SkillId(profile.skillIdAliases[rawSkillId] ?? rawSkillId);
   const byId = bestCandidate(
     catalog.skills.filter((skill) => typeof skill.id === 'number' && Number(skill.id) === aliasedSkillId),
     profile
   );
+
   if (byId) return parentSkill(byId, catalog, profile);
+
   const byName = bestCandidate(
     catalog.skills.filter((skill) => normalizedName(skill.name) === normalizedName(aliasedName)),
     profile
@@ -141,6 +149,7 @@ export function createRotationSkillResolver(
       : [];
   return (action, skill = recordedActionSkill(action, context)) => {
     if (!skill || context.profile.professionId !== 'warrior') return skill;
+
     let activeSet = context.professionConfig?.startingWeaponSet === 2 ? 2 : 1;
     for (const swap of swaps) {
       if (swap.start < action.start || (swap.start === action.start && swap.eventIndex < action.eventIndex))
@@ -166,16 +175,25 @@ export function findNamedRotationSkill(
 
 export function actionKind(skill: Skill | null, name: string): RotationActionKind {
   const normalizedActionName = normalizedName(name);
+
   if (normalizedActionName === 'swap weapons') return 'weapon-swap';
+
   if (normalizedActionName.includes('dodge') || normalizedActionName === 'mirage cloak') return 'dodge';
 
   const type = normalizedName(skill?.type);
+
   if (type === 'weapon') return 'weapon-skill';
+
   if (type === 'profession') return 'profession-skill';
+
   if (type === 'utility') return 'utility';
+
   if (type === 'heal') return 'heal';
+
   if (type === 'elite') return 'elite';
+
   if (type === 'action') return 'action';
+
   return 'unknown';
 }
 

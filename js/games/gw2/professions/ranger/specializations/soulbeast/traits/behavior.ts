@@ -10,6 +10,7 @@ export function leaderOfThePackStance(
   baseDuration: number
 ): { duration: number; sharedDuration?: number } {
   if (!hasTrait(context, TRAIT.LEADER_OF_THE_PACK)) return { duration: baseDuration };
+
   const duration = baseDuration * balanceNumberFromContext(context, TRAIT.LEADER_OF_THE_PACK, 'durationMultiplier');
   return {
     duration,

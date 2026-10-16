@@ -151,6 +151,7 @@ test('Ashes grants at its scheduled application boundary and canceled casts gran
     assert.deepEqual(result.warnings, []);
     const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.ASHES_OF_THE_JUST);
     const grants = result.events.filter((event) => event.kind === 'ashes-of-the-just');
+
     if (action.cancelled) {
       assert.deepEqual(grants, []);
       assert.equal(state(result).ashes.charges, 0);

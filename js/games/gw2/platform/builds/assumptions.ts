@@ -48,12 +48,14 @@ export const STANDARD_HITBOX_SIZE_ASSUMPTION_CONTROL = Object.freeze({
 
 function normalizedSpecializations(value: unknown): readonly string[] | undefined {
   if (!Array.isArray(value) || !value.length) return undefined;
+
   return Object.freeze([...new Set(value.map(String))]);
 }
 
 function normalizedControl(control: ProfessionAssumptionControlInput): ProfessionAssumptionControl {
   const type = control?.type === 'select' ? 'select' : control?.type === 'number' ? 'number' : 'boolean';
   const key = String(control?.key || '').trim();
+
   if (!/^[a-z][a-zA-Z0-9]*$/.test(key)) {
     throw new TypeError('Assumption controls require stable camelCase keys.');
   }
@@ -95,6 +97,7 @@ function normalizedControl(control: ProfessionAssumptionControlInput): Professio
         ...(source.icon ? { icon: String(source.icon) } : {})
       };
     });
+
     if (!options.length) {
       throw new TypeError(`Assumption control ${key} needs select options.`);
     }
@@ -119,6 +122,7 @@ export function createProfessionAssumptionControls(
   controls: ReadonlyArray<ProfessionAssumptionControlInput> = []
 ): ReadonlyArray<ProfessionAssumptionControl> {
   const normalized = controls.map(normalizedControl);
+
   if (new Set(normalized.map((control) => control.key)).size !== normalized.length) {
     throw new TypeError('Assumption control keys must be unique.');
   }
@@ -141,6 +145,7 @@ export function normalizeCommonAssumptions(
   defaults: Record<string, unknown> = {}
 ): Record<string, unknown> {
   const result = { ...assumptions };
+
   // Clone saved overrides so independently loaded builds never share mutable proc settings.
   if (Object.hasOwn(assumptions, 'procRateOverrides')) {
     result.procRateOverrides = normalizeProcRateOverrides(assumptions.procRateOverrides);
@@ -148,7 +153,9 @@ export function normalizeCommonAssumptions(
 
   for (const [key, fallback] of Object.entries(COMMON_BOOLEAN_ASSUMPTION_DEFAULTS)) {
     const hasSavedValue = Object.hasOwn(assumptions, key);
+
     if (!hasSavedValue && !Object.hasOwn(defaults, key)) continue;
+
     const value = hasSavedValue ? assumptions[key] : defaults[key];
     result[key] = typeof value === 'boolean' ? value : typeof defaults[key] === 'boolean' ? defaults[key] : fallback;
   }
@@ -190,6 +197,7 @@ export function normalizeProfessionAssumptions(
   delete result.targetDistance;
   for (const control of controls) {
     const value = assumptions[control.key] ?? control.defaultValue;
+
     if (control.type === 'boolean') {
       result[control.key] =
         typeof assumptions[control.key] === 'boolean'
@@ -219,6 +227,7 @@ export function validateProfessionAssumptions(
   const errors: string[] = [];
   for (const control of controls) {
     const value = assumptions?.[control.key];
+
     if (control.type === 'boolean' && typeof value !== 'boolean') {
       errors.push(`assumptions.${control.key} must be boolean.`);
     } else if (

@@ -32,9 +32,13 @@ import type {
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
   const parts = String(skill.attunement || '').split('+');
+
   if (parts.length !== 2) return null;
+
   const [first, second] = parts;
+
   if (!isElementalistAttunement(first) || !isElementalistAttunement(second) || first === second) return null;
+
   return [first, second];
 }
 
@@ -70,8 +74,11 @@ export function weaverHammerAvailability(
   reason?: string;
 } | null {
   if (skillWeapon(skill) !== 'Hammer') return null;
+
   const elements = weaverDualAttunements(skill);
+
   if (!elements) return null;
+
   const state = professionCoreState(context);
   // Every dual hammer skill shares one short lockout after the last orb cast.
   // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
@@ -80,6 +87,7 @@ export function weaverHammerAvailability(
         state.hammerOrbLastCastAt + balanceNumberFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay')
       )
     : state.hammerOrbLastCastAt;
+
   if (retryAt > context.time) {
     return retryCast(
       retryAt,
@@ -106,18 +114,22 @@ export const weaverPistolSideEffects: RuntimeProfession<
 >['sideEffectHandlers'] = {
   'elementalist.weaver.pistol.settle'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol settlement requires a cast trigger.');
+
     const state = professionCoreState(context);
     const active = weaverDualAttunements(trigger.skill)!.filter((element) => state.pistolBullets[element]);
+
     if (!active.length) state.pistolBullets[state.primaryAttunement] = true;
     else for (const element of active) state.pistolBullets[element] = false;
   },
   'elementalist.weaver.pistol.frostfire-fire'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
     {
       const frostfireFlurryProfile = requireBalanceProfileFromContext(context, PROFILE.frostfireFlurry);
       const aura = requireEffect(frostfireFlurryProfile, 'buff', 'Fire');
+
       if (aura) {
         applyElementalistAura(context, {
           at,
@@ -131,6 +143,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
   },
   'elementalist.weaver.pistol.frostfire-water'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 
@@ -149,6 +162,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
   },
   'elementalist.weaver.pistol.plasma-fire'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 
@@ -167,6 +181,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
   },
   'elementalist.weaver.pistol.meteor-earth'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 
@@ -185,11 +200,13 @@ export const weaverPistolSideEffects: RuntimeProfession<
   },
   'elementalist.weaver.pistol.finesse-water'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
     {
       const flowingFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.flowingFinesse);
       const aura = requireEffect(flowingFinesseProfile, 'buff', 'Water');
+
       if (aura) {
         applyElementalistAura(context, {
           at,
@@ -203,11 +220,13 @@ export const weaverPistolSideEffects: RuntimeProfession<
   },
   'elementalist.weaver.pistol.finesse-air'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
     {
       // Superspeed is a buff, so resolve its authored kind without treating it as a boon.
       const effect = requireEffect(requireBalanceProfileFromContext(context, PROFILE.flowingFinesse), 'buff', 'Air');
+
       if (effect)
         context.effects.emit(
           elementalistBuffRequest(
@@ -227,6 +246,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
   },
   'elementalist.weaver.pistol.enervating-air'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 
@@ -247,6 +267,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
   },
   'elementalist.weaver.pistol.enervating-earth'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol bonuses require a cast trigger.');
+
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
 

@@ -99,8 +99,10 @@ export function createCombatExecution<T extends object>(
     action(runtime, event) {
       // Direct calls retain the rule signatures while sharing the equipped relic's state.
       const relic = runtime.relic;
+
       if (!event.cancelled)
         relic.rules.emitActionEffects?.(runtime, relic.state, event, skillForEvent(profession.catalog, event));
+
       relic.rules.action?.(runtime, relic.state, event);
     },
     condition(runtime, event) {

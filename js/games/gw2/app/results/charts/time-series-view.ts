@@ -108,7 +108,9 @@ const ACTIVE_MOUNTS = new WeakMap<HTMLElement, ActiveChartMount>();
 
 const chartNumber = (value: unknown): string => {
   const number = Number(value || 0);
+
   if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(1)}m`;
+
   if (number >= 1000) {
     return `${(number / 1000).toFixed(number >= 10_000 ? 0 : 1)}k`;
   }
@@ -283,19 +285,25 @@ function drawLineChart(
   } = {}
 ): ChartLayout | null {
   if (!canvas?.getContext) return null;
+
   const cssWidth = Math.max(
     1,
     Math.floor(canvas.parentElement?.clientWidth || canvas.closest?.('.chart-wrap')?.clientWidth || 760)
   );
   const dpr = Math.max(1, Number(globalThis.window?.devicePixelRatio) || 1);
+
   // Keep layout width fluid so a hidden or stale measurement cannot widen the
   // mobile viewport; only the backing store uses the measured pixel width.
   if (canvas.width !== Math.round(cssWidth * dpr)) canvas.width = Math.round(cssWidth * dpr);
+
   if (canvas.height !== Math.round(height * dpr)) canvas.height = Math.round(height * dpr);
+
   canvas.style.width = '100%';
   canvas.style.height = `${height}px`;
   const context = canvas.getContext('2d');
+
   if (!context) return null;
+
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.clearRect(0, 0, cssWidth, height);
 
@@ -373,6 +381,7 @@ function drawLineChart(
     : lines;
   // Reveal only the curves, keeping axes, health markers, scales, and line patterns stable.
   context.save();
+
   if (revealProgress < 1) {
     context.beginPath();
     context.rect(pad.left, pad.top - 2, Math.max(0, plotWidth * revealProgress), plotHeight + 4);
@@ -381,6 +390,7 @@ function drawLineChart(
 
   for (const line of orderedLines) {
     if (!line.points.length) continue;
+
     context.save();
     context.setLineDash([...(line.dash || [])]);
     context.strokeStyle = line.color;
@@ -391,6 +401,7 @@ function drawLineChart(
     line.points.forEach((point, index) => {
       const x = pad.left + (Number(point.t || 0) / durationMs) * plotWidth;
       const y = pad.top + (1 - Number(point.v || 0) / maxValue) * plotHeight;
+
       if (index === 0) context.moveTo(x, y);
       else {
         // Stack counts hold until the next sample changes them; countdowns and DPS retain continuous segments.
@@ -430,11 +441,14 @@ function effectSummaryHtml(series: ChartSeries): string {
   const generation = series.boonGeneration || {};
   const primaryBoons = priority.filter((name) => {
     if (name !== 'Quickness' && name !== 'Alacrity') return true;
+
     const boon = generation[name];
     return boon && boon.self.generatedStackSeconds + boon.allies.generatedStackSeconds > 0;
   });
   const names = [...new Set([...Object.keys(summaries), ...Object.keys(generation)])];
+
   if (!names.length) return '';
+
   const supplementaryBoons = names.filter((name) => generation[name] && !priority.includes(name)).sort();
   const supplementaryBuffs = names.filter((name) => summaries[name] && !generation[name]).sort();
   const duration = series.durationMs / 1000;
@@ -542,7 +556,9 @@ function chartHtml(
           const groupEffects = effects
             .filter((name) => (series.effectTypes?.[name] || 'buff') === type)
             .sort((left, right) => left.localeCompare(right));
+
           if (!groupEffects.length) return '';
+
           return `<div class="chart-toggle-group" data-role="chart-toggle-group" data-effect-type="${type}">
         <div class="chart-toggle-group-header">
           <span class="chart-toggle-label">${label}</span>
@@ -652,6 +668,7 @@ export function mountTimeSeriesCharts(
   options: Partial<ChartOptions> = {}
 ): void {
   if (!container) return;
+
   // A token makes a queued animation-frame redraw from an older mount harmless.
   ACTIVE_MOUNTS.get(container)?.dispose?.();
   const mountToken = {};
@@ -731,11 +748,14 @@ export function mountTimeSeriesCharts(
   const finishReveal = (includePending = true): void => {
     for (const panel of panels) {
       if (includePending || panel.revealStarted !== null) panel.revealProgress = 1;
+
       panel.revealStarted = null;
     }
 
     if (revealFrame !== null) chartWindow?.cancelAnimationFrame(revealFrame);
+
     revealFrame = null;
+
     if (panels.every((panel) => panel.revealProgress === 1)) {
       revealObserver?.disconnect();
       reducedMotion?.removeEventListener('change', motionChanged);
@@ -744,12 +764,14 @@ export function mountTimeSeriesCharts(
 
   const motionChanged = (): void => {
     if (!reducedMotion?.matches) return;
+
     finishReveal();
     for (const panel of panels) panel.paint();
   };
 
   const redraw = (): void => {
     if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+
     // Finish active reveals on interaction, but preserve the entrance for charts still below the viewport.
     finishReveal(false);
     clearInteraction();
@@ -766,9 +788,12 @@ export function mountTimeSeriesCharts(
       end: zoomRange?.end ?? dpsView.durationMs,
       offset: activePhase.startMs
     };
+
     if (resetButton) resetButton.disabled = !zoomRange;
+
     if (zoomLabel)
       zoomLabel.textContent = `${zoomRange ? 'Zoom: ' : ''}${((viewRange.offset + viewRange.start) / 1000).toFixed(3)}s – ${((viewRange.offset + viewRange.end) / 1000).toFixed(3)}s`;
+
     const cumulativeDamage =
       activePhase.id === 'full'
         ? resolvedSeries.cumulativeDamage!
@@ -777,7 +802,9 @@ export function mountTimeSeriesCharts(
       const title = container.querySelector<HTMLElement>(`[data-role="${panel.kind}-panel-title"]`);
       const label =
         panel.kind === 'dps' ? resolvedOptions.dpsLabel : panel.kind === 'conditions' ? 'Conditions' : 'Boons & Buffs';
+
       if (title) title.textContent = `${label} Over Time${activePhase.id === 'full' ? '' : ` — ${activePhase.label}`}`;
+
       if (panel.kind === 'dps') {
         // Every source uses the same phase origin and rolling denominator, so contributions sum to total DPS.
         const sources = [
@@ -836,6 +863,7 @@ export function mountTimeSeriesCharts(
           ];
         });
         const legend = container.querySelector<HTMLElement>('[data-role="dps-legend"]');
+
         if (legend)
           legend.innerHTML = panel.lines
             .map(
@@ -858,9 +886,12 @@ export function mountTimeSeriesCharts(
             const stepped = unit !== 's';
             const lines: ChartLine[] = [];
             const own = effectsView.effects[name];
+
             if (own && (!boon || boonAudience !== 'allies'))
               lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, unit, stepped });
+
             const allied = alliedView.effects[name];
+
             if (boon && allied && boonAudience !== 'self')
               lines.push({
                 name: `${name} (Allies avg)`,
@@ -871,6 +902,7 @@ export function mountTimeSeriesCharts(
                 stepped,
                 dash: [6, 4]
               });
+
             return lines;
           });
       }
@@ -911,13 +943,17 @@ export function mountTimeSeriesCharts(
   };
 
   if (resetButton) resetButton.onclick = resetZoom;
+
   // Only keyboard focus sustains inspection; mouse clicks keep native focus without pinning the highlight.
   for (const input of container.querySelectorAll<HTMLInputElement>('[data-series]')) {
     input.onchange = redraw;
     const label = input.closest('label');
+
     if (!label) continue;
+
     label.onpointerenter = (event) => {
       if (event.pointerType === 'touch') return;
+
       hoveredEffect = input.dataset.series!;
       redraw();
     };
@@ -953,8 +989,10 @@ export function mountTimeSeriesCharts(
     input.onchange = () => {
       const selected = input.dataset.dpsSource ? dpsSources : dpsWindows;
       const key = input.dataset.dpsSource ?? input.dataset.dpsWindow!;
+
       if (input.checked) selected.add(key);
       else selected.delete(key);
+
       redraw();
     };
   }
@@ -971,7 +1009,9 @@ export function mountTimeSeriesCharts(
   for (const button of container.querySelectorAll<HTMLButtonElement>('[data-toggle-action]')) {
     button.onclick = () => {
       const group = button.closest('[data-role="chart-toggle-group"]');
+
       if (!group) return;
+
       for (const input of group.querySelectorAll<HTMLInputElement>('input'))
         input.checked = button.dataset.toggleAction === 'all';
       redraw();
@@ -981,6 +1021,7 @@ export function mountTimeSeriesCharts(
   for (const button of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>('button') || []) {
     button.onclick = () => {
       if (button.disabled) return;
+
       activePhaseId = button.dataset.chartPhase!;
       for (const control of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>('button') || [])
         control.setAttribute('aria-pressed', String(control.dataset.chartPhase === activePhaseId));
@@ -1011,6 +1052,7 @@ export function mountTimeSeriesCharts(
     const requestFrame =
       container.ownerDocument?.defaultView?.requestAnimationFrame?.bind(container.ownerDocument.defaultView) ||
       globalThis.requestAnimationFrame;
+
     if (!requestFrame) {
       redraw();
       return;
@@ -1025,9 +1067,11 @@ export function mountTimeSeriesCharts(
   const observedCanvas = container.querySelector<HTMLCanvasElement>('[data-role="dps-canvas"]');
   const observedContainer = observedCanvas?.parentElement;
   const ResizeObserverConstructor = container.ownerDocument?.defaultView?.ResizeObserver || globalThis.ResizeObserver;
+
   if (ResizeObserverConstructor && observedContainer) {
     activeMount.resizeObserver = new ResizeObserverConstructor(() => {
       const visibleWidth = Math.floor(observedContainer.clientWidth);
+
       if (visibleWidth > 0 && visibleWidth !== panels[0]?.layout?.cssWidth) {
         requestRedraw();
       }
@@ -1045,6 +1089,7 @@ export function mountTimeSeriesCharts(
     reducedMotion?.addEventListener('change', motionChanged);
     const animate = (): void => {
       revealFrame = null;
+
       if (!container.isConnected || ACTIVE_MOUNTS.get(container)?.token !== mountToken) {
         activeMount.dispose?.();
         return;
@@ -1052,9 +1097,11 @@ export function mountTimeSeriesCharts(
 
       for (const panel of panels) {
         if (panel.revealStarted === null) continue;
+
         const progress = Math.min(1, (chartWindow.performance.now() - panel.revealStarted) / 1000);
         panel.revealProgress = 1 - (1 - progress) ** 3;
         panel.paint();
+
         if (progress === 1) panel.revealStarted = null;
       }
 
@@ -1066,10 +1113,14 @@ export function mountTimeSeriesCharts(
     revealObserver = new chartWindow.IntersectionObserver(
       (entries) => {
         if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+
         for (const entry of entries) {
           if (!entry.isIntersecting || entry.intersectionRatio < 0.2) continue;
+
           const panel = panels.find((panel) => panel.canvas === entry.target);
+
           if (!panel || panel.revealProgress === 1 || panel.revealStarted !== null) continue;
+
           panel.revealStarted = chartWindow.performance.now();
           revealObserver?.unobserve(entry.target);
         }
@@ -1087,7 +1138,9 @@ export function mountTimeSeriesCharts(
   activeMount.dispose = () => {
     finishReveal();
     revealObserver?.disconnect();
+
     if (redrawFrame !== null) chartWindow?.cancelAnimationFrame(redrawFrame);
+
     activeMount.resizeObserver?.disconnect();
   };
 }

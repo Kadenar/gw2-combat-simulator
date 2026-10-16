@@ -62,6 +62,7 @@ test('declared charge grants preserve replacement, additive expiry, and cancella
         ? observedRuntime(result).profession.core.pet
         : observedRuntime(result).profession.core
     )[pool];
+
     if (Array.isArray(state)) {
       assert.deepEqual(
         state,

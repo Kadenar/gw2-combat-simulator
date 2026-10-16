@@ -89,6 +89,7 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
       {
         initialize: (runtime) => {
           runtime.effects.emit({ kind: 'packet', event: others });
+
           if (self) {
             runtime.effects.emit({ kind: 'packet', event: buff('resolution') });
             runtime.effects.emit({ kind: 'packet', event: buff('resolution') });

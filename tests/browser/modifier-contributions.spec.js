@@ -27,6 +27,7 @@ test('modifier contributions adapt to phone and narrow panel widths', async ({ p
     await page.setViewportSize({ width, height: 900 });
     const stacked = width <= 600;
     const header = page.locator('.contrib-hdr');
+
     if (stacked) await expect(header).toBeHidden();
     else await expect(header).toBeVisible();
 
@@ -34,6 +35,7 @@ test('modifier contributions adapt to phone and narrow panel widths', async ({ p
       const name = await row.locator('.contrib-name').boundingBox();
       const dps = await row.locator('.contrib-val').boundingBox();
       const percent = await row.locator('.contrib-pct').boundingBox();
+
       if (stacked) {
         expect(name.y + name.height).toBeLessThanOrEqual(dps.y);
         await expect(row.locator('.contrib-metric-label').first()).toBeVisible();

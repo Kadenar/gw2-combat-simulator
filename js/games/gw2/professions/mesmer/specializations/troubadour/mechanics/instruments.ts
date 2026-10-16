@@ -46,6 +46,7 @@ export function instrumentAttack(
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
   for (const attack of actorType === 'summon' ? [data] : []) {
     if (attack.type !== 'strike') continue;
+
     buildMesmerStrikes(
       context,
       skill,
@@ -186,6 +187,7 @@ export function resolveCrescendo(
   const strike = requireEffect(crescendoProfile, 'strike', 'Strike');
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
   const effectiveness = masterOfFragmentationCrescendo(context, crescendoProfile);
+
   if (strike)
     buildMesmerStrikes(context, skill, damageAt, {
       ...strike,
@@ -222,8 +224,11 @@ export function scheduleTroubadourPerformance(
   skill: MesmerSkill
 ): void {
   if (cast.cancelled) return;
+
   const instrument = mesmerInstruments(context)[skill.id];
+
   if (!instrument) return;
+
   instrumentAttack(
     context,
     skill,
@@ -243,6 +248,7 @@ export function completeTroubadourPerformance(
 ): void {
   // Committed Harp interruptions activate the instrument at their shortened completion.
   const instrument = mesmerInstruments(context)[skill.id];
+
   if (!instrument) return;
 
   const interrupted = castWasInterrupted(cast);

@@ -9,7 +9,9 @@ import type {
 /** Keep sub-480 ms Shadow Bolt attempts below that boundary; timeline alignment restores the saved time as idle. */
 export function thiefShadowBoltInterruptMs(action: EvtcRecordedRotationAction): number | null {
   const observedMs = action.end - action.start;
+
   if (action.rawSkillId !== ID.SHADOW_BOLT || observedMs >= 480) return null;
+
   return Math.min(quantizeGw2ActionTimingMs(action.replayInterruptMs ?? observedMs), 480 - GW2_ACTION_TICK_MS);
 }
 
@@ -18,6 +20,7 @@ export function thiefThousandNeedlesActions(
   context: EvtcProfessionReconstructionContext
 ): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'thief') return [];
+
   const effects = effectEvidence(context.log).filter(({ event }) => event.source === context.playerAddress);
   const damage = context.log.events.filter(
     (event) =>
@@ -31,6 +34,7 @@ export function thiefThousandNeedlesActions(
   const actions: EvtcRecordedRotationAction[] = [];
   for (const { event, eventIndex, guid } of effects) {
     if (guid !== '2125A13079C1C5479C150926EB60A15D') continue;
+
     // The generic circle is ambiguous: require both needle visuals and a matching hit from this player.
     const corroborated = ['9AF103E33FC235498190448A9496C98A', 'B8DC8C6736C8E0439295A9DBBADC6296'].every((secondary) =>
       effects.some(
@@ -40,6 +44,7 @@ export function thiefThousandNeedlesActions(
           damage.some((hit) => Math.abs(hit.time - other.event.time) <= GW2_ACTION_TICK_MS)
       )
     );
+
     if (
       !corroborated ||
       [...context.recordedActions, ...actions].some(
@@ -49,6 +54,7 @@ export function thiefThousandNeedlesActions(
       )
     )
       continue;
+
     actions.push({
       start: event.time,
       end: event.time,
@@ -67,7 +73,9 @@ export function thiefThousandNeedlesActions(
   // Infer the activation from EI's 280 ms impact delay, while preserving any earlier standard or circle-based action.
   for (const { event, eventIndex, guid } of effects) {
     if (guid !== '9AF103E33FC235498190448A9496C98A') continue;
+
     const start = event.time - 280;
+
     if (
       !effects.some(
         (other) => other.guid === 'B8DC8C6736C8E0439295A9DBBADC6296' && Math.abs(other.event.time - event.time) < 10
@@ -80,6 +88,7 @@ export function thiefThousandNeedlesActions(
       )
     )
       continue;
+
     actions.push({
       start,
       end: start,
@@ -100,6 +109,7 @@ export function thiefThousandNeedlesActions(
 /** The shield's owned placement effect and fresh self refund buff corroborate an instant cast even without all EI visuals. */
 export function antiquaryChakShieldActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'thief' || context.profile.specializationId !== 'antiquary') return [];
+
   const actions: EvtcRecordedRotationAction[] = [];
   for (const { event, eventIndex, guid } of effectEvidence(context.log)) {
     if (
@@ -119,6 +129,7 @@ export function antiquaryChakShieldActions(context: EvtcProfessionReconstruction
       )
     )
       continue;
+
     actions.push({
       start: event.time,
       end: event.time,
@@ -143,6 +154,7 @@ export function antiquaryChakShieldActions(context: EvtcProfessionReconstruction
  */
 export function thiefStealActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'thief' || context.profile.specializationId !== 'core') return [];
+
   const applications = context.log.events.filter(
     (event) => event.source === context.playerAddress && event.value > 0 && isBuffApply(context.log, event)
   );
@@ -159,6 +171,7 @@ export function thiefStealActions(context: EvtcProfessionReconstructionContext):
       )
     )
       continue;
+
     const nearby = applications.filter(
       (application) => application.target === event.target && Math.abs(application.time - event.time) < 10
     );
@@ -167,6 +180,7 @@ export function thiefStealActions(context: EvtcProfessionReconstructionContext):
       const durations = new Map<number, number>();
       for (const application of nearby) {
         if (application.skillId !== skillId || application.value < 10000 || application.value > 20000) continue;
+
         durations.set(application.value, (durations.get(application.value) ?? 0) + 1);
       }
 
@@ -174,6 +188,7 @@ export function thiefStealActions(context: EvtcProfessionReconstructionContext):
     };
 
     if (!hasBurst(723, 2) || !hasBurst(736, 3)) continue;
+
     actions.push({
       start: event.time,
       end: event.time,
@@ -194,6 +209,7 @@ export function thiefStealActions(context: EvtcProfessionReconstructionContext):
 /** Gaze applications identify otherwise unrecorded Marks; initial snapshots cannot establish a cast timestamp. */
 export function deadeyeMarkActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.specializationId !== 'deadeye') return [];
+
   return context.log.events.flatMap((event, eventIndex) => {
     if (
       event.skillId !== 46333 ||
@@ -204,6 +220,7 @@ export function deadeyeMarkActions(context: EvtcProfessionReconstructionContext)
       )
     )
       return [];
+
     return [
       {
         start: event.time,

@@ -74,6 +74,7 @@ export function amalgamProtocolOptions<S extends Skill>(
 /** Canonical loadouts contain three distinct kinds, one legal identity for each profession slot. */
 export function validAmalgamMorphs(catalog: MorphCatalog, value: unknown): value is number[] {
   if (!Array.isArray(value) || value.length !== 3) return false;
+
   const skills = value.map((id) => catalog.skillsById.get(id));
   return (
     skills.every((skill) => legalMorph(skill)) &&
@@ -89,21 +90,28 @@ export function normalizeAmalgamMorphs(catalog: MorphCatalog, value: unknown): n
   for (const rawId of Array.isArray(value) ? value : DEFAULT_AMALGAM_MORPHS) {
     const id = Number(rawId);
     const skill = catalog.skillsById.get(id);
+
     if (!legalMorph(skill)) continue;
+
     const slot = Number(skill.mechanicSlot);
     const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id)!;
+
     if (selected.has(slot) || kinds.has(kind)) continue;
+
     selected.set(slot, id);
     kinds.add(kind);
   }
 
   for (const slot of MORPH_SLOTS) {
     if (selected.has(slot)) continue;
+
     const candidates = [catalog.skillsById.get(DEFAULT_AMALGAM_MORPHS[slot - 2]), ...catalog.skills];
     const replacement = candidates.find(
       (skill) => legalMorph(skill, slot) && !kinds.has(AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id)!)
     );
+
     if (!replacement) throw new Error('Amalgam catalog cannot supply a unique morph for each slot.');
+
     selected.set(slot, Number(replacement.id));
     kinds.add(AMALGAM_MORPH_KIND_BY_SKILL_ID.get(replacement.id)!);
   }
@@ -124,15 +132,19 @@ export function selectAmalgamMorph(
     !validAmalgamMorphs(catalog, current)
   )
     return null;
+
   const next = normalizeAmalgamMorphs(catalog, current);
   const previousKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(next[index]);
   const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId);
   const conflict = next.findIndex((id, other) => other !== index && AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id) === kind);
+
   if (conflict >= 0) {
     const replacement = amalgamProtocolOptions(catalog, conflict + 2).find(
       (skill) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id) === previousKind
     );
+
     if (!replacement) return null;
+
     next[conflict] = Number(replacement.id);
   }
 
@@ -149,5 +161,6 @@ export function resolveAmalgamSkillId(doubleHelix: boolean, skillId: SkillId): S
     !['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)'].includes(String(skillId))
   )
     return skillId;
+
   return doubleHelix ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
 }

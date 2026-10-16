@@ -2,7 +2,9 @@ import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 export function resultCombatReferenceMs(result: Gw2SimulationResult | null | undefined): number {
   const marker = result?.events?.find((event) => event.type === 'combat_start');
+
   if (!marker) return 0;
+
   return Number(marker.at || 0) * 1000;
 }
 

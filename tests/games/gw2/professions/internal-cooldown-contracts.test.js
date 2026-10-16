@@ -149,6 +149,7 @@ for (const [key, trait] of [
             ...native,
             initialize(runtime) {
               native.initialize(runtime);
+
               if (trait === NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM) runtime.cooldownController.setReadyAt(key, 1);
               else runtime.procs.setDeadline(key, 1);
             }
@@ -259,8 +260,10 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
       now: () => context.time ?? 0,
       submit(event, delivery) {
         events.push(event);
+
         if (delivery.settlement === 'reaction') conditions.push(event);
         else context.queue.enqueue(event);
+
         return event;
       },
       announce(request) {
@@ -356,6 +359,7 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
         ? context.procs.snapshot()[`ranger.soulbeast.alliedStance:${kind}:1`]
         : context.procs.snapshot()[field];
       assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
+
       if (ally) {
         const queued = context.queue.length;
         react(context, { ...event, at: 1.04, metadata: { triggeredByAlly: 2 } });
@@ -590,7 +594,9 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
         submit(condition) {
           conditions.push(condition);
           assert.equal(context.procs.snapshot()[key], defiant ? condition.at + duration : undefined);
+
           if (defiant && conditions.length === 1) mesmerControlOpportunity(context, event);
+
           return condition;
         }
       }).effects;
@@ -628,7 +634,9 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
     submit(condition) {
       assert.equal(context.procs.deadline(key), condition.at + 2);
       conditions.push(condition);
+
       if (conditions.length === 1) scourgeConditionOpportunity(context, event);
+
       return condition;
     }
   }).effects;

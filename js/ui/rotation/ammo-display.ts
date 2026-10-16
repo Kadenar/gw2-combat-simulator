@@ -14,6 +14,7 @@ export interface AmmoDisplayView {
  */
 export function ammoDisplayView(charges: unknown, maximum: unknown): AmmoDisplayView | null {
   const normalizedMaximum = Math.max(0, Math.floor(Number(maximum) || 0));
+
   if (!normalizedMaximum) return null;
 
   const current = clamp(Math.floor(Number(charges) || 0), 0, normalizedMaximum);

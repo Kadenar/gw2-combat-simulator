@@ -11,5 +11,6 @@ export function rangerWeaponSkillMatchesSet(
   context: Gw2WeaponMatcherContext & { readonly config?: RangerConfig } = {}
 ): boolean {
   if (isRangerHammerVariant(skill.id) && !rangerHammerSkillIds(context).includes(Number(skill.id))) return false;
+
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }

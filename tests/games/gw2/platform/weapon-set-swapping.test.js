@@ -136,6 +136,7 @@ test('Elementalist swap input drops every conjure before considering an equipped
         const next = simulate([...prefix, swap, swap]);
         assert.equal(next.planningState.activeWeaponSet, inCombat ? startingWeaponSet : 3 - startingWeaponSet);
         assert.equal(next.warnings.length, inCombat ? 1 : 0);
+
         if (inCombat) assert.match(next.warnings[0], /cannot swap weapon sets in combat/);
       }
     }

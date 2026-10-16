@@ -346,6 +346,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
     for (let proc = 0; proc < application.quantity; proc += 1) {
       const profile = requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION);
       const effect = requireEffect(profile, 'condition', 'Bleeding');
+
       if (!effect) return;
 
       /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
@@ -381,6 +382,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
 function applyChillingDarkness(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_DARKNESS);
   const effect = requireEffect(profile, 'condition', 'Chilled');
+
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // Chill, so a removed packet leaves it ready.
   if (!effect || !context.procs.claimCooldown('chillingDarkness', event.at, balanceProfileNumber(profile, 'cooldown')))
@@ -416,6 +418,7 @@ function applyChillingDarkness(context: NecromancerResolverContext, event: Necro
 function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.INSIDIOUS_DISRUPTION);
   const effect = requireEffect(profile, 'condition', 'Torment');
+
   if (!effect) return;
 
   /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
@@ -474,10 +477,14 @@ function armPlagueSending(runtime: NecromancerRuntime, hasConditions: boolean): 
 
 function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+
   const skill = skillForEvent(runtime.helpers, event);
+
   if (!skill) return;
+
   const work = { skillId: skill.id, activationId: event.activationId };
   const state = runtime.profession.core;
+
   if (
     state.plagueSendingArmed &&
     transfer(runtime, skill, balanceNumberFromContext(runtime, TRAIT.PLAGUE_SENDING, 'maximumConditions'), work, true)

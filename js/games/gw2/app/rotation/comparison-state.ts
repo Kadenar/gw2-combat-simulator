@@ -30,6 +30,7 @@ export function beginRotationComparison(app: ProfessionAppState): boolean {
     app.simulationStatus !== 'idle'
   )
     return false;
+
   app.rotationComparison = {
     referenceRotation: [],
     referenceResult: null,
@@ -42,6 +43,7 @@ export function beginRotationComparison(app: ProfessionAppState): boolean {
 /** Copies a reference before scheduling, keeping imports independent of Current and its history. */
 export function setRotationReference(app: ProfessionAppState, rotation: readonly RotationCommand[]): boolean {
   if (!app.rotationComparison || !rotation.length) return false;
+
   Object.assign(app.rotationComparison, {
     referenceRotation: cloneRotation(rotation),
     referenceResult: null,
@@ -54,6 +56,7 @@ export function setRotationReference(app: ProfessionAppState, rotation: readonly
 /** Clears a reference without leaving comparison mode or changing the editable rotation. */
 export function clearRotationReference(app: ProfessionAppState): boolean {
   if (!app.rotationComparison) return false;
+
   Object.assign(app.rotationComparison, {
     referenceRotation: [],
     referenceResult: null,
@@ -66,6 +69,7 @@ export function clearRotationReference(app: ProfessionAppState): boolean {
 /** Exchanges independent rotations and their cached results before the app refreshes Current-only output. */
 export function swapRotationComparison(app: ProfessionAppState): boolean {
   const comparison = app.rotationComparison;
+
   if (
     !comparison ||
     comparison.referenceStatus !== 'fresh' ||
@@ -76,6 +80,7 @@ export function swapRotationComparison(app: ProfessionAppState): boolean {
     app.simulationStatus !== 'idle'
   )
     return false;
+
   const currentRotation = cloneRotation(app.build.rotation);
   const currentResult = app.results;
   app.build.rotation = cloneRotation(comparison.referenceRotation);
@@ -91,6 +96,7 @@ export function swapRotationComparison(app: ProfessionAppState): boolean {
 /** Leaving comparison discards only the reference; Current's undo history remains usable. */
 export function discardRotationComparison(app: ProfessionAppState): boolean {
   if (!app.rotationComparison) return false;
+
   app.rotationComparison = null;
   return true;
 }
@@ -98,6 +104,7 @@ export function discardRotationComparison(app: ProfessionAppState): boolean {
 /** Shared build changes queue the pinned rotation without invalidating it for ordinary Current-only edits. */
 export function queueRotationReference(app: RotationComparisonSession): void {
   if (!app.rotationComparison?.referenceRotation.length) return;
+
   app.rotationComparison.referenceStatus = 'queued';
   app.rotationComparison.referenceError = '';
 }
@@ -113,6 +120,7 @@ export function publishRotationReference(
     !app.rotationComparison.referenceRotation.length
   )
     return;
+
   app.rotationComparison.referenceResult = result;
   app.rotationComparison.referenceStatus = 'fresh';
   app.rotationComparison.referenceError = '';
@@ -121,6 +129,7 @@ export function publishRotationReference(
 /** Reference failures belong to queued work and must not replace a cleared or already completed reference. */
 export function failRotationReference(app: RotationComparisonSession, error: string): void {
   if (app.rotationComparison?.referenceStatus !== 'queued') return;
+
   app.rotationComparison.referenceStatus = 'error';
   app.rotationComparison.referenceError = error;
 }

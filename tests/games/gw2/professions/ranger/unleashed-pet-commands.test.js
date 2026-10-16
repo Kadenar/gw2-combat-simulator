@@ -35,6 +35,7 @@ for (const skillId of [ID.VENOMOUS_OUTBURST, ID.RENDING_VINES, ID.ENVELOPING_HAZ
         const restarted = actions.find((event) => event.at === command.at);
         assert.ok(restarted);
         const previous = actions.find((event) => event.at < command.at);
+
         if (previous) {
           const landed = (output) =>
             output.resolvedEvents.filter(

@@ -88,6 +88,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
     skillName: electricEnchantment.name,
     icon: electricEnchantment.icon
   };
+
   if (strike)
     emitTraitProfile(context, TRAIT.GALVANIC_ENCHANTMENT, TRAIT.GALVANIC_ENCHANTMENT, event, {
       at: event.at,
@@ -98,6 +99,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
       attribution,
       transform: (packet) => ({ ...packet, name: electricEnchantment.name, procType: 'profession' })
     });
+
   if (burning)
     emitTraitProfile(context, TRAIT.GALVANIC_ENCHANTMENT, TRAIT.GALVANIC_ENCHANTMENT, event, {
       at: event.at,
@@ -110,6 +112,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
         procType: 'profession'
       })
     });
+
   if (strike || burning)
     announceElectricEnchantment(context, {
       at: event.at,
@@ -126,6 +129,7 @@ export function consumeElectricEnchantment(context: ElementalistRuntime, event: 
   const grant = state.electricEnchantmentGrants.find(
     (candidate) => event.at >= canonicalTime(candidate.at) && consumeCharge(candidate, event.at)
   );
+
   if (grant) emitElectricEnchantment(context, event);
 }
 

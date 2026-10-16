@@ -105,6 +105,7 @@ export function emitResource(
  */
 export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pick<EvokerState, 'element'>): number {
   const slot = /^Weapon_(\d)$/.exec(String(skill.slot || ''));
+
   if (
     skill.type !== 'Weapon' ||
     !slot ||
@@ -134,7 +135,9 @@ function applyWeaponSkillChargeGain(
 ): void {
   const before = state.familiarCharges.value;
   context.resourceController.grant('familiarCharges', chargeGain.gain);
+
   if (state.familiarCharges.value === before) return;
+
   context.effects.emit({
     kind: 'packet',
     event: {
@@ -166,13 +169,16 @@ export function grantWeaponSkillCharges(
   state: EvokerState
 ): void {
   const gain = weaponSkillChargeGain(context, skill, state);
+
   if (gain <= 0) return;
+
   const chargeGain = {
     activationId: cast.id,
     source: skill.name,
     sourceId: skill.id,
     gain
   };
+
   // defer if a charge-resetting basic familiar is still casting — granting before the reset would lose the charges
   // reservationId check excludes the familiar itself from deferring its own grant
   if (

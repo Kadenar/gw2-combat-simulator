@@ -55,6 +55,7 @@ export function elementalistStrikeRequest(
 ): ProfileEmission {
   if (packet.activationId == null && packet.actorType === 'effect')
     packet = { ...packet, activationId: runtime.combat.allocateEffectActivation('elementalist.effect:') };
+
   const attribution = fields(packet);
   const hits = splitStrikeHits(
     {

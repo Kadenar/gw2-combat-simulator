@@ -57,6 +57,7 @@ test('shroud observers see committed Core transitions and remain isolated across
           onEnter(skill) {
             assert.equal(runtime.profession.specialization.kind, specialization);
             assert.equal(runtime.profession.core.activeShroud, skill.shroudEntry);
+
             if (specialization === 'Harbinger') {
               assert.ok(Number.isFinite(runtime.profession.specialization.state.nextBlightAt));
             }
@@ -65,6 +66,7 @@ test('shroud observers see committed Core transitions and remain isolated across
           },
           onExit() {
             assert.equal(runtime.profession.core.activeShroud, '');
+
             if (specialization === 'Harbinger') {
               assert.equal(runtime.profession.specialization.state.nextBlightAt, Infinity);
             }
@@ -107,6 +109,7 @@ test('creature summon listeners preserve reward order, captured attribution, and
     runtime.fireTrigger(creatureSummoned, { skill, at: 2, count: 2, activationId: 'summon' });
     assert.equal(lifeForce, selected ? 20 : 0);
     assert.equal(observed.length, selected ? 1 : 0);
+
     if (selected) {
       assert.equal(observed[0].lifeForce, 20);
       assert.equal(observed[0].event.activationId, 'summon:explosive-growth:2');

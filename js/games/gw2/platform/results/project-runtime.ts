@@ -44,6 +44,7 @@ export function projectRuntimeResult<T extends object>(
   }
 
   const score = buildSimulationScore(runtime, runtime.rotationEndTime, explicitCombat);
+
   if (output === 'score') {
     return score;
   }
@@ -75,10 +76,14 @@ export function projectRuntimeResult<T extends object>(
   );
   const steps = runtime.steps.map((step) => {
     const weaponSwapTo = weaponSwaps.get(step.activationId);
+
     if (weaponSwapTo != null) step = { ...step, weaponSwapTo };
+
     const action = companionActions.get(step.activationId);
+
     if (step.invalid || !action || typeof action.endsAt !== 'number' || typeof action.fullEndsAt !== 'number')
       return step;
+
     return {
       ...step,
       start: Math.round(action.at * 1000),

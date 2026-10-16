@@ -38,7 +38,9 @@ test('Mirage Advance applies one blind and disable at impact, with no invented i
     assert.equal(blind.length, offTarget ? 0 : 1);
     assert.equal(procs(result, 'Ineptitude').length, offTarget ? 0 : 1);
     assert.equal(procs(result, 'Relic of Aristocracy').length, offTarget ? 0 : 1);
+
     if (offTarget) continue;
+
     assert.equal(blind[0].duration, 5);
     assert.equal(blind[0].stacks, 1);
     assert.equal(blind[0].at, cast.endsAt);
@@ -102,9 +104,11 @@ test('Rain of Swords conditions and Aristocracy follow surviving pulses', () => 
     );
     assert.ok(conditions.every((event) => event.duration === 10 && event.stacks === 3));
     const reactions = procs(result, 'Relic of Aristocracy');
+
     // Verify that landed conditions drive the equipped relic without fixing the native pulse or proc count.
     if (relic) assert.ok(reactions.length > 0);
     else assert.equal(reactions.length, 0);
+
     assert.ok(reactions.every((proc) => conditions.some((event) => Math.abs(event.at * 1000 - proc.start) < 1e-8)));
   }
 
@@ -156,6 +160,7 @@ test('Gravity Well controls occur once on each authored pulse and cancelled cast
       conditions.map((event) => event.at),
       controls.map((event) => event.at)
     );
+
     if (!interrupted)
       assert.deepEqual(
         controls.map((event) => event.controlKind),
@@ -176,6 +181,7 @@ test('Mental Collapse requires Clarity consumed by its own accepted activation',
     );
     const controls = result.events.filter((event) => event.type === 'control');
     assert.equal(controls.length, empowered ? 1 : 0);
+
     if (empowered) {
       assert.equal(controls[0].controlKind, 'stun');
       assert.equal(

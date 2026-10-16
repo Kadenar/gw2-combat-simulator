@@ -85,6 +85,7 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
       }
 
       const candidate = entry as UnvalidatedFields;
+
       if (typeof candidate.handler !== 'function') {
         throw new TypeError(`Invalid ${hookName} hook at index ${index}.`);
       }
@@ -114,7 +115,9 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
  */
 function composeHooks(value: unknown, hookName: string, fallback: ComposableHook): ComposableHook {
   const hooks = orderedHooks(value, hookName);
+
   if (!hooks.length) return fallback;
+
   // Modifiers preserve the current value when a hook returns undefined.
   if (hookName.startsWith('modify')) {
     const composed = (context: unknown, initialValue: unknown) =>
@@ -122,6 +125,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
         const next = hook.handler(context, chainedValue);
         return next === undefined ? chainedValue : next;
       }, initialValue);
+
     // Native damage rules consume explicit equipment inputs; ordinary profession hooks keep their numeric contract.
     if (hooks.some(({ handler }) => 'acceptsDamageInputs' in handler && handler.acceptsDamageInputs === true)) {
       return Object.assign(composed, { acceptsDamageInputs: true });
@@ -134,6 +138,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
     let result: unknown;
     for (const hook of hooks) {
       const next = hook.handler(context, value);
+
       if (next !== undefined) result = next;
     }
 
@@ -159,6 +164,7 @@ export function createEventReactions<
       let result: TResult | undefined;
       for (const hook of hooks) {
         const next = hook.handler(context, event, details) as TResult | undefined;
+
         if (next !== undefined) result = next;
       }
 
@@ -178,6 +184,7 @@ export function assertDefinition(definition: unknown): void {
   }
 
   const candidate = definition as UnvalidatedFields;
+
   if (!/^[a-z][a-z0-9-]*$/.test(String(candidate.id || ''))) {
     throw new TypeError('Profession id must be a stable lowercase identifier.');
   }
@@ -194,6 +201,7 @@ export function assertDefinition(definition: unknown): void {
 
 function assertOptionalCallback(container: object, name: string, scope: string): void {
   const candidate = container as UnvalidatedFields;
+
   if (candidate[name] != null && typeof candidate[name] !== 'function') {
     throw new TypeError(`${scope}.${name} must be a function.`);
   }
@@ -235,6 +243,7 @@ export function defineProfession<TProfessionState extends object, TSkill extends
 
   if (definition.canSwapWeaponSetsInCombat != null && typeof definition.canSwapWeaponSetsInCombat !== 'boolean')
     throw new TypeError('canSwapWeaponSetsInCombat must be a boolean.');
+
   const profession = {
     attributeContributions: definition.attributeContributions,
     canSwapWeaponSetsInCombat: definition.canSwapWeaponSetsInCombat ?? true,

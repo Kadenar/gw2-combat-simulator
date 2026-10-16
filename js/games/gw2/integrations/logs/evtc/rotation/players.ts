@@ -33,9 +33,13 @@ export function selectedPlayerEvent(event: ParsedEvtcEvent, address: bigint): bo
 
 function playerDescription(agent: ParsedEvtcAgent): Omit<EvtcRotationPlayer, 'recordedActionCount'> | null {
   const profession = evtcProfessionMetadata(agent.profession);
+
   if (!profession) return null;
+
   const specialization = evtcSpecializationMetadata(agent.elite, profession.id);
+
   if (!specialization) return null;
+
   return {
     address: addressHex(agent.address),
     character: agent.character || 'Unnamed player',
@@ -62,7 +66,9 @@ export function detectEvtcRotationPlayers(log: ParsedEvtc): readonly EvtcPlayerE
     .filter(isPlayer)
     .flatMap((agent) => {
       const player = playerDescription(agent);
+
       if (!player) return [];
+
       const castActions = decode(log, agent.address, names);
       return [
         {
@@ -84,6 +90,7 @@ export function detectEvtcRotationPlayers(log: ParsedEvtc): readonly EvtcPlayerE
 
 function parseRequestedAddress(address: bigint | string): bigint | null {
   if (typeof address === 'bigint') return address;
+
   try {
     return BigInt(address);
   } catch {
@@ -101,6 +108,7 @@ export function selectPlayerAgent(
     evidence.map(({ player }) => player),
     requestedAddress == null ? undefined : (player) => parsed != null && BigInt(player.address) === parsed
   );
+
   if (selection.status !== 'selected') {
     if (selection.status === 'no-player') {
       throw new EvtcError('NO_PLAYER', 'The EVTC log contains no known player.');

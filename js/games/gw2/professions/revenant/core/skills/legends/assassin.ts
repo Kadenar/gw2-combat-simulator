@@ -173,23 +173,32 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
 /** A ready, unexpired Enchanted Daggers charge becomes a delayed siphon after a landed player strike. */
 export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const daggers = runtime.profession.core.enchantedDaggers;
+
   if (
     event.skillId === ID.ENCHANTED_DAGGERS ||
     !((daggers.charges || 0) > 0) ||
     !isInternalCooldownReady(runtime.time, daggers.readyAt || 0)
   )
     return;
+
   const skill = runtime.helpers.skillsById.get(ID.ENCHANTED_DAGGERS);
+
   if (!skill) throw new Error('Missing Enchanted Daggers skill declaration.');
+
   const strike = requireEffect(skill, 'strike', 'Enchanted Daggers — Siphon Damage');
   const buff = requireEffect(skill, 'buff', 'enchanted-daggers');
+
   // Charges exist only to deliver the siphon, so a removed strike leaves them unspent.
   if (!strike || !buff) return;
+
   const totalHits = effectNumber(skill, buff, 'stacks');
   const delay = (strike.atMs || 0) / 1000;
+
   if (!consumeCharge(daggers, runtime.time, delay)) return;
+
   // Preserve strict same-timestamp gating even when a patched strike has no delay.
   if (delay === 0) daggers.readyAt = runtime.time;
+
   emitEnchantedDagger(runtime, event, totalHits - daggers.charges, totalHits);
 }
 
@@ -197,7 +206,9 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
 function emitEnchantedDagger(runtime: RevenantRuntime, event: Gw2ResolverEvent, hitIndex = 1, totalHits = 1): void {
   const skill = runtime.helpers.skillsById.get(ID.ENCHANTED_DAGGERS)!;
   const strike = requireEffect(skill, 'strike', 'Enchanted Daggers — Siphon Damage');
+
   if (!strike) return;
+
   const delay = (strike.atMs || 0) / 1000;
   runtime.effects.emit({
     kind: 'packet',
@@ -228,8 +239,10 @@ function emitEnchantedDagger(runtime: RevenantRuntime, event: Gw2ResolverEvent, 
 /** A committed Enchanted Daggers arms its finite charge window at completion. */
 function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const buff = requireEffect(cast.skill, 'buff', 'enchanted-daggers');
+
   // Charges are the buff's stacks, so a removed buff arms nothing.
   if (!buff) return;
+
   const charges = Math.max(0, effectNumber(cast.skill, buff, 'stacks'));
   const duration = Math.max(0, effectNumber(cast.skill, buff, 'duration'));
   runtime.profession.core.enchantedDaggers = {
@@ -299,12 +312,16 @@ function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
 /** An accepted qualifying strike launches Impossible Odds' follow-up while the upkeep is active and ready. */
 export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (!triggersImpossibleOdds(event) || !activeRevenantUpkeep(runtime, ID.IMPOSSIBLE_ODDS)) return;
+
   // Integer clock keys allow the expiry instant without admitting hits just before it.
   if (timeKey(runtime.time) < timeKey(runtime.procs.deadline('impossibleOdds') || 0)) return;
+
   const impossible = runtime.helpers.skillsById.get(ID.IMPOSSIBLE_ODDS);
   const strike = impossible && requireEffect(impossible, 'strike', 'Impossible Odds');
+
   // The trigger interval gates only this strike, so a removed strike leaves it ready.
   if (!impossible || !strike) return;
+
   runtime.procs.setDeadline('impossibleOdds', canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000));
   runtime.effects.emit({
     kind: 'packet',

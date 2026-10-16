@@ -28,6 +28,7 @@ function validateContentEntries(value: unknown): asserts value is readonly Playa
     assertId(entry.id, `${label}.id`);
 
     if (ids.has(entry.id)) throw new TypeError(`GamePlugin.content contains duplicate ID "${entry.id}".`);
+
     ids.add(entry.id);
   }
 }
@@ -37,6 +38,7 @@ function validateGamePlugin(value: unknown): asserts value is GamePlugin {
   assertRecord(value, 'GamePlugin');
   assertId(value.id, 'GamePlugin.id');
   validateContentEntries(value.content);
+
   if (typeof value.loadContent !== 'function') throw new TypeError('GamePlugin.loadContent must be a function.');
 }
 
@@ -50,8 +52,11 @@ export function defineGameRegistry(entries: readonly GameRegistryEntry[]): reado
       assertRecord(value, `Game registry entry ${index}`);
       const entry = value as unknown as GameRegistryEntry;
       assertId(entry.id, `Game registry entry ${index}.id`);
+
       if (typeof entry.load !== 'function') throw new TypeError(`Game registry entry "${entry.id}" needs a loader.`);
+
       if (ids.has(entry.id)) throw new TypeError(`Game registry contains duplicate ID "${entry.id}".`);
+
       ids.add(entry.id);
       return Object.freeze({ id: entry.id, load: entry.load });
     })
@@ -74,11 +79,14 @@ async function loadGame(
   registry: readonly GameRegistryEntry[] = gameRegistry
 ): Promise<GamePlugin | null> {
   const entry = registry.find(({ id }) => id === gameId);
+
   if (!entry) return null;
 
   const game = await entry.load();
   validateGamePlugin(game);
+
   if (game.id !== gameId) throw new TypeError(`Game loader "${gameId}" returned plug-in "${game.id}".`);
+
   return game;
 }
 
@@ -89,15 +97,20 @@ export async function loadGameContent(
   registry: readonly GameRegistryEntry[] = gameRegistry
 ): Promise<PlayableContentPlugin | null> {
   const game = await loadGame(gameId, registry);
+
   if (!game || !game.content.some(({ id }) => id === contentId)) return null;
 
   const content = await game.loadContent(contentId);
+
   if (!content) throw new TypeError(`Game "${gameId}" did not load its declared content "${contentId}".`);
+
   assertRecord(content, 'PlayableContentPlugin');
+
   if (content.gameId !== gameId || content.id !== contentId) {
     throw new TypeError(`Content loader "${gameId}/${contentId}" returned a mismatched plug-in.`);
   }
 
   if (typeof content.mount !== 'function') throw new TypeError('PlayableContentPlugin.mount must be a function.');
+
   return content as unknown as PlayableContentPlugin;
 }

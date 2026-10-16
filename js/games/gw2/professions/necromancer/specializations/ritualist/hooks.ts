@@ -105,6 +105,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
               balanceNumberFromContext(runtime, PROFILE.resources, 'lifeForceDrain')) /
             100
           );
+
         return necromancerLifeForce.recovery(runtime);
       }
     }

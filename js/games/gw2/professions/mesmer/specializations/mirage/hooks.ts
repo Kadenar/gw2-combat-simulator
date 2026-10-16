@@ -37,7 +37,9 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   availability: mirageAvailability,
   onCastStart(runtime, cast) {
     const skill = cast.skill;
+
     if (!skill.ambush || cast.cancelled) return;
+
     createMirageMechanics(runtime).acceptPlayerAmbush(skill, cast.fullEnd, cast.start, mesmerCastDelivery(cast, skill));
   },
   onCastCommit(runtime, cast) {

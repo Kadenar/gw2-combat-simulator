@@ -6,11 +6,16 @@ const TRAINING_GOLEMS = new Set([16169, 16202, 16178, 16198, 16177, 16199, 19676
 /** Separate golem encounter start from initial player combat snapshots without inferring any extra casts. */
 export function encounterStartTime(log: ParsedEvtc): number | null {
   if (!TRAINING_GOLEMS.has(log.header.encounterId)) return null;
+
   const update = log.events.find((event) => event.stateChange === 47);
+
   if (!update) return null;
+
   const targets = log.agents.filter((agent) => agent.profession === log.header.encounterId);
   const target = targets.find((agent) => agent.address === update.target) ?? targets[0];
+
   if (!target) return null;
+
   const modernDamage = Number(log.header.arcdpsBuild) >= 20260501;
   const firstDamage = log.events.find(
     (event) =>

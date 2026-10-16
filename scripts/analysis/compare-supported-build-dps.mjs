@@ -106,6 +106,7 @@ export function printDpsComparison(
     maximumAbsoluteDpsError == null ? `${(maximumRelativeError * 100).toFixed(2)}%` : `${maximumAbsoluteDpsError} DPS`;
 
   console.log('\nLIVE BENCHMARK CHECK');
+
   if (mismatches.length === 0) {
     console.log(
       `All ${metrics.length} rotation-backed builds across ${professionCount} manifests are within ${tolerance} of benchmark DPS.`
@@ -138,8 +139,11 @@ export function printPatchPreviewComparison(metrics, previewMetrics, preview) {
   let unchanged = 0;
   for (const metric of previewMetrics) {
     const live = liveByKey.get([metric.profession, presetKey(metric.section, metric)].join('\0'));
+
     if (!live) throw new Error(metric.id + ' has no matching live result.');
+
     const rework = findPendingPatchBenchmark({ ...metric, specialization: metric.section }, preview);
+
     if (rework) {
       pending.push({ ...metric, reason: rework.reason });
       continue;
@@ -163,8 +167,11 @@ export function printPatchPreviewComparison(metrics, previewMetrics, preview) {
   console.log(
     `${increased} increased | ${changes.length - increased} decreased | ${unchanged} unchanged | ${pending.length} pending`
   );
+
   if (unchanged) console.log('Unchanged builds omitted (DPS rounded to 2 decimals).');
+
   if (changes.length) printComparisonTable(changes, 'Live DPS', 'Preview DPS');
+
   if (pending.length) {
     console.log('\n  Pending reworks (preview DPS not comparable)');
     for (const metric of pending) {
@@ -191,15 +198,19 @@ function benchmarkDamage(metric, preview = false) {
   const benchmarkDpsByHealth = Object.fromEntries(
     TARGET_HEALTH_BANDS.map(({ id }) => {
       const band = metric.dpsByHealth[id];
+
       if (!band || Object.keys(band).length !== 2)
         throw new TypeError(metric.id + ' produced invalid DPS for ' + id + '%.');
+
       return [
         id,
         Object.fromEntries(
           ['cumulative', 'phase'].map((mode) => {
             const value = band[mode];
+
             if (value !== null && (!Number.isFinite(value) || value < 0))
               throw new TypeError(metric.id + ' produced invalid ' + mode + ' DPS for ' + id + '%.');
+
             return [mode, value === null ? null : Math.round(value)];
           })
         )
@@ -214,7 +225,9 @@ function indexMetrics(metrics) {
   const indexed = new Map();
   for (const metric of metrics) {
     const key = [metric.profession, presetKey(metric.section, metric)].join('\0');
+
     if (indexed.has(key)) throw new Error('Duplicate simulation result: ' + metric.id);
+
     indexed.set(key, metric);
   }
 
@@ -231,7 +244,9 @@ export async function updateManifestBenchmarks(
   const data = resolveGameData(root, gameId);
   const liveResults = indexMetrics(metrics);
   const previewResults = indexMetrics(previewMetrics);
+
   if (!preview && previewResults.size) throw new Error('Preview results require an active preview.');
+
   const pendingWrites = [];
   const skippedPresets = [];
   const seen = new Set();
@@ -250,46 +265,62 @@ export async function updateManifestBenchmarks(
     for (const section of manifest) {
       for (const preset of section.presets) {
         const key = [profession, presetKey(section.section || '', preset)].join('\0');
+
         if (seen.has(key)) throw new Error('Duplicate manifest entry: ' + key);
+
         seen.add(key);
         const before = JSON.stringify(preset);
+
         if (!preview || !preset.rotation) {
           if (Object.hasOwn(preset, 'patchPreview')) previewRemovedEntries += 1;
+
           delete preset.patchPreview;
         }
 
         if (!preset.rotation) {
           if (Object.hasOwn(preset, 'benchmarkDps'))
             skippedPresets.push({ profession, section: section.section || '', label: preset.label });
+
           if (before !== JSON.stringify(preset)) changedEntries += 1;
+
           continue;
         }
 
         const metric = liveResults.get(key);
+
         if (!metric)
           throw new Error(
             profession + '|' + section.section + '|' + preset.label + ' has a rotation but no simulation result.'
           );
+
         if (!Number.isFinite(metric.apm) || metric.apm < 0)
           throw new TypeError(metric.id + ' produced invalid APM: ' + metric.apm + '.');
+
         if (metric.patchId !== 'current') throw new Error(metric.id + ' is not a live result.');
+
         Object.assign(preset, benchmarkDamage(metric), { benchmarkApm: Math.round(metric.apm * 10) / 10 });
         liveResults.delete(key);
+
         if (preview) {
           const previewMetric = previewResults.get(key);
+
           if (!previewMetric || previewMetric.patchId !== preview.id)
             throw new Error(metric.id + ' has no matching preview result.');
+
           // Persist only preview measurements; pending reworks are declared by the active patch.
           const nextPreview = {
             patchId: preview.id,
             ...benchmarkDamage(previewMetric, true)
           };
+
           if (JSON.stringify(preset.patchPreview) !== JSON.stringify(nextPreview)) previewUpdatedEntries += 1;
+
           preset.patchPreview = nextPreview;
           previewResults.delete(key);
         }
 
         if (before !== JSON.stringify(preset)) changedEntries += 1;
+
         updatedEntries += 1;
       }
     }
@@ -297,13 +328,16 @@ export async function updateManifestBenchmarks(
     // Repair formatting even when benchmarks match, using the same file-specific rules as the Prettier CLI.
     const options = await resolveConfig(manifestPath, { editorconfig: true });
     const contents = await format(JSON.stringify(manifest), { ...options, filepath: manifestPath });
+
     if (original !== contents) pendingWrites.push({ manifestPath, contents });
   }
 
   if (liveResults.size || previewResults.size)
     throw new Error('Manifest entries were not found for simulation results.');
+
   if (commit)
     await Promise.all(pendingWrites.map(({ manifestPath, contents }) => writeFile(manifestPath, contents, 'utf8')));
+
   return {
     updatedEntries,
     changedEntries,
@@ -354,16 +388,19 @@ if (import.meta.main) {
   console.log('Simulating live builds...');
   const metrics = await captureSupportedBuildMetrics(undefined, { gameId });
   let previewMetrics = [];
+
   if (activePatchPreview) {
     console.log(`Simulating balance preview: ${activePatchPreview.label} (${activePatchPreview.id})...`);
     previewMetrics = await captureSupportedBuildMetrics(undefined, { gameId, patchId: activePatchPreview.id });
   }
 
   const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
+
   if (activePatchPreview) printPatchPreviewComparison(metrics, previewMetrics, activePatchPreview);
 
   // Group diagnostics by patch and preset while retaining every warning beside the completed comparisons.
   const warnedMetrics = [...metrics, ...previewMetrics].filter((metric) => metric.warnings.length > 0);
+
   if (warnedMetrics.length) {
     console.warn('\nSIMULATION WARNINGS');
     for (const metric of warnedMetrics) {
@@ -388,6 +425,7 @@ if (import.meta.main) {
       update.previewRemovedEntries +
       '.'
   );
+
   if (mode === 'commit') {
     console.log(
       `Updated ${update.updatedEntries} DPS/APM/health-band benchmark entries (${update.changedEntries} changed) ` +

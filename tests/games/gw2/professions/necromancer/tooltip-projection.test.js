@@ -205,11 +205,13 @@ test('Dhuumfire tooltip and combat agree on selected stacks and specialization d
       const duration = patchId === 'current' ? live : patched;
       assert.ok(burning.detail.startsWith(`${duration}s`));
       assert.equal(burning.stacks, patchId === 'current' ? 1 : 2);
+
       if (specialization === 'Scourge')
         assert.equal(
           facts.find(({ name }) => name === 'Internal cooldown').detail,
           patchId === 'current' ? '1s' : '2s'
         );
+
       const result = simulate(
         profession,
         patchId,

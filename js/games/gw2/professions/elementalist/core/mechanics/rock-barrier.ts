@@ -9,8 +9,10 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 /** Releasing or expiring the stored barrier starts the root skill's held recharge once. */
 function releaseRockBarrier(runtime: ElementalistRuntime): void {
   if (!consumeSkillFlip(runtime.profession.core.availableFlips, ID.HURL)) return;
+
   runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });
   const root = runtime.helpers.skillsById.get(ID.ROCK_BARRIER);
+
   if (root) {
     runtime.cooldownController.startRecharge(
       root,

@@ -81,9 +81,12 @@ export const ritualistSpiritActions: NonNullable<
 > = {
   'ritualist.wanderlust-opening'(runtime, context) {
     if (context.kind !== 'cast' || context.cast.cancelled) return;
+
     const cast = context.cast;
     const swing = spiritDefinition(runtime, cast.skill.id)?.summonTicks[0];
+
     if (!swing) return;
+
     const skillWeapon = gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet) || 'Unequipped';
     runtime.effects.emit({
       kind: 'packet',
@@ -99,6 +102,7 @@ export const ritualistSpiritActions: NonNullable<
   },
   'ritualist.summon-anguish'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     const spirit = spiritDefinition(runtime, cast.skill.id)!;
     summonRitualistSpirit(runtime, cast, spirit);
@@ -117,6 +121,7 @@ export const ritualistSpiritActions: NonNullable<
     strikes(runtime, cast, spirit, spirit.summonTicks, 'initial');
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
     const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
+
     if (effect && spirit.summonTicks.length) {
       const at = canonicalTime(
         runtime.time + spirit.summonTicks[0].atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
@@ -137,12 +142,14 @@ export const ritualistSpiritActions: NonNullable<
   },
   'ritualist.summon-wanderlust'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     const spirit = spiritDefinition(runtime, cast.skill.id)!;
     const key = spirit.key;
     summonRitualistSpirit(runtime, cast, spirit);
     strikes(runtime, cast, spirit, spirit.lingeringTicks, 'initial');
     const first = spirit.lingeringTicks[0];
+
     if (first) {
       const opening = requireBalanceProfileFromContext(runtime, PROFILE.wanderlust);
       runtime.effects.emit({
@@ -161,6 +168,7 @@ export const ritualistSpiritActions: NonNullable<
   },
   'ritualist.summon-preservation'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     const spirit = spiritDefinition(runtime, cast.skill.id)!;
     summonRitualistSpirit(runtime, cast, spirit);
@@ -176,6 +184,7 @@ export const ritualistSpiritActions: NonNullable<
   },
   'ritualist.innervate'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     const innervate = INNERVATE.get(cast.skill.id)!;
     for (const effect of cast.skill.effects ?? []) {
@@ -200,12 +209,16 @@ export const ritualistSpiritActions: NonNullable<
   },
   'ritualist.summon-spirits'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     // The shared inventory preserves command ordering and the same participating spirits shown by tooltips.
     for (const id of RITUALIST_SPIRIT_SKILL_IDS) {
       const spirit = spiritDefinition(runtime, id)!;
+
       if (!canActivateRitualistSpirit(runtime, spirit.key)) continue;
+
       strikes(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');
+
       if (spirit.key === 'wanderlust')
         runtime.effects.emit({
           kind: 'packet',
@@ -220,6 +233,7 @@ export const ritualistSpiritActions: NonNullable<
             )
           }
         });
+
       markRitualistSpiritBusy(runtime, spirit);
     }
   }

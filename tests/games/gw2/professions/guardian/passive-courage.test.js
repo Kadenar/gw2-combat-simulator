@@ -29,6 +29,7 @@ function fixture(owner, { cooldown = 5.3, interval = 2, removed = false, selecte
     }
   };
   const skills = {};
+
   if (owner.specialization === 'Firebrand') {
     balanceProfiles[FB_PROFILE.tomeCourage] = {
       fields: { cooldown: { from: catalog.balanceProfilesById.get(FB_PROFILE.tomeCourage).cooldown, to: cooldown } }

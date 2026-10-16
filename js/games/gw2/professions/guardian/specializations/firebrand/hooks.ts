@@ -69,6 +69,7 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
       runtime.time + balanceNumberFromContext(runtime, DORMANCY[virtue], 'cooldown') * multiplier
     );
     runtime.fireTrigger(virtueActivated, { cast, virtue });
+
     if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
   }
 
@@ -148,6 +149,7 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
     },
     'guardian.stow-tome'(runtime, context) {
       if (context.kind !== 'cast') return;
+
       const cast = context.cast;
       const state = firebrandState.from(runtime);
       state.activeTome = '';
@@ -181,13 +183,17 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
   },
   availability(runtime, skill) {
     const state = firebrandState.from(runtime);
+
     if (skill.type === 'Weapon' && state.activeTome)
       return denyCast('guardian.tome-weapon-lockout', `${skill.name} requires stowing the active tome.`);
+
     if (skill.id === ID.STOW_TOME && !state.activeTome)
       return denyCast('guardian.tome-inactive', 'Stow Tome requires an active tome.');
+
     if (skill.tome) {
       if (skill.tome !== state.activeTome)
         return denyCast('guardian.tome-inactive', `${skill.name} requires its tome to be active.`);
+
       return CAST_READY;
     }
 
@@ -196,6 +202,7 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
   /** Core resets virtue dormancy; full Renewed Focus completion refills pages without moving their recovery phase. */
   onCastCommit(runtime, cast) {
     if (cast.skill.id !== ID.RENEWED_FOCUS || castWasInterrupted(cast)) return;
+
     const state = firebrandState.from(runtime);
     runtime.resourceController.grant('tomePages', state.tomePages.maximum);
   },
@@ -212,6 +219,7 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
     'buff.applied'(runtime, event) {
       // Executed history is appended after dispatch; reproject once the applied Alacrity window is queryable.
       if (event.kind === 'alacrity') runtime.schedule(FIREBRAND_MANTRA_WAKE, runtime.time);
+
       runtime.fireTrigger(firebrandBuffApplied, { cause: event });
     },
     'control.resolved'(runtime, event) {

@@ -219,7 +219,9 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
 function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DEADLY_AMBUSH);
   const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+
   if (!bleeding) return;
+
   emitTraitProfile(runtime, TRAIT.DEADLY_AMBUSH, TRAIT.DEADLY_AMBUSH, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
@@ -240,12 +242,15 @@ function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): vo
 /** Applies Kleptomaniac at its established mechanical boundary. */
 function applyKleptomaniac(runtime: ThiefRuntime): void {
   const initiativeGain = balanceNumberFromContext(runtime, TRAIT.KLEPTOMANIAC, 'resourceGain');
+
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
 function applySleightOfHand(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const control = requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND), 'control', 'daze');
+
   if (!control) return;
+
   runtime.effects.emit({
     kind: 'packet',
     event: buildThiefControl(cast.skill, {
@@ -281,7 +286,9 @@ function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance)
 /** Initiative spent grants Lead Attacks stacks at completion, replacing the oldest at the cap. */
 function grantLeadAttacks(runtime: ThiefRuntime, { cast, initiativeCost: cost }: ThiefCastCompletion): void {
   const skill = cast.skill;
+
   if (cost <= 0) return;
+
   const core = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
@@ -311,7 +318,9 @@ function grantLeadAttacks(runtime: ThiefRuntime, { cast, initiativeCost: cost }:
 /** Quick Pockets grants in-combat initiative once per its cooldown. */
 function grantQuickPockets(runtime: ThiefRuntime): void {
   if (!runtime.procs.claim(TRAIT.QUICK_POCKETS, 'thief.core.quickPockets', runtime.time)) return;
+
   const initiativeGain = balanceNumberFromContext(runtime, TRAIT.QUICK_POCKETS, 'resourceGain');
+
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 

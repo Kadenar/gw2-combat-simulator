@@ -223,7 +223,9 @@ function triggerShatterBoon(
   effectName: 'alacrity' | 'quickness'
 ): void {
   const profile = requireBalanceProfileFromContext(context, traitId);
+
   if (!requireEffect(profile, 'boon', effectName)) return;
+
   const traitSource = {
     source: 'Trait',
     sourceId: traitId,
@@ -288,6 +290,7 @@ function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent
   if (event.type !== 'control') return;
 
   const skillId = Number(event.skillId);
+
   if (skillId !== ID.TIME_SINK && !hasTrait(context, TRAIT.DELAYED_REACTIONS)) {
     return;
   }

@@ -23,6 +23,7 @@ export const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
 export function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): number {
   const profile = requireBalanceProfileFromContext(context, TRAIT.METICULOUS_CUSTODIAN);
   const event = context.event;
+
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
     return event.metadata?.packetKind === 'thief.metal-legion-guitar-final-smash'
       ? balanceProfileNumber(profile, 'guitarFinalFactor')
@@ -30,12 +31,15 @@ export function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): num
   }
 
   if (event?.skillId === ID.MISTBURN_MORTAR) return balanceProfileNumber(profile, 'mortarFactor');
+
   if (event?.skillId === ID.CHAK_SHIELD) return balanceProfileNumber(profile, 'chakFactor');
+
   if (event?.skillId === ID.SUMMON_KRYPTIS_TURRET) {
     return balanceProfileNumber(profile, 'kryptisFactor');
   }
 
   if (event?.skillId === ID.HOLO_DANCER_DECOY) return balanceProfileNumber(profile, 'holoFactor');
+
   return 1;
 }
 

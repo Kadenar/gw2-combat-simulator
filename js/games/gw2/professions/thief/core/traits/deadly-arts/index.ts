@@ -261,6 +261,7 @@ export const revealedTraining = defineTrait({
         // Record successful player hits after their damage resolves so only later hits can use the bonus.
         if (cause.actorType !== 'player' || cause.offTarget || !cause.activationId || !(Number(cause.coefficient) > 0))
           return;
+
         if (skillForEvent(runtime.helpers, cause)?.stealthAttack)
           runtime.profession.core.revealedTrainingHitActivations[cause.activationId] = true;
       }
@@ -320,7 +321,9 @@ export const serpentsTouch = defineTrait({
 function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EVEN_THE_ODDS);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+
   if (!vulnerability) return;
+
   emitTraitProfile(runtime, TRAIT.EVEN_THE_ODDS, TRAIT.EVEN_THE_ODDS, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
@@ -341,9 +344,11 @@ function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): voi
 function reduceUtilityRecharges(runtime: ThiefRuntime): void {
   // An eligible pilfer claims the interval even when no selected utility is recharging.
   if (!runtime.procs.claim(TRAIT.IMPROVISATION, 'thief.antiquary.improvisation', runtime.time)) return;
+
   const multiplier = balanceNumberFromContext(runtime, TRAIT.IMPROVISATION, 'rechargeMultiplier');
   for (const id of selectedSkillIdSet(runtime.config.selectedSkillIds)) {
     const skill = runtime.helpers.skillsById.get(id);
+
     if (skill?.type === 'Utility')
       runtime.cooldownController.reduceSkillRecharge(skill, gw2BaseRecharge(skill) * (1 - multiplier), runtime.time);
   }
@@ -364,7 +369,9 @@ function applyMug(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
 function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SERPENTS_TOUCH);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
+
   if (!poison) return;
+
   emitTraitProfile(runtime, TRAIT.SERPENTS_TOUCH, TRAIT.SERPENTS_TOUCH, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
@@ -391,22 +398,32 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
   const recallId = cause.metadata?.recallSkillId;
   const event: ThiefResolverEvent =
     recallId == null ? cause : { ...cause, skillId: Number(recallId), sourceId: Number(recallId) };
+
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+
   const skill = skillForEvent(context.helpers, event);
+
   if (!skill || event.sourceId !== skill.id) return;
+
   const isDualWieldAttack =
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
+
   if (!isDualWieldAttack) return;
+
   const state = professionCoreState(context);
 
   const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBITION);
   const poison = requireEffect(deadlyAmbitionProfile, 'condition', 'Poisoned');
+
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!poison) return;
+
   // Preserve the local identity rule for packets without an activation ID.
   const activation = event.activationId || `${skill.id}:${event.at}`;
+
   if (!claimActivation(state.activationClaims, 'thief.deadly-ambition', activation)) return;
+
   emitTraitProfile(context, TRAIT.DEADLY_AMBITION, TRAIT.DEADLY_AMBITION, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -432,6 +449,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
     return;
 
   const lotusPoisonProfile = requireBalanceProfileFromContext(context, TRAIT.LOTUS_POISON);
+
   if (
     !context.procs.claimCooldown(
       TRAIT.LOTUS_POISON,
@@ -440,7 +458,9 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
     )
   )
     return;
+
   const might = requireEffect(lotusPoisonProfile, 'boon', 'Might');
+
   if (might) {
     const boon = String(might.boon);
     emitTraitProfile(context, TRAIT.LOTUS_POISON, TRAIT.LOTUS_POISON, undefined, {
@@ -462,6 +482,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
   }
 
   const weakness = requireEffect(lotusPoisonProfile, 'condition', 'Weakness');
+
   if (weakness)
     emitTraitProfile(context, TRAIT.LOTUS_POISON, TRAIT.LOTUS_POISON, undefined, {
       at: event.at,
@@ -484,10 +505,14 @@ function applyPanicStrike(context: ThiefResolverContext, { cause: event }: Venom
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
+
   if (poisonTargetConditionCount(context, event.at) < balanceProfileNumber(panicStrikeProfile, 'threshold')) return;
+
   const immobilized = requireEffect(panicStrikeProfile, 'condition', 'Immobilized');
+
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!immobilized) return;
+
   // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
   if (
     !context.procs.claimCooldown(
@@ -497,6 +522,7 @@ function applyPanicStrike(context: ThiefResolverContext, { cause: event }: Venom
     )
   )
     return;
+
   emitTraitProfile(context, TRAIT.PANIC_STRIKE, TRAIT.PANIC_STRIKE, undefined, {
     at: event.at,
     fullEnd: event.at,
@@ -523,8 +549,10 @@ function applyPanicStrikePoison(
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
   const poison = requireEffect(panicStrikeProfile, 'condition', 'Poisoned');
+
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!poison) return;
+
   emitTraitProfile(context, TRAIT.PANIC_STRIKE, TRAIT.PANIC_STRIKE, undefined, {
     at: application.at,
     fullEnd: application.at,

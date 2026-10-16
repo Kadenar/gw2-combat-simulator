@@ -15,15 +15,19 @@ export function emitTraitSymbol(
 ): boolean {
   const profile = runtime.helpers.skillsById.get(symbolId)!;
   const components = (profile.effects ?? []).filter((effect) => effect.type === 'strike' || effect.type === 'boon');
+
   if (!components.length) return false;
+
   // A surviving symbol reserves its native skill recharge before any derived activation.
   if (runtime.cooldownController.isOnCooldown(symbolId, runtime.time)) return false;
+
   runtime.cooldownController.startRecharge(profile, runtime.time);
   const symbol = profile;
   const activationId = `guardian.symbol:${symbolId}:${cause.activationId ?? cause.eventOrder}:${runtime.time}`;
   for (const component of components) {
     if (component.type === 'strike' && !component.ticks?.length)
       throw new Error(`${profile.name} requires an explicit strike timeline.`);
+
     const effect = {
       ...component,
       ...(component.type === 'strike'

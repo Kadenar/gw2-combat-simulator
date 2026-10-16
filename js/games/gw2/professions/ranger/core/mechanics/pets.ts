@@ -53,8 +53,10 @@ const PET_AI_ATTACK_OWNER = 'ranger.pet-ai-attack';
 /** Stamps pet-owned packets before shared consumers such as combo finishers derive child events. */
 export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (!isPetActorEvent(event)) return event;
+
   // Packets retain their launching identity so entity retirement cannot retarget them to a replacement.
   if (event.summonOwner) return { ...event, independentConditionOwner: true };
+
   // Every pet-owned event needs concrete caster identity for audience resolution;
   // damaging packets additionally receive the pet's independent combat stats.
   return event.type === 'damage' || event.type === 'condition'
@@ -99,6 +101,7 @@ export function rangerPetCastDurationMs(
   durationMs: number
 ): number {
   if (!skill.petSkill) return durationMs;
+
   const petName = context.profession.core.activePet;
   const definition = RANGER_PET_SKILL_TIMINGS[skill.id];
   // Measured animations and per-pet overrides replace cast metadata; other skills retain their authored tuning.
@@ -132,6 +135,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
   const profile = rangerPetAutoProfile(context.profession.core.activePet);
   const skillId = cast.skill.id;
   const special = profile?.specials.find((entry) => entry.id === skillId);
+
   if (rangerPetSkillTiming(context.profession.core.activePet, skillId) || special)
     return petRecovery(
       context.profession.core.activePet,
@@ -139,6 +143,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
       special?.recovery ?? 0,
       petBoonActive(context, 'quickness')
     );
+
   return (
     quantizeGw2ActionDurationUp((profile?.commandRecovery[String(skillId)] ?? cast.effectiveEnd - cast.start) * 1000) /
     1000
@@ -147,6 +152,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
 
 function schedulePet(context: RangerRuntime, at: number): void {
   if (!autonomousActionsAllowed(context)) return;
+
   const state = context.profession.core;
   state.pet!.autoStarted = true;
   state.pet!.autoNextAt = gw2CooldownReadyAt(Math.max(context.time, at, state.pet!.busyUntil));
@@ -156,8 +162,11 @@ function schedulePet(context: RangerRuntime, at: number): void {
 /** Interrupt only autonomous work; launched effects and manually commanded skills retain their ownership. */
 function interruptPetAutoattack(context: RangerRuntime): void {
   const state = context.profession.core;
+
   if (!state.pet!.autoAction) return;
+
   context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
+
   if (state.pet!.autoAction.endsAt > context.time) {
     context.effects.emit({
       kind: 'packet',
@@ -181,7 +190,9 @@ function interruptPetAutoattack(context: RangerRuntime): void {
 /** Instant pet commands restart autonomous attacks across families without interrupting a manual pet command. */
 export function restartRangerPetAutoattack(context: RangerRuntime): void {
   const state = context.profession.core;
+
   if (!state.pet) return;
+
   interruptPetAutoattack(context);
   schedulePet(context, context.time);
 }
@@ -190,14 +201,18 @@ export function restartRangerPetAutoattack(context: RangerRuntime): void {
 export function startRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
+
   if (!autonomousActionsAllowed(context) || !state.pet || !profile || state.pet.autoStarted) return;
+
   schedulePet(context, context.time + profile.openingDelay);
 }
 
 /** Retire the pet under the causing skill's identity; cooldown work survives after its Alacrity is discarded. */
 export function retireRangerPet(context: RangerRuntime, sourceId: SkillId): void {
   const state = context.profession.core;
+
   if (!state.pet) return;
+
   const id = state.pet.id;
   context.cooldownController.retireCompanion(id, context.time);
   context.cancelOwner(owner(context));
@@ -222,7 +237,9 @@ export function retireRangerPet(context: RangerRuntime, sourceId: SkillId): void
 /** Merging disposes of the pet; unmerging constructs a fresh instance with no transferred rewards. */
 export function setRangerPetActive(context: RangerRuntime, active: boolean, sourceId: SkillId): void {
   const state = context.profession.core;
+
   if (Boolean(state.pet) === active) return;
+
   if (!active) {
     retireRangerPet(context, sourceId);
     return;
@@ -252,6 +269,7 @@ function petRechargeReadyAt(context: RangerRuntime, skillId: string | number): n
 
 function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile): PetAutoSkill {
   const pet = context.profession.core.pet!;
+
   if (rangerPetSkillsRequireCommands(context.config.specialization || 'Core')) {
     pet.openingBasic = false;
     return profile.basic;
@@ -284,6 +302,7 @@ export function emitRangerPetSkill(
   for (const effect of skill.effects ?? []) {
     // Pet-owned emission must retain the same acceptance checks as the standard cast pipeline.
     if (cast && effect.when && !effect.when(context.queries, cast)) continue;
+
     if (
       cast &&
       castWasInterrupted(cast) &&
@@ -292,6 +311,7 @@ export function emitRangerPetSkill(
       cancelledBeforeEffectCommit(skill, effect, cast.start, cast.fullEnd, cast.effectiveEnd)
     )
       continue;
+
     // Ranger-stat damage is independent; all other pending skill effects require the casting pet.
     const rangerDamage = effect.actorType === 'player' && (effect.type === 'strike' || effect.type === 'condition');
     context.effects.emit({
@@ -320,6 +340,7 @@ export function emitRangerPetSkill(
         const at = gw2CooldownReadyAt(
           timing && !quickness ? start + (timing.unbuffedImpactMs[offsetMs] ?? offsetMs) / 1000 : event.at
         );
+
         if (
           cast &&
           castWasInterrupted(cast) &&
@@ -328,6 +349,7 @@ export function emitRangerPetSkill(
           !effect.persistsAfterInterrupt
         )
           return null;
+
         // Ranger-stat exceptions retain caster provenance too, so their pet-owned trait children cannot migrate on swap.
         // Capture the name with the caster so delayed packets cannot borrow a replacement pet's label.
         return {
@@ -359,8 +381,10 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
 
 export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const skill = cast.skill;
+
   if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core') || !context.profession.core.pet)
     return;
+
   const state = context.profession.core;
   const start = petCommandStart(context, skill);
   const recovery = petCommandRecovery(context, cast);
@@ -372,7 +396,9 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<
 export const rangerPetTasks = {
   [PET_AUTO_TASK](context: RangerRuntime, data: unknown): void {
     const state = context.profession.core;
+
     if (!autonomousActionsAllowed(context) || !state.pet || state.pet.autoNextAt !== data) return;
+
     if (context.time < canonicalTime(state.pet.busyUntil)) {
       schedulePet(context, state.pet.busyUntil);
       return;
@@ -380,12 +406,15 @@ export const rangerPetTasks = {
 
     state.pet.autoNextAt = 0;
     const profile = rangerPetAutoProfile(state.activePet);
+
     if (!profile) return;
+
     const opening = state.pet.openingBasic;
     const quickness = petBoonActive(context, 'quickness');
     const selected = autonomousSkill(context, profile);
     const skill = context.helpers.skillsById.get(selected.id);
     const recovery = petRecovery(state.activePet, selected.id, selected.recovery, quickness);
+
     if (skill) {
       const fullEnd = gw2CooldownReadyAt(
         context.time +
@@ -417,10 +446,12 @@ export const rangerPetTasks = {
     }
 
     state.pet.busyUntil = context.time + recovery;
+
     if (skill) {
       // Ordinary recharge follows the active catalog; the Iboga owns its measured autonomous exceptions.
       const cooldown =
         ibogaAutonomousRecharge(context, skill, quickness) ?? (skill.cooldown ?? 0) * packAlphaPetRecharge(context);
+
       // All pet skills, including autonomous-only skills, recharge in the global controller.
       if (cooldown > 0) {
         if (profile.ignoresAlacrity) context.cooldownController.setReadyAt(skill.id, context.time + cooldown);
@@ -444,6 +475,7 @@ export const rangerPetTasks = {
 
     // Acceptance reserves the pet lane; execution alone spends the shared cooldown.
     const readyAt = petRechargeReadyAt(context, cast.skill.id);
+
     if (context.time < canonicalTime(state.pet!.busyUntil) || context.time < readyAt) {
       context.scheduleForCast(
         PET_COMMAND_START_TASK,
@@ -504,6 +536,7 @@ export function rangerBoonDuration(
   scaledDuration: number
 ): number {
   if (!isPetActorEvent(event)) return scaledDuration;
+
   const concentration = lingeringMagicConcentration(context);
   return baseDuration * gw2BoonDurationMultiplier(String(event.kind), { concentration });
 }

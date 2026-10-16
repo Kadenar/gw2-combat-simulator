@@ -34,6 +34,7 @@ function completeDaredevilDodge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
 
 function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (cast.skill.id === SHARED_SKILL_IDS.DODGE) completeDaredevilDodge(runtime, cast);
+
   // Endurance Thief follows Core's steal resources.
   runtime.fireTrigger(daredevilCastCompleted, { cast });
 }
@@ -62,6 +63,7 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       skillFlipReady(runtime.profession.core.availableFlips[ID.PALM_STRIKE], runtime.time)
     )
       return { ready: true };
+
     // No timer can open the window; only a connecting Fist Flurry does.
     return {
       ready: false,
@@ -74,6 +76,7 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     const skill = cast.skill;
 
     runtime.fireTrigger(daredevilCastStarted, { cast });
+
     if (skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
   },
   onCastCommit(runtime, cast) {

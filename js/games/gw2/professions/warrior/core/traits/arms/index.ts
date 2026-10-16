@@ -159,6 +159,7 @@ export const furious = defineTrait({
   // Count only accepted self stacks; deselection stops future grants, not existing ones.
   grantedAttributes(context) {
     if (!context.runtime && !context.timeline) return {};
+
     const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS);
     return {
       attributeEffects: [
@@ -396,8 +397,11 @@ function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): 
     !context.combat.targetHealthBelow(balanceNumberFromContext(context, TRAIT.SIGNET_MASTERY, 'threshold'))
   )
     return;
+
   const skill = context.helpers.skillsById.get(ID.LESSER_SIGNET_OF_MIGHT)!;
+
   if (context.cooldownController.isOnCooldown(skill.id, context.time)) return;
+
   context.cooldownController.startRecharge(skill, context.time);
   invokeTraitSkill(context, TRAIT.SIGNET_MASTERY, skill.id, event, {
     announce: true,
@@ -414,6 +418,7 @@ function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): 
 
 function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !runtime.procs.claim(TRAIT.OPPORTUNIST)) return;
+
   grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.OPPORTUNIST, 'resourceGain'));
   {
     const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.OPPORTUNIST);
@@ -477,9 +482,11 @@ function bloodlustCritical(
     randomStream: 'warrior.bloodlust',
     roll: (chance, stream) => runtime.random.roll(chance, stream)
   });
+
   if (proc) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
     const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+
     if (bleeding) {
       emitTraitProfile(runtime, TRAIT.BLOODLUST, TRAIT.BLOODLUST, event, {
         attribution: {
@@ -511,6 +518,7 @@ function furiousCritical(
   opportunity: ReturnType<typeof criticalOpportunity>
 ): void {
   const criticals = opportunity.sampledCriticals;
+
   if (criticals > 0) {
     grantWarriorResource(runtime, criticals * balanceNumberFromContext(runtime, TRAIT.FURIOUS, 'resourceGain'));
     {
@@ -543,9 +551,11 @@ function sunderingBurstCritical(
   firstBurst: boolean
 ): void {
   const criticals = opportunity.sampledCriticals;
+
   if (firstBurst && runtime.procs.claim(TRAIT.SUNDERING_BURST)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_BURST);
     const effect = requireEffect(profile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst');
+
     if (effect) {
       emitTraitProfile(runtime, TRAIT.SUNDERING_BURST, TRAIT.SUNDERING_BURST, event, {
         attribution: {

@@ -15,7 +15,9 @@ export interface OptimizerContext extends BuildContextModule {
 
 export async function loadOptimizerContext(contentId: string): Promise<OptimizerContext | null> {
   const module = await loadBuildContext(contentId);
+
   if (!module) return null;
+
   const eliteNames = new Set(
     module.profession.catalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name)
   );

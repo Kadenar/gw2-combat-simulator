@@ -100,6 +100,7 @@ export const fortifyingBond = defineTrait({
           !['player', 'effect'].includes(gw2EventOwnerActorType(event))
         )
           return;
+
         shareFortifyingBond(runtime, String(event.kind), Number(event.stacks), event);
       }
     }
@@ -112,6 +113,7 @@ export const fortifyingBond = defineTrait({
         for (const [kind, value] of Object.entries(runtime.config.boons ?? {}))
           if (isStandardBoon(kind) && Number(value) > 0) shareFortifyingBond(runtime, kind, Number(value));
         const interval = balanceNumberFromContext(runtime, TRAIT.FORTIFYING_BOND, 'pulseInterval');
+
         if (interval > 0) runtime.schedule('ranger.fortifying-bond-console', runtime.time + interval, null);
       }
     }
@@ -167,6 +169,7 @@ export const naturesVengeance = defineTrait({
         // Child-owned slams repeat their own selected profiles rather than duplicating parent effects.
         if (cast.skill.id === ID.SUN_SPIRIT)
           runtime.schedule('ranger.natures-vengeance-sun', spiritRepeatSlamAt(runtime, cast), cast.skill);
+
         if (cast.skill.id === ID.STORM_SPIRIT)
           runtime.scheduleForCast('ranger.natures-vengeance-storm', spiritRepeatSlamAt(runtime, cast), cast);
       }
@@ -175,8 +178,11 @@ export const naturesVengeance = defineTrait({
   hooks: {
     modifyEffects(runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>, effects) {
       if (!admittedSpiritRepeats.has(cast)) return effects;
+
       const slams = effects.filter((effect) => effect.metadata?.packetKind === 'ranger.spirit-slam');
+
       if (!slams.length) return effects;
+
       const atMs = (spiritRepeatSlamAt(runtime, cast) - cast.start) * 1000;
       return [
         ...effects,
@@ -206,8 +212,10 @@ export const naturesVengeance = defineTrait({
 function wellspringPetAttributes(context: Gw2AttributeContext): Gw2AttributeContributions {
   const multiplier = balanceNumberFromContext(context, TRAIT.WELLSPRING, 'attributeConversion');
   const base = Number(context.event?.summonBasePower);
+
   if (!Number.isFinite(base) || base <= 0)
     return { transforms: [{ kind: 'convert-current', from: 'power', to: 'healingPower', multiplier }] };
+
   const power = base + (context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? 0) * 30;
   return {
     attributeEffects: [{ kind: 'flat', to: 'Healing Power', amount: power * multiplier, feedsConversions: 'none' }]
@@ -393,6 +401,7 @@ export function lingeringMagicConcentration(context: SelectedContentContext): nu
 function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void {
   const at = context.time;
   const inCombat = context.combatStartTime != null && context.time >= context.combatStartTime;
+
   if (inCombat) {
     emitTraitProfile(context, TRAIT.SPIRITED_ARRIVAL, TRAIT.SPIRITED_ARRIVAL, undefined, {
       at,
@@ -420,6 +429,7 @@ function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void 
 function applyRejuvenation(context: RangerRuntime, skill: RangerSkill): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.REJUVENATION);
   const effect = requireEffect(profile, 'boon', 'regeneration');
+
   // The cooldown gates only regeneration, so a removed boon leaves the trait ready.
   if (effect && context.procs.claim(TRAIT.REJUVENATION, 'ranger.core.rejuvenation', context.time)) {
     const kind = String(effect.boon);

@@ -49,7 +49,9 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       target.addEventListener('change', () => {
         const selected = target.selectedOptions[0];
         const existingName = selected?.dataset.name;
+
         if (existingName) name.value = existingName;
+
         category.value = selected?.dataset.category || '';
         save.disabled = !name.value.trim();
       });
@@ -103,6 +105,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
     let search = '';
     container.querySelector<HTMLElement>('.build-library-tabs')!.addEventListener('keydown', (event) => {
       if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+
       event.preventDefault();
       const tabs = [...container.querySelectorAll<HTMLButtonElement>('[data-library-view]')];
       const current = tabs.indexOf(event.target as HTMLButtonElement);
@@ -117,21 +120,29 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
     });
     container.addEventListener('click', (event) => {
       const target = event.target;
+
       if (!(target instanceof Element)) return;
+
       const viewButton = target.closest<HTMLButtonElement>('[data-library-view]');
+
       if (viewButton) {
         showBuildLibraryView(container, viewButton.dataset.libraryView === 'mine' ? 'mine' : 'templates');
         return;
       }
 
       const libraryButton = target.closest<HTMLButtonElement>('[data-library-action]');
+
       if (libraryButton) {
         const action = libraryButton.dataset.libraryAction;
         const id = libraryButton.dataset.myBuildId;
         const entry = myBuilds.find((build) => build.id === id);
+
         if (!entry) return;
+
         closeTemplateMenus(container);
+
         if (action === 'load') loadMyBuildEntry(app, entry);
+
         if (action === 'delete' && confirm(`Delete ${entry.name}? This cannot be undone.`)) {
           try {
             myBuilds = deleteMyBuild(app, entry.id);
@@ -145,8 +156,10 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const filterButton = target.closest('[data-template-filter]');
+
       if (filterButton instanceof HTMLButtonElement) {
         const filter = filterButton.dataset.templateFilter;
+
         if (isTemplateFilter(filter)) {
           templateFilter = filter;
           filterButton.closest('details')?.removeAttribute('open');
@@ -157,8 +170,10 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const boonFilterButton = target.closest('[data-template-boon-filter]');
+
       if (boonFilterButton instanceof HTMLButtonElement) {
         const boon = boonFilterButton.dataset.templateBoonFilter;
+
         if (isTemplateBoonFilter(boon)) {
           boonFilter = boon;
           boonFilterButton.closest('details')?.removeAttribute('open');
@@ -169,8 +184,10 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const specializationFilterButton = target.closest('[data-template-specialization-filter]');
+
       if (specializationFilterButton instanceof HTMLButtonElement) {
         const specialization = specializationFilterButton.dataset.templateSpecializationFilter || null;
+
         if (specialization === null || specializations.includes(specialization)) {
           specializationFilter = specialization;
           specializationFilterButton.closest('details')?.removeAttribute('open');
@@ -181,8 +198,11 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const button = target.closest('[data-template-action]');
+
       if (!(button instanceof HTMLButtonElement)) return;
+
       const action = button.dataset.templateAction;
+
       if (action === 'undo') {
         undoTemplateLoad(app);
         return;
@@ -193,7 +213,9 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
 
       const preset = app.templatePresets[Number(button.dataset.templateIndex)];
+
       if (!preset) return;
+
       closeTemplateMenus(container);
       // Browsing from New creates an independent build; explicit partial-load actions still target the current build.
       const destination = action === 'template' && container.dataset.newBuild === 'true' ? 'new-tab' : action;
@@ -203,11 +225,13 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
     window.addEventListener('storage', (event) => {
       // Another browser tab changed the library; show its snapshots instead of a stale list.
       if (event.key !== null && event.key !== myBuildsStorageKey(app.adapter)) return;
+
       myBuilds = loadMyBuilds(app.adapter);
       renderMyBuilds(container, myBuilds, search);
     });
     document.addEventListener('click', (event) => {
       const target = event.target;
+
       if (target instanceof Element && !target.closest('.template-actions, .template-filter')) {
         closeTemplateMenus(container);
       }

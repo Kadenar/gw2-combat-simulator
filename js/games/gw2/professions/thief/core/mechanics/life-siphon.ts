@@ -6,7 +6,9 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 /** Apply siphon-specific bonuses at impact because flat life steal bypasses ordinary strike modifiers. */
 export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: ThiefResolverEvent) {
   if (!isFlatLifeStealPacket(event) || !isGw2PlayerModifierOwnedEvent(event)) return;
+
   let multiplier = event.flatStrikeMultiplier ?? 1;
+
   // Vampiric Slash samples live Vulnerability for its siphon only, independently of the packet's label.
   if (
     event.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&

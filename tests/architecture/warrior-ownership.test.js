@@ -7,7 +7,9 @@ test('Warrior Core value dependencies never reach an elite and trait lines never
   const source = professionSourceGraph('warrior');
   for (const file of source.graph.keys()) {
     const entry = path.relative(source.root, file).replaceAll(path.sep, '/');
+
     if (!entry.startsWith('core/')) continue;
+
     const isTraitLine = /traits\/(arms|strength|defense|discipline|tactics)\/index\.ts$/.test(entry);
     assertIndependentProfessionOwners(
       source,

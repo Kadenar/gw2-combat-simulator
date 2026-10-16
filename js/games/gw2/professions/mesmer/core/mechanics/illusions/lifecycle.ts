@@ -24,9 +24,11 @@ export const mesmerIllusionHooks = {
   initialize(runtime) {
     const resourceDefinition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime);
     const kind = mesmerResourceKind(runtime.profession.specialization.kind);
+
     // Numeric policies already seeded their clocks; observe the seed without granting it or earning rewards again.
     if (kind !== 'clones') {
       const value = runtime.resourceController.value(kind);
+
       if (value > 0) {
         const packet = buildMesmerPacket({
           type: 'resource',
@@ -59,9 +61,12 @@ export const mesmerIllusionHooks = {
   },
   modifyEffects(runtime, cast, effects) {
     const skill = cast.skill;
+
     if (skill.phantasm)
       return effects.filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm');
+
     if (mesmerShatterDefinition(runtime, skill.id) || skill.id === ID.INSPIRING_IMAGERY) return [];
+
     return effects.filter((effect) => !(effect.type === 'buff' && effect.kind === 'clarity'));
   },
   onCastStart(runtime, cast) {
@@ -73,6 +78,7 @@ export const mesmerIllusionHooks = {
     'mesmer.clone-attack'(runtime, data) {
       const id = Number(data);
       const next = createMesmerCloneScheduler(runtime).handleTask(id, runtime.time);
+
       if (next != null)
         runtime.schedule('mesmer.clone-attack', next, id, { id: `mesmer.clone:${id}`, generation: 0 }, -50);
     },
@@ -91,6 +97,7 @@ export const mesmerIllusionHooks = {
     // Impact-owned illusion gains use the same clone/blade/imagery resource owner as other skills.
     'mesmer.illusion-gain'(runtime, context, action) {
       if (action.type !== 'mesmer.illusion-gain') return;
+
       createMesmerIllusionRewards(runtime).gainResources(
         runtime.time,
         sideEffectAmount(runtime, action.amount!),

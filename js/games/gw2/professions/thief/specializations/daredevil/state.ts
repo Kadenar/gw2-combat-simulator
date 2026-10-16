@@ -39,7 +39,9 @@ export const daredevilState = defineProfessionSpecializationState('Daredevil', c
 function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>): ThiefDodge {
   // Trait-based dodge replaces any explicit config choice; only one Daredevil minor trait can be active
   if (hasTrait(traits, TRAIT.LOTUS_TRAINING)) return 'Lotus Training';
+
   if (hasTrait(traits, TRAIT.BOUNDING_DODGER)) return 'Bounding Dodger';
+
   if (hasTrait(traits, TRAIT.UNHINDERED_COMBATANT)) {
     return 'Unhindered Combatant';
   }

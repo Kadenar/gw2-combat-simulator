@@ -17,14 +17,17 @@ export const heraldOfSorrowAvailability: NonNullable<
   RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>['availability']
 > = (runtime, skill) => {
   const herald = hasTrait(runtime, TRAIT.HERALD_OF_SORROW);
+
   if (skill.id === ID.SANDSTORM_SHROUD && !herald)
     return denySkillCast(skill, 'necromancer.trait-replacement', 'requires Herald of Sorrow.');
+
   if (skill.id === ID.DESERT_SHROUD && herald)
     return denySkillCast(
       skill,
       'necromancer.trait-replacement',
       'replaced by Sandstorm Shroud while Herald of Sorrow is selected.'
     );
+
   return { ready: true };
 };
 

@@ -132,6 +132,7 @@ test('module projections compose Core and only the selected specialization', () 
     assert.deepEqual(Object.keys(projected).sort(), [...new Set(['shared', 'Core', specialization])].sort());
     projected.Core.value = 9;
     assert.equal(profession.core.Core.value, 1);
+
     if (specialization !== 'Core') {
       projected[specialization].value = 7;
       assert.equal(profession.specialization.state[specialization].value, 1);

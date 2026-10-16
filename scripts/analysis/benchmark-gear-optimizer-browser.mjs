@@ -85,7 +85,9 @@ try {
                     app,
                     () => {
                       const state = runner.state;
+
                       if (state.winners.length && firstResultMs === null) firstResultMs = state.elapsedMs;
+
                       if (state.status === 'failed') {
                         cancelAnimationFrame(frame);
                         reject(new Error(state.error));
@@ -144,6 +146,7 @@ try {
 
   for (const row of rows) {
     const reference = rows.find((entry) => entry.profession === row.profession);
+
     if (JSON.stringify(row.winnerKeys) !== JSON.stringify(reference.winnerKeys) || row.rawCount !== reference.rawCount)
       throw new Error('Worker-count ranking or coverage mismatch.');
   }

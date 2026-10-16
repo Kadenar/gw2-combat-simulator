@@ -21,13 +21,16 @@ export const brawler = defineRelic({
       (ctx.combatStartTime != null &&
         event.at <= ctx.combatStartTime &&
         (!marker || compareTimelineEvents(event, marker) < 0));
+
     if (
       precombat
         ? !ctx.config.precastRelics?.some((name) => relicIdForName(name) === RELIC_IDS.BRAWLER)
         : ctx.relic?.id !== RELIC_IDS.BRAWLER
     )
       return;
+
     const kind = (event.kind || '').toLowerCase();
+
     // Player ownership is insufficient: the boon must reach the player to activate Brawler.
     if (
       (kind !== 'protection' && kind !== 'resolution') ||

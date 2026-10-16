@@ -31,6 +31,7 @@ function timelineFullCastMs(
   skill: Pick<Skill, 'castTimeMs'> | undefined
 ): number {
   const simulatedDuration = Number(step?.fullCastMs);
+
   if (step?.fullCastMs != null && Number.isFinite(simulatedDuration)) {
     return Math.max(0, Math.round(simulatedDuration));
   }
@@ -42,12 +43,15 @@ function timelineFullCastMs(
 // Each editor also checks command identity on Apply because an open popover can outlive its captured index.
 function editRotationDuration(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
+
   const item = timelineItem(entry);
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-wait-badge[data-idx="${index}"]`);
+
   if (!anchor) return false;
 
   openDurationEditor({
@@ -61,7 +65,9 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
     stepMs: GW2_ACTION_TICK_MS,
     onApply(durationMs) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry !== entry) return;
+
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         durationMs
       });
@@ -77,15 +83,21 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
 // the rotation this cast falls so it can show available charge counts in context.
 function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
+
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
+
   if (!skill?.dragonSlash) return false;
+
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-edit-activation[data-idx="${index}"]`);
+
   if (!anchor) return false;
+
   openDragonSlashReleaseEditor({
     app,
     anchor,
@@ -95,7 +107,9 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
     command: item.command.type === 'cast' ? item.command : undefined,
     onApply(releaseAtCharges, releaseDelayMs) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry !== entry) return;
+
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         releaseAtCharges,
         releaseDelayMs
@@ -112,15 +126,20 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
 // the whole .rot-skill card so the popover positions correctly.
 function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
+
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
+
   // Dragon Slash uses charge release as its cast configuration, so the pencil opens that editor directly.
   if (skill?.dragonSlash) return editReleaseAtCharges(app, index, event);
+
   const isCombatStart = item.type === 'combat-start';
   // Away-from-target and delayed-impact casts model precasts, so they apply only before the authored combat marker.
   const combatStartIndex = app.build.rotation.findIndex((command) => command.type === 'combat-start');
   const isPrecast = item.type === 'cast' && combatStartIndex > index;
+
   if (!skill && !isCombatStart) return false;
 
   const results = currentTimelineResults(app);
@@ -157,6 +176,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const anchor =
     eventElement?.closest<HTMLElement>('.rot-skill') ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-skill[data-idx="${index}"]`);
+
   if (!anchor) return false;
 
   openActivationEditor({
@@ -180,6 +200,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
       isPrecast && behavior === 'concurrent'
         ? (timingMs) => {
             if (timingMs === (item.concurrentOffsetMs ?? null)) return combatStartAfterCastMs;
+
             // Reuse the scheduler through Combat Start: changing a precast can move both the cast and marker.
             const rotation = app.build.rotation.slice(0, combatStartIndex + 1);
             rotation[index] = updateRotationEntry(entry, { concurrentOffsetMs: timingMs ?? undefined });
@@ -198,7 +219,9 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     impactDelayMs: item.impactDelayMs ?? null,
     onApply(timingMs, targeting) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry !== entry) return;
+
       // Timing and targeting belong to the same cast command, so the pencil editor updates both together.
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         ...(behavior === 'concurrent'
@@ -222,15 +245,21 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
 // "success" for any value other than the explicit "backfire" string, including unset.
 function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
+
   if (entry === undefined) return false;
+
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
+
   if (!hasConfigurableDoubleEdgeOutcome(skill)) return false;
+
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(`#rotation-timeline .rot-double-edge-badge[data-idx="${index}"]`);
+
   if (!anchor) return false;
+
   openDoubleEdgeEditor({
     anchor,
     skillName: String(skill.displayName || skill.name),
@@ -238,7 +267,9 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
     outcome: item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success',
     onApply(outcome) {
       const currentEntry = app.build.rotation[index];
+
       if (currentEntry !== entry) return;
+
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         doubleEdgeOutcome: outcome
       });

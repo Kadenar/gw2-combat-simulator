@@ -69,6 +69,7 @@ export function resolveBladesong(
     const ticks = packetTicks();
 
     const hits = addBladeDamage(ticks);
+
     if (confusion)
       buildMesmerConditions(context, skill.name, at, confusion, 'Player', '', { skillId: skill.id }).forEach(
         (packet) => {
@@ -81,12 +82,14 @@ export function resolveBladesong(
           });
         }
       );
+
     return hits.map((event) => ({ at: event.at, count: 1 }));
   }
 
   if (shatter.kind === 'blade-control') {
     // A blade cannot impact before the activation has actually committed its resource spend.
     const damageAt = Math.max(at, castStart + (shatter.damageAtMs || 0) / 1000);
+
     if (strike)
       buildMesmerStrikes(
         context,
@@ -107,6 +110,7 @@ export function resolveBladesong(
           priority: Number(packet.priority ?? 0)
         });
       });
+
     context.effects.emit({
       ...delivery,
       kind: 'profile',

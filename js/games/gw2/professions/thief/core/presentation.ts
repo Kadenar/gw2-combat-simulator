@@ -56,6 +56,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const items: RotationStateSnapshotItem[] = [];
   // Count at the insertion cursor's time so expired axes disappear even without another axe cast.
   const axes = (state.spinningAxes || []).filter((axe) => axe.expiresAt > at);
+
   if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes('Axe')) {
     items.push({
       id: 'thief-spinning-axes',
@@ -79,6 +80,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 
   // Each initiative-spending grant expires independently, so the count is read at the displayed instant.
   const leadAttacksStacks = activeStackCount(state.leadAttackExpirations || [], at);
+
   if (leadAttacksStacks > 0) {
     items.push({
       id: 'thief-lead-attacks',
@@ -103,10 +105,12 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ]
   ] as const) {
     const remaining = planningBuffAt(context.planningState, kind)?.remaining ?? 0;
+
     if (remaining > 0) items.push({ id, label, value: `${remaining.toFixed(1)}s`, title });
   }
 
   const revealedRemaining = (state.revealedUntil || 0) - at;
+
   if (revealedRemaining > 0) {
     return [
       ...items,
@@ -139,6 +143,7 @@ export const thiefCoreUi = Object.freeze({
     const preview = createPreviewControls(context);
     // Expose held combat bonuses to isolated damage calculations.
     preview.damageBuff('Fluid Strikes', 'fluidStrikes', 'fluid-strikes');
+
     if (context.weapons.includes('Spear'))
       preview.add({
         key: 'distractingThrow',
@@ -183,6 +188,7 @@ export const thiefCoreUi = Object.freeze({
         kind: 'special',
         description: 'Revealed Training'
       });
+
     preview.trait('Hidden Killer', {
       key: 'stealth',
       kind: 'special',
@@ -191,6 +197,7 @@ export const thiefCoreUi = Object.freeze({
     });
     preview.targetHealth('Ferocious Strikes');
     preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
+
     if (preview.has('Twin Fangs'))
       preview.add({
         key: 'flanking',
@@ -199,6 +206,7 @@ export const thiefCoreUi = Object.freeze({
         kind: 'special',
         description: 'Positional Critical Chance'
       });
+
     // Active replaces the passive; Off represents the signet's inactive recharge window.
     if (preview.skills.has(ID.ASSASSINS_SIGNET))
       preview.add({
@@ -212,6 +220,7 @@ export const thiefCoreUi = Object.freeze({
         initial: 'passive',
         description: 'Passive Power, active Power bonus, or neither'
       });
+
     return preview.controls;
   },
   /** Seed selected axes and the held active signet buff only in the detached damage configuration. */
@@ -222,17 +231,22 @@ export const thiefCoreUi = Object.freeze({
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
     const core = readProfessionCoreState<ThiefCoreState>(context.professionState);
+
     // Retain the equipped skill while suspending its passive in the Off and Active states.
     if ('assassinsSignet' in context.values)
       core.assassinsSignetPassiveDisabledUntil = context.values.assassinsSignet === 'passive' ? 0 : Infinity;
+
     if (context.values.assassinsSignet === 'active') context.addBuff('assassins-signet', 1, "Assassin's Signet");
+
     if ('revealed' in context.values) core.revealedUntil = context.values.revealed ? 60 : 0;
+
     if ('stealth' in context.values) core.stealthUntil = context.values.stealth ? 60 : 0;
   },
 
   // Stealth owns weapon slot one even when initiative or another cast gate blocks the replacement.
   paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (!skill.stealthAttack) return;
+
     const state = thiefUiState(context);
     const now = context.time || 0;
     return {

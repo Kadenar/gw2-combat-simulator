@@ -175,6 +175,7 @@ test('Radiant Justice is claimed at hammer impact and retains missed activation 
     const extra = result.resolvedEvents.find((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
     assert.equal(Boolean(extra), before);
     assert.equal(lum(result).radiantJusticeArmed, !before);
+
     if (extra)
       assert.equal(
         extra.activationId,
@@ -1084,6 +1085,7 @@ test('spear filler preserves an armed charge and removed grant components cannot
       {
         initialize: (runtime) => {
           illuminate(runtime, 5);
+
           if (symbol) illuminate(runtime, 5, true);
         },
         profession: patched
@@ -1849,7 +1851,9 @@ test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and
     assert.deepEqual(result.warnings, []);
     const packets = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.BIG_GAME_HUNTER);
     assert.equal(packets.length, removed ? 0 : 1);
+
     if (removed) continue;
+
     const packet = packets[0];
     const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.activationId === 'accepted-hit');
     assert.equal(packet.at, hit.at);

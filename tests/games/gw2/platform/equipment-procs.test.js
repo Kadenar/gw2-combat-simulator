@@ -322,6 +322,7 @@ test('critical-strike food consumes seeded crit and proc outcomes in stochastic 
     if (event.didCrit !== true || event.at < foodReadyAt) continue;
 
     if (!procRandom.roll(0.66, 'food.critical-strike')) continue;
+
     expectedProcs += 1;
     foodReadyAt = event.at + 2;
   }

@@ -243,6 +243,7 @@ export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, Gu
       `guardian.start-${virtue}`,
       (runtime: GuardianRuntime, context: ActionContext<GuardianSkill>) => {
         if (context.kind !== 'cast') return;
+
         const cast = context.cast;
         const at = canonicalTime(activationAt(cast));
         const flameAt = canonicalTime(

@@ -43,6 +43,7 @@ test('planning projections omit private mechanic state while retaining visible o
     }
 
     assert.deepEqual(projected[visibleKey], owner[visibleKey]);
+
     if (typeof owner[visibleKey] === 'object') assert.notEqual(projected[visibleKey], owner[visibleKey]);
   }
 });
@@ -149,11 +150,14 @@ test('Mesmer public endurance and instrument observations remain detached', () =
     const config = { specialization };
     const profession = mesmerProfession.runtimeFor(config).createState(config);
     const state = profession.specialization.state;
+
     if (specialization === 'Troubadour') state.instruments = { Lute: 7, Flute: 5 };
+
     const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
     assert.deepEqual(projected.endurance, state.endurance);
     projected.endurance.value = 0;
     assert.equal(state.endurance.value, 100);
+
     if (specialization === 'Troubadour') {
       assert.deepEqual(projected.activeInstruments, [{ name: 'Lute', expiresAt: 7000, remaining: 2000 }]);
       projected.activeInstruments[0].name = 'edited';
@@ -224,6 +228,7 @@ test('force clocks are detached in snapshots and planning projections and absent
 function snapshot(profession, specialization, professionState, atSeconds, result) {
   // These fixture buffs were scheduled and committed; specialized views can inspect either report history.
   if (result) result = { ...result, events: result.resolvedEvents };
+
   return profession.ui.rotationStateSnapshot({
     balanceContext: withPatchPreview(profession).balanceContextFor(),
     specialization,

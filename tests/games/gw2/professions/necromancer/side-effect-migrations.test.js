@@ -66,6 +66,7 @@ test('spear shard reactions belong to selected accepted strike effects', () => {
           ...native,
           onCastStart(runtime, cast) {
             native.onCastStart(runtime, cast);
+
             if (cast.skill.id === skillId) runtime.profession.core.soulShardGrant.charges = 0;
           },
           modifyEffects(runtime, cast, effects) {
@@ -204,6 +205,7 @@ test('Scourge declared costs retain vitality scaling and interrupted acceptance 
         rotation: [{ type: 'cast', skillId: ID.NEFARIOUS_FAVOR, interruptAfterMs: 100 }]
       });
       const core = observedRuntime(result).profession.core;
+
       if (initialResource) {
         assert.deepEqual(result.warnings, []);
         assert.ok(Math.abs(core.lifeForce.value - (core.lifeForce.maximum - 1935)) < 1e-8);

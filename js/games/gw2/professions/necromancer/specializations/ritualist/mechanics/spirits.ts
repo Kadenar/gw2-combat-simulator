@@ -38,7 +38,9 @@ interface SpiritStrikeTick {
 // autonomous, lingering, and active attack timings.
 export function spiritDefinition(context: NecromancerRuntime, skillId: SkillId): SpiritDefinition | undefined {
   const attacks = spiritAttackEffects(context, skillId);
+
   if (!attacks) return undefined;
+
   const { key, profile, autoattack, active } = attacks;
   // Procedural spirit scheduling consumes the same canonical packet timelines as declarative skills; a removed
   // attack contributes no ticks.

@@ -7,6 +7,7 @@ export function requireComboDescriptorOwner(value: unknown, label: string): Owne
   }
 
   const descriptor = value as Record<string, unknown>;
+
   if (typeof descriptor.ownerId !== 'string' || !descriptor.ownerId.trim()) {
     throw new TypeError(`${label} ownerId must be a non-empty string.`);
   }
@@ -17,7 +18,9 @@ export function requireComboDescriptorOwner(value: unknown, label: string): Owne
 /** Optional descriptor lists may be absent, but every supplied entry must declare its combo owner. */
 export function requireOwnedComboDescriptors(value: unknown, label: string): readonly OwnedComboDescriptor[] {
   if (value === undefined) return [];
+
   if (!Array.isArray(value)) throw new TypeError(`${label} must be an array.`);
+
   return value.map((entry, index) => requireComboDescriptorOwner(entry, `${label} entry ${index + 1}`));
 }
 

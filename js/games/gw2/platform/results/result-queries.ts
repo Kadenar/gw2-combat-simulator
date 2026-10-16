@@ -18,8 +18,10 @@ export function criticalChanceEventAt(
   let beforeAt = -Infinity;
   for (const event of result?.resolvedEvents || []) {
     const actor = gw2EventActorType(event);
+
     // Only effects explicitly owned by the player join player actors in this sample.
     if (actor !== 'player' && (actor !== 'effect' || !isGw2PlayerModifierOwnedEvent(event))) continue;
+
     // Match combat-query's independent critical profile: attribution alone does not imply player stats.
     if (
       event.independentSummonStrike === true &&
@@ -27,12 +29,17 @@ export function criticalChanceEventAt(
       event.summonInheritsCriticalAttributes !== true
     )
       continue;
+
     // Flat ticks and other non-critical packets report zero chance, which must
     // not replace the player strike being inspected.
     if (event.type !== 'damage' || event.critEligible !== true) continue;
+
     const chance = Number(event.criticalChance);
+
     if (!Number.isFinite(chance)) continue;
+
     const at = event.at || 0;
+
     if (at >= seconds) {
       if (at < afterAt) {
         afterAt = at;
@@ -52,7 +59,9 @@ export function planningBuffAt(state: Gw2SimulationPlanningState | null | undefi
   const effect = state?.effects.find(
     (effect) => effect.kind === kind.toLowerCase() && effect.recipient === 'self' && effect.origin === 'simulated'
   );
+
   if (!state || !effect) return null;
+
   const value = effectStateValue(effect, state.atSeconds);
   return value.count > 0
     ? {

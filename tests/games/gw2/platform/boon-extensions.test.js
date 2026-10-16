@@ -328,6 +328,7 @@ function extend(profession, events, at) {
     effects: captureEffectEmissions({ submit: (event) => applyBoonExtension(boons, event) }).effects
   };
   context.combat = createMechanicCombatServices(context);
+
   if (profession === 'Thief') {
     // Enter the registered strike boundary with one accepted critical hit and the real selected profile.
     Object.assign(context, {
@@ -442,6 +443,7 @@ for (const name of ['Thief', 'Ranger'])
                 coefficient: 1
               }
             });
+
           if (name === 'Ranger' && enabled)
             runtime.effects.emit({ kind: 'packet', event: { ...buff(1, 2), type: 'boon_extension' } });
         }

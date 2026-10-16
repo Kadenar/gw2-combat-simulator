@@ -49,7 +49,9 @@ export function activeRevenantUpkeep(
 export function removeRevenantUpkeep(runtime: RevenantRuntime, skillId: SkillId): RevenantUpkeepState | undefined {
   const core = runtime.profession.core;
   const active = activeRevenantUpkeep(runtime, skillId);
+
   if (!active) return undefined;
+
   core.activeUpkeeps = core.activeUpkeeps.filter((upkeep) => upkeep !== active);
   runtime.cancelOwner(revenantUpkeepOwner(skillId, active.startsAt));
   return active;
@@ -76,6 +78,7 @@ export function refreshRevenantStarvation(runtime: RevenantRuntime): void {
   runtime.cancelOwner({ id: STARVATION_OWNER, generation: core.energyWakeGeneration });
   core.energyWakeGeneration++;
   const at = gw2CooldownReadyAt(resourceDepletionAt(core.energy));
+
   if (Number.isFinite(at))
     runtime.schedule(
       REVENANT_ENERGY_DEPLETED,
@@ -89,6 +92,7 @@ export function refreshRevenantStarvation(runtime: RevenantRuntime): void {
 /** Starvation ends every upkeep, applies its starvation recharge, and drops legend follow-ups. */
 export function starveRevenantUpkeeps(runtime: RevenantRuntime): void {
   const core = runtime.profession.core;
+
   if (gw2CooldownReadyAt(resourceDepletionAt(core.energy)) > runtime.time) {
     refreshRevenantStarvation(runtime);
     return;
@@ -97,7 +101,9 @@ export function starveRevenantUpkeeps(runtime: RevenantRuntime): void {
   for (const active of [...core.activeUpkeeps]) {
     const skill = runtime.helpers.skillsById.get(active.skillId);
     const cooldown = Math.max(0, skill?.starvationCooldown || 0);
+
     if (skill && cooldown > 0) runtime.cooldownController.startRecharge({ ...skill, cooldown }, runtime.time);
+
     removeRevenantUpkeep(runtime, active.skillId);
   }
 
@@ -109,7 +115,9 @@ export function starveRevenantUpkeeps(runtime: RevenantRuntime): void {
 export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const cost = upkeepCosts.get(cast);
   upkeepCosts.delete(cast);
+
   if (cost != null) runtime.resourceController.spend('energy', cost);
+
   const skill = cast.skill;
   const core = runtime.profession.core;
   const active: RevenantUpkeepState = {
@@ -121,6 +129,7 @@ export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCa
   core.activeUpkeeps.push(active);
   runtime.resourceController.refresh('energy');
   const release = skill.flipSkillId == null ? null : runtime.helpers.skillsById.get(Number(skill.flipSkillId));
+
   if (release) armSkillFlip(core.availableFlips, release.id, runtime.time);
 }
 
@@ -129,11 +138,14 @@ export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCas
   const core = runtime.profession.core;
   const parent =
     cast.skill.flipParentId == null ? undefined : runtime.helpers.skillsById.get(Number(cast.skill.flipParentId));
+
   if (!parent) return;
+
   removeRevenantUpkeep(runtime, parent.id);
   runtime.resourceController.refresh('energy');
   consumeSkillFlip(core.availableFlips, cast.skill.id);
   const cooldown = Math.max(0, parent.manualReleaseCooldown || 0);
+
   // Recharge modifiers apply at release using the parent's release-specific base cooldown.
   if (cooldown > 0) runtime.cooldownController.startRecharge({ ...parent, cooldown }, runtime.time);
 }
@@ -151,9 +163,12 @@ export function revenantUpkeepAvailability(
   const core = runtime.profession.core;
   const flips = core.availableFlips;
   const now = runtime.time;
+
   if (upkeepRelease(runtime, skill) && !skillFlipReady(flips[skill.id], now))
     return denySkillCast(skill, 'revenant.upkeep-inactive', 'activate the matching upkeep skill first.');
+
   if (isRevenantUpkeep(skill) && core.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id))
     return denySkillCast(skill, 'revenant.upkeep-active', 'use the matching release skill.');
+
   return null;
 }

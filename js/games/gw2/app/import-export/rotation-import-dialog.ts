@@ -64,6 +64,7 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
   if (isJsonRotationFile(file)) {
     const imported = await readJsonFile(file);
     const rotation = getRotationItems(imported);
+
     if (rotation) {
       // JSON rotations may use any historical interchange shape; app state stays canonical.
       return {
@@ -133,8 +134,11 @@ export async function previewManifestRotation(
   app: ProfessionAppState
 ): Promise<RotationImportPreview> {
   if (!preset.rotation) throw new Error('Rotation asset missing.');
+
   const items = getRotationItems(await fetchJsonAsset(preset.rotation));
+
   if (!items) throw new Error('Rotation array missing.');
+
   const rotation = normalizeImportedRotation(items, app);
   const name = preset.section ? `${preset.section} · ${preset.label}` : preset.label;
   return {
@@ -169,7 +173,9 @@ export function loadManifestBuilds(
   fetchAsset: (path: string) => Promise<unknown> = fetchJsonAsset
 ): Promise<readonly (ManifestBuildEntry | null)[]> {
   const cached = manifestBuildCache.get(presets);
+
   if (cached) return cached;
+
   const loading = Promise.all(
     presets
       .filter((preset) => preset.rotation)
@@ -191,8 +197,11 @@ export function loadManifestBuilds(
 
 function selectedSkillIds(build: unknown): (string | number)[] | null {
   if (!build || typeof build !== 'object' || Array.isArray(build)) return null;
+
   const selectedSkillIds = (build as { selectedSkillIds?: unknown }).selectedSkillIds;
+
   if (!selectedSkillIds || typeof selectedSkillIds !== 'object' || Array.isArray(selectedSkillIds)) return null;
+
   const ids = Object.values(selectedSkillIds);
   // Sorting includes the ID type so numeric and string identities stay distinct across slot orderings.
   return ids.every((id) => id === null || typeof id === 'string' || (typeof id === 'number' && Number.isFinite(id)))
@@ -203,6 +212,7 @@ function selectedSkillIds(build: unknown): (string | number)[] | null {
 /** Keeps manifest references compatible with the active profession and selected skill loadout. */
 export function manifestRotationMatchesBuild(build: unknown, currentBuild: Gw2CanonicalBuild): boolean {
   if (!build || typeof build !== 'object' || Array.isArray(build)) return false;
+
   const candidate = build as { profession?: unknown };
   const candidateSkills = selectedSkillIds(build);
   const currentSkills = selectedSkillIds(currentBuild);
@@ -373,8 +383,11 @@ export function bindRotationImportDialog(
       elements.browseButton.disabled = value;
       elements.reportButton.disabled = value;
       elements.reportInput.disabled = value;
+
       if (elements.presetSelect) elements.presetSelect.disabled = value || !manifestRotations.length;
+
       if (elements.presetButton) elements.presetButton.disabled = value || !elements.presetSelect?.value;
+
       elements.closeButton.disabled = value;
       elements.applyButton.disabled = value || !activePreview;
     },
@@ -385,7 +398,9 @@ export function bindRotationImportDialog(
 
   const populateManifestRotations = async (): Promise<void> => {
     const { presetSelect, presetButton } = elements;
+
     if (!presetSelect || !presetButton) return;
+
     const request = ++manifestGeneration;
     presetSelect.disabled = true;
     presetButton.disabled = true;
@@ -395,8 +410,10 @@ export function bindRotationImportDialog(
     presetSelect.replaceChildren(placeholder);
     // Builds download on first open only; later opens and comparison re-entries reuse them.
     const entries = await loadManifestBuilds(app.templatePresets);
+
     // A reopen while loading repopulates the list; drop this older result instead of appending duplicates.
     if (request !== manifestGeneration) return;
+
     manifestRotations = entries
       .filter((entry): entry is ManifestBuildEntry => entry !== null)
       .filter((entry) => manifestRotationMatchesBuild(entry.build, app.build))
@@ -417,7 +434,9 @@ export function bindRotationImportDialog(
 
   const selectReport = async (): Promise<void> => {
     const input = elements.reportInput.value.trim();
+
     if (importing || !input) return;
+
     const wingman = isWingmanUrl(input);
     await importer.load(
       () => (wingman ? previewWingmanUrl(input, app) : previewDpsReportUrl(input, app)),
@@ -428,8 +447,11 @@ export function bindRotationImportDialog(
 
   const selectPreset = async (): Promise<void> => {
     if (importing || !elements.presetSelect?.value) return;
+
     const preset = manifestRotations[Number(elements.presetSelect.value)];
+
     if (!preset) return;
+
     await importer.load(
       () => previewManifestRotation(preset, app),
       'Loading existing rotation…',
@@ -446,6 +468,7 @@ export function bindRotationImportDialog(
   elements.reportButton.addEventListener('click', () => void selectReport());
   elements.reportInput.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter') return;
+
     event.preventDefault();
     void selectReport();
   });
@@ -455,6 +478,7 @@ export function bindRotationImportDialog(
   elements.presetButton?.addEventListener('click', () => void selectPreset());
   elements.applyButton.addEventListener('click', () => {
     if (!activePreview) return;
+
     try {
       importer.validateDestination();
     } catch (error) {
@@ -466,6 +490,7 @@ export function bindRotationImportDialog(
 
     if (destination === 'reference') app.loadRotationReference(activePreview.rotation);
     else applyRotationImportPreview(app, activePreview);
+
     activePreview = null;
     elements.dialog.close();
   });

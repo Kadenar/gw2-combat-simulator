@@ -451,6 +451,7 @@ function grantAllForOneEnergy(runtime: RevenantRuntime, enhanced: boolean): void
 /** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
 function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?: Gw2HitResolutionContext): void {
   const critical = Boolean(hit?.critEligible && hit.critical.didCrit);
+
   // A defiant golem never rotates, so flanking/behind positional triggers always apply.
   if (Boolean(runtime.config.target?.defiant) || critical)
     grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander', cause: event });
@@ -459,8 +460,11 @@ function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?:
 /** Ashen Demeanor grants its Fervor and self boons once per healing-skill cooldown. */
 function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (cast.skill.slot !== 'Heal') return;
+
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashenDemeanor);
+
   if (!runtime.procs.claimCooldown('ashenDemeanor', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
+
   for (let stack = 0; stack < Math.max(0, balanceProfileNumber(profile, 'fervorStacks')); stack += 1)
     grantKallasFervor(runtime, { sourceId: TRAIT.ASHEN_DEMEANOR, sourceName: profile.name });
   // Fervor has settled; surviving self boons use the same authored materialization as other traits.
@@ -492,6 +496,7 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
     )
   )
     return;
+
   grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
 }
 

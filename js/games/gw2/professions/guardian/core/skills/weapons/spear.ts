@@ -31,13 +31,19 @@ function illuminatedSpearEffects(
 ): readonly SkillEffect[] {
   const state = runtime.profession.core;
   const luminance = state.spearLuminanceUntil > cast.start;
+
   if (!luminance && state.spearIlluminatedUntil <= cast.start) return effects;
+
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const multiplier = balanceProfileNumber(profile, 'damageMultiplier');
+
   if (!(multiplier > 1)) return effects;
+
   if (!luminance) consumedCharges.set(cast, state.spearIlluminatedUntil);
+
   let firstBonus: SkillEffect | undefined;
   let selected: readonly SkillEffect[];
+
   if (cast.skill.id === ID.SOLAR_STORM) {
     const projectiles: SkillEffect[] = [];
     for (const [name, index] of [
@@ -45,7 +51,9 @@ function illuminatedSpearEffects(
       ['Fifth projectile', 5]
     ] as const) {
       const effect = requireEffect(profile, 'strike', name);
+
       if (!effect) continue;
+
       projectiles.push({
         ...effect,
         name: `Solar Storm — ${index}th Strike`,
@@ -60,6 +68,7 @@ function illuminatedSpearEffects(
   } else {
     selected = effects.map((effect) => {
       if (effect.type !== 'strike' || !(strikeEffectCoefficient(effect) > 0)) return effect;
+
       firstBonus ??= effect;
       const ticks = strikeEffectTicks(effect);
       const bonus = strikeEffectCoefficient(effect) * (multiplier - 1);
@@ -81,6 +90,7 @@ function illuminatedSpearEffects(
   }
 
   if (!firstBonus) return selected;
+
   const at = effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, firstBonus));
   return [
     ...selected,
@@ -108,6 +118,7 @@ function illuminatedSpearEffects(
 /** Committed casts grant or consume the current window; an expiry wake can clear only its own deadline. */
 function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, symbol: boolean): void {
   const state = runtime.profession.core;
+
   if (consumedCharges.get(cast) === state.spearIlluminatedUntil) {
     state.spearIlluminatedArmed = false;
     state.spearIlluminatedUntil = 0;
@@ -115,9 +126,13 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
 
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.spearLuminance);
   const effect = requireEffect(profile, 'buff', symbol ? 'guardian-spear-luminance' : 'illuminated');
+
   if (!effect) return;
+
   const duration = effectNumber(profile, effect, 'duration');
+
   if (!(duration > 0)) return;
+
   const firstStrike = Math.min(
     ...(cast.skill.effects ?? [])
       .filter((packet) => packet.type === 'strike' && strikeEffectCoefficient(packet) > 0)
@@ -125,6 +140,7 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
   );
   const origin = symbol || !Number.isFinite(firstStrike) ? runtime.time : firstStrike;
   const expiresAt = gw2EffectExpiresAt(origin, duration);
+
   if (symbol) {
     state.spearLuminanceUntil = expiresAt > runtime.time ? expiresAt : 0;
     runtime.effects.emit({

@@ -37,7 +37,9 @@ export interface ResultSummaryModel {
 
 function resultMetricDetailsHtml(metric: ResultMetric): string {
   const details = metric.details || [];
+
   if (!details.length) return '';
+
   const title = `${metric.label} breakdown`;
   return `<details class="res-metric-info">
     <summary aria-label="${escapeHtml(`Show ${title}`)}" title="${escapeHtml(`Show ${title}`)}">
@@ -92,6 +94,7 @@ function resultDpsSnapshotsHtml(metric: ResultMetric, breakpoints: readonly Resu
 export function dismissResultMetricDetails(root: ParentNode, target: EventTarget | null): void {
   for (const details of root.querySelectorAll<HTMLDetailsElement>('.res-metric-info[open], .res-dps-snapshots[open]')) {
     if (target && details.contains(target as Node)) continue;
+
     details.open = false;
   }
 }
@@ -99,7 +102,9 @@ export function dismissResultMetricDetails(root: ParentNode, target: EventTarget
 /** Uses pointerdown before the native details click toggle so the opening interaction cannot dismiss itself. */
 function bindResultMetricDetailsDismissal(container: HTMLElement): void {
   const root = container.ownerDocument;
+
   if (!root || metricDetailsDismissalRoots.has(root)) return;
+
   metricDetailsDismissalRoots.add(root);
   root.addEventListener('pointerdown', (event) => dismissResultMetricDetails(root, event.target));
 }
@@ -107,6 +112,7 @@ function bindResultMetricDetailsDismissal(container: HTMLElement): void {
 /** Appends summary metrics and binds document-wide dismissal for both the summary and its Analysis mirror. */
 export function mountResultSummary(container: HTMLElement | null | undefined, model: ResultSummaryModel): void {
   if (!container) return;
+
   bindResultMetricDetailsDismissal(container);
   const { metrics, summaryPlaceholder = false, breakpoints = [] } = model;
   container.insertAdjacentHTML(

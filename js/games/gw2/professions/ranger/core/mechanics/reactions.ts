@@ -13,6 +13,7 @@ import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 /** Dispatch qualifying hits in their established trait/skill order so queued effects and charge use stay stable. */
 export function reactToRangerCoreDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0) || event.actorType === 'effect') return;
+
   context.fireTrigger(strike, { event });
   triggerPoisonousStrikes(context, event);
   triggerSharpeningStone(context, event);

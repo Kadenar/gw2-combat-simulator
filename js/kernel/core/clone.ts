@@ -14,9 +14,13 @@ export function cloneData<T>(value: T): T {
 function copy(value: unknown, copies: Map<object, unknown>): unknown {
   if (typeof value !== 'object' || value === null)
     return typeof value === 'function' || typeof value === 'symbol' ? structuredClone(value) : value;
+
   const existing = copies.get(value);
+
   if (existing !== undefined) return existing;
+
   const prototype = Object.getPrototypeOf(value);
+
   if (prototype === Array.prototype) {
     const source = value as readonly unknown[];
     const array: unknown[] = new Array(source.length);

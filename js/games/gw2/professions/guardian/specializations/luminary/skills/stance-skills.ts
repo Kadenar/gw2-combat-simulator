@@ -100,6 +100,7 @@ export const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, Guar
   },
   'guardian.start-effulgent'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     const cast = context.cast;
     const event = { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true };
     runtime.schedule(AURA_GRANT, cast.start, event, undefined, -10);

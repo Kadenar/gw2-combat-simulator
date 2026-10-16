@@ -16,18 +16,26 @@ export function alignConduitHazeCombatOffset<Action extends CompositeAction & { 
   combatStart: number
 ): readonly Action[] {
   const opener = actions.find((action) => action.end > action.start);
+
   if (!opener || opener.rawSkillId !== 77047 || opener.start >= combatStart || opener.end < combatStart) return actions;
+
   const skill = catalogSkillById(catalog, 77141);
+
   if (!skill) return actions;
+
   const followUpMs = balanceNumberFromContext(
     { catalog },
     CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
     'castTimeMs'
   );
+
   if (opener.replayDurationMs !== followUpMs) return actions;
+
   const mainMs = referenceCastTimeMs(skill);
   const offsetMs = mainMs - followUpMs;
+
   if (!(offsetMs > 0)) return actions;
+
   // Keep the recorded end and combat instant fixed; only their offset from the complete main input changes.
   return actions.map((action) =>
     action === opener ? { ...action, start: action.start - offsetMs, replayDurationMs: mainMs } : action
@@ -55,7 +63,9 @@ export function normalizeConduitHazeActions<Action extends CompositeAction>(
     }
   );
   const skill = catalogSkillById(catalog, 77141);
+
   if (!skill || !merged.some((action) => action.rawSkillId === 77141 || action.rawSkillId === 77047)) return merged;
+
   // Follow-ups use their selected duration rather than the main skill's full cast.
   const followUp = requireBalanceProfileFromContext({ catalog }, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
 

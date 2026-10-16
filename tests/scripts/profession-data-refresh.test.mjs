@@ -15,7 +15,9 @@ test('refresh imports are inert and each invocation completes the profession pip
     const url = new URL(request);
 
     requests.push(url);
+
     if (url.hostname === failedHost) throw new Error('Fixture downstream unavailable');
+
     let value;
 
     if (url.pathname.startsWith('/v2/professions/')) {
@@ -57,6 +59,7 @@ test('refresh imports are inert and each invocation completes the profession pip
       const page = url.searchParams.get('page');
 
       if (!wikiIds.has(page)) wikiIds.set(page, 80000 + wikiIds.size);
+
       value = {
         parse: { wikitext: `{{Skill infobox\n| id = ${wikiIds.get(page)}\n| family = bear\n| archetype = stout\n}}` }
       };

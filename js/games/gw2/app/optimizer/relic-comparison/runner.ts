@@ -34,7 +34,9 @@ export class RelicComparisonRunner {
   /** Cancels the outgoing tab's scheduled comparison without replacing its cached result. */
   cancel(): void {
     this.requestId += 1;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
   }
 
@@ -42,16 +44,19 @@ export class RelicComparisonRunner {
   schedule(): void {
     const app = this.app;
     this.requestId += 1;
+
     if (this.timer !== null) {
       clearTimeout(this.timer);
       this.timer = null;
     }
 
     const results = app.results;
+
     if (!results) return;
 
     this.comparisonRelic = this.selectedComparisonRelic();
     const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app, this.comparisonRelic) : null;
+
     if (!request) {
       results.relicComparisonAvailable = false;
       results.relicComparisonStale = false;
@@ -66,6 +71,7 @@ export class RelicComparisonRunner {
     results.relicComparisonInitialStacks = this.initialStacks;
     results.relicComparisonStale = false;
     results.relicComparisonError = '';
+
     if (
       results.relicComparison &&
       (results.relicComparison.opponentRelic !== request.opponentRelic ||
@@ -82,15 +88,20 @@ export class RelicComparisonRunner {
   run(comparisonRelic: string = this.comparisonRelic, initialStacks: number = this.initialStacks): void {
     const app = this.app;
     const requestId = ++this.requestId;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
 
     const results = app.results;
+
     if (!results) return;
+
     this.comparisonRelic = this.selectedComparisonRelic(String(comparisonRelic || ''));
     this.initialStacks = Math.min(10, Math.max(0, Math.trunc(Number(initialStacks) || 0)));
     results.relicComparisonInitialStacks = this.initialStacks;
     const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app, this.comparisonRelic) : null;
+
     if (!request) {
       this.schedule();
       this.onUpdate();
@@ -107,7 +118,9 @@ export class RelicComparisonRunner {
 
     this.timer = setTimeout(() => {
       this.timer = null;
+
       if (requestId !== this.requestId || !app.results) return;
+
       try {
         // The comparison rebuilds its DPS series from events and does not consume effect charts.
         const targetResult = app.adapter.simulateBuild(
@@ -135,7 +148,9 @@ export class RelicComparisonRunner {
           opponentFinalDps: opponentResult.dps,
           targetFinalDps: targetResult.dps
         });
+
         if (requestId !== this.requestId || !app.results) return;
+
         app.results.relicComparison = {
           ...model,
           opponentDamage: relicDamageSummary(opponentResult, withoutRelic.dps),
@@ -146,6 +161,7 @@ export class RelicComparisonRunner {
         this.onUpdate();
       } catch (error) {
         if (requestId !== this.requestId || !app.results) return;
+
         app.results.relicComparisonStale = false;
         app.results.relicComparisonError =
           error instanceof Error ? error.message : String(error || 'Relic comparison failed.');

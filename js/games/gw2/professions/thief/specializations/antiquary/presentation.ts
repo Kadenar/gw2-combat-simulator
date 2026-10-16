@@ -21,6 +21,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const state = thiefUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
+
   // Pincher is spending progress, while Scuffle predicts the next automatic artifact replacement.
   if (
     hasTrait(context, TRAIT.PRODIGIOUS_PINCHER) ||
@@ -37,6 +38,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   }
 
   const nextPilferRemaining = (state.nextSkrittScufflePilferAt || 0) - at;
+
   if (nextPilferRemaining > 0) {
     items.push({
       id: 'antiquary-skritt-scuffle',
@@ -47,6 +49,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   }
 
   const combatHigh = purgeExpiredStacks(state.combatHighExpirations || [], at);
+
   if (combatHigh.length > 0) {
     const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.COMBAT_HIGH, 'maximumStacks');
     const remaining = Math.max(...combatHigh) - at;
@@ -65,7 +68,9 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   ];
   for (const [id, label, expiresAt] of timedEffects) {
     const remaining = expiresAt - at;
+
     if (remaining <= 0) continue;
+
     items.push({
       id,
       label,
@@ -95,7 +100,9 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   ] as const) {
     const remaining = (grant?.expiresAt || 0) - at;
     const charges = Math.trunc(activeChargeCount(grant, at));
+
     if (remaining <= 0 || charges <= 0) continue;
+
     items.push({
       id,
       label,
@@ -108,6 +115,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   }
 
   const holoExpiries = purgeExpiredStacks((state.holoUtilityCooldownReductionExpirations || []).map(Number), at);
+
   if (holoExpiries.length) {
     items.push({
       id: 'antiquary-holo-dancer-decoy',
@@ -135,6 +143,7 @@ export const antiquaryUi = Object.freeze({
       scope: ['damage'],
       description: 'Damage window after using an artifact'
     });
+
     if (preview.has('Combat High'))
       preview.trait('Combat High', {
         key: 'combatHigh',
@@ -143,6 +152,7 @@ export const antiquaryUi = Object.freeze({
         max: preview.maximumStacks('Combat High'),
         description: 'Active stacks increasing strike and condition damage'
       });
+
     return preview.controls;
   },
   // Antiquary's starting grant and displayed inventory are artifacts, owned by this specialization.
@@ -152,6 +162,7 @@ export const antiquaryUi = Object.freeze({
   // Reshuffle is queue-only; this veto affects direct palette insertion, never runtime legality.
   paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (skill.id !== ID.RESHUFFLE) return;
+
     const cardSwap =
       hasTrait(context, TRAIT.CARD_SWAP) ||
       getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.CARD_SWAP);

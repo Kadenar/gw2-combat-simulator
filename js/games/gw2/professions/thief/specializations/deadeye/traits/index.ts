@@ -264,15 +264,20 @@ function traitBoons(
 
 function grantFireForEffect(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
   const skill = cast.skill;
+
   if (STOLEN_SKILLS.has(skill.id)) traitBoons(runtime, cast, 'Fire for Effect', TRAIT.FIRE_FOR_EFFECT, true);
 }
 
 function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): void {
   const state = deadeyeState.from(runtime);
+
   if (state.malice.value !== state.malice.maximum || state.maleficentSevenTriggered) return;
+
   state.maleficentSevenTriggered = true;
   const initiativeGain = balanceNumberFromContext(runtime, TRAIT.MALEFICENT_SEVEN, 'resourceGain');
+
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+
   traitBoons(runtime, cast, 'Maleficent Seven', TRAIT.MALEFICENT_SEVEN, false);
 }
 
@@ -288,8 +293,10 @@ function grantOneInTheChamber(runtime: ThiefRuntime): void {
 function grantSilentScope(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
   const skill = cast.skill;
   const state = deadeyeState.from(runtime);
+
   if (skill.id === SHARED_SKILL_IDS.DODGE) {
     const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);
+
     if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
       // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.
       state.bonusStealthAttack = grantCharges(

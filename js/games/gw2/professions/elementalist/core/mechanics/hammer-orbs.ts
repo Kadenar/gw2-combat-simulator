@@ -60,6 +60,7 @@ export function createHammerOrbs(
   for (const element of elements) {
     state.hammerOrbs[element] = at + duration;
     state.hammerOrbActivationIds[element] = cast.id;
+
     if (!previouslyActive.has(element)) {
       context.effects.emit(
         elementalistBuffRequest(

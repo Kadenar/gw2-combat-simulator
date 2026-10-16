@@ -43,10 +43,13 @@ export function reactToAshesHit(
 ): void {
   const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
   const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+
   if (!burn) return;
+
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = firebrandState.from(context);
+
   if (!consumeCharge(state.ashes, event.at, balanceProfileNumber(ashesProfile, 'internalCooldown'), true)) return;
 
   emitAshes(context, event, state.ashesBurnDuration);
@@ -56,7 +59,9 @@ export function reactToAshesHit(
 export function emitAshes(context: GuardianResolverContext, event: GuardianResolverEvent, duration?: number): void {
   const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
   const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+
   if (!burn) return;
+
   // Ashes burns resolve at charge consumption so same-timestamp condition
   // reactions cannot be reordered behind later damage packets.
   context.effects.emit({

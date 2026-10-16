@@ -541,6 +541,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
       extend: (native) => ({
         onCastStart(runtime, cast) {
           native.onCastStart(runtime, cast);
+
           if (['Call to Anguish', 'Unyielding Impact'].includes(cast.skill.name))
             spentEnergy.push(Number(runtime.resourceController.value('energy').toFixed(9)));
         }

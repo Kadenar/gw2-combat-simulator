@@ -77,7 +77,9 @@ function editableDraft(preview: PatchPreview, professions: readonly NativePatchA
   const draft = structuredClone(preview);
   for (const profession of professions) {
     const patch = draft.professions?.[profession.professionId];
+
     if (!patch) continue;
+
     const skills = profession.modules.flatMap((module) => module.skills.map((entry) => entry.skill));
     const profiles = profession.modules.flatMap((module) =>
       [...module.balanceProfiles, ...module.skillVariants].map((entry) => entry.profile)
@@ -87,7 +89,9 @@ function editableDraft(preview: PatchPreview, professions: readonly NativePatchA
       const sources = section === 'skills' ? skills : profiles;
       for (const [key, edit] of Object.entries(edits || {})) {
         const source = sources.find((entry) => String(entry.id) === key) || sources.find((entry) => entry.name === key);
+
         if (!source) continue;
+
         delete edits![key];
         edits![String(source.id)] = normalizeAuthoringSkillEdit(source, edit);
       }
@@ -120,15 +124,18 @@ export function acceptSavedDraft(preview: PatchPreview): void {
 /** Regenerates derived overview text and keeps selections valid for the loaded metadata. */
 export function prepareEditorStateForRender(): void {
   const payload = editorState.payload;
+
   if (!payload) return;
 
   editorState.draft = generatePatchOverview(editorState.draft, payload.professions);
   const profession = selectedProfession() || payload.professions[0];
+
   if (profession && profession.professionId !== editorState.selectedProfessionId) {
     editorState.selectedProfessionId = profession.professionId;
   }
 
   const module = selectedModule() || profession?.modules[0] || null;
+
   if (module && module.id !== editorState.selectedModuleId) editorState.selectedModuleId = module.id;
 }
 
@@ -140,7 +147,9 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 /** Reuses or creates a nested draft object so edit handlers share one mutation path. */
 function ensureRecord(parent: Record<string, unknown>, key: string): Record<string, unknown> {
   const existing = asRecord(parent[key]);
+
   if (existing) return existing;
+
   const created: Record<string, unknown> = {};
   parent[key] = created;
   return created;
@@ -155,44 +164,63 @@ function draftRecord(): Record<string, unknown> {
 function professionPatch(professionId: string, create = false): Record<string, unknown> | null {
   const root = draftRecord();
   const professions = create ? ensureRecord(root, 'professions') : asRecord(root.professions);
+
   if (!professions) return null;
+
   if (create) return ensureRecord(professions, professionId);
+
   return asRecord(professions[professionId]);
 }
 
 /** Finds or lazily creates the draft edit for a skill. */
 export function skillEdit(skillId: string, create = false): Record<string, unknown> | null {
   const patch = professionPatch(editorState.selectedProfessionId, create);
+
   if (!patch) return null;
+
   const skills = create ? ensureRecord(patch, 'skills') : asRecord(patch.skills);
+
   if (!skills) return null;
+
   if (create) return ensureRecord(skills, skillId);
+
   return asRecord(skills[skillId]);
 }
 
 /** Finds or lazily creates the draft edit for a runtime balance profile. */
 export function balanceProfileEdit(profileId: string, create = false): Record<string, unknown> | null {
   const patch = professionPatch(editorState.selectedProfessionId, create);
+
   if (!patch) return null;
+
   const profiles = create ? ensureRecord(patch, 'balanceProfiles') : asRecord(patch.balanceProfiles);
+
   if (!profiles) return null;
+
   if (create) return ensureRecord(profiles, profileId);
+
   return asRecord(profiles[profileId]);
 }
 
 /** Finds or lazily creates the draft edit for a modifier rule. */
 export function modifierEdit(ruleId: string, create = false): Record<string, unknown> | null {
   const patch = professionPatch(editorState.selectedProfessionId, create);
+
   if (!patch) return null;
+
   const rules = create ? ensureRecord(patch, 'modifierRules') : asRecord(patch.modifierRules);
+
   if (!rules) return null;
+
   if (create) return ensureRecord(rules, ruleId);
+
   return asRecord(rules[ruleId]);
 }
 
 /** Removes an empty nested draft section after its last authored value is cleared. */
 function removeEmptyRecord(parent: Record<string, unknown> | null, key: string): void {
   const record = parent && asRecord(parent[key]);
+
   if (record && !Object.keys(record).length) delete parent![key];
 }
 
@@ -201,12 +229,15 @@ function cleanupProfessionPatch(): void {
   const root = draftRecord();
   const professions = asRecord(root.professions);
   const patch = professions && asRecord(professions[editorState.selectedProfessionId]);
+
   if (!patch || !professions) return;
+
   for (const key of ['skills', 'balanceProfiles', 'modifierRules']) {
     removeEmptyRecord(patch, key);
   }
 
   if (!Object.keys(patch).length) delete professions[editorState.selectedProfessionId];
+
   if (!Object.keys(professions).length) delete root.professions;
 }
 
@@ -233,7 +264,9 @@ export function markDirty(): void {
 /** Counts edited entities for profession navigation badges. */
 export function editCount(professionId: string): number {
   const patch = professionPatch(professionId);
+
   if (!patch) return 0;
+
   return (
     Object.keys(asRecord(patch.skills) || {}).length +
     Object.keys(asRecord(patch.balanceProfiles) || {}).length +
@@ -300,6 +333,7 @@ export function selectProfile(profileId: string): void {
 /** Updates a top-level preview metadata field while keeping empty optional values absent. */
 export function setPreviewField(field: keyof PatchPreview, value: string): void {
   const record = draftRecord();
+
   if (value) record[field] = value;
   else delete record[field];
 }
@@ -308,7 +342,9 @@ export function setPreviewField(field: keyof PatchPreview, value: string): void 
 export function deleteModifierEdit(ruleId: string): void {
   const patch = professionPatch(editorState.selectedProfessionId);
   const rules = patch && asRecord(patch.modifierRules);
+
   if (rules) delete rules[ruleId];
+
   cleanupProfessionPatch();
 }
 
@@ -316,7 +352,9 @@ export function deleteModifierEdit(ruleId: string): void {
 export function deleteSkillEdit(skillId: string): void {
   const patch = professionPatch(editorState.selectedProfessionId);
   const skills = patch && asRecord(patch.skills);
+
   if (skills) delete skills[skillId];
+
   cleanupProfessionPatch();
 }
 
@@ -324,7 +362,9 @@ export function deleteSkillEdit(skillId: string): void {
 export function deleteBalanceProfileEdit(profileId: string): void {
   const patch = professionPatch(editorState.selectedProfessionId);
   const profiles = patch && asRecord(patch.balanceProfiles);
+
   if (profiles) delete profiles[profileId];
+
   cleanupProfessionPatch();
 }
 
@@ -346,10 +386,14 @@ function setResourceGrantNumericEdit(
   numericEdit: ReturnType<typeof numericEditForValue>
 ): void {
   const grants = numericEdit ? ensureRecord(owner, 'resourceGrants') : asRecord(owner.resourceGrants);
+
   if (!grants) return;
+
   const fields = numericEdit ? ensureRecord(grants, input.grantId!) : asRecord(grants[input.grantId!]);
+
   if (numericEdit) fields![input.field] = numericEdit;
   else if (fields) delete fields[input.field];
+
   removeEmptyRecord(grants, input.grantId!);
   removeEmptyRecord(owner, 'resourceGrants');
 }
@@ -363,6 +407,7 @@ function setEffectNumericEdit(
 ): void {
   const effects = Array.isArray(edit.effects) ? (edit.effects as Record<string, unknown>[]) : [];
   let effect = effects.find((entry) => entry.effectIndex === input.effectIndex && entry.tickIndex === input.tickIndex);
+
   if (!effect && numericEdit) {
     effect = {
       effectIndex: input.effectIndex,
@@ -375,8 +420,10 @@ function setEffectNumericEdit(
     setResourceGrantNumericEdit(effect, input, numericEdit);
   } else if (effect && input.field === 'audience.maximumRecipients') {
     const audience = numericEdit ? ensureRecord(effect, 'audience') : asRecord(effect.audience);
+
     if (numericEdit) audience!.maximumRecipients = numericEdit;
     else if (audience) delete audience.maximumRecipients;
+
     removeEmptyRecord(effect, 'audience');
   } else if (effect && numericEdit) effect[input.field] = numericEdit;
   else if (effect) delete effect[input.field];
@@ -384,8 +431,10 @@ function setEffectNumericEdit(
   const retained = effects.filter((entry) =>
     Object.keys(entry).some((key) => !['effectIndex', 'tickIndex'].includes(key))
   );
+
   if (retained.length) edit.effects = retained;
   else delete edit.effects;
+
   if (!Object.keys(edit).length) onEmpty();
 }
 
@@ -396,23 +445,34 @@ export function setNumericEdit(input: NumericEditInput): void {
   }
 
   const numericEdit = numericEditForValue(input.current, input.next);
+
   if (input.entity === 'cast-resource-grant' && input.grantId) {
     const edit = skillEdit(input.id, Boolean(numericEdit));
+
     if (!edit) return;
+
     setResourceGrantNumericEdit(edit, input, numericEdit);
+
     if (!Object.keys(edit).length) deleteSkillEdit(input.id);
+
     return;
   }
 
   if (input.entity === 'modifier' || input.entity === 'modifier-parameter') {
     const edit = modifierEdit(input.id, Boolean(numericEdit));
+
     if (!edit) return;
+
     const target = input.entity === 'modifier-parameter' ? ensureRecord(edit, 'parameters') : edit;
+
     if (numericEdit) target[input.field] = numericEdit;
     else delete target[input.field];
+
     removeEmptyRecord(edit, 'parameters');
+
     // An assumption describes numeric tuning; remove it with the last tuning edit when restoring live values.
     if (!Object.keys(edit).some((key) => key !== 'assumption')) deleteModifierEdit(input.id);
+
     return;
   }
 
@@ -420,20 +480,28 @@ export function setNumericEdit(input: NumericEditInput): void {
     const getEdit = input.entity === 'skill' ? skillEdit : balanceProfileEdit;
     const deleteEdit = input.entity === 'skill' ? deleteSkillEdit : deleteBalanceProfileEdit;
     const edit = getEdit(input.id, Boolean(numericEdit));
+
     if (!edit) return;
+
     const fields = numericEdit ? ensureRecord(edit, 'fields') : asRecord(edit.fields);
+
     if (numericEdit) fields![input.field] = numericEdit;
     else if (fields) delete fields[input.field];
+
     removeEmptyRecord(edit, 'fields');
+
     // Remove a provisional assumption when its last balance edit is reset.
     if (!Object.keys(edit).some((key) => key !== 'assumption')) deleteEdit(input.id);
+
     return;
   }
 
   if ((input.entity === 'effect' || input.entity === 'balance-profile-effect') && Number.isInteger(input.effectIndex)) {
     const skill = input.entity === 'effect';
     const edit = skill ? skillEdit(input.id, Boolean(numericEdit)) : balanceProfileEdit(input.id, Boolean(numericEdit));
+
     if (!edit) return;
+
     setEffectNumericEdit(
       input,
       edit,
@@ -451,8 +519,10 @@ export function toggleEffect(skillId: string, effectIndex: number): void {
   const next = removed
     ? removals.filter((selector) => selector.effectIndex !== effectIndex)
     : [...removals, { effectIndex }];
+
   if (next.length) edit.removeEffects = next;
   else delete edit.removeEffects;
+
   if (!Object.keys(edit).length) deleteSkillEdit(skillId);
 }
 
@@ -474,9 +544,13 @@ export function setAddedEffect(skillId: string, index: number, effect: SkillEffe
 /** Removes one newly authored effect and clears the skill edit when it becomes empty. */
 export function removeAddedEffect(skillId: string, index: number): void {
   const edit = skillEdit(skillId);
+
   if (!edit || !Array.isArray(edit.addEffects)) return;
+
   const effects = (edit.addEffects as SkillEffect[]).filter((_, effectIndex) => effectIndex !== index);
+
   if (effects.length) edit.addEffects = effects;
   else delete edit.addEffects;
+
   if (!Object.keys(edit).length) deleteSkillEdit(skillId);
 }

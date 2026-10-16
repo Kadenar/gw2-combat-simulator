@@ -33,6 +33,7 @@ async function platformGraph() {
         record(node.argument.literal.text, true);
       } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
         const argument = node.arguments[0];
+
         if (argument && ts.isStringLiteral(argument)) record(argument.text, false);
       }
 
@@ -51,6 +52,7 @@ test('platform imports preserve declaration, composition, history, and presentat
   for (const { file, specifier } of edges) {
     const label = `${file} -> ${specifier}`;
     assert.doesNotMatch(specifier, /^#gw2\/(professions|app|integrations|input)\//, label);
+
     if (!/^(simulation|skill-damage)\//.test(file)) {
       assert.doesNotMatch(
         specifier,
@@ -64,9 +66,12 @@ test('platform imports preserve declaration, composition, history, and presentat
     }
 
     if (file.startsWith('execution/')) assert.doesNotMatch(specifier, /^#gw2\/platform\/resolver\//, label);
+
     if (file.startsWith('resolver/')) assert.doesNotMatch(specifier, /^#gw2\/platform\/execution\//, label);
+
     if (file.startsWith('skill-damage/'))
       assert.doesNotMatch(specifier, /^#gw2\/platform\/profession-presentation\//, label);
+
     if (file.startsWith('combat/history/')) assert.doesNotMatch(specifier, /^#gw2\/platform\/results\//, label);
   }
 });
@@ -77,8 +82,10 @@ test('platform value dependencies are acyclic and all platform imports resolve t
   const graph = new Map(files.map((file) => [file, []]));
   for (const { file, specifier, typeOnly } of edges) {
     if (!specifier.startsWith('#gw2/platform/')) continue;
+
     const target = specifier.slice('#gw2/platform/'.length).replace(/\.js$/, '.ts');
     assert.ok(graph.has(target), `${file} imports missing owner ${target}`);
+
     if (!typeOnly) graph.get(file).push(target);
   }
 
@@ -86,7 +93,9 @@ test('platform value dependencies are acyclic and all platform imports resolve t
   const active = new Set();
   function visit(file, chain = []) {
     assert.equal(active.has(file), false, `Runtime import cycle: ${[...chain, file].join(' -> ')}`);
+
     if (complete.has(file)) return;
+
     active.add(file);
     for (const target of graph.get(file)) visit(target, [...chain, file]);
     active.delete(file);

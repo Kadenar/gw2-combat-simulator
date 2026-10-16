@@ -46,6 +46,7 @@ test('Mischief snowballs trigger Mistral and advance Shrike', () => {
     const mistral = hits(result, ID.MISTRAL);
     assert.equal(mistral.length, sigil === 'Mischief' ? 1 : 0);
     assert.equal(galeshotState.from(observedRuntime(result)).missileHits, sigil === 'Mischief' ? 1 : 0);
+
     if (sigil === 'Mischief') {
       assert.equal(mistral[0].triggeredBy, strike.skillName);
       assert.equal(mistral[0].at, strike.at);

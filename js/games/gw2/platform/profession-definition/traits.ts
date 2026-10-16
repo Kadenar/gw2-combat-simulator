@@ -113,6 +113,7 @@ export function prepareTraitAttributes(
   context: Gw2AttributeContext
 ): NonNullable<TraitDefinition['attributes']> | Gw2AttributeContributions {
   if (!context.query || !profileOnlyAttributes.has(contribute)) return contribute;
+
   return contribute(context);
 }
 
@@ -140,14 +141,18 @@ export function traitAttributeBonuses(
   const contribute: NonNullable<TraitDefinition['attributes']> = ({ balanceContext }) => {
     const profile = requireBalanceProfileFromContext(balanceContext, profileId);
     const cached = resolved.get(profile);
+
     if (cached) return cached;
+
     const contributions = resolve(profile);
+
     if (contributions.attributeEffects) {
       for (const effect of contributions.attributeEffects) Object.freeze(effect);
       Object.freeze(contributions.attributeEffects);
     }
 
     if (contributions.traitDurations) Object.freeze(contributions.traitDurations);
+
     Object.freeze(contributions);
     resolved.set(profile, contributions);
     return contributions;
@@ -168,6 +173,7 @@ export function defineTrait<TSkill extends Skill>(
   definition: TraitDefinition<TSkill>
 ): Readonly<TraitDefinition<TSkill>> {
   const candidate = definition as Partial<TraitDefinition<TSkill>> | null | undefined;
+
   if (
     !candidate ||
     !['string', 'number'].includes(typeof candidate.id) ||
@@ -177,6 +183,7 @@ export function defineTrait<TSkill extends Skill>(
     !candidate.name.trim()
   )
     throw new TypeError('Trait definition requires an id and name.');
+
   for (const key of Object.keys(definition))
     if (
       ![
@@ -203,22 +210,28 @@ export function defineTrait<TSkill extends Skill>(
   for (const rule of definition.modifierRules ?? [])
     if (rule.requiresSelection !== undefined && typeof rule.requiresSelection !== 'boolean')
       throw new TypeError(`Trait ${definition.id} modifier requiresSelection must be boolean.`);
+
   if (definition.balance != null) {
     if (typeof definition.balance !== 'object' || Array.isArray(definition.balance))
       throw new TypeError(`Trait ${definition.id}.balance must be an object.`);
+
     for (const key of ['name', 'profileKind'])
       if (key in definition.balance) throw new TypeError(`Trait ${definition.id}.balance cannot override ${key}.`);
   }
 
   for (const surface of ['hooks', 'lifetime'] as const) {
     const hooks = definition[surface];
+
     if (hooks == null) continue;
+
     if (typeof hooks !== 'object' || Array.isArray(hooks))
       throw new TypeError(`Trait ${definition.id}.${surface} must be an object.`);
+
     const allowed: readonly string[] = surface === 'hooks' ? VALUE_HOOKS : LIFETIME_HOOKS;
     for (const [key, value] of Object.entries(hooks)) {
       if (!allowed.includes(key))
         throw new TypeError(`Unsupported trait ${surface === 'hooks' ? 'hook' : 'lifetime hook'}: ${key}.`);
+
       // Task lifetime declarations accompany handlers; they never replace or disable execution.
       if (key === 'backgroundTasks') {
         if (!Array.isArray(value) || value.some((name) => typeof name !== 'string' || !name))
@@ -231,6 +244,7 @@ export function defineTrait<TSkill extends Skill>(
           Object.values(value).some((handler) => typeof handler !== 'function')
         )
           throw new TypeError(`Trait ${definition.id}.${key} must contain handlers.`);
+
         if (key === 'reactions')
           for (const stage of Object.keys(value))
             if (!(LIFETIME_STAGES as readonly string[]).includes(stage))

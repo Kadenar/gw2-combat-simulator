@@ -7,9 +7,12 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 export const necromancerFamilyUi: Partial<ProfessionUiContract> = {
   previewControls(context) {
     const preview = createPreviewControls(context);
+
     if (context.specialization !== 'Scourge') {
       const sources = ['Death Perception', "Reaper's Onslaught"].filter((name) => preview.has(name));
+
       if (preview.skills.has(ID.SIGNET_OF_SPITE)) sources.push('Signet of Spite');
+
       if (sources.length)
         preview.add({
           key: 'shroud',

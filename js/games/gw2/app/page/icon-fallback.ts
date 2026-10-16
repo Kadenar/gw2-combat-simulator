@@ -45,6 +45,7 @@ const mountedDocuments = new WeakSet<Document>();
  */
 export function mountGw2IconFallback(root: Document = document): void {
   if (mountedDocuments.has(root)) return;
+
   mountedDocuments.add(root);
   root.addEventListener(
     'error',
@@ -57,6 +58,7 @@ export function mountGw2IconFallback(root: Document = document): void {
       const currentStage = image.dataset.gw2IconFallbackStage;
       const stage = currentStage === 'backup' || currentStage === 'placeholder' ? currentStage : undefined;
       const fallback = nextGw2IconFallback(image.currentSrc || image.src, stage);
+
       if (!fallback) return;
 
       // Existing target-level error handlers should run only after this chain

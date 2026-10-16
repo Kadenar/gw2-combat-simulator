@@ -46,6 +46,7 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
           effectiveEnd: 4,
           effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects
         });
+
         if (synthetic)
           reenterEvokerAttunement(
             context,

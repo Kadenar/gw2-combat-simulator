@@ -41,10 +41,13 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
   const identity = elementalistLoadoutIdentity(skill.id);
   const readyAt = context.cooldownController.readyAt(skill.id);
   const ammo = context.cooldownController.readAmmo(skill.id);
+
   if (readyAt == null && !ammo) return;
+
   for (const candidate of context.helpers.skills) {
     if (candidate.type === skill.type && elementalistLoadoutIdentity(candidate.id) === identity) {
       if (readyAt != null) context.cooldownController.copy(skill.id, candidate.id);
+
       if (ammo) context.cooldownController.linkAmmo(skill.id, candidate.id);
     }
   }
@@ -62,6 +65,7 @@ export function weaponAttunementAvailable(
   // A carried root exposes its shared-controller-approved next step even after
   // the Elementalist has moved to a different attunement.
   const chain = context.helpers.autoattackChainPositions.get(Number(skill.id));
+
   if (
     chain &&
     state.autoattackCarryover?.root === chain.root &&
@@ -71,9 +75,12 @@ export function weaponAttunementAvailable(
   }
 
   const attunement = String(skill.attunement || '');
+
   if (!attunement) return ready();
+
   // The selected Weaver owns weapon-hand eligibility, regardless of incidental state fields.
   if (elementalistAttunementPolicy(context).weaponGate === 'elite') return ready();
+
   const required = attunement.split('+');
   return required.length === 1 && required[0] === state.primaryAttunement
     ? ready()
@@ -88,11 +95,15 @@ export function progressedAutoattackCarryover(
 ): ElementalistCoreState['autoattackCarryover'] {
   for (const [rawRoot, rawExpected] of Object.entries(state.autoattackChains)) {
     const root = Number(rawRoot);
+
     // Aerial Agility is a slot-three flip and must not inherit slot-one
     // autoattack carryover into a different attunement.
     if (root === ID.AERIAL_AGILITY) continue;
+
     if (rawExpected === root) continue;
+
     const rootSkill = context.helpers.skillsById.get(root);
+
     if (rootSkill?.attunement === attunement) {
       return { root, attunement };
     }
@@ -109,6 +120,7 @@ export function inFlightAutoattackCarryover(
   for (const skillId of context.castController.inFlightSkillIds()) {
     const position = context.helpers.autoattackChainPositions.get(Number(skillId));
     const skill = context.helpers.skillsById.get(Number(skillId));
+
     if (position && position.root !== ID.AERIAL_AGILITY && skill?.attunement === attunement) {
       return { root: position.root, attunement };
     }
@@ -121,7 +133,9 @@ export function inFlightAutoattackCarryover(
 export const elementalistWeaponStateTasks = {
   'elementalist.aerial-agility-expire'(context: ElementalistRuntime, data: unknown): void {
     const state = professionCoreState(context);
+
     if (state.autoattackChains[ID.AERIAL_AGILITY] !== Number(data)) return;
+
     // Carryover producers exclude this slot-three flip, so expiry only resets its chain.
     resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
   }
@@ -132,8 +146,10 @@ function updateAerialAgilityFlip(
   change: AutoattackChainTransition
 ): void {
   context.cancelOwner({ id: 'elementalist.aerial-agility', generation: 0 });
+
   if (Number(cast.skill.id) === ID.AERIAL_AGILITY_CHAIN) {
     const root = context.helpers.skillsById.get(ID.AERIAL_AGILITY);
+
     if (root) context.cooldownController.startRecharge(root, context.time);
   }
 
@@ -154,6 +170,7 @@ export function observeElementalistAutoattackTransition(
 ): void {
   const state = professionCoreState(context);
   const chainRoot = result.castChainRootId;
+
   // An uncommitted cast never earns carryover, so drop the pending capture.
   if (!result.committed && chainRoot != null && state.pendingAutoattackCarryover?.root === chainRoot) {
     state.pendingAutoattackCarryover = null;
@@ -161,6 +178,7 @@ export function observeElementalistAutoattackTransition(
 
   // Aerial Agility rearms its own flip timeout on every advance or completion.
   const chainChange = result.transitions.find((change) => change.chainRootId === chainRoot);
+
   if (
     chainRoot === ID.AERIAL_AGILITY &&
     chainChange &&
@@ -178,8 +196,11 @@ export function observeElementalistAutoattackTransition(
       pending?.root === chainRoot &&
       pending.attunement === cast.skill.attunement &&
       pending.attunement !== state.primaryAttunement;
+
     if (pendingMatches) state.autoattackCarryover = pending;
+
     state.pendingAutoattackCarryover = null;
+
     if (chainChange.decision === 'complete' && state.autoattackCarryover?.root === chainRoot) {
       state.autoattackCarryover = null;
     } else if (position && state.autoattackCarryover?.root !== position.root) {
@@ -191,7 +212,9 @@ export function observeElementalistAutoattackTransition(
   const resetRoots = new Set(
     result.transitions.filter((change) => change.decision === 'reset').map((change) => Number(change.chainRootId))
   );
+
   if (state.autoattackCarryover && resetRoots.has(state.autoattackCarryover.root)) state.autoattackCarryover = null;
+
   if (state.pendingAutoattackCarryover && resetRoots.has(state.pendingAutoattackCarryover.root)) {
     state.pendingAutoattackCarryover = null;
   }

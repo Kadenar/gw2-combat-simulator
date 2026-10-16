@@ -29,6 +29,7 @@ function refreshShadowDepletion(runtime: ThiefRuntime): void {
   runtime.cancelOwner({ id: SHADOW_DEPLETED, generation: state.shadowWakeGeneration });
   state.shadowWakeGeneration++;
   const at = gw2CooldownReadyAt(resourceDepletionAt(state.shadowClock));
+
   if (Number.isFinite(at))
     runtime.schedule(SHADOW_DEPLETED, at, null, { id: SHADOW_DEPLETED, generation: state.shadowWakeGeneration }, -10);
 }
@@ -55,8 +56,10 @@ export function setShadowShroud(
   skill: { id: string | number; name: string }
 ): void {
   lockTransitionInput(runtime, active ? 'shroudEntryMs' : 'shroudExitMs', skill);
+
   // Entering shroud ends the rifle stance and its initiative bonus before the replacement bar becomes active.
   if (active && runtime.profession.core.kneeling) setThiefKneeling(runtime, false);
+
   specterState.from(runtime).shadowShroudActive = active;
   runtime.resourceController.refresh('shadowForce');
   runtime.effects.emit({
@@ -77,21 +80,26 @@ export function setShadowShroud(
 /** The surviving depletion wake forces the shroud closed with the exit transition's input lockout. */
 export function shadowDepleted(runtime: ThiefRuntime): void {
   const state = specterState.from(runtime);
+
   if (!state.shadowShroudActive) return;
+
   setShadowShroud(runtime, false, { id: SHADOW_DEPLETED, name: 'Exit Shadow Shroud' });
 }
 
 /** Shroud entry needs force; inside the shroud only its own bar is castable, and exit waits out its lockout. */
 export function specterAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const state = specterState.from(runtime);
+
   if (skill.id === ID.ENTER_SHADOW_SHROUD) {
     if (state.shadowShroudActive) return denySkillCast(skill, 'thief.in-shroud', 'Shadow Shroud is already active.');
+
     if (runtime.resourceController.value('shadowForce') <= 0)
       return denySkillCast(skill, 'thief.shadow-force', 'requires shadow force.');
   }
 
   if (skill.id === ID.EXIT_SHADOW_SHROUD && !state.shadowShroudActive)
     return denySkillCast(skill, 'thief.not-in-shroud', 'Shadow Shroud is not active.');
+
   if (skill.id === ID.EXIT_SHADOW_SHROUD && canonicalTime(state.shadowShroudExitReadyAt) > runtime.time)
     return denySkillCast(
       skill,
@@ -99,13 +107,16 @@ export function specterAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, sk
       'Shadow Shroud exit is not ready.',
       state.shadowShroudExitReadyAt
     );
+
   if (skill.shadowShroudSkill && !state.shadowShroudActive)
     return denySkillCast(skill, 'thief.not-in-shroud', 'enter Shadow Shroud first.');
+
   if (
     state.shadowShroudActive &&
     !skill.shadowShroudSkill &&
     (skill.type === 'Weapon' || ['Heal', 'Utility', 'Elite'].includes(skill.type || ''))
   )
     return denySkillCast(skill, 'thief.in-shroud', 'the Shadow Shroud bar replaces weapons and slot skills.');
+
   return { ready: true };
 }

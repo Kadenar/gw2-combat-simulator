@@ -22,7 +22,9 @@ export interface RandomDistributionViewOptions {
 
 function randomDriverNumber(value: unknown, unit: 'count' | 'stacks' | 'value'): string {
   const numeric = Number(value || 0);
+
   if (unit === 'value') return number(numeric);
+
   return numeric.toLocaleString(undefined, {
     minimumFractionDigits: Math.abs(numeric) < 10 ? 1 : 0,
     maximumFractionDigits: 1
@@ -51,7 +53,9 @@ function randomDistributionRangeHtml(distribution: RandomDistributionSummary): s
     .map((marker) => {
       const x = position(marker.value);
       let lane = lanes.findIndex((previous) => x - previous >= 100);
+
       if (lane < 0) lane = lanes.length;
+
       lanes[lane] = x;
       return { ...marker, x, lane };
     });
@@ -92,7 +96,9 @@ function randomDistributionRangeHtml(distribution: RandomDistributionSummary): s
 /** Compares the outcome cohorts using relative impact bars without implying additive attribution. */
 function randomDistributionExplanationHtml(distribution: RandomDistributionSummary): string {
   const explanation = distribution.explanation;
+
   if (!explanation?.drivers?.length) return '';
+
   const cohort = Math.max(1, Math.round(explanation.cohortPercent || 10));
   const cohortSize = Math.max(1, Math.ceil(Number(distribution.trials || 0) * (cohort / 100)));
   const maxImpact = Math.max(1, ...explanation.drivers.map((driver) => Math.abs(driver.estimatedDpsDelta)));
@@ -135,6 +141,7 @@ export function mountRandomDistribution(
   options: RandomDistributionViewOptions = {}
 ): void {
   if (!container) return;
+
   const randomDistribution = model.randomDistribution || null;
   const randomDistributionRequested = model.randomDistributionRequested === true;
   const randomDistributionStale = model.randomDistributionStale === true;
@@ -201,6 +208,7 @@ export function mountRandomDistribution(
       : ''
   );
   const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');
+
   if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
     runRandomDistribution.onclick = () => {
       options.onRunRandomDistribution?.();

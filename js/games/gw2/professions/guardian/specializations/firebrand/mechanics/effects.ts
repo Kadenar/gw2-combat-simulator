@@ -43,7 +43,9 @@ export function alliedAshes(
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const burn = requireEffect(profile, 'condition', 'Burning');
+
   if (!burn) return;
+
   // Recipient grants survive preparation; one shared strike spends at most one Ashes charge per ally.
   runtime.alliedStrikes.registerRecipients(
     (allyIndex) => ({
@@ -98,6 +100,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
   };
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const might = requireEffect(profile, 'boon', 'might');
+
   if (might)
     runtime.effects.emit({
       kind: 'packet',
@@ -110,9 +113,12 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
         audience: { recipients: 'party' }
       }
     });
+
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
   const burn = requireEffect(profile, 'condition', 'Burning');
+
   if (!buff || !burn) return;
+
   const state = firebrandState.from(runtime);
   const duration = effectNumber(profile, buff, 'duration');
   state.ashes = grantCharges(

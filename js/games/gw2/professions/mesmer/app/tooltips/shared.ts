@@ -27,9 +27,11 @@ export const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity
   // Resolve by resource tier so removing a strike cannot relabel its surviving neighbors.
   const facts = shatter.strikes.flatMap((_, tier) => {
     if (tier < (shatter.minimumResource ?? 0)) return [];
+
     const qualifier = `${tier} ${bladesong ? 'blades' : 'clones'} spent`;
     return simulationEffectFacts(projectEffects(balanceContext, shatter, native, tier), qualifier).facts;
   });
+
   if (profile.rechargeReduction != null)
     facts.push(
       profileFact(
@@ -40,6 +42,7 @@ export const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity
         tooltipSeconds
       )
     );
+
   return {
     description: bladesong
       ? 'Spend your stocked blades to perform this bladesong. Its attack depends on the number spent. Eligible bladesong and shatter traits apply; Distortion has no direct damage in the simulation.'

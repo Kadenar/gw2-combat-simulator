@@ -6,11 +6,13 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 export function tempestBuffPolicies(context: unknown): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [{ kind: 'transcendent-tempest', maximumStacks: 1 }];
   const tempestuousAria = balanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA);
+
   if (tempestuousAria)
     policies.push({
       kind: 'tempestuous aria',
       maximumStacks: 1,
       maximumDuration: balanceProfileNumber(tempestuousAria, 'maximumStacks')
     });
+
   return policies;
 }

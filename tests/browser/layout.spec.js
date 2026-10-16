@@ -63,6 +63,7 @@ test('clearing a loading template lets new skills simulate without its old worke
 
       terminate() {
         if (this.held) window.heldBaselineTerminated = true;
+
         super.terminate();
       }
     };
@@ -492,7 +493,9 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
       ];
       const names = Array.from({ length: cycleCount }, () => cycle).flat();
       const skills = names.map((name) => app.activeCatalog.skillsByName.get(name));
+
       if (skills.some((skill) => !skill)) return false;
+
       app.build.startingWeaponSet = 1;
       app.build.rotation = skills.map((skill) => ({ type: 'cast', skillId: skill.id }));
       app.changed(false);
@@ -734,6 +737,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
     await expect(referenceTimeline).toBeVisible();
     const header = referenceSection.locator('.rotation-comparison-reference-header');
     await expect(header.locator('#rotation-comparison-summary')).toBeVisible();
+
     if (viewport.width > 900) {
       const summaryBox = await header.locator('#rotation-comparison-summary').boundingBox();
       const actionsBox = await header.locator('[data-comparison-reference-actions]').boundingBox();

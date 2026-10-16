@@ -3,6 +3,7 @@ import type { BaselineSimulationResult } from '#gw2/app/simulation/baseline/type
 /** Export captured inputs and hit facts together, without editor state or presentation-only analysis caches. */
 export function damageDebugPayload(result: BaselineSimulationResult) {
   if (!result.debugInputs) return null;
+
   const { debugInputs } = result;
   return {
     ...debugInputs,

@@ -403,6 +403,7 @@ export function beginFamiliarCast(
 ): void {
   const state = evokerState.from(context);
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
+
   // familiar casts block every other action until they finish (enforced in availability.ts)
   if (familiarElement) {
     state.activeFamiliarCast = {
@@ -414,6 +415,7 @@ export function beginFamiliarCast(
 
   // if the empowered familiar was recently cast and the basic fires within the window, the empowered effects are retroactively cancelled
   const empoweredSkill = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
+
   if (empoweredSkill) {
     const window = balanceNumberFromContext(
       context,
@@ -422,6 +424,7 @@ export function beginFamiliarCast(
     );
     const basicKey = String(skill.id);
     const recent = state.lastEmpoweredFamiliarByBasic[basicKey];
+
     if (recent?.skillId === empoweredSkill && cast.start - recent.start < window) {
       context.cancelOwner({ id: recent.activationId, generation: 0 });
       state.cancelledFamiliarActivations[cast.id] = true;
@@ -430,6 +433,7 @@ export function beginFamiliarCast(
   }
 
   const basic = FAMILIAR_BASIC_BY_EMPOWERED.get(skill.id);
+
   if (basic) {
     state.lastEmpoweredFamiliarByBasic[String(basic)] = {
       skillId: skill.id,
@@ -444,9 +448,12 @@ const igniteBurningByCast = new WeakMap<RuntimeCast<ElementalistSkill>, SkillEff
 /** Capture and advance the tier once at acceptance; effect selection only reads this immutable choice. */
 export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);
+
   if (state.cancelledFamiliarActivations[cast.id]) return;
+
   if (cast.start - state.igniteLastUsedAt >= balanceNumberFromContext(context, PROFILE.ignite, 'threshold'))
     state.igniteTier = 0;
+
   igniteBurningByCast.set(cast, igniteTierEffect(context, state.igniteTier));
   state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
   state.igniteLastUsedAt = cast.start;
@@ -477,6 +484,7 @@ export function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeC
     context.resourceController.grant('empoweredCharges', 1);
     const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
     const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
+
     if (flip && empowered) {
       const delay = balanceNumberFromContext(
         context,

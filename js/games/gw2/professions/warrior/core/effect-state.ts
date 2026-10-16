@@ -16,6 +16,7 @@ export function warriorBuffPolicies(context: unknown): BuffStatePolicy[] {
     ['furious-surge', TRAIT.FURIOUS]
   ] as const) {
     const profile = balanceProfileFromContext(context, id);
+
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }
 

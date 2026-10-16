@@ -9,17 +9,26 @@ export async function openBenchmarkWorkspace(app: ProfessionAppState, root: Docu
   const view = root.defaultView!;
   const url = new URL(view.location.href);
   const buildPath = url.searchParams.get('benchmark');
+
   if (!buildPath) return;
+
   try {
     const response = await fetch(`data/gw2/builds/${app.adapter.id}/manifest.json`);
+
     if (!response.ok) throw new Error('Benchmark manifest unavailable.');
+
     const preset = readBenchmarks(app.adapter, await response.json()).find(
       (row) => row.build === buildPath && (row.rotation ?? null) === url.searchParams.get('rotation')
     );
+
     if (!preset) throw new Error('This benchmark is not listed for this profession.');
+
     const { buildData, rotationItems } = await loadPresetBundle(preset);
+
     if (!buildData || typeof buildData !== 'object' || Array.isArray(buildData)) throw new Error('Invalid build.');
+
     if (preset.rotation && !rotationItems) throw new Error('Benchmark rotation unavailable.');
+
     const build = app.adapter.toApplicationBuild({ ...buildData, rotation: rotationItems ?? [] });
     addBuildTab(app, build, `${preset.specialization} · ${preset.label}`, app.patchId, build);
     saveBuildWorkspace(app);

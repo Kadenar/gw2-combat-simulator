@@ -19,7 +19,9 @@ export function myBuildsStorageKey(adapter: Gw2AppAdapter): string {
 export function loadMyBuilds(adapter: Gw2AppAdapter): MyBuild[] {
   try {
     const saved = JSON.parse(localStorage.getItem(myBuildsStorageKey(adapter)) || 'null');
+
     if (saved?.version !== 1 || !Array.isArray(saved.builds)) return [];
+
     const builds: MyBuild[] = [];
     let migrated = false;
     for (const entry of saved.builds) {
@@ -33,6 +35,7 @@ export function loadMyBuilds(adapter: Gw2AppAdapter): MyBuild[] {
         builds.some(({ id }) => id === entry.id)
       )
         continue;
+
       try {
         builds.push({
           id: entry.id,
@@ -40,6 +43,7 @@ export function loadMyBuilds(adapter: Gw2AppAdapter): MyBuild[] {
           category: typeof entry.category === 'string' ? entry.category.trim().slice(0, 80) || undefined : undefined,
           build: replaceBuild(entry.build, adapter)
         });
+
         if (Object.hasOwn(entry.build, 'selectedSkills')) {
           entry.build = builds.at(-1)!.build;
           migrated = true;
@@ -62,6 +66,7 @@ export function loadMyBuilds(adapter: Gw2AppAdapter): MyBuild[] {
     return builds;
   } catch (error) {
     if (error instanceof SelectedSkillMigrationError) throw error;
+
     return [];
   }
 }
@@ -89,9 +94,13 @@ function persistMyBuilds(app: ProfessionAppState, builds: readonly MyBuild[]): v
  */
 export function saveMyBuild(app: ProfessionAppState, name: string, id?: string, category?: string): MyBuild[] {
   const cleanName = name.trim().slice(0, 80);
+
   if (!cleanName) throw new TypeError('Build name is required.');
+
   const builds = loadMyBuilds(app.adapter);
+
   if (id && !builds.some((entry) => entry.id === id)) throw new TypeError('Saved build no longer exists.');
+
   const saved = {
     id: id || crypto.randomUUID(),
     name: cleanName,
@@ -107,7 +116,9 @@ export function saveMyBuild(app: ProfessionAppState, name: string, id?: string, 
 export function deleteMyBuild(app: ProfessionAppState, id: string): MyBuild[] {
   const builds = loadMyBuilds(app.adapter);
   const next = builds.filter((entry) => entry.id !== id);
+
   if (next.length === builds.length) return builds;
+
   persistMyBuilds(app, next);
   return next;
 }

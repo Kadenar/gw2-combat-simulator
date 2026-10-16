@@ -43,7 +43,9 @@ const lichTooltip: DescribeSimulationTooltip = skillTooltip(
 
 const summonMadnessTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   const effects = simulationEffectFacts(selected.effects, 'per horror');
   return {
     ...effects,
@@ -164,7 +166,9 @@ const lifeSiphonTooltip: DescribeSimulationTooltip = skillTooltip(
 
 const devouringDarknessTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   return {
     description:
       'Strike your target and apply Torment for each distinct condition already on it. Count conditions before this attack applies its own Torment.',

@@ -48,5 +48,6 @@ export function mountResultCharts(
           : ''
   );
   const chartContainer = container.querySelector<HTMLElement>('[data-role="result-charts"]');
+
   if (chartContainer && chartSeries) mountTimeSeriesCharts(chartContainer, chartSeries, options);
 }

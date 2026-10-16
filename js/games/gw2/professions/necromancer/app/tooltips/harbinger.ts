@@ -21,7 +21,9 @@ import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/toolt
 /** Base and empowered packets are alternatives; spending happens before the elixir grants fresh Blight. */
 const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   const profile = tooltipProfile(balanceContext, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(entity.id)]);
   const elixir = selected.categories?.includes('Elixir');
   const base = simulationEffectFacts(selected.effects);
@@ -44,7 +46,9 @@ const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {
 
 const darkBarrageTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   const base = simulationEffectFacts(selected.effects, 'without Doom Approaches');
   const profile = tooltipProfile(balanceContext, HARBINGER.darkBarrageDoomApproaches);
   const replacement = simulationEffectFacts(

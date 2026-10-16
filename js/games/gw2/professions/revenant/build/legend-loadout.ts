@@ -164,13 +164,17 @@ export const revenantLegendLoadout = Object.freeze({
   skillChildren(context: RevenantLegendLoadoutContext, skillId: SkillId): readonly SkillId[] {
     // Loadout children follow the same selected declarations as activation and the live palette.
     if (!context.catalog) throw new Error('Revenant loadout children require the selected catalog.');
+
     const skill = context.catalog.skillsById.get(skillId);
     const consumeId = skill?.facet ? revenantUpkeepConsumeId(skill, String(skill.legendId ?? '')) : undefined;
+
     if (consumeId != null) return [consumeId];
+
     return Number(skillId) === SKILL.CALL_TO_ANGUISH ? [SKILL.UNYIELDING_IMPACT] : [];
   },
   paletteGroups(context: RevenantLegendLoadoutContext = {}) {
     if (!context.catalog) throw new Error('Revenant loadout palette requires the selected catalog.');
+
     const catalog = context.catalog;
     const availableFlips = context.professionState?.availableFlips || {};
     return baseRevenantLegendLoadout.paletteGroups(context).map((group) => ({
@@ -181,6 +185,7 @@ export const revenantLegendLoadout = Object.freeze({
       skillIds: group.skillIds.flatMap((skillId) => {
         const skill = catalog.skillsById.get(skillId);
         const heraldFlipId = skill?.facet ? revenantUpkeepConsumeId(skill, String(skill.legendId ?? '')) : undefined;
+
         if (heraldFlipId != null && availableFlips[heraldFlipId]) {
           return [Number(heraldFlipId)];
         }

@@ -154,7 +154,9 @@ test('Calcify Protection stays personal and requires an accepted disable', () =>
     assert.deepEqual(result.warnings, []);
     const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'protection');
     assert.equal(grants.length, offTarget ? 0 : 1);
+
     if (offTarget) continue;
+
     assert.equal(grants[0].duration, 2);
     assert.equal(grants[0].resolvedAudience.includesSelf, true);
     assert.equal(grants[0].resolvedAudience.alliedPlayerCount, 0);

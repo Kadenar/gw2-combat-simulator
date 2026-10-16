@@ -36,6 +36,7 @@ function sharperImagesDurations(
 ): readonly number[] {
   const attributes = observationAttributeSets(config, catalog, mesmerProfession.attributeContributions);
   const passiveDurations = expectedConditionDurationsMs(baseDuration, 'Bleeding', config, attributes);
+
   if (!selectedSkillIdSet(config.selectedSkillIds).has(ID.SIGNET_OF_MIDNIGHT)) return passiveDurations;
 
   // The selected Signet changes the inferred duration, so its active profile must supply the bonus.
@@ -53,7 +54,9 @@ function ownedCloneAddresses(log: ParsedEvtc, playerAddress: bigint): ReadonlySe
   const playerInstance = log.events.find(
     (event) => event.source === playerAddress && event.sourceInstance > 0
   )?.sourceInstance;
+
   if (!playerInstance) return new Set();
+
   const cloneAddresses = new Set(
     log.agents.filter((agent) => agent.character.trim().toLowerCase() === 'clone').map((agent) => agent.address)
   );
@@ -75,14 +78,21 @@ export function analyzeMesmerSharperImagesObservation(
   config: Gw2Config
 ): MesmerSharperImagesObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SHARPER_IMAGES)) return null;
+
   const profile = traitBalanceProfile(catalog, TRAIT.SHARPER_IMAGES, 'Sharper Images');
+
   if (!profile) return null;
 
   const matchedDurationsMs = sharperImagesDurations(bleedingDuration(profile), catalog, config);
+
   if (!matchedDurationsMs.length) return null;
+
   const targetAddress = primaryStrikeTarget(log, playerAddress);
+
   if (targetAddress == null) return null;
+
   const cloneAddresses = ownedCloneAddresses(log, playerAddress);
+
   if (!cloneAddresses.size) return null;
 
   const criticalHits = log.events.filter(
@@ -95,7 +105,9 @@ export function analyzeMesmerSharperImagesObservation(
       event.value > 0 &&
       event.result === EVTC_CRITICAL_RESULT
   );
+
   if (!criticalHits.length) return null;
+
   const bleeding = log.events.filter(
     (event) =>
       event.source === playerAddress &&

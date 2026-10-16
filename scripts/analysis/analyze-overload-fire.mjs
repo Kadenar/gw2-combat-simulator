@@ -36,6 +36,7 @@ export function analyzeOverloadFire(log) {
       // A subsequent animation bounds a missing stop; its completion status remains unknown.
       if (starts) {
         if (active) active = null;
+
         if (event.skillId === OVERLOAD_FIRE) {
           active = {
             cast: casts.length + 1,
@@ -103,6 +104,7 @@ async function main() {
     allowPositionals: true,
     options: { json: { type: 'boolean' }, help: { type: 'boolean', short: 'h' } }
   });
+
   if (values.help) {
     console.log(USAGE);
     return;
@@ -112,13 +114,16 @@ async function main() {
 
   const log = parseEvtc(await decompressEvtcInput(await readFile(positionals[0])));
   const report = analyzeOverloadFire(log);
+
   if (values.json) {
     console.log(JSON.stringify(report, null, 2));
     return;
   }
 
   console.log(`Overload Fire analysis: ${positionals[0]}`);
+
   if (!report.players.length) console.log('No Tempest players found.');
+
   for (const player of report.players) {
     console.log(`\n${player.character} (${player.account})`);
     console.log(

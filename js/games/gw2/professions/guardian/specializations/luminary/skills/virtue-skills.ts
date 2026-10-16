@@ -44,6 +44,7 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
   // Resolve's intrinsic aura replaces an old aura after any Sovereign detonation at the same boundary.
   'guardian.resolve-aura'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     runtime.schedule(
       AURA_GRANT,
       context.cast.start,
@@ -54,6 +55,7 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
   },
   'guardian.arm-radiant-justice'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     luminaryState.from(runtime).radiantJusticeArmed = true;
     runtime.effects.emit({
       kind: 'announcement',
@@ -74,6 +76,7 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
   },
   'guardian.arm-radiant-courage'(runtime, context) {
     if (context.kind !== 'cast') return;
+
     luminaryState.from(runtime).radiantCourageSwordArmed = true;
     runtime.effects.emit({
       kind: 'announcement',

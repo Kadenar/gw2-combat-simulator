@@ -22,12 +22,17 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
     event.skillId === ID.MISTBURN_MORTAR // the mortar itself grants the charge; it must not also consume one
   )
     return;
+
   const state = antiquaryState.from(context);
+
   if (!consumeCharge(state.mistburn, event.at)) return;
+
   const mistburnProcProfile = requireBalanceProfileFromContext(context, PROFILE.mistburnProc);
   const burning = requireEffect(mistburnProcProfile, 'condition', 'Burning');
+
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
+
   context.effects.emit({
     kind: 'packet',
     settlement: 'reaction',

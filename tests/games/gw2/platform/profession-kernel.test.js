@@ -306,8 +306,10 @@ test('skill-field costs share their patched amount between admission and start p
       skill
     );
     assert.deepEqual(queried, amount === 0 ? [] : [['energy', amount]]);
+
     if (amount === 0) assert.equal(admission, null);
     else assert.equal(admission.retryAt, 2);
+
     for (const interruptAfterMs of [undefined, 100]) {
       const observed = [];
       const result = runGw2Runtime({
@@ -872,7 +874,9 @@ test('declared flip consumption respects cast phase and safely consumes an absen
       assert.deepEqual(result.warnings, []);
       const retained = on === 'castCommit' && interruptAfterMs !== undefined;
       assert.equal(Boolean(runtime.profession.core.availableFlips.flip), retained);
+
       if (retained) assert.equal(runtime.profession.core.availableFlips.flip.expiresAt, null);
+
       runtime.consumeFlip('flip');
       assert.equal(runtime.consumeFlip('flip'), undefined);
     }

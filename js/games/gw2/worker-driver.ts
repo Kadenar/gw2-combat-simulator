@@ -8,8 +8,11 @@ const drivers = new Map<string, Gw2ProfessionSource>();
 /** Loads the engine and active preview for every simulation endpoint without importing browser adapters. */
 export async function loadGw2WorkerDriver(contentId: string): Promise<Gw2ProfessionSource | null> {
   const profession = await loadProfession(contentId);
+
   if (!profession) return null;
+
   let driver = drivers.get(contentId);
+
   if (!driver) {
     driver = withActivePatchPreview(profession);
     drivers.set(contentId, driver);

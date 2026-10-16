@@ -15,11 +15,13 @@ export function engineerCoreCastAvailability(
   skill: EngineerSkill
 ): AvailabilityResult {
   const state = professionCoreState(context);
+
   if (skill.id === ID.HEALING_TURRET && state.healingTurretActivationId) {
     return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');
   }
 
   const spear = engineerSpearAvailability(context, skill);
+
   if (!spear.ready) return spear;
 
   if (skill.kitId) {
@@ -62,6 +64,7 @@ export function engineerCoreCastAvailability(
 
   // Parent relationships use IDs; the selected loadout preserves canonical identity.
   const parent = skill.toolbeltParentId == null ? undefined : context.helpers.skillsById.get(skill.toolbeltParentId);
+
   if (
     context.config.selectedSkillIds !== undefined &&
     skill.toolbeltParentId &&

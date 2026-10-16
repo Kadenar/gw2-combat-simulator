@@ -128,6 +128,7 @@ function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEve
   const offhand = configuredOffhand || primaryOffhand;
 
   let targetId: number | null = null;
+
   if (mainhand === 'Staff') targetId = ID.PHANTASMAL_WARLOCK;
   else if (offhand === 'Pistol') targetId = ID.PHANTASMAL_DUELIST;
   else if (offhand === 'Torch') targetId = ID.PHANTASMAL_MAGE;
@@ -136,12 +137,17 @@ function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEve
 
   // Only affects weapon skills that are recharging.
   const readyAt = context.cooldownController.readyAt(targetId) || 0;
+
   if (!(readyAt > event.at)) return;
+
   const reduction = balanceNumberFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge');
   const target = context.helpers.skillsById.get(targetId);
+
   if (!target) return;
+
   // Only a defiant target consumes an interval, after a recharging weapon skill has been selected.
   if (defiant && !context.procs.claim(TRAIT.CHAOTIC_INTERRUPTION, TRAIT.CHAOTIC_INTERRUPTION, event.at)) return;
+
   context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
 
   context.effects.emit({
@@ -167,8 +173,11 @@ function triggerIllusionaryMembrane(
   delivery: EffectDelivery = {}
 ): void {
   if (shatter?.slot !== 2) return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
+
   if (!requireEffect(profile, 'buff', 'illusionary-membrane')) return;
+
   const traitSource = {
     source: 'Trait',
     sourceId: TRAIT.ILLUSIONARY_MEMBRANE,
@@ -212,9 +221,12 @@ function triggerMethodOfMadness(
   delivery: EffectDelivery = {}
 ): void {
   if (skill.type !== 'Heal') return;
+
   const storm = context.helpers.skillsById.get(ID.LESSER_CHAOS_STORM)!;
+
   // The selected skill owns its recharge and surviving payload; no trait profile duplicates it.
   if (!storm.effects?.length || context.cooldownController.isOnCooldown(storm.id, context.time)) return;
+
   context.cooldownController.startRecharge(storm, context.time);
   invokeTraitSkill(
     context,
@@ -237,6 +249,7 @@ function triggerMethodOfMadness(
       logAnnouncement: true
     }
   );
+
   // Syncopate follows the accepted storm independently of diagnostic logging.
   if (context.profession.specialization.kind === 'Troubadour') context.schedule('mesmer.syncopate', at);
 }

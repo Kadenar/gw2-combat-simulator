@@ -94,8 +94,10 @@ export function necromancerLifeForceCapacity(
   vitality: number
 ): number {
   const capacityMultiplier = soulBatteryCapacity(config, balanceContext);
+
   // A live resource pool must have positive capacity.
   if (capacityMultiplier <= 0) throw new RangeError('Life-force capacity multiplier must be positive.');
+
   return (NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10) * 0.69 * capacityMultiplier;
 }
 

@@ -103,6 +103,7 @@ function mergeEntityArrays<T extends CatalogEntity, TSkill extends Skill>(
   for (const module of modules) {
     for (const entity of select(module)) {
       const prior = owners.get(entity.id);
+
       if (prior) {
         throw new TypeError(`Duplicate ${label} ${String(entity.id)} in ${prior} and ${module.id}.`);
       }
@@ -126,6 +127,7 @@ function applySkillNameOverrides(
 ): void {
   for (const [name, skillId] of Object.entries(overrides || {})) {
     const skill = catalog.skillsById.get(skillId);
+
     if (!skill) {
       throw new TypeError(`Unknown skill-name override ${name}: ${String(skillId)}.`);
     }
@@ -165,6 +167,7 @@ function composeNativeCatalog<TSkill extends Skill>(
   options: NativeCatalogOptions | undefined
 ): AssembledNativeCatalog<TSkill> {
   const moduleIds = new Set(modules.map((module) => module.id));
+
   if (modules[0]?.id !== 'Core') {
     throw new TypeError('Native profession modules must begin with "Core".');
   }
@@ -202,6 +205,7 @@ function composeNativeCatalog<TSkill extends Skill>(
   for (const module of modules) {
     for (const [skillId, mechanic] of Object.entries(module.data.skillMechanics || {})) {
       const prior = mechanicsOwners.get(skillId);
+
       if (prior) {
         throw new TypeError(`Duplicate skill mechanics ${skillId} in ${prior} and ${module.id}.`);
       }
@@ -212,6 +216,7 @@ function composeNativeCatalog<TSkill extends Skill>(
 
     for (const [skillId, override] of Object.entries(module.data.skillOverrides || {})) {
       const prior = overrideOwners.get(skillId);
+
       if (prior) {
         throw new TypeError(`Duplicate skill override ${skillId} in ${prior} and ${module.id}.`);
       }
@@ -223,6 +228,7 @@ function composeNativeCatalog<TSkill extends Skill>(
     for (const skillId of module.data.specializationOnlySkillIds || []) {
       const key = String(skillId);
       const prior = exclusiveOwners.get(key);
+
       if (prior) {
         throw new TypeError(`Duplicate specialization-only skill ${key} in ${prior} and ${module.id}.`);
       }
@@ -233,6 +239,7 @@ function composeNativeCatalog<TSkill extends Skill>(
     for (const weapon of module.data.weapons || []) weapons.add(weapon);
     for (const [weapon, hand] of toEntries(module.data.weaponHands)) {
       const prior = weaponHandOwners.get(weapon);
+
       if (prior) {
         throw new TypeError(`Duplicate weapon-hand entry ${weapon} in ${prior} and ${module.id}.`);
       }
@@ -294,6 +301,7 @@ function composeNativeCatalog<TSkill extends Skill>(
       declaredOwners.get(skill.id) ||
       mechanicOwner ||
       'Core';
+
     if (!moduleIds.has(owner)) {
       throw new TypeError(`Skill ${String(skill.id)} resolves to unknown runtime module ${owner}.`);
     }
@@ -316,6 +324,7 @@ function composeNativeCatalog<TSkill extends Skill>(
   // that spans Core and a spec module would be impossible to schedule correctly.
   for (const { owner: declarationOwner, chain } of additionalChains) {
     const owners = new Set(chain.map((skillId) => skillOwners.get(skillId)));
+
     if (owners.size !== 1 || owners.has(undefined)) {
       throw new TypeError(`${declarationOwner} autoattack chain crosses runtime module ownership.`);
     }
@@ -330,7 +339,9 @@ function composeNativeCatalog<TSkill extends Skill>(
 
   for (const skillId of excludedChains) {
     const owner = skillOwners.get(skillId);
+
     if (!owner) throw new TypeError(`Unknown excluded autoattack skill ${String(skillId)}.`);
+
     const current = chainContributions.get(owner)!;
     chainContributions.set(owner, {
       ...current,
@@ -386,7 +397,9 @@ export function getNativeCatalogAssembly<TSkill extends Skill>(
   options: NativeCatalogOptions | undefined
 ): AssembledNativeCatalog<TSkill> {
   const first = modules[0];
+
   if (!first) throw new TypeError('A native profession requires modules.');
+
   const cached = assemblyCache.get(first) || [];
   const match = cached.find(
     (entry) =>
@@ -394,8 +407,10 @@ export function getNativeCatalogAssembly<TSkill extends Skill>(
       entry.modules.length === modules.length &&
       entry.modules.every((module, index) => module === modules[index])
   );
+
   // Identity-matched modules and options retain the skill type used when this cache entry was assembled.
   if (match) return match.assembly as AssembledNativeCatalog<TSkill>;
+
   const assembly = composeNativeCatalog(modules, options);
   cached.push({ modules: [...modules], options, assembly });
   assemblyCache.set(first, cached);

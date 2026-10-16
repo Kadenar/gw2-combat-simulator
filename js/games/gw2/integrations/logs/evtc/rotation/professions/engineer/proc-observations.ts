@@ -60,13 +60,17 @@ function explosionSkillIds(log: ParsedEvtc, catalog: Readonly<CanonicalCatalog>)
   const names = new Set<string>();
   for (const skill of catalog.skills) {
     if (!isExplosionSkill(skill)) continue;
+
     const skillId = Number(skill.id);
+
     if (Number.isFinite(skillId)) ids.add(skillId);
+
     names.add(normalized(skill.name));
   }
 
   for (const skill of log.skills) {
     const name = normalized(skill.name);
+
     if (names.has(name) || EVENT_FLAGGED_EXPLOSION_NAMES.has(name)) {
       ids.add(skill.id);
     }
@@ -89,18 +93,25 @@ export function analyzeEngineerShrapnelObservation(
   config: Gw2Config
 ): EngineerShrapnelObservation | null {
   if (!hasSelectedTrait(config, TRAIT.SHRAPNEL)) return null;
+
   const profile = traitBalanceProfile(catalog, TRAIT.SHRAPNEL, 'Shrapnel');
+
   if (!profile) return null;
+
   const expectedProcChance = expectedChance(profile);
+
   if (expectedProcChance == null) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);
+
   if (targetAddress == null) return null;
+
   const eligibleSkillIds = explosionSkillIds(log, catalog);
   const explosionHits = log.events.filter(
     (event) =>
       event.target === targetAddress && isOutgoingStrike(event, playerAddress) && eligibleSkillIds.has(event.skillId)
   ).length;
+
   if (!explosionHits) return null;
 
   const crippledEffect = profile.effects?.find(
@@ -118,7 +129,9 @@ export function analyzeEngineerShrapnelObservation(
     config,
     observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
   );
+
   if (!matchedBleedingDurationsMs.length || !matchedCrippledDurationsMs.length) return null;
+
   const bleeding = matchingConditionApplications(
     log,
     playerAddress,

@@ -23,7 +23,9 @@ export function grantChargePool(
   const grants = activeChargeGrants(pool.grants[recipient] ?? [], at);
   pool.grants[recipient] = grants;
   const added = Math.max(0, Math.min(charges, cap - grants.reduce((sum, grant) => sum + grant.charges, 0)));
+
   if (!added) return;
+
   const grant = grantCharges(added, at + duration);
   pool.grants[recipient] = activeChargeGrants([...grants, grant], at);
 }
@@ -66,8 +68,11 @@ export function consumeCharge(
     (cooldown > 0 && !isInternalCooldownReady(at, grant.readyAt ?? 0))
   )
     return false;
+
   grant.charges -= 1;
+
   if (cooldown > 0) grant.readyAt = at + cooldown;
+
   return true;
 }
 
@@ -103,10 +108,15 @@ export function consumeChargeBatch<T extends ChargeGrant>(
   eligible: (grant: T) => boolean = () => true
 ): boolean {
   const index = grants.findIndex((grant) => eligible(grant) && grant.charges > 0 && grant.expiresAt > at);
+
   if (index < 0) return false;
+
   // Registered consumers retain this batch reference and must observe its live charge count through exhaustion.
   const grant = grants[index];
+
   if (!consumeCharge(grant, at)) return false;
+
   if (grant.charges === 0) grants.splice(index, 1);
+
   return true;
 }

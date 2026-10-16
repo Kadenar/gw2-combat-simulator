@@ -57,21 +57,25 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
       ['damage', 'condition', 'control'].includes(event.type)
     )
       return { id: String(event.activationId), generation: 0 };
+
     return undefined;
   },
   sideEffectHandlers: {
     ...Object.fromEntries(Object.keys(evokerSkillCommitTasks).map((type) => [type, scheduleEvokerSkillCommit])),
     'elementalist.evoker.begin-familiar'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Familiar activation requires a cast trigger.');
+
       beginFamiliarCast(runtime, context.cast, context.skill);
     },
     'elementalist.evoker.capture-ignite-tier'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Ignite requires a cast trigger.');
+
       captureIgniteTier(runtime, context.cast);
     },
     // Replay payloads with Procession ownership without performing a familiar cast's resource or trait settlement.
     'elementalist.evoker.release-elemental-procession'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Elemental Procession requires a cast trigger.');
+
       releaseElementalProcession(runtime, context.cast, context.skill);
     }
   },
@@ -83,6 +87,7 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
     // Cancelled familiar casts release deferred weapon grants without resetting familiar charges.
     const state = evokerState.from(runtime);
     state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
+
     if (state.activeFamiliarCast?.reservationId === cast.id) {
       flushPendingWeaponChargeGains(runtime, state);
       state.activeFamiliarCast = null;

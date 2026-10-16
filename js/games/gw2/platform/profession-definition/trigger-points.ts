@@ -21,7 +21,9 @@ const POINT_ID = /^[a-z]+\.[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export function defineTriggerPoint<TInput extends object>(id: string, order: readonly SkillId[]): TriggerPoint<TInput> {
   if (typeof id !== 'string' || !POINT_ID.test(id))
     throw new TypeError(`Trigger point ${id} must be named <profession>.<boundary>.`);
+
   if (!Array.isArray(order) || !order.length) throw new TypeError(`Trigger point ${id} requires a listener order.`);
+
   const listed = new Set<string>();
   for (const trait of order) {
     if (
@@ -30,7 +32,9 @@ export function defineTriggerPoint<TInput extends object>(id: string, order: rea
       (typeof trait === 'number' && !Number.isFinite(trait))
     )
       throw new TypeError(`Trigger point ${id} lists an invalid trait.`);
+
     if (listed.has(String(trait))) throw new TypeError(`Trigger point ${id} lists trait ${trait} twice.`);
+
     listed.add(String(trait));
   }
 

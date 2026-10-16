@@ -212,6 +212,7 @@ function armReaversCurse(runtime: RevenantRuntime): void {
   {
     const curse = requireBalanceProfileFromContext(runtime, TRAIT.REAVERS_CURSE);
     const effect = requireEffect(curse, 'buff', 'reavers-curse');
+
     // The armed window is the buff, so a removed buff arms nothing.
     if (effect)
       state.reaversCurseUntil = gw2EffectExpiresAt(runtime.time, Math.max(0, effectNumber(curse, effect, 'duration')));
@@ -223,6 +224,7 @@ function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: RevenantSkill
   if (profile.id === ID.DEATH_DROP) {
     const forerunner = requireBalanceProfileFromContext(runtime, TRAIT.FORERUNNER_OF_DEATH);
     const window = requireEffect(forerunner, 'buff', 'forerunner-of-death');
+
     // The damage window is the buff, so a removed buff opens no window.
     if (window) {
       const duration = Math.max(0, effectNumber(forerunner, window, 'duration'));

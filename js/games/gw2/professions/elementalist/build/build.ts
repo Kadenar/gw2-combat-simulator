@@ -142,6 +142,7 @@ const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalB
   // cross-profession build surfaces an error instead of silently changing behavior.
   validateExtra(build) {
     const errors: string[] = [];
+
     if (
       !build.pistolBullets ||
       ['Fire', 'Water', 'Air', 'Earth'].some(

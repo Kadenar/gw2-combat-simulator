@@ -57,5 +57,6 @@ export function validateBenchmarkPreview(value: unknown, build: string): Benchma
     !value.skills.every(icon)
   )
     throw new Error('Invalid benchmark preview');
+
   return value as unknown as BenchmarkPreviewData;
 }

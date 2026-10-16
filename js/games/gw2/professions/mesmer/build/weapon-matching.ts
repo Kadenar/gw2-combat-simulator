@@ -12,7 +12,10 @@ export function mesmerWeaponSkillMatchesSet(
 ): boolean {
   const specialization =
     context.specialization || context.config?.specialization || context.build?.specialization || 'Core';
+
   if (specialization === 'Mirage' && NON_MIRAGE_AXE_SKILL_IDS.has(skill.id)) return false;
+
   if (specialization === 'Virtuoso' && skill.id === ID.BLADECALL_NON_VIRTUOSO) return false;
+
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }

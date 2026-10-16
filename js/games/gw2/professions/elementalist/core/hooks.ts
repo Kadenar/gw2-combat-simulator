@@ -125,7 +125,9 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = runtime.profession.core;
+
     if (skill?.weapon && CONJURED_WEAPONS.has(skill.weapon)) state.conjureEquipped = skill.weapon;
+
     if (skill?.id === ID.GRAND_FINALE)
       for (const element of ELEMENTALIST_ATTUNEMENTS)
         state.hammerOrbs[element] = inputs[`orb:${element}`] ? 3600 : null;
@@ -139,8 +141,11 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
   // The swap input drops a conjure first; only a later precombat input may change equipped weapon sets.
   resolveCastSkill(context, skill) {
     if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !context.profession.core.conjureEquipped) return skill;
+
     const drop = context.helpers.skillsById.get(ID.DROP_BUNDLE);
+
     if (!drop) throw new Error('Elementalist conjures require a Drop Bundle action.');
+
     return drop;
   },
   rechargeWork: elementalistRechargeWork,
@@ -150,12 +155,15 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
   effectOwner(_runtime, event) {
     if (HAMMER_ORB_SKILLS[Number(event.skillId)] && (event.type === 'damage' || event.type === 'condition'))
       return { id: String(event.activationId), generation: 0 };
+
     return undefined;
   },
   prepareEvent(runtime, event) {
     const elemental = runtime.profession.core.summonedElemental;
+
     if (event.type === 'damage' && CONJURED_WEAPONS.has(String(event.skillWeapon)))
       event = { ...event, weaponStrengthSource: 'equipped' };
+
     runtime.fireTrigger(elementalistEventPreparing, { event });
     let prepared = prepareGw2BuffCompanionCandidates(
       event,
@@ -183,6 +191,7 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
     // An activated skill still charges an etching when cancelled before its damage commits.
     // Zero-length cancellations never progress a cast; rejected skills never reach this hook.
     if (cast.effectiveEnd > cast.start) completeElementalistSpearProgression(runtime, cast.skill);
+
     delete runtime.profession.core.spearFollowups[cast.id];
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,
@@ -203,6 +212,7 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
         'buff',
         runtime.profession.core.primaryAttunement
       );
+
       if (effect)
         applyElementalistAura(runtime, {
           at: runtime.time,
@@ -211,6 +221,7 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
           skillName: cast.skill.name,
           sourceId: cast.skill.id
         });
+
       for (const element of ELEMENTALIST_ATTUNEMENTS) runtime.profession.core.pistolBullets[element] = false;
     }
   },

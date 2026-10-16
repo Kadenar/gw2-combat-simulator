@@ -20,6 +20,7 @@ export function jadeCannonsAttack(
   phase: number
 ): { skillId: SkillId; interval: number; nextPhase: number } | undefined {
   if (!hasTrait(config, TRAIT.MECH_ARMS_JADE_CANNONS)) return;
+
   const firstArm = phase === 0;
   return {
     skillId: firstArm ? ID.JADE_ENERGY_SHOT : ID.JADE_ENERGY_SHOT_ID_63348,

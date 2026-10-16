@@ -295,7 +295,9 @@ export const predatorsOnslaught = defineTrait({
 function applyClarionBond(context: RangerRuntime, skill: RangerSkill): void {
   // A trait trigger invokes one independently patchable skill and shares that skill's recharge.
   const proc = context.helpers.skillsById.get(ID.LESSER_CALL_OF_THE_WILD)!;
+
   if (!proc.effects?.length || context.cooldownController.isOnCooldown(proc.id, context.time)) return;
+
   context.cooldownController.startRecharge(proc, context.time);
   invokeTraitSkill(context, TRAIT.CLARION_BOND, proc.id, {
     type: 'action',
@@ -313,6 +315,7 @@ function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
   if (rangerPetByName(professionCoreState(context).activePet).family === 'canine') {
     const profile = requireBalanceProfileFromContext(context, TRAIT.WOLFSONG);
     const effect = requireEffect(profile, 'condition', 'Vulnerability');
+
     if (effect)
       emitTraitProfile(context, TRAIT.WOLFSONG, TRAIT.WOLFSONG, undefined, {
         at: context.time,
@@ -337,18 +340,25 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
   const state = professionCoreState(context);
   const player = isPlayerStrike(event);
   const pet = isPetStrike(event);
+
   if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
+
   const actor = player ? state.player : rangerOwningPetState(state.pet, event.summonOwner);
+
   if (!actor?.openingStrikeReady) return;
+
   const openingStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.OPENING_STRIKE);
   const openingStrike = requireEffect(openingStrikeProfile, 'condition', 'Vulnerability');
   const alphaFocusProfile = hasTrait(context, TRAIT.ALPHA_FOCUS)
     ? requireBalanceProfileFromContext(context, TRAIT.ALPHA_FOCUS)
     : undefined;
   const alphaFocus = alphaFocusProfile && requireEffect(alphaFocusProfile, 'condition', 'Crippled');
+
   // Readiness is spent by a delivered opener; with every opener packet removed it stays armed.
   if (!openingStrike && !alphaFocus) return;
+
   actor.openingStrikeReady = false;
+
   if (openingStrike)
     emitTraitProfile(context, TRAIT.OPENING_STRIKE, TRAIT.OPENING_STRIKE, undefined, {
       at: event.at,
@@ -364,6 +374,7 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
         triggeredBy: event.skillName
       }
     });
+
   context.fireTrigger(openingStrikeConsumed, { event });
 }
 
@@ -371,11 +382,14 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
 // qualifying player strike, using the resolver's cumulative damage state.
 function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event)) return;
+
   const health = targetHealthFraction(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.HUNTERS_GAZE);
   const might = requireEffect(profile, 'boon', 'might');
+
   // The cooldown and proc record exist only for the might packet.
   if (!might) return;
+
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const stacks =
     health < balanceProfileNumber(profile, 'lowerThreshold')
@@ -385,8 +399,10 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
         : health < balanceProfileNumber(profile, 'upperThreshold')
           ? Math.max(0, maximumStacks - 2)
           : 0;
+
   // Target health must yield actual Might stacks before this hit claims the interval.
   if (!stacks || !context.procs.claim(TRAIT.HUNTERS_GAZE, 'ranger.core.huntersGaze', event.at)) return;
+
   context.effects.emit({
     attribution: { source: 'Trait', sourceId: TRAIT.HUNTERS_GAZE, actorType: 'effect' },
     kind: 'announcement',
@@ -419,9 +435,11 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
 
 function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();
+
   if (kind === 'fury' && event.resolvedAudience?.includesSelf) {
     const state = professionCoreState(context);
     state.player.openingStrikeReady = true;
+
     if (state.pet) state.pet.openingStrikeReady = true;
   }
 }

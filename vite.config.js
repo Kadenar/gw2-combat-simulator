@@ -75,6 +75,7 @@ function renderProfessionPages() {
         const page = professionPages[professionId];
 
         if (!page) return html;
+
         if (!html.includes(`data-profession="${professionId}"`)) {
           throw new Error(`${professionId}.html must identify itself with data-profession="${professionId}".`);
         }
@@ -118,18 +119,23 @@ function serveRuntimeData() {
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         if (!request.url) return next();
+
         const { pathname } = new URL(request.url, 'http://local');
         const requestedPath = decodeURIComponent(pathname).replace(/^\/+/, '');
         const route = runtimeRoutes.find(
           ({ publicPath }) => requestedPath === publicPath || requestedPath.startsWith(`${publicPath}/`)
         );
+
         if (!route) return next();
+
         const relative = requestedPath.slice(route.publicPath.length).replace(/^\/+/, '');
         const target = path.resolve(route.source, relative);
+
         if (target !== route.source && !target.startsWith(`${route.source}${path.sep}`)) return next();
 
         try {
           if ((await stat(target)).isDirectory()) return next();
+
           response.setHeader('Content-Type', runtimeContentTypes[path.extname(target)] || 'application/octet-stream');
           response.setHeader('Cache-Control', 'no-cache');
           createReadStream(target).pipe(response);

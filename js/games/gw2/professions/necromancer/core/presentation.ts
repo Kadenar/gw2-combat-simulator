@@ -53,9 +53,13 @@ function shroudSkillIds(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>, s
     .filter((skill) => skill.shroud === shroud && !skill.simulatorExcluded)
     .sort((left, right) => {
       const slotOrder = (left.shroudSlot || 0) - (right.shroudSlot || 0);
+
       if (slotOrder) return slotOrder;
+
       if (left.flipParentId === right.id) return 1;
+
       if (right.flipParentId === left.id) return -1;
+
       return Number(left.id) - Number(right.id);
     })
     .map((skill) => skill.id);
@@ -97,6 +101,7 @@ export function necromancerTransformPaletteGroups(
   ];
   // Active transform bars stack with the profession group while Lich is projected from runtime state.
   const shroudSkills = shroud ? shroudSkillIds(catalog, shroud) : [];
+
   if (shroudSkills.length) {
     groups.push({
       id: 'shroud',
@@ -189,7 +194,9 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
       statusLabel: 'Current'
     }
   ];
+
   if (uiSpecialization(context) === 'Core') views.push(...necromancerSoulShardResourceViews(context));
+
   return views;
 }
 
@@ -199,6 +206,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+
       // Expose held combat bonuses to isolated damage calculations.
       if (context.weapons.includes('Dagger'))
         preview.add({
@@ -210,6 +218,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
           scope: ['damage'],
           description: 'Life Siphon damage bonus'
         });
+
       preview.trait('Soul Barbs', {
         key: 'soulBarbs',
         kind: 'buff',
@@ -231,14 +240,18 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       const core = readProfessionCoreState<NecromancerCoreState>(context.professionState);
+
       if ('carapace' in context.values) core.carapaceExpiries = Array(Number(context.values.carapace)).fill(60);
+
       if ('shroud' in context.values) core.activeShroud = context.values.shroud ? 'death' : '';
     },
 
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const active = necromancerUiState(context).activeShroud || '';
+
       if (skill.shroudEntry) return { tileActive: active !== skill.shroudEntry };
+
       if (skill.shroudExit) return { tileActive: active === skill.shroudExit };
     },
     // Self conditions are observable transfer resources; they never imply simulated incoming player damage.

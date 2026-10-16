@@ -12,6 +12,7 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
   for (const definition of app.resourceDefinitions(specialization)) {
     const buildKey = definition.buildKey || 'initialResource';
     const value = Number(app.build[buildKey]);
+
     if (Number.isFinite(value)) {
       app.build[buildKey] = Math.min(value, definition.startMaximum ?? definition.maximum);
     }
@@ -23,6 +24,7 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
   const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
   const current = app.build.specializations[line];
   const selected = specializations.find((specialization) => specialization.name === name);
+
   if (
     !Number.isInteger(line) ||
     !current ||
@@ -35,16 +37,20 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
 
   const next = [...app.build.specializations];
   next[line] = { name, traits: '1-1-1' };
+
   if (selected.elite) {
     for (const [index, specialization] of next.entries()) {
       if (index === line) continue;
+
       if (specializations.find((candidate) => candidate.name === specialization.name)?.elite) {
         // Move the displaced core line with its traits; an unused core keeps migration from resetting the build.
         const replacement = [
           specializations.find((candidate) => candidate.name === current.name),
           ...specializations
         ].find((candidate) => candidate && !candidate.elite && !next.some((entry) => entry.name === candidate.name));
+
         if (!replacement) return;
+
         next[index] = replacement.name === current.name ? current : { name: replacement.name, traits: '1-1-1' };
       }
     }
@@ -60,7 +66,9 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
 
 export function renderTraits(app: ProfessionAppState): void {
   const container = document.getElementById('traits-panel');
+
   if (!container) throw new Error('Required traits panel is missing.');
+
   const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
   const selectedNames = app.build.specializations.map((spec) => spec.name);
   // Trait payloads follow the build's elite specialization, including unselected traits being inspected.
@@ -68,7 +76,9 @@ export function renderTraits(app: ProfessionAppState): void {
   container.innerHTML = app.build.specializations
     .map((selection, lineIndex) => {
       const spec = specializations.find((candidate) => candidate.name === selection.name) || specializations[0];
+
       if (!spec) return '';
+
       const picks = selection.traits.split('-').map(Number);
       return `<div class="spec-row" style="--spec-bg:url('${esc(SPEC_BG(spec.name))}')">
                 <div class="spec-bg"></div><div class="spec-content">
@@ -141,22 +151,27 @@ export function renderTraits(app: ProfessionAppState): void {
     .join('');
   container.querySelectorAll('.spec-picker-option').forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
+
     button.addEventListener('click', () => {
       selectSpecialization(app, Number(button.dataset.line), button.dataset.specialization || '');
     });
   });
   container.querySelectorAll('.spec-trait-major, .spec-trait-minor').forEach((trait) => {
     if (!(trait instanceof HTMLElement)) return;
+
     trait.addEventListener('click', () => {
       const line = Number(trait.dataset.line);
       const tier = Number(trait.dataset.tier);
       const pick = trait.dataset.pick;
+
       if (!Number.isInteger(line) || !Number.isInteger(tier) || pick === undefined) {
         return;
       }
 
       const spec = app.build.specializations[line];
+
       if (!spec) return;
+
       // Minor traits toggle independently; clicking a selected major clears only its tier.
       if (pick === '0') {
         const disabled = spec.disabledMinorTraits || [];
@@ -171,6 +186,7 @@ export function renderTraits(app: ProfessionAppState): void {
 
       const restoreFocus = document.activeElement === trait;
       app.changed();
+
       if (restoreFocus) {
         container
           .querySelector<HTMLElement>(`[data-line="${line}"][data-tier="${tier}"][data-pick="${pick}"]`)

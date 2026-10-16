@@ -518,8 +518,10 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
       { at: runtime.time, skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id, kind, duration },
       'buff'
     );
+
     if (pet > 0)
       runtime.effects.emit({ kind: 'packet', event: { ...event, stacks: pet, audience: { recipients: 'self' } } });
+
     if (activePet && player > 0)
       runtime.effects.emit({
         kind: 'packet',
@@ -540,7 +542,9 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
 /** Solar Flare is the summon's child skill; each initial or repeated slam delivers its authored Burning. */
 export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: number): void {
   const solarFlare = runtime.helpers.skillsById.get(ID.SOLAR_FLARE);
+
   if (!solarFlare) throw new Error('Sun Spirit requires the Solar Flare skill.');
+
   emitRangerProfile(runtime, at, solarFlare, {
     attribution: {
       source: 'ranger',
@@ -562,7 +566,9 @@ export function emitStormSpiritSlam(
   repeat = false
 ): void {
   const lightning = runtime.helpers.skillsById.get(ID.CALL_LIGHTNING);
+
   if (!lightning) throw new Error('Storm Spirit requires the Call Lightning skill.');
+
   runtime.effects.emit({
     kind: 'profile',
     profile: lightning,
@@ -664,7 +670,9 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
   const state = professionCoreState(context);
   // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits.
   state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
+
   if (!isPlayerStrike(event) || !(Number(event.coefficient) > 0)) return;
+
   deliverChargedHit(
     context,
     event,
@@ -722,12 +730,16 @@ export const sicEmPetModifiers: readonly Gw2ModifierRule[] = Object.freeze([
 // Player strikes grant Might to the current pet, or to the player while merged in Beastmode.
 export function triggerStrengthOfThePack(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event)) return;
+
   const pet = context.profession.core.pet;
   const merged = rangerMerged(context.profession);
+
   // Beastmode receives the pet's on-hit Might itself; an absent, unmerged pet has no recipient.
   if (!merged && !pet) return;
+
   // Only the Ranger's own live Strength of the Pack window arms the proc.
   if (context.combat.activeBuffStacks('strength-of-the-pack', event.at, 1) === 0) return;
+
   emitRangerProfile(context, event.at, requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack), {
     attribution: {
       source: 'ranger',

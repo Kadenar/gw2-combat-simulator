@@ -39,7 +39,9 @@ function createResolvedCriticalSigilEffects(
   details: NativeResolvedDamageDetails
 ): void {
   const critical = details.hitContext?.critical;
+
   if (!critical) return;
+
   const decision = decideCriticalSigils(event, gw2SigilIds(ctx.config, ctx.activeWeaponSet), critical, ctx.procs);
   const sourceSkill = event.skillName || '';
   for (const { id, readyAt } of decision.procs) {
@@ -110,6 +112,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         handler(ctx, event) {
           // Only standard boons trigger relic boon rules; generic buffs share this stage.
           if (!isStandardBoon(event.kind || event.boon)) return;
+
           ctx.relic.rules.boon?.(ctx, ctx.relic.state, event);
           // Precast runtimes retain their own buff and cooldown; their rules gate precombat activation.
           for (const relic of ctx.precastRelics || []) {

@@ -197,13 +197,16 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
   // Shatter badges describe the executed resource and its profession-owned spend phase.
   timelineAnnotation: ({ spend }) => {
     if (!spend) return null;
+
     const labels: Record<string, { singular: string; short: string; phase: string }> = {
       clones: { singular: 'clone', short: 'C', phase: 'cast start' },
       blades: { singular: 'blade', short: 'B', phase: 'cast end' },
       notes: { singular: 'note', short: 'N', phase: 'cast end' }
     };
     const label = labels[spend.resource];
+
     if (!label) return null;
+
     return {
       // Notes are consumed when a performance resolves, including Harp starting to play without dealing damage.
       completedEffect: spend.resource === 'notes',

@@ -32,6 +32,7 @@ function strainFacts(
     profile.effects?.filter((effect) => effect.metadata?.trigger === kind),
     qualifier
   ).facts.slice();
+
   if (kind === 'thorns')
     facts.push(
       profileFact(
@@ -53,6 +54,7 @@ function strainFacts(
         tooltipSeconds
       )
     );
+
   return facts;
 }
 
@@ -62,6 +64,7 @@ const amalgamMorphTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
   const facts = [...simulationEffectFacts(selected.effects).facts];
   let description =
     'Activate this protocol and apply supported Morph and tool-belt traits. Silver Lining grants its corresponding strain on activation; otherwise Evolve grants selected strains.';
+
   if (kind === 'thorns') {
     description += ' Retaliation pulses require the damaging-field assumption.';
     facts.push(
@@ -75,11 +78,15 @@ const amalgamMorphTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
   }
 
   if (kind) facts.push(...strainFacts(balanceContext, kind, 'requires Silver Lining'));
+
   // Predator and Berserker windows display strain uptime; only their authored boons affect combat.
   if (kind === 'demolish') description += ' Its strain grants stability and displays the Berserker Strain window.';
+
   if (kind === 'obliterate') description += ' Its strain also grants power per might stack.';
+
   if (kind === 'shred')
     description += ' Its strain grants quickness and superspeed and displays the Predator Strain window.';
+
   return { description, facts };
 };
 

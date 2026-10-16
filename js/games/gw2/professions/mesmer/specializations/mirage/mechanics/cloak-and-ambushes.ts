@@ -63,7 +63,9 @@ export function createMirageActionController({
   const createMirrors = (at: number, count: number) => {
     const mechanicsProfile = requireBalanceProfileFromContext(state, PROFILE.mechanics);
     const mirror = requireEffect(mechanicsProfile, 'buff', 'mirage-mirror');
+
     if (!mirror) return;
+
     at = canonicalTime(at);
     // Every creation path discards expired mirrors so no expiry task is needed to bound the live collection.
     const owner = mirageState.from(state);
@@ -101,6 +103,7 @@ export function createMirageActionController({
     delivery: EffectDelivery = {}
   ) => {
     if (config.specialization !== 'Mirage') return;
+
     at = canonicalTime(at);
     mirageState.from(state).ambushUntil = Math.max(mirageState.from(state).ambushUntil, canonicalTime(at + duration));
     mirageState.from(state).ambushSource = source;
@@ -131,6 +134,7 @@ export function createMirageActionController({
     delivery: EffectDelivery = {}
   ) => {
     if (config.specialization !== 'Mirage') return;
+
     at = canonicalTime(at);
     grantAmbushWindow(at, source, undefined, delivery);
     {
@@ -160,7 +164,9 @@ export function createMirageActionController({
     // rotation swaps weapons before completion mechanics are dispatched.
     const weapon = skill.weapon || activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
+
     if (!ambush || skill.id !== ambush.id) return;
+
     const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
     state.fireTrigger(mirageAmbushAccepted, { ambush, impactAt, delivery });
 
@@ -172,7 +178,9 @@ export function createMirageActionController({
   const pickUpMirror = (at: number, skill: MesmerSkill) => {
     const mirrors = mirageState.from(state).mirrors;
     const index = mirrors.findIndex((mirror) => isTimeInWindow(at, mirror.availableAt, mirror.expiresAt));
+
     if (index < 0) return false;
+
     mirrors.splice(index, 1);
     const pseudo = {
       id: skill.mirrorPayload!.skillId,
@@ -182,6 +190,7 @@ export function createMirageActionController({
     };
     const mechanicsProfile = requireBalanceProfileFromContext(state, skill.mirrorPayload!.profileId);
     const strike = requireEffect(mechanicsProfile, 'strike', 'Strike');
+
     if (strike)
       buildMesmerStrikes(state, pseudo, at, {
         ...strike,
@@ -196,8 +205,10 @@ export function createMirageActionController({
           priority: Number(packet.priority ?? 0)
         });
       });
+
     // Only a consumed, available mirror applies its authored Weakness.
     const weakness = requireEffect(mechanicsProfile, 'condition', 'Weakness');
+
     if (weakness)
       buildMesmerConditions(state, pseudo.name, at, weakness, 'Player', '', {
         skillId: pseudo.id,
@@ -211,6 +222,7 @@ export function createMirageActionController({
           priority: Number(packet.priority ?? 0)
         });
       });
+
     grantMirageCloak(at, skill.name);
     return true;
   };
@@ -234,6 +246,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
 
   if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
     const mirrors = mirageState.from(context).mirrors;
+
     if (mirrors.some((mirror) => isTimeInWindow(context.time, mirror.availableAt, mirror.expiresAt))) {
       return { ready: true };
     }
@@ -253,6 +266,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
   }
 
   if (!skill.ambush) return { ready: true };
+
   // Eligibility needs selected weapon identity and committed windows, not illusion controllers.
   const weapon = gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || '';
   const activeAmbush = MESMER_MIRAGE_AMBUSH_SKILLS[weapon];
@@ -269,6 +283,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
         action.at < context.time &&
         canonicalTime(Number(action.castLockoutEndsAt ?? action.endsAt)) >= context.time
     );
+
   if (
     activeAmbush &&
     activeAmbush.id === skill.id &&
@@ -308,7 +323,9 @@ export function executeMirageCloneAmbushPackets(
   for (const clone of clones) {
     const weapon = clone.weapon || activeWeapon;
     const ambush = ambushAttacks[weapon];
+
     if (!ambush) continue;
+
     const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
     // Keep catalog identity on summon packets so ownership, rather than a synthetic skill ID, separates actors.
     const pseudo = {
@@ -323,6 +340,7 @@ export function executeMirageCloneAmbushPackets(
     const skill = state.helpers.skillsById.get(ambush.id);
     for (const effect of skill?.effects || []) {
       if (effect.type !== 'control') continue;
+
       for (const application of materializeSkillEffectApplications({
         skill: skill!,
         effect,
@@ -386,6 +404,7 @@ export function executeMirageCloneAmbushPackets(
           priority: Number(packet.priority ?? 0)
         });
       });
+
     for (const condition of ambush.clone.conditions || []) {
       buildMesmerConditions(state, `${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
         metadata: { cloneId: clone.id },

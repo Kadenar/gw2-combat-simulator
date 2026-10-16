@@ -12,6 +12,7 @@ export function wikiTooltipAttributes(
   factTabs: SimulationTooltip['factTabs'] = []
 ): string {
   if (!name || name === 'None') return '';
+
   return `data-wiki-name="${esc(name)}" data-wiki-description="${esc(gw2ApiText(description))}" data-wiki-page="${esc(wikiName)}" data-wiki-effects="${esc(JSON.stringify(facts))}" data-wiki-effect-tabs="${esc(JSON.stringify(factTabs))}"`;
 }
 
@@ -110,7 +111,9 @@ export function bindWikiTooltips(): void {
     trigger?.removeAttribute('aria-describedby');
     trigger = null;
     returnFocus = null;
+
     if (panel.matches(':popover-open')) panel.hidePopover();
+
     panel.hidden = true;
   };
 
@@ -125,12 +128,14 @@ export function bindWikiTooltips(): void {
   // Reposition after changing tabs because alternative payloads can have different heights.
   const position = () => {
     if (!trigger) return;
+
     panel.style.removeProperty('max-height');
     const rect = trigger.getBoundingClientRect();
     const width = panel.offsetWidth;
     const height = panel.offsetHeight;
     // All searchable pickers share this boundary, keeping skill, gear, and optimizer choices reachable.
     const menu = trigger.closest('.searchable-dropdown')?.getBoundingClientRect();
+
     if (menu) {
       if (menu.right + 6 + width <= window.innerWidth - 8 || menu.left - 6 - width >= 8) {
         panel.style.left = `${menu.right + 6 + width <= window.innerWidth - 8 ? menu.right + 6 : menu.left - 6 - width}px`;
@@ -170,12 +175,15 @@ export function bindWikiTooltips(): void {
 
   effects.addEventListener('click', (event) => {
     const tab = (event.target as Element).closest<HTMLButtonElement>('[role="tab"]');
+
     if (tab) selectTab(tab);
   });
   effects.addEventListener('keydown', (event) => {
     const tabs = [...effects.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const index = tabs.indexOf(event.target as HTMLButtonElement);
+
     if (index < 0 || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+
     event.preventDefault();
     const next =
       event.key === 'Home'
@@ -204,15 +212,19 @@ export function bindWikiTooltips(): void {
 
   const show = (element: HTMLElement) => {
     cancelClose();
+
     if (trigger === element) return;
+
     close();
     trigger = element;
     heading.textContent = element.dataset.wikiName || '';
     // Gear shares the interactive card, with artwork and upgrades separate from base attributes.
     panel.classList.toggle('wiki-tooltip-equipment', element.dataset.wikiEquipment === 'true');
     itemIcon.hidden = !element.dataset.wikiIcon;
+
     if (element.dataset.wikiIcon) itemIcon.src = element.dataset.wikiIcon;
     else itemIcon.removeAttribute('src');
+
     const upgradeFacts: TooltipFact[] = JSON.parse(element.dataset.wikiUpgrades || '[]');
     upgrades.hidden = !upgradeFacts.length;
     upgrades.innerHTML = renderFacts(upgradeFacts, true);
@@ -275,12 +287,16 @@ export function bindWikiTooltips(): void {
 
   document.addEventListener('pointerover', (event) => {
     if (event.pointerType === 'touch') return;
+
     const element = findTrigger(event.target);
+
     if (element) cancelClose();
+
     if (element && element !== trigger) {
       clearTimeout(openTimer);
       // Delay the first inspection, then follow adjacent choices immediately while browsing the same menu.
       const menu = element.closest('.searchable-dropdown');
+
       if (menu && trigger && menu.contains(trigger)) {
         show(element);
         return;
@@ -288,7 +304,9 @@ export function bindWikiTooltips(): void {
 
       // Crossing another palette icon must not dismiss the card before the user can reach its tabs.
       const palette = element.closest('.rotation-palette');
+
       if (!trigger || !palette?.contains(trigger)) close();
+
       openTimer = setTimeout(
         () => {
           if (element.isConnected && element.matches(':hover')) show(element);
@@ -299,13 +317,16 @@ export function bindWikiTooltips(): void {
   });
   document.addEventListener('pointerout', (event) => {
     const element = findTrigger(event.target);
+
     if (element && !element.contains(event.relatedTarget as Node | null)) {
       clearTimeout(openTimer);
+
       if (trigger) scheduleClose();
     }
   });
   document.addEventListener('focusin', (event) => {
     const element = findTrigger(event.target);
+
     if (element && !pointerInteraction) {
       // Native picker transitions restore focus synchronously; open only after that popover operation finishes.
       clearTimeout(openTimer);
@@ -331,8 +352,10 @@ export function bindWikiTooltips(): void {
     (event) => {
       pointerInteraction = event.key === 'Escape';
       const focused = findTrigger(document.activeElement);
+
       if (event.key === 'Escape') {
         if (panel.contains(document.activeElement)) (returnFocus || trigger)?.focus();
+
         close();
       } else if (focused && event.key === 'Tab' && !event.shiftKey) {
         event.preventDefault();
@@ -356,6 +379,7 @@ export function bindWikiTooltips(): void {
         (!event.shiftKey || !effects.querySelector('[role="tab"]'))
       ) {
         if (event.shiftKey) event.preventDefault();
+
         (returnFocus || trigger).focus();
         close();
       } else if (focused?.dataset.wikiDelay && ['Enter', ' '].includes(event.key)) {
@@ -368,6 +392,7 @@ export function bindWikiTooltips(): void {
     'pointerdown',
     (event) => {
       pointerInteraction = true;
+
       if (!panel.contains(event.target as Node)) close();
     },
     true

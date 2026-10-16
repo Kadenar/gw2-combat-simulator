@@ -11,12 +11,17 @@ export function restoreConduitHazeOpener(
   combatStart: number | null
 ): readonly EvtcRecordedRotationAction[] {
   if (context.profile.specializationId !== 'conduit' || combatStart == null) return actions;
+
   const firstAnimation = context.recordedActions.find(
     (action) => action.evidence === 'animation' || action.evidence === 'legacy-activation'
   );
+
   if (!firstAnimation || firstAnimation.rawSkillId !== 77047) return actions;
+
   const opener = actions.find((action) => action.rawSkillId === 77047 && action.start === firstAnimation.start);
+
   if (!opener || opener.start >= combatStart || opener.end < combatStart) return actions;
+
   const opensCombat = context.log.events.some(
     (event) =>
       event.time === combatStart &&

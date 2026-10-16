@@ -27,11 +27,14 @@ export const blightbringer = defineRelic({
     // Blightbringer counter once.
     const tracked = state.trackedActivations;
     const key = application.activationId || `${application.skillId || application.skillName}:${application.at}`;
+
     if (tracked?.has(key)) return;
+
     tracked?.add(key);
     // Accepted activations bank up to the cap even while the payload cooldown blocks consumption.
     const progress = advanceCounter(state.count || 0, 1, REQUIRED_ACTIVATIONS, 'cap');
     state.count = progress.value;
+
     if (!progress.reached || !isInternalCooldownReady(application.at, state.readyAt)) {
       return;
     }

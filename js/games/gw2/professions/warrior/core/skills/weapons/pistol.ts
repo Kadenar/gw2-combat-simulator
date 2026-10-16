@@ -51,7 +51,9 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
           const bullets = warriorAmmunition.get(cast)!.rounds;
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonsRoar);
           const strike = requireEffect(profile, 'strike', 'Strike');
+
           if (!strike) return [];
+
           const durationMs = (cast.effectiveEnd - cast.start) * 1000;
           const first = durationMs * balanceProfileNumber(profile, 'firstPacketRatio');
           const interval = durationMs * balanceProfileNumber(profile, 'packetIntervalRatio');

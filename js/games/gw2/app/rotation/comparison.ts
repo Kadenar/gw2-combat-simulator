@@ -28,7 +28,9 @@ let comparisonScrollLifecycle: AbortController | null = null;
 
 function preparedSeries(result: Gw2SimulationResult): ReturnType<typeof buildTimeSeries> {
   const cached = seriesByResult.get(result);
+
   if (cached) return cached;
+
   const series = buildTimeSeries(result, 250, { includeEffects: false });
   seriesByResult.set(result, series);
   return series;
@@ -41,9 +43,13 @@ function percentDifference(current: number, reference: number): number | null {
 /** Uses the insertion checkpoint's elapsed combat time; an end cursor keeps the final comparison. */
 export function rotationComparisonTimeMs(app: ProfessionAppState): number | null {
   const index = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
+
   if (index == null || index === app.build.rotation.length || !app.results) return null;
+
   const state = palettePlanningState(app);
+
   if (!state) return null;
+
   const startMs = Number(app.results.dpsStartTime ?? app.results.firstHitTime ?? 0) * 1000;
   return Math.max(0, Number(state.atSeconds || 0) * 1000 - startMs);
 }
@@ -123,8 +129,11 @@ function formatPercent(value: number | null): string {
 /** Reuses one stable Compare control so entering comparison mode never reorders the heading actions. */
 function comparisonHeadingButtons(app: ProfessionAppState): void {
   const controls = document.querySelector<HTMLElement>('.rotation-builder-controls');
+
   if (!controls) return;
+
   let compareButton = controls.querySelector<HTMLButtonElement>('[data-rotation-compare]');
+
   if (!compareButton) {
     compareButton = document.createElement('button');
     compareButton.type = 'button';
@@ -148,7 +157,9 @@ function removeComparisonView(): void {
   comparisonScrollLifecycle = null;
   const skills = document.getElementById('rotation-comparison-skills');
   const palette = skills?.querySelector('#rotation-palette');
+
   if (palette) skills?.replaceWith(palette);
+
   document.body?.removeAttribute('data-rotation-comparison');
   document.getElementById('rotation-comparison-summary')?.remove();
   document.getElementById('rotation-comparison-current-label')?.remove();
@@ -163,6 +174,7 @@ function alignTimelineCombatTime(source: HTMLElement, target: HTMLElement): void
   let sourceOffset = Infinity;
   for (const skill of source.querySelectorAll<HTMLElement>('.rot-skill[data-combat-time-ms]')) {
     const offset = skill.getBoundingClientRect().top - sourceTop;
+
     if (Math.abs(offset) < Math.abs(sourceOffset)) {
       sourceSkill = skill;
       sourceOffset = offset;
@@ -170,11 +182,13 @@ function alignTimelineCombatTime(source: HTMLElement, target: HTMLElement): void
   }
 
   if (!sourceSkill) return;
+
   const timeMs = Number(sourceSkill.dataset.combatTimeMs);
   let targetSkill: HTMLElement | undefined;
   let timeDifference = Infinity;
   for (const skill of target.querySelectorAll<HTMLElement>('.rot-skill[data-combat-time-ms]')) {
     const difference = Math.abs(Number(skill.dataset.combatTimeMs) - timeMs);
+
     if (difference < timeDifference) {
       targetSkill = skill;
       timeDifference = difference;
@@ -182,6 +196,7 @@ function alignTimelineCombatTime(source: HTMLElement, target: HTMLElement): void
   }
 
   if (!targetSkill) return;
+
   const targetTop = target.getBoundingClientRect().top + target.clientTop;
   target.scrollTop += targetSkill.getBoundingClientRect().top - targetTop - sourceOffset;
 }
@@ -196,6 +211,7 @@ function createComparisonView(
 } {
   // Native disclosure makes the skills themselves collapsible and preserves their state across palette refreshes.
   const palette = document.getElementById('rotation-palette');
+
   if (palette) {
     const skills = document.createElement('details');
     skills.id = 'rotation-comparison-skills';
@@ -257,6 +273,7 @@ function createComparisonView(
   const emptyLoadButton = referenceSection.querySelector<HTMLButtonElement>('[data-comparison-empty-load]');
   const fileInput = referenceSection.querySelector<HTMLInputElement>('[data-comparison-reference-file]');
   const linkScrolling = referenceSection.querySelector<HTMLInputElement>('[data-comparison-link-scrolling]');
+
   if (!referenceTimeline || !loadButton || !emptyLoadButton || !fileInput || !linkScrolling) {
     throw new Error('Rotation comparison timeline failed to initialize.');
   }
@@ -282,8 +299,10 @@ function createComparisonView(
       'scroll',
       () => {
         if (mirroredPositions.get(source) === source.scrollTop) return;
+
         mirroredPositions.delete(source);
         const scrollRange = source.scrollHeight - source.clientHeight;
+
         if (
           !linkScrolling.checked ||
           source.hidden ||
@@ -293,6 +312,7 @@ function createComparisonView(
           app.rotationComparison?.referenceStatus !== 'fresh'
         )
           return;
+
         alignTimelineCombatTime(source, target);
         mirroredPositions.set(target, target.scrollTop);
       },
@@ -306,21 +326,26 @@ function createComparisonView(
 /** Mounts and refreshes the single stacked comparison view around the existing editable timeline. */
 export function renderRotationComparison(app: ProfessionAppState): void {
   if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return;
+
   comparisonHeadingButtons(app);
   const comparison = app.rotationComparison;
+
   if (!comparison) {
     removeComparisonView();
     return;
   }
 
   const currentTimeline = document.getElementById('rotation-timeline');
+
   if (!currentTimeline) return;
+
   document.body?.setAttribute('data-rotation-comparison', '');
   enterRotationFocus(document);
 
   let summary = document.getElementById('rotation-comparison-summary');
   let referenceSection = document.getElementById('rotation-comparison-reference');
   let referenceTimeline = document.getElementById('rotation-reference-timeline');
+
   if (!summary || !referenceSection || !referenceTimeline) {
     removeComparisonView();
     ({ summary, referenceSection, referenceTimeline } = createComparisonView(app, currentTimeline));
@@ -338,9 +363,13 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   const fresh = currentIsFresh(app) && comparison.referenceStatus === 'fresh';
 
   summary.hidden = !referenceResult;
+
   if (referenceActions) referenceActions.hidden = !hasReference;
+
   if (referenceEmpty) referenceEmpty.hidden = hasReference;
+
   referenceTimeline.hidden = !hasReference;
+
   // Keep routine comparison chrome quiet; only show pending work or errors.
   if (status) {
     status.textContent =
@@ -375,6 +404,7 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   });
   referenceSection.dataset.referenceStatus = comparison.referenceStatus;
   referenceSection.title = comparison.referenceError;
+
   if (!metrics) {
     applyTimelinePreviewHighlight(currentTimeline, currentResult, null);
     return;
@@ -382,6 +412,7 @@ export function renderRotationComparison(app: ProfessionAppState): void {
 
   const setText = (selector: string, value: string): void => {
     const element = summary?.querySelector<HTMLElement>(selector);
+
     if (element) element.textContent = value;
   };
 

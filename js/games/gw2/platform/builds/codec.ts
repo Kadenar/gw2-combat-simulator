@@ -163,6 +163,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       targetArmor: Math.max(1, finiteNumber(saved.targetArmor ?? defaults.targetArmor, defaults.targetArmor)),
       rotation: normalizeRotation(saved.rotation, catalog)
     } as unknown as TBuild;
+
     // relic validation happens after the spread because it is not part of the
     // normalizeGear flow and may have been overwritten by the saved spread above.
     if (!optionalEquipmentName(RELIC_NAMES, migrated.relic)) {
@@ -173,6 +174,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     // by validation before profession-specific migration or repair hooks run.
     migrated = normalizeExtraBuildFields(migrated, saved, defaults, extraFields);
     migrated = normalizeExtra(migrated, { saved });
+
     if (!migrated || typeof migrated !== 'object' || Array.isArray(migrated)) {
       throw new TypeError('normalizeExtra must return a build object.');
     }
@@ -180,6 +182,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     // Re-stamp after normalizeExtra so a buggy hook can't change the identity fields.
     migrated.schemaVersion = schemaVersion;
     migrated.profession = professionId;
+
     // Can't start on set 2 if no second weapon set was saved.
     if (!migrated.alternateWeapons[0]) {
       migrated.startingWeaponSet = 1;
@@ -209,6 +212,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 
   function validateBuild(build: unknown): BuildValidationResult {
     const common = validateCommonBuild(build, options);
+
     if (!build || typeof build !== 'object' || Array.isArray(build)) {
       return common;
     }
@@ -291,6 +295,7 @@ function normalizeExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   ][]) {
     const configuredDefault = descriptor.defaultValue ?? defaults[field];
     const value = saved[field] ?? configuredDefault;
+
     if (descriptor.type === 'number') {
       normalized[field] = boundedNumber(
         value,
@@ -329,6 +334,7 @@ function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   ][]) {
     const value = build[field];
     let valid: boolean;
+
     if (descriptor.type === 'enum') {
       valid = typeof value === 'string' && descriptor.values.includes(value);
     } else {
@@ -341,6 +347,7 @@ function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
     }
 
     if (valid) continue;
+
     const label = descriptor.label || field;
     errors.push(
       descriptor.validationMessage ||
@@ -388,6 +395,7 @@ function normalizeGear(
   for (const slot of GEAR_SLOTS) {
     // Resolve abbreviated names ("Berserker" → "Berserker's") before lookup.
     gear[slot] = aliases[gear[slot]] || gear[slot];
+
     // If the resolved prefix still isn't a known stat, fall back to the default.
     if (!GEAR_STATS_BY_NAME[gear[slot]]) gear[slot] = defaults.gear[slot];
   }
@@ -414,14 +422,17 @@ function normalizeWeaponPair(
   allowEmpty = false
 ): string[] {
   if (!Array.isArray(value)) return [...fallback];
+
   // allowEmpty=true means "no second weapon set" is a valid state.
   if (allowEmpty && !value[0]) return ['', ''];
+
   // "mh+oh" weapons (e.g. torch) can fill either slot; only "oh"-only weapons
   // are excluded from the main hand.
   const requestedMain = catalog.weapons.has(value[0]) ? value[0] : '';
   const mainHand = ['mh', 'mh+oh', '2h'].includes(catalog.weaponHands.get(requestedMain) || '')
     ? requestedMain
     : fallback[0];
+
   // Two-handed weapons have no off-hand slot.
   if (catalog.weaponHands.get(mainHand) === '2h') return [mainHand, ''];
 
@@ -436,6 +447,7 @@ function normalizeSpecializations(
   catalog: CanonicalCatalog
 ): Gw2BuildSpecialization[] {
   if (!Array.isArray(value)) return structuredClone([...fallback]);
+
   const known = new Map(catalog.specializations.map((specialization) => [specialization.name, specialization]));
   const selected = value
     .slice(0, 3)
@@ -493,10 +505,13 @@ export class SelectedSkillMigrationError extends TypeError {}
 /** Resolve the explicitly supported old persistence field once, then discard names from the canonical build. */
 function migrateLegacySelectedSkills(saved: UnvalidatedBuildRecord, catalog: CanonicalCatalog): void {
   if (!Object.hasOwn(saved, 'selectedSkills')) return;
+
   if (Object.hasOwn(saved, 'selectedSkillIds'))
     throw new SelectedSkillMigrationError('Build contains both selectedSkills and selectedSkillIds.');
+
   if (!isPlainObject(saved.selectedSkills))
     throw new SelectedSkillMigrationError('Legacy selectedSkills must be a slot record.');
+
   const ids: Record<string, SkillId | null> = {};
   for (const [slot, name] of Object.entries(saved.selectedSkills)) {
     if (name === '') {
@@ -513,10 +528,12 @@ function migrateLegacySelectedSkills(saved: UnvalidatedBuildRecord, catalog: Can
         skill.flipParentId == null &&
         skill.slotSelectable !== false
     );
+
     if (matches.length !== 1)
       throw new SelectedSkillMigrationError(
         `Cannot migrate ${slot} skill "${name}": ${matches.length ? 'ambiguous' : 'unknown'} skill name.`
       );
+
     ids[slot] = matches[0].id;
   }
 
@@ -527,9 +544,12 @@ function migrateLegacySelectedSkills(saved: UnvalidatedBuildRecord, catalog: Can
 /** Reject corrupt saved selections before normalization can replace the user's chosen loadout. */
 function validateSelectedSkillIds(value: unknown, catalog: CanonicalCatalog): void {
   if (value === undefined) return;
+
   if (!isPlainObject(value)) throw new SelectedSkillMigrationError('selectedSkillIds must be a slot record.');
+
   for (const [slot, id] of Object.entries(value)) {
     if (!Object.hasOwn(SLOT_TYPES, slot)) throw new SelectedSkillMigrationError(`Unknown skill slot: ${slot}.`);
+
     if (id !== null && (!isSkillId(id) || !catalog.skillsById.has(id)))
       throw new SelectedSkillMigrationError(`Unknown selected skill ID in ${slot}: ${id}.`);
   }
@@ -544,12 +564,14 @@ function normalizeSelectedSkills(
 ): Record<string, SkillId | null> {
   if (saved.selectedSkillIds !== undefined && !isPlainObject(saved.selectedSkillIds))
     throw new TypeError('selectedSkillIds must be a slot record.');
+
   const source = plainObject(saved.selectedSkillIds);
   const selectedSpecializations = new Set(specializations.map((specialization) => specialization.name));
   const selectedUtilityIds = new Set<SkillId>();
   const normalized: Record<string, SkillId | null> = {};
   for (const [slot, type] of Object.entries(SLOT_TYPES)) {
     const id = Object.hasOwn(source, slot) ? source[slot] : defaults.selectedSkillIds[slot];
+
     if (id === null) {
       normalized[slot] = null;
       continue;
@@ -557,6 +579,7 @@ function normalizeSelectedSkills(
 
     if (!isSkillId(id) || !catalog.skillsById.has(id))
       throw new TypeError(`Unknown selected skill ID in ${slot}: ${id}.`);
+
     const requested = catalog.skillsById.get(id);
     const defaultId = defaults.selectedSkillIds[slot];
     const defaultSkill = defaultId === null ? undefined : catalog.skillsById.get(defaultId);
@@ -567,6 +590,7 @@ function normalizeSelectedSkills(
         (type !== 'Utility' || !selectedUtilityIds.has(candidate.id))
     );
     normalized[slot] = skill?.id ?? null;
+
     if (type === 'Utility' && skill) selectedUtilityIds.add(skill.id);
   }
 
@@ -576,7 +600,9 @@ function normalizeSelectedSkills(
 export function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[]): Gw2BuildInfusion[] {
   const source = Array.isArray(value) ? value : fallback;
   const valid = source.filter((entry) => isPlainObject(entry) && listedName(INFUSION_STATS, entry.stat));
+
   if (source.length && !valid.length) return normalizeInfusions(fallback, []);
+
   // Combine duplicate stats and retain the two largest allocations before dropping unused rows.
   const byStat = new Map<string, number>();
   for (const entry of valid) {
@@ -584,7 +610,9 @@ export function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildIn
   }
 
   const entries = [...byStat].map(([stat, count]) => ({ stat, count }));
+
   if (entries.length > 2) entries.sort((a, b) => b.count - a.count);
+
   let remaining = 18;
   const infusions = entries.slice(0, 2).map(({ stat, count }) => {
     count = Math.min(count, remaining);
@@ -594,6 +622,7 @@ export function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildIn
   // Empty or single-stat builds still expose exactly two rows without adding attribute bonuses.
   for (const stat of INFUSION_STATS) {
     if (infusions.length === 2) break;
+
     if (!infusions.some((entry) => entry.stat === stat)) infusions.push({ stat, count: 0 });
   }
 
@@ -620,6 +649,7 @@ function migrateVersionedBuild(
   }
 
   const candidateBuild = candidate as UnvalidatedBuildRecord;
+
   // A missing profession field is treated as matching (e.g. very old saves);
   // a present but wrong profession is a hard error to prevent silent data corruption.
   if (candidateBuild.profession && candidateBuild.profession !== professionId) {
@@ -629,6 +659,7 @@ function migrateVersionedBuild(
   // Clone before mutating so the original candidate object is never modified.
   const saved = structuredClone(candidateBuild);
   const version = Number(saved.schemaVersion ?? 0);
+
   // A version newer than this codec would need transforms we don't have yet.
   if (!Number.isInteger(version) || version < 0 || version > schemaVersion) {
     throw new Error(`Unsupported build schema version: ${saved.schemaVersion}`);
@@ -652,9 +683,12 @@ function validateWeaponPair(
   }
 
   const [mainHand, offHand] = pair;
+
   if (allowEmpty && !mainHand && !offHand) return;
+
   const mainWielding = catalog.weaponHands.get(mainHand);
   const offWielding = offHand ? catalog.weaponHands.get(offHand) : null;
+
   if (!catalog.weapons.has(mainHand) || !['mh', 'mh+oh', '2h'].includes(mainWielding || '')) {
     errors.push(`${label} has an invalid main-hand weapon.`);
   }
@@ -683,6 +717,7 @@ function validateSpecializations(
   const selected = build.specializations
     .map((specialization) => known.get(specialization?.name))
     .filter((specialization) => specialization != null);
+
   if (selected.length !== build.specializations.length) {
     errors.push(`specializations contain an unknown ${professionName(professionId)} line.`);
   }
@@ -726,17 +761,21 @@ function validateCommonBuild(
   { professionId, schemaVersion, catalog, slotLoadout = null }: Gw2BuildValidationOptions
 ): BuildValidationResult {
   const errors: string[] = [];
+
   if (!build || typeof build !== 'object' || Array.isArray(build)) {
     return { valid: false, errors: ['Build must be an object.'] };
   }
 
   const candidate = build as Gw2CanonicalBuild;
+
   // Validation targets canonical builds; legacy names must cross the explicit migration boundary first.
   if (Object.hasOwn(build, 'selectedSkills'))
     errors.push('Migrate selectedSkills to selectedSkillIds before validation.');
+
   // Keep malformed imported specialization data recoverable while preserving the shape error below.
   const specializations = Array.isArray(candidate.specializations) ? candidate.specializations : [];
   errors.push(...validateCommonAssumptions(candidate.assumptions));
+
   if (candidate.profession !== professionId) {
     errors.push(`profession must be ${professionId}.`);
   }
@@ -748,6 +787,7 @@ function validateCommonBuild(
   validateWeaponPair(candidate.weapons, 'weapons', catalog, errors);
   // Alternate weapons are optional; allowEmpty=true lets both slots be absent.
   validateWeaponPair(candidate.alternateWeapons, 'alternateWeapons', catalog, errors, true);
+
   if (![1, 2].includes(candidate.startingWeaponSet)) {
     errors.push('startingWeaponSet must be 1 or 2.');
   } else if (candidate.startingWeaponSet === 2 && !candidate.alternateWeapons?.[0]) {
@@ -763,6 +803,7 @@ function validateCommonBuild(
   }
 
   validateSpecializations(candidate, catalog, professionId, errors);
+
   if (slotLoadout) {
     // Slot-loadout professions manage skill slots through their own palette
     // system; delegate validation to that system.
@@ -788,8 +829,11 @@ function validateCommonBuild(
     const selectedUtilityIds = new Set();
     for (const [slot, type] of Object.entries(SLOT_TYPES)) {
       const id = candidate.selectedSkillIds[slot];
+
       if (id === null) continue;
+
       const skill = catalog.skillsById.get(id);
+
       if (
         !selectableSlotSkill(skill, type, selectedSpecializations) ||
         (type === 'Utility' && selectedUtilityIds.has(skill?.id))
@@ -878,6 +922,7 @@ function validateCommonBuild(
     let total = 0;
     for (const infusion of candidate.infusions) {
       const count = Number(infusion?.count);
+
       if (!listedName(INFUSION_STATS, infusion?.stat) || !Number.isInteger(count) || count < 0 || count > 18) {
         errors.push('infusions contain an invalid stat or count.');
         break;

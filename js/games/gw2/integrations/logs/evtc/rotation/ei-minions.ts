@@ -11,6 +11,7 @@ import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-comm
 /** Owned pet animations locate Ranger commands before delayed player markers; Soulbeast retains merged-player evidence. */
 export function rangerPetActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'ranger' || context.profile.specializationId === 'soulbeast') return [];
+
   const { log, playerAddress, catalog } = context;
   const owners = agentOwners(log);
   const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
@@ -55,7 +56,9 @@ function samePosition(a: ParsedEvtcEvent, b: ParsedEvtcEvent): boolean {
   const position = (e: ParsedEvtcEvent): number[] => {
     if ([60, 79].includes(e.stateChange))
       return [0n, 16n, 32n].map((shift) => Number(BigInt.asIntN(16, e.target >> shift)) * 10);
+
     if (e.stateChange === 62 || ([45, 51].includes(e.stateChange) && e.target !== 0n)) return [0, 0, 0];
+
     return [float32(e.value), float32(e.buffDamage), float32(e.overstackValue)];
   };
 
@@ -67,7 +70,9 @@ function samePosition(a: ParsedEvtcEvent, b: ParsedEvtcEvent): boolean {
 /** EI MesmerHelper excludes clone shatter visuals and distinguishes Mind Wrack from Distortion and its ammo variant. */
 export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const { log, profile, playerAddress } = context;
+
   if (profile.professionId !== 'mesmer' || !['core', 'mirage'].includes(profile.specializationId)) return [];
+
   const effects = effectEvidence(log).filter((e) => e.event.source === playerAddress);
   const cloneEffects = effects.filter((e) => e.guid === '5FA6527231BB8041AC783396142C6200');
   const owners = agentOwners(log);
@@ -81,11 +86,13 @@ export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): 
     .sort((a, b) => a.event.time - b.event.time)
     .flatMap(({ event, eventIndex, guid }) => {
       let skillId = shatters.get(guid);
+
       if (
         skillId == null ||
         cloneEffects.some((e) => Math.abs(e.event.time - event.time) < 10 && samePosition(e.event, event))
       )
         return [];
+
       if (skillId === 10191) {
         if (
           log.events.some(
@@ -97,6 +104,7 @@ export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): 
           )
         )
           return [];
+
         const hasDamage = (id: number): boolean =>
           log.events.some(
             (e) =>
@@ -137,7 +145,9 @@ export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): 
 /** EI identifies Phase Retreat only when its teleport coincides with an owned staff clone's first awareness. */
 export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const { log, profile, playerAddress } = context;
+
   if (profile.professionId !== 'mesmer') return [];
+
   const owners = agentOwners(log);
   const spawns = log.agents
     .filter(
@@ -189,11 +199,14 @@ export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContex
 /** EI ChronomancerHelper.ComputeChronomancerShatters consumes clone deaths in reverse shatter order. */
 export function eiChronomancerShatters(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.specializationId !== 'chronomancer') return [];
+
   const { log, playerAddress } = context,
     owners = agentOwners(log);
   const effects = effectEvidence(log).filter((e) => e.event.source === playerAddress);
   const chrono = effects.filter((e) => e.guid === '5FA6527231BB8041AC783396142C6200');
+
   if (!chrono.length) return [];
+
   const boon = effects.filter((e) => e.guid === '4C7A5E148F7FD642B34EE4996DDCBBAB');
   const clones = log.agents.filter(
     (a) => a.elite === 0xffffffff && CLONES.has(a.profession & 0xffff) && owners.get(a.address) === playerAddress
@@ -217,6 +230,7 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
     .sort((a, b) => b.event.time - a.event.time)) {
     let skillId = SHATTERS.get(guid)!;
     let ids = new Set([skillId]);
+
     if (skillId === -64) {
       ids = new Set([56930, 56925]);
       for (const variant of [56925, 56930])
@@ -236,8 +250,10 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
 
     const nearby = boon.filter((e) => Math.abs(e.event.time - event.time) < 10);
     let emit = nearby.some((e) => samePosition(e.event, event));
+
     if (!emit) {
       if (nearby.length) continue;
+
       const dead = [...deaths]
         .reverse()
         .find(
@@ -246,6 +262,7 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
             e.time - event.time < 20 &&
             (!kills.get(e.source)!.length || kills.get(e.source)!.some((k) => ids.has(k.skillId)))
         );
+
       if (dead) {
         deaths.splice(deaths.indexOf(dead), 1);
         continue;
@@ -278,7 +295,9 @@ export function eiMinionSpawns(context: EvtcProfessionReconstructionContext): Ev
   const { log, profile, playerAddress } = context;
   const owners = agentOwners(log);
   const skillId = profile.professionId === 'ranger' ? -28 : profile.specializationId === 'reaper' ? 30772 : null;
+
   if (skillId == null) return [];
+
   const species = profile.professionId === 'ranger' ? PETS : new Set([15314]);
   const agents = log.agents.filter(
     (a) => a.elite === 0xffffffff && species.has(a.profession & 0xffff) && owners.get(a.address) === playerAddress
@@ -291,9 +310,12 @@ export function eiMinionSpawns(context: EvtcProfessionReconstructionContext): Ev
   for (const agent of agents)
     for (const [eventIndex, event] of log.events.entries()) {
       if (event.stateChange !== 6 || event.source !== agent.address) continue;
+
       const duplicate = event.time - previous < 50;
       previous = event.time;
+
       if (duplicate) continue;
+
       result.push({
         start: event.time,
         end: event.time,

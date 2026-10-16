@@ -103,6 +103,7 @@ for (const [name, family, trait, effect, event, config] of [
         (packet) => packet.sourceId === trait && packet.type === 'condition' && packet.triggeredBy === event.skillName
       );
       assert.equal(packets.length > 0, !removed);
+
       if (!removed) {
         assert.equal(
           packets.reduce((total, packet) => total + packet.stacks, 0),
@@ -169,6 +170,7 @@ test('Grand Entrance windows are independently removable and keep their triggeri
     );
     const buffs = result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === G.GRAND_ENTRANCE);
     assert.equal(buffs.length, removed ? 0 : 1);
+
     if (!removed) {
       assert.equal(buffs[0].kind, 'grand-entrance');
       assert.equal(buffs[0].duration, 7);
@@ -198,6 +200,7 @@ test('Mug follows the strike profile while preserving the accepted steal activat
     );
     const packets = result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === T.MUG);
     assert.equal(packets.length, removed ? 0 : 1);
+
     if (!removed) {
       assert.equal(packets[0].skillId, TS.STEAL);
       assert.equal(packets[0].actorType, 'player');

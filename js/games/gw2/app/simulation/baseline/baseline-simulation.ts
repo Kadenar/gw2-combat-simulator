@@ -37,6 +37,7 @@ export function calculateBaselineSimulation(
   };
 
   const { rotation, referenceRotation, baseConfig, selectedPatchId, previewPatchId } = request;
+
   if (!previewPatchId) {
     return {
       result: simulateBuild(rotation, baseConfig),

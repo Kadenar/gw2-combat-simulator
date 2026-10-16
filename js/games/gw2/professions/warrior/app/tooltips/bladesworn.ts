@@ -38,7 +38,9 @@ const artillerySlashTooltip: DescribeSimulationTooltip = (balanceContext, entity
 
 const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   return {
     description:
       'Consume your Dragon charges and leave Dragon Trigger to release an explosive burst. Strike damage scales linearly from the minimum to the maximum charge value. Sharp as the Wind variants also scale Burning with charges.',

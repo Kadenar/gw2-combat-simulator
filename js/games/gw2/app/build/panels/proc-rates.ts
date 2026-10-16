@@ -5,7 +5,9 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 /** Render only active, opted-in traits using their runtime defaults; blank/reset inherits future balance changes. */
 export function mountProcRateOverrides(app: ProfessionAppState, expanded = true): void {
   const container = document.getElementById('perma-boons');
+
   if (!container) return;
+
   const previous = container.querySelector<HTMLDetailsElement>('[data-assumption-section="proc-rates"]');
   previous?.remove();
   const config = {
@@ -17,7 +19,9 @@ export function mountProcRateOverrides(app: ProfessionAppState, expanded = true)
     catalog,
     (app.attributeData?.activeTraits || []).map((trait) => trait.id)
   );
+
   if (!profiles.length) return;
+
   const overrides = normalizeProcRateOverrides(app.build.assumptions.procRateOverrides);
   const section = document.createElement('details');
   section.className = 'perma-group';
@@ -63,8 +67,10 @@ export function mountProcRateOverrides(app: ProfessionAppState, expanded = true)
       }
 
       const next = normalizeProcRateOverrides(app.build.assumptions.procRateOverrides);
+
       if (input.value === '') delete next[declaration.id];
       else next[declaration.id] = input.valueAsNumber / 100;
+
       app.build.assumptions.procRateOverrides = next;
       reset.disabled = next[declaration.id] === undefined;
       // A build change invalidates worker results and any pinned rotation comparison together.

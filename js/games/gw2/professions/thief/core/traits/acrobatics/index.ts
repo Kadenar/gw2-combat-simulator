@@ -131,14 +131,17 @@ function applyFluidStrikes(runtime: ThiefRuntime): void {
 /** Applies Hard to Catch at its established mechanical boundary. */
 function applyHardToCatch(runtime: ThiefRuntime): void {
   const enduranceGain = balanceNumberFromContext(runtime, TRAIT.HARD_TO_CATCH, 'resourceGain');
+
   if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
 }
 
 /** Upper Hand claims its cooldown when a dodge completes, before its initiative can re-enter the trait. */
 function applyUpperHand(runtime: ThiefRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.UPPER_HAND);
+
   if (runtime.procs.claimCooldown(TRAIT.UPPER_HAND, runtime.time, balanceProfileNumber(profile, 'internalCooldown'))) {
     const initiativeGain = balanceProfileNumber(profile, 'resourceGain');
+
     if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
   }
 }

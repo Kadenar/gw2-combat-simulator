@@ -27,21 +27,28 @@ export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   sideEffectHandlers: {
     'engineer.schedule-evolve'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Evolve requires a cast trigger.');
+
       const { cast } = context;
       const at = cast.start + (cast.fullEnd - cast.start) * (520 / 640);
+
       // Retain the accepted skill so each form reads the balance data from its own cast.
       if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.evolve', at, cast, {}, undefined, -10);
     },
     'engineer.schedule-plasmatic'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Plasmatic State requires a cast trigger.');
+
       const { cast } = context;
       const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
+
       if (!strike) return;
+
       const at = effectFirstAt(cast.start, cast.fullEnd, strike);
+
       if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.plasmatic-state', at, cast, {}, undefined, -10);
     },
     'engineer.thorns-retaliation'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Thorns requires a cast trigger.');
+
       // Core cast traits emit first; retaliation then precedes the Morph trait tail and the next completion.
       runtime.scheduleForCast('engineer.thorns-retaliation', runtime.time, context.cast, {}, undefined, -101);
     }

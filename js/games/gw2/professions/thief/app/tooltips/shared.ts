@@ -27,15 +27,18 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
   description += selected.preservesStealth
     ? ' Leaving stealth with this attack does not apply Revealed.'
     : ' Leaving stealth applies Revealed.';
+
   if (selected.malicious)
     description +=
       ' Snapshots malice when the cast starts. The first hit against your active mark consumes malice; Malicious Intent can then seed the next cycle.';
+
   // Core Backstab owns a packet transform; Malicious Backstab still owns a balance modifier.
   if (selected.id === ID.BACKSTAB)
     facts.push({
       name: 'Strike damage against a defiant target',
       detail: tooltipFactorChange(BACKSTAB_DEFIANT_MULTIPLIER)
     });
+
   if (selected.id === ID.MALICIOUS_BACKSTAB) {
     facts.push(
       modifierFact(
@@ -87,13 +90,17 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
 
   if (selected.id === ID.MALICIOUS_TACTICAL_STRIKE)
     description += ' Its first marked hit also restores endurance in proportion to consumed malice.';
+
   if (selected.id === ID.MALICIOUS_CUNNING_SALVO)
     description +=
       ' Outgoing poison lasts one second per consumed malice; recalled poison uses the base duration without consuming malice.';
+
   if (selected.id === ID.MALICIOUS_SHADOWSQUALL)
     description += " Malice extends this attack's poison duration; the values below are before malice scaling.";
+
   if (selected.id === ID.CUNNING_SALVO || selected.id === ID.MALICIOUS_CUNNING_SALVO)
     description += ' Its landed axe enters the shared ground-axe pool.';
+
   if (selected.spearStealthAttack) {
     description += ' Restores initiative on completion and resets the spear chain to its lead attacks.';
     facts.push(
@@ -104,6 +111,7 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
         'Initiative restored'
       )
     );
+
     if (selected.malicious) {
       description +=
         ' Malice increases only the final strike coefficient. Positive malice also adds torment on completion.';

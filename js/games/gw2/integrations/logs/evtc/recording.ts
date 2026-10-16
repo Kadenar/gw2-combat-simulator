@@ -17,6 +17,7 @@ export function evtcRecordingWindow(log: ParsedEvtc): { start: number; end: numb
   let end = 0;
   for (const event of log.events) {
     if (!hasEvtcTime(event)) continue;
+
     start ??= event.time;
     end = event.time;
   }

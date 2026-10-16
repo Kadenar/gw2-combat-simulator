@@ -21,6 +21,7 @@ test('allies toggle per selected simulation using its saved default and preserve
     Worker.prototype.postMessage = function (message, ...args) {
       if (message.row)
         window.comparisonParties.push({ profession: message.row.profession, count: message.alliedPlayerCount });
+
       return postMessage.call(this, message, ...args);
     };
   });

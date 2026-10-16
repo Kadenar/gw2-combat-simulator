@@ -91,12 +91,14 @@ export async function prepareProfessionApiData(
   // Mechanist always has its mech, so Overclock only describes its supported cannon activation.
   if (normalizedProfession === 'Engineer') {
     const overclock = snapshot.skills.find((skill) => skill.id === 63095);
+
     if (overclock) overclock.description = overclock.description.replace(/ If your mech is not present[^.]*\./, '');
   }
 
   // Omitted skills must not remain reachable through a supported skill's flip link.
   for (const skill of snapshot.skills) {
     if (omittedSkillIds.includes(skill.flipSkillId)) skill.flipSkillId = null;
+
     // Ranger spear supports the melee chain only; API refreshes must not advertise its omitted ranged fallback.
     if (normalizedProfession === 'Ranger' && skill.weapon === 'Spear') {
       skill.description = skill.description.replace(/ If your enemy is far away, use Bee's Sting instead\./g, '');

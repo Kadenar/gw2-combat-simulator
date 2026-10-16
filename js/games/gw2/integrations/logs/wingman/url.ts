@@ -16,6 +16,7 @@ export function wingmanLogId(input: string): string | null {
   }
 
   if (!WINGMAN_HOST.test(url.hostname.toLowerCase())) return null;
+
   const segments = url.pathname.split('/').filter(Boolean);
   const logIndex = segments.indexOf('log');
   const id = logIndex >= 0 ? segments[logIndex + 1] : undefined;
@@ -30,6 +31,7 @@ export function isWingmanUrl(input: string): boolean {
 /** Builds gw2wingman's log-JSON endpoint for a link. */
 export function wingmanJsonUrl(input: string): string {
   const id = wingmanLogId(input);
+
   if (!id) {
     throw new WingmanError('INVALID_URL', 'Enter a valid gw2wingman log link.');
   }

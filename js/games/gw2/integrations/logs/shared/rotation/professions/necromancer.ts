@@ -35,6 +35,7 @@ export function reconstructNecromancerDpsReportActions(
       )
     )
       return false;
+
     return (
       !action.isSwap ||
       // EI also flags shroud transitions as swaps; keep them instead of matching them against themselves.

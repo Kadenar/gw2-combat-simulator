@@ -72,7 +72,9 @@ export function detectDpsReportRotationPlayers(report: ParsedDpsReport): readonl
   return report.players
     .flatMap((player, index) => {
       const profile = dpsReportRotationProfile(player.profession);
+
       if (!profile) return [];
+
       return [
         {
           index,
@@ -91,6 +93,7 @@ export function detectDpsReportRotationPlayers(report: ParsedDpsReport): readonl
 
 function phaseFor(report: ParsedDpsReport, phaseIndex: number | undefined): { phase: DpsReportPhase; index: number } {
   const index = phaseIndex ?? 0;
+
   if (!Number.isInteger(index) || index < 0 || index >= report.phases.length) {
     throw new DpsReportError('PHASE_NOT_FOUND', 'The requested phase is not present in the Elite Insights report.');
   }
@@ -100,13 +103,17 @@ function phaseFor(report: ParsedDpsReport, phaseIndex: number | undefined): { ph
 
 function castIntersectsPhase(cast: DpsReportCast, phase: DpsReportPhase): boolean {
   if (cast.duration <= 0) return cast.castTime >= phase.start && cast.castTime < phase.end;
+
   return cast.castTime < phase.end && cast.castTime + cast.duration >= phase.start;
 }
 
 function castStatus(cast: DpsReportCast): RotationActionStatus {
   if (cast.duration <= 0) return 'instant';
+
   if (Number(cast.timeGained || 0) < 0) return 'interrupted';
+
   if (Number(cast.timeGained || 0) > 0) return 'reduced';
+
   return 'completed';
 }
 
@@ -135,12 +142,14 @@ function recordedActions(
   let eventIndex = 0;
   for (const group of [...player.rotation.filter((group) => !petSkillIds.has(group.id)), ...petGroups]) {
     const metadata = skillMetadata(report, group.id);
+
     if (automaticProc(metadata)) {
       continue;
     }
 
     for (const cast of group.skills) {
       if (!castIntersectsPhase(cast, phase)) continue;
+
       const duration = Math.max(0, cast.duration);
       actions.push({
         start: cast.castTime,
@@ -175,6 +184,7 @@ function selectedSkillForAction(
   selectedSkillIds: readonly number[] | undefined
 ): Skill | null {
   if (!catalog || !selectedSkillIds?.length) return null;
+
   const selected = new Set(selectedSkillIds.map(Number).filter(Number.isFinite));
   const resolvedName = recordedActionSkill(action, { catalog, profile })?.name;
   const name = normalized(resolvedName || action.canonicalName || action.rawName);
@@ -205,6 +215,7 @@ function resolveAction(
 function observedInterruptMs(action: ResolvedLogAction): number | null {
   // Completed pet animations can be shorter under pet Quickness; only recorded cancellations interrupt that lane.
   if (action.skill?.independentCast && action.status !== 'interrupted') return null;
+
   const sourceDurationMs = action.end - action.start;
   // Match EVTC imports by snapping channel and atomic cancellations to the same action grid.
   const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
@@ -216,6 +227,7 @@ function observedInterruptMs(action: ResolvedLogAction): number | null {
 /** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
 function replayActionEnd(action: ResolvedLogAction, completeReportedAftercast = false): number {
   if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
+
   if (retainsReplayCastLockout(action.skill, observedInterruptMs(action) ?? action.end - action.start)) {
     const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
     return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
@@ -223,8 +235,11 @@ function replayActionEnd(action: ResolvedLogAction, completeReportedAftercast = 
 
   // Timeline waits begin after the same interruption encoded in the replay command, including tick snapping.
   const interruptMs = observedInterruptMs(action);
+
   if (interruptMs != null) return action.start + interruptMs;
+
   if (!completeReportedAftercast) return action.end;
+
   const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
 }
@@ -240,18 +255,26 @@ function applyCastInterrupts(actions: readonly ResolvedLogAction[]): ResolvedLog
     const boundary = replay[boundaryIndex];
     const weaponSwap = boundary.isSwap && normalized(boundary.rawName) === 'weapon swap';
     const forgeEntry = normalized(boundary.name) === 'enter radiant forge';
+
     if (!weaponSwap && !forgeEntry) continue;
 
     for (let castIndex = boundaryIndex - 1; castIndex >= 0; castIndex -= 1) {
       const cast = replay[castIndex];
+
       // Weapon swaps cancel the player's lane, never an overlapping pet activation.
       if (cast.skill?.independentCast || cast.independentTimeline || instantReplayAction(cast)) continue;
+
       if (cast.end <= boundary.start) break;
+
       // Weapon swaps are allowed during dodge and do not cancel its movement or trait effects.
       if (weaponSwap && actionKind(cast.skill, cast.name) === 'dodge') break;
+
       if (forgeEntry && normalized(cast.skill?.type) !== 'weapon') break;
+
       const interruptMs = observedInterruptMs({ ...cast, end: boundary.start });
+
       if (interruptMs != null) replay[castIndex] = { ...cast, replayInterruptMs: interruptMs };
+
       break;
     }
   }
@@ -298,6 +321,7 @@ function warningList(actions: readonly DpsReportRotationAction[]): string[] {
     (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
   );
   const interrupted = actions.filter((action) => action.status === 'interrupted');
+
   if (unsupported.length) {
     warnings.push(
       `Needs review: ${unsupported.length} report action${unsupported.length === 1 ? '' : 's'} could not be matched and ${unsupported.length === 1 ? 'was' : 'were'} preserved as timing waits.`
@@ -321,11 +345,13 @@ function reconstructDpsReportWithProfile(
 ): DpsReportRotationReconstruction {
   const playerIndex = options.playerIndex ?? detectDpsReportRotationPlayers(report)[0]?.index;
   const player = playerIndex == null ? null : report.players[playerIndex];
+
   if (!player) {
     throw new DpsReportError('PLAYER_NOT_FOUND', 'The requested player is not present in the Elite Insights report.');
   }
 
   const detectedProfile = dpsReportRotationProfile(player.profession);
+
   if (
     detectedProfile?.professionId !== profile.professionId ||
     detectedProfile.specializationId !== profile.specializationId
@@ -363,6 +389,7 @@ function reconstructDpsReportWithProfile(
       // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.
       .filter((action) => action.skill?.simulatorExcluded !== true)
   ).sort(compareResolvedActions);
+
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');
   }
@@ -437,6 +464,7 @@ export function reconstructDpsReportRotation(
     (candidate) =>
       candidate.professionId === player.professionId && candidate.specializationId === player.specializationId
   );
+
   if (!profile) {
     throw new DpsReportError(
       'UNSUPPORTED_PROFESSION',

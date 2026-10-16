@@ -49,6 +49,7 @@ export function autoattackChainSkillAvailable(
   chainState: Readonly<Record<string, unknown>> = {}
 ): boolean {
   if (!skill.chainRoot) return true;
+
   const chainRoot = String(skill.chainRoot);
   const expected = chainState[chainRoot] ?? skill.chainRoot;
   return skill.id === expected;
@@ -63,10 +64,13 @@ function chainState(context: object): Record<string, SkillId> | null {
 /** Clears all pending roots, or only the supplied roots, without replacing the shared state object. */
 export function resetAutoattackChains(context: object, chainRootIds?: readonly SkillId[]): void {
   const chains = chainState(context);
+
   if (!chains) return;
+
   const roots = chainRootIds == null ? Object.keys(chains).map(Number) : [...new Set(chainRootIds.map(Number))];
   for (const root of roots) {
     if (!Object.hasOwn(chains, root)) continue;
+
     delete chains[root];
   }
 }
@@ -74,11 +78,14 @@ export function resetAutoattackChains(context: object, chainRootIds?: readonly S
 /** Restores a captured chain snapshot through the same mutation boundary used by live transitions. */
 export function replaceAutoattackChains(context: object, replacement: Readonly<Record<string, SkillId>>): void {
   const chains = chainState(context);
+
   if (!chains) return;
+
   resetAutoattackChains(context);
   for (const [root, expected] of Object.entries(replacement)) {
     const rootId = Number(root);
     const expectedSkillId = Number(expected);
+
     if (Number.isFinite(rootId) && Number.isFinite(expectedSkillId)) {
       chains[rootId] = expectedSkillId;
     }
@@ -91,12 +98,15 @@ function matchingOverride(
 ): AutoattackChainOverride | null {
   for (const override of overrides) {
     if (override.chainRootIds && !override.chainRootIds.map(Number).includes(Number(context.chainRootId))) continue;
+
     if (
       override.interruptingSkillIds &&
       !override.interruptingSkillIds.map(Number).includes(Number(context.interruptingSkill.id))
     )
       continue;
+
     if (override.when && !override.when(context)) continue;
+
     return override;
   }
 
@@ -107,8 +117,11 @@ export function validateAutoattackChainOptions(options: Gw2AutoattackChainOption
   const ids = new Set<string>();
   for (const override of options.overrides || []) {
     const id = (override.id || '').trim();
+
     if (!id) throw new TypeError('Autoattack-chain override id is required.');
+
     if (ids.has(id)) throw new TypeError(`Duplicate autoattack-chain override id: ${id}.`);
+
     if (override.decision !== 'preserve' && override.decision !== 'reset') {
       throw new TypeError(`${id} must decide "preserve" or "reset".`);
     }
@@ -128,9 +141,13 @@ export function autoattackChainAvailability(
   skill: Skill
 ): AvailabilityResult {
   const chains = chainState(context);
+
   if (!chains) return CAST_READY;
+
   const chain = resolveAutoattackChainStep(catalog.autoattackChainPositions, chains, skill.id);
+
   if (!chain || chain.matchesExpectedStep) return CAST_READY;
+
   const expected = catalog.skillsById.get(chain.expectedSkillId);
   return denyCast(
     'gw2.autoattack-chain',
@@ -150,6 +167,7 @@ export function advanceAutoattackChains(
   const chains = chainState(context);
   const position = catalog.autoattackChainPositions.get(Number(skill.id));
   const castChainRootId = position?.root ?? null;
+
   if (!chains) {
     return Object.freeze({ committed, castChainRootId, transitions: Object.freeze([]) });
   }
@@ -163,6 +181,7 @@ export function advanceAutoattackChains(
   // accidentally preserve an unrelated weapon's sequence.
   for (const [root, expected] of pending) {
     if (root === castChainRootId) continue;
+
     const overrideContext: AutoattackChainContext = {
       chainRootId: root,
       interruptingSkill: skill
@@ -171,7 +190,9 @@ export function advanceAutoattackChains(
     // Skill type is irrelevant: only a nonzero cast whose damage lands by cast end
     // interrupts the pending chain unless a profession declares a narrow exception.
     const decision = override?.decision || (interrupts ? 'reset' : 'preserve');
+
     if (decision === 'reset') delete chains[root];
+
     changes.push(
       Object.freeze({
         chainRootId: root,
@@ -184,6 +205,7 @@ export function advanceAutoattackChains(
   if (position && committed) {
     if (position.next == null) delete chains[position.root];
     else chains[position.root] = position.next;
+
     changes.push(
       Object.freeze({
         chainRootId: position.root,

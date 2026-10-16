@@ -24,9 +24,12 @@ export const bloodstone = defineRelic({
   combo(ctx, state, event) {
     // The shared combo reaction now reaches leap finishers for Steamshrieker; Bloodstone remains blast-only.
     if (event.finisherType !== 'Blast') return;
+
     // Volatility cannot accumulate while Fervor is active.
     if (relicBuffActive(ctx, 'bloodstone-fervor', event.at)) return;
+
     const currentStacks = activeRefreshedStacks(state.refreshedStacks, event.at, 'exclusive');
+
     if (currentStacks < VOLATILITY_STACKS) {
       // Each blast renews all Volatility stacks; the next blast at cap still belongs to the Fervor transition.
       const buff = grantRefreshedStacks(

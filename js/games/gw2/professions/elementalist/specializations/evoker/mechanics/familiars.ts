@@ -84,10 +84,12 @@ export function releaseElementalProcession(
  */
 export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = evokerState.from(context);
+
   // Track pending grants so early familiar inputs can wait for their resource provider.
   if (cast.command.concurrentOffsetMs == null) {
     const gain = weaponSkillChargeGain(context, skill, state);
     const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.familiarCharges.maximum : 0;
+
     if (postFamiliarGain > 0)
       state.pendingWeaponCompletions.push({ activationId: cast.id, at: cast.effectiveEnd, gain: postFamiliarGain });
   }
@@ -100,6 +102,7 @@ export function scheduleEvokerSkillCommit(
   action: SideEffectAction
 ): void {
   if (trigger.kind !== 'cast') throw new TypeError('Evoker skill completion requires a cast trigger.');
+
   context.scheduleForCast(action.type, context.time, trigger.cast, {}, undefined, -101);
 }
 
@@ -114,6 +117,7 @@ export const evokerSkillCommitTasks: NonNullable<
       const profile = requireBalanceProfileFromContext(context, PROFILE.lightningBlitz);
       const stacks = balanceProfileNumber(profile, 'resourceGain');
       const enchantment = requireEffect(profile, 'buff', 'Lightning Blitz Enchantment');
+
       if (enchantment) {
         grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill, procType: 'skill' });
       }
@@ -126,6 +130,7 @@ export const evokerSkillCommitTasks: NonNullable<
     {
       const profile = requireBalanceProfileFromContext(context, PROFILE.zap);
       const zap = requireEffect(profile, 'buff', 'Zap Window');
+
       if (zap) {
         context.effects.emit(
           elementalistBuffRequest(
@@ -174,6 +179,7 @@ export const evokerSkillCommitTasks: NonNullable<
       const profile = requireBalanceProfileFromContext(context, PROFILE.haresAgility);
       const stacks = balanceProfileNumber(profile, 'playerStacks');
       const enchantment = requireEffect(profile, 'buff', 'Hare Enchantment');
+
       if (enchantment) {
         grantElectricEnchantments(context, { at, stacks, duration: enchantment.duration, skill, procType: 'skill' });
       }
@@ -186,6 +192,7 @@ export const evokerSkillCommitTasks: NonNullable<
     {
       const profile = requireBalanceProfileFromContext(context, PROFILE.toadsFortitude);
       const resistance = requireEffect(profile, 'boon', 'Toad Resistance');
+
       if (resistance) {
         context.effects.emit(
           elementalistBuffRequest(
@@ -223,6 +230,7 @@ export const evokerSkillCommitTasks: NonNullable<
           : undefined;
       for (const effect of [...(combinedMight ? [combinedMight] : [might, fireBonus]), fury]) {
         if (!effect) continue;
+
         const boon = {
           kind: String(effect.boon).toLowerCase(),
           stacks: Number(effect.stacks),
@@ -251,6 +259,7 @@ export const evokerSkillCommitTasks: NonNullable<
 /** Release each deferred grant after the familiar reset, then run the final familiar trait observer. */
 export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);
+
   if (state.activeFamiliarCast?.reservationId === cast.id) {
     flushPendingWeaponChargeGains(context, state);
     state.activeFamiliarCast = null;

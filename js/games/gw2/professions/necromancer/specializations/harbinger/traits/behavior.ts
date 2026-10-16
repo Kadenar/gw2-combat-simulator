@@ -12,6 +12,7 @@ import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necro
 /** Doom Approaches turns the shroud control into Fear so condition duration and Fear reactions apply. */
 export function doomApproachesControl(runtime: NecromancerRuntime, effect: SkillEffect): SkillEffect {
   if (effect.type !== 'control' || !hasTrait(runtime, TRAIT.DOOM_APPROACHES)) return effect;
+
   const fields = { ...effect };
   delete fields.controlKind;
   return { ...fields, type: 'condition', condition: 'Fear', stacks: 1, duration: 1 };

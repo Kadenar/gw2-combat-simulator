@@ -15,13 +15,16 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** Justice is sampled at hammer impact, allowing a concurrent virtue to empower an already accepted cast. */
 export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
   const state = luminaryState.from(runtime);
+
   if (!state.radiantJusticeArmed) return;
+
   state.radiantJusticeArmed = false;
   const { cast } = data as { cast: RuntimeCast<GuardianSkill> };
   const cause = guardianCastCause(runtime, cast);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.radiantJusticeImpact);
   const strike = requireEffect(profile, 'strike', 'Strike');
   const condition = requireEffect(profile, 'condition', 'Vulnerability');
+
   if (strike)
     runtime.effects.emit({
       kind: 'packet',
@@ -38,6 +41,7 @@ export function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
         offTarget: cast.command.offTarget === true
       })
     });
+
   if (condition)
     runtime.effects.emit({
       kind: 'packet',

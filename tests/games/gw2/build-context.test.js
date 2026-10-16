@@ -24,6 +24,7 @@ const withoutPresentation = (profession) =>
   new Proxy(profession, {
     get(target, key, receiver) {
       if (key === 'ui') throw new Error('Headless build calculation accessed presentation');
+
       return Reflect.get(target, key, receiver);
     }
   });
@@ -48,6 +49,7 @@ for (const { id } of professionRegistry) {
       // Mutating every nested collection catches ownership leaks in profession-specific arrays as well as seeds.
       const corrupt = (value) => {
         if (!value || typeof value !== 'object') return;
+
         for (const key of Object.keys(value)) {
           if (value[key] && typeof value[key] === 'object') corrupt(value[key]);
           else value[key] = null;
@@ -199,6 +201,7 @@ test('profession starting resources and selections survive headless composition'
     const config = module.createBuildContext(input(build)).simulationConfig();
     for (const name of names) assert.deepEqual(config[name], build[name], `${id}.${name}`);
     const resource = { engineer: 'initialHeat', revenant: 'initialEnergy', thief: 'initialInitiative' }[id];
+
     if (resource) assert.equal(config.initialResource, build[resource]);
   }
 

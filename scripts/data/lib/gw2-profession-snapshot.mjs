@@ -50,6 +50,7 @@ export async function fetchGw2Api(pathname, { fetchImpl = fetch, apiRoot = GW2_A
 export async function fetchManyGw2(endpoint, ids, options = {}) {
   const values = [];
   const unique = [...new Set(ids.map(Number))].filter(Number.isFinite);
+
   // Generators with collision-suffixed names retain source order; snapshots keep numeric sorting.
   if (!options.preserveIdOrder) unique.sort((left, right) => left - right);
 
@@ -186,6 +187,7 @@ export function professionSkillAssociations(
 
   for (const training of profession.training || []) {
     if (!eliteSpecializations.has(training.name)) continue;
+
     for (const entry of training.track || []) {
       if (entry.type === 'Skill') {
         specializationBySkillId.set(canonicalSkillId(entry.skill_id), training.name);
@@ -197,6 +199,7 @@ export function professionSkillAssociations(
 
   for (const [weapon, definition] of Object.entries(profession.weapons || {})) {
     if (weaponExclusions instanceof Set ? weaponExclusions.has(weapon) : weaponExclusions.includes(weapon)) continue;
+
     for (const skill of definition.skills || []) {
       const skillId = canonicalSkillId(skill.id);
 
@@ -246,18 +249,22 @@ export function buildSkillSnapshots({ profession, specializationData, skillData,
     const id = queue.shift();
 
     if (includedIds.has(id)) continue;
+
     const skill = skillDataById.get(id);
     const weapon = weaponBySkillId.get(id) || '';
 
     if (!isTerrestrialSkill(skill, weapon, config)) continue;
+
     includedIds.add(id);
     for (const reference of linkedSkillIds(skill)) {
       if (includedIds.has(reference)) continue;
+
       const child = skillDataById.get(reference);
 
       if (!child) continue;
 
       if (weapon) weaponBySkillId.set(reference, weapon);
+
       const specialization = specializationBySkillId.get(id);
 
       if (specialization) {
@@ -330,6 +337,7 @@ export async function fetchProfessionSnapshot({
     );
 
     if (!references.length) break;
+
     const fetched = await fetchManyGw2('skills', references, options);
 
     for (const skill of fetched) skillDataById.set(skill.id, skill);

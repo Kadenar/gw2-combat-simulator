@@ -12,7 +12,9 @@ const previews = new Map<string, Promise<string>>();
 export function benchmarkBuildPreview(row: Benchmark): Promise<string> {
   const key = `${row.profession}:${row.build}`;
   const cached = previews.get(key);
+
   if (cached) return cached;
+
   const pending = loadPreview(row).catch((error: unknown) => {
     previews.delete(key);
     throw error;
@@ -29,7 +31,9 @@ function icon(entity: PreviewIcon, label = entity.name): string {
 
 async function loadPreview(row: Benchmark): Promise<string> {
   const response = await fetch(benchmarkPreviewPath(row.build));
+
   if (!response.ok) throw new Error('Build preview unavailable');
+
   const preview = validateBenchmarkPreview(await response.json(), row.build);
   const equipment = preview.equipment
     .map(({ label, value }) => `<div><dt>${html(label)}</dt><dd>${html(value)}</dd></div>`)

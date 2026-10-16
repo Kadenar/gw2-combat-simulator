@@ -51,6 +51,7 @@ export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, ki
     stacks: 1
   };
   runtime.effects.emit({ kind: 'packet', event: buildRangerPacket(application, 'buff') });
+
   if (sharedDuration != null)
     runtime.effects.emit({
       kind: 'packet',
@@ -63,5 +64,6 @@ export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, ki
         'buff'
       )
     });
+
   return duration;
 }

@@ -28,6 +28,7 @@ export function bindSessionControls(app: ProfessionAppState): void {
   });
   document.addEventListener('click', (event) => {
     const target = event.target;
+
     if (target instanceof Element && !target.closest('.skill-bar-slot, .skill-bar-inspection-slot')) {
       document.querySelectorAll('.sbar-dropdown.open').forEach((drop) => {
         drop.classList.remove('open');
@@ -43,7 +44,9 @@ export function bindSessionControls(app: ProfessionAppState): void {
   document.getElementById('btn-sim-redo')?.addEventListener('click', () => redoRotation(app));
   document.addEventListener('keydown', (event) => {
     if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+
     const target = event.target;
+
     if (
       target instanceof HTMLInputElement ||
       target instanceof HTMLTextAreaElement ||
@@ -54,6 +57,7 @@ export function bindSessionControls(app: ProfessionAppState): void {
     }
 
     const key = event.key.toLowerCase();
+
     if (key === 'z' && !event.shiftKey) {
       event.preventDefault();
       undoRotation(app);
@@ -90,7 +94,9 @@ export function bindSessionControls(app: ProfessionAppState): void {
     const prompt = templateBuild
       ? 'Reset this build, skills, and rotation to its loaded template?'
       : app.adapter.resetPrompt;
+
     if (!confirm(prompt)) return;
+
     // Clone the tab's loaded template so later edits cannot change its reset target.
     app.build = templateBuild ? structuredClone(templateBuild) : createDefaultBuild(app.adapter);
     app.changed();

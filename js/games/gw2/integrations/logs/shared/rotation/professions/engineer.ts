@@ -32,11 +32,13 @@ function restoreEiMissingSunEdge(
 ): readonly RecordedLogAction[] {
   const sunEdge = context.catalog?.skills.find((skill) => Number(skill.id) === ID.SUN_EDGE_NON_HOLOSMITH) || null;
   const castTimeMs = referenceCastTimeMs(sunEdge);
+
   if (!sunEdge || castTimeMs <= 0) return actions;
 
   const restored: RecordedLogAction[] = [];
   for (const action of actions) {
     const previous = restored.at(-1);
+
     if (
       previous?.rawSkillId === ID.RADIANT_ARC_NON_HOLOSMITH &&
       action.rawSkillId === ID.SUN_RIPPER_NON_HOLOSMITH &&

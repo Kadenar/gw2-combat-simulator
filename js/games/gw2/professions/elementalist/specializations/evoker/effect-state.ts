@@ -10,11 +10,13 @@ export function evokerBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'lightning blitz enchantment', maximumStacks: 1 }
   ];
   const familiarsProwess = balanceProfileFromContext(context, TRAIT.FAMILIARS_PROWESS);
+
   if (familiarsProwess)
     policies.push({
       kind: 'familiars-prowess',
       maximumStacks: 1,
       maximumDuration: balanceProfileNumber(familiarsProwess, 'maximumStacks')
     });
+
   return policies;
 }

@@ -27,8 +27,11 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
   const space = { ordinary, count: 0n };
   const add = (equipment: OptimizerEquipment): void => {
     if (seen.size >= OPTIMIZER_SEARCH_BUDGET || candidates.length >= ROUND_SIZE) return;
+
     const key = optimizerEquivalenceKey(equipment, ordinary, adapter);
+
     if (seen.has(key)) return;
+
     seen.add(key);
     candidates.push(equipment);
   };
@@ -45,6 +48,7 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
   }
 
   add(current);
+
   if (ordinary.rawCount <= BigInt(ROUND_SIZE)) {
     for (let ordinal = 0n; ordinal < ordinary.rawCount; ordinal++) add(ordinaryEquipmentAt(ordinary, ordinal));
   } else {
@@ -85,6 +89,7 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
       for (const dimension of ordinary.dimensions) {
         for (const choice of dimension.choices) {
           if (seen.size >= OPTIMIZER_SEARCH_BUDGET || candidates.length >= ROUND_SIZE) break outer;
+
           const equipment = structuredClone(winner.equipment);
           assignOptimizerChoice(equipment, dimension.key, choice);
           add(equipment);
@@ -97,6 +102,7 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
 
   const evaluateRange = (start: bigint, end: bigint, onProgress?: OptimizerRangeProgress) => {
     if (start < 0n || end > space.count || end <= start) throw new RangeError('Invalid optimizer chunk.');
+
     return scoreOptimizerRange(
       ordinary,
       adapter,

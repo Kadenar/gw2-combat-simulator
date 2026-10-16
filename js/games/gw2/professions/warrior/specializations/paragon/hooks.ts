@@ -36,6 +36,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
   const state = paragonState.from(runtime);
   const skill = state.activeRefrainId == null ? undefined : runtime.helpers.skillsById.get(state.activeRefrainId);
   const motivation = runtime.resourceController.value('motivation');
+
   if (!skill || motivation <= 0) {
     state.activeRefrainId = null;
     return;
@@ -49,7 +50,9 @@ function pulseRefrain(runtime: WarriorRuntime): void {
         ? 2
         : 1;
   const recipe = paragonRefrains[Number(skill.id)];
+
   if (!recipe) throw new TypeError(`Missing refrain recipe for ${skill.name}.`);
+
   const { cost, kinds } = recipe.pulse(level);
 
   const refrain = requireBalanceProfileFromContext(runtime, PROFILE.refrain);
@@ -76,8 +79,11 @@ function pulseRefrain(runtime: WarriorRuntime): void {
   const spent = Math.min(cost, runtime.resourceController.value('motivation'));
   runtime.resourceController.spend('motivation', spent);
   runtime.fireTrigger(motivationSpent, { spent });
+
   if (runtime.resourceController.value('motivation') <= 0) state.activeRefrainId = null;
+
   const interval = balanceProfileNumber(profile, 'pulseInterval');
+
   if (state.activeRefrainId != null && interval > 0)
     runtime.schedule(
       REFRAIN,
@@ -126,11 +132,14 @@ function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>)
 function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   const state = paragonState.from(runtime);
   const echo = state.commandEchoes[activationId];
+
   if (!echo) return;
+
   const ownerId = `${ECHO}.${activationId}`;
   runtime.cancelOwner({ id: ownerId, generation: echo.generation });
   const skill = runtime.helpers.skillsById.get(echo.skillId)!;
   const profileId = PARAGON_COMMAND_ECHO_PROFILES[Number(skill.id)];
+
   if (profileId) {
     const payload = requireBalanceProfileFromContext(runtime, profileId);
     runtime.effects.emit({
@@ -155,6 +164,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
 
   echo.remaining--;
   const interval = balanceNumberFromContext(runtime, PROFILE.commands, 'pulseInterval');
+
   if (echo.remaining <= 0 || interval <= 0) {
     delete state.commandEchoes[activationId];
     return;
@@ -174,8 +184,11 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
 function activateCommand(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const interval = balanceNumberFromContext(runtime, PROFILE.commands, 'pulseInterval');
   const remaining = reverberationEchoCount(runtime);
+
   if (interval <= 0 || remaining <= 0) return;
+
   if (!Number.isSafeInteger(remaining)) throw new RangeError('Command echo counts must be positive integers.');
+
   paragonState.from(runtime).commandEchoes[cast.id] = { skillId: cast.skill.id, remaining, generation: 0 };
   runtime.schedule(
     ECHO,
@@ -212,6 +225,7 @@ export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     if (cast.skill.burst)
       for (const activationId of Object.keys(paragonState.from(runtime).commandEchoes))
         consumeEcho(runtime, activationId);
+
     runtime.fireTrigger(paragonCastCompleted, { cast });
   },
   tasks: {

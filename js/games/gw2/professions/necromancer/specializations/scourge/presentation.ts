@@ -49,6 +49,7 @@ export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkil
     // The trait replacement owns F5 even when its resource cost cannot currently be paid.
     paletteOverride: (context, skill) => {
       if (skill.id !== ID.DESERT_SHROUD && skill.id !== ID.SANDSTORM_SHROUD) return;
+
       const replaced = getActiveTraits(context.build?.specializations || []).some(
         (trait) => trait.id === TRAIT.HERALD_OF_SORROW
       );

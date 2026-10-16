@@ -10,11 +10,13 @@ import { loadPatchAuthoring, savePatchAuthoring } from '#gw2/integrations/patche
 import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/integrations/patches/app/render.js';
 
 const app = document.querySelector<HTMLElement>('[data-patch-authoring-app]');
+
 if (!app) throw new Error('Patch preview authoring root is missing.');
 
 /** Locks the session during loading so reset cannot race edits or a pending save. */
 async function loadAuthoring(): Promise<void> {
   if (editorState.pending) return;
+
   editorState.pending = true;
   try {
     setEditorStatus('Loading live authoring metadata…', 'neutral');
@@ -36,6 +38,7 @@ async function loadAuthoring(): Promise<void> {
 /** Locks edits and overlapping requests until the saved draft is accepted or the save fails. */
 async function saveAuthoring(): Promise<void> {
   if (editorState.pending) return;
+
   editorState.pending = true;
   try {
     prepareEditorStateForRender();
@@ -60,6 +63,7 @@ bindPatchAuthoringView(app, {
 
 window.addEventListener('beforeunload', (event) => {
   if (!editorState.dirty) return;
+
   event.preventDefault();
 });
 

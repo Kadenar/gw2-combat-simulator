@@ -142,6 +142,7 @@ test("Fox's Fury retains fractional Burning and independent component removal", 
     const packets = foxPackets(result);
     const hit = packets.find((event) => event.type === 'damage');
     assert.equal(Boolean(hit), removed !== 'strike');
+
     if (hit) {
       assert.equal(hit.coefficient, 4);
       assert.equal(hit.weaponStrengthProfileId, 'nonweapon.unequipped');

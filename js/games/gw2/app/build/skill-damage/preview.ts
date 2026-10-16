@@ -33,7 +33,9 @@ export function createSkillDamagePreview(
   const conditions: Record<string, unknown> = {};
   for (const control of controls) {
     if (control.kind !== 'condition') continue;
+
     const stacks = Number(values[control.key]) || 0;
+
     if (stacks > 0) conditions[control.field ?? control.key] = control.max ? stacks : true;
     else delete conditions[control.field ?? control.key];
   }

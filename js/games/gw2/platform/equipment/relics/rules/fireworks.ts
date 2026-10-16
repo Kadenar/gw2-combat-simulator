@@ -19,6 +19,7 @@ export const fireworks = defineRelic({
     const profileId = event.weaponStrengthProfileId || '';
     const strikesAtWeaponStrength = profileId.startsWith('weapon.') || profileId === 'nonweapon.profession-mechanic';
     const isWeaponStrengthProfessionMechanic = event.skillWeapon === 'Profession mechanic' || strikesAtWeaponStrength;
+
     if (
       isFlatStrike ||
       !isGw2PlayerActorEvent(event) ||

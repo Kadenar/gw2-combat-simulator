@@ -608,6 +608,7 @@ test('Mirage can queue an ambush before its window closes without extending the 
     );
     const ambush = result.steps.find((step) => step.skill === 'Fractured Glass');
     assert.equal(Boolean(ambush.invalid), waitMs > 0);
+
     if (!waitMs) {
       assert.equal(ambush.start, 1600);
       assert.deepEqual(result.warnings, []);

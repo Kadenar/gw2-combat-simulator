@@ -30,11 +30,14 @@ const innervateTooltip: DescribeSimulationTooltip = skillTooltip(
 // Project charge grants from the selected build so the skill card agrees with Wielder's Boon's runtime grant.
 const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
   const skill = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   const empowered = getActiveTraits(build?.specializations).some(({ id }) => id === TRAIT.WIELDERS_BOON);
   const effects = (skill.effects ?? []).map((effect) => {
     if (effect.type !== 'buff' || !['nightmare-weapon', 'splinter-weapon'].includes(String(effect.kind)))
       return simulationEffectFacts([effect]);
+
     const personal = tooltipNumber(effect, 'stacks');
     const allied = empowered ? personal : tooltipNumber(effect, 'allyStacks');
     return simulationEffectFacts(
@@ -68,12 +71,16 @@ const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _
 // Spirit owners select named attack roles; this layer formats their selected summon and command packets.
 const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
+
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+
   const id = Number(entity.id);
+
   if (id === ID.ESSENCE_BLAST)
     return skillTooltip("Strike your target. Each active spirit increases this attack's damage.", [
       fromModifier('necromancer.essence-blast-active-spirits', 'damagePerSpirit', 'Strike damage per active spirit')
     ])(balanceContext, entity);
+
   if (id === ID.SUMMON_SPIRITS)
     return {
       description:
@@ -85,6 +92,7 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
           : [];
       })
     };
+
   const attacks = spiritAttackEffects(balanceContext, id)!;
   const { profile } = attacks;
   return {

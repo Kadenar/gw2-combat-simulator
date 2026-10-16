@@ -30,6 +30,7 @@ test('Air Blast burns and triggers Aim-Assisted Rocket only against burning targ
       result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.AIR_BLAST),
       false
     );
+
     if (burning) {
       assert.equal(airBurns(result)[0].stacks, 1);
       assert.equal(airBurns(result)[0].duration, 5);

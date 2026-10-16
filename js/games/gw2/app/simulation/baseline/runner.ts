@@ -37,6 +37,7 @@ export class BaselineSimulationRunner {
   /** Load the selected profession while the page is opening, before a template click needs its first result. */
   warmup(): void {
     if (this.worker || typeof Worker !== 'function') return;
+
     let worker: Worker | null = null;
     try {
       worker = this.createWorker();
@@ -56,9 +57,12 @@ export class BaselineSimulationRunner {
   schedule(revision: number, chartsOnly = false): void {
     // An editor change takes priority over chart enrichment for the previous result.
     if (!chartsOnly && (this.inFlight?.chartsOnly || this.pending?.chartsOnly)) this.cancel();
+
     const request = this.app.adapter.baselineSimulationRequest(this.app);
+
     // Clearing abandons the old rotation; subsequent skills must not queue behind its simulation or cold load.
     if (this.inFlight && request.rotation.length === 0) this.cancel();
+
     const requestId = ++this.requestId;
     this.pending = {
       requestId,
@@ -68,7 +72,9 @@ export class BaselineSimulationRunner {
     };
     this.app.simulationStatus = 'queued';
     this.app.simulationError = '';
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = setTimeout(() => {
       this.timer = null;
       this.startPending();
@@ -87,14 +93,17 @@ export class BaselineSimulationRunner {
       this.app.results.effectReport
     )
       return;
+
     this.schedule(this.app.buildRevision, true);
   }
 
   /** Leaving Analysis abandons only chart work; an ordinary editor baseline must still finish. */
   cancelCharts(): void {
     if (!this.inFlight?.chartsOnly && !this.pending?.chartsOnly) return;
+
     this.cancel();
     this.app.simulationStatus = this.app.resultRevision === this.app.buildRevision ? 'idle' : 'queued';
+
     if (typeof document !== 'undefined' && document.body)
       document.body.dataset.simulationStatus = this.app.simulationStatus;
   }
@@ -102,9 +111,12 @@ export class BaselineSimulationRunner {
   /** Cancel active work, retaining an idle worker so changing templates does not reload the same engine. */
   cancel(): void {
     this.requestId += 1;
+
     if (this.timer !== null) clearTimeout(this.timer);
+
     this.timer = null;
     this.pending = null;
+
     if (this.inFlight) {
       this.worker?.terminate();
       this.worker = null;
@@ -115,9 +127,11 @@ export class BaselineSimulationRunner {
 
   private startPending(): void {
     if (this.inFlight || !this.pending) return;
+
     const job = this.pending;
     this.pending = null;
     this.inFlight = job;
+
     if (job.requestId === this.requestId) this.app.simulationStatus = 'running';
 
     if (typeof Worker !== 'function') {
@@ -125,6 +139,7 @@ export class BaselineSimulationRunner {
       setTimeout(() => {
         // Superseded fallback jobs must release the slot so the newest pending edit can run.
         if (job.requestId !== this.requestId) return this.finish(job, { requestId: job.requestId });
+
         try {
           this.finish(job, {
             requestId: job.requestId,
@@ -145,7 +160,9 @@ export class BaselineSimulationRunner {
       worker.postMessage({ requestId: job.requestId, request: job.request });
     } catch (error) {
       worker?.terminate();
+
       if (this.worker === worker) this.worker = null;
+
       this.finish(job, { requestId: job.requestId, error });
     }
   }
@@ -154,16 +171,22 @@ export class BaselineSimulationRunner {
     const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
     worker.addEventListener('message', (event: MessageEvent<BaselineWorkerMessage>) => {
       if (this.worker !== worker) return;
+
       const job = this.inFlight;
+
       if (!job || event.data.requestId !== job.requestId) return;
+
       this.finish(job, event.data);
     });
     worker.addEventListener('error', (event) => {
       // Queued events from an abandoned worker cannot fail the replacement job.
       if (this.worker !== worker) return;
+
       const job = this.inFlight;
       worker.terminate();
+
       if (this.worker === worker) this.worker = null;
+
       if (job) this.finish(job, { requestId: job.requestId, error: event.error ?? event.message });
     });
     this.worker = worker;
@@ -172,7 +195,9 @@ export class BaselineSimulationRunner {
 
   private finish(job: BaselineJob, message: BaselineWorkerMessage): void {
     if (this.inFlight?.requestId !== job.requestId) return;
+
     this.inFlight = null;
+
     if (job.requestId === this.requestId && job.revision === this.app.buildRevision) {
       if (message.output) this.app.publishBaselineSimulation(message.output, job.revision, job.chartsOnly);
       else this.app.failBaselineSimulation(message.error, job.revision, job.chartsOnly);

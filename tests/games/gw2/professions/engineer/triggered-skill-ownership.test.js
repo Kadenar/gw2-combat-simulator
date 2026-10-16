@@ -143,6 +143,7 @@ for (const entry of cases) {
     );
     assert.deepEqual(strikes(executeDamageOccurrence(profession, config, occurrence).events, entry.skill), []);
     const runtime = observedRuntime(result);
+
     if (entry.trait === TRAIT.EXPLOSIVE_ENTRANCE) {
       assert.equal(runtime.profession.core.explosiveEntranceFired, false);
       assert.equal(runtime.cooldownController.hasCooldown(entry.skill), false);

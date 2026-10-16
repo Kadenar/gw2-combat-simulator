@@ -55,7 +55,9 @@ export function formatTimelineCastDetails(
 ): string {
   const start = Number(step?.start);
   const end = Number(step?.end);
+
   if (!Number.isFinite(start) || !Number.isFinite(end)) return '';
+
   const castSeconds = Math.max(0, end - start) / 1000;
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(3)}s`;
 }
@@ -130,6 +132,7 @@ export function timelineImpactOffsets(
         !(event.type === 'damage' || (event.type === 'condition' && isDamagingCondition(event.condition))))
     )
       continue;
+
     const times = impactTimes.get(event.activationId) ?? new Set<number>();
     times.add(Math.round(event.at * 1000));
     impactTimes.set(event.activationId, times);
@@ -138,8 +141,11 @@ export function timelineImpactOffsets(
   const offsets = new Map<string, number[]>();
   for (const step of steps) {
     if (!step.activationId || step.invalid) continue;
+
     const times = impactTimes.get(step.activationId);
+
     if (!times) continue;
+
     const start = Math.round(step.start);
     offsets.set(
       step.activationId,
@@ -224,14 +230,18 @@ export function timelineDeadTimeMarkers(
 
   for (const step of steps) {
     const isSkill = isTimelineSkillStep(step);
+
     if (!isSkill && !isTimelineWaitStep(step)) continue;
+
     const start = Math.round(Number(step.start));
     // A retained post-interrupt cast lockout is forced busy time, even though
     // the visible cast itself ends at the earlier interrupt timestamp.
     const end = Math.max(Math.round(Number(step.end)), Math.round(Number(step.castLockoutEnd ?? step.end)));
     const insertionIndex = Number(step.ri);
+
     if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
       intervals.push({ start, end, insertionIndex, containsSkill: isSkill });
+
       // Wait commands are known idle intervals. Keep them in the occupancy
       // union to suppress duplicate gap markers, but report their full shape.
       if (includeExplicitWaits && !isSkill && end > start) {
@@ -246,8 +256,10 @@ export function timelineDeadTimeMarkers(
     }
 
     if (!isSkill) continue;
+
     const partialFillStart = Math.round(Number(step.partialFill?.startMs));
     const partialFillDuration = Math.round(Number(step.partialFill?.durationMs));
+
     if (Number.isFinite(partialFillStart) && Number.isFinite(partialFillDuration) && partialFillDuration > 0) {
       intervals.push({
         start: partialFillStart,
@@ -261,6 +273,7 @@ export function timelineDeadTimeMarkers(
   // Forced transition recovery is occupied time, never an editable Wait shape or idle-time suggestion.
   for (const event of resolvedEvents) {
     if (event.type !== TRANSITION_LOCKOUT_EVENT) continue;
+
     const start = Math.round(event.at * 1000);
     const end = Math.round((event.at + Number(event.duration || 0)) * 1000);
     const following = steps.find((step) => Number(step.start) >= end && isTimelineSkillStep(step));
@@ -274,6 +287,7 @@ export function timelineDeadTimeMarkers(
   const busy: typeof intervals = [];
   for (const interval of intervals) {
     const previous = busy.at(-1);
+
     if (previous && interval.start <= previous.end) {
       previous.end = Math.max(previous.end, interval.end);
       previous.containsSkill ||= interval.containsSkill;
@@ -294,8 +308,11 @@ export function timelineDeadTimeMarkers(
   for (let index = 1; index < busy.length; index += 1) {
     const previous = busy[index - 1];
     const next = busy[index];
+
     if (!previous || !next) continue;
+
     const durationMs = next.start - previous.end;
+
     if (durationMs > 0 && previousContainsSkill && futureContainsSkill[index]) {
       markers.push({
         insertionIndex: next.insertionIndex,
@@ -315,16 +332,22 @@ export function timelineDeadTimeMarkers(
   );
   for (const step of steps) {
     if (!isTimelineSkillStep(step) || !step.activationId) continue;
+
     const missingCommitMetadata = step.missingInterruptCommit === true;
     const cancelledBeforeKnownCommit = step.cancelledBeforeCommit === true && !missingCommitMetadata;
+
     if (!missingCommitMetadata && !cancelledBeforeKnownCommit) continue;
+
     // A declared cutoff proves the cast failed even if an incidental proc dealt damage;
     // missing metadata remains dead time only when the activation produced no damage at all.
     if (missingCommitMetadata && damagingActivations.has(step.activationId)) continue;
+
     const start = Math.round(Number(step.start));
     const end = Math.round(Number(step.end));
     const durationMs = end - start;
+
     if (!Number.isFinite(start) || !Number.isFinite(end) || durationMs <= 0) continue;
+
     markers.push({
       insertionIndex: Number(step.ri),
       start,
@@ -351,11 +374,14 @@ export function timelineTransitionDelayMarkers(
   const intervals: Array<{ start: number; end: number }> = [];
   for (const event of events) {
     if (event.type !== TRANSITION_LOCKOUT_EVENT) continue;
+
     let start = Math.round(event.at * 1000);
     const end = Math.min(endMs, Math.round((event.at + Number(event.duration || 0)) * 1000));
     for (const busy of occupied) {
       if (busy.end <= start || busy.start >= end) continue;
+
       if (busy.start > start) intervals.push({ start, end: busy.start });
+
       start = Math.max(start, busy.end);
     }
 
@@ -366,6 +392,7 @@ export function timelineTransitionDelayMarkers(
   const merged: typeof intervals = [];
   for (const interval of intervals.sort((left, right) => left.start - right.start)) {
     const previous = merged.at(-1);
+
     if (previous && interval.start < previous.end) previous.end = Math.max(previous.end, interval.end);
     else merged.push({ ...interval });
   }
@@ -383,7 +410,9 @@ export function timelineTransitionDelayMarkers(
 
 export function formatTimelineDuration(durationMs: unknown): string {
   const milliseconds = Math.max(0, Math.round(Number(durationMs) || 0));
+
   if (milliseconds < 1000) return `${milliseconds}ms`;
+
   const seconds = milliseconds / 1000;
   const precision = seconds < 10 ? 2 : seconds < 100 ? 1 : 0;
   const formatted = seconds.toFixed(precision);
@@ -399,6 +428,7 @@ export function formatTimelineSkillTooltip(
   details: readonly string[] = []
 ): string {
   if (!step || step.invalid || !ordinal) return String(name || '');
+
   const duration = Math.max(0, Math.round(Number(step.end || 0) - Number(step.start || 0)));
   // Keep cast and impact timing together before ordinals so the activation's timing is easy to scan.
   return [
@@ -424,8 +454,11 @@ export function formatInterruptTimelineBadge(interruptMs: unknown, timestamp: un
 export function rotationEntryName(entry: RotationCommand): string {
   // Preserve the established UI action keys while deriving them from canonical command discriminants.
   if (entry.type === 'cast') return String(entry.skillId);
+
   if (entry.type === 'wait') return '__wait';
+
   if (entry.type === 'combat-start') return '__combat_start';
+
   return '__cooldown_reset';
 }
 
@@ -470,11 +503,15 @@ function timelineRows(
       index
     );
     const changesWeaponLine = nextWeaponLine !== undefined;
+
     if (!swapsWeaponSet && !changesWeaponLine) return;
+
     // A real swap changes the next row's set. Transform transitions start a
     // fresh row for the same equipped set.
     if (swapsWeaponSet) weaponSet = weaponSet === 1 ? 2 : 1;
+
     if (changesWeaponLine) weaponLine = nextWeaponLine;
+
     if (index < rotation.length - 1) {
       rows.push({ weaponSet, weaponLine, skills: [] });
     }
@@ -580,6 +617,7 @@ function relicRefreshActivations(procSteps: readonly Gw2ProcStep[]): Set<Gw2Proc
     .filter((step) => step.type === 'relic_proc')
     .sort((left, right) => left.start - right.start)) {
     const key = procFilterKey(proc);
+
     // Consumption closes the old pool so later buildup is a new activation, not a refresh.
     if (proc.effectState?.stacks === 0) {
       windows.delete(key);
@@ -587,12 +625,15 @@ function relicRefreshActivations(procSteps: readonly Gw2ProcStep[]): Set<Gw2Proc
     }
 
     if (!(Number(proc.expiresAt) > proc.start)) continue;
+
     const window = windows.get(key);
     const stacks = proc.effectState?.stacks ?? 0;
     // The window is strictly open, matching the relic rules: an activation at
     // the exact expiry starts a fresh effect rather than refreshing it.
     const active = window !== undefined && proc.start < window.expiresAt;
+
     if (active && stacks <= window.stacks) refreshes.add(proc);
+
     windows.set(key, { expiresAt: Math.max(active ? window.expiresAt : 0, Number(proc.expiresAt)), stacks });
   }
 
@@ -638,6 +679,7 @@ export function relicProcExpirationTimelineMarkers(
 
   const appendExpiration = (window: { proc: Gw2ProcStep; expiresAt: number; activations: Gw2ProcStep[] }): void => {
     if (window.expiresAt > rotationEnd) return;
+
     expired.push({
       ...window.proc,
       start: window.expiresAt,
@@ -654,15 +696,19 @@ export function relicProcExpirationTimelineMarkers(
     .sort((left, right) => left.start - right.start)) {
     const key = procFilterKey(proc);
     const window = windows.get(key);
+
     if (proc.effectState?.stacks === 0) {
       // Preserve a timeout that already happened, but discard one superseded by consumption.
       if (window && window.expiresAt < proc.start) appendExpiration(window);
+
       windows.delete(key);
       continue;
     }
 
     const expiresAt = Number(proc.expiresAt);
+
     if (!(expiresAt > proc.start)) continue;
+
     if (window && proc.start <= window.expiresAt) {
       window.proc = proc;
       window.expiresAt = Math.max(window.expiresAt, expiresAt);
@@ -671,6 +717,7 @@ export function relicProcExpirationTimelineMarkers(
     }
 
     if (window) appendExpiration(window);
+
     windows.set(key, { proc, expiresAt, activations: [proc] });
   }
 
@@ -692,6 +739,7 @@ export function procStackLabel(proc: Gw2ProcStep): string {
 
 export function procBadgeLabel(procSteps: readonly Gw2ProcStep[] = []): string {
   const reductions = procSteps.map((proc) => Number(proc.cooldownReduction));
+
   if (reductions.length && reductions.every((reduction) => Number.isFinite(reduction) && reduction > 0)) {
     const total = reductions.reduce((sum, reduction) => sum + reduction, 0);
     const rounded = Math.round((total + Number.EPSILON) * 1000) / 1000;
@@ -711,6 +759,7 @@ export function groupConsecutiveProcSteps(procSteps: readonly Gw2ProcStep[] = []
   for (const proc of procSteps) {
     const key = procFilterKey(proc);
     const previous = groups.at(-1);
+
     if (previous?.key === key) {
       previous.steps.push(proc);
     } else {
@@ -744,6 +793,7 @@ export function timelineWeaponRowGroups(rows: readonly TimelineRow[] = []): Time
   const groups: TimelineWeaponRowGroup[] = [];
   for (const row of rows) {
     const current = groups.at(-1);
+
     if (current?.weaponSet === row.weaponSet) current.rows.push(row);
     else groups.push({ weaponSet: row.weaponSet, rows: [row] });
   }
@@ -780,7 +830,9 @@ export function targetHealthTimelineMarkers(
   const percents = [...new Set(thresholds)]
     .map((threshold) => Number(threshold) * 100)
     .filter((percent) => percent > 0 && percent < 100);
+
   if (!percents.length) return [];
+
   const steps = (result?.steps || [])
     .filter((step) => step.ri >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.ri - right.ri);
@@ -804,6 +856,7 @@ export function mechanicResourceSpends(
   const activations = new Map((result?.steps ?? []).map((step) => [step.activationId, step]));
   for (const event of result?.events || []) {
     const activation = event.activationId == null ? undefined : activations.get(event.activationId);
+
     if (event.type !== 'resource' || event.reason !== 'profession mechanic' || activation?.ri == null) {
       continue;
     }
@@ -844,7 +897,9 @@ export function timelineStepsWithChargeFills(
   return steps.map((step) => {
     const spend = resourceSpends.get(step.ri);
     const chargingMs = Math.round(Number(spend?.chargingSeconds || 0) * 1000);
+
     if (chargingMs <= 0) return step;
+
     return {
       ...step,
       partialFill: {

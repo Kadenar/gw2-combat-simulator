@@ -35,7 +35,9 @@ test('shortbow conditions distinguish frontal and defiant targets with and witho
       );
       const immobilized = conditions(ID.CRIPPLING_SHOT, 'Immobilized');
       assert.equal(immobilized.length, defiant ? 1 : 0);
+
       if (defiant) assert.equal(immobilized[0].effectiveDuration, trait ? 2.5 : 1.5);
+
       assert.equal(conditions(ID.CRIPPLING_SHOT, 'Crippled')[0].effectiveDuration, 4);
       assert.equal(
         result.events.find((e) => e.type === 'control' && e.sourceId === ID.CONCUSSION_SHOT).controlKind,

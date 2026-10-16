@@ -362,10 +362,12 @@ export const evokerTraits = [
 /** Accepted Burning in Fire consumes Ignite's existing pulse interval only when its Might packet survives. */
 function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
+
   if (event.type === 'condition' && event.condition === 'Burning' && state.element === 'Fire') {
     const evocationProfile = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
     const might = requireEffect(evocationProfile, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
+
     if (
       might &&
       context.procs.claimCooldown(
@@ -394,6 +396,7 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
 /** Entry cycles arm Elemental Balance before Dynamo grants the resulting familiar charge. */
 function applyElementalBalanceEntry(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
+
   // everything past this point is an attunement-entry trait
   if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
     return;
@@ -401,12 +404,14 @@ function applyElementalBalanceEntry(context: ElementalistRuntime, event: Simulat
 
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
   if (event.to !== state.element) return;
+
   {
     const elementalBalanceProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_BALANCE);
     const threshold = balanceProfileNumber(elementalBalanceProfile, 'threshold');
     // Completing the selected-attunement entry cycle arms the reward and starts the next cycle at zero.
     const progress = advanceCounter(state.elementalBalanceProgress, 1, threshold, 'reset');
     state.elementalBalanceProgress = progress.value;
+
     if (progress.reached) {
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
       const duration = balanceProfileNumber(elementalBalanceProfile, 'durationMultiplier');
@@ -429,6 +434,7 @@ function applyElementalBalanceEntry(context: ElementalistRuntime, event: Simulat
 /** Accepted entries into the familiar element grant one profiled Dynamo charge. */
 function applyElementalDynamoEntry(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
+
   // everything past this point is an attunement-entry trait
   if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
     return;
@@ -469,6 +475,7 @@ function applyWeaponSkillRechargeMultiplier(
   const at = cast.effectiveEnd;
   for (const candidate of context.helpers.skills) {
     if (candidate.type !== 'Weapon') continue;
+
     const reduction = gw2BaseRecharge(candidate) * Math.max(0, 1 - multiplier);
     context.cooldownController.reduceSkillRecharge(candidate, reduction, at);
   }
@@ -480,6 +487,7 @@ function applySpecializedElementsTrait(
   skill: Skill
 ): void {
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
+
   // Basic familiars retain 90% weapon recharge; empowered familiars retain
   // 67% and trigger the elemental entry effects.
   if (familiarElement) {
@@ -493,6 +501,7 @@ function applySpecializedElementsTrait(
         basic ? 'rechargeMultiplier' : 'empoweredRechargeMultiplier'
       )
     );
+
     if (!basic) {
       reenterEvokerAttunement(context, cast, skill, familiarElement);
     }
@@ -518,8 +527,10 @@ const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
  */
 function applyAltruisticAspect(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!ALTRUISTIC_ASPECT_SKILLS.has(skill.id)) return;
+
   const altruisticAspectProfile = requireBalanceProfileFromContext(context, TRAIT.ALTRUISTIC_ASPECT);
   const effect = requireEffect(altruisticAspectProfile, 'boon', skill.name);
+
   if (effect) {
     emitTraitProfile(context, TRAIT.ALTRUISTIC_ASPECT, TRAIT.ALTRUISTIC_ASPECT, undefined, {
       at: cast.effectiveEnd,
@@ -547,6 +558,7 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
   const extension = balanceProfileNumber(familiarsProwessProfile, 'durationPerTier');
   const maximumDuration = balanceProfileNumber(familiarsProwessProfile, 'maximumStacks');
   const current = activeElementalistBuffs(context, 'familiars-prowess', at).at(-1);
+
   if (current) {
     refreshElementalistBuffs(context, 'familiars-prowess', at, (expiry) =>
       Math.min(expiry + extension, at + maximumDuration)
@@ -575,6 +587,7 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
 function grantFamiliarBlessing(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const at = cast.effectiveEnd;
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
+
   if (familiarElement) {
     // Blessing reaches the five-person party so ally boon generation and uptime include familiar grants.
     emitTraitProfile(context, TRAIT.FAMILIARS_BLESSING, TRAIT.FAMILIARS_BLESSING, undefined, {

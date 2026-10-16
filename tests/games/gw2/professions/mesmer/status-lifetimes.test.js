@@ -64,7 +64,9 @@ function lifetimeContext(traits = [], rechargeRate = 1) {
     },
     announce: (request) => {
       const event = { ...request.attribution, ...request.announcement, type: 'proc' };
+
       if (request.log) events.push(event);
+
       return event;
     }
   }).effects;
@@ -81,8 +83,10 @@ function lifetimeContext(traits = [], rechargeRate = 1) {
 
 function complete(context, cast) {
   context.time = cast.fullEnd;
+
   if (!cast.cancelled && cast.skill.id === ID.MIMIC)
     applySkillSideEffects(context, cast, 'castCommit', mesmerCoreHooks.sideEffectHandlers);
+
   completeMimicCast(context, cast);
 }
 
@@ -282,8 +286,11 @@ test('Mirror availability, palette, projection, and one-time pickup agree on exa
     const active = at >= 0.301 && at < 8.301;
     const availability = mirageAvailability(context, skill);
     assert.equal(availability.ready, active);
+
     if (at < 0.301) assert.equal(availability.retryAt, 0.301);
+
     if (at >= 8.301) assert.equal(availability.retryAt, null);
+
     context.time = at;
     assert.equal(state.mirrors.length, 1, 'Availability does not purge the live owner');
     assert.equal(controller.pickUpMirror(at, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), active);

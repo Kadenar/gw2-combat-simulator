@@ -39,7 +39,9 @@ export function isCommittedInterruptedPhantasm(
   skill: Pick<MesmerSkill, 'phantasmSummonProgress'>
 ): boolean {
   const progress = Number(skill.phantasmSummonProgress);
+
   if (!Number.isFinite(progress) || !castWasInterrupted(cast)) return false;
+
   const summonAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * progress);
   return canonicalTime(cast.effectiveEnd) >= summonAt;
 }
@@ -63,6 +65,7 @@ export function scheduleMesmerPhantasmEffects(
 export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
   const details = context.profession.core.castDetails.get(cast.id)!;
+
   if (details.reservedShatterResources && !details.shatterSpendCommitted) {
     details.shatterSpent = createMesmerActions(context).commitReservedResources(
       context.time,
@@ -84,6 +87,7 @@ export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<Me
     details.reservedShatterResources ? cast.fullEnd : context.time,
     delivery
   );
+
   if (resolution) completeMesmerShatter(context, resolution);
 }
 
@@ -92,6 +96,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
   const details = context.profession.core.castDetails.get(cast.id) || {};
   const at = context.time;
   const interrupted = castWasInterrupted(cast);
+
   if (interrupted && details.earlyResourceAt != null && canonicalTime(cast.effectiveEnd) < details.earlyResourceAt) {
     context.cancelOwner({ id: details.earlyResourceOwnerId!, generation: 0 });
   }
@@ -114,6 +119,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
     if (cast.cancelled) return;
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return;
+
     // Ordinary grants need only the reward queue; resource-free casts must not construct effect controllers.
     if (
       (skill.resource?.mode === 'add' || skill.resource?.mode === 'fill') &&
@@ -161,6 +167,7 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
       : null;
   const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < canonicalTime(cast.fullEnd);
   const earlyResourceOwnerId = `${cast.id}:mesmer.resource`;
+
   if (resourceScheduledDuringCast && earlyResourceAt <= canonicalTime(cast.effectiveEnd)) {
     // Cast-start resource packets must resolve during the cast so concurrent shatters can consume them.
     context.schedule(
@@ -193,6 +200,7 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
     shatterSpendCommitted: !delayedResourceSpend,
     shatterSpent
   });
+
   if (delayedResourceSpend && !cast.cancelled) {
     context.schedule(
       'mesmer.blade-spend',

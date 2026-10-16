@@ -141,9 +141,12 @@ export const putridDefense = defineTrait({
 /** Compiled heal admission grants Carapace and independent Protection under one Dark Defense cooldown. */
 function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (cast.skill.type !== 'Heal' || !hasTrait(runtime, TRAIT.DARK_DEFENSE)) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_DEFENSE);
+
   if (!runtime.procs.claimCooldown('darkDefense', runtime.time, balanceProfileNumber(profile, 'internalCooldown')))
     return;
+
   addCarapace(
     runtime,
     balanceProfileNumber(profile, 'resourceGain'),
@@ -161,6 +164,7 @@ function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<Necroma
 
 function applyCorruptorsFervor(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.actorType === 'summon') return;
+
   addCarapace(
     context,
     balanceNumberFromContext(context, TRAIT.CORRUPTERS_FERVOR, 'resourceGain'),
@@ -198,6 +202,7 @@ function prepareShroudedRemoval(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SHROUDED_REMOVAL);
   const removed = state.selfConditions.splice(0, balanceProfileNumber(profile, 'maximumConditions'));
+
   if (removed.length)
     addCarapace(
       runtime,

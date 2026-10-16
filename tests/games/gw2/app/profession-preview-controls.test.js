@@ -33,7 +33,9 @@ function previewApp(name, traitNames = [], specialization = null) {
     const trait = adapter.profession.catalog.traits.find((trait) => trait.name === name);
     assert.ok(trait, name);
     const choices = selections.get(trait.specialization) || [0, 0, 0];
+
     if (trait.position > 0 && trait.tier > 0) choices[trait.tier - 1] = trait.position;
+
     selections.set(trait.specialization, choices);
   }
 
@@ -413,6 +415,7 @@ for (const [profession, specialization, skillName, key, weapons] of [
 ]) {
   test(`${profession}: ${key} reaches native outgoing damage`, () => {
     const app = previewApp(profession, [], specialization);
+
     if (skillName) {
       const skill = app.skills.find((skill) => skill.name === skillName);
       assert.ok(skill, skillName);
@@ -420,6 +423,7 @@ for (const [profession, specialization, skillName, key, weapons] of [
     }
 
     if (weapons) app.build.weapons = weapons;
+
     app.attributeData = app.adapter
       .createBuildContext({
         build: app.build,
@@ -445,6 +449,7 @@ for (const [profession, trait, key, value, attribute] of [
 ]) {
   test(`${profession}: ${key} agrees across isolated previews`, () => {
     const app = previewApp(profession, [trait]);
+
     if (profession === 'revenant') {
       app.build.selectedLegends = ['LegendaryAssassin', 'LegendaryDemon'];
       app.attributeData = app.adapter

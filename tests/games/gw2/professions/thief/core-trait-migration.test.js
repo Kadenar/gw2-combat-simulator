@@ -40,11 +40,13 @@ test('Thief critical boons read pre-hit Fury with same-time ordering and expiry'
       {
         initialize(runtime) {
           const owner = { source: 'fixture', sourceId: 'strike', actorType: 'player' };
+
           if (initialFury)
             runtime.effects.emit({
               kind: 'packet',
               event: { ...owner, type: 'buff', at: 0, kind: 'fury', stacks: 1, duration: 2 }
             });
+
           for (const at of [1, 1, initialFury ? 8 : 7]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
         },
         extend: (native) => ({
@@ -52,6 +54,7 @@ test('Thief critical boons read pre-hit Fury with same-time ordering and expiry'
             ...native.reactions,
             'damage.resolved'(runtime, event, details) {
               if (event.source === 'fixture') observed.push(details.hitContext.critical.furyActive);
+
               return native.reactions['damage.resolved'](runtime, event, details);
             }
           }
@@ -114,6 +117,7 @@ for (const [name, traitId, action, catalog, procs] of [
       assert.equal(readyAt[1][traitId], 1 + duration);
       assert.equal(readyAt[2][traitId], 1 + duration + 0.04 + duration);
       for (const claims of readyAt) assert.equal(claims.unrelated, 99);
+
       if (procs) assert.equal(procs(result), 2);
     }
   });
@@ -232,6 +236,7 @@ for (const [name, traitId, invoke, output] of [
       owner[method] = (event) => {
         assert.equal(context.procs.snapshot()[traitId], context.effectiveEnd + duration);
         emissions += 1;
+
         if (reenter) {
           reenter = false;
           const before = emissions;
@@ -521,14 +526,17 @@ test('Thief critical proc batches reread patched effects and leave duration samp
       fireCritical(context, { at: duration, skillName: 'Test' });
       fireCritical(context, { at: duration + 0.1, skillName: 'Test' });
       const packets = [context.queue.dequeue(), context.queue.dequeue()];
+
       if (id === TRAIT.UNRELENTING_STRIKES)
         assert.deepEqual(
           packets.map((packet) => packet.duration),
           [duration, duration]
         );
       else assert.ok(packets.every((packet) => packet.name === 'No Quarter - Fury Extension'));
+
       assert.equal(statReads, 0);
       assert.equal(context.queue.length, 0);
+
       if (id === TRAIT.NO_QUARTER) {
         assert.equal(
           remainingDurationStackSeconds(context.boons.get('fury'), duration + 1, { maximum: 30 }),
@@ -706,6 +714,7 @@ test('Cloaked in Shadow emits its authored noncritical packet only for applied B
     );
     const packets = result.events.filter((event) => event.sourceId === TRAIT.CLOAKED_IN_SHADOW);
     assert.equal(packets.length, removed ? 0 : 1);
+
     if (!removed) {
       assert.equal(packets[0].damageKind, 'life-steal');
       assert.equal(packets[0].canCrit, false);

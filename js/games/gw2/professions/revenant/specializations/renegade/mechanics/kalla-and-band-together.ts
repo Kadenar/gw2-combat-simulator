@@ -46,8 +46,10 @@ export function grantKallasFervor(
   const state = renegadeState.from(runtime);
   const profile = fervorProfile(runtime);
   const effect = requireEffect(profile, 'buff', 'kallas-fervor');
+
   // Fervor stacks are the buff, so a removed buff grants nothing.
   if (!effect) return;
+
   const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
   state.kallasFervorMaximumStacks = maximum;
   state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
@@ -56,6 +58,7 @@ export function grantKallasFervor(
   for (let index = 0; index < stacks; index++) {
     if (activeKallasFervorStacks(state, runtime.time, maximum) >= maximum)
       state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
+
     state.kallasFervor.push({ at: runtime.time, expiresAt: runtime.time + duration });
   }
 

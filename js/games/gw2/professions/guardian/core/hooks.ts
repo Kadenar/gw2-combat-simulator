@@ -47,14 +47,18 @@ const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
 function completeCoreVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   refreshGuardianVirtues(runtime);
+
   if (!readyVirtueActivations.has(cast)) return;
+
   runtime.fireTrigger(virtueActivated, { cast, virtue });
+
   if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
 }
 
 /** Eligible completed skills release the post-Fire lockout; flip transitions remain skill-owned. */
 function clearTorchLockout(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   const skill = cast.skill;
+
   // Profession bars and explicitly managed flips retain their specialization's sole transition owner.
   if (
     String(skill.slot ?? '').startsWith('Profession_') ||
@@ -66,7 +70,9 @@ function clearTorchLockout(runtime: GuardianRuntime, cast: RuntimeCast<GuardianS
       runtime.helpers.skillsById.get(skill.flipSkillId)?.tags?.includes('specialization-managed-flip'))
   )
     return;
+
   if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
+
   if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')
     runtime.castController.clearLockout('guardian-zealots-flame-after-fire');
 }
@@ -86,6 +92,7 @@ export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
   initialize(runtime) {
     for (const buff of runtime.config.initialBuffs ?? []) {
       if (buff.kind !== 'symbolic-avenger') continue;
+
       runtime.profession.core.symbolicAvengerExpirations = grantTimedStacks([], {
         at: runtime.time,
         expiresAt: runtime.time + buff.duration,
@@ -125,47 +132,60 @@ export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
   // ahead of this hook, so the two duration extensions are applied here to reach the selected Symbol of Ignition field.
   modifyComboFields(runtime, cast, fields) {
     if (cast.skill.id === ID.SYMBOL_OF_IGNITION) fields = guardianIgnitionFields(runtime);
+
     return writOfPersistenceFields(runtime, cast, masterOfConsecrationsFields(runtime, cast, fields));
   },
   availability(runtime, skill) {
     const flips = runtime.profession.core.availableFlips;
+
     if (skill.id === ID.ZEALOTS_FLAME && skillFlipReady(flips[ID.ZEALOTS_FIRE], runtime.time))
       return denySkillCast(skill, 'guardian.flip-parent-active', 'use the active flip skill first.');
+
     if (
       skill.flipParentId != null &&
       !skill.tags?.includes('specialization-managed-flip') &&
       !skillFlipReady(flips[skill.id], runtime.time)
     )
       return denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.');
+
     return { ready: true };
   },
   onCastStart(runtime, cast) {
     const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
+
     if (!virtue) return;
+
     refreshGuardianVirtues(runtime);
+
     if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.add(cast);
   },
   onCastCommit(runtime, cast) {
     clearTorchLockout(runtime, cast);
     runtime.fireTrigger(guardianCastCompleted, { cast });
     const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
+
     if (virtue) completeCoreVirtue(runtime, cast, virtue);
   },
   onCooldownReset: refreshGuardianVirtues,
   reactions: {
     'damage.resolved'(runtime, event, details) {
       const damage = (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0;
+
       // Weapon ignition precedes Zeal rewards, which precede Core passive Justice.
       if (event.actorType === 'player' && Number(event.coefficient) > 0 && damage > 0)
         reactToSymbolOfIgnition(runtime, event);
+
       if (event.actorType === 'player' && Number(event.coefficient) > 0 && damage > 0)
         runtime.fireTrigger(guardianStruck, { cause: event, damage });
+
       if (runtime.profession.specialization.kind !== 'Core') return;
+
       refreshGuardianVirtues(runtime);
       reactToJusticeHitWithOptions(runtime, event, details);
     },
     'buff.applied'(runtime, event) {
       if (event.kind === 'alacrity') refreshGuardianVirtues(runtime);
+
       runtime.fireTrigger(guardianBuffApplied, { cause: event });
     },
     'condition.applied'(runtime, event) {

@@ -337,6 +337,7 @@ test('delayed-impact casts land hostile packets later without moving the cast or
           ...testProfession.runtimeFor(config).reactions,
           'damage.resolved'(context, event) {
             if (event.type !== 'damage' || event.name === 'Fixture Reaction') return;
+
             context.effects.emit({
               kind: 'packet',
               cause: event,

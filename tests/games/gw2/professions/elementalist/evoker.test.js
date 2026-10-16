@@ -48,6 +48,7 @@ test('familiar replacement honors patched cancellation windows and preserves the
         const withinWindow = elapsed < window;
         assert.deepEqual(cancelled, withinWindow ? [{ id: 'empowered', generation: 0 }] : []);
         assert.deepEqual(modifyFamiliarEffects(context, cast, effects), withinWindow ? [] : effects);
+
         if (basicName === 'Ignite') {
           captureIgniteTier(context, cast);
           assert.equal(state.igniteTier, withinWindow ? 0 : 1);
@@ -628,11 +629,13 @@ test('Evoker queues early familiar inputs only when pending charges can make the
     });
     const parent = result.events.find((event) => event.type === 'action' && event.skillName === 'Sand Squall');
     const familiar = result.events.find((event) => event.type === 'action' && event.skillName === 'Calcify');
+
     if (initialEvokerCharges === 3) {
       assert.equal(familiar, undefined);
       assert.match(result.warnings.join('\n'), /requires 6 charges/);
     } else {
       assert.deepEqual(result.warnings, []);
+
       if (initialEvokerCharges === 4) {
         assert.equal(familiar.at, parent.endsAt);
         assert.equal(result.planningState.profession.familiarCharges.value, 0);

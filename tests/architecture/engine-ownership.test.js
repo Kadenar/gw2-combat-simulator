@@ -48,6 +48,7 @@ test('profession implementations cannot import aggregate runtimes or capability 
     );
     for (const statement of source.statements.filter(ts.isImportDeclaration)) {
       const bindings = statement.importClause?.namedBindings;
+
       if (bindings && ts.isNamedImports(bindings))
         for (const binding of bindings.elements)
           assert.doesNotMatch(
@@ -72,8 +73,10 @@ test('Dragon Trigger cannot inspect the command cursor', () => {
   const source = ts.createSourceFile(file, readFileSync(new URL(file, root), 'utf8'), ts.ScriptTarget.Latest, true);
   function visit(node) {
     if (ts.isPropertyAccessExpression(node)) assert.notEqual(node.name.text, 'cursor');
+
     if (ts.isElementAccessExpression(node) && ts.isStringLiteral(node.argumentExpression))
       assert.notEqual(node.argumentExpression.text, 'cursor');
+
     ts.forEachChild(node, visit);
   }
 

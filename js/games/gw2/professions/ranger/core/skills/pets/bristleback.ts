@@ -99,20 +99,25 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
 /** Only the active Bristleback can arm its follow-up; retired pets cannot grant it to their replacement. */
 export function armPetSharpenSpines(runtime: RangerRuntime, event: Gw2ResolverEvent): void {
   const state = runtime.profession.core;
+
   if (
     event.kind !== 'pet-sharpen-spines' ||
     event.sourceId !== ID.BRISTLEBACK_SHARPEN_SPINES ||
     state.activePet !== 'Bristleback'
   )
     return;
+
   const pet = rangerOwningPetState(state.pet, event.summonOwner);
+
   if (pet) pet.sharpenSpines = grantCharges(Number(event.stacks), runtime.time + Number(event.duration));
 }
 
 /** Only the currently armed Bristleback's landed strikes can spend its expiring bleed charges. */
 export function consumePetSharpenSpines(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const { pet, activePet } = context.profession.core;
+
   if (!pet || activePet !== 'Bristleback' || !isActivePetStrike(context, event)) return;
+
   deliverChargedHit(context, event, PROFILE.petSharpenSpines, () => consumeCharge(pet.sharpenSpines, event.at), {
     attribution: {
       source: 'ranger-pet',

@@ -33,6 +33,7 @@ function run(rotation, overrides = {}, output = 'detailed') {
       ...native,
       onCastStart(runtime, cast) {
         native.onCastStart?.(runtime, cast);
+
         if (cast.skill.dragonSlash) casts.push(cast);
       }
     },

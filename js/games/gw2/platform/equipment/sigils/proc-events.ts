@@ -9,21 +9,26 @@ export function createSigilDamagePayload(
   sourceSkill: string
 ): readonly SimulationEventBase[] {
   const events: SimulationEventBase[] = [];
+
   if (proc.effect === 'strike' || proc.effect === 'strike-condition')
     events.push(createSigilStrikeEvent(id, proc, sourceSkill));
+
   if (
     proc.effect === 'condition' ||
     proc.effect === 'next-hit-condition' ||
     (proc.effect === 'strike-condition' && proc.condition)
   )
     events.push(createSigilConditionEvent(id, proc, sourceSkill));
+
   return events;
 }
 
 /** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */
 export function createCriticalSigilEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   if (proc.effect === 'strike') return createSigilStrikeEvent(id, proc, sourceSkill);
+
   if (proc.effect === 'condition') return createSigilConditionEvent(id, proc, sourceSkill);
+
   throw new TypeError(`Unsupported critical sigil effect: ${SIGIL_BY_ID[id]?.name ?? id} (${proc.effect}).`);
 }
 

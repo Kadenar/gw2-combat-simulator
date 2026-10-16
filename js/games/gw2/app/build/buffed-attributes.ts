@@ -120,6 +120,7 @@ function calculatePreview(
   const previewBuffs = new Map<string, Gw2TimedBuffApplication[]>();
   const addBuff = (kind: string, stacks: number, name: string): void => {
     if (!stacks) return;
+
     const application = {
       at: 0,
       duration: 60,
@@ -144,8 +145,11 @@ function calculatePreview(
     const value = values[control.key];
     const count = Number(value) || 0;
     const field = control.field || control.key;
+
     if (control.kind === 'buff') addBuff(field, count, control.label);
+
     if (control.kind === 'condition') targetConditions[field] = count;
+
     // Share anonymous condition-count inputs with damage previews while keeping named conditions independent.
     if (control.kind === 'conditionCount')
       for (let index = 0; index < count; index++) targetConditions[`preview-condition-${index}`] = 1;
@@ -184,7 +188,9 @@ function calculatePreview(
   });
   // Seed an isolated active stack window so both displayed and conjure durations use the relic's combat formula.
   const relic = values.aristocracy ? createRelicRuntime('Aristocracy') : undefined;
+
   if (relic) relic.state.activations = [{ at: 0, expiresAt: 60, stacks: Number(values.aristocracy) }];
+
   const runtime = {
     profession: professionState,
     activeWeaponSet: weaponSet,
@@ -217,6 +223,7 @@ function calculatePreview(
     data.attributes['Boon Duration'].final +
       (stats.concentration - preview.attributeData!.attributes.Concentration.final) / 15
   );
+
   if (queryOptions.conditionDurations) {
     const duration = (query.conditionDurationMultiplier('', 1, stats, event, runtime) - 1) * 100;
     set('Condition Duration', duration);

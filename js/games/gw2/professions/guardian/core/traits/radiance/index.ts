@@ -284,7 +284,9 @@ function resolutionDeadline(runtime: GuardianRuntime): number {
 function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): boolean {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
   const effect = requireEffect(profile, 'boon', 'might');
+
   if (!effect) return false;
+
   emitTraitProfile(runtime, TRAIT.RIGHTEOUS_INSTINCTS, TRAIT.RIGHTEOUS_INSTINCTS, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
@@ -321,12 +323,19 @@ function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEve
   const state = runtime.profession.core;
   const active = state.resolutionUntil > runtime.time;
   state.resolutionUntil = resolutionDeadline(runtime);
+
   if (!(state.resolutionUntil > runtime.time)) return;
+
   runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
+
   if (active) return;
+
   state.righteousInstinctsGeneration++;
+
   if (!righteousMight(runtime, event)) return;
+
   const interval = balanceNumberFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
+
   if (interval > 0)
     runtime.schedule(
       MIGHT,
@@ -340,8 +349,11 @@ function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEve
 /** Refresh the live Resolution deadline before same-time Might pulses. */
 function expireRighteousResolution(runtime: GuardianRuntime, deadline: unknown): void {
   const state = runtime.profession.core;
+
   if (state.resolutionUntil !== deadline) return;
+
   state.resolutionUntil = resolutionDeadline(runtime);
+
   if (state.resolutionUntil > runtime.time)
     runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
 }
@@ -350,22 +362,29 @@ function expireRighteousResolution(runtime: GuardianRuntime, deadline: unknown):
 function pulseRighteousMight(runtime: GuardianRuntime, data: unknown): void {
   const { generation, event } = data as { generation: number; event: Gw2ResolverEvent };
   const state = runtime.profession.core;
+
   if (generation !== state.righteousInstinctsGeneration) return;
+
   state.resolutionUntil = resolutionDeadline(runtime);
+
   if (!(state.resolutionUntil > runtime.time) || !righteousMight(runtime, event)) return;
+
   const interval = balanceNumberFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
+
   if (interval > 0) runtime.schedule(MIGHT, canonicalTime(runtime.time + interval), data, undefined, -10);
 }
 
 /** A committed heal claims Resolution's interval only when its selected boon can emit. */
 function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCastCompletion): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEALERS_RESOLUTION);
+
   // A removed boon leaves this heal's claim ready.
   if (
     !requireEffect(profile, 'boon', 'resolution') ||
     !runtime.procs.claim(TRAIT.HEALERS_RESOLUTION, 'guardian.core.healersResolution', runtime.time)
   )
     return;
+
   const cause = guardianCastCause(runtime, cast);
   emitTraitProfile(runtime, TRAIT.HEALERS_RESOLUTION, TRAIT.HEALERS_RESOLUTION, cause, {
     at: runtime.time,

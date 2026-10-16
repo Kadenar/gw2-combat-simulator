@@ -47,6 +47,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
     },
     onCastStart(runtime, cast) {
       native.onCastStart(runtime, cast);
+
       if (cast.skill.id === ID.GHASTLY_CLAWS)
         seen.push([runtime.activeWeaponSet, owner.sigil.doomPending, runtime.time]);
     }
@@ -259,6 +260,7 @@ function withChainStep(config, skillId) {
     initialize(runtime) {
       native.initialize(runtime);
       const position = native.catalog.autoattackChainPositions.get(skillId);
+
       if (position) runtime.profession.core.autoattackChains[position.root] = skillId;
     }
   };
@@ -334,6 +336,7 @@ test('Addle snapshots its activation gate but grants shards and defiance life fo
     },
     onCastStart(runtime, cast) {
       native.onCastStart(runtime, cast);
+
       if (cast.skill.id === ID.ADDLE) runtime.schedule('test.shards', cast.start + (cast.fullEnd - cast.start) / 2);
     },
     tasks: {
@@ -369,6 +372,7 @@ test('Perforate consumes current shards per accepted packet, including gains dur
     },
     onCastStart(runtime, cast) {
       native.onCastStart(runtime, cast);
+
       if (cast.skill.id === ID.PERFORATE)
         runtime.schedule('test.shard', cast.start + (cast.fullEnd - cast.start) * 0.7);
     },
@@ -582,6 +586,7 @@ test('corruption skill effects apply self conditions once and honor trait select
         result.planningState.profession.selfConditions.map(({ condition, stacks }) => [condition, stacks]),
         mode === 'removed' ? [] : mode === 'trait' ? [ordinary, extra] : [ordinary]
       );
+
       if (skillId === ID.BLOOD_IS_POWER) {
         assert.equal(
           result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === skillId).length,
@@ -722,6 +727,7 @@ test('condition-based life force belongs to a landed impact and Devouring counts
     };
     const result = simulate([cast(skillId)], config);
     assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 10);
+
     if (skillId === ID.DEVOURING_DARKNESS)
       assert.equal(
         result.resolvedEvents
@@ -729,6 +735,7 @@ test('condition-based life force belongs to a landed impact and Devouring counts
           .reduce((sum, event) => sum + event.stacks, 0),
         2
       );
+
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
       assert.equal(
         lifeForcePercent(simulate([{ ...cast(skillId), ...flags }], config).planningState.profession.lifeForce),
@@ -974,6 +981,7 @@ test('a replacement generation cancels the old autonomous clock and pending Haun
     ...native,
     onCastCommit(runtime, completed) {
       native.onCastCommit(runtime, completed);
+
       if (completed.skill.id === ID.SUMMON_SHADOW_FIEND) {
         original = completed;
         runtime.schedule('replace-minion', runtime.time + 1);
@@ -1125,6 +1133,7 @@ test('manual Lich exit cancels its old deadline before a replacement form begins
     ...native,
     onCastCommit(runtime, completed) {
       native.onCastCommit(runtime, completed);
+
       if (completed.skill.id === ID.EXIT_LICH_FORM) runtime.cooldownController.clear(ID.LICH_FORM);
     }
   };
@@ -1226,6 +1235,7 @@ test('shroud entry profiles retain conditions without their strike and deliver b
       ...native.reactions,
       'buff.applied'(runtime, event) {
         native.reactions['buff.applied']?.(runtime, event);
+
         if (event.sourceId === TRAIT.AWAKEN_THE_PAIN) seen.push(runtime.profession.core.activeShroud);
       }
     }
@@ -1604,8 +1614,10 @@ test('Terror adds damage to canonical Fear without duplicating Fear of Death', (
       const result = simulate([cast(ID.REAPERS_MARK), wait(3000)], config, { output });
       assert.deepEqual(result.warnings, []);
       assert.equal(lifeForcePercent(observedRuntime(result).profession.core.lifeForce), 15);
+
       if (enabled) assert.ok(result.conditionDamage > 0);
       else assert.equal(result.conditionDamage, 0);
+
       if (output === 'detailed') {
         const fear = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Fear');
         assert.equal(fear.length, 1);

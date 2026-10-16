@@ -51,6 +51,7 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
     requests.push({ url, options });
     const ids = url.searchParams.get('ids')?.split(',').map(Number);
     let value;
+
     if (url.pathname === '/v2/professions/Ranger') {
       value = { id: 'Ranger', specializations: [], skills: [43136, 43060, 45797].map((id) => ({ id })) };
     } else if (url.pathname === '/v2/pets') {
@@ -81,11 +82,14 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
     } else if (url.hostname === 'wiki.guildwars2.com') {
       wikiStarted.resolve();
       const page = url.searchParams.get('page');
+
       if (!wikiIds.has(page)) wikiIds.set(page, 80000 + wikiIds.size);
+
       value = {
         parse: { wikitext: `{{Skill infobox\n| id = ${wikiIds.get(page)}\n| family = bear\n| archetype = stout\n}}` }
       };
     } else assert.fail(`Unexpected request: ${url}`);
+
     return { ok: true, json: async () => value };
   });
   const snapshot = {

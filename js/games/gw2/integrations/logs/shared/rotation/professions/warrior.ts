@@ -34,6 +34,7 @@ export function signetOfMightProcAt(at: number, passiveStates: readonly (readonl
   let active = false;
   for (const [time, stacks] of passiveStates) {
     if (time > at + 50) break;
+
     if (time <= at) active = stacks > 0;
     else if (stacks <= 0) return false;
   }
@@ -81,7 +82,9 @@ function reconstructDragonTriggerActions(
 
     if (action.rawSkillId === ID.DRAGON_TRIGGER) {
       const tacticalReload = action.start <= tacticalReloadUntil;
+
       if (tacticalReload) tacticalReloadUntil = Number.NEGATIVE_INFINITY;
+
       const replayDurationMs = quantizeGw2ActionTimingMs(action.end - action.start);
       pendingReleaseAtCharges =
         replayDurationMs > 0

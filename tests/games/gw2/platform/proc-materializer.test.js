@@ -84,6 +84,7 @@ test('Blight procs supply condition-dependent readiness and expire without recur
         'fixture.consume-poison': (context) => {
           const poisoned = context.combat.targetHasCondition('Poisoned', context.time);
           observed.push(poisoned);
+
           if (poisoned)
             context.effects.emit({
               kind: 'packet',
@@ -148,6 +149,7 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
               kind: 'packet',
               event: { ...owner, type: 'weapon_set', at: 0.2, weaponSet: otherSet }
             });
+
             if (startsEquipped) {
               context.effects.emit({
                 kind: 'packet',
@@ -253,6 +255,7 @@ test('missed attacks leave consecutive swaps out of combat', () => {
       result.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
       offTarget ? [1000, 1000] : [1000, 11000]
     );
+
     if (offTarget) assert.equal(result.totalDamage, 0);
   }
 });

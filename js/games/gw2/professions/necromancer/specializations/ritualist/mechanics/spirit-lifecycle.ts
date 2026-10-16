@@ -64,15 +64,20 @@ function queueAutonomousPacket(runtime: NecromancerRuntime, key: string, event: 
 function auto(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as SpiritAuto;
   const state = ritualistState.from(runtime);
+
   if (
     !state.activeSpirits[work.key] ||
     state.activeSpirits[work.key]?.generation !== work.generation ||
     !autonomousActionsAllowed(runtime)
   )
     return;
+
   const spirit = spiritDefinition(runtime, work.skillId);
+
   if (!spirit || !(spirit.attackCoefficient > 0)) return;
+
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
+
   if (!(state.activeSpirits[work.key].busyUntil > runtime.time))
     queueAutonomousPacket(
       runtime,
@@ -94,8 +99,10 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
         activationId: `${work.activationId}:auto:${work.pulse}`
       })
     );
+
   const interval = balanceNumberFromContext(runtime, PROFILE.resources, 'pulseInterval');
   const at = canonicalTime(work.anchor + (work.pulse + 1) * interval);
+
   if (at > runtime.time)
     runtime.schedule(AUTO, at, { ...work, pulse: work.pulse + 1 }, owner(work.key, work.generation));
 }
@@ -109,7 +116,9 @@ export function summonRitualistSpirit(
   const state = ritualistState.from(runtime);
   const key = spirit.key;
   const previous = state.activeSpirits[key];
+
   if (previous) runtime.cancelOwner(owner(key, previous.generation));
+
   state.activeSpirits[key] = {
     skillId: cast.skill.id,
     activationId: cast.id,
@@ -130,15 +139,22 @@ export function summonRitualistSpirit(
 /** Engagement establishes the first shared cadence from live spirits; subsequent summons join that cadence. */
 export function startRitualistSpirits(runtime: NecromancerRuntime): void {
   if (!autonomousActionsAllowed(runtime)) return;
+
   const state = ritualistState.from(runtime);
   for (const [key, actor] of Object.entries(state.activeSpirits)) {
     if (actor.started) continue;
+
     const spirit = spiritDefinition(runtime, actor.skillId);
+
     if (!spirit) continue;
+
     const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
     const interval = balanceProfileNumber(resources, 'pulseInterval');
+
     if (!(interval > 0) || !(spirit.attackCoefficient > 0)) continue;
+
     actor.started = true;
+
     if (!Number.isFinite(state.spiritAutoAnchorAt)) {
       state.spiritAutoAnchorAt = canonicalTime(
         runtime.time +
@@ -171,6 +187,7 @@ export function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime):
   registerNecromancerShroudLifecycle(runtime, 'ritualist.shroud', {
     onEnter(skill) {
       if (skill.shroudEntry !== 'ritualist') return;
+
       const state = ritualistState.from(runtime);
       state.resummonedSpiritAutoCycle = Object.keys(state.activeSpirits).length > 0;
       state.spiritAutoAnchorAt = NaN;
@@ -204,6 +221,7 @@ export const ritualistSpiritTasks: NonNullable<RuntimeHooks<NecromancerRuntimeSt
   [PACKET](runtime, data) {
     const work = data as SpiritPacket;
     const state = ritualistState.from(runtime);
+
     if (
       state.activeSpirits[work.key] &&
       state.activeSpirits[work.key]?.generation === work.generation &&

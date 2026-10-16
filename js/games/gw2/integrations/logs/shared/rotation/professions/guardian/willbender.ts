@@ -26,6 +26,7 @@ export function reconstructGuardianCompositeActions(
   const normalized: RecordedLogAction[] = [];
   for (const action of sorted) {
     if (consumed.has(action)) continue;
+
     const skillId = numericSkillId(action);
     const followupId =
       skillId === RUSHING_JUSTICE_ID
@@ -35,6 +36,7 @@ export function reconstructGuardianCompositeActions(
           : skillId === JURISDICTION_ID
             ? JURISDICTION_RELEASE_ID
             : null;
+
     if (followupId == null) {
       // EVTC labels every charge level simply "Jurisdiction"; an unpaired release must not become a new charge cast.
       normalized.push(
@@ -50,12 +52,14 @@ export function reconstructGuardianCompositeActions(
         candidate.start >= action.start &&
         candidate.start - action.end <= COMPOSITE_SIGNAL_WINDOW_MS
     );
+
     if (!impact) {
       normalized.push(action);
       continue;
     }
 
     consumed.add(impact);
+
     // The supported level-one Jurisdiction activation already owns its detonation packet.
     if (skillId === JURISDICTION_ID) {
       for (const candidate of sorted) {

@@ -25,7 +25,9 @@ export function skillForEvent<TSkill extends Skill>(
   contextSkillId?: SkillId | null
 ): TSkill | undefined {
   const skillId = event?.skillId ?? event?.application?.skillId ?? contextSkillId;
+
   if (skillId == null) return undefined;
+
   return catalog?.skillsById?.get(skillId);
 }
 
@@ -71,6 +73,7 @@ export function countActiveBoons(
 ): number {
   if (recipient.actor === 'player' && context.config?.fixedBoonCount != null)
     return Math.trunc(boundedNumber(context.config.fixedBoonCount, 0, 0, GW2_STANDARD_BOONS.length));
+
   return GW2_STANDARD_BOONS.filter(active).length;
 }
 
@@ -82,12 +85,17 @@ export function activeBoonStacks(
   recipient: EffectRecipient = { actor: 'player' }
 ): number {
   boon = boon.toLowerCase();
+
   if (!isStandardBoon(boon)) return 0;
+
   const base = recipient.actor === 'player' ? Number(context.config?.boons?.[boon] || 0) : 0;
+
   // Configured duration presence needs no history, but must still respect the caller's output cap.
   if (base > 0 && isDurationStackingBoon(boon)) return clamp(1, 0, maximum);
+
   // Live grants cannot increase configured intensity stacks that already meet the requested cap.
   if (base >= maximum) return clamp(base, 0, maximum);
+
   const dynamic = appliedEffectStacks(context, boon, maximum, recipient);
   return clamp((isDurationStackingBoon(boon) ? 0 : base) + dynamic, 0, maximum);
 }
@@ -127,6 +135,7 @@ export function activeBuffStacks(
   fallbackDuration = 0
 ): number {
   if (isStandardBoon(kind)) return 0;
+
   return appliedEffectStacks(context, kind, maximum, recipient, fallbackDuration);
 }
 

@@ -79,6 +79,7 @@ for (const input of ['Chilled', 'Fear']) {
           [...new Set(rewards.map((event) => event.condition))],
           selected && traitTriggers ? (input === 'Fear' ? ['Chilled', 'Bleeding'] : ['Bleeding']) : []
         );
+
         if (rewards.length) {
           assert.equal(
             rewards.filter((event) => event.condition === 'Bleeding').reduce((sum, event) => sum + event.stacks, 0),
@@ -222,7 +223,9 @@ test('an admitted Nova strike completes Chill with producers disabled or unselec
         const novaStrike = result.resolvedEvents.findIndex((event) => event.type === 'damage');
         const chill = result.resolvedEvents.findIndex((event) => event.condition === 'Chilled');
         assert.equal(chill >= 0, !removeChill);
+
         if (!removeChill) assert.ok(chill > novaStrike, 'The admitted strike resolves before its Chill');
+
         assert.equal(
           result.resolvedEvents.some((event) => event.sourceId === TRAIT.DEATHLY_CHILL),
           selected && traitTriggers && !removeChill

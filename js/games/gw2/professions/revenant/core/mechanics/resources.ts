@@ -58,6 +58,7 @@ export function revenantEnergyAvailability(
     !resourceAtLeast(energy, cost) && core.combatBeganAt == null
       ? null
       : runtime.resourceController.readyAt('energy', cost);
+
   // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
   if (!resourceAtLeast(energy, cost) || (energyReadyAt != null && energyReadyAt > now)) {
     const cooldownReadyAt = runtime.cooldownController.readyAt(skill.id) || 0;

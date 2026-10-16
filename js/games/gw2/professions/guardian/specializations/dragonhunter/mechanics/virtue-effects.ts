@@ -29,6 +29,7 @@ export function reactToDragonhunterJusticeHit(
   if ((core.justicePassiveBurns || 0) > passiveBefore) {
     const tetherProfile = requireBalanceProfileFromContext(context, PROFILE.tether);
     const crippled = requireEffect(tetherProfile, 'condition', 'Crippled (passive)');
+
     if (crippled) {
       context.effects.emit({
         kind: 'packet',

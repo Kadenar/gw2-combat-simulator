@@ -299,6 +299,7 @@ test('Resplendent Weaponry grants scaled party boons only on traited, completed 
       );
       const series = buildChartSeries(result);
       assert.equal(series.effectTypes.Alacrity, traited ? 'boon' : undefined, weapon);
+
       if (traited)
         assert.ok(
           series.effects.Alacrity.some((point) => point.v > 0),

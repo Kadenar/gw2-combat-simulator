@@ -211,8 +211,10 @@ for (const action of [...TRANSITION_DELAY_KEYS, 'Apply 100 ms to all', 'Clear al
       t,
       action === 'Clear all' ? 100 : 0
     );
+
     if (TRANSITION_DELAY_KEYS.includes(action)) input(action, 1000);
     else click(action);
+
     const delays = app.simulationSettings.transitionDelays;
     assert.deepEqual(loadSimulationSettings().transitionDelays, delays);
     assert.equal(tab.resultsFresh, false);

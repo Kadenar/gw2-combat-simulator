@@ -23,7 +23,9 @@ export interface CriticalProcApplication {
 
 function finiteNonNegative(value: unknown, label: string): number {
   const number = Number(value);
+
   if (!Number.isFinite(number) || number < 0) throw new TypeError(`${label} must be a finite non-negative number.`);
+
   return number;
 }
 
@@ -35,8 +37,11 @@ export function criticalOpportunity(
 ): CriticalOpportunity {
   const count = finiteNonNegative(opportunities, 'Critical opportunities');
   const criticalChance = finiteNonNegative(chance, 'Critical chance');
+
   if (!Number.isInteger(count)) throw new TypeError('Critical opportunities must be an integer.');
+
   if (criticalChance > 1) throw new TypeError('Critical chance must be 0..1.');
+
   if (criticalChance > 0 && typeof didCrit !== 'boolean') {
     throw new TypeError('Critical opportunity requires a sampled critical outcome.');
   }
@@ -51,10 +56,15 @@ export function advanceCriticalProc(
   state?: CriticalProcState
 ): CriticalProcApplication | null {
   const criticals = finiteNonNegative(opportunity.sampledCriticals, `${request.id} sampled criticals`);
+
   if (!Number.isInteger(criticals)) throw new TypeError(`${request.id} sampled criticals must be an integer.`);
+
   const chance = finiteNonNegative(request.chanceOnCriticalHit ?? 1, `${request.id} critical proc chance`);
+
   if (chance > 1) throw new TypeError(`${request.id} critical proc chance must be 0..1.`);
+
   const cooldown = finiteNonNegative(request.internalCooldown ?? 0, `${request.id} internal cooldown`);
+
   if (request.internalCooldown != null) {
     if (!state || typeof state.readyAt !== 'number' || Number.isNaN(state.readyAt)) {
       throw new TypeError(`${request.id} internal cooldown requires a numeric deadline.`);
@@ -64,9 +74,12 @@ export function advanceCriticalProc(
   }
 
   if (!criticals || !chance) return null;
+
   let quantity = criticals;
+
   if (chance < 1) {
     if (!request.roll) throw new TypeError(`${request.id} secondary chance requires a roll function.`);
+
     quantity = 0;
     for (let hit = 0; hit < criticals; hit += 1) {
       if (request.roll(chance, request.randomStream || request.id)) quantity += 1;
@@ -74,6 +87,7 @@ export function advanceCriticalProc(
   }
 
   if (!quantity) return null;
+
   if (request.internalCooldown != null) {
     quantity = 1;
     state!.readyAt = request.at + cooldown;

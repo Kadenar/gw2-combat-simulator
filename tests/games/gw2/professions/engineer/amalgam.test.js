@@ -66,6 +66,7 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
         submit(event, delivery) {
           if (delivery.settlement === 'reaction') conditions.push(event);
           else context.queue.enqueue(event);
+
           return event;
         }
       }).effects
@@ -103,6 +104,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
       submit(event, delivery) {
         if (delivery.settlement === 'reaction') conditions.push(event);
         else context.queue.enqueue(event);
+
         return event;
       }
     }).effects
@@ -574,6 +576,7 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     const [first, second, third] = result.steps;
     // Both Evolve identities recover from activation rather than cast completion.
     assert.ok(third.start >= first.start + 32000);
+
     if (traited) {
       assert.equal(observedRuntime(result).cooldownController.readAmmo(skillId).maximum, 2);
       assert.ok(second.start < first.start + 32000);

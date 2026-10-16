@@ -128,6 +128,7 @@ function buildLogModel<TRow extends EventLogRow>(rows: readonly TRow[]): LogMode
   for (const node of nodes) if (node.row.id && !byId.has(node.row.id)) byId.set(node.row.id, node);
   for (const node of nodes) {
     const parent = node.row.parentId ? byId.get(node.row.parentId) : undefined;
+
     if (parent && parent !== node) node.parent = parent;
   }
 
@@ -148,12 +149,14 @@ function buildLogModel<TRow extends EventLogRow>(rows: readonly TRow[]): LogMode
   for (const node of nodes) {
     // Flat-only rows keep their parent for highlighting but never render inside the tree.
     if (node.row.layout === 'flat') continue;
+
     if (node.parent) node.parent.children.push(node);
     else roots.push(node);
   }
 
   const place = (node: LogNode<TRow>): void => {
     if (node.root) return;
+
     if (node.parent) {
       place(node.parent);
       node.root = node.parent.root;
@@ -177,11 +180,14 @@ function buildLogModel<TRow extends EventLogRow>(rows: readonly TRow[]): LogMode
 /** Aggregates a group's descendants once so collapsed and expanded renders share the same totals. */
 function summarize<TRow extends EventLogRow>(node: LogNode<TRow>, memo: Map<LogNode<TRow>, LogSummary>): LogSummary {
   const cached = memo.get(node);
+
   if (cached) return cached;
+
   const summary: LogSummary = { count: 0, metricCount: 0, metricTotal: 0, tags: new Map() };
   for (const child of node.children) {
     const nested = summarize(child, memo);
     summary.count += 1 + nested.count;
+
     if (child.row.metric != null) {
       summary.metricCount += 1;
       summary.metricTotal += child.row.metric;
@@ -189,6 +195,7 @@ function summarize<TRow extends EventLogRow>(node: LogNode<TRow>, memo: Map<LogN
 
     summary.metricCount += nested.metricCount;
     summary.metricTotal += nested.metricTotal;
+
     if (child.row.tag && !summary.tags.has(child.row.tag.label)) {
       summary.tags.set(child.row.tag.label, child.row.tag.className || '');
     }
@@ -203,7 +210,9 @@ function summarize<TRow extends EventLogRow>(node: LogNode<TRow>, memo: Map<LogN
 function highlightHtml(text: string, query: string): string {
   const needle = query.trim().toLowerCase();
   const index = needle ? text.toLowerCase().indexOf(needle) : -1;
+
   if (index < 0) return escapeHtml(text);
+
   return `${escapeHtml(text.slice(0, index))}<mark>${escapeHtml(text.slice(index, index + needle.length))}</mark>${escapeHtml(text.slice(index + needle.length))}`;
 }
 
@@ -244,9 +253,12 @@ function summaryHtml<TRow extends EventLogRow>(
   context: TreeRenderContext<TRow>
 ): string {
   if (!node.children.length || (node.depth > 0 && node.row.layout !== 'tree')) return '';
+
   const summary = summarize(node, context.memo);
   const parts: string[] = [];
+
   if (!open) parts.push(`<span class="log-summary-hidden">+${summary.count} rows</span>`);
+
   if (summary.metricCount > 0) {
     const [singular, plural] = context.metricUnit;
     parts.push(
@@ -316,6 +328,7 @@ function treeLinesHtml<TRow extends EventLogRow>(model: LogModel<TRow>, context:
   const visible = new Map<LogNode<TRow>, boolean>();
   const isVisible = (node: LogNode<TRow>): boolean => {
     let shown = visible.get(node);
+
     if (shown === undefined) {
       shown = context.matches(node.row) || node.children.some(isVisible);
       visible.set(node, shown);
@@ -327,10 +340,13 @@ function treeLinesHtml<TRow extends EventLogRow>(model: LogModel<TRow>, context:
   const lines: string[] = [];
   const emit = (node: LogNode<TRow>, trail: readonly boolean[], isLast: boolean): void => {
     if (!isVisible(node)) return;
+
     const children = node.children.filter(isVisible);
     const open = context.forceOpen || !node.row.id || !context.state.collapsed.has(node.row.id);
     lines.push(treeLineHtml(node, trail, isLast, children.length > 0, open, !context.matches(node.row), context));
+
     if (!open) return;
+
     const childTrail = node.depth === 0 ? [] : [...trail, !isLast];
     children.forEach((child, index) => emit(child, childTrail, index === children.length - 1));
   };
@@ -348,6 +364,7 @@ function flatLinesHtml<TRow extends EventLogRow>(
     .filter((node) => node.row.layout !== 'tree' && matches(node.row))
     .map((node) => {
       const { row } = node;
+
       if (!model.hasTree) {
         return `<div class="log-line">
       <span class="log-time">${Number(row.at || 0).toFixed(3)}s</span>
@@ -374,7 +391,9 @@ function traceHtml<TRow extends EventLogRow>(node: LogNode<TRow>): string {
   const parts: string[] = [];
   for (let current: LogNode<TRow> | null = node; current; current = current.parent) {
     parts.push(`<span class="log-trace-node">${escapeHtml(current.row.description)}</span>`);
+
     if (!current.parent) continue;
+
     const link = current.row.parentLink;
     const inferred = link?.kind === 'inferred';
     parts.push(
@@ -383,8 +402,10 @@ function traceHtml<TRow extends EventLogRow>(node: LogNode<TRow>): string {
   }
 
   const root = (node.root ?? node).row;
+
   if (node.row.orphan) parts.push(' <span class="log-trace-hop">· no owner found</span>');
   else if (root.ordinal != null) parts.push(` <span class="log-trace-hop">· #${root.ordinal}</span>`);
+
   return parts.join('');
 }
 
@@ -411,6 +432,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   options: EventLogMountOptions = {}
 ): void {
   if (!container) return;
+
   const resolvedRows: readonly TRow[] = rows || [];
   const model = buildLogModel(resolvedRows);
   const metricUnit = options.metricUnit || ['value', 'values'];
@@ -535,6 +557,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   };
 
   if (details?.open) restoreScroll();
+
   if (details) {
     details.ontoggle = () => {
       if (details.open && logElement?.dataset.rendered !== 'true') {
@@ -547,6 +570,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   // Explicit jumps avoid dragging through long logs and leave normal reading under user control.
   for (const edge of ['start', 'end']) {
     const button = container.querySelector<HTMLButtonElement>(`[data-role="event-log-${edge}"]`);
+
     if (button && logElement)
       button.onclick = () => {
         logElement.scrollTop = edge === 'end' ? logElement.scrollHeight : 0;
@@ -554,17 +578,21 @@ export function mountEventLog<TRow extends EventLogRow>(
   }
 
   const search = container.querySelector<HTMLInputElement>('[data-role="event-log-search"]');
+
   if (search) {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     search.oninput = () => {
       searchQuery = search.value;
+
       if (debounceTimer !== null) clearTimeout(debounceTimer);
+
       // Debounce so large logs aren't re-rendered on every keystroke.
       debounceTimer = setTimeout(rerender, 200);
     };
   }
 
   const download = container.querySelector<HTMLElement>('[data-role="event-log-download"]');
+
   // Export the complete log, independent of temporary display filters.
   if (download) download.onclick = () => downloadCsv(resolvedRows, filename);
 
@@ -579,23 +607,30 @@ export function mountEventLog<TRow extends EventLogRow>(
   const setView = (view: LogView): void => {
     state.view = view;
     syncSegmented('event-log-view', 'view', view);
+
     if (treeTools) treeTools.hidden = view !== 'tree';
+
     rerender();
   };
 
   const view = container.querySelector<HTMLElement>('[data-role="event-log-view"]');
+
   if (view) {
     view.onclick = (event) => {
       const button = (event.target as Element | null)?.closest<HTMLButtonElement>('button[data-view]');
+
       if (button) setView(button.dataset.view === 'flat' ? 'flat' : 'tree');
     };
   }
 
   const times = container.querySelector<HTMLElement>('[data-role="event-log-times"]');
+
   if (times) {
     times.onclick = (event) => {
       const button = (event.target as Element | null)?.closest<HTMLButtonElement>('button[data-times]');
+
       if (!button) return;
+
       state.timeMode = button.dataset.times === 'absolute' ? 'absolute' : 'offset';
       syncSegmented('event-log-times', 'times', state.timeMode);
       rerender();
@@ -603,6 +638,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   }
 
   const expand = container.querySelector<HTMLButtonElement>('[data-role="event-log-expand"]');
+
   if (expand) {
     expand.onclick = () => {
       state.collapsed.clear();
@@ -611,6 +647,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   }
 
   const collapse = container.querySelector<HTMLButtonElement>('[data-role="event-log-collapse"]');
+
   if (collapse) {
     collapse.onclick = () => {
       for (const node of model.nodes) if (node.children.length && node.row.id) state.collapsed.add(node.row.id);
@@ -622,8 +659,10 @@ export function mountEventLog<TRow extends EventLogRow>(
     button.onclick = () => {
       const id = button.dataset.source || '';
       const shown = state.hiddenSources.has(id);
+
       if (shown) state.hiddenSources.delete(id);
       else state.hiddenSources.add(id);
+
       button.setAttribute('aria-pressed', String(shown));
       rerender();
     };
@@ -640,6 +679,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   // Highlight the hovered row's whole group and its ancestor chain, and name each hop below the log.
   const trace = (node: LogNode<TRow>): void => {
     if (traceElement) traceElement.innerHTML = traceHtml(node);
+
     for (const line of logElement.querySelectorAll('.log-family, .log-chain')) {
       line.classList.remove('log-family', 'log-chain');
     }
@@ -654,9 +694,12 @@ export function mountEventLog<TRow extends EventLogRow>(
 
   const toggle = (node: LogNode<TRow>): void => {
     const id = node.row.id;
+
     if (!id) return;
+
     if (state.collapsed.has(id)) state.collapsed.delete(id);
     else state.collapsed.add(id);
+
     rerender();
     logElement.querySelector<HTMLElement>(`[data-toggle="${node.key}"]`)?.focus({ preventScroll: true });
   };
@@ -669,7 +712,9 @@ export function mountEventLog<TRow extends EventLogRow>(
 
     setView('tree');
     const line = logElement.querySelector<HTMLElement>(`.log-line[data-key="${node.key}"]`);
+
     if (!line) return;
+
     const offset = line.getBoundingClientRect().top - logElement.getBoundingClientRect().top;
     logElement.scrollTop += offset - logElement.clientHeight / 3;
     line.classList.add('log-flash');
@@ -679,19 +724,27 @@ export function mountEventLog<TRow extends EventLogRow>(
 
   logElement.onclick = (event) => {
     const goto = nodeFrom(event.target, 'data-goto');
+
     if (goto) return reveal(goto);
+
     const button = nodeFrom(event.target, 'data-toggle');
+
     if (button) return toggle(button);
+
     // Clicking elsewhere on a group row toggles it, except inside nested controls such as damage details.
     if (!treeView() || (event.target as Element | null)?.closest?.('details, button, a')) return;
+
     const line = nodeFrom(event.target, 'data-key');
+
     if (line?.children.length) toggle(line);
   };
 
   let traced = '';
   const onPoint = (event: Event): void => {
     const node = nodeFrom(event.target, 'data-key');
+
     if (!node || String(node.key) === traced) return;
+
     traced = String(node.key);
     trace(node);
   };

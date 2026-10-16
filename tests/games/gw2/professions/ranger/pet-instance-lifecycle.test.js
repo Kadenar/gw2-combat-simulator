@@ -104,6 +104,7 @@ for (const output of ['detailed', 'score']) {
       }
     );
     assert.deepEqual(result.warnings, []);
+
     if (output === 'detailed') {
       const retirements = result.events.filter((event) => event.action === 'companion-retired');
       assert.ok(retirements.length > 0);
@@ -161,6 +162,7 @@ for (const output of ['detailed', 'score']) {
       }
     );
     assert.deepEqual(result.warnings, []);
+
     if (output === 'detailed') {
       const retirements = result.events.filter((event) => event.action === 'companion-retired');
       assert.ok(retirements.length > 0);

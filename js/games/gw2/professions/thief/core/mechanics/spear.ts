@@ -30,8 +30,11 @@ export function ashenAssaultLifecycle(
   return {
     onCastStart(runtime, cast) {
       if (cast.skill.id !== skillId) return;
+
       let active = channels.get(runtime);
+
       if (!active) channels.set(runtime, (active = new Map()));
+
       const hits = (cast.skill.effects ?? []).reduce(
         (count, effect) => count + (effect.type === 'strike' ? effect.ticks?.length || effect.hits || 1 : 0),
         0
@@ -43,10 +46,13 @@ export function ashenAssaultLifecycle(
     reactions: {
       'damage.resolved'(runtime, event) {
         if (event.skillId !== skillId || event.actorType !== 'player' || event.offTarget || event.procType) return;
+
         const active = channels.get(runtime);
         const id = String(event.activationId);
         const remaining = active?.get(id);
+
         if (remaining == null || remaining <= 0) return;
+
         if (remaining > 1) {
           active!.set(id, remaining - 1);
           return;
@@ -74,6 +80,7 @@ const SPEAR_STEALTH_SKILLS = new Set<SkillId>([ID.ASHEN_ASSAULT]);
 export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
   const core = runtime.profession.core;
   const stage = spearChainStageForSkill(skill.id);
+
   if (stage != null) {
     core.spearChainStage = (stage + 1) % 3;
     core.spearLastWasFinisher = stage === 2;
@@ -86,8 +93,10 @@ export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void
     core.spearChainStage = 1;
     core.spearLastWasFinisher = false;
     core.spearPreviousSkillId = skill.id;
+
     // The committed window follows the throw's own same-time packets, so it buffs subsequent damage only.
     if (followsFinisher) runtime.schedule('thief.distracting-throw-window', runtime.time, undefined, undefined, 20);
+
     return;
   }
 

@@ -34,6 +34,7 @@ export function emitSunspot(
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const sunspotProfile = requireBalanceProfileFromContext(context, TRAIT.SUNSPOT);
   const sunspotAura = requireEffect(sunspotProfile, 'buff', 'Sunspot Aura');
+
   if (sunspotAura) {
     applyAura(context, {
       at,
@@ -45,6 +46,7 @@ export function emitSunspot(
   }
 
   const sunspotStrike = requireEffect(sunspotProfile, 'strike', 'Sunspot');
+
   if (sunspotStrike) {
     emitTraitProfile(context, TRAIT.SUNSPOT, TRAIT.SUNSPOT, undefined, {
       at: at,
@@ -80,6 +82,7 @@ export function emitSunspot(
       transform: (event) => ({ ...event, name: 'Sunspot' + ' \u2014 ' + event.condition }),
       receipt: true
     }).length > 0;
+
   if (sunspotAura || sunspotStrike || burningEmitted)
     context.effects.emit(
       elementalistAnnouncement({
@@ -112,6 +115,7 @@ export function emitFlameExpulsion(
   );
   const flameExpulsionStrike = requireEffect(pyromancersPuissanceProfile, 'strike', 'Flame Expulsion');
   const flameExpulsionCondition = requireEffect(pyromancersPuissanceProfile, 'condition', 'Flame Expulsion');
+
   if (flameExpulsionStrike) {
     // Capture Might once for the delayed payout; each authored hit retains its share of the bonus.
     const coefficientPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'damageIncreasePerStack');
@@ -171,6 +175,7 @@ export function emitFlameExpulsion(
     'boon',
     'Flame Expulsion Might'
   );
+
   if (cappedMight > 0) {
     if (pyromancersPuissanceFlameExpulsionMight) {
       emitTraitProfile(context, TRAIT.PYROMANCERS_PUISSANCE, TRAIT.PYROMANCERS_PUISSANCE, undefined, {

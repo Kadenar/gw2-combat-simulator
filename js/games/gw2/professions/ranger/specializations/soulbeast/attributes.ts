@@ -9,6 +9,7 @@ import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializa
 /** The active pet supplies merge attributes to both preview and combat without conversion eligibility. */
 export const soulbeastAttributes: Gw2AttributeContributionCalculator = (context) => {
   if (!(context.runtime ? beastmodeActive(context) : context.loadout.merged)) return [];
+
   return [
     {
       attributeEffects: Object.entries(soulbeastArchetypeAttributes(context, activeRangerPet(context).archetype)).map(

@@ -395,9 +395,11 @@ function grantConductiveArmaments(runtime: RevenantRuntime, skill: RevenantSkill
 /** Applies the trait at the mechanic's existing execution boundary. */
 function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean): void {
   const state = conduitState.from(runtime);
+
   if (formActive) {
     const enhanced = requireBalanceProfileFromContext(runtime, PROFILE.enhancedEmbodiment);
     const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
+
     if (extension) {
       state.cosmicWisdomUntil += Math.max(0, effectNumber(enhanced, extension, 'duration'));
       scheduleFormExpiry(runtime);
@@ -480,7 +482,9 @@ function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
 function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, trigger: string): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
   const shared = requireEffect(profile, 'boon', trigger);
+
   if (!shared) return;
+
   emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, PROFILE.sharedWisdom, undefined, {
     effects: (effect) => effect === shared,
     at: cast.effectiveEnd,

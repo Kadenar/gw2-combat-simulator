@@ -30,6 +30,7 @@ export function createSigilRuntimeState(): Gw2SigilRuntimeState {
 /** Actual eligible hits consume Doom once; misses and post-death packets never enter this function. */
 function consumeRuntimeDoom(runtime: SigilRuntimeContext, event: Gw2ResolverEvent): void {
   if (!runtime.sigil.doomPending || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
+
   runtime.sigil.doomPending = false;
   runtime.effects.emit({
     kind: 'packet',
@@ -66,17 +67,25 @@ export function applyRuntimeSigils(
   event: Gw2ResolverEvent
 ): void {
   if (runtime.combatStartPending || (runtime.combatStartTime != null && event.at < runtime.combatStartTime)) return;
+
   if (!runtime.combatActive && runtime.firstHitTime == null && runtime.combatStartTime == null) return;
+
   if (trigger === 'strike' && (!isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0))) return;
+
   const destination = Number(event.weaponSet);
   const set = trigger === 'swap' && (destination === 1 || destination === 2) ? destination : runtime.activeWeaponSet;
   for (const id of new Set(gw2SigilIds(runtime.config, set))) {
     const proc = procs[id];
+
     if (proc?.trigger !== trigger) continue;
+
     // Defiance also represents flanking; ineligible Ice hits must leave the shared ICD untouched.
     if (id === SIGIL_IDS.ICE && !runtime.config.target?.defiant) continue;
+
     if (!runtime.procs.claimCooldown(`sigil.${id}`, event.at, proc.cooldown)) continue;
+
     const sourceSkill = event.skillName || (trigger === 'swap' ? 'Swap Weapons' : '');
+
     if (proc.effect === 'next-hit-condition') {
       runtime.sigil.doomPending = true;
       continue;
@@ -95,7 +104,9 @@ export function applyRuntimeSigils(
             : {})
         }
       });
+
     if (proc.effect === 'endurance') runtime.endurance.grant(proc.amount ?? 0);
+
     if (proc.effect === 'severance')
       runtime.effects.emit({
         kind: 'packet',
@@ -111,6 +122,7 @@ export function applyRuntimeSigils(
           actorType: 'effect'
         }
       });
+
     runtime.effects.emit({
       kind: 'announcement',
       announcement: {

@@ -227,6 +227,7 @@ for (const [spec, name, legend, config = {}] of [
     );
     const state = result.planningState.profession;
     assert.equal(state.enchantedDaggers.charges, 0);
+
     if (spec === 'Renegade') {
       assert.equal(state.razorclawsRage.charges, 0);
       assert.equal(state.bandTogether.charges, 0);
@@ -237,11 +238,16 @@ for (const [spec, name, legend, config = {}] of [
 
     if (spec === 'Conduit') assert.equal(state.beguilingHazeCharges, 0);
     else assert.equal(Object.hasOwn(state, 'beguilingHazeCharges'), false);
+
     assert.equal(state.crushingAbyss.length, 0);
     assert.equal(state.activeUpkeeps.length, 0);
+
     if (name === 'Ancient Echo') assert.equal(state.energy.value, 50 + result.rotationEndTime * 5);
+
     if (name === 'Twin Moon Sweep') assert.equal(state.affinity.value, 0);
+
     if (name === 'Dodge Jump') assert.equal(state.endurance.value, 50 + result.rotationEndTime * 5);
+
     if (name === 'Beguiling Haze') assert.equal(specialization(result).beguilingHazeRecharge, null);
   });
 }
@@ -304,6 +310,7 @@ for (const [name, skillId, cooldown] of [
         event.actorType === 'player'
     );
     assert.equal(packets[0].causalOrder, cause.causalOrder ?? cause.eventOrder);
+
     if (daggers) assert.equal(packets[0].hitIndex, 1);
 
     const expired = scenario(
@@ -555,6 +562,7 @@ test('Both Vindicator dodge inputs apply the selected landing conditions and boo
         assert.equal(applications.length, 1, `${name}: ${kind}`);
         assert.equal(applications[0].stacks, stacks);
         assert.equal(applications[0].duration, duration);
+
         if (kind === 'alacrity') assert.equal(applications[0].resolvedAudience.alliedPlayerCount, 4);
       }
 

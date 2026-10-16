@@ -26,9 +26,13 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
+
   if (normalized === VIEW_HASHES.analysis) return 'analysis';
+
   if (normalized === VIEW_HASHES['gear-optimizer']) return 'gear-optimizer';
+
   if (normalized === VIEW_HASHES.benchmarks) return 'benchmarks';
+
   return 'workspace';
 }
 
@@ -53,6 +57,7 @@ function createNavigationLink(root: Document, view: SimulatorView, label: string
 /** Labels the Analysis results host without controlling other tool views. */
 function mountAnalysisView(root: Document): void {
   const results = root.getElementById('rotation-results');
+
   if (!results || root.getElementById('analysis-view-title')) return;
 
   const heading = root.createElement('div');
@@ -74,11 +79,15 @@ function mountAnalysisView(root: Document): void {
  */
 function updateActiveView(root: Document, view: SimulatorView): void {
   if (!root.body) return;
+
   root.body.dataset.simulatorView = view;
+
   if (view !== 'workspace') resetRotationWorkspace(root);
+
   // Load cross-profession comparisons only when their tool tab is opened; the current build stays mounted.
   if (view === 'benchmarks') {
     const host = root.getElementById('benchmarks-view');
+
     if (host) {
       void import('#gw2/app/page/benchmark-dashboard.js')
         .then(({ mountBenchmarks }) => mountBenchmarks(host))
@@ -91,12 +100,14 @@ function updateActiveView(root: Document, view: SimulatorView): void {
   for (const link of root.querySelectorAll<HTMLAnchorElement>('.simulator-view-tab[data-simulator-view]')) {
     const active = link.dataset.simulatorView === view;
     link.classList.toggle('simulator-view-tab-active', active);
+
     if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
 
   // The app lazily materializes expensive Analysis content when this view becomes active.
   const EventConstructor = root.defaultView?.Event;
+
   if (EventConstructor) {
     root.dispatchEvent(new EventConstructor(SIMULATOR_VIEW_CHANGE_EVENT));
   }
@@ -122,9 +133,11 @@ function viewportScrollPosition(root: Document): ScrollPosition {
 export function mountSimulatorNavigation(root: Document = document): void {
   const body = root.body;
   const header = root.querySelector<HTMLElement>('#app > header');
+
   if (!body || !header || header.querySelector('.simulator-view-tabs')) return;
 
   const professionId = body.dataset.profession;
+
   if (!professionId) return;
 
   const navigation = root.createElement('nav');
@@ -152,6 +165,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
     const option = root.createElement('a');
     option.className = `simulator-profession-option profession-card-${profession.id}`;
     option.dataset.route = profession.route;
+
     if (profession.id === professionId) {
       option.setAttribute('aria-current', 'page');
       option.setAttribute('autofocus', '');
@@ -160,6 +174,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
     // Vary each profession's portrait per page visit, using only full portraits that fit the compact cards.
     const portraits = profession.specializationArtwork?.filter(({ conceptArt }) => conceptArt);
     const artwork = portraits?.length ? portraits[Math.floor(Math.random() * portraits.length)] : undefined;
+
     if (artwork?.conceptArt) {
       const image = root.createElement('img');
       image.src = artwork.conceptArt;
@@ -178,7 +193,9 @@ export function mountSimulatorNavigation(root: Document = document): void {
   // Anchor the open picker below the selector, clamped inside the viewport.
   const positionProfessionMenu = (): void => {
     const window = root.defaultView;
+
     if (!window || !professionMenu.matches(':popover-open')) return;
+
     const bounds = selector.getBoundingClientRect();
     professionMenu.style.left = `${clamp(bounds.left, 8, window.innerWidth - professionMenu.offsetWidth - 8)}px`;
     professionMenu.style.top = `${clamp(bounds.bottom + 6, 8, window.innerHeight - professionMenu.offsetHeight - 8)}px`;
@@ -186,7 +203,9 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
   professionMenu.addEventListener('beforetoggle', (event) => {
     selector.setAttribute('aria-expanded', String(event.newState === 'open'));
+
     if (event.newState !== 'open') return;
+
     // Refresh destinations on every opening so normal clicks and new tabs retain the current tool and mode.
     for (const link of professionMenu.querySelectorAll<HTMLAnchorElement>('a')) {
       link.href = navigationRoute(
@@ -210,6 +229,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
   const restoreScrollPosition = (view: SimulatorView, position: ScrollPosition): void => {
     const restore = (): void => {
       if (view !== activeView) return;
+
       root.defaultView?.scrollTo({
         left: position.left,
         top: position.top,
@@ -257,6 +277,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
       event.preventDefault();
       const window = root.defaultView;
+
       if (window?.location.hash !== VIEW_HASHES[view]) {
         window?.history.pushState(null, '', VIEW_HASHES[view]);
       }

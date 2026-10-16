@@ -36,11 +36,15 @@ export function applyConduitEnergyCostRules(
   baseCost: number
 ): number {
   if (baseCost <= 0) return 0;
+
   if (isBeguilingHazeFollowUp(state, skill)) return 0;
 
   // The exclusive deadline also governs queries before queued form-expiry work runs.
   if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
+
   const profileId = MESMER_FORM_COSTS.get(skill.id);
+
   if (profileId === undefined) return baseCost;
+
   return Math.max(0, balanceNumberFromContext({ catalog }, profileId, 'energyCost'));
 }

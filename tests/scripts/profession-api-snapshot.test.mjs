@@ -370,6 +370,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     // The profession updater owns these exclusions so refreshing generated data cannot restore unsupported skills.
     for (const [professionName, skillIds] of Object.entries(omittedSkillsByProfession)) {
       const fixture = omittedProfessionFixture(skillIds, professionName);
+
       // Signet of Stamina remains supported when refreshing the Warrior catalog used by Paragon presets.
       if (professionName === 'warrior') {
         fixture.profession.skills.push({ id: 14479 });
@@ -423,6 +424,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
         false,
         professionName
       );
+
       if (professionName === 'engineer') {
         assert.equal(snapshot.skills.find((skill) => skill.id === 63095).description, 'Fire the cannon.');
       }

@@ -52,6 +52,7 @@ export function rotationHotkeyStatusLabel(enabled: boolean, active: boolean): st
 
 export function loadRotationHotkeyBindings(storage: HotkeyStorage | null = browserStorage()): InputBindings {
   if (!storage) return defaultInputBindings();
+
   try {
     return normalizeInputBindings(JSON.parse(storage.getItem(ROTATION_HOTKEY_STORAGE_KEY) || 'null'));
   } catch {
@@ -64,6 +65,7 @@ export function saveRotationHotkeyBindings(
   storage: HotkeyStorage | null = browserStorage()
 ): void {
   if (!storage) return;
+
   try {
     storage.setItem(ROTATION_HOTKEY_STORAGE_KEY, JSON.stringify(normalizeInputBindings(bindings)));
   } catch {
@@ -74,6 +76,7 @@ export function saveRotationHotkeyBindings(
 export function loadRotationHotkeysEnabled(storage: HotkeyStorage | null = browserStorage()): boolean {
   // Hotkeys are on by default; an explicit stored 'false' is the only opt-out.
   if (!storage) return true;
+
   try {
     return storage.getItem(ROTATION_HOTKEY_ENABLED_STORAGE_KEY) !== 'false';
   } catch {
@@ -83,6 +86,7 @@ export function loadRotationHotkeysEnabled(storage: HotkeyStorage | null = brows
 
 export function saveRotationHotkeysEnabled(enabled: boolean, storage: HotkeyStorage | null = browserStorage()): void {
   if (!storage) return;
+
   try {
     storage.setItem(ROTATION_HOTKEY_ENABLED_STORAGE_KEY, String(enabled));
   } catch {
@@ -100,8 +104,11 @@ function currentHotkeyTarget(root: HTMLElement, action: InputControlId): HTMLEle
 
 function activateRotationHotkey(controller: RotationHotkeyController, event: KeyboardEvent): void {
   if (shouldIgnoreHotkey(event)) return;
+
   const action = activeRotationHotkeyAction(controller.bindings, event, controller.active);
+
   if (!action) return;
+
   // Consume bound keys before consulting stale tiles, including function keys with native browser actions.
   if (controller.root.dataset.palettePending === 'true') {
     event.preventDefault();
@@ -110,9 +117,13 @@ function activateRotationHotkey(controller: RotationHotkeyController, event: Key
 
   const target = currentHotkeyTarget(controller.root, action);
   const MouseEventConstructor = controller.root.ownerDocument.defaultView?.MouseEvent;
+
   if (!target || !MouseEventConstructor) return;
+
   event.preventDefault();
+
   if (event.repeat) return;
+
   target.dispatchEvent(
     new MouseEventConstructor('click', {
       bubbles: true,
@@ -125,7 +136,9 @@ function activateRotationHotkey(controller: RotationHotkeyController, event: Key
 /** Activates standard browser Mouse 3/4/5 events while the pointer remains over the active rotation palette. */
 function activateRotationMouseHotkey(controller: RotationHotkeyController, event: PointerEvent): void {
   const action = activeRotationMouseHotkeyAction(controller.bindings, event, controller.active);
+
   if (!action) return;
+
   if (controller.root.dataset.palettePending === 'true') {
     event.preventDefault();
     return;
@@ -133,7 +146,9 @@ function activateRotationMouseHotkey(controller: RotationHotkeyController, event
 
   const target = currentHotkeyTarget(controller.root, action);
   const MouseEventConstructor = controller.root.ownerDocument.defaultView?.MouseEvent;
+
   if (!target || !MouseEventConstructor) return;
+
   event.preventDefault();
   target.dispatchEvent(
     new MouseEventConstructor('click', {
@@ -198,7 +213,9 @@ function refreshHotkeyBadges(controller: RotationHotkeyController): void {
     const code = controller.bindings[action];
     skill.querySelector('.pal-hotkey')?.remove();
     skill.removeAttribute('aria-keyshortcuts');
+
     if (!controller.enabled || !code) continue;
+
     const badge = skill.ownerDocument.createElement('span');
     badge.className = 'pal-hotkey';
     badge.textContent = formatRotationHotkeyBadge(code);
@@ -210,8 +227,11 @@ function refreshHotkeyBadges(controller: RotationHotkeyController): void {
 
 function populateDialog(controller: RotationHotkeyController, bindings = controller.bindings): void {
   if (!controller.dialog) return;
+
   const enabled = controller.dialog.querySelector<HTMLInputElement>('[data-hotkey-enabled]');
+
   if (enabled) enabled.checked = controller.enabled;
+
   for (const input of controller.dialog.querySelectorAll<HTMLInputElement>('[data-hotkey-input]')) {
     const action = input.dataset.hotkeyInput as InputControlId;
     input.dataset.code = bindings[action];
@@ -219,12 +239,14 @@ function populateDialog(controller: RotationHotkeyController, bindings = control
   }
 
   const error = controller.dialog.querySelector<HTMLElement>('.rotation-hotkey-error');
+
   if (error) {
     error.hidden = true;
     error.textContent = '';
   }
 
   const importStatus = controller.dialog.querySelector<HTMLElement>('.rotation-hotkey-import-status');
+
   if (importStatus) {
     importStatus.hidden = true;
     importStatus.textContent = '';
@@ -243,6 +265,7 @@ function dialogBindings(dialog: HTMLDialogElement): InputBindings {
 
 function ensureDialog(controller: RotationHotkeyController): void {
   if (controller.dialog) return;
+
   const document = controller.root.ownerDocument;
   const dialog = document.createElement('dialog');
   dialog.className = 'rotation-hotkey-dialog';
@@ -280,9 +303,12 @@ function ensureDialog(controller: RotationHotkeyController): void {
   dialog.querySelector('[data-hotkey-import]')?.addEventListener('click', () => importInput?.click());
   importInput?.addEventListener('change', async () => {
     const file = importInput.files?.[0];
+
     if (!file) return;
+
     const error = dialog.querySelector<HTMLElement>('.rotation-hotkey-error');
     const previousStatus = dialog.querySelector<HTMLElement>('.rotation-hotkey-import-status');
+
     if (error) {
       error.hidden = true;
       error.textContent = '';
@@ -296,12 +322,14 @@ function ensureDialog(controller: RotationHotkeyController): void {
     try {
       const { parseGw2HotkeyBindingsXml } = await import('#gw2/integrations/keybinds/parser.js');
       const result = parseGw2HotkeyBindingsXml(await file.text());
+
       if (!result.importedActions.length) {
         throw new Error('No supported combat skill bindings were found in this file.');
       }
 
       populateDialog(controller, { ...dialogBindings(dialog), ...result.bindings });
       const importStatus = dialog.querySelector<HTMLElement>('.rotation-hotkey-import-status');
+
       if (importStatus) {
         importStatus.hidden = false;
         importStatus.textContent = `Imported ${result.importedActions.length} binding${
@@ -332,6 +360,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
     const enabled = Boolean(dialog.querySelector<HTMLInputElement>('[data-hotkey-enabled]')?.checked);
     const duplicates = duplicateInputBindings(bindings);
     const error = dialog.querySelector<HTMLElement>('.rotation-hotkey-error');
+
     if (duplicates.length) {
       if (error) {
         error.hidden = false;
@@ -356,8 +385,11 @@ function ensureDialog(controller: RotationHotkeyController): void {
 
 function setRotationHotkeysActive(controller: RotationHotkeyController, active: boolean): void {
   controller.active = controller.enabled && active;
+
   if (!controller.active) controller.pendingModifier = null;
+
   controller.scope.classList.toggle('rotation-hotkeys-active', controller.active);
+
   if (controller.button) {
     controller.button.textContent = rotationHotkeyStatusLabel(controller.enabled, controller.active);
     controller.button.title = !controller.enabled
@@ -370,11 +402,14 @@ function setRotationHotkeysActive(controller: RotationHotkeyController, active: 
 
 function ensureControls(controller: RotationHotkeyController): void {
   if (controller.button?.isConnected) return;
+
   const heading =
     controller.root.previousElementSibling?.matches('h3') === true
       ? controller.root.previousElementSibling
       : controller.root.closest('.rotation-panel')?.querySelector('h3');
+
   if (!(heading instanceof HTMLElement)) return;
+
   heading.classList.add('rotation-builder-heading');
   const button = heading.ownerDocument.createElement('button');
   button.type = 'button';
@@ -384,10 +419,12 @@ function ensureControls(controller: RotationHotkeyController): void {
   button.addEventListener('click', () => {
     ensureDialog(controller);
     populateDialog(controller);
+
     if (controller.dialog) showDialog(controller.dialog);
   });
   const sharedControls = heading.querySelector('.rotation-builder-controls');
   const focusButton = sharedControls?.querySelector('.rotation-focus-toggle');
+
   if (sharedControls && focusButton) {
     sharedControls.insertBefore(button, focusButton);
   } else if (sharedControls) {
@@ -404,9 +441,11 @@ function ensureControls(controller: RotationHotkeyController): void {
 /** Mounts document-level keyboard and side-mouse handlers and refreshes palette badges. */
 export function mountRotationHotkeys(root: HTMLElement | null): void {
   if (!root) return;
+
   const document = root.ownerDocument;
   const scope = root.closest<HTMLElement>('.rotation-panel') || root;
   let controller = controllers.get(document);
+
   if (!controller) {
     controller = {
       root,
@@ -428,12 +467,14 @@ export function mountRotationHotkeys(root: HTMLElement | null): void {
     });
     document.addEventListener('pointerup', (event) => {
       const current = controller as RotationHotkeyController;
+
       // Browsers commit Mouse 4/5 history navigation on release, so consume the matching active hotkey there too.
       if (activeRotationMouseHotkeyAction(current.bindings, event, current.active)) event.preventDefault();
     });
     document.addEventListener('auxclick', (event) => {
       const current = controller as RotationHotkeyController;
       const target = event.target;
+
       if (
         target instanceof Node &&
         current.root.contains(target) &&
@@ -444,6 +485,7 @@ export function mountRotationHotkeys(root: HTMLElement | null): void {
     });
     document.addEventListener('keydown', (event) => {
       const current = controller as RotationHotkeyController;
+
       if (event.code === 'Escape' && !current.dialog?.open) {
         setRotationHotkeysActive(current, false);
         return;
@@ -464,6 +506,7 @@ export function mountRotationHotkeys(root: HTMLElement | null): void {
     });
     document.addEventListener('keyup', (event) => {
       const current = controller as RotationHotkeyController;
+
       if (
         current.pendingModifier === event.code &&
         !event.ctrlKey &&
@@ -506,7 +549,9 @@ export function rotationLoadoutHotkeyActions(
   const hotkeys = new Map<number, InputControlId>();
   const addSkill = (rawSkillId: unknown, action: InputControlId, visited: Set<number>): void => {
     const skillId = Number(rawSkillId);
+
     if (!Number.isFinite(skillId) || visited.has(skillId)) return;
+
     visited.add(skillId);
     hotkeys.set(skillId, action);
     for (const childId of skillChildren(skillId)) {
@@ -517,6 +562,7 @@ export function rotationLoadoutHotkeyActions(
   for (const bar of bars) {
     bar.skillIds.forEach((skillId, index) => {
       const action = rotationUtilityHotkeyAction(index);
+
       if (action) addSkill(skillId, action, new Set<number>());
     });
   }
@@ -532,9 +578,13 @@ export function activeRotationHotkeyAction(
   if (!active || event.isComposing || event.metaKey) return null;
 
   const code = inputBindingForKey(event.code, event);
+
   if (!code) return null;
+
   const exact = inputControlForBinding(bindings, code);
+
   if (exact || !event.shiftKey || event.code.startsWith('Shift')) return exact;
+
   // An unbound Shift modifier retains the rotation builder's concurrent-cast shortcut.
   return inputControlForBinding(
     bindings,
@@ -548,11 +598,17 @@ export function activeRotationMouseHotkeyAction(
   active: boolean
 ): InputControlId | null {
   const key = inputMouseButtonCode(event.button);
+
   if (!active || event.metaKey || !key) return null;
+
   const code = inputBindingForKey(key, event);
+
   if (!code) return null;
+
   const exact = inputControlForBinding(bindings, code);
+
   if (exact || !event.shiftKey) return exact;
+
   return inputControlForBinding(
     bindings,
     inputBindingForKey(key, { ctrlKey: event.ctrlKey, altKey: event.altKey, shiftKey: false }) ?? ''
@@ -586,6 +642,7 @@ const BADGE_CODES: Readonly<Record<string, string>> = Object.freeze({
 /** Keeps palette badges compact so long bindings identify the key without covering most of the skill icon. */
 export function formatRotationHotkeyBadge(code: string): string {
   if (!code) return '';
+
   const parts = code.split('+');
   const keyCode = parts.pop() || '';
   const modifiers = parts.map((part) => ({ Ctrl: 'C', Alt: 'A', Shift: 'S' })[part] || part).join('');

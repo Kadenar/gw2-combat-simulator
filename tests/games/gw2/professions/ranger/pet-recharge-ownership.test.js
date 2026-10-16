@@ -74,6 +74,7 @@ for (const retireBy of ['swap', 'merge']) {
           initialize(runtime) {
             if (retireBy === 'merge')
               setBeastmode(runtime.mechanics, runtime.helpers.skillsById.get(ID.LEAVE_BEASTMODE), false);
+
             if (queued) runtime.profession.core.pet.busyUntil = 5;
           },
           timeline: [
@@ -101,6 +102,7 @@ for (const retireBy of ['swap', 'merge']) {
         result.events.some((event) => event.type === 'action' && event.skillId === ID.FANG_GRAPPLE),
         !queued
       );
+
       if (queued) assert.equal(readyAt, 0);
       else assert.ok(readyAt > 6);
     }
@@ -118,6 +120,7 @@ test('Jacaranda Photosynthesize resolves to a companion skill outside and inside
     assert.equal(pet.beastmodeSkill, false);
     assert.equal(pet.rechargeBuffAudience, 'summon');
     const merged = catalog.skillsById.get(ID.PHOTOSYNTHESIZE);
+
     if (specialization === 'Soulbeast') {
       assert.ok(merged);
       assert.equal(merged.petSkill, false);
@@ -150,6 +153,7 @@ test('commanded Jacaranda Photosynthesize recharges and grants regeneration only
           const readyAt = runtime.cooldownController.project(skill, progress);
           assert.equal(readyAt, progress.startedAt + skill.cooldown);
           samples.push({ ...progress, readyAt });
+
           if (at === 3) {
             assert.equal(
               runtime.mechanics.combat.activeBoonStacks('regeneration', at, 1, {

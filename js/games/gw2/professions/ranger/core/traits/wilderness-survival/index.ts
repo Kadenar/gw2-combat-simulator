@@ -243,7 +243,9 @@ export const survivalInstincts = defineTrait({
 function triggerChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
   // A trait trigger invokes one independently patchable skill and shares that skill's recharge.
   const proc = context.helpers.skillsById.get(ID.LESSER_MUDDY_TERRAIN)!;
+
   if (!proc.effects?.length || context.cooldownController.isOnCooldown(proc.id, context.time)) return;
+
   context.cooldownController.startRecharge(proc, context.time);
   invokeTraitSkill(context, TRAIT.CHILD_OF_EARTH, proc.id, {
     type: 'action',
@@ -261,6 +263,7 @@ function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill)
   const petCommand = isBeastSkill(skill);
   const notBeforeCombat =
     !context.hasExplicitCombatStart || (context.combatStartTime != null && context.time >= context.combatStartTime);
+
   if (petCommand || notBeforeCombat) {
     context.effects.emit({
       kind: 'packet',
@@ -290,12 +293,15 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
     : isActivePetStrike(context, event)
       ? state.pet
       : null;
+
   if (!actor?.poisonMasterReady) return;
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.POISON_MASTER);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
+
   // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
   if (!poison) return;
+
   actor.poisonMasterReady = false;
   emitTraitProfile(context, TRAIT.POISON_MASTER, TRAIT.POISON_MASTER, undefined, {
     at: event.at,
@@ -316,6 +322,7 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
 
 function triggerArachnophobia(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPetStrike(event) || (event.skillId !== ID.SPIT && event.skillId !== ID.TWIN_DARTS)) return;
+
   // Split the per-attack duration across Twin Darts while preserving each packet's authored condition and pet ownership.
   const divisor = event.skillId === ID.TWIN_DARTS ? Number(event.totalHits || 2) : 1;
   emitTraitProfile(context, TRAIT.ARACHNOPHOBIA, TRAIT.ARACHNOPHOBIA, undefined, {
@@ -343,6 +350,7 @@ function handlePoisonMasterGrant(context: RangerResolverContext, event: Gw2Resol
     const state = professionCoreState(context);
     // A delayed grant can only reach the companion that accepted the command, never a newer incarnation.
     const actor = event.summonOwner ? rangerOwningPetState(state.pet, event.summonOwner) : state.player;
+
     if (actor) actor.poisonMasterReady = true;
   }
 }

@@ -19,6 +19,7 @@ test('local artwork aliases resolve to loadable images', async ({ page }) => {
     );
     for (const stylesheet of ['/css/profession-ui.css', '/css/rotation-palette.css']) {
       const response = await fetch(`${stylesheet}?direct`);
+
       if (!response.ok) throw new Error(`Cannot load ${stylesheet}: ${response.status}`);
 
       const css = await response.text();

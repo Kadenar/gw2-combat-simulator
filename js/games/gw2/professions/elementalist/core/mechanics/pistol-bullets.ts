@@ -30,12 +30,14 @@ export const pistolBulletSideEffectHandlers: RuntimeProfession<
 >['sideEffectHandlers'] = {
   'elementalist.pistol.load-or-spend'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol bullets require a cast trigger.');
+
     const element = trigger.skill.attunement as ElementalistAttunement;
     const state = professionCoreState(context);
     state.pistolBullets[element] = !state.pistolBullets[element];
   },
   'elementalist.pistol.load'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol bullets require a cast trigger.');
+
     professionCoreState(context).pistolBullets[trigger.skill.attunement as ElementalistAttunement] = true;
   }
 };

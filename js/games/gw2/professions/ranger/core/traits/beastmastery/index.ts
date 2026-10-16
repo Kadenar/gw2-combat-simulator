@@ -331,7 +331,9 @@ function applyRangerCommandTraits(
   for (const kind of GW2_STANDARD_BOONS) {
     // The shared live query owns boon pools; this trait owns their unchanged-duration copy to the active pet.
     const { stacks, duration } = context.combat.boonSnapshot(kind, at, { actor: 'player' });
+
     if (!stacks) continue;
+
     // Copied durations already include the original caster's boon duration.
     context.effects.emit({
       kind: 'packet',
@@ -367,14 +369,17 @@ function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent):
   const state = professionCoreState(context);
   const skill = skillForEvent(context.helpers, event);
   const beastSkillId = state.activePetSkillIds.at(-1);
+
   if (event.skillId !== beastSkillId || !skill?.petSkill || skill.petFamilySkill) {
     return;
   }
 
   const profile = context.helpers.skillsById.get(ID.LESSER_SIC_EM)!;
   const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em-pet');
+
   // The pet cooldown gates only the pet buff, so a removed buff leaves it ready.
   if (!lesserSicEm || context.cooldownController.isOnCooldown(profile.id, context.time)) return;
+
   context.cooldownController.startRecharge(profile, context.time);
   const duration = effectNumber(profile, lesserSicEm, 'duration');
   context.effects.emit({
@@ -410,6 +415,7 @@ function triggerMergedGoForTheThroat(context: RangerRuntime, event: Gw2ResolverE
   const profile = context.helpers.skillsById.get(ID.LESSER_SIC_EM)!;
   // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
   const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
+
   if (lesserSicEm && !context.cooldownController.isOnCooldown(profile.id, context.time)) {
     context.cooldownController.startRecharge(profile, context.time);
     const duration = effectNumber(profile, lesserSicEm, 'duration');
@@ -439,6 +445,7 @@ function triggerMergedGoForTheThroat(context: RangerRuntime, event: Gw2ResolverE
 function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_EYES);
   const blind = requireEffect(profile, 'condition', 'Blind');
+
   // The cooldown gates only the blind, so a removed blind leaves it ready.
   if (blind && context.procs.claim(TRAIT.GO_FOR_THE_EYES, 'ranger.soulbeast.goForTheEyes', event.at)) {
     emitTraitProfile(context, TRAIT.GO_FOR_THE_EYES, TRAIT.GO_FOR_THE_EYES, undefined, {
@@ -463,6 +470,7 @@ function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2Res
 function triggerMergedWiltingStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.WILTING_STRIKE);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
+
   if (weakness)
     context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));
 }

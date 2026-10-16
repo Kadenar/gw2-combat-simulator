@@ -61,6 +61,7 @@ for (const id of [
       skill.cooldown > 0
     );
     assert.ok(tooltip.facts.every((fact) => !fact.detail.includes('· Strike')));
+
     if (id === N.LESSER_SPINAL_SHIVERS) {
       const strikeFact = tooltip.facts.find((fact) => fact.name === 'Strike damage');
       assert.ok(strikeFact.detail.endsWith('Lesser Spinal Shivers · No boons'));

@@ -49,6 +49,7 @@ test('Engineer removes only inaccurate Overcharged Shot markers covered by an an
 /** Equivalent animation and damage evidence must produce the same replay input in either importer. */
 function reconstructFixture(format, includeMarker) {
   const skillId = ID.OVERCHARGED_SHOT;
+
   if (format === 'dps.report') {
     return reconstructDpsReportRotation(
       {

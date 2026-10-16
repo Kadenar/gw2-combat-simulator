@@ -33,6 +33,7 @@ export function petDerivedConditionMetadata(
   event: Gw2ResolverEvent
 ): Record<string, unknown> {
   if (!isPetStrike(event)) return {};
+
   // Derived pet conditions always use the active pet's independent attributes,
   // even when ArcDPS attributes the triggering command strike to the player.
   return {

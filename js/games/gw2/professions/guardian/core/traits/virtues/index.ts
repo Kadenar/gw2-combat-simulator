@@ -265,6 +265,7 @@ export function masterOfConsecrationsFields(
 ): Skill['comboFields'] {
   if (cast.skill.id !== ID.PURGING_FLAMES || !hasTrait(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS))
     return fields;
+
   const multiplier = balanceNumberFromContext(
     runtime,
     GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
@@ -276,13 +277,16 @@ export function masterOfConsecrationsFields(
 /** Resolve hammer replacement before the Core weapon-flip availability checks. */
 function glacialHeartAvailability(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill) {
   const glacial = hasTrait(runtime, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
+
   if (skill.id === ID.MIGHTY_BLOW && glacial)
     return denySkillCast(
       skill,
       'guardian.trait-replacement',
       'Glacial Blow replaces it while Glacial Heart is selected.'
     );
+
   if (skill.id === ID.GLACIAL_BLOW && !glacial)
     return denySkillCast(skill, 'guardian.trait-replacement', 'requires the Glacial Heart trait.');
+
   return null;
 }

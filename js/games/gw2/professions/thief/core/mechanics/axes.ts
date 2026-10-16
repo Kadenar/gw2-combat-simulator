@@ -15,9 +15,12 @@ export const THIEF_AXE_LAND = 'thief.axe-land';
 /** Committed throws create axes even off target or before combat; damage eligibility does not own the projectile pool. */
 export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
   if (context.kind !== 'cast') return;
+
   const { cast } = context;
   const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
+
   if (!strike) return;
+
   const impact = (strike.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + (strike.atMs ?? 0) / 1000;
   for (let index = 0; index < (strike.hits ?? 1); index++) {
     const axe = {
@@ -34,6 +37,7 @@ export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContex
 /** Release the recalled generation before aftercast so it cannot absorb axes thrown by the following skill. */
 export function scheduleThiefAxeRecall(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
   if (context.kind !== 'cast' || context.cast.cancelled) return;
+
   const cast = context.cast;
   const at = cast.skill.interruptCommitMs == null ? cast.fullEnd : cast.start + cast.skill.interruptCommitMs / 1000;
   runtime.scheduleForCast('thief.recall-axes', canonicalTime(at), cast);
@@ -42,6 +46,7 @@ export function scheduleThiefAxeRecall(runtime: ThiefRuntime, context: ActionCon
 /** Lower-priority ground axes are replaced first; age breaks ties within a projectile type. */
 function axePriority(skillId: SkillId): number {
   if (skillId === ID.CUNNING_SALVO || skillId === ID.MALICIOUS_CUNNING_SALVO) return 2;
+
   return skillId === ID.VENOMOUS_VOLLEY ? 1 : 0;
 }
 
@@ -49,13 +54,18 @@ function axePriority(skillId: SkillId): number {
 export function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
   const index = core.outboundAxes.findIndex((axe) => axe.id === (data as { id: string }).id);
+
   if (index < 0) return;
+
   const [landed] = core.outboundAxes.splice(index, 1);
   core.spinningAxes = core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time);
+
   if (core.spinningAxes.length >= MAXIMUM_SPINNING_AXES) {
     const lowestPriority = Math.min(...core.spinningAxes.map((axe) => axePriority(axe.skillId)));
+
     // Fizzling leaves protected axes and their expiry times intact.
     if (lowestPriority > axePriority(landed.skillId)) return;
+
     const replace = core.spinningAxes.findIndex((axe) => axePriority(axe.skillId) === lowestPriority);
     core.spinningAxes.splice(replace, 1);
   }
@@ -133,6 +143,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
         duration: torment ? 2 : 1
       })
     });
+
     // Five returning hits trigger one immobilize; five is a threshold, not a cap on returning axes.
     if (index === 4)
       runtime.effects.emit({

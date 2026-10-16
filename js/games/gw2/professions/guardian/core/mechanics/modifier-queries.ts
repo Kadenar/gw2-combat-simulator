@@ -25,9 +25,11 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
         ?.filter((application) => application.at <= context.time)
         .at(-1)?.event ?? null
     );
+
   let latest: SimulationEvent | null = null;
   for (const event of context.events || []) {
     if (event.at > context.time) break;
+
     if (event.type === 'buff' && event.kind === kind) latest = event;
   }
 

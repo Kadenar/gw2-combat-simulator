@@ -35,6 +35,7 @@ test('shared emission preserves Lightning Rod condition settlement and rejects o
             ...native.reactions,
             'damage.resolved'(runtime, event, details) {
               native.reactions?.['damage.resolved']?.(runtime, event, details);
+
               if (event.skillName === 'Lightning Rod')
                 observations.push(runtime.combat.targetHasCondition('Vulnerability', runtime.time, runtime));
             }
@@ -45,6 +46,7 @@ test('shared emission preserves Lightning Rod condition settlement and rejects o
     assert.deepEqual(result.warnings, []);
     assert.equal(observations[0], !offTarget);
     assert.ok(observations.every((value) => value === !offTarget));
+
     if (!offTarget) assert.equal(observations.length, 2);
   }
 });

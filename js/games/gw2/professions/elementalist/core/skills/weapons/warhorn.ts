@@ -336,7 +336,9 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
   let remainingStacks = kind === 'might' ? 25 : 1;
   for (const copy of copies) {
     const stacks = Math.min(remainingStacks, copy.stacks);
+
     if (!(stacks > 0 && copy.duration > 0)) continue;
+
     remainingStacks -= stacks;
     runtime.effects.emit({
       kind: 'packet',

@@ -12,14 +12,20 @@ export function professionSourceGraph(
   function visit(directory) {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
       const file = path.join(directory, entry.name);
+
       if (entry.isDirectory()) return visit(file);
+
       if (!file.endsWith('.ts')) return [];
+
       const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
       const dependencies = [];
       for (const statement of source.statements) {
         if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
+
         if (statement.isTypeOnly || statement.importClause?.isTypeOnly) continue;
+
         const bindings = statement.importClause?.namedBindings ?? statement.exportClause;
+
         // A default value import still creates an edge when all named bindings are type-only.
         if (
           !statement.importClause?.name &&
@@ -27,7 +33,9 @@ export function professionSourceGraph(
           bindings.elements.every((binding) => binding.isTypeOnly)
         )
           continue;
+
         const specifier = statement.moduleSpecifier?.text;
+
         if (specifier?.startsWith(alias))
           dependencies.push(path.join(root, specifier.slice(alias.length).replace(/\.js$/, '.ts')));
         else if (specifier?.startsWith('.'))
@@ -52,9 +60,13 @@ export function assertIndependentProfessionOwners(
     const relative = path.relative(root, file).replaceAll(path.sep, '/');
     const trace = [...chain, file].map((item) => path.relative(root, item)).join(' -> ');
     assert.ok(graph.has(file), `Missing source: ${trace}`);
+
     if (forbidden != null) assert.doesNotMatch(relative, forbidden, trace);
+
     assert.ok(!chain.includes(file), `Value-import cycle: ${trace}`);
+
     if (complete.has(file)) return;
+
     for (const dependency of graph.get(file)) visit(dependency, [...chain, file]);
     complete.add(file);
   }

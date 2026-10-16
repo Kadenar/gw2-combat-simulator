@@ -117,6 +117,7 @@ test('Mesmer strike expansion preserves zero coefficients and rejects invalid fo
   for (const coefficient of [0, undefined, '1', NaN]) {
     const build = () =>
       buildMesmerStrikes(context, { id: 1, name: 'Fixture' }, 0, { ticks: [{ atMs: 0, coefficient }] });
+
     if (coefficient === 0) assert.equal(build()[0].coefficient, 0);
     else assert.throws(build, /expected=finite number/);
   }

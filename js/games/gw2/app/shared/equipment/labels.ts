@@ -20,6 +20,7 @@ type NumericValues = Readonly<Record<string, number>>;
 /** Expand abbreviated equipment names to their canonical wiki articles and card headings. */
 function equipmentWikiName(kind: string, name: string): string {
   let wikiName = name;
+
   if (/rune/i.test(kind)) {
     const noArticle = [
       'Infiltration',
@@ -86,7 +87,9 @@ function upgradeDetails(name: string, label: string): string {
 /** Use catalog bonuses for rune sets and local trigger descriptions for sigils and relics in every picker. */
 export function equipmentTooltipAttributes(kind: string, name: string, description = ''): string {
   if (!name || name === 'None') return '';
+
   const wikiName = equipmentWikiName(kind, name);
+
   if (/rune/i.test(kind)) {
     const rune = runeData[name];
     return equipmentCardAttributes(`${wikiName} (6/6)`, 'Six-piece set bonuses', wikiName, EQUIPMENT_ICONS[name], [
@@ -116,7 +119,9 @@ export function equipmentTooltipAttributes(kind: string, name: string, descripti
   }
 
   if (/food/i.test(kind)) description ||= foodOptionLabel(name);
+
   if (/utility/i.test(kind)) description ||= utilityOptionLabel(name);
+
   return wikiTooltipAttributes(name, description, wikiName);
 }
 
@@ -137,16 +142,21 @@ export function gearTooltipAttributes({
   sigils?: readonly string[];
 }): string {
   if (!name) return '';
+
   const facts = attributeFacts(gearStats[prefix]?.[slot]);
   const strength = slot.startsWith('Weapon') ? weaponStrengthProfileForName(name) : null;
+
   if (strength) facts.unshift({ name: 'Weapon Strength', detail: `${strength.min} – ${strength.max}` });
+
   const upgrades: TooltipFact[] = [];
+
   if (rune && runeData[rune])
     upgrades.push({
       name: `${equipmentWikiName('rune', rune)} (6/6)`,
       detail: `Six-piece set bonuses\n${upgradeDetails(rune, runeOptionLabel(rune)).replaceAll(', ', '\n')}`,
       icon: EQUIPMENT_ICONS[rune]
     });
+
   for (const sigil of sigils) {
     if (SIGIL_DATA[sigil])
       upgrades.push({
@@ -178,6 +188,7 @@ function optionLabel(name: string, details: readonly string[]): string {
 function attributeDetails(values: NumericValues | undefined, percent = false): string[] {
   const entries = Object.entries(values || {});
   const amounts = new Set(entries.map(([, value]) => value));
+
   if (entries.length >= 8 && amounts.size === 1) {
     return [`+${entries[0][1]}${percent ? '%' : ''} all attributes`];
   }
@@ -198,13 +209,17 @@ export function runeOptionLabel(name: string): string {
 
 function foodProcDetail(proc: UnknownValues | undefined): string {
   if (!proc) return '';
+
   const chance = `${Math.round(Number(proc.chance || 0) * 100)}% on critical hit`;
   const cooldown = proc.icdMs ? ` (${Number(proc.icdMs) / 1000}s CD)` : '';
+
   if (proc.flatDamage) return `${chance}: ${proc.flatDamage} damage${cooldown}`;
 
   const effect = (value: unknown): string => {
     const data = value as UnknownValues | undefined;
+
     if (!data) return '';
+
     const stacks = Number(data.stacks || 1);
     return `${stacks > 1 ? `${stacks} ` : ''}${String(data.name || '')}${data.duration ? ` for ${data.duration}s` : ''}`;
   };
@@ -227,7 +242,9 @@ export function foodOptionLabel(name: string): string {
 export function utilityOptionLabel(name: string): string {
   // Explain the assumed target match alongside the potion's damage-only effect.
   const strikeBonus = UTILITY_STRIKE_DAMAGE_BONUSES[name];
+
   if (strikeBonus) return optionLabel(name, [`+${strikeBonus}% multiplicative strike damage; matching enemy assumed`]);
+
   const conversions = utilityData[name] || [];
   const firstPercent = conversions[0]?.percent;
   const uniformSelfConversion =
@@ -257,6 +274,7 @@ const SIGIL_PERCENT_FIELDS: Readonly<Record<string, string>> = {
 
 function sigilProcDetail(name: string, proc: UnknownValues | undefined): string {
   if (!proc) return '';
+
   const condition = `${Number(proc.stacks || 1) > 1 ? `${proc.stacks} ` : ''}${String(proc.condition || '')}${
     proc.duration ? ` for ${proc.duration}s` : ''
   }`;
@@ -286,6 +304,7 @@ function sigilProcDetail(name: string, proc: UnknownValues | undefined): string 
 
 export function sigilOptionLabel(name: string): string {
   const sigil = SIGIL_DATA[name];
+
   // Show the assumed persistent bonus so inactive-set stacking sigils explain their contribution.
   if (sigil?.stackingStats) {
     const stats = attributeDetails(sigil.stackingStats).join(', ');

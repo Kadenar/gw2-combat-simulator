@@ -46,6 +46,7 @@ function isCooldownResetCommand(command: CastCommand | CooldownResetCommand): co
 /** Preserves overlong explicit casts while leaving autoattack chains to model their own cadence. */
 function observedAftercastWaitMs(action: ReplayTimelineAction, replayEnd: number): number {
   if (!action.skill || String(action.skill.slot || '').toLowerCase() === 'weapon_1') return 0;
+
   const excessMs = replayEnd - action.start - (action.replayDurationMs ?? referenceCastTimeMs(action.skill));
   return excessMs > OBSERVED_CAST_TOLERANCE_MS ? excessMs : 0;
 }
@@ -67,14 +68,18 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     | { readonly type: 'action'; readonly action: Action }
     | { readonly type: 'combat-start'; readonly at: number; readonly index: number }
   > = actions.map((action) => ({ type: 'action', action }));
+
   if (combatStart != null) entries.push({ type: 'combat-start', at: combatStart, index: -1 });
+
   entries.sort((left, right) => {
     const leftTime = left.type === 'action' ? left.action.start : left.at;
     const rightTime = right.type === 'action' ? right.action.start : right.at;
     const leftIndex = left.type === 'action' ? left.action.eventIndex : left.index;
     const rightIndex = right.type === 'action' ? right.action.eventIndex : right.index;
     const timeOrder = leftTime - rightTime;
+
     if (timeOrder !== 0) return timeOrder;
+
     // Source-specific replay semantics may need a deterministic priority for
     // simultaneous actions while retaining the original event order otherwise.
     if (left.type === 'action' && right.type === 'action') {
@@ -82,8 +87,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       const stunbreakOrder =
         Number(right.action.skill?.stunbreak === true && referenceCastTimeMs(right.action.skill) === 0) -
         Number(left.action.skill?.stunbreak === true && referenceCastTimeMs(left.action.skill) === 0);
+
       if (stunbreakOrder !== 0) return stunbreakOrder;
+
       const actionOrder = policy.compareSimultaneousActions?.(left.action, right.action) ?? 0;
+
       if (actionOrder !== 0) return actionOrder;
     }
 
@@ -97,7 +105,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     let end = start + 1;
     while (end < entries.length) {
       const entry = entries[end];
+
       if ((entry.type === 'action' ? entry.action.start : entry.at) !== time) break;
+
       end += 1;
     }
 
@@ -105,8 +115,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     // Shroud attacks require entry first and exit last, regardless of log grouping or event order.
     const shroudRank = (entry: (typeof entries)[number]): number | null => {
       const skill = entry.type === 'action' ? entry.action.skill : null;
+
       if (skill?.shroudEntry || skill?.shadowShroudTransition === 'enter') return 0;
+
       if (skill?.shroudExit || skill?.shadowShroudTransition === 'exit') return 2;
+
       return skill?.shroud || skill?.shadowShroudSkill ? 1 : null;
     };
 
@@ -124,6 +137,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       (entry) => entry.type === 'action' && /^(Fire|Water|Air|Earth) Attunement$/.test(entry.action.name)
     );
     const swap = swaps.length === 1 ? swaps[0] : null;
+
     if (swap?.type === 'action') {
       const element = swap.action.name.split(' ')[0];
       const indices = tied.flatMap((entry, index) =>
@@ -150,9 +164,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const weaponSwapIndices = new Map<number, number>();
   for (const [index, entry] of entries.entries()) {
     if (entry.type !== 'action') continue;
+
     if (entry.action.name === 'Swap Weapons') weaponSwapIndices.set(entry.action.start, index);
+
     const weaponIndex = weaponSwapIndices.get(entry.action.start);
+
     if (entry.action.name !== 'Swap Legends' || weaponIndex == null) continue;
+
     [entries[weaponIndex], entries[index]] = [entry, entries[weaponIndex]];
     weaponSwapIndices.delete(entry.action.start);
   }
@@ -176,7 +194,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
   const appendWait = (waitMs: number): void => {
     if (!(waitMs > 0)) return;
+
     rotation.push({ type: 'wait', durationMs: waitMs });
+
     if (alignWaitsToSimulatorTiming) {
       projectedTime = Math.max(projectedTime, projectedWaitJoinEnd) + waitMs;
     }
@@ -184,6 +204,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
   const appendPendingAftercastWait = (): void => {
     if (!pendingAftercast) return;
+
     const waitMs = alignWaitsToSimulatorTiming
       ? quantizeMs(pendingAftercast.until - Math.max(projectedTime, projectedWaitJoinEnd))
       : quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo);
@@ -201,6 +222,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       : quantizeMs(observedGapMs);
     const aftercastWaitMs = pendingAftercast ? quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo) : 0;
     pendingAftercast = null;
+
     if (alignWaitsToSimulatorTiming) {
       // The projection already accounts for occupied time; preserve any remaining rounded source gap.
       if (waitMs > 0) appendWait(waitMs);
@@ -217,17 +239,20 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const blockingEnd = Math.max(activeCastEnd, retainedCastEnd);
     // Combat can start on the final packet of a cast; action jitter must not postpone its observation window.
     const overlapping = at < blockingEnd - (entry.type === 'combat-start' ? 0 : timingToleranceMs);
+
     if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
         // Round combat offsets relative to the skill, retaining exact packet-proven boundaries so opening hits stay observable.
         const offset = quantizeGw2ActionTimingMs(at - previousCastStart);
         rotation.push({ type: 'combat-start', concurrentOffsetMs: offset });
+
         if (alignWaitsToSimulatorTiming && projectedPreviousCastStart != null) {
           projectedTime = Math.max(projectedTime, projectedPreviousCastStart + offset);
         }
       } else {
         appendObservedIdle(at);
         rotation.push({ type: 'combat-start' });
+
         if (alignWaitsToSimulatorTiming) projectedTime = Math.max(projectedTime, projectedReservedEnd);
       }
 
@@ -236,9 +261,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     const action = entry.action;
     const actionReplayEnd = Math.max(at, replayEnd(action));
+
     if (!canEmit(action)) {
       if (overlapping) appendPendingAftercastWait();
       else appendObservedIdle(at);
+
       appendWait(
         alignWaitsToSimulatorTiming
           ? quantizeMs(actionReplayEnd - Math.max(projectedTime, projectedWaitJoinEnd))
@@ -246,17 +273,22 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       );
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
       previousCastStart = null;
+
       if (alignWaitsToSimulatorTiming) projectedPreviousCastStart = null;
+
       continue;
     }
 
     const command = { ...policy.commandFor(action) };
+
     if (isCooldownResetCommand(command)) {
       // Environment resets are serial markers; preserve their source position without treating them as player casts.
       if (overlapping) appendPendingAftercastWait();
       else appendObservedIdle(at);
+
       rotation.push(command);
       previousCastStart = null;
+
       if (alignWaitsToSimulatorTiming) {
         projectedTime = Math.max(projectedTime, projectedReservedEnd);
         projectedPreviousCastStart = null;
@@ -276,6 +308,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       (action.name !== 'Swap Weapons' || swapDuringDodge) &&
       (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
+
     // A companion that holds Waits can open before the player's first cast. Anchor that overlap to rotation start;
     // a serial wait would incorrectly wait for the companion's entire animation.
     if (alignWaitsToSimulatorTiming && previousCastStart == null && projectedCompanionEnd > origin && at > origin) {
@@ -311,6 +344,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     rotation.push(command);
+
     if (alignWaitsToSimulatorTiming) {
       // Mechanic-owned charge intervals already define their replay occupancy.
       const runtimeMs =
@@ -336,6 +370,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
               : Math.max(projectedTime, projectedBlockingEnd);
       projectedTime = projectedStart;
       projectedReservedEnd = Math.max(projectedReservedEnd, projectedStart + retainedRuntimeMs);
+
       if (!overlappingCompanion) {
         projectedWaitJoinEnd = Math.max(projectedWaitJoinEnd, projectedStart + retainedRuntimeMs);
       }
@@ -362,6 +397,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     const aftercastWaitMs = observedAftercastWaitMs(action, actionReplayEnd);
+
     if (!concurrent && policy.hasObservedCastTime?.(action) !== false && aftercastWaitMs > 0) {
       pendingAftercast = {
         until: actionReplayEnd,
@@ -373,8 +409,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       activeCastEnd = Math.max(activeCastEnd, at);
     } else {
       previousCastStart = at;
+
       if (!instant && actionReplayEnd >= activeCastEnd) activeCast = action;
+
       activeCastEnd = Math.max(activeCastEnd, instant ? at : actionReplayEnd);
+
       // Only an interrupted command uses the retained lane; idle after a completed cast remains explicit.
       if (command.interruptAfterMs != null && retainsReplayCastLockout(action.skill, command.interruptAfterMs)) {
         retainedCastEnd = Math.max(retainedCastEnd, actionReplayEnd);

@@ -160,6 +160,7 @@ for (const [traitId, labels] of [
       const { facts } = describeSimulationTrait({ ...context, catalog }, { id: traitId }, thiefTooltips);
       for (const [boon, label] of Object.entries(labels)) {
         const fact = facts.find((fact) => fact.name.toLowerCase() === boon);
+
         if (boon === removed) assert.equal(fact, undefined);
         else assert.ok(fact?.detail.includes(label), `${boon}: ${JSON.stringify(fact)}`);
       }

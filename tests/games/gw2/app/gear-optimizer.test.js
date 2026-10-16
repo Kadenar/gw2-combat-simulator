@@ -225,7 +225,9 @@ class OptimizerTestWorker {
     message = structuredClone(message);
     setImmediate(() => {
       if (this.terminated) return;
+
       let result;
+
       if (message.kind === 'init') {
         this.job =
           message.request.search === 'fast'
@@ -286,6 +288,7 @@ test('completion verifies group winners beyond the overall top twenty using boun
       { buildRevision: captured.revision },
       () => {
         if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+
         if (runner.state.status === 'complete') resolve(runner.state);
       },
       () => {
@@ -366,6 +369,7 @@ test('bounded refinement stays deterministic across worker counts without rescor
         { buildRevision: captured.revision },
         () => {
           if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+
           if (runner.state.status === 'complete') {
             assert.equal(BigInt(searchedKeys.size), runner.state.simulations);
             assert.ok(runner.state.simulations > 256n, 'refinement must add new candidates after sampling');
@@ -778,6 +782,7 @@ test('forced slots constrain ordinary, exact, and fast candidates including alte
     const result = job.evaluateRange(0n, job.space.count);
     assert.ok(result.winners.length);
     for (const candidate of [...result.winners, ...Object.values(result.groups).flat()]) check(candidate.equipment);
+
     if (job.refine) {
       job.refine(result.winners);
       assert.ok(job.space.count > 0n);
@@ -821,6 +826,7 @@ test('workers finish exact and fast searches when every candidate fails requirem
         { buildRevision: captured.revision },
         () => {
           if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+
           if (runner.state.status === 'complete') resolve(runner.state);
         },
         () => new OptimizerTestWorker()
@@ -868,6 +874,7 @@ test(
             { buildRevision: captured.revision },
             () => {
               if (runner.state.status === 'failed') reject(new Error(runner.state.error));
+
               if (runner.state.status === 'complete') resolve(runner.state);
             },
             () => new OptimizerTestWorker(),
@@ -1068,7 +1075,9 @@ test('gear, rune and infusion totals merge with exact score and representative p
       const key = optimizerEquivalenceKey(equipment, job.space.ordinary, adapter);
       const score = optimizerScore(job.evaluator.evaluate(equipment));
       const prior = expected.get(key);
+
       if (prior) assert.deepEqual(score, prior.score);
+
       expected.set(key, {
         key,
         score,

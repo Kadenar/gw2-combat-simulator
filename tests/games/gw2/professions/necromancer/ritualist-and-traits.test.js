@@ -60,6 +60,7 @@ test('Cascading Corruption links its grants without hiding its offensive effects
   assert.match(summary.description, /^Cascading Corruption.*Meltdown/i);
   for (const effect of effects) {
     const row = rows.find((entry) => entry.id === `event:${effect.eventOrder}`);
+
     if (effect.type === 'buff') assert.equal(row, undefined);
     else assert.equal(row?.parentId, summary.id);
   }
@@ -697,6 +698,7 @@ test('Soul Barbs preserves Core trait attribution and Scourge cast attribution',
     assert.ok(grant, specialization);
     assert.equal(grant.source, source);
     assert.equal(grant.sourceId, sourceId);
+
     if (specialization === 'Scourge') {
       assert.equal(grant.skillId, ID.DESERT_SHROUD);
       assert.equal(grant.skillName, skillName);
@@ -1013,6 +1015,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
       ['quickness', 'fury']
     );
     assert.ok(boons.every((event) => event.at === action.endsAt && event.skillId === skillId));
+
     if (skillId === ID.DARK_BARRAGE) assert.ok(boons.every((event) => event.source === 'Trait'));
   }
 

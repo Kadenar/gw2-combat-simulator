@@ -185,15 +185,25 @@ const tooltipIconNames = Object.keys(MODIFIER_EFFECT_ICONS)
 /** Qualifiers change a fact's wording, not its icon; conversions use the destination attribute. */
 export function tooltipFactIcon(name: string): string | undefined {
   const label = name.toLowerCase().split('converted to ').at(-1)!;
+
   if (/\bskills? recharge\b/.test(label)) return MODIFIER_EFFECT_ICONS['Skill recharge'];
+
   if (/\b(?:recharge|cooldown|icd)\b/.test(label)) return MODIFIER_EFFECT_ICONS.Recharge;
+
   if (/\bintervals?\b/.test(label)) return MODIFIER_EFFECT_ICONS.Interval;
+
   if (/\bcritical(?:[- ]hit)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS.Ferocity;
+
   if (/\bcritical(?:[- ]strike)? chance\b/.test(label)) return MODIFIER_EFFECT_ICONS.Precision;
+
   if (/^damage\b|\bstrike(?: and condition)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS['Strike damage'];
+
   if (/\bcondition duration\b/.test(label)) return MODIFIER_EFFECT_ICONS.Expertise;
+
   if (/\bboon duration\b/.test(label)) return MODIFIER_EFFECT_ICONS.Concentration;
+
   if (/\battributes?\b/.test(label)) return MODIFIER_EFFECT_ICONS['Attribute increase'];
+
   const match = tooltipIconNames.find(({ pattern }) => pattern.test(label));
   return (
     match?.icon ||
@@ -209,7 +219,9 @@ export function resolveRelicIcon(label: unknown): string {
   const value = String(label || '');
   // Internal sources carry item IDs; display labels still resolve by their readable catalog names.
   const sourceId = value.match(/^relic\.(\d+)$/)?.[1];
+
   if (sourceId) return RELIC_BY_ID[Number(sourceId)]?.icon || '';
+
   const relicData = RELIC_DATA;
   for (const [name, relic] of Object.entries(relicData)) {
     if (
@@ -225,6 +237,7 @@ export function resolveRelicIcon(label: unknown): string {
 
 export function resolveProcIcon(app: ProfessionAppState, proc: Gw2ProcStep): string {
   if (Number(proc.cooldownReduction) > 0) return REFRESH_ARROW_ICON;
+
   const traits = app.attributeData?.activeTraits || [];
   const traitIcon = proc.type === 'trait_proc' ? traits.find((trait) => trait.name === proc.skill)?.icon : '';
   const relicIcon = proc.type === 'relic_proc' ? resolveRelicIcon(proc.skill) : '';

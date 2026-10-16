@@ -41,6 +41,7 @@ for (const [professionId, elite, resourceId, key] of [
     assert.ok(Number.isFinite(view.value));
     assert.ok(Number.isFinite(view.maximum) && view.maximum > 0);
     assert.ok(view.value >= 0 && view.value <= view.maximum);
+
     if (key === 'familiarCharges') {
       // Evoker combines the familiar pool with a separately projected empowered pool in one dial.
       const empowered = planning.profession.empoweredCharges;

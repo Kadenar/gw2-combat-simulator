@@ -88,7 +88,9 @@ function familiarSkillIds(context: SkillDamagePreviewContext): readonly [number,
 /** Familiar element selects the attack, while the preview's attunement supplies the player's conditional bonuses. */
 function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: Skill): SkillDamageState | null {
   const [basic, empowered] = familiarSkillIds(context);
+
   if (skill.id !== basic && skill.id !== empowered) return null;
+
   const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
   // Each row starts from its own legal form using the simulation's existing initial resource fields.
   return {
@@ -145,6 +147,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
   // Familiar packets record absolute charge totals, with a delta only when weapon skills award charges.
   eventLogRow: (_context, event) => {
     if (event.type !== 'resource' || event.kind !== 'evoker-charges') return undefined;
+
     const change =
       typeof event.change === 'number' && event.change !== 0 ? ` (${event.change > 0 ? '+' : ''}${event.change})` : '';
     return {
@@ -179,6 +182,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
   // Only valid familiar choices may update the persisted element used by the palette and simulation.
   updateSkillBarSelection: (context: ElementalistUiContext, selection: ProfessionSkillBarSelectionChange): boolean => {
     const build = context.build;
+
     if (
       !build ||
       selection.key !== 'evokerElement' ||
@@ -186,6 +190,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
       !ELEMENTALIST_ATTUNEMENTS.includes(selection.value as ElementalistAttunement)
     )
       return false;
+
     build.evokerElement = selection.value;
     return true;
   },

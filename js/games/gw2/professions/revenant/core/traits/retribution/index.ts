@@ -130,11 +130,15 @@ export const viciousReprisalTrait = defineTrait({
 function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   // Permanent configured Resolution and executed self applications count; pending packets never do.
   if (runtime.combat.activeBoonStacks('resolution', runtime.time, 1) === 0) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.VICIOUS_REPRISAL);
   const boon = requireEffect(profile, 'boon', 'might');
+
   // The cooldown gates only might, so a removed boon leaves it ready.
   if (!boon) return;
+
   if (!runtime.procs.claimCooldown('viciousReprisal', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
+
   // Keep its position among resolved-hit traits while sharing profile expansion and causal placement.
   // The boon packet stays unlabelled, so reports name it by its boon and trait attribution.
   emitTraitProfile(runtime, TRAIT.VICIOUS_REPRISAL, profile.id, event, {

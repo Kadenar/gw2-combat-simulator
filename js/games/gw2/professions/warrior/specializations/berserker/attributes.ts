@@ -6,6 +6,7 @@ import { active } from '#gw2/professions/warrior/specializations/berserker/trait
 /** Berserk grants final Power and Condition Damage without feeding ordinary trait conversions. */
 export const berserkerAttributes: Gw2AttributeContributionCalculator = (context) => {
   if (!active(context)) return [];
+
   const profile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const power = balanceProfileNumber(profile, 'attributeBonus');
   return [

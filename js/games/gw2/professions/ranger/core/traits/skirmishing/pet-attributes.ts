@@ -16,7 +16,9 @@ export function skirmishingPetAttributes(
   ] as const;
   return declarations.flatMap(([id, attributes, field]) => {
     if (!hasTrait(context, id)) return [];
+
     if (id === TRAIT.FANG_AND_CLAW && !['feline', 'avian', 'drake'].includes(family)) return [];
+
     const amount = balanceNumberFromContext(context, id, field);
     return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
   });

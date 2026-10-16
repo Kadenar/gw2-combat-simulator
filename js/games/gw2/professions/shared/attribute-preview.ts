@@ -70,6 +70,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
     passives(...ids: SkillId[]): void {
       for (const id of ids) {
         const name = context.catalog.skillsById.get(id)?.name;
+
         if (name && skills.has(id))
           add({
             key: `passive:${id}`,

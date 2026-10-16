@@ -126,7 +126,9 @@ test('Ranger Core does not import specialization modules', async () => {
     );
     for (const statement of source.statements) {
       if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
+
       const specifier = statement.moduleSpecifier?.text;
+
       if (specifier) assert.ok(!specifier.includes('specializations/'), `${file}: ${specifier}`);
     }
   }
@@ -778,16 +780,20 @@ test("Nature's Vengeance repeats each spirit slam after its final shake without 
         );
         const packetsPerSlam = [ID.STORM_SPIRIT, ID.STONE_SPIRIT].includes(skillId) ? 2 : 1;
         assert.equal(slams.length, cancelled ? 0 : packetsPerSlam * (selected ? 2 : 1));
+
         if (cancelled) continue;
+
         if ([ID.STONE_SPIRIT, ID.FROST_SPIRIT].includes(skillId))
           assert.equal(
             result.events.filter((event) => event.skillId === skillId && event.type === 'combo_finisher').length,
             selected ? 2 : 1
           );
+
         const shakes = result.events.filter(
           (event) => event.skillId === skillId && event.type === 'buff' && event.totalApplications === 4
         );
         assert.equal(slams[0].at, shakes[0].at);
+
         if (selected) {
           if (skillId === ID.STORM_SPIRIT) {
             assert.deepEqual(
@@ -802,6 +808,7 @@ test("Nature's Vengeance repeats each spirit slam after its final shake without 
             result.events.filter((event) => event.skillId === skillId && event.condition === 'Vulnerability').length,
             1
           );
+
         if (skillId === ID.SUN_SPIRIT)
           assert.equal(
             result.events.filter(
@@ -849,8 +856,11 @@ test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
       (skill) => skill.cooldown > 0 && (skill.petSkill || skill.beastmodeSkill || skill.unleashedPetSkill)
     );
     assert.ok(skills.some((skill) => skill.petSkill));
+
     if (specialization === 'Soulbeast') assert.ok(skills.some((skill) => skill.beastmodeSkill));
+
     if (specialization === 'Untamed') assert.ok(skills.some((skill) => skill.unleashedPetSkill));
+
     for (const skill of skills) {
       assert.equal(Boolean(skill.petSkill && (skill.beastmodeSkill || skill.unleashedPetSkill)), false, skill.name);
       const expected =
@@ -1206,6 +1216,7 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
       assert.equal(hit.at, baselineHit.at);
       assert.ok(buff);
       assert.equal(Math.round(buff.at * 1000), Math.ceil((impactOffsetMs + offsetMs) / 40) * 40);
+
       if (offsetMs < 0) {
         assertFlooredDamageMultiplier(hit.damage, baselineHit.damage, multiplier);
         assert.ok(result.resolvedEvents.indexOf(buff) < result.resolvedEvents.indexOf(hit));
@@ -1934,6 +1945,7 @@ test('Venomous Outburst applies authored Vulnerability only to defiant targets',
     assert.ok(conditions.some((event) => event.condition === 'Poisoned'));
     const vulnerability = conditions.find((event) => event.condition === 'Vulnerability');
     assert.equal(Boolean(vulnerability), defiant);
+
     if (vulnerability) {
       assert.equal(vulnerability.actorType, 'summon');
       assert.equal(vulnerability.stacks, 8);

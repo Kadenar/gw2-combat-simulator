@@ -66,10 +66,12 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   effectOwner(_context, event) {
     if (event.actorType === 'summon' && isRangerPetInstanceId(event.summonOwner))
       return { id: event.summonOwner, generation: 0 };
+
     return undefined;
   },
   prepareEvent(runtime, event) {
     const state = runtime.profession.core;
+
     // A surviving ranger-stat effect cannot create new pet-owned children after that pet is removed.
     if (
       event.actorType === 'summon' &&
@@ -77,9 +79,12 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       runtime.time >= (runtime.combat.companionRetiredAt(event.summonOwner) ?? Infinity)
     )
       return null;
+
     const skill = runtime.helpers.skillsById.get(event.skillId!);
+
     // The pet lane publishes its action only when the command actually starts in the current generation.
     if (event.type === 'action' && skill?.petSkill && event.actorType !== 'summon') return null;
+
     if (!prepareFrostTrapEvent(runtime, event)) return null;
 
     return prepareRangerPetEvent(
@@ -89,7 +94,9 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
   initialize(runtime) {
     const pet = runtime.profession.core.pet;
+
     if (pet) runtime.combat.registerCompanion(pet.id, pet.effects);
+
     runtime.fireTrigger(rangerInitialized, {});
     startRangerPet(runtime);
   },
@@ -99,19 +106,25 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
   modifyEffects(_runtime, cast, effects) {
     if (cast.skill.petSkill) return [];
+
     return effects;
   },
   onCastStart(runtime, cast) {
     beginRangerPetCommand(runtime, cast);
+
     if (cast.skill.evades) runtime.fireTrigger(dodged, { at: runtime.time });
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
+
     if (skill.id === ID.PET_SWAP) runtime.fireTrigger(petSwapped, { skill, at: runtime.time });
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) runtime.fireTrigger(weaponSwapped, { skill, at: runtime.time });
+
     if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(dodged, { at: runtime.time });
+
     runtime.fireTrigger(castCompleted, { skill, at: runtime.time });
+
     // Completed pet commands grant Rejuvenation and Wolfsong rewards.
     if (isBeastSkill(skill)) runtime.fireTrigger(beastSkillUsed, { skill, at: runtime.time });
   },
@@ -121,6 +134,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     ...rangerPetTasks,
     'ranger.stealth'(runtime, duration) {
       const state = runtime.profession.core;
+
       if (state.revealedUntil <= runtime.time)
         state.stealthUntil = Math.min(runtime.time + 15, Math.max(runtime.time, state.stealthUntil) + Number(duration));
     }
@@ -137,6 +151,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       reactToRangerCoreDamage(runtime, event);
       runtime.fireTrigger(criticalResolved, { event, details });
       const state = runtime.profession.core;
+
       if ((event.actorType === 'player' || event.ownerActorType === 'player') && state.stealthUntil > runtime.time) {
         state.stealthUntil = runtime.time;
         state.revealedUntil = runtime.time + 3;
@@ -147,6 +162,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       const state = runtime.profession.core;
       armPetSharpenSpines(runtime, event);
       armParalyzingVenom(runtime, event);
+
       if (event.kind === 'stealth' && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
         runtime.schedule('ranger.stealth', runtime.time, event.duration || 0, undefined, 10);
     }

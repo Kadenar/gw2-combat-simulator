@@ -42,6 +42,7 @@ for (const [profession, skillId, grantId, resource, from, to, effectIndex] of [
     );
     assert.deepEqual(received, [[resource, to]]);
     assert.throws(() => applySkillPatch(catalog, { skills: { [skillId]: edit } }), /expected live value/);
+
     if (effectIndex == null) {
       const tooltip = describeSimulationSkill({ catalog }, patched, warriorTooltips);
       assert.equal(tooltip.facts.find(({ name }) => name === 'Endurance restored').detail, String(to));

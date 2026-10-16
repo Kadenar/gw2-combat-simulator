@@ -145,7 +145,9 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
 /** Only the active caster can arm its follow-up; retired pets cannot grant it to their replacement. */
 export function armParalyzingVenom(runtime: RangerRuntime, event: Gw2ResolverEvent): void {
   if (event.kind !== 'paralyzing-venom' || event.sourceId !== ID.PARALYZING_VENOM) return;
+
   const pet = rangerOwningPetState(runtime.profession.core.pet, event.summonOwner);
+
   // The venom arms one strike until its buff expires.
   if (pet) pet.paralyzingVenom = grantCharges(1, runtime.time + Number(event.duration));
 }
@@ -153,7 +155,9 @@ export function armParalyzingVenom(runtime: RangerRuntime, event: Gw2ResolverEve
 /** The first accepted strike by the armed companion consumes its venom, retaining pet condition ownership. */
 export function consumeParalyzingVenom(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const { pet } = context.profession.core;
+
   if (!pet || !isActivePetStrike(context, event)) return;
+
   deliverChargedHit(context, event, PROFILE.paralyzingVenom, () => consumeCharge(pet.paralyzingVenom, event.at), {
     attribution: {
       source: 'ranger-pet',

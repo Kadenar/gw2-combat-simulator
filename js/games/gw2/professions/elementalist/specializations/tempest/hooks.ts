@@ -51,6 +51,7 @@ const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_S
 // attunement-entry proc matching the channeled element.
 function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!skill.overload) return;
+
   // Beginning an overload replays the core attunement-entry traits, so fire the proc that belongs
   // to the channeled element (Water has no such proc).
   if (isElementalistAttunement(skill.attunement))
@@ -67,7 +68,9 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elementalis
 // the primary one and must have been held for the dwell time. Non-overload skills pass through.
 function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   if (!skill.overload) return { ready: true };
+
   const state = professionCoreState(context);
+
   if (skill.attunement !== state.primaryAttunement) {
     return denySkillCast(skill, 'elementalist.tempest-attunement', `requires ${String(skill.attunement)} attunement.`);
   }
@@ -92,7 +95,9 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
 function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   // Committed shortened heals retain the same reward before overload-specific completion work.
   context.fireTrigger(tempestCastCompleting, { cast });
+
   if (!skill.overload) return;
+
   const attunement = String(skill.attunement);
 
   if (attunement === 'Fire') {
@@ -138,11 +143,14 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
   sideEffectHandlers: {
     'elementalist.tempest.overload-lockout'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Overload lockout requires a cast trigger.');
+
       const { cast, skill } = trigger;
       const attunement = String(skill.attunement);
+
       // Copy the overload's base progress to align both recharges while retaining longer lockouts.
       if (isElementalistAttunement(attunement)) {
         const readyAt = context.cooldownController.readyAt(skill.id) ?? cast.effectiveEnd;
+
         if (readyAt > (context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
           context.cooldownController.copy(skill.id, ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
         }
@@ -150,6 +158,7 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
     },
     'elementalist.tempest.lightning-jolt'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Lightning Jolt requires a cast trigger.');
+
       const { cast, skill } = trigger;
       {
         const lightningJoltProfile = requireBalanceProfileFromContext(context, PROFILE.lightningJolt);
@@ -158,6 +167,7 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
           'strike',
           'Overload Air - Lightning Jolt'
         );
+
         if (lightningJoltOverloadAirLightningJoltStrike) {
           const coefficient = effectNumber(
             lightningJoltProfile,
@@ -197,6 +207,7 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
     },
     'elementalist.tempest.etching-credits'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Etching credit requires a cast trigger.');
+
       // Let Core grant its one ordinary credit first, then settle before another same-time cast commits.
       context.scheduleForCast('elementalist.tempest.etching-credits', context.time, trigger.cast, {}, undefined, -101);
     }
@@ -206,6 +217,7 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
       const state = professionCoreState(context);
       for (const [name, progress] of Object.entries(state.etchings)) {
         if (!progress || progress.stage !== 'lesser') continue;
+
         const otherCasts = progress.otherCasts + 2;
         state.etchings[name] = { ...progress, stage: otherCasts >= 3 ? 'full' : 'lesser', otherCasts };
       }

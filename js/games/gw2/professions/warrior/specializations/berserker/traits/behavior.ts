@@ -35,9 +35,13 @@ export function armAura(runtime: WarriorRuntime, until: number): void {
 
 export function detonate(runtime: WarriorRuntime, payload: { activationId: string; skillId: number | string }): void {
   const state = berserkerState.from(runtime);
+
   if (state.fireAuraUntil <= runtime.time) return;
+
   const skill = runtime.helpers.skillsById.get(payload.skillId);
+
   if (!skill) return;
+
   state.fireAuraUntil = 0;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.KING_OF_FIRES);
   const strike = requireEffect(profile, 'strike', 'Strike');
@@ -65,6 +69,7 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
       at: fields.at
     }
   });
+
   if (strike)
     emitTraitProfile(runtime, TRAIT.KING_OF_FIRES, TRAIT.KING_OF_FIRES, undefined, {
       at: runtime.time,
@@ -83,6 +88,7 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
       },
       transform: (packet) => ({ ...packet, canTriggerCriticalTraits: true })
     });
+
   if (burning) {
     emitTraitProfile(runtime, TRAIT.KING_OF_FIRES, TRAIT.KING_OF_FIRES, undefined, {
       at: runtime.time,

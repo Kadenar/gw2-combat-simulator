@@ -15,6 +15,7 @@ export function passiveAttribute(
 ): Gw2AttributeEffect {
   if (!hasSelectedSkillId(context, skill))
     return { kind: 'flat', passiveSkillId: skill, to, amount: 0, feedsConversions: 'none', enabled: false };
+
   const enabled =
     typeof active === 'function' ? active() : (active ?? !context.timeline?.skillOnCooldownAt(skill, context.time));
   return {

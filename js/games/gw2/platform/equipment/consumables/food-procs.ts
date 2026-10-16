@@ -30,7 +30,9 @@ export function criticalFoodProc(ctx: Gw2ResolverRuntime): CriticalFoodProc | un
 /** Enqueues each food proc directly so its normal damage, condition, or boon handler resolves it. */
 export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const proc = criticalFoodProc(ctx);
+
   if (!proc) return;
+
   const conditionalEffect = ctx.config.timeOfDay === 'night' ? proc.nightEffect : proc.dayEffect;
   const commonEvent = {
     at: event.at,
@@ -42,6 +44,7 @@ export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2Reso
     triggeredBy: event.skillName
   } as const;
   let foodEvent: Gw2ResolverEvent;
+
   if (conditionalEffect?.type === 'boon') {
     const name = conditionalEffect.name;
     foodEvent = {

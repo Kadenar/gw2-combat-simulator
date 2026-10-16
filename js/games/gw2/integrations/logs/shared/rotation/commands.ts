@@ -10,11 +10,17 @@ export function replayActionCommand(
   interruptMs: number | null
 ): CastCommand | CooldownResetCommand {
   if (isMushroomKingsBlessing(action)) return { type: 'cooldown-reset' };
+
   const command: { -readonly [Key in keyof CastCommand]: CastCommand[Key] } = { type: 'cast', skillId: action.skillId };
+
   // Zero is an explicit cancellation, while null leaves the scheduler's normal cast duration intact.
   if (interruptMs != null) command.interruptAfterMs = interruptMs;
+
   if (action.doubleEdgeOutcome != null) command.doubleEdgeOutcome = action.doubleEdgeOutcome;
+
   if (action.releaseAtCharges != null) command.releaseAtCharges = action.releaseAtCharges;
+
   if (Number(action.releaseDelayMs) > 0) command.releaseDelayMs = action.releaseDelayMs;
+
   return command;
 }

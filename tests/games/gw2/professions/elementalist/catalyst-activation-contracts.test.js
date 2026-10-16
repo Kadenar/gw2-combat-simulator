@@ -68,6 +68,7 @@ for (const [origin, produce] of [
         assert.equal(catalystState.from(runtime).empoweringAuras.stacks, Number(active));
         assert.equal(catalystState.from(runtime).elementalEmpowermentExpiries.length, Number(active));
         assert.equal(Object.keys(runtime.procs.snapshot()).length, active && origin === 'combo' ? 2 : 0);
+
         if (active) {
           const sources = result.resolvedEvents.filter((event) => event.type === 'buff').map((event) => event.sourceId);
           assert.ok(sources.lastIndexOf(TRAIT.ZEPHYRS_BOON) < sources.indexOf(TRAIT.EMPOWERING_AURAS));

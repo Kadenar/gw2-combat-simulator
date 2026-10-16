@@ -24,6 +24,7 @@ export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonl
   // Summon proc work integrates the captured companion's received recharge boons.
   const deadline = (key: SkillId): number => {
     const recharge = recharges.get(String(key));
+
     if (recharge) {
       const { skill, progress } = recharge;
       readyAt[key] = canonicalTime(
@@ -41,6 +42,7 @@ export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonl
     /** Sampled proc commits use the same owner; observations receive a detached deadline record. */
     setDeadline(key: SkillId, at: number): void {
       if (typeof at !== 'number' || Number.isNaN(at)) throw new TypeError('Proc cooldown readyAt must be a number.');
+
       recharges.delete(String(key));
       readyAt[key] = at;
     },
@@ -52,19 +54,28 @@ export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonl
     deadline,
     claim(profileId: SkillId, key: SkillId = profileId, at = context().time, companionId?: string): boolean {
       const runtime = context();
+
       if (at === undefined) throw new TypeError('Resolver proc claims require an event time.');
+
       const profile = requireBalanceProfileFromContext(runtime, profileId);
       const policy = profile.cooldownPolicy ?? 'internal';
+
       if (!['internal', 'summonRecharge'].includes(policy))
         throw new TypeError(`Invalid proc cooldown policy for ${profileId}.`);
+
       if (!isInternalCooldownReady(at, deadline(key))) return false;
+
       if (policy === 'summonRecharge') {
         if (profile.internalCooldown != null)
           throw new TypeError(`Recharging proc ${profileId} must author cooldown, not internalCooldown.`);
+
         if (!companionId) throw new TypeError(`Summon proc ${profileId} requires a companion identity.`);
+
         const work = balanceProfileNumber(profile, 'cooldown');
+
         if (!Number.isFinite(work) || work < 0)
           throw new TypeError('Proc recharge work must be a finite non-negative number.');
+
         const skill: Skill = {
           id: profileId,
           name: profile.name,
@@ -81,14 +92,18 @@ export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonl
       }
 
       const claimed = tryConsumeProcCooldown(readyAt, key, at, balanceProfileNumber(profile, 'internalCooldown'));
+
       if (claimed) recharges.delete(String(key));
+
       return claimed;
     },
     // Scoped owners and non-ICD profile fields use the same deadline validation and exclusive boundary.
     claimCooldown(key: SkillId, at: number, duration: number): boolean {
       deadline(key);
       const claimed = tryConsumeProcCooldown(readyAt, key, at, duration);
+
       if (claimed) recharges.delete(String(key));
+
       return claimed;
     },
     reset(key: SkillId): void {
@@ -118,11 +133,13 @@ export function tryConsumeProcCooldown(
   duration: number
 ): boolean {
   const readyAt = readyAtByKey[key] ?? 0;
+
   if (typeof readyAt !== 'number' || Number.isNaN(readyAt)) {
     throw new TypeError('Proc cooldown readyAt must be a number.');
   }
 
   if (!isInternalCooldownReady(at, readyAt)) return false;
+
   if (!Number.isFinite(duration) || duration < 0) {
     throw new TypeError('Proc cooldown duration must be a finite non-negative number.');
   }

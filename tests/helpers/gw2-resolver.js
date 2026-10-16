@@ -49,7 +49,9 @@ export function resolveTestGw2Events({
         owner = runtime;
         runtime.query = { ...runtime.query, ...query };
         runtime.helpers = { ...runtime.helpers, ...helpers };
+
         if (traits) runtime.traits = traits;
+
         runtime.warnings.push(...warnings);
         engineInitialize?.(runtime);
         for (const event of events) runtime.effects.emit({ kind: 'packet', event: event });

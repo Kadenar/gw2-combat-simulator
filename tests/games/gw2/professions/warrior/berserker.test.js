@@ -238,6 +238,7 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
             ...native.reactions,
             'condition.applied'(runtime, event, details) {
               native.reactions['condition.applied']?.(runtime, event, details);
+
               if (event.sourceId === TRAIT.LAST_BLAZE)
                 observed.push([
                   event,
@@ -257,6 +258,7 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
     assert.deepEqual(result.warnings, []);
     assert.equal(observed.length, !removed && !cancelled ? 2 : 0);
     assert.equal(state(result).berserkUntil > 10, !cancelled);
+
     if (observed.length) {
       const [[event, until, auraUntil]] = observed;
       assert.equal(until, state(result).berserkUntil);

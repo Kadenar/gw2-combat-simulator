@@ -36,6 +36,7 @@ function seconds(value: number): string {
 // Release times use the timeline's combat-relative clock so a row matches the slash label it will produce.
 export function chargeReleaseRowLabel(row: ChargeReleaseEditorRow, combatReferenceMs = 0): string {
   if (row.disabled) return `${row.charges} charges · unavailable`;
+
   const flow = row.flowAfter == null ? '—' : row.flowAfter.toFixed(2);
   return (
     `${row.charges} charges · ${formatTimelineTime(row.at * 1000, combatReferenceMs, 3)} (+${seconds(row.delta)}) · ` +
@@ -76,6 +77,7 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
   const cancel = editor.querySelector<HTMLButtonElement>('.charge-release-editor-cancel');
   const apply = editor.querySelector<HTMLButtonElement>('.charge-release-editor-apply');
   const delay = editor.querySelector<HTMLInputElement>('.charge-release-editor-delay input');
+
   if (!icon || !name || !choices || !message || !cancel || !apply || !delay) {
     throw new TypeError('Charge release editor markup is incomplete.');
   }
@@ -103,6 +105,7 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
     text.className = 'charge-release-editor-choice-text';
     text.textContent = labelText;
     label.append(radio, text);
+
     if (reason) {
       const detail = document.createElement('span');
       detail.className = 'charge-release-editor-reason';
@@ -131,9 +134,12 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
     const selected = editor.querySelector<HTMLInputElement>(
       'input[name="charge-release-editor-value"]:checked:not(:disabled)'
     );
+
     if (!selected) return;
+
     // Blank or zero clears the optional hold; native validation keeps manual edits on the action-tick grid.
     if (!delay.reportValidity()) return;
+
     const releaseDelayMs = Number(delay.value);
     handle.close();
     options.onApply(
@@ -153,8 +159,10 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
  */
 function editorRows(value: unknown): readonly ChargeReleaseEditorRow[] {
   if (!Array.isArray(value)) return [];
+
   return value.flatMap((candidate) => {
     if (!candidate || typeof candidate !== 'object') return [];
+
     const row = candidate as UnvalidatedFields;
     const charges = Number(row.charges);
     const at = Number(row.at);

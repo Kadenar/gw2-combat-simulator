@@ -74,11 +74,13 @@ describe('Ranger skill-bar selections', () => {
           names,
           [...names].sort((a, b) => a.localeCompare(b, 'en'))
         );
+
         if (section === 'Unsupported')
           assert.deepEqual(
             entries.map((option) => option.value),
             ['River Otter']
           );
+
         assert.ok(entries.every((option) => option.wikiPage === `Juvenile ${option.label}`));
       }
     }
@@ -786,6 +788,7 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
     };
     const baseline = simulate('Core', rotation, config);
     const bountiful = simulate('Core', rotation, { ...config, selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER] });
+
     if (skill === 'Call of the Wild') {
       // PvP's six-second Fury variant must not extend the PvE application's duration pool.
       const fury = baseline.events.filter((event) => event.type === 'buff' && event.kind === 'fury');

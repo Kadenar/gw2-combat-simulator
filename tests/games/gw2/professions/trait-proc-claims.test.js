@@ -112,6 +112,7 @@ function fixture(
       ? { effects: [], removedEffectKeys: profile.effects.map((effect) => skillEffectKey(effect.type, effect.name)) }
       : {})
   });
+
   // Rocket damage belongs to the produced skills; removing it still consumes the trait's interval and counter.
   if (removed && trait === E.AIM_ASSISTED_ROCKET) {
     for (const id of [ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL, ID.ORBITAL_COMMAND_STRIKE]) {
@@ -142,6 +143,7 @@ for (const entry of cases) {
       now: () => runtime.time,
       submit(event) {
         assert.equal(runtime.procs.deadline(entry.key), runtime.time + 2);
+
         // Derived effects may synchronously cause another opportunity; the first claim must already be visible.
         if (!reentered) {
           reentered = true;
@@ -178,6 +180,7 @@ for (const entry of cases) {
     assert.equal(runtime.procs.deadline(entry.key), entry.consumesRemoved ? 3 : 0);
     assert.deepEqual(capture.events, []);
     assert.deepEqual(capture.announcements, []);
+
     if (entry.trait === E.AIM_ASSISTED_ROCKET) {
       assert.equal(runtime.profession.core.aimAssistedRocketCount, 1);
       entry.invoke(runtime);

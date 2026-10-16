@@ -22,6 +22,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
  */
 export function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   const state = evokerState.from(context);
+
   // Nothing may start until the familiar cast in flight ends.
   if (state.activeFamiliarCast && context.time < state.activeFamiliarCast.endsAt) {
     return retryCast(
@@ -33,7 +34,9 @@ export function availability(context: MechanicQueriesOf<ElementalistRuntime>, sk
 
   // anything that is not a familiar skill is unconstrained by Evoker state
   const element = FAMILIAR_ELEMENTS.get(skill.id);
+
   if (!element) return { ready: true };
+
   if (state.element !== element) {
     return denyCast(
       'elementalist.evoker-element',
@@ -44,6 +47,7 @@ export function availability(context: MechanicQueriesOf<ElementalistRuntime>, sk
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
   if (BASIC_FAMILIARS.has(skill.id)) {
     const requiredEmpowered = state.empoweredCharges.maximum;
+
     // Recorded familiar inputs can precede the simulator's weapon completion; wait for real pending grants.
     if (
       state.empoweredCharges.value < requiredEmpowered &&
@@ -56,6 +60,7 @@ export function availability(context: MechanicQueriesOf<ElementalistRuntime>, sk
       let charges = state.familiarCharges.value;
       for (const grant of pending) {
         charges += grant.gain;
+
         if (charges >= state.familiarCharges.maximum) {
           return retryCast(
             grant.at,

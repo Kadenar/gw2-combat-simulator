@@ -88,7 +88,9 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
     () => ({ lines, mode, cursor, pinned, durationMs: duration() }),
     (value, pin) => {
       cursor = Math.min(duration(), Math.max(0, value));
+
       if (pin !== undefined) pinned = pin;
+
       renderValues();
       chart.draw();
     },
@@ -113,6 +115,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
     for (const row of matching) {
       const key = `${row.profession}:${row.specialization}`;
       const group = groups.get(key);
+
       if (group) group.push(row);
       else groups.set(key, [row]);
     }
@@ -189,6 +192,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
         return `<div class="bc-party" style="--bc-color:${html(color(row))}"><span><i class="bc-dot"></i>${html(fullName(row))}</span><label><input type="checkbox" data-bc-allies="${index(row)}" aria-label="With allies for ${html(fullName(row))}" ${count ? 'checked' : ''} ${runner.running || saved?.count === undefined ? 'disabled' : ''}> With allies${saved?.error ? ' (unavailable)' : count === undefined ? ' (loading…)' : count > 0 ? ` (${count})` : ''}</label>${saved?.error ? `<span class="bc-error">${html(saved.error)} <button type="button" data-bc-retry-allies="${index(row)}" ${runner.running ? 'disabled' : ''}>Retry</button></span>` : ''}</div>`;
       })
       .join('');
+
     if (focused !== undefined)
       root.querySelector<HTMLInputElement>(`[data-bc-allies="${focused}"]:enabled`)?.focus({ preventScroll: true });
   }
@@ -200,6 +204,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
       resultFor(row)!.warnings.map((warning) => `${fullName(row)}: ${warning}`)
     );
     let warningBox = root.querySelector<HTMLElement>('[data-bc-warnings]');
+
     if (!warningBox) {
       warningBox = root.ownerDocument.createElement('div');
       warningBox.dataset.bcWarnings = '';
@@ -218,8 +223,11 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
     // Result identity survives visibility/selection toggles; only a fresh simulation earns a reveal.
     for (const row of finished) {
       const result = resultFor(row)!;
+
       if (presented.has(result)) continue;
+
       presented.add(result);
+
       if (!hidden.has(comparisonKey(row))) chart.reveal(result);
     }
 
@@ -259,12 +267,14 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
       .map((row) => {
         const result = resultFor(row)!;
         let cached = curves.get(result);
+
         if (!cached) {
           cached = new Map();
           curves.set(result, cached);
         }
 
         if (!cached.has(mode)) cached.set(mode, comparisonCurve(result, mode));
+
         return { ...comparisonStyle(styleSlots.get(comparisonKey(row))!), result, points: cached.get(mode)! };
       });
     cursor = Math.min(cursor, duration());
@@ -302,11 +312,15 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
   get('parties').addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement;
     const rowIndex = input.dataset.bcAllies;
+
     if (rowIndex === undefined || runner.running) return;
+
     cancelled = false;
     const row = rows[Number(rowIndex)]!;
     const savedCount = savedParties.get(comparisonKey(row))?.count;
+
     if (savedCount === undefined) return;
+
     const count = input.checked ? savedCount || 4 : 0;
     runner.setAlliedPlayerCount(row, count === savedCount ? null : count);
     chart.reset();
@@ -314,18 +328,24 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
   });
   root.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
+
     if (!button) return;
+
     const { bcPick, bcFilter, bcMode, bcVisible, bcRetryAllies } = button.dataset;
+
     if (bcRetryAllies !== undefined && !runner.running) void loadParty(rows[Number(bcRetryAllies)]!);
+
     // Native row buttons expose selection to keyboard and assistive technology without separate checkboxes.
     if (bcPick !== undefined && !runner.running) {
       const row = rows[Number(bcPick)]!;
       const key = comparisonKey(row);
+
       if (selected.has(key)) {
         selected.delete(key);
         hidden.delete(key);
       } else {
         selected.set(key, row);
+
         if (!savedParties.has(key)) void loadParty(row);
       }
 
@@ -358,8 +378,10 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
 
     if (bcVisible !== undefined) {
       const key = comparisonKey(rows[Number(bcVisible)]!);
+
       if (hidden.has(key)) hidden.delete(key);
       else hidden.add(key);
+
       render();
       root.querySelector<HTMLElement>(`[data-bc-visible="${bcVisible}"]`)?.focus({ preventScroll: true });
     }
@@ -399,6 +421,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
       colors = nextColors;
       for (const key of selected.keys()) {
         const row = rows.find((candidate) => comparisonKey(candidate) === key);
+
         if (row) selected.set(key, row);
         else selected.delete(key);
       }

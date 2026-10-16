@@ -45,6 +45,7 @@ export function grantCatalystElementalEmpowerment(
     }
 
     if (expiresAt > at) active.push(expiresAt);
+
     active.sort((left, right) => left - right);
   }
 
@@ -54,6 +55,7 @@ export function grantCatalystElementalEmpowerment(
 /** Track accepted empowerment grants independently of current selection so applied effects retain their lifetime. */
 export function applyCatalystEmpowerment(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();
+
   if (kind !== 'elemental empowerment' || !event.resolvedAudience?.includesSelf) {
     return;
   }
@@ -74,7 +76,9 @@ export function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
   // Recurring work must advance the canonical clock, including sub-microsecond profile overrides.
   const renewAt = canonicalTime(runtime.time + duration);
+
   if (renewAt <= runtime.time) throw new RangeError('Elemental Empowerment renewal must advance the simulation clock.');
+
   runtime.effects.emit(
     elementalistBuffRequest(
       {

@@ -28,7 +28,9 @@ export function downloadJson(choices: readonly JsonExportChoice[]): void;
 export function downloadJson(filenameOrChoices: string | readonly JsonExportChoice[], payload?: unknown): void {
   const choices =
     typeof filenameOrChoices === 'string' ? [{ label: '', filename: filenameOrChoices, payload }] : filenameOrChoices;
+
   if (!choices.length) throw new Error('No export choices provided.');
+
   let selected = choices[0]!;
 
   const dialog = document.createElement('dialog');
@@ -66,10 +68,12 @@ export function downloadJson(filenameOrChoices: string | readonly JsonExportChoi
     radio.nextElementSibling!.textContent = choices[index]!.label;
     radio.addEventListener('change', () => {
       if (!radio.checked) return;
+
       // Only replace the name while it is still the previous default, preserving a name the user typed.
       const untouched = !input.value.trim() || input.value === selected.filename;
       selected = choices[index]!;
       input.placeholder = selected.filename;
+
       if (untouched) input.value = selected.filename;
     });
   });

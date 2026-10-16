@@ -14,24 +14,32 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function renderAttributes(app: ProfessionAppState): void {
   const weaponSet = document.getElementById('attribute-weapon-set');
+
   if (!(weaponSet instanceof HTMLInputElement) && !(weaponSet instanceof HTMLSelectElement)) {
     throw new Error('Required attribute weapon-set control is missing.');
   }
 
   // Attribute previews may inspect either equipped set even when combat swapping is unavailable.
   const hasSecondWeaponSet = Boolean(app.build.alternateWeapons?.[0]);
+
   if (!hasSecondWeaponSet) app.attributeWeaponSet = 1;
+
   weaponSet.disabled = !hasSecondWeaponSet;
   weaponSet.closest('label')?.toggleAttribute('hidden', !hasSecondWeaponSet);
   weaponSet.value = String(app.attributeWeaponSet);
+
   if (!app.attributeData) {
     throw new Error('Profession attributes must exist before rendering.');
   }
 
   const list = document.getElementById('attributes-list');
+
   if (!list) throw new Error('Required attributes list is missing.');
+
   const preview = document.getElementById('attribute-preview');
+
   if (!preview) throw new Error('Required attribute preview is missing.');
+
   renderAttributeStats(list, app, readAttributePreviewValues(preview), preview);
 }
 
@@ -85,8 +93,10 @@ export function renderAttributeStats(
         : '';
     })
     .join('')}</div></details>`;
+
   if (previewContainer === container) container.insertAdjacentHTML('beforeend', previewHtml);
   else previewContainer.innerHTML = previewHtml;
+
   const update = (): void => {
     container.querySelector('.attribute-values')!.innerHTML = attributesHtml(
       calculateBuffedAttributes(app, readAttributePreviewValues(previewContainer)),

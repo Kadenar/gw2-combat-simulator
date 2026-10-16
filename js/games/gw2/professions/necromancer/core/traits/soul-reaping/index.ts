@@ -325,10 +325,13 @@ function applyDhuumfire(
   shroudSkillOne: boolean
 ): void {
   if (!shroudSkillOne) return;
+
   const { effect, interval } = dhuumfireProjection(context, event.metadata, skillDuration);
+
   // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
   // Burning, so a removed packet leaves it ready.
   if (!effect) return;
+
   if (interval > 0 && !context.procs.claimCooldown('dhuumfire', event.at, interval)) {
     return;
   }
@@ -360,8 +363,10 @@ function applyUnyieldingBlast(
   shroudSkillOne: boolean
 ): void {
   if (!firstHit || !shroudSkillOne) return;
+
   const profile = requireBalanceProfileFromContext(context, TRAIT.UNYIELDING_BLAST);
   const effect = requireEffect(profile, 'condition', 'Vulnerability');
+
   if (!effect) return;
 
   /* Trait payloads and their timeline annotation share the same emission boundary. */ emitTraitProfile(
@@ -397,13 +402,16 @@ function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolve
     !runtime.procs.claim(TRAIT.FEAR_OF_DEATH, 'necromancer.core.fearOfDeath', runtime.time)
   )
     return;
+
   grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, TRAIT.FEAR_OF_DEATH, 'lifeForceGain'));
 }
 
 /** A granted Eternal Life pulse samples the live shroud and caps its gain at the trait threshold. */
 function applyEternalLifePulse(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
+
   if (state.activeShroud) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_LIFE);
   const missing = Math.max(
     0,
@@ -419,6 +427,7 @@ function applyEternalLifePulse(runtime: NecromancerRuntime): void {
 function startEternalLife(runtime: NecromancerRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_LIFE);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
+
   if (interval > 0 && balanceProfileNumber(profile, 'lifeForceGain') !== 0)
     scheduleEternalLife(runtime, { interval, deadline: interval });
 }
@@ -427,6 +436,7 @@ function startEternalLife(runtime: NecromancerRuntime): void {
 function renewEternalLife(runtime: NecromancerRuntime, data: unknown): void {
   const pulse = data as { interval: number; deadline: number };
   scheduleEternalLife(runtime, { ...pulse, deadline: canonicalTime(pulse.deadline + pulse.interval) });
+
   if (hasTrait(runtime, TRAIT.ETERNAL_LIFE)) applyEternalLifePulse(runtime);
 }
 

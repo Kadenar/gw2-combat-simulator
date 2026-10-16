@@ -68,6 +68,7 @@ function normalizeRangerSignals(
   const normalized = mergeWeaponAnimations(actions)
     .filter((action) => {
       if (SIMULATOR_OWNED_SKILL_IDS.has(action.rawSkillId)) return false;
+
       const skill = recordedActionSkill(action, context);
       // Natural F1/F3 pet skills are explicit replay inputs only for Untamed.
       return (

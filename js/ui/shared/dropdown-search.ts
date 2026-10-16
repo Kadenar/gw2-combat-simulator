@@ -65,14 +65,17 @@ export function bindDropdownSearch(
   trigger.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
+
     if (menu.checkVisibility()) closeSearch();
     else openSearch(event.detail === 0 || !window.matchMedia('(pointer: coarse)').matches);
   });
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+
     if (event.key === 'Escape') {
       // A closed picker must leave Escape available to dismiss its surrounding dialog or popover.
       if (!menu.checkVisibility()) return;
+
       event.preventDefault();
       event.stopPropagation();
       closeSearch();
@@ -88,12 +91,18 @@ export function bindDropdownSearch(
     }
 
     const navigation = ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key);
+
     if (event.target === input && !['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+
     const typing = event.key.length === 1 && event.key !== ' ';
+
     if (!navigation && !typing) return;
+
     event.preventDefault();
     event.stopPropagation();
+
     if (!menu.checkVisibility()) openSearch();
+
     if (typing) {
       input.value += event.key;
       filter();

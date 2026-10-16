@@ -39,7 +39,9 @@ export function createBenchmarkPreview(
     ].filter(({ value }) => value),
     specializations: build.specializations.map((selection) => {
       const specialization = specializations.find(({ name }) => name === selection.name);
+
       if (!specialization) throw new Error(`Unknown preview specialization: ${selection.name}`);
+
       const picks = selection.traits.split('-').map(Number);
       return {
         ...displayIcon(specialization, selection.name),
@@ -53,6 +55,7 @@ export function createBenchmarkPreview(
     }),
     skills: Object.entries(build.selectedSkillIds).flatMap(([slot, id]) => {
       if (id === null) return [];
+
       const skill = catalog.skillsById.get(id);
       return [displayIcon(skill, skill?.name ?? slot)];
     })

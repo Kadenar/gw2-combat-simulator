@@ -19,11 +19,15 @@ function reconstructMantraCharges(
   const normal = catalogSkillById(context.catalog, normalId);
   const final = catalogSkillById(context.catalog, finalId);
   const prepare = catalogSkillById(context.catalog, prepareId);
+
   if (!normal || !final || !prepare) return context.recordedActions;
+
   // Assume continuous Alacrity for simulation imports when inferring charge recovery and final-charge rearming.
   const chargeMs = (Number(normal.ammoRecharge) * 1000) / 1.25;
   const rearmMs = (Number(prepare.cooldown) * 1000) / 1.25;
+
   if (!(chargeMs > 0 && rearmMs >= 2 * chargeMs && Number(normal.ammo) === 3)) return context.recordedActions;
+
   const charges = context.recordedActions
     .filter((action) => [combinedId, normalId, finalId, prepareId].includes(action.rawSkillId))
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
@@ -32,12 +36,14 @@ function reconstructMantraCharges(
     let end = index + 1;
     while (end < charges.length && charges[end].start - charges[end - 1].start < chargeMs) end += 1;
     const burst = charges.slice(index, end);
+
     // Contradictory observations cannot establish a reliable charge history.
     if (
       (burst.length > 3 && burst.at(-1)!.start - burst[0].start < chargeMs) ||
       burst.some((action, position) => action.rawSkillId === finalId && position < burst.length - 1)
     )
       return context.recordedActions;
+
     // An isolated three-charge burst must finish on the final variant.
     if (
       burst.length === 3 &&
@@ -51,6 +57,7 @@ function reconstructMantraCharges(
     ) {
       burst.forEach((action, position) => {
         if (action.rawSkillId !== combinedId) return;
+
         const skill = position === 2 ? final : normal;
         replacements.set(action, {
           ...action,
@@ -73,19 +80,24 @@ function reconstructMantraCharges(
     // Each bound queues charge recovery sequentially, matching the ordinary mantra recharge policy.
     possibleRecharges = possibleRecharges.filter((readyAt) => {
       if (readyAt > action.start) return true;
+
       maximumCharges = Math.min(3, maximumCharges + 1);
       return false;
     });
     guaranteedRecharges = guaranteedRecharges.filter((readyAt) => {
       if (readyAt > action.start) return true;
+
       minimumCharges = Math.min(3, minimumCharges + 1);
       return false;
     });
+
     if (maximumCharges === 3) possibleRecharges = [];
+
     if (minimumCharges === 3) guaranteedRecharges = [];
 
     let skillId = replacements.get(action)?.canonicalSkillId ?? action.rawSkillId;
     const next = charges[index + 1];
+
     // Another charge before full rearm excludes the final variant, even in a sparse rotation.
     if (
       skillId === combinedId &&

@@ -75,7 +75,9 @@ export function createSkillDamageViewModel(
     for (const rowId of group.rowIds) {
       const definition = plan.rows.get(rowId)!;
       const result = results.get(rowId);
+
       if (!result?.measurement || (!result.damaging && result.measurement.total === 0)) continue;
+
       all.push({
         group,
         row: {
@@ -89,7 +91,9 @@ export function createSkillDamageViewModel(
 
   for (const definition of plan.request.occurrences.filter((entry) => entry.source !== 'Skill')) {
     const result = results.get(definition.id);
+
     if (!result?.measurement) continue;
+
     all.push({
       group: null,
       row: {

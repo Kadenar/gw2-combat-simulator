@@ -8,7 +8,9 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const { skill, start: castStart, fullEnd: castEnd, id: activationId } = cast;
   const effect = skill.mesmerMechanic?.chaosStormPoison;
+
   if (!effect?.ticks?.length) return;
+
   const parity = professionCoreState(context).chaosStormCasts++ % 2;
   for (const application of materializeSkillEffectApplications({
     skill,

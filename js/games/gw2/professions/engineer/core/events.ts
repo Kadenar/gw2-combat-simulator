@@ -22,6 +22,7 @@ export function buildEngineerPackets(
     ...fields,
     type
   };
+
   if (type === 'damage') {
     return splitStrikeHits({ ...event, coefficient: Number(event.coefficient) }, Number(event.interval ?? 0));
   }

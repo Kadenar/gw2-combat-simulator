@@ -49,6 +49,7 @@ test('Chak Shield caps stacked refunds at four and expired grants cannot fund we
         return {
           onCastCommit(runtime, cast) {
             native.onCastCommit?.(runtime, cast);
+
             // Supply a fresh independently pilfered pool for the second shield without advancing the clock.
             if (cast.skill.id === 76816) {
               const state = runtime.profession.specialization.state;

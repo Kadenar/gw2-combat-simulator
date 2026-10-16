@@ -97,6 +97,7 @@ test('Daredevil emits only current profile effects, including patched condition 
       (event) => (event.type === 'damage' || event.type === 'condition') && event.sourceId === TRAIT.LOTUS_TRAINING
     );
     assert.equal(packets.length, effects.length ? 3 : 0);
+
     if (effects.length) {
       assert.deepEqual(
         packets.map((packet) => packet.at),
