@@ -1,15 +1,10 @@
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
  * Owns Willbender virtue and physical skill fragments.
- * Runtime virtue behavior remains under `mechanics/` and `execution/virtues.ts`.
+ * Runtime virtue behavior lives in `mechanics/virtues.ts`.
  */
 
 export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -225,32 +220,3 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   }
 });
-
-export const ACTIVATE = 'guardian.willbender.activate';
-
-export const FLAMES = 'guardian.willbender.flames';
-
-/** Activation recipes preserve the window/flame boundaries and priority ahead of shared lifetime work. */
-export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
-  Object.fromEntries(
-    (
-      [
-        ['justice', (cast: RuntimeCast<GuardianSkill>) => Math.min(cast.effectiveEnd, cast.start + 0.04)],
-        ['resolve', (cast: RuntimeCast<GuardianSkill>) => cast.effectiveEnd],
-        ['courage', (cast: RuntimeCast<GuardianSkill>) => Math.min(cast.effectiveEnd, cast.start + 0.52)]
-      ] as const
-    ).map(([virtue, activationAt]) => [
-      `guardian.start-${virtue}`,
-      (runtime: GuardianRuntime, context: ActionContext<GuardianSkill>) => {
-        if (context.kind !== 'cast') return;
-
-        const cast = context.cast;
-        const at = canonicalTime(activationAt(cast));
-        const flameAt = canonicalTime(
-          virtue === 'resolve' ? cast.start : virtue === 'justice' ? Math.max(at, cast.effectiveEnd - 0.04) : at
-        );
-        runtime.scheduleForCast(ACTIVATE, at, cast, { virtue });
-        runtime.scheduleForCast(FLAMES, flameAt, cast, { virtue }, undefined, -10);
-      }
-    ])
-  );

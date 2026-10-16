@@ -72,7 +72,12 @@ const boundaries = {
     'specializations/antiquary/skills/artifact-actions.ts',
     'specializations/specter/mechanics/shadow-shroud.ts'
   ],
-  guardian: ['specializations/luminary/mechanics/radiant-forge.ts', 'specializations/luminary/skills/hammer-impact.ts'],
+  guardian: [
+    'specializations/willbender/mechanics/virtues.ts',
+    'specializations/firebrand/mechanics/tomes.ts',
+    'specializations/luminary/mechanics/radiant-forge.ts',
+    'specializations/luminary/skills/hammer-impact.ts'
+  ],
   mesmer: [
     'family-resources.ts',
     'core/mechanics/illusions/phantasms.ts',

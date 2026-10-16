@@ -1,6 +1,4 @@
-import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -12,16 +10,15 @@ import {
   refreshGuardianVirtues,
   virtueActivated
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import {
-  luminaryVirtueCompleted,
-  radiantWeaponDrawn,
-  radiantWeaponEquipped
-} from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
   luminaryBuffPolicies,
   luminaryEffectStates
 } from '#gw2/professions/guardian/specializations/luminary/effect-state.js';
+import {
+  luminaryVirtueCompleted,
+  radiantWeaponDrawn
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/activations.js';
 import {
   countEffulgentHit,
   grantLuminaryAura,
@@ -29,11 +26,9 @@ import {
   startLuminaryEffects
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import {
-  enterForge,
-  EQUIP,
-  equipForge,
-  EXIT,
-  exitForge
+  radiantForgeActions,
+  radiantForgeAvailability,
+  radiantForgeTasks
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { hammerImpact } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
@@ -48,11 +43,10 @@ import {
 import { luminaryStanceActions } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
 import { luminaryVirtueActions } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
+
 const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
@@ -88,69 +82,13 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
     ...luminaryWeaponActions,
     ...luminaryVirtueActions,
     ...luminaryStanceActions,
-    // Form transitions share expiry/recharge ownership; declarations choose when to invoke them.
-    'guardian.enter-forge'(runtime, context) {
-      if (context.kind === 'cast') enterForge(runtime, context.cast);
-    },
-    'guardian.exit-forge'(runtime, context) {
-      if (context.kind === 'cast') exitForge(runtime, context.cast);
-    },
-    'guardian.snapshot-forge'(runtime, context) {
-      if (context.kind === 'cast') equipForge.set(context.cast, luminaryState.from(runtime).forgeActivationId);
-    },
-    'guardian.equip-forge'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      const cast = context.cast;
-      const state = luminaryState.from(runtime);
-
-      if (state.radiantForge && equipForge.get(cast) === state.forgeActivationId) {
-        state.radiantWeapon = String(cast.skill.radiantWeapon);
-        state.radiantWeaponsUsed[String(cast.skill.radiantWeapon)] = true;
-
-        if (cast.skill.radiantWeapon === 'blade') state.glaringBurstSwordSlow = false;
-
-        const flips = runtime.profession.core.availableFlips;
-        for (const id of Object.keys(flips)) {
-          const skill = runtime.helpers.skillsById.get(Number(id));
-
-          if (skill?.radiantWeapon && skill.flipParentId != null) consumeSkillFlip(flips, id);
-        }
-
-        if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
-
-        runtime.effects.emit({
-          kind: 'packet',
-          event: { ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet }
-        });
-        runtime.scheduleForCast(EQUIP, canonicalTime(runtime.time + 0.001), cast);
-      }
-    },
+    ...radiantForgeActions,
     'guardian.hammer-aura'(runtime, context) {
       if (context.kind === 'effect')
         grantLuminaryAura(runtime, { ...context.trigger.event, type: 'combo', duration: undefined });
     }
   },
-  availability(runtime, skill) {
-    const active = luminaryState.from(runtime).radiantForge;
-
-    if (skill.type === 'Weapon' && active)
-      return denyCast(
-        'guardian.radiant-forge-weapon-lockout',
-        `${skill.name} is unavailable — exit Radiant Forge first.`
-      );
-
-    if ((skill.radiantForgeSkill || skill.id === ID.EXIT_RADIANT_FORGE) && !active)
-      return denyCast('guardian.radiant-forge-inactive', `${skill.name} is unavailable — requires Radiant Forge.`);
-
-    if (skill.id === ID.ENTER_RADIANT_FORGE && active)
-      return denyCast(
-        'guardian.radiant-forge-active',
-        `${skill.name} is unavailable — Radiant Forge is already active.`
-      );
-
-    return CAST_READY;
-  },
+  availability: radiantForgeAvailability,
   castDurationMs(runtime, skill, duration) {
     return skill.id === ID.GLARING_BURST ? glaringBurstDuration(runtime, skill, duration) : duration;
   },
@@ -201,12 +139,7 @@ export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = 
   },
   tasks: {
     ...luminaryEffectTasks,
-    [EXIT](runtime, data) {
-      if (luminaryState.from(runtime).forgeActivationId === data) exitForge(runtime);
-    },
-    // Delayed equip rewards retain boon, armament, then recharge ordering.
-    [EQUIP]: (runtime, data) =>
-      runtime.fireTrigger(radiantWeaponEquipped, { cast: (data as { cast: RuntimeCast<GuardianSkill> }).cast }),
+    ...radiantForgeTasks,
     [HAMMER]: hammerImpact,
     [BLADE_IMMOBILIZE](runtime, data) {
       const { cast } = data as { cast: RuntimeCast<GuardianSkill> };

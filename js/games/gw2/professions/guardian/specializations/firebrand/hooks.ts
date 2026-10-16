@@ -1,28 +1,15 @@
-import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
-import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
-import { powerOfTheVirtuousRechargeMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
-import { justiceActivated, virtueActivated } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import {
-  firebrandBuffApplied,
-  firebrandControlAccepted,
-  firebrandStruck,
-  tomeOpened,
-  tomeStowed
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
   firebrandBuffPolicies,
   firebrandEffectStates
 } from '#gw2/professions/guardian/specializations/firebrand/effect-state.js';
+import {
+  firebrandBuffApplied,
+  firebrandControlAccepted,
+  firebrandStruck
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/activations.js';
 import {
   firebrandEffectTasks,
   startFirebrandAshes
@@ -37,82 +24,17 @@ import {
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/mantras.js';
 import {
   emitAshes,
+  firebrandTomeActions,
+  firebrandTomeAvailability,
+  firebrandTomePages,
+  firebrandTomeTasks,
+  initializeFirebrandTomes,
   reactToAshesHit,
-  reactToTomeJusticeHit
+  reactToTomeJusticeHit,
+  refillFirebrandTomePages
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { stoicDemeanorRetainsCourage } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
-import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
-import type {
-  GuardianRuntimeState,
-  GuardianSkill,
-  GuardianVirtue,
-  GuardianRuntime
-} from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
-const COURAGE = 'guardian.firebrand.courage';
-const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
-
-/** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
-function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
-  const state = firebrandState.from(runtime);
-  // Tome activation and passive eligibility share Core's deadline, independently of skill cooldowns.
-  const readyAt = runtime.profession.core.virtueReadyAt;
-  const ready = readyAt[virtue] <= runtime.time;
-  state.activeTome = virtue;
-
-  if (ready) {
-    const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
-    readyAt[virtue] = canonicalTime(
-      runtime.time + balanceNumberFromContext(runtime, DORMANCY[virtue], 'cooldown') * multiplier
-    );
-    runtime.fireTrigger(virtueActivated, { cast, virtue });
-
-    if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
-  }
-
-  runtime.fireTrigger(tomeOpened, { cast, virtue, ready });
-  runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      ...guardianCastCause(runtime, cast),
-      type: 'weapon_set',
-      weaponSet: runtime.activeWeaponSet,
-      weaponLine: cast.skill.name
-    }
-  });
-}
-
-/** Firebrand retains its passive during Stoic Demeanor and delivers the authored profile only to self. */
-const courage = createPassiveCourageTask({
-  taskId: COURAGE,
-  profileId: PROFILE.passiveCourage,
-  interval: (_runtime, profile) => balanceProfileNumber(profile, 'pulseInterval'),
-  ready: (runtime) =>
-    runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime),
-  deliver(runtime, profile, effect) {
-    const boonCause: Gw2ResolverEvent = {
-      type: 'buff',
-      at: runtime.time,
-      source: 'guardian',
-      sourceId: ID.TOME_OF_COURAGE,
-      actorType: 'player',
-      skillId: ID.TOME_OF_COURAGE,
-      skillName: 'Tome of Courage',
-      name: 'Tome of Courage — Passive Aegis'
-    };
-    runtime.effects.emit({
-      kind: 'profile',
-      profile,
-      effects: [effect],
-      attribution: boonCause,
-      cause: boonCause,
-      transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
-    });
-  }
-});
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /** Pages, tome sessions, and mantra charges mutate one live state; report events never restore a snapshot. */
 export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
@@ -137,75 +59,20 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
 
   sideEffectHandlers: {
     ...firebrandMantraActions,
-    // Declarations select the virtue; the controller retains dormancy and session invariants.
-    'guardian.open-justice'(runtime, context) {
-      if (context.kind === 'cast') openTome(runtime, context.cast, 'justice');
-    },
-    'guardian.open-resolve'(runtime, context) {
-      if (context.kind === 'cast') openTome(runtime, context.cast, 'resolve');
-    },
-    'guardian.open-courage'(runtime, context) {
-      if (context.kind === 'cast') openTome(runtime, context.cast, 'courage');
-    },
-    'guardian.stow-tome'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      const cast = context.cast;
-      const state = firebrandState.from(runtime);
-      state.activeTome = '';
-      runtime.fireTrigger(tomeStowed, {});
-      runtime.effects.emit({
-        kind: 'packet',
-        event: {
-          ...guardianCastCause(runtime, cast),
-          type: 'weapon_set',
-          weaponSet: runtime.activeWeaponSet,
-          weaponLine: null
-        }
-      });
-    },
+    ...firebrandTomeActions,
     'guardian.start-ashes'(runtime, context) {
       if (context.kind === 'cast') startFirebrandAshes(runtime, context.cast);
     }
   },
-  resources: {
-    tomePages: {
-      kind: 'discrete',
-      state: (runtime) => firebrandState.from(runtime).tomePages,
-      maximum: (runtime) => firebrandPageTuning(runtime).maximum,
-      initial: (runtime) => firebrandPageTuning(runtime).initial,
-      recovery: (runtime) => ({ interval: firebrandPageTuning(runtime).interval, amount: 1, start: 'first-spend' })
-    }
-  },
+  resources: { tomePages: firebrandTomePages },
   initialize(runtime) {
     initializeFirebrandMantras(runtime);
-    runtime.schedule(COURAGE, runtime.time, undefined, undefined, -200);
+    initializeFirebrandTomes(runtime);
   },
-  availability(runtime, skill) {
-    const state = firebrandState.from(runtime);
-
-    if (skill.type === 'Weapon' && state.activeTome)
-      return denyCast('guardian.tome-weapon-lockout', `${skill.name} requires stowing the active tome.`);
-
-    if (skill.id === ID.STOW_TOME && !state.activeTome)
-      return denyCast('guardian.tome-inactive', 'Stow Tome requires an active tome.');
-
-    if (skill.tome) {
-      if (skill.tome !== state.activeTome)
-        return denyCast('guardian.tome-inactive', `${skill.name} requires its tome to be active.`);
-
-      return CAST_READY;
-    }
-
-    return firebrandMantraAvailability(runtime, skill);
-  },
+  availability: (runtime, skill) =>
+    firebrandTomeAvailability(runtime, skill) ?? firebrandMantraAvailability(runtime, skill),
   /** Core resets virtue dormancy; full Renewed Focus completion refills pages without moving their recovery phase. */
-  onCastCommit(runtime, cast) {
-    if (cast.skill.id !== ID.RENEWED_FOCUS || castWasInterrupted(cast)) return;
-
-    const state = firebrandState.from(runtime);
-    runtime.resourceController.grant('tomePages', state.tomePages.maximum);
-  },
+  onCastCommit: refillFirebrandTomePages,
   onCooldownReset: refreshFirebrandMantras,
   reactions: {
     'damage.resolved'(runtime, event, details) {
@@ -230,5 +97,5 @@ export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> =
         runtime.fireTrigger(firebrandControlAccepted, { cause: event });
     }
   },
-  tasks: { ...firebrandEffectTasks, [COURAGE]: courage, [FIREBRAND_MANTRA_WAKE]: firebrandMantraWake }
+  tasks: { ...firebrandEffectTasks, ...firebrandTomeTasks, [FIREBRAND_MANTRA_WAKE]: firebrandMantraWake }
 };
