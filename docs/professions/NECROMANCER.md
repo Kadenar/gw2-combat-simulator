@@ -39,8 +39,13 @@ until entry; weapon/slot skills are disabled while a transformed bar is active.
 
 Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions under `traits/`.
 Definitions own profiles, modifiers, triggers, recharge rules, and attribute contributions. Helpers stay beside their
-owners: Death Magic's `carapace.ts`, Soul Reaping's `procs.ts` and `resource-queries.ts`, and Curses'
-`skill-variants.ts`. Resource queries remain independent of active handlers to avoid importing their callers.
+owners: Death Magic's `carapace.ts`, Soul Reaping's `procs.ts` and `resource-queries.ts`, and Curses' `availability.ts`.
+Resource queries remain independent of active handlers to avoid importing their callers.
+
+`core/mechanics/availability.ts` checks trait replacement, minion ownership, weapon flips, Lich, and shroud access in
+that order. Lingering Curse owns its scepter replacement gate in `core/traits/curses/availability.ts`. Successful Lich
+and shroud-entry checks short-circuit the remaining form restrictions; life-force denials preserve the resource
+controller's retry deadline.
 
 `necromancerProfession.attributeContributions` combines module and selected trait declarations for build and live
 queries. Core skill passives come from `core/skills/attribute-passives.ts`; `core/initial-state.ts` uses prepared
@@ -55,10 +60,15 @@ Explicit calls into trait helpers retain the boundaries that matter for state an
 - Attribute queries start from equipment seeds and apply native contributions through the shared conversion rules.
   Carapace grants and queries use Flesh of the Master's active stack cap; Deadly Strength owns the conversion from those
   stacks. Soul Battery, Spiteful Fortitude, and Vital Persistence own the maximum-health-derived resource contributions.
-- Scourge keeps shade replacement, expiry, barrier scheduling, and resource spending in mechanics. Trait helpers observe
-  the actual barrier or shade event; shroud-like casts call the shared Core trait owners.
-- Harbinger keeps Blight accrual, expiry, spending, and snapshots in mechanics. Cascading Corruption observes consumed
-  stacks before publication; Doom Approaches owns Dark Barrage's replacement profile and effect transformation.
+- Scourge's `mechanics/shades.ts` owns shade replacement, expiry, manifestation, and the common shade strike.
+  `skills/shroud-actions.ts` owns cleanse, control, shroud effects, and delayed barriers. Barrier traits settle before
+  their boon samples the live party audience; Core still owns life-force spending. Hooks preserve shroud invocation
+  before shade commitment.
+- Harbinger's `mechanics/blight.ts` owns Blight accrual, expiry, spending, publication, and shroud lifecycle callbacks.
+  `skills/elixir-actions.ts` and `skills/shroud-actions.ts` own launch and impact work, retaining the selected
+  empowerment and post-spend Blight snapshots. Cascading Corruption observes consumed stacks before publication; Doom
+  Approaches owns Dark Barrage's replacement profile and effect transformation. `effect-state.ts` observes the same
+  retained state used by combat.
 - Ritualist keeps spirit generations, autonomous schedules, and weapon-spell pools in mechanics. Trait helpers own
   summon rewards, Soul Twisting consumption, Lingering Spirits lifetime policy, allied charges, and spirit multipliers.
 

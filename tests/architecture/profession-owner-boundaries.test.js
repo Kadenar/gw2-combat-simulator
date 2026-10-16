@@ -12,10 +12,17 @@ const boundaries = {
     'specializations/holosmith/mechanics/photon-forge.ts'
   ],
   necromancer: [
+    'core/mechanics/availability.ts',
+    'core/traits/curses/availability.ts',
     'core/mechanics/resources.ts',
     'core/traits/soul-reaping/procs.ts',
     'core/mechanics/soul-shards.ts',
     'core/mechanics/passives.ts',
+    'specializations/scourge/mechanics/shades.ts',
+    'specializations/scourge/skills/shroud-actions.ts',
+    'specializations/harbinger/mechanics/blight.ts',
+    'specializations/harbinger/skills/elixir-actions.ts',
+    'specializations/harbinger/skills/shroud-actions.ts',
     'specializations/ritualist/skills/spirit-actions.ts'
   ],
   ranger: [

@@ -1,14 +1,11 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
+import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import {
   necromancerConditionApplied,
@@ -36,7 +33,6 @@ import {
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   commandNecromancerMinion,
-  necromancerMinionAvailability,
   necromancerMinionTasks,
   startNecromancerMinions,
   summonNecromancerHorrors,
@@ -58,14 +54,10 @@ import {
   observeNecromancerAutoattackTransition
 } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { necromancerLifeForceCapacity } from '#gw2/professions/necromancer/core/state.js';
-import {
-  NECROMANCER_SKILL_IDS as DAMAGE_SKILL,
-  NECROMANCER_TRAIT_IDS as TRAIT
-} from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -218,55 +210,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   onCombatStart(runtime) {
     startNecromancerMinions(runtime);
   },
-  availability(runtime, skill) {
-    const state = runtime.profession.core;
-    const traitGate = lingeringCurseAvailability(runtime, skill);
-
-    if (traitGate) return traitGate;
-
-    const minionGate = necromancerMinionAvailability(runtime, skill);
-
-    if (minionGate) return minionGate;
-
-    if (
-      skill.flipParentId != null &&
-      !skill.shroudExit &&
-      !runtime.helpers.autoattackChainPositions.has(Number(skill.id)) &&
-      !skillFlipReady(state.availableFlips[skill.id], runtime.time)
-    )
-      return denySkillCast(skill, 'necromancer.flip-not-armed', 'not currently armed.');
-
-    if (NECROMANCER_LICH_SKILL_IDS.includes(skill.id))
-      return state.activeShroud === 'lich'
-        ? { ready: true }
-        : denySkillCast(skill, 'necromancer.not-in-lich', 'Lich Form is not active.');
-
-    if (skill.shroudEntry) {
-      if (state.activeShroud)
-        return denySkillCast(skill, 'necromancer.in-shroud', `already in ${state.activeShroud} shroud.`);
-
-      if ((skill.specialization || 'Core') !== (runtime.config.specialization || 'Core'))
-        return denySkillCast(skill, 'necromancer.wrong-specialization', 'requires its matching specialization.');
-
-      const minimum = (state.lifeForce.maximum * (skill.minimumShroudLifeForcePercent ?? 10)) / 100;
-
-      if (runtime.resourceController.value('lifeForce') < minimum)
-        return denySkillCast(
-          skill,
-          'necromancer.insufficient-life-force',
-          'requires more life force.',
-          runtime.resourceController.readyAt('lifeForce', minimum)
-        );
-    } else if (skill.shroudExit) {
-      if (state.activeShroud !== skill.shroudExit)
-        return denySkillCast(skill, 'necromancer.not-in-shroud', 'the matching shroud is not active.');
-    } else if (skill.shroud && state.activeShroud !== skill.shroud)
-      return denySkillCast(skill, 'necromancer.wrong-shroud', `requires ${skill.shroud} shroud.`);
-    else if (!skill.shroud && state.activeShroud && !skill.usableInShroud)
-      return denySkillCast(skill, 'necromancer.in-shroud', 'cannot cast in shroud.');
-
-    return { ready: true };
-  },
+  availability: necromancerAvailability,
   // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.
   // Rules scale accepted work; shroud entry and minion death still own their recharge anchors.
 
@@ -316,18 +260,3 @@ export const necromancerCoreHooks = composeRuntimeHooks<NecromancerRuntimeState,
   coreLifecycle,
   torchLifecycle
 ]);
-
-/** Resolves the scepter trait replacement before other Core availability gates. */
-function lingeringCurseAvailability(runtime: MechanicQueriesOf<NecromancerRuntime>, skill: NecromancerSkill) {
-  if (skill.id === DAMAGE_SKILL.DEVOURING_DARKNESS && !hasTrait(runtime, TRAIT.LINGERING_CURSE))
-    return denySkillCast(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
-
-  if (skill.id === DAMAGE_SKILL.FEAST_OF_CORRUPTION && hasTrait(runtime, TRAIT.LINGERING_CURSE))
-    return denySkillCast(
-      skill,
-      'necromancer.trait-replacement',
-      'Devouring Darkness replaces it while Lingering Curse is selected.'
-    );
-
-  return undefined;
-}
