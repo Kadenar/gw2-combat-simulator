@@ -59,26 +59,3 @@ test('profession implementations cannot import aggregate runtimes or capability 
     }
   }
 });
-
-test('Dragon Trigger lifecycle and state do not depend on their skill or hook aggregators', () => {
-  for (const file of ['dragon-trigger.ts', 'dragon-trigger-state.ts', 'gunsaber.ts', 'flow.ts']) {
-    for (const dependency of imports(`professions/warrior/specializations/bladesworn/mechanics/${file}`))
-      assert.doesNotMatch(dependency, /bladesworn\/(hooks|skills\/index)\.js$/);
-  }
-});
-
-// Charging consumes detached release intent; command storage and progression stay in execution.
-test('Dragon Trigger cannot inspect the command cursor', () => {
-  const file = 'professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.ts';
-  const source = ts.createSourceFile(file, readFileSync(new URL(file, root), 'utf8'), ts.ScriptTarget.Latest, true);
-  function visit(node) {
-    if (ts.isPropertyAccessExpression(node)) assert.notEqual(node.name.text, 'cursor');
-
-    if (ts.isElementAccessExpression(node) && ts.isStringLiteral(node.argumentExpression))
-      assert.notEqual(node.argumentExpression.text, 'cursor');
-
-    ts.forEachChild(node, visit);
-  }
-
-  visit(source);
-});

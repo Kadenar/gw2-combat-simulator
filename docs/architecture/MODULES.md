@@ -489,10 +489,6 @@ Substantial resource lifecycles belong in `mechanics/resources.ts` or a named me
 depletion, and wake scheduling. A small self-contained policy can remain inline; no placeholder file is required.
 Scrapper and Reaper can rely on trait expansion without a separate `hooks.ts`.
 
-Dependency tests should protect independent loading and prevent owners or state queries from importing hook/module
-assembly. `tests/helpers/profession-source-graph.js` supplies a shared value-import traversal for focused boundaries; it
-follows reexports and ignores type-only dependencies.
-
 ### Folder size
 
 These filenames describe ownership, not required placeholders. Keep small specializations compact; split large mechanics

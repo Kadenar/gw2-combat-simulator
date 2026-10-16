@@ -39,37 +39,19 @@ Preserve these boundaries when changing behavior:
 
 - Core orders Persisting Flames before Shattering Stone on damage and after Strength of Stone on Burning applications.
   Shared state owns proc cooldowns, Fresh Air wakes, and timed buffs.
-- Tempest mechanics own overload availability and scheduling; traits own aura rewards and singularity tuning.
+- Core availability checks elemental commands, weapon resources, attunements, bundles, and equipment selection in that
+  precedence, including successful short-circuits and retry deadlines. Elemental attack impacts validate both summon and
+  action generations before emitting effects.
+- The shared cooldown controller is the sole owner of attunement recharge progress. Keeping an existing attunement
+  deadline keeps the work already earned under earlier recharge rates.
+- Tempest mechanics own overload availability and scheduling; traits own aura rewards and singularity tuning. The
+  completing trait boundary fires before overload completion, and the completed boundary after it.
 - Weaver mechanics own dual-attunement and stance execution, with trait calls at initialization, accepted entry, and
-  committed completion.
-- Catalyst mechanics own spheres and energy; traits own empowerment and aura/combo reactions.
+  committed completion. Completion traits run before the Fervent Stance dual-attack reward.
+- Catalyst mechanics own spheres and energy; traits own empowerment and aura/combo reactions. Accepted-hit energy gains
+  precede Catalyst damage reactions, and augment effects are selected at commitment rather than cast start.
 - Evoker mechanics own familiar casts and deferred resource settlement; traits own familiar rewards, recharge policies,
   and enchantment payloads.
-
-Related behavior stays with its mechanic or skill family:
-
-- `core/mechanics/availability.ts` keeps the ordered availability coordinator and its named checks in one file.
-  Elemental commands, weapon resources, attunements, bundles, and equipment selection retain their original precedence,
-  including successful short-circuits and retry deadlines.
-- `core/mechanics/elementals/queries.ts` owns read-only selection, companion identity, generation validity, and
-  availability. `attacks.ts` keeps action interruption, impact scheduling, and effect delivery together. `runtime.ts`
-  owns summon replacement, expiry, commands, and autonomous decisions; `lifecycle.ts` exposes the actor lifetime
-  boundary to elites. Attack impacts validate both summon and action generations before emitting effects.
-- Weaver's `mechanics/attunements.ts` owns hand initialization, availability, transitions, Unravel, and primary-hand
-  refreshes. `mechanics/weave-self.ts` owns Perfect Weave availability and consumption alongside activation. Fervent
-  Stance's declaration, activation task, and dual-attack reward stay in `skills/slot-skills.ts`; hooks preserve
-  completion traits before that reward.
-- Tempest's `mechanics/overloads.ts` owns overload eligibility, attunement lockouts, Fresh Air recharge handling, and
-  extra etching credits. `mechanics/lightning-jolt.ts` owns both player emission and the replaceable elemental charge.
-  Hooks retain the order of starting, completing, and completed trait boundaries.
-- Catalyst's `mechanics/resources.ts` owns energy initialization and accepted-hit gains. `skills/jade-sphere.ts` groups
-  sphere declarations, effects, availability, deployment, and active windows. `skills/augment-skills.ts` groups augment
-  declarations, modifiers, conditional effects, and Elemental Celerity's weapon recharge resets. Hooks keep energy gains
-  before damage reactions and defer augment effect selection until commitment.
-
-Architecture tests check all Elementalist value imports for cycles, keep Core mechanics independent of elite
-implementations, and keep elemental queries independent of attack execution and lifecycle registration. Owner-loading
-checks verify that mechanic and skill modules initialize without importing hook assembly.
 
 Build and live queries share `elementalistProfession.attributeContributions`. Core skill attributes come from
 `core/skills/attributes.ts`; selected traits add their declarations. The shared evaluator starts from equipment seeds,
@@ -86,12 +68,6 @@ from their own inputs.
 - **Catalyst** — energy, Jade Spheres, Elemental Empowerment, combo and aura reactions, modifiers, state, and UI.
 - **Evoker** — specialized-element familiars, charges, empowerment, recharge rules, skill handlers, modifiers, state,
   and UI.
-
-## Attunement cooldown ownership
-
-`core/mechanics/attunement-cooldowns.ts` owns live attunement recharge updates and resets. Core, Weaver, Evoker, and
-Fresh Air share this low-level owner without importing the higher-level attunement transition dispatcher. State retains
-attunement definitions and initialization; the cooldown controller remains the sole owner of recharge progress.
 
 ## Data
 

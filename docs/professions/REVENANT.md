@@ -35,17 +35,15 @@ model.
 
 Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
 Definitions own profiles, modifiers, triggers, build contributions, and trait policies. Supporting helpers remain beside
-them. `core/mechanics/boundaries.ts` declares ordered trigger points; `reactions.ts` interleaves trait and intrinsic
-on-hit work, and `resources.ts` owns Energy and Endurance policies.
+them. `core/mechanics/boundaries.ts` declares ordered trigger points; Core hooks interleave trait and intrinsic on-hit
+work, and `core/mechanics/resources.ts` owns Energy and Endurance policies.
 
-Herald's `mechanics/facets.ts` owns facet availability, activation, consumption, and boon scheduling;
-`skills/facet-of-nature.ts` owns Facet of Nature and True Nature declarations, boon extension, and the Assassin passive
-siphon. Herald hooks preserve Core completion rewards before facet completion and the settled-upkeep observer. Draconic
-Echo's duration policy belongs to its trait definition. Renegade's warband, Heroic Command, and Soulcleave behavior live
-with skills. Conduit mechanics own form transitions and Affinity; traits own cap rewards and form policies.
-`data/legends.ts` supplies elite Song of the Mists IDs without loading their runtime behavior. `energy-cost.ts` composes
-Core costs with the selected elite's cost policy. Specialization state queries infer the requested owner's state type
-from the runtime union, and dependency checks cover every Revenant module's value imports.
+Herald mechanics own facets; Facet of Nature's skill owns its boon extension and the Assassin passive siphon. Core
+completion rewards run before facet completion and the settled-upkeep observer. Draconic Echo's duration policy belongs
+to its trait definition. Renegade's warband, Heroic Command, and Soulcleave behavior live with skills. Conduit mechanics
+own form transitions and Affinity; traits own cap rewards and form policies. `data/legends.ts` supplies elite Song of
+the Mists IDs without loading their runtime behavior. `energy-cost.ts` composes Core costs with the selected elite's
+cost policy.
 
 Build and live queries share `revenantProfession.attributeContributions`, combining module-owned skill/mechanic
 attributes and selected trait declarations from equipment seeds. The evaluator uses active patch tuning and live facts.

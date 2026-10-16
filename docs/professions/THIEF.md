@@ -5,18 +5,11 @@ Native shared-engine profession. Entry point `thief.html`. `profession.ts` compo
 initiative, stealth, weapons, and traits; each specialization owns a complete vertical slice under
 `specializations/<name>/`.
 
-## Runtime ownership
+## Ordering rules
 
-- `core/mechanics/availability.ts` owns the ordered availability checks for follow-ups, spear stages, preparations,
-  stealth, rifle stance, and stolen inventory. Related checks remain in one file; spear and preparation checks use their
-  existing mechanic owners.
-- `specializations/deadeye/mechanics/malice.ts` owns the resource policy, per-activation hit and critical rewards,
-  malicious-attack spending, and accepted-cast damage snapshots. Shared cast facts remain in Deadeye's state module.
-- Deadeye's `skills/deadeyes-mark.ts` owns the Mark declaration, application, expiry, and eligibility queries.
-  `skills/stolen-skills.ts` owns stolen-skill definitions and their choice pool.
-- Deadeye's `skills/malicious-attacks.ts` and `skills/slot-skills.ts` keep each family's declarations, effect
-  transforms, intrinsic modifiers, and commitment actions together. `skills/index.ts` composes their definitions, and
-  hooks register their handlers while preserving shared event order.
+- Core availability checks closed follow-ups, spear stages, preparations, active follow-ups, stealth, rifle stance, and
+  stolen inventory in that order.
+- A malicious attack's damage bonus uses the malice it was cast with, even after its first hit spends it.
 
 ## Data
 

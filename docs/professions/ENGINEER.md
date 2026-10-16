@@ -5,19 +5,12 @@ stable export and composes the Core-first tuple from `catalog.ts`. A runtime con
 Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mechanics, and UI under
 `specializations/<name>/`.
 
-## Mechanic ownership
+## Ordering rules
 
-- Core's `core/mechanics/kits.ts` owns kit equip/stow actions, swap-to-stow resolution, isolated kit previews, and kit
-  availability. Core availability retains its turret, spear, kit, flip, and toolbelt check order.
-- Mine Field's `core/skills/profession-skills.ts` owns both its declarations and pending activation
-  registration/release. Combat entry drains each pending activation once and publishes its packets before notifying
-  toolbelt traits.
-- Mechanist's `specializations/mechanist/mechanics/mech.ts` owns command occupancy, completion, and the autonomous
-  attack schedule alongside initialization and Overclock execution. Hooks register that lifecycle with availability,
-  signet recharge rules, and trait reactions.
-- Amalgam's `specializations/amalgam/mechanics/evolved-form.ts` owns scheduling and execution of Evolve, Plasmatic
-  State, Thorns Retaliation, and the Morph trait tail. Their accepted-cast gates and queue priorities preserve
-  Core-before-Morph ordering.
+- Core availability checks turrets, spear stages, kits, skill flips, and toolbelt skills in that order.
+- Combat entry drains each pending Mine Field activation once and publishes its packets before toolbelt traits are
+  notified.
+- Amalgam's Core cast traits emit first; Thorns Retaliation then precedes the Morph trait tail and the next completion.
 
 ## Data
 

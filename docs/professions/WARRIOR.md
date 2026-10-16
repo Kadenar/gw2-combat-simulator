@@ -5,21 +5,13 @@ Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of 
 Paragon. Core owns adrenaline, bursts, weapon state, shared traits, and profession actions; each specialization owns its
 state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 
-## Mechanic ownership
+## Ordering rules
 
-- Paragon's `mechanics/refrains.ts` owns Motivation, chant entry, pulse replacement, and their trait boundaries;
-  `mechanics/command-echoes.ts` owns command instances, repeat consumption, and burst-completion ordering. Hooks compose
-  those lifecycles. Spellbreaker's `mechanics/combat.ts` owns accepted-control and strike dispatch alongside its trigger
-  definitions, keeping trait modules independent of hook assembly.
-- Core's `core/mechanics/adrenaline.ts` owns burst readiness, spending, the private accepted-spend snapshot, tier
-  metadata, and completion/reset handling. Skill variants read that snapshot through `warriorBurstSpend`; hooks retain
-  the ordering of cast-start traits, resource spending, completion rewards, and weapon-swap rewards.
-- Berserker's `specializations/berserker/mechanics/berserk.ts` owns entry, base and trait extensions, mode publication,
-  adrenaline capacity, availability, and expiry. Its state module only declares and initializes state. The same mode
-  owner defines entry and completion triggers for trait consumers.
-- Bladesworn's `specializations/bladesworn/mechanics/combat.ts` owns ammunition acceptance/completion observations and
-  explosion dispatch, alongside their trigger definitions. Traits import those definitions without depending on hook
-  assembly; Dragon Trigger, Flow, and Gunsaber keep their existing owners.
+- Cast-start traits fire before adrenaline is spent. Burst completion rewards observe the accepted spend before
+  weapon-swap rewards.
+- Every burst packet keeps the spend and tier captured at acceptance, even if the adrenaline pool changes during the
+  cast.
+- A Paragon burst completion consumes active command echoes before Paragon's completion trigger fires.
 
 ## Data
 

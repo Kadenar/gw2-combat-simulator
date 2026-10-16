@@ -10,20 +10,11 @@ modifiers, build contributions, and hooks; supporting functions stay beside thei
 lives in `core/traits/symbols.ts`. Mechanics preserve virtue activation, page accounting, equip rewards, and proc order.
 Firebrand's `initial-state.ts` supplies default profiles without importing trait definitions into its state factory.
 
-## Mechanic ownership
+## Ordering and lifetime rules
 
-- Dragonhunter's `specializations/dragonhunter/mechanics/virtue-effects.ts` owns accepted virtue readiness, passive
-  Courage, tether attachment/breaking, burning, follow-up expiry, and Justice reactions. Hooks retain control-trigger
-  dispatch while registering the complete virtue lifecycle.
-- Willbender's `specializations/willbender/mechanics/virtues.ts` owns accepted virtue readiness, activation recipes,
-  active windows, hit counters, flame generation and cancellation, and scheduled tasks. Skill declarations stay in the
-  existing catalog; hooks register the mechanic's actions and lifecycle handlers.
-- Luminary's `specializations/luminary/mechanics/radiant-forge.ts` owns entry, exit, equipment snapshots, weapon and
-  flip transitions, availability, and expiry/equip tasks. The activation snapshot stays private to that owner so a cast
-  accepted during an old forge session cannot equip a weapon in a later session.
-- Firebrand's `specializations/firebrand/mechanics/tomes.ts` owns tome opening/stowing, virtue dormancy, page policy and
-  replenishment, passive Courage, and tome availability alongside Justice and Ashes delivery. Hooks preserve the
-  tome-before-mantra availability order and the shared damage reaction order.
+- Firebrand checks tome availability before mantra availability. On player hits, Ashes reactions run before Firebrand's
+  strike trigger, followed by tome Justice reactions.
+- A Luminary cast accepted during an earlier Radiant Forge session cannot equip a weapon in a later session.
 
 ## Data
 
