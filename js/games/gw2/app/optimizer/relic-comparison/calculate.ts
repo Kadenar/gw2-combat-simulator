@@ -4,13 +4,13 @@ import {
   relicDamageSummary,
   type RelicComparisonModel
 } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
-import type { RelicComparisonWorkerRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
+import type { RelicComparisonCalculationRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 /** Calculates both counterfactuals and their chart data without accessing browser application state. */
 export function calculateRelicComparison(
-  request: RelicComparisonWorkerRequest,
+  request: RelicComparisonCalculationRequest,
   profession: Gw2ProfessionSource,
   simulate: typeof simulateGw2 = simulateGw2
 ): RelicComparisonModel {

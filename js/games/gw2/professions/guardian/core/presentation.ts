@@ -139,6 +139,17 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       preview.damageBuff('Inspiring Virtue', 'inspiringVirtue', 'guardian-inspiring-virtue');
       preview.boon('aegis', 'Unscathed Contender');
 
+      // Illumination changes spear payloads only in this isolated damage preview.
+      if (context.weapons.includes('Spear'))
+        preview.add({
+          key: 'illuminated',
+          label: 'Illuminated',
+          group: 'Mechanic',
+          kind: 'special',
+          scope: ['damage'],
+          description: 'Include illuminated bonuses for spear skills'
+        });
+
       // Seed the native symbol stack pool so all weapon rows can show an established damage window.
       if (preview.has('Symbolic Avenger'))
         preview.trait('Symbolic Avenger', {

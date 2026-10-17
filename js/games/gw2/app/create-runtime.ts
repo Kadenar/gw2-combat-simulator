@@ -1,7 +1,7 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
-import type { RelicComparisonJobRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
+import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
@@ -103,15 +103,13 @@ export function createProfessionRuntime({
   }
 
   /** Uses the on-screen equipped relic as the baseline for an explicitly selected alternative. */
-  function relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonJobRequest | null {
+  function relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonRequest | null {
     const opponentRelic = String(app.build.relic || '');
     const targetRelic = String(comparisonRelic || '');
 
     if (!app.relicNames.includes(targetRelic) || !relicComparisonAvailable(opponentRelic, targetRelic)) return null;
 
     return {
-      gameId: 'gw2',
-      contentId: profession.id,
       rotation: app.build.rotation,
       baseConfig: baselineSimulationConfig(app),
       opponentRelic,

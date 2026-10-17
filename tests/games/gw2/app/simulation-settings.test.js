@@ -136,7 +136,7 @@ function settingsWorkspace(t, initialDelay = 0) {
     },
     randomDistributionRunner: { cancel() {}, schedule() {} },
     modifierContributionRunner: { cancel() {}, schedule() {} },
-    relicComparisonRunner: { cancel() {}, schedule() {} },
+    relicComparisonRunner: { schedule() {} },
     renderBuildSections() {}
   });
   app.baselineSimulationRunner = new BaselineSimulationRunner(app);

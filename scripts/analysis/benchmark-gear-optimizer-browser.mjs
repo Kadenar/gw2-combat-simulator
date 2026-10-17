@@ -55,7 +55,6 @@ try {
           while (app.simulationStatus !== 'idle') await new Promise((resolve) => setTimeout(resolve, 10));
           app.randomDistributionRunner.cancel?.();
           app.modifierContributionRunner.cancel?.();
-          app.relicComparisonRunner.cancel?.();
           const request = captureGearOptimizerRequest(app, {
             prefixes: ["Berserker's", "Assassin's", "Viper's"],
             locks: optimizerSlots(app.build, app.adapter).filter(

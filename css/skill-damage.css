@@ -124,6 +124,10 @@
   color: var(--text-dim);
   font-size: 11px;
 }
+/* Conditional controls stay in the DOM without overriding the browser's hidden state with grid layout. */
+.sd-control[hidden] {
+  display: none;
+}
 .sd-control input[type='number'],
 .sd-control select {
   box-sizing: border-box;
@@ -140,11 +144,6 @@
   justify-self: start;
   margin: 0;
   accent-color: var(--accent);
-}
-.sd-fixed {
-  margin: 6px 0 0;
-  padding-left: 16px;
-  font-size: 12px;
 }
 .sd-actions {
   display: flex;

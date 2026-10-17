@@ -19,6 +19,48 @@ import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.j
 const BLADESWORN = 'data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json';
 const HARBINGER = 'data/gw2/builds/necromancer/b-condi-harbinger.json';
 
+// Each isolated spear cast gets its own illumination charge, with no saved-state or cross-weapon changes.
+test('Guardian spear illumination is damage-only, works in either set, and resets when cleared', async () => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  app.build.specializations = [];
+  app.build.weapons = ['Greatsword', ''];
+  app.build.alternateWeapons = ['', ''];
+  assert.ok(!skillDamageControls(app).some((control) => control.key === 'illuminated'));
+
+  for (const spearSet of [1, 2]) {
+    app.build.weapons = spearSet === 1 ? ['Spear', ''] : ['Greatsword', ''];
+    app.build.alternateWeapons = spearSet === 2 ? ['Spear', ''] : ['Greatsword', ''];
+    const saved = structuredClone(app.build);
+    const controls = skillDamageControls(app);
+    assert.equal(controls.filter((control) => control.key === 'illuminated').length, 1);
+    assert.ok(!attributeEffectControls(app).some((control) => control.key === 'illuminated'));
+    assert.equal(simulationConfigValues(app, controls).illuminated, 0);
+    const cache = new Map();
+    const measurements = [0, 1, 0].map((illuminated) => {
+      const { request } = createSkillDamagePlan(app, controls, { ...clearedValues(controls), illuminated });
+      const occurrences = request.occurrences.filter((entry) =>
+        ['Helio Rush', 'Gleaming Disc', 'Solar Storm', 'Symbol of Luminance', 'Whirling Wrath'].includes(entry.name)
+      );
+      assert.equal(occurrences.length, 5);
+      return evaluateSkillDamage({ ...request, occurrences }, app.profession, cache).occurrences;
+    });
+    for (const [index, base] of measurements[0].entries()) {
+      assert.equal(base.status, 'measured');
+      const boosted = measurements[1][index];
+      assert.equal(boosted.status, 'measured');
+      const name = app.skillById.get(Number(base.id.split(':').at(-1))).name;
+
+      if (['Helio Rush', 'Gleaming Disc', 'Solar Storm'].includes(name))
+        assert.ok(boosted.measurement.total > base.measurement.total, name);
+      else assert.equal(boosted.measurement.total, base.measurement.total, name);
+
+      assert.equal(measurements[2][index].measurement.total, base.measurement.total, name);
+    }
+
+    assert.deepEqual(app.build, saved);
+  }
+});
+
 // Held Amalgam bonuses must reach both the displayed stats and measured packets without prerequisite casts.
 test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain independently', async () => {
   const app = await headlessApp('engineer', 'data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json');

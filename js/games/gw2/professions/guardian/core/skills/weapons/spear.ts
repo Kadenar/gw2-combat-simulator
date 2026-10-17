@@ -344,5 +344,12 @@ const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkil
 
 /** Registers spear actions with the Core hook assembly. */
 export const guardianSpearLifecycle = {
+  // Seed the native charge before an isolated spear activation so its normal effect selection owns the bonus.
+  prepareDamageState(runtime, skill, inputs) {
+    if (skill?.weapon !== 'Spear' || !inputs.illuminated) return;
+
+    runtime.profession.core.spearIlluminatedArmed = true;
+    runtime.profession.core.spearIlluminatedUntil = Infinity;
+  },
   sideEffectHandlers: guardianSpearActions
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

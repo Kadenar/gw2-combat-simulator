@@ -36,10 +36,7 @@ import type {
   RandomDistributionRequest,
   RandomDistributionOptions
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type {
-  RelicComparisonJobRequest,
-  RelicComparisonResultState
-} from '#gw2/app/optimizer/relic-comparison/types.js';
+import type { RelicComparisonRequest, RelicComparisonResultState } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
@@ -152,7 +149,7 @@ export interface ProfessionRuntimeApi {
   modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
   randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest | null;
-  relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonJobRequest | null;
+  relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonRequest | null;
   calculateRandomDistribution(
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions

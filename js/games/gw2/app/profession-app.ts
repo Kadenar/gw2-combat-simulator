@@ -263,7 +263,6 @@ export class ProfessionApp implements ProfessionAppState {
     // Carried comparisons become stale immediately, including while the replacement baseline is pending.
     if (this.results?.contributions) this.results.modifierContributionsStale = true;
 
-    this.relicComparisonRunner?.cancel?.();
     this.simulationStatus = 'queued';
     this.simulationError = '';
     saveBuildWorkspace(this);
@@ -413,7 +412,6 @@ export class ProfessionApp implements ProfessionAppState {
     this.gearOptimizerRunner?.reset();
     this.randomDistributionRunner.cancel?.();
     this.modifierContributionRunner.cancel?.();
-    this.relicComparisonRunner.cancel?.();
     this.initialRenderGeneration += 1;
     this.deferredRotationRenderRevision = null;
     this.buildRevision += 1;
@@ -458,8 +456,6 @@ export class ProfessionApp implements ProfessionAppState {
 
       this.baselineSimulationRunner.ensureCharts();
       this.modifierContributionRunner.schedule();
-
-      if (this.results?.relicComparisonStale) this.relicComparisonRunner.run?.();
     }
 
     saveBuildWorkspace(this);

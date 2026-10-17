@@ -227,7 +227,6 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     skills: [],
     randomDistributionRunner: { cancel: () => cancelled.push('random') },
     modifierContributionRunner: { cancel: () => cancelled.push('modifiers') },
-    relicComparisonRunner: { cancel: () => cancelled.push('relic') },
     baselineSimulationRunner: {
       schedule(revision) {
         scheduledRevision = revision;
@@ -246,7 +245,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     true,
     'an edit invalidates modifiers before baseline completion'
   );
-  assert.deepEqual(cancelled, ['random', 'modifiers', 'relic']);
+  assert.deepEqual(cancelled, ['random', 'modifiers']);
 });
 
 // Capture is a new request for the current revision, not a build edit or persisted preference.
@@ -962,21 +961,20 @@ test('relic comparison scheduling publishes availability without simulating', ()
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
     relicNames: ['Akeem', 'Fractal', 'Thorns'],
     results,
+    profession: {
+      runtimeFor() {
+        simulated++;
+        throw new Error('Unexpected simulation');
+      }
+    },
     adapter: {
       relicComparisonRequest(_app, comparisonRelic) {
         return {
-          gameId: 'gw2',
-          contentId: 'engineer',
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
           opponentRelic: 'Fractal',
           comparisonRelic
         };
-      },
-      simulateBuild() {
-        simulated += 1;
-
-        return minimalResult(4000);
       },
       presentation: testPresentation()
     }
@@ -990,7 +988,7 @@ test('relic comparison scheduling publishes availability without simulating', ()
   assert.equal(simulated, 0, 'scheduling must not run the second simulation');
 });
 
-// The worker calculation owns relic assumptions and counterfactual attribution independently of the runner.
+// The calculation owns relic assumptions and counterfactual attribution independently of the runner.
 test('relic comparison scopes assumptions and attributes damage against a no-relic simulation', () => {
   const simulatedConfigs = [];
   const simulationOptions = [];
@@ -1040,130 +1038,78 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
   assert.deepEqual(comparison.targetDamage, { buildDps: 1050, directDamage: 0, contributedDps: 150 });
 });
 
-/** Controlled transport exercises result ownership without running expensive work on the calling thread. */
-function relicWorkerFixture(t) {
-  runTimersImmediately(t);
-  const workers = [];
-  class ControlledWorker {
-    listeners = new Map();
-    constructor(url, options) {
-      assert.match(String(url), /relic-comparison\/worker\.js$/);
-      assert.equal(options.type, 'module');
-      workers.push(this);
-    }
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-    postMessage(message) {
-      this.message = structuredClone(message);
-    }
-    terminate() {
-      this.terminated = true;
-    }
-    reply(payload) {
-      this.listeners.get('message')({ data: { requestId: this.message.requestId, ...payload } });
-    }
-  }
-  const previous = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
-  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: ControlledWorker });
-  t.after(() => {
-    if (previous) Object.defineProperty(globalThis, 'Worker', previous);
-    else delete globalThis.Worker;
-  });
+/** A real profession exercises local calculation without worker transport or timer mocks. */
+async function relicFixture() {
+  const adapter = await loadProfessionAppAdapter('engineer');
+  const rotation = [{ type: 'wait', durationMs: 1000 }];
+  const baseConfig = adapter
+    .createBuildContext({
+      build: adapter.profession.createBuildDefaults(),
+      patchId: 'current'
+    })
+    .simulationConfig();
   let updates = 0;
   const app = {
-    build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
-    buildRevision: 1,
+    profession: adapter.profession,
+    build: { rotation, relic: 'Fractal' },
     relicNames: ['Akeem', 'Fractal', 'Thorns'],
     results: minimalResult(4000),
     adapter: {
       relicComparisonRequest(_app, comparisonRelic) {
-        return {
-          gameId: 'gw2',
-          contentId: 'engineer',
-          rotation: STRIKE_ROTATION,
-          baseConfig: { relic: 'Fractal' },
-          opponentRelic: 'Fractal',
-          comparisonRelic
-        };
-      },
-      simulateBuild() {
-        assert.fail('Comparison calculations must execute in the worker');
+        return { rotation, baseConfig, opponentRelic: 'Fractal', comparisonRelic };
       }
     }
   };
   const runner = new RelicComparisonRunner(app, () => {
     updates++;
   });
-  t.after(() => runner.cancel());
-  return { app, runner, workers, updates: () => updates };
+  return { app, runner, updates: () => updates };
 }
 
-test('relic comparison sends captured assumptions to a worker and publishes its result', (t) => {
-  const { app, runner, workers, updates } = relicWorkerFixture(t);
-  // Unrelated analysis state must never enter the structured-clone payload.
-  app.results.randomDistribution = { retainedOnlyInApp: () => {} };
+test('relic comparison publishes synchronously without workers and preserves its baseline', async (t) => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  Object.defineProperty(globalThis, 'Worker', {
+    configurable: true,
+    value: class {
+      constructor() {
+        assert.fail('Relic comparison must not construct a worker.');
+      }
+    }
+  });
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'Worker', previous);
+    else delete globalThis.Worker;
+  });
+  const { app, runner, updates } = await relicFixture();
+  const baseline = app.results;
   runner.run('Thorns', 4);
-  const worker = workers[0];
-  assert.equal(app.results.relicComparisonStale, true);
-  assert.equal(worker.message.request.initialStacks, 4);
-  assert.equal(worker.message.request.opponentResult.dps, app.results.dps);
-  assert.notEqual(worker.message.request.opponentResult, app.results);
-  assert.deepEqual(Object.keys(worker.message.request.opponentResult).sort(), [
-    'breakdown',
-    'combatEndTime',
-    'dps',
-    'dpsStartTime',
-    'firstHitTime',
-    'resolvedEvents'
-  ]);
-  runner.initialStacks = 9;
-  assert.equal(worker.message.request.initialStacks, 4);
-  const comparison = { targetRelic: 'Thorns' };
-  worker.reply({ comparison });
-  assert.equal(app.results.relicComparison, comparison);
-  assert.equal(app.results.relicComparisonStale, false);
-  assert.equal(worker.terminated, undefined);
-  assert.equal(updates(), 2);
+  assert.equal(app.results, baseline);
+  assert.equal(app.results.dps, 1000);
+  assert.equal(app.results.relicComparison.targetRelic, 'Thorns');
+  assert.equal(app.results.relicComparisonInitialStacks, 4);
+  assert.equal(app.results.relicComparisonError, '');
+  assert.equal(updates(), 1);
   runner.run('Akeem');
-  assert.equal(workers.length, 1, 'completed comparisons reuse their warm worker');
-  assert.equal(worker.message.request.comparisonRelic, 'Akeem');
-  worker.reply({ comparison: { targetRelic: 'Akeem' } });
   assert.equal(app.results.relicComparison.targetRelic, 'Akeem');
+  assert.equal(updates(), 2);
 });
 
-test('relic comparison terminates superseded and cancelled jobs and rejects stale baselines', (t) => {
-  const { app, runner, workers } = relicWorkerFixture(t);
-  runner.run('Thorns');
-  runner.run('Akeem');
-  assert.equal(workers[0].terminated, true);
-  workers[0].reply({ comparison: { stale: true } });
-  assert.equal(app.results.relicComparison, undefined);
-  runner.cancel();
-  assert.equal(workers[1].terminated, true);
-  workers[1].reply({ comparison: { stale: true } });
-  assert.equal(app.results.relicComparison, undefined);
-  runner.run();
-  app.buildRevision++;
-  workers[2].reply({ comparison: { stale: true } });
-  assert.equal(app.results.relicComparison, undefined);
-  runner.run();
-  app.results = minimalResult(5000);
-  assert.equal(workers.length, 3, 'discarding a completed stale result keeps the worker reusable');
-  workers[2].reply({ comparison: { stale: true } });
-  assert.equal(app.results.relicComparison, undefined);
-});
-
-test('relic comparison surfaces worker failures and can retry', (t) => {
-  const { app, runner, workers } = relicWorkerFixture(t);
-  runner.run();
-  workers[0].reply({ error: 'Comparison simulation failed.' });
-  assert.equal(app.results.relicComparisonStale, false);
+test('local relic comparison reports calculation failures and recovers on retry', async () => {
+  const { app, runner, updates } = await relicFixture();
+  const profession = app.profession;
+  app.profession = {
+    ...profession,
+    runtimeFor() {
+      throw new Error('Comparison simulation failed.');
+    }
+  };
+  assert.doesNotThrow(() => runner.run());
   assert.equal(app.results.relicComparisonError, 'Comparison simulation failed.');
-  assert.equal(workers[0].terminated, undefined, 'calculation errors do not discard a healthy worker');
+  assert.equal(app.results.relicComparison, undefined);
+  assert.equal(updates(), 1);
+  app.profession = profession;
   runner.run();
-  assert.equal(workers.length, 1);
-  workers[0].reply({ comparison: { targetRelic: 'Thorns' } });
   assert.equal(app.results.relicComparisonError, '');
   assert.equal(app.results.relicComparison.targetRelic, 'Thorns');
+  assert.equal(updates(), 2);
 });

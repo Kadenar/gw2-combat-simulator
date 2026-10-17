@@ -123,7 +123,7 @@ export function renderSkillDamage(app: ProfessionAppState): void {
   state.values = normalizeAttributePreview(controls, state.values ?? simulationConfigValues(app, controls));
   host.innerHTML = disclosureHtml(
     true,
-    `<div class="skill-damage-body"><div class="skill-damage-stats" data-sd-region="stats"></div><div class="skill-damage-layout">${assumptionsHtml(app, controls, state.values)}<div class="skill-damage-main" data-sd-region="table"></div></div></div>`
+    `<div class="skill-damage-body"><div class="skill-damage-stats" data-sd-region="stats"></div><div class="skill-damage-layout">${assumptionsHtml(controls, state.values)}<div class="skill-damage-main" data-sd-region="table"></div></div></div>`
   );
   renderRegions(app);
 }
@@ -157,6 +157,17 @@ function renderRegions(app: ProfessionAppState): void {
   }
 
   const current = state.evaluation?.signature === state.plan.signature;
+
+  // Use every measured source and variant, including procedural traits and equipment, independently of row filters.
+  // Hide movement until a completed preview establishes that Torment can be applied; keep the input node for focus.
+  const movement = host.querySelector<HTMLElement>('[data-sd-target-moving]');
+
+  if (movement && current)
+    movement.hidden = !state.evaluation!.result.occurrences.some((occurrence) =>
+      [occurrence.measurement, ...occurrence.variants.map((variant) => variant.measurement)].some((measurement) =>
+        measurement?.conditions.some((condition) => condition.condition === 'Torment' && condition.stacks > 0)
+      )
+    );
 
   // A failed request stays visible until inputs change; rendering its error must not submit it again.
   if (!current && state.failedSignature !== state.plan.signature) {
@@ -323,15 +334,11 @@ function controlHtml(control: PreviewControl, value: number | string | undefined
     : control.max != null
       ? `<input ${attrs} type="number" min="${control.min ?? 0}" max="${control.max}" step="1" value="${esc(String(value ?? 0))}">`
       : `<input ${attrs} type="checkbox"${value ? ' checked' : ''}>`;
-  return `<label class="sd-control"><span>${esc(control.label)}</span>${input}<small>${esc(control.description)}</small></label>`;
+  return `<label class="sd-control"${control.key === 'targetMoving' ? ' data-sd-target-moving hidden' : ''}><span>${esc(control.label)}</span>${input}<small>${esc(control.description)}</small></label>`;
 }
 
-/** Preview inputs grouped as in the Attribute Preview, then the equipment that is always included. */
-function assumptionsHtml(
-  app: ProfessionAppState,
-  controls: readonly PreviewControl[],
-  values: AttributePreviewValues
-): string {
+/** Show editable preview assumptions; equipped bonuses still apply through the build's damage configuration. */
+function assumptionsHtml(controls: readonly PreviewControl[], values: AttributePreviewValues): string {
   const groups = [...CONTROL_GROUPS, ...new Set(controls.map((control) => control.group))].filter(
     (group, index, all) => all.indexOf(group) === index
   );
@@ -343,27 +350,7 @@ function assumptionsHtml(
         : '';
     })
     .join('');
-  const build = app.build;
-  const fixed = [...new Set((build.weaponSigils || []).flat().filter(Boolean)).values()].map(
-    (name) => `Sigil of ${name}`
-  );
-
-  if (build.rune) fixed.push(`Rune of ${build.rune}`);
-
-  if (build.relic) fixed.push(`Relic of ${build.relic}`);
-
-  if (build.food) fixed.push(build.food);
-
-  if (build.utility) fixed.push(build.utility);
-
-  fixed.push(
-    ...calculateSkillDamageAttributes(app, values, controls).alwaysApplied.filter((name) => !fixed.includes(name))
-  );
-  return `<aside class="skill-damage-assumptions" aria-label="Damage assumptions"><h4>Assumptions</h4>${fieldsets}${
-    fixed.length
-      ? `<fieldset><legend>Always applied</legend><ul class="sd-fixed">${fixed.map((name) => `<li>${esc(name)}</li>`).join('')}</ul></fieldset>`
-      : ''
-  }<div class="sd-actions"><button type="button" class="btn sd-action-primary" data-sd-action="use-config">Use simulation config</button><button type="button" class="btn" data-sd-action="clear">Clear buffs</button></div></aside>`;
+  return `<aside class="skill-damage-assumptions" aria-label="Damage assumptions"><h4>Assumptions</h4>${fieldsets}<div class="sd-actions"><button type="button" class="btn sd-action-primary" data-sd-action="use-config">Use simulation config</button><button type="button" class="btn" data-sd-action="clear">Clear buffs</button></div></aside>`;
 }
 
 function columnTemplate(model: SkillDamageViewModel): string {

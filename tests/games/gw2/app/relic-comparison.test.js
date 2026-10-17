@@ -414,19 +414,3 @@ test('relic comparison groups available choices by damage category', () => {
   );
   assert.match(container.innerHTML, /<option value="Thorns" selected>Relic of Thorns<\/option>/);
 });
-
-test('relic comparison keeps its footprint while rerunning', () => {
-  const container = inertContainer();
-
-  mountRelicComparison(container, {
-    relicComparisonAvailable: true,
-    relicComparisonStale: true,
-    relicComparisonOpponent: 'Fractal',
-    relicComparisonTarget: 'Thorns',
-    relicComparisonTargets: ['Thorns']
-  });
-
-  assert.match(container.innerHTML, /class="relic-cmp-skeleton" role="status"/);
-  assert.match(container.innerHTML, /data-role="relic-comparison-run" disabled/);
-  assert.match(container.innerHTML, /Running…/);
-});

@@ -177,7 +177,6 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         const request = captureGearOptimizerRequest(app, readSelections(form), { kind: 'rotation' }, 'fast');
         app.randomDistributionRunner.cancel?.();
         app.modifierContributionRunner.cancel?.();
-        app.relicComparisonRunner.cancel?.();
         runner.run(request, Number(new FormData(form).get('workers')));
       } catch (error) {
         panel!.querySelector<HTMLElement>('.optimizer-feedback')!.hidden = false;

@@ -166,7 +166,7 @@ function appFixture() {
     },
     randomDistributionRunner: { cancel: () => cancelled.push('rng'), schedule() {} },
     modifierContributionRunner: { cancel: () => cancelled.push('modifiers'), schedule() {} },
-    relicComparisonRunner: { cancel: () => cancelled.push('relic'), schedule() {} },
+    relicComparisonRunner: { schedule() {} },
     changed() {
       recordRotationHistory(this);
       this.buildRevision += 1;
@@ -443,7 +443,7 @@ test('switching preserves independent rotations, history, templates, comparisons
   assert.deepEqual(app.build.rotation, []);
   app.activateBuildTab(other.id);
   assert.equal(app.build.rotation[0].durationMs, 30);
-  assert.deepEqual(cancelled.slice(0, 4), ['baseline', 'rng', 'modifiers', 'relic']);
+  assert.deepEqual(cancelled.slice(0, 3), ['baseline', 'rng', 'modifiers']);
 });
 
 // Session capture changes invalidate cached results without persisting diagnostic preferences in builds.

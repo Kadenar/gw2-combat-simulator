@@ -8,7 +8,6 @@ import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
 export interface RelicComparisonPanelModel {
   readonly relicComparison?: RelicComparisonModel | null;
   readonly relicComparisonAvailable?: boolean;
-  readonly relicComparisonStale?: boolean;
   readonly relicComparisonError?: string;
   readonly relicComparisonOpponent?: string;
   readonly relicComparisonTarget?: string;
@@ -24,7 +23,6 @@ export function mountRelicComparison(
 ): void {
   const relicComparison = model.relicComparison || null;
   const relicComparisonAvailable = model.relicComparisonAvailable === true;
-  const relicComparisonStale = model.relicComparisonStale === true;
   const relicComparisonError = String(model.relicComparisonError || '');
   const relicComparisonOpponent = String(model.relicComparisonOpponent || '');
   const relicComparisonTargets = model.relicComparisonTargets || [];
@@ -51,8 +49,8 @@ export function mountRelicComparison(
           Starting stacks
           <input type="number" min="0" max="10" step="1" value="${relicComparisonInitialStacks}" data-role="relic-comparison-stacks" aria-label="Starting Thorns stacks" />
         </label>
-        <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run"${relicComparisonStale ? ' disabled' : ''}>
-          ${relicComparisonStale ? 'Running…' : relicComparisonError ? 'Retry' : relicComparison ? 'Run again' : 'Run comparison'}
+        <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run">
+          ${relicComparisonError ? 'Retry' : relicComparison ? 'Run again' : 'Run comparison'}
         </button>`;
   container.innerHTML = `${
     relicComparisonAvailable
@@ -65,15 +63,13 @@ export function mountRelicComparison(
     </div>
     <div class="relic-cmp-manual">${relicComparisonAction}</div>
     ${
-      relicComparisonStale
-        ? `<div class="relic-cmp-skeleton" role="status">Running comparison simulation…</div>`
-        : relicComparisonError
-          ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(relicComparisonError)}</div>`
-          : relicComparison
-            ? relicComparisonChartSvg(relicComparison, {
-                opponentLabel: relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : undefined
-              })
-            : ''
+      relicComparisonError
+        ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(relicComparisonError)}</div>`
+        : relicComparison
+          ? relicComparisonChartSvg(relicComparison, {
+              opponentLabel: relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : undefined
+            })
+          : ''
     }
   </section>`
       : ''
@@ -135,7 +131,6 @@ export function renderRelicComparison(app: ProfessionAppState): void {
     {
       relicComparison: result.relicComparison || null,
       relicComparisonAvailable: result.relicComparisonAvailable === true,
-      relicComparisonStale: result.relicComparisonStale === true,
       relicComparisonError: result.relicComparisonError || '',
       relicComparisonOpponent: result.relicComparisonOpponent || '',
       relicComparisonTarget: result.relicComparisonTarget || '',

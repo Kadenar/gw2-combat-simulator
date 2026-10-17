@@ -418,8 +418,8 @@ test('a palette wait drop opens its editor and the timeline can edit the inserte
   await expect(timeline.locator('.rot-wait-badge')).toContainText('120ms');
 });
 
-// Component styles must keep hidden controls out of layout and reserve a motion-safe loading chart.
-test('relic comparison controls and loading layout survive a narrow host', async ({ page }) => {
+// Component styles must keep hidden controls out of layout on narrow hosts.
+test('relic comparison controls survive a narrow host', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
@@ -435,7 +435,6 @@ test('relic comparison controls and loading layout survive a narrow host', async
     document.body.append(host);
     mountRelicComparison(host, {
       relicComparisonAvailable: true,
-      relicComparisonStale: true,
       relicComparisonTarget: 'Fireworks',
       relicComparisonTargets: ['Fireworks', 'Thorns', 'Nourys']
     });
@@ -444,19 +443,8 @@ test('relic comparison controls and loading layout survive a narrow host', async
   const relicSelect = comparison.getByRole('combobox', { name: 'Comparison relic' });
   await expect(relicSelect.locator('optgroup')).toHaveCount(3);
   await expect(comparison.locator('[data-role="relic-comparison-stacks-control"]')).toBeHidden();
-  await expect(comparison.getByRole('button', { name: 'Running' })).toBeDisabled();
-  const layout = await comparison.evaluate((element) => {
-    const skeleton = element.querySelector('.relic-cmp-skeleton');
-    const bounds = skeleton.getBoundingClientRect();
-    return {
-      fits: element.scrollWidth <= element.clientWidth,
-      ratio: bounds.width / bounds.height,
-      animation: getComputedStyle(skeleton).animationName
-    };
-  });
-  expect(layout.fits).toBe(true);
-  expect(layout.ratio).toBeCloseTo(640 / 300, 2);
-  expect(layout.animation).toBe('none');
+  await expect(comparison.getByRole('button', { name: 'Run comparison' })).toBeEnabled();
+  expect(await comparison.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
 
 test('empty and authored rotations keep a usable timeline and an open event log is not clipped', async ({ page }) => {
