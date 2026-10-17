@@ -281,26 +281,26 @@
         "label": "Power Alacrity (Sword/Dagger) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-sword.json",
-        "benchmarkDps": 32771,
+        "benchmarkDps": 32634,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-tempest-sword-dagger",
         "benchmarkApm": 68,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 32331, "phase": 32331 },
-          "80-60": { "cumulative": 33345, "phase": 34438 },
-          "60-40": { "cumulative": 33388, "phase": 33474 },
-          "40-20": { "cumulative": 32397, "phase": 29740 },
-          "20-0": { "cumulative": 32771, "phase": 34370 }
+          "100-80": { "cumulative": 32275, "phase": 32275 },
+          "80-60": { "cumulative": 33193, "phase": 34172 },
+          "60-40": { "cumulative": 33334, "phase": 33622 },
+          "40-20": { "cumulative": 32343, "phase": 29688 },
+          "20-0": { "cumulative": 32634, "phase": 33847 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 32804,
+          "benchmarkDps": 32666,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 32362, "phase": 32362 },
-            "80-60": { "cumulative": 33377, "phase": 34472 },
-            "60-40": { "cumulative": 33421, "phase": 33507 },
-            "40-20": { "cumulative": 32481, "phase": 29925 },
-            "20-0": { "cumulative": 32804, "phase": 34152 }
+            "100-80": { "cumulative": 32306, "phase": 32306 },
+            "80-60": { "cumulative": 33225, "phase": 34206 },
+            "60-40": { "cumulative": 33367, "phase": 33655 },
+            "40-20": { "cumulative": 32376, "phase": 29720 },
+            "20-0": { "cumulative": 32666, "phase": 33879 }
           }
         }
       },
@@ -308,26 +308,26 @@
         "label": "Power Alacrity (Hammer) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-hammer.json",
-        "benchmarkDps": 29803,
+        "benchmarkDps": 29767,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-tempest-hammer",
         "benchmarkApm": 67.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 30807, "phase": 30807 },
-          "80-60": { "cumulative": 28716, "phase": 26864 },
-          "60-40": { "cumulative": 29443, "phase": 31023 },
-          "40-20": { "cumulative": 29260, "phase": 28720 },
-          "20-0": { "cumulative": 29803, "phase": 29803 }
+          "100-80": { "cumulative": 30754, "phase": 30754 },
+          "80-60": { "cumulative": 28696, "phase": 26874 },
+          "60-40": { "cumulative": 29397, "phase": 30920 },
+          "40-20": { "cumulative": 29160, "phase": 28472 },
+          "20-0": { "cumulative": 29767, "phase": 29767 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 29829,
+          "benchmarkDps": 29793,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 30828, "phase": 30828 },
-            "80-60": { "cumulative": 28803, "phase": 26988 },
-            "60-40": { "cumulative": 29428, "phase": 30763 },
-            "40-20": { "cumulative": 29285, "phase": 28867 },
-            "20-0": { "cumulative": 29829, "phase": 29829 }
+            "100-80": { "cumulative": 30775, "phase": 30775 },
+            "80-60": { "cumulative": 28720, "phase": 26900 },
+            "60-40": { "cumulative": 29422, "phase": 30946 },
+            "40-20": { "cumulative": 29139, "phase": 28321 },
+            "20-0": { "cumulative": 29793, "phase": 29793 }
           }
         }
       },
@@ -421,9 +421,9 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-scepter-warhorn",
         "benchmarkApm": 61,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29702, "phase": 29702 },
-          "80-60": { "cumulative": 32836, "phase": 36834 },
-          "60-40": { "cumulative": 33410, "phase": 34620 },
+          "100-80": { "cumulative": 29649, "phase": 29649 },
+          "80-60": { "cumulative": 32791, "phase": 36792 },
+          "60-40": { "cumulative": 33410, "phase": 34719 },
           "40-20": { "cumulative": null, "phase": null },
           "20-0": { "cumulative": 33796, "phase": 33796 }
         },
@@ -432,8 +432,8 @@
           "benchmarkDps": 32731,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 28245, "phase": 28245 },
-            "80-60": { "cumulative": 31291, "phase": 34998 },
-            "60-40": { "cumulative": 31906, "phase": 33255 },
+            "80-60": { "cumulative": 31263, "phase": 34936 },
+            "60-40": { "cumulative": 31906, "phase": 33317 },
             "40-20": { "cumulative": null, "phase": null },
             "20-0": { "cumulative": 32731, "phase": 32731 }
           }
@@ -496,25 +496,25 @@
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 35144,
+        "benchmarkDps": 35146,
         "upToDate": true,
         "benchmarkApm": 53.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34708, "phase": 34708 },
-          "80-60": { "cumulative": 34998, "phase": 35298 },
-          "60-40": { "cumulative": 35076, "phase": 35230 },
-          "40-20": { "cumulative": 34818, "phase": 34051 },
-          "20-0": { "cumulative": 35144, "phase": 35144 }
+          "100-80": { "cumulative": 34715, "phase": 34715 },
+          "80-60": { "cumulative": 35002, "phase": 35298 },
+          "60-40": { "cumulative": 35078, "phase": 35230 },
+          "40-20": { "cumulative": 34819, "phase": 34051 },
+          "20-0": { "cumulative": 35146, "phase": 35146 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 35457,
+          "benchmarkDps": 35459,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35013, "phase": 35013 },
-            "80-60": { "cumulative": 35326, "phase": 35650 },
-            "60-40": { "cumulative": 35660, "phase": 36355 },
-            "40-20": { "cumulative": 35172, "phase": 33749 },
-            "20-0": { "cumulative": 35457, "phase": 35457 }
+            "100-80": { "cumulative": 35020, "phase": 35020 },
+            "80-60": { "cumulative": 35330, "phase": 35650 },
+            "60-40": { "cumulative": 35662, "phase": 36355 },
+            "40-20": { "cumulative": 35173, "phase": 33749 },
+            "20-0": { "cumulative": 35459, "phase": 35459 }
           }
         }
       }
@@ -964,8 +964,8 @@
         "upToDate": true,
         "benchmarkApm": 137.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37927, "phase": 37927 },
-          "80-60": { "cumulative": 41656, "phase": 46007 },
+          "100-80": { "cumulative": 37928, "phase": 37928 },
+          "80-60": { "cumulative": 41657, "phase": 46007 },
           "60-40": { "cumulative": 42869, "phase": 45651 },
           "40-20": { "cumulative": 43026, "phase": 43514 },
           "20-0": { "cumulative": 43327, "phase": 44564 }
@@ -974,8 +974,8 @@
           "patchId": "nov-10-balance-preview",
           "benchmarkDps": 43327,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 37927, "phase": 37927 },
-            "80-60": { "cumulative": 41656, "phase": 46007 },
+            "100-80": { "cumulative": 37928, "phase": 37928 },
+            "80-60": { "cumulative": 41657, "phase": 46007 },
             "60-40": { "cumulative": 42869, "phase": 45651 },
             "40-20": { "cumulative": 43026, "phase": 43514 },
             "20-0": { "cumulative": 43327, "phase": 44564 }
@@ -987,25 +987,25 @@
         "build": "data/gw2/builds/elementalist/b-condi-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "benchmarkDps": 44232,
+        "benchmarkDps": 44234,
         "upToDate": true,
         "benchmarkApm": 104.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39964, "phase": 39964 },
-          "80-60": { "cumulative": 41903, "phase": 44058 },
-          "60-40": { "cumulative": 43284, "phase": 46370 },
-          "40-20": { "cumulative": 43917, "phase": 45937 },
-          "20-0": { "cumulative": 44232, "phase": 45539 }
+          "100-80": { "cumulative": 39973, "phase": 39973 },
+          "80-60": { "cumulative": 41908, "phase": 44058 },
+          "60-40": { "cumulative": 43287, "phase": 46370 },
+          "40-20": { "cumulative": 43920, "phase": 45937 },
+          "20-0": { "cumulative": 44234, "phase": 45539 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42905,
+          "benchmarkDps": 42912,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38676, "phase": 38676 },
-            "80-60": { "cumulative": 41264, "phase": 44138 },
-            "60-40": { "cumulative": 42522, "phase": 45410 },
-            "40-20": { "cumulative": 42407, "phase": 42067 },
-            "20-0": { "cumulative": 42905, "phase": 44980 }
+            "100-80": { "cumulative": 38684, "phase": 38684 },
+            "80-60": { "cumulative": 41268, "phase": 44138 },
+            "60-40": { "cumulative": 42526, "phase": 45410 },
+            "40-20": { "cumulative": 42415, "phase": 42090 },
+            "20-0": { "cumulative": 42912, "phase": 44984 }
           }
         }
       },
@@ -1014,25 +1014,25 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
-        "benchmarkDps": 40208,
+        "benchmarkDps": 40214,
         "upToDate": true,
         "benchmarkApm": 103.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35492, "phase": 35492 },
-          "80-60": { "cumulative": 37880, "phase": 40770 },
-          "60-40": { "cumulative": 38612, "phase": 40148 },
-          "40-20": { "cumulative": 39646, "phase": 43206 },
-          "20-0": { "cumulative": 40208, "phase": 42574 }
+          "100-80": { "cumulative": 35522, "phase": 35522 },
+          "80-60": { "cumulative": 37896, "phase": 40770 },
+          "60-40": { "cumulative": 38623, "phase": 40148 },
+          "40-20": { "cumulative": 39654, "phase": 43206 },
+          "20-0": { "cumulative": 40214, "phase": 42574 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 39646,
+          "benchmarkDps": 39657,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35221, "phase": 35221 },
-            "80-60": { "cumulative": 37473, "phase": 40063 },
-            "60-40": { "cumulative": 38019, "phase": 39223 },
-            "40-20": { "cumulative": 39146, "phase": 42948 },
-            "20-0": { "cumulative": 39646, "phase": 41777 }
+            "100-80": { "cumulative": 35250, "phase": 35250 },
+            "80-60": { "cumulative": 37489, "phase": 40063 },
+            "60-40": { "cumulative": 38037, "phase": 39245 },
+            "40-20": { "cumulative": 39160, "phase": 42948 },
+            "20-0": { "cumulative": 39657, "phase": 41777 }
           }
         }
       },
@@ -1094,25 +1094,25 @@
         "label": "Inferno Fox SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-evoker-se.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "benchmarkDps": 41012,
+        "benchmarkDps": 41014,
         "upToDate": false,
         "benchmarkApm": 104.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38080, "phase": 38080 },
-          "80-60": { "cumulative": 38803, "phase": 39561 },
-          "60-40": { "cumulative": 39641, "phase": 41449 },
-          "40-20": { "cumulative": 40925, "phase": 45205 },
-          "20-0": { "cumulative": 41012, "phase": 41012 }
+          "100-80": { "cumulative": 38089, "phase": 38089 },
+          "80-60": { "cumulative": 38807, "phase": 39561 },
+          "60-40": { "cumulative": 39644, "phase": 41449 },
+          "40-20": { "cumulative": 40927, "phase": 45205 },
+          "20-0": { "cumulative": 41014, "phase": 41014 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 39590,
+          "benchmarkDps": 39598,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 37581, "phase": 37581 },
-            "80-60": { "cumulative": 37801, "phase": 38025 },
-            "60-40": { "cumulative": 38777, "phase": 40896 },
-            "40-20": { "cumulative": 39282, "phase": 40850 },
-            "20-0": { "cumulative": 39590, "phase": 39590 }
+            "100-80": { "cumulative": 37589, "phase": 37589 },
+            "80-60": { "cumulative": 37806, "phase": 38025 },
+            "60-40": { "cumulative": 38780, "phase": 40896 },
+            "40-20": { "cumulative": 39289, "phase": 40873 },
+            "20-0": { "cumulative": 39598, "phase": 39598 }
           }
         }
       }
