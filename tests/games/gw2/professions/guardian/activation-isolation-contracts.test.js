@@ -382,9 +382,13 @@ test('Core Resolution cadence starts only through enabled triggers and admitted 
         {
           initialize(runtime) {
             const event = cause(0, { type: 'buff', kind: 'resolution', duration: 2, stacks: 1 });
-            runtime.effects.emit({ kind: 'packet', event });
+            const resolution = runtime.effects.emit({ kind: 'packet', event, receipt: true });
 
-            if (admitted) runtime.schedule('guardian.righteous-might', 1, { generation: 0, event });
+            // Admission owns the cadence's generation and its shared Resolution attribution, as a trigger start would.
+            if (admitted) {
+              runtime.profession.core.righteousInstinctsCause = resolution;
+              runtime.schedule('guardian.righteous-might', 1, { generation: 0 });
+            }
           }
         }
       );
