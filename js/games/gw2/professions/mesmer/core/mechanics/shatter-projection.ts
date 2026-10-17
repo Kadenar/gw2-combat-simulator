@@ -3,7 +3,7 @@ import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/condition-profiles.js';
 
 /** Share player-plus-clone packet expansion between execution and presentation without scheduling effects. */
 export function cloneShatterTier(shatter: MesmerShatter, skill: MesmerSkill, spent: number) {

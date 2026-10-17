@@ -22,7 +22,7 @@ import {
   resolvePlagueSignetTransfer,
   scheduleBloodIsPowerLaunch,
   scheduleDevouringDarkness
-} from '#gw2/professions/necromancer/core/mechanics/conditions.js';
+} from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import {
   enterLich,
   enterNecromancerShroud,

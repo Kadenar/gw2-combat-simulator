@@ -26,7 +26,7 @@ import {
   necromancerStrike,
   necromancerStrikePreparing
 } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
-import { transfer } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
+import { transfer } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { shroudEntered, shroudEntering, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {

@@ -20,7 +20,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/condition-profiles.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import {
   buildMesmerConditions,

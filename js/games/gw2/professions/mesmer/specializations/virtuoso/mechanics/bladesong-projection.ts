@@ -3,7 +3,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/condition-profiles.js';
 
 /** Resolve blade packets once for runtime and tooltips; defensive tiers retain hit-trait identity without damage. */
 export function bladesongTier(shatter: MesmerShatter, skill: MesmerSkill, spent: number) {

@@ -14,7 +14,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
+import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
